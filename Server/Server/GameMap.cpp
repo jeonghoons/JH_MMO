@@ -116,7 +116,7 @@ bool GameMap::LoadMapData(const string& fileName)
 
     // 1. 지형 데이터 (NavMesh) 로드 및 Bounds 동적 추출
     _navManager = std::make_unique<NavmeshManager>();
-    string navPath = "../" + fileName + "_Geo.nav";
+    string navPath = "Resource/Map/" + fileName + "_Geo.nav";
 
     if (!_navManager->LoadNavMesh(navPath, _minX, _maxX, _minY, _maxY)) {
         cout << "[GameMap] NavMesh 로드 실패: " << navPath << endl;
@@ -139,7 +139,8 @@ bool GameMap::LoadMapData(const string& fileName)
         cout << " - Grid Size: " << _gridWidth << " x " << _gridHeight << " cells" << endl;*/
     }
 
-    string logicPath = "../MapResource/ParagonSample/Logic/ParagonSample_Logic.bin";
+    
+    string logicPath = "../MapResource/Export/" + fileName + "/Logic/" + fileName + "_Logic.bin";
     std::ifstream file(logicPath, std::ios::binary);
     if (!file.is_open())
     {
