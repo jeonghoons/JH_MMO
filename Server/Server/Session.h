@@ -68,6 +68,11 @@ private:
 	RecvEvent		_recvEvent;
 	SendEvent		_sendEvent; // 패킷을 모아서 보내기 위해서 재사용
 
-	
+};
+
+struct PacketHeader
+{
+	uint16_t size;
+	uint16_t id;
 };
 

@@ -7,6 +7,13 @@
 #include <WS2tcpip.h>
 #include <MSWSock.h>
 #include <Windows.h>
+
+#ifdef _DEBUG
+#pragma comment(lib, "libprotobufd.lib")
+#else 
+#pragma comment(lib, "libprotobuf.lib")
+#endif 
+
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
 
@@ -35,7 +42,14 @@ using namespace DirectX;
 
 extern thread_local unsigned int Lthreadid;
 
-#include "TestProtocol.h"
+#pragma warning(push)
+#pragma warning(disable: 26495) // 초기화 안 됨(C26495) 경고 끄기
+#pragma warning(disable: 4251)  // dll-interface 경고 끄기
+#pragma warning(disable: 4100)  // 참조되지 않은 매개변수 경고 끄기
+#pragma warning(disable: 4946) // reinterpret_cast 경고 끄기
+#include "Protocol/Protocol.pb.h"
+#pragma warning(pop)
+
 #include "RWLock.h"
 #include "Room.h"
 #include "Timer.h"
@@ -44,6 +58,8 @@ extern thread_local unsigned int Lthreadid;
 #include "AuthLobby.h"
 #include "Utils.h"
 #include "ServerData.h"
+
+constexpr uint16_t PORT_NUM = 8888;
 
 
 extern unique_ptr<RoomManager> GRoomManager;

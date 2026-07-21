@@ -5,7 +5,7 @@
 class Character : public MovableObject
 {
 public:
-	Character(Object_Type type);
+	Character(Protocol::ObjectType type);
 	virtual ~Character() = default;
 
 public:

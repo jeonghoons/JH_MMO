@@ -1,70 +1,73 @@
 #pragma once
-#include "pch.h"
-#include "Room.h"
+
+class Room;
 
 class GameObject : public enable_shared_from_this<GameObject>
 {
 public:
 	GameObject() = default;
-	GameObject(Object_Type objectType);
-	virtual ~GameObject(){ _ownerRoom.reset(); }
+	explicit GameObject(Protocol::ObjectType objectType);
+	virtual ~GameObject() = default;
 
 public:
 	virtual void Update(float deltaTime) {}
 
-	shared_ptr<Room> GetCurrentRoom() const { return _ownerRoom.lock(); }
-	void SetOwnerRoom(shared_ptr<Room> room) { _ownerRoom = room; }
+	std::shared_ptr<Room> GetCurrentRoom() const { return _ownerRoom.lock(); }
+	void SetOwnerRoom(std::shared_ptr<Room> room) { _ownerRoom = room; }
 
-	PositionInfo& GetPosition() { return _objectInfo.position; }
-	const PositionInfo& GetPosition() const { return _objectInfo.position; }
-	void SetPosition(const PositionInfo& pos) { _objectInfo.position = pos; }
+	const Protocol::PositionInfo& GetPosition() const { return _objectInfo.position(); }
+	Protocol::PositionInfo* GetMutablePosition() { return _objectInfo.mutable_position(); }
+	void SetPosition(const Protocol::PositionInfo& pos) { _objectInfo.mutable_position()->CopyFrom(pos); }
 
-	Object_Type GetType() const { return _objectInfo.objectType; }
-	ObjectInfo& GetInfo() { return _objectInfo; }
-	
-	const ObjectInfo& GetInfo() const { return _objectInfo; }
-	void SetInfo(const ObjectInfo& info) { _objectInfo = info; }
+	Protocol::ObjectType GetType() const { return _objectInfo.object_type(); }
 
-	int GetId() const { return _objectInfo.id; }
-	void SetId(int id) { _objectInfo.id = id; }
+	const Protocol::ObjectInfo& GetInfo() const { return _objectInfo; }
+	Protocol::ObjectInfo* GetMutableInfo() { return &_objectInfo; }
+	void SetInfo(const Protocol::ObjectInfo& info) { _objectInfo.CopyFrom(info); }
 
-	unsigned int _last_moveTime{};
+	int GetId() const { return _objectInfo.id(); }
+	void SetId(int id) { _objectInfo.set_id(id); }
+
+	unsigned int GetLastMoveTime() const { return _lastMoveTime; }
+	void SetLastMoveTime(unsigned int time) { _lastMoveTime = time; }
+
 protected:
-	ObjectInfo		_objectInfo{};
-	weak_ptr<Room>	_ownerRoom;
+	Protocol::ObjectInfo _objectInfo{};
+	std::weak_ptr<Room>  _ownerRoom;
+	unsigned int         _lastMoveTime = 0;
 };
 
 class StaticObject : public GameObject
 {
 public:
-	StaticObject(Object_Type objectType) : GameObject(objectType) {}
+	explicit StaticObject(Protocol::ObjectType objectType) : GameObject(objectType) {}
 	virtual ~StaticObject() = default;
 };
 
 class MovableObject : public GameObject
 {
 public:
-	MovableObject(Object_Type objectType);
+	explicit MovableObject(Protocol::ObjectType objectType);
 	virtual ~MovableObject() = default;
 
 public:
 	virtual void Update(float deltaTime) override;
-	virtual bool Move(const XMFLOAT3& desPos);
+	virtual bool Move(const DirectX::XMFLOAT3& desPos);
 	virtual void StopMove();
 
 	void SetMaxSpeed(float maxSpeed) { _maxSpeed = maxSpeed; }
 	float GetCurrentSpeed() const { return _currentSpeed; }
-	XMFLOAT3 GetVelocity() const { return _velocity; }
+	DirectX::XMFLOAT3 GetVelocity() const { return _velocity; }
 
 private:
 	void ApplyMovement(float deltaTime);
 
 protected:
-	XMFLOAT3 _velocity = { 0.f, 0.f, 0.f }; // 현재 속도 벡터
-	XMFLOAT3 _moveDir = { 0.f, 0.f, 0.f };  // 현재 이동 방향 (정규화된 벡터)
+	DirectX::XMFLOAT3 _velocity = { 0.f, 0.f, 0.f };
+	DirectX::XMFLOAT3 _moveDir = { 0.f, 0.f, 0.f };
 
-	float _currentSpeed = 0.0f;    // 현재 속력
-	float _maxSpeed = 500.0f;        // 최대 도달 속력
-	
-	chrono::steady_clock::time_point _lastMoveTimePoint;
+	float _currentSpeed = 0.0f;
+	float _maxSpeed = 500.0f;
+
+	std::chrono::steady_clock::time_point _lastMoveTimePoint;
 };

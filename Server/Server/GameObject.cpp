@@ -1,12 +1,12 @@
 #include "pch.h"
 #include "GameObject.h"
 
-GameObject::GameObject(Object_Type objectType)
+GameObject::GameObject(Protocol::ObjectType objectType)
 {
-	_objectInfo.objectType = objectType;
+	_objectInfo.set_object_type(objectType);
 }
 
-MovableObject::MovableObject(Object_Type objectType)
+MovableObject::MovableObject(Protocol::ObjectType objectType)
     : GameObject(objectType)
 {
     _maxSpeed = 500.0f;
@@ -23,10 +23,10 @@ void MovableObject::Update(float deltaTime)
 
 bool MovableObject::Move(const XMFLOAT3& desPos)
 {
-    PositionInfo& pos = _objectInfo.position;
+    Protocol::PositionInfo* pos = _objectInfo.mutable_position();
 
     // 1. 현재 위치에서 목적지를 향하는 벡터 계산
-    XMVECTOR vCurr = XMVectorSet(pos.x, pos.y, pos.z, 0.0f);
+    XMVECTOR vCurr = XMVectorSet(pos->x(), pos->y(), pos->z(), 0.0f);
     XMVECTOR vDest = XMVectorSet(desPos.x, desPos.y, desPos.z, 0.0f);
     XMVECTOR vDir = XMVectorSubtract(vDest, vCurr);
 
@@ -46,13 +46,13 @@ bool MovableObject::Move(const XMFLOAT3& desPos)
     _velocity.y = _moveDir.y * _currentSpeed;
     _velocity.z = _moveDir.z * _currentSpeed;
 
-    pos.v_x = _velocity.x;
-    pos.v_y = _velocity.y;
-    pos.v_z = _velocity.z;
+    pos->set_v_x(_velocity.x);
+    pos->set_v_y(_velocity.y);
+    pos->set_v_z(_velocity.z);
 
     // 캐릭터가 바라보는 회전각도(Yaw) 갱신 (Z-up 기준)
-    pos.yaw = XMConvertToDegrees(atan2f(_moveDir.y, _moveDir.x));
-    pos.state = Move_State::RUN;
+    pos->set_yaw(XMConvertToDegrees(atan2f(_moveDir.y, _moveDir.x)));
+    pos->set_state(Protocol::MOVE_STATE_RUN);
 
     // 방향이 바뀌었으면 클라이언트에게 패킷을 쏘라고 알려줌
     return dirChanged;
@@ -60,47 +60,45 @@ bool MovableObject::Move(const XMFLOAT3& desPos)
 
 void MovableObject::StopMove()
 {
-    if (_objectInfo.position.state == Move_State::IDLE) return;
+    if (_objectInfo.position().state() == Protocol::MOVE_STATE_IDLE) return;
 
     _currentSpeed = 0.0f;
     _velocity = { 0.f, 0.f, 0.f };
     _moveDir = { 0.f, 0.f, 0.f };
 
-    PositionInfo& pos = _objectInfo.position;
-    pos.v_x = 0.f;
-    pos.v_y = 0.f;
-    pos.v_z = 0.f;
-    pos.state = Move_State::IDLE;
+    Protocol::PositionInfo* pos = _objectInfo.mutable_position();
+    pos->set_v_x(0.f);
+    pos->set_v_y(0.f);
+    pos->set_v_z(0.f);
+    pos->set_state(Protocol::MOVE_STATE_IDLE);
 }
 
 void MovableObject::ApplyMovement(float deltaTime)
 {
     if (_currentSpeed <= 0.0f) return;
 
-    PositionInfo& pos = _objectInfo.position;
+    Protocol::PositionInfo* pos = _objectInfo.mutable_position();
 
 	XMVECTOR vDir = XMLoadFloat3(&_moveDir);
 	XMVECTOR vVel = XMVectorScale(vDir, _currentSpeed);
 	XMStoreFloat3(&_velocity, vVel); // 계산된 최종 속도 저장
 
-	// 3. 물리 이동 연산 (현재 위치 + 속도 * 시간)
-	XMVECTOR vCurr = XMVectorSet(pos.x, pos.y, pos.z, 0);
+	// (현재 위치 + 속도 * 시간)
+	XMVECTOR vCurr = XMVectorSet(pos->x(), pos->y(), pos->z(), 0);
 	XMVECTOR nextPos = XMVectorMultiplyAdd(vVel, XMVectorReplicate(deltaTime), vCurr);
 
 	XMFLOAT3 finalPos;
 	XMStoreFloat3(&finalPos, nextPos);
 
-	pos.x = finalPos.x;
-	pos.y = finalPos.y;
-	pos.z = finalPos.z;
-
-	// 패킷 동기화용 데이터 세팅
-	pos.v_x = _velocity.x;
-	pos.v_y = _velocity.y;
-	pos.v_z = _velocity.z;
+    pos->set_x(finalPos.x);
+    pos->set_y(finalPos.y);
+    pos->set_z(finalPos.z);
+    pos->set_v_x(_velocity.x);
+    pos->set_v_y(_velocity.y);
+    pos->set_v_z(_velocity.z);
 
     auto now = chrono::steady_clock::now();
     _lastMoveTimePoint = now;
-    _last_moveTime = static_cast<unsigned int>(chrono::duration_cast<chrono::milliseconds>(now.time_since_epoch()).count());
+    _lastMoveTime = static_cast<unsigned int>(chrono::duration_cast<chrono::milliseconds>(now.time_since_epoch()).count());
 }
 

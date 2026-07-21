@@ -71,6 +71,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LibraryPath>$(SolutionDir)ThirdParty\ProtoBuf\Libs;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>$(SolutionDir)ThirdParty\ProtoBuf\Libs;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -115,7 +121,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\Detour\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\ProtoBuf\Include;$(SolutionDir)ThirdParty\Detour\Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +139,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\Detour\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\ProtoBuf\Include;$(SolutionDir)ThirdParty\Detour\Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,6 +150,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AuthLobby.h" />
+    <ClInclude Include="Protocol\Enum.pb.h" />
+    <ClInclude Include="Protocol\Protocol.pb.h" />
+    <ClInclude Include="Protocol\Struct.pb.h" />
     <ClInclude Include="ServerData.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="CombatProcessor.h" />
@@ -165,7 +174,6 @@
     <ClInclude Include="PacketSerializer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Player.h" />
-    <ClInclude Include="ProtocolSturct.h" />
     <ClInclude Include="RecvBuffer.h" />
     <ClInclude Include="Room.h" />
     <ClInclude Include="RWLock.h" />
@@ -173,7 +181,6 @@
     <ClInclude Include="ServerService.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="StatComponent.h" />
-    <ClInclude Include="TestProtocol.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
@@ -233,6 +240,18 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Protocol\Enum.pb.cc">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Protocol\Protocol.pb.cc">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Protocol\Struct.pb.cc">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="RecvBuffer.cpp" />
     <ClCompile Include="Room.cpp" />
     <ClCompile Include="RWLock.cpp" />
@@ -241,6 +260,11 @@
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Common\Protocol\Enum.proto" />
+    <None Include="..\..\Common\Protocol\Protocol.proto" />
+    <None Include="..\..\Common\Protocol\Struct.proto" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

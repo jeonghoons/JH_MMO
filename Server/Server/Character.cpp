@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Character.h"
 
-Character::Character(Object_Type type) : MovableObject(type)
+Character::Character(Protocol::ObjectType type) : MovableObject(type)
 {
 	
 }
@@ -19,7 +19,7 @@ bool Character::Attack(int& skillId)
 
 	if (skillId == 0)
 	{
-		skillId = (int)_objectInfo.playerType * 100 + 1; // 몬스터 기본 공격
+		skillId = (int)_objectInfo.player_type() * 100 + 1; // 몬스터 기본 공격
 	}
 
 	return true;

@@ -32,7 +32,11 @@ void Room::InitRoom()
 			shared_ptr<Monster> monster = make_shared<Monster>();
 			monster->SetId(MonsterIdGenerator());
 
-			PositionInfo spawnPos = { spawnPoints[i].X, spawnPoints[i].Y, spawnPoints[i].Z, spawnPoints[i].Yaw };
+			Protocol::PositionInfo spawnPos;
+			spawnPos.set_x(spawnPoints[i].X);
+			spawnPos.set_y(spawnPoints[i].Y);
+			spawnPos.set_z(spawnPoints[i].Z);
+			spawnPos.set_yaw(spawnPoints[i].Yaw);
 			monster->SetPosition(spawnPos);
 			NpcEnterRoom(monster);
 		}
@@ -69,21 +73,25 @@ bool Room::AddObject(shared_ptr<GameObject> object)
 	object->SetOwnerRoom(shared_from_this());
 
 	const auto& spawnPoints = _gameMap.GetSpawnPoints();
-	if (object->GetType() == Object_Type::Player) {
-		object->SetPosition({ spawnPoints[0].X, spawnPoints[0].Y, spawnPoints[0].Z});
-		
+	if (object->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) {
+		Protocol::PositionInfo spawnPos;
+		spawnPos.set_x(spawnPoints[0].X);
+		spawnPos.set_y(spawnPoints[0].Y);
+		spawnPos.set_z(spawnPoints[0].Z);
+		object->SetPosition(spawnPos);
+				
 		shared_ptr<Player> dummyPlayer = static_pointer_cast<Player>(object);
 		if (dummyPlayer->isDummy) {
 			dummyPlayer->SetPosition(_gameMap.GetNavManager()->GetRandomPosition());
 		}
 	}
 
-	PositionInfo currentPos = object->GetPosition();
+	Protocol::PositionInfo currentPos = object->GetPosition();
 
 	if (_gameMap.IsOutOfBounds(currentPos))
 	{
 		cout << "[경고] 오브젝트 스폰 위치가 맵(NavMesh) 바깥이거나 바닥이 없습니다! ID: " << objectId;
-		cout << ", " << currentPos.x << ", " << currentPos.y << ", " << currentPos.z << endl;
+		cout << ", " << currentPos.x() << ", " << currentPos.y() << ", " << currentPos.z() << endl;
 		
 	}
 
@@ -143,15 +151,16 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 
 }
 
-void Room::PlayerMove(shared_ptr<Player> player, PositionInfo position, bool force)
+void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, bool force)
 {
 	if (nullptr == Id2Player(player->GetId()))
 		return;
 
-	PositionInfo currentPos = player->GetPosition();
+	Protocol::PositionInfo currentPos = player->GetPosition();
 
 	if (player->isDummy) {
-		player->Move({ currentPos.x, currentPos.y, currentPos.z });
+		
+		player->Move({ currentPos.x(), currentPos.y(), currentPos.z()});
 	}
 
 	if (!_gameMap.CanMove(currentPos, position))
@@ -189,7 +198,7 @@ void Room::Broadcast(shared_ptr<SendBuffer> sendBuffer)
 
 void Room::BroadcastAOI(shared_ptr<Character> viewableObj, shared_ptr<SendBuffer> sendBuffer, bool sendToSelf)
 {
-	if (sendToSelf && viewableObj->GetType() == Object_Type::Player) {
+	if (sendToSelf && viewableObj->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) {
 		shared_ptr<Player> player = static_pointer_cast<Player>(viewableObj);
 		if (shared_ptr<Session> session = player->GetSession())
 			session->Send(sendBuffer);
@@ -213,16 +222,11 @@ void Room::PlayerChat(shared_ptr<Player> player, wstring msg)
 	if (chatLen >= MAX_CHAT_LEN) chatLen = MAX_CHAT_LEN - 1;
 	unsigned short packetSize = sizeof(PacketHeader) + sizeof(int) + ((chatLen + 1) * sizeof(wchar_t));
 	
-	SC_CHAT_PACKET packet;
-	packet.header = { packetSize, SC_CHAT };
-	packet.senderId = player->GetId();
-
-	wcscpy_s(packet.message, MAX_CHAT_LEN, msg.c_str());
+	Protocol::SC_CHAT_PACKET packet;
 
 	shared_ptr<SendBuffer> chatBuffer = make_shared<SendBuffer>(packetSize);
-	chatBuffer->CopyData(&packet, packetSize);
 	
-	Broadcast(chatBuffer);
+	// Broadcast(chatBuffer);
 }
 
 void Room::CharacterAttack(shared_ptr<Character> attacter, int skillId, int targetId)
@@ -292,7 +296,7 @@ void Room::NPCMove(shared_ptr<Monster> monster)
 	}
 }
 
-std::optional<PositionInfo> Room::GetObjectPosition(int objectId) const
+std::optional<Protocol::PositionInfo> Room::GetObjectPosition(int objectId) const
 {
 	if (shared_ptr<GameObject> object = GetGameObject(objectId)) {
 		return object->GetPosition();
@@ -305,8 +309,8 @@ void Room::UpdateView(shared_ptr<Character> subjectChar, const ViewUpdate& resul
 {
 	int subjectId = subjectChar->GetId();
 
-	bool isSubjectPlayer = (subjectChar->GetType() == Object_Type::Player);
-	bool isSubjectMonster = (subjectChar->GetType() == Object_Type::Monster);
+	bool isSubjectPlayer = (subjectChar->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER);
+	bool isSubjectMonster = (subjectChar->GetType() == Protocol::ObjectType::OBJECT_TYPE_MONSTER);
 
 	shared_ptr<Player> subjectPlayer = isSubjectPlayer ? static_pointer_cast<Player>(subjectChar) : nullptr;
 	shared_ptr<Monster> subjectMonster = isSubjectMonster ? static_pointer_cast<Monster>(subjectChar) : nullptr;
@@ -320,9 +324,9 @@ void Room::UpdateView(shared_ptr<Character> subjectChar, const ViewUpdate& resul
 		shared_ptr<GameObject> targetObj = GetGameObject(targetId);
 		if (!targetObj) continue;
 
-		Object_Type targetType = targetObj->GetType();
-		bool isTargetPlayer = (targetType == Object_Type::Player);
-		bool isTargetMonster = (targetType == Object_Type::Monster);
+		Protocol::ObjectType targetType = targetObj->GetType();
+		bool isTargetPlayer = (targetType == Protocol::ObjectType::OBJECT_TYPE_PLAYER);
+		bool isTargetMonster = (targetType == Protocol::ObjectType::OBJECT_TYPE_MONSTER);
 
 		if (isSubjectPlayer || (isSubjectMonster && isTargetPlayer))
 		{
@@ -363,9 +367,9 @@ void Room::UpdateView(shared_ptr<Character> subjectChar, const ViewUpdate& resul
 		shared_ptr<GameObject> targetObj = GetGameObject(targetId);
 		if (!targetObj) continue;
 
-		Object_Type targetType = targetObj->GetType();
-		bool isTargetPlayer = (targetType == Object_Type::Player);
-		bool isTargetMonster = (targetType == Object_Type::Monster);
+		Protocol::ObjectType targetType = targetObj->GetType();
+		bool isTargetPlayer = (targetType == Protocol::ObjectType::OBJECT_TYPE_PLAYER);
+		bool isTargetMonster = (targetType == Protocol::ObjectType::OBJECT_TYPE_MONSTER);
 
 		if (isSubjectPlayer || (isSubjectMonster && isTargetPlayer))
 		{

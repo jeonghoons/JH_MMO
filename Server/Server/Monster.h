@@ -55,7 +55,7 @@ public:
 	void UpdateAttack();
 	void UpdateHit();
 	
-	void SetPath(const std::vector<PositionInfo>& path);
+	void SetPath(const std::vector<Protocol::PositionInfo>& path);
 	
 private:
 	// A* 경로를 따라 걷는 물리 시뮬레이션
@@ -75,10 +75,10 @@ private:
 	Cooldown _attackTimer;
 	Cooldown _pathSearchTimer;
 
-	std::vector<PositionInfo> _path;
+	std::vector<Protocol::PositionInfo> _path;
 	int _pathIndex = 0;
 	bool _hasPath = false;
-	PositionInfo _lastTargetPos;
+	Protocol::PositionInfo _lastTargetPos;
 
 	float _traceRange = 800.f;
 	float _attackRange;

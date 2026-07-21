@@ -3,11 +3,14 @@
 #include "ServerService.h"
 #include "IocpCore.h"
 #include "Room.h"
+#include "PacketHandler.h"
 
 shared_ptr<Timer> GTimer = nullptr;
 shared_ptr<DatabaseWorker> GDBWorker = nullptr;
 unique_ptr<RoomManager> GRoomManager = nullptr;
 shared_ptr<AuthLobby> GLobby = nullptr;
+
+
 
 void worker_thread(shared_ptr<ServerService> service)
 {
@@ -31,7 +34,7 @@ int main()
 	else
 		cout << "Service Start" << endl;
 
-	
+	PacketHandler::Init();
 	GTimer = make_shared<Timer>();
 	GDBWorker = make_shared<DatabaseWorker>(service->GetIocpInstance()->GetHandle(), 6);
 	GRoomManager = make_unique<RoomManager>(service->GetIocpInstance()->GetHandle());

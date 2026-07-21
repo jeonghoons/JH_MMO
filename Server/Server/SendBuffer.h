@@ -9,13 +9,14 @@ public:
 
 	BYTE* Buffer() { return _buffer.data(); }
 	int WritePos() { return _writePos; }
-	int Capacity() { return static_cast<int>(_buffer.size()); }
+	int GetSize() const { return static_cast<int>(_buffer.size()); }
 
 	void CopyData(void* data, int len);
+	void Commit(int len);
 
 private:
 	vector<BYTE> _buffer;
-	int		_writePos{};
+	int		_writePos = 0;
 };
 
 class SendBufferQueue

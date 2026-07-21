@@ -1,0 +1,55 @@
+syntax = "proto3";
+package Protocol;
+
+enum PacketId {
+  PKT_NONE = 0;
+  
+  // Client -> Server
+  CS_LOGIN = 1000;
+  CS_SIGNUP = 1001;
+  CS_LOGOUT = 1002;
+  CS_CHAT = 1003;
+  CS_MOVE = 1004;
+  CS_CMOVE = 1005;      
+  CS_ENTER_ROOM = 1006;
+  CS_LEAVE_ROOM = 1007; 
+  CS_ATTACK = 1008;
+  
+  // Server -> Client (SC)
+  SC_LOGIN = 2000;
+  SC_SIGNUP = 2001;
+  SC_LOGOUT = 2002;
+  SC_ADD_OBJECT = 2003;
+  SC_REMOVE_OBJECT = 2004;
+  SC_CHAT = 2005;
+  SC_MOVE_OBJECT = 2006;
+  SC_CMOVE_OBJECT = 2007;
+  SC_ATTACK = 2008;
+  SC_DAMAGE = 2009;
+  SC_DEAD = 2010;
+}
+
+enum MoveState {
+  MOVE_STATE_NONE = 0;
+  MOVE_STATE_IDLE = 1;
+  MOVE_STATE_RUN = 2;
+  MOVE_STATE_JUMP = 3;
+  MOVE_STATE_ATTACK = 4;
+}
+
+enum ObjectType {
+  OBJECT_TYPE_NONE = 0;
+  OBJECT_TYPE_PLAYER = 1;
+  OBJECT_TYPE_MONSTER = 2;
+  OBJECT_TYPE_NPC = 3;
+  OBJECT_TYPE_ITEM = 4;
+  OBJECT_TYPE_ENVIRONMENT = 5;
+}
+
+enum PlayerType {
+  PLAYER_TYPE_NONE = 0;
+  PLAYER_TYPE_GREYSTONE = 1;
+  PLAYER_TYPE_SPARROW = 2;
+  PLAYER_TYPE_GIDEON = 3;
+  PLAYER_TYPE_MONSTER = 4;
+}

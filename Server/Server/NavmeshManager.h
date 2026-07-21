@@ -23,23 +23,23 @@ public:
 
 	bool LoadNavMesh(const std::string& path, float& outMinX, float& outMaxX, float& outMinY, float& outMaxY);
 
-	bool IsOutOfBounds(const PositionInfo& pos);
+	bool IsOutOfBounds(const Protocol::PositionInfo& pos);
 
-	bool CanMove(const PositionInfo& startPos, const PositionInfo& destPos);
+	bool CanMove(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos);
 
-	bool FindPath(const PositionInfo& startPos, const PositionInfo& destPos, std::vector<PositionInfo>& outPath);
+	bool FindPath(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos, std::vector<Protocol::PositionInfo>& outPath);
 	
-	bool RayCast(const PositionInfo& startPos, const PositionInfo& destPos);
+	bool RayCast(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos);
 
 	static float GetRandomFloat()
 	{
 		return (float)rand() / (float)RAND_MAX;
 	}
-	PositionInfo GetRandomPosition();
+	Protocol::PositionInfo GetRandomPosition();
 private:
 	// 언리얼(Z-up) <-> Detour(Y-up) 좌표 변환 유틸리티
-	void UeToDetour(const PositionInfo& uePos, float* detourPos);
-	void DetourToUe(const float* detourPos, PositionInfo& uePos);
+	void UeToDetour(const Protocol::PositionInfo& uePos, float* detourPos);
+	void DetourToUe(const float* detourPos, Protocol::PositionInfo& uePos);
 
 private:
 	dtNavMesh* _navMesh = nullptr;

@@ -84,22 +84,22 @@ bool NavmeshManager::LoadNavMesh(const std::string& path, float& outMinX, float&
 	return true;
 }
 
-void NavmeshManager::UeToDetour(const PositionInfo& uePos, float* detourPos)
+void NavmeshManager::UeToDetour(const Protocol::PositionInfo& uePos, float* detourPos)
 {
 	// 기존 제공해주신 매핑 기준: X->Z, Y->X, Z->Y (Y-up 변환)
-	detourPos[0] = uePos.y;
-	detourPos[1] = uePos.z;
-	detourPos[2] = -uePos.x;
+	detourPos[0] = uePos.y();
+	detourPos[1] = uePos.z();
+	detourPos[2] = -uePos.x();
 }
 
-void NavmeshManager::DetourToUe(const float* detourPos, PositionInfo& uePos)
+void NavmeshManager::DetourToUe(const float* detourPos, Protocol::PositionInfo& uePos)
 {
-	uePos.x = -detourPos[2];
-	uePos.y = detourPos[0];
-	uePos.z = detourPos[1];
+	uePos.set_x(-detourPos[2]);
+	uePos.set_y(detourPos[0]);
+	uePos.set_z(detourPos[1]);
 }
 
-bool NavmeshManager::IsOutOfBounds(const PositionInfo& pos)
+bool NavmeshManager::IsOutOfBounds(const Protocol::PositionInfo& pos)
 {
 	if (!_navQuery) return true; // 네비메시가 없으면 기본적으로 못 감
 
@@ -115,7 +115,7 @@ bool NavmeshManager::IsOutOfBounds(const PositionInfo& pos)
 	return (nearestRef == 0); // 폴리곤을 못 찾으면 맵 바깥임
 }
 
-bool NavmeshManager::CanMove(const PositionInfo& startPos, const PositionInfo& destPos)
+bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos)
 {
 	if (!_navQuery) return false;
 
@@ -159,7 +159,7 @@ bool NavmeshManager::CanMove(const PositionInfo& startPos, const PositionInfo& d
 	return false;
 }
 
-bool NavmeshManager::FindPath(const PositionInfo& startPos, const PositionInfo& destPos, std::vector<PositionInfo>& outPath)
+bool NavmeshManager::FindPath(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos, std::vector<Protocol::PositionInfo>& outPath)
 {
 	if (!_navQuery) return false;
 
@@ -188,7 +188,7 @@ bool NavmeshManager::FindPath(const PositionInfo& startPos, const PositionInfo& 
 			straightPath, nullptr, nullptr, &straightPathCount, 256);
 
 		for (int i = 0; i < straightPathCount; ++i) {
-			PositionInfo point;
+			Protocol::PositionInfo point;
 			DetourToUe(&straightPath[i * 3], point);
 			outPath.push_back(point);
 		}
@@ -197,7 +197,7 @@ bool NavmeshManager::FindPath(const PositionInfo& startPos, const PositionInfo& 
 	return false;
 }
 
-bool NavmeshManager::RayCast(const PositionInfo& startPos, const PositionInfo& destPos)
+bool NavmeshManager::RayCast(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos)
 {
 	if (!_navQuery) return false;
 
@@ -234,9 +234,9 @@ bool NavmeshManager::RayCast(const PositionInfo& startPos, const PositionInfo& d
 	return false;
 }
 
-PositionInfo NavmeshManager::GetRandomPosition()
+Protocol::PositionInfo NavmeshManager::GetRandomPosition()
 {
-	PositionInfo outPos{}; // 실패 시 기본값
+	Protocol::PositionInfo outPos{}; // 실패 시 기본값
 
 	if (!_navQuery || !_navMesh) return outPos;
 

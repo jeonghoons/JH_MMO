@@ -16,3 +16,8 @@ void SendBuffer::CopyData(void* data, int len)
 	memcpy(_buffer.data(), data, len);
 	_writePos = len;
 }
+
+void SendBuffer::Commit(int len)
+{
+	_writePos = len;
+}

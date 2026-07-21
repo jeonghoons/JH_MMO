@@ -5,6 +5,9 @@
 #include "Timer.h"
 #include "GameMap.h"
 
+constexpr int MAX_ROOM_CAPACITY = 1000;
+constexpr int MAX_CHAT_LEN = 100;
+
 class Session;
 class SendBuffer;
 class GameObject;
@@ -45,13 +48,13 @@ public:
 		}
 		return it->second;
 	}
-	optional<PositionInfo> GetObjectPosition(int objectId) const;
+	optional<Protocol::PositionInfo> GetObjectPosition(int objectId) const;
 	void UpdateView(shared_ptr<Character> subjectChar, const ViewUpdate& result);
 
 	// Player
 	void PlayerEnterRoom(shared_ptr<Player> player);	
 	void PlayerLeaveRoom(shared_ptr<Player> player);
-	void PlayerMove(shared_ptr<Player> player, PositionInfo position, bool force);
+	void PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, bool force);
 	void Broadcast(shared_ptr<SendBuffer> sendBuffer);
 	void BroadcastAOI(shared_ptr<class Character> viewableObj, shared_ptr<SendBuffer> sendBuffer, bool sendToSelf = false);
 
@@ -69,8 +72,7 @@ public:
 		return ++_midGenerator;
 	}
 	NavmeshManager* GetNavManager() { return _gameMap.GetNavManager(); }
-	const GameMap& GetGameMap() const { return _gameMap; } 
-	
+	const GameMap& GetGameMap() const { return _gameMap; }
 	shared_ptr<Player> Id2Player(int pId);
 	shared_ptr<Monster> Id2Monster(int mId);
 
@@ -99,13 +101,13 @@ public:
 	void Remove(shared_ptr<Room> room);
 
 	void EnterPlayer(shared_ptr<Player> player);
-	
+
 	int IdGenerator();
 
 public:
-	
+
 	RWLock				_lock;
-	
+
 	unordered_map<int, shared_ptr<Room>> _rooms;
 
 	HANDLE _iocpHandle;

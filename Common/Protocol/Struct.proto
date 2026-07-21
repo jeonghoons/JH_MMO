@@ -1,0 +1,33 @@
+syntax = "proto3";
+package Protocol;
+
+import "Enum.proto";
+
+message PositionInfo {
+	float x = 1;
+  float y = 2;
+  float z = 3;
+  float yaw = 4;
+  float v_x = 5;
+  float v_y = 6;
+  float v_z = 7;
+  MoveState state = 8;
+}
+
+message StatInfo {
+  int32 max_hp = 1;
+  int32 hp = 2;
+  int32 attack_damage = 3;
+  float attack_speed = 4;
+  float move_speed = 5;
+}
+
+
+message ObjectInfo {
+  int32 id = 1;
+  ObjectType object_type = 2;
+  PlayerType player_type = 3;
+  PositionInfo position = 4;
+  StatInfo stat = 5;
+}
+

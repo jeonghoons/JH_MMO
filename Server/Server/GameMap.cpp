@@ -2,15 +2,15 @@
 #include "GameMap.h"
 #include <fstream>
 
-CellPos GameMap::ToCellPos(const PositionInfo& pos) const
+CellPos GameMap::ToCellPos(const Protocol::PositionInfo& pos) const
 {
-    int x_index = static_cast<int>((pos.x - _minX) / CELL_SIZE);
-    int y_index = static_cast<int>((pos.y - _minY) / CELL_SIZE);
+    int x_index = static_cast<int>((pos.x() - _minX) / CELL_SIZE);
+    int y_index = static_cast<int>((pos.y() - _minY) / CELL_SIZE);
 
     return { x_index, y_index };
 }
 
-ViewUpdate GameMap::EnterMap(int objectId, const PositionInfo& pos)
+ViewUpdate GameMap::EnterMap(int objectId, const Protocol::PositionInfo& pos)
 {
     CellPos cellPos = ToCellPos(pos);
     _grid[cellPos.y][cellPos.x].objectIds.push_back(objectId);
@@ -25,7 +25,7 @@ ViewUpdate GameMap::EnterMap(int objectId, const PositionInfo& pos)
     return result;
 }
 
-ViewUpdate GameMap::UpdateMap(int objectId, const PositionInfo& pos)
+ViewUpdate GameMap::UpdateMap(int objectId, const Protocol::PositionInfo& pos)
 {
     CellPos newPos = ToCellPos(pos);
     CellPos oldPos = _id2CellPos[objectId];
@@ -165,12 +165,12 @@ bool GameMap::LoadMapData(const string& fileName)
     return isSuccess;
 }
 
-bool GameMap::CanMove(const PositionInfo& from, const PositionInfo& to) const
+bool GameMap::CanMove(const Protocol::PositionInfo& from, const Protocol::PositionInfo& to) const
 {
     return _navManager->CanMove(from, to);
 }
 
-bool GameMap::IsOutOfBounds(const PositionInfo& pos) const
+bool GameMap::IsOutOfBounds(const Protocol::PositionInfo& pos) const
 {
     return _navManager->IsOutOfBounds(pos);
 }
@@ -184,7 +184,7 @@ std::optional<ServerSpawnPoint> GameMap::GetSpawnPoint(int index) const
     return std::nullopt;
 }
 
-PositionInfo GameMap::GetRandomPosInCell(const PositionInfo& pos) const
+Protocol::PositionInfo GameMap::GetRandomPosInCell(const Protocol::PositionInfo& pos) const
 {
     CellPos cellPos = ToCellPos(pos);
 
@@ -198,7 +198,10 @@ PositionInfo GameMap::GetRandomPosInCell(const PositionInfo& pos) const
         float randX = Utils::GetRandom<float>(cellMinX + margin, cellMinX + CELL_SIZE - margin);
         float randY = Utils::GetRandom<float>(cellMinY + margin, cellMinY + CELL_SIZE - margin);
 
-        PositionInfo randomDest{ randX, randY, pos.z };
+        Protocol::PositionInfo randomDest;
+        randomDest.set_x(randX);
+        randomDest.set_y(randY);
+        randomDest.set_x(pos.z());
 
         // IsOutOfBounds가 false(즉, 정상적인 NavMesh 위)일 경우에만 반환
         if (CanMove(pos, randomDest))

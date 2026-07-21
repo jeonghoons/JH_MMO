@@ -37,20 +37,20 @@ public:
     void Init(weak_ptr<Room> room) { _ownerRoom = room; }
 
 public:    
-    ViewUpdate EnterMap(int objectId, const PositionInfo& pos);
-    ViewUpdate UpdateMap(int objectId, const PositionInfo& pos);
+    ViewUpdate EnterMap(int objectId, const Protocol::PositionInfo& pos);
+    ViewUpdate UpdateMap(int objectId, const Protocol::PositionInfo& pos);
     ViewUpdate LeaveMap(int objectId);
 
     bool LoadMapData(const string& fileName);
     const vector<ServerSpawnPoint>& GetSpawnPoints() const { return _spawnPoints; }
     std::optional<ServerSpawnPoint> GetSpawnPoint(int index) const;
-    bool CanMove(const PositionInfo& from, const PositionInfo& to) const;
-    bool IsOutOfBounds(const PositionInfo& pos) const;
+    bool CanMove(const Protocol::PositionInfo& from, const Protocol::PositionInfo& to) const;
+    bool IsOutOfBounds(const Protocol::PositionInfo& pos) const;
 
     NavmeshManager* GetNavManager() { return _navManager.get(); }
-    PositionInfo GetRandomPosInCell(const PositionInfo& pos) const;
+    Protocol::PositionInfo GetRandomPosInCell(const Protocol::PositionInfo& pos) const;
 private:
-    CellPos ToCellPos(const PositionInfo& pos) const;
+    CellPos ToCellPos(const Protocol::PositionInfo& pos) const;
     void CollectObject(CellPos pos, vector<int>& outList) const;
     vector<CellPos> GetNeighborCells(CellPos pos) const;
 

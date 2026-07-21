@@ -4,69 +4,53 @@
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ADD_OBJECT(shared_ptr<GameObject> object)
 {
-	SC_ADD_OBJECT_PACKET packet;
-	packet.header = { sizeof(packet), SC_ADD_OBJECT };
-	packet.objectInfo = object->GetInfo();
-	shared_ptr<SendBuffer> sendBuffer = make_shared<SendBuffer>(sizeof(packet));
-	sendBuffer->CopyData(&packet, packet.header.size);
-
-	
-	return sendBuffer;
+	Protocol::SC_ADD_OBJECT_PACKET packet;
+	packet.mutable_object_info()->CopyFrom(object->GetInfo());
+	return MakeSendBuffer(packet, Protocol::SC_ADD_OBJECT);
 }
 
-shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_REMOVE_OBJECT(int ObjectId)
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_REMOVE_OBJECT(int objectId)
 {
-	SC_REMOVE_OBJECT_PACKET packet;
-	packet.header = { sizeof(packet), SC_REMOVE_OBJECT };
-	packet.objectId = ObjectId;
-	shared_ptr<SendBuffer> sendBuffer = make_shared<SendBuffer>(sizeof(packet));
-	sendBuffer->CopyData(&packet, packet.header.size);
-	return sendBuffer;
+	Protocol::SC_REMOVE_OBJECT_PACKET packet; 
+	packet.set_object_id(objectId);
+	return MakeSendBuffer(packet, Protocol::SC_REMOVE_OBJECT);
 }
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_ptr<GameObject> object)
 {
-	SC_MOVE_PACKET packet;
-	packet.header = { sizeof(packet), SC_MOVE_OBJECT };
-	packet.objectInfo = object->GetInfo();
-	packet.move_time = object->_last_moveTime;
-	shared_ptr<SendBuffer> sendBuffer = make_shared<SendBuffer>(sizeof(packet));
-	sendBuffer->CopyData(&packet, packet.header.size);
-	return sendBuffer;
+	Protocol::SC_MOVE_PACKET packet;
+	packet.mutable_object_info()->CopyFrom(object->GetInfo());
+	packet.set_move_time(object->GetLastMoveTime());
+
+	return MakeSendBuffer(packet, Protocol::SC_MOVE_OBJECT);
 }
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ATTACK(int attackerId, int skillId, int targetId)
 {
-	SC_ATTACK_PACKET packet;
-	packet.header = { sizeof(packet), SC_ATTACK };
-	packet.attackerId = attackerId;
-	packet.skillId = skillId;
-	packet.targetId = targetId;
-	shared_ptr<SendBuffer> sendBuffer = make_shared<SendBuffer>(sizeof(packet));
-	sendBuffer->CopyData(&packet, packet.header.size);
-	return sendBuffer;
+	Protocol::SC_ATTACK_PACKET packet;
+	packet.set_attacker_id(attackerId);
+	packet.set_skill_id(skillId);
+	packet.set_target_id(targetId);
+
+	return MakeSendBuffer(packet, Protocol::SC_ATTACK);
 }
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_DAMAGE(int attackerId, int targetId, int damage, int remainHp)
 {
-	SC_DAMAGE_PACKET packet;
-	packet.header = { sizeof(packet), SC_DAMAGE };
-	packet.attackerId = attackerId;
-	packet.targetId = targetId;
-	packet.damage = damage;
-	packet.remainHp = remainHp;
-	shared_ptr<SendBuffer> sendBuffer = make_shared<SendBuffer>(sizeof(packet));
-	sendBuffer->CopyData(&packet, packet.header.size);
-	return sendBuffer;
+	Protocol::SC_DAMAGE_PACKET packet;
+	packet.set_attacker_id(attackerId);
+	packet.set_target_id(targetId);
+	packet.set_damage(damage);
+	packet.set_remain_hp(remainHp);
+
+	return MakeSendBuffer(packet, Protocol::SC_DAMAGE);
 }
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_DEAD(int objectId)
 {
-	SC_DEAD_PACKET packet;
-	packet.header = { sizeof(packet), SC_DEAD };
-	packet.objectId = objectId;
-	shared_ptr<SendBuffer> sendBuffer = make_shared<SendBuffer>(sizeof(packet));
-	sendBuffer->CopyData(&packet, packet.header.size);
-	return sendBuffer;
+	Protocol::SC_DEAD_PACKET packet;
+	packet.set_object_id(objectId);
+
+	return MakeSendBuffer(packet, Protocol::SC_DEAD);
 }
 

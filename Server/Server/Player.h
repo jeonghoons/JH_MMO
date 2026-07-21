@@ -8,7 +8,7 @@ class Player : public Character
 {
 public:
 	// Player();
-	Player(shared_ptr<Session> ownerSession, PlayerType type);
+	Player(shared_ptr<Session> ownerSession, Protocol::PlayerType type);
 	virtual ~Player();
 
 public:
@@ -25,7 +25,7 @@ public:
 	DB_PlayerData GetCurrentDbData();
 	int64_t GetPlayerUID() const { return _dbPlayerInfo.playerUID; }
 
-	void SetPlayerType(PlayerType type) { _objectInfo.playerType = type; }
+	void SetPlayerType(Protocol::PlayerType type) { _objectInfo.set_player_type(type); }
 	bool isDummy = false;
 
 private:

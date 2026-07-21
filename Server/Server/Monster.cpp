@@ -5,18 +5,22 @@
 #include "NavmeshManager.h"
 #include "ServerData.h"
 
-Monster::Monster() : Character(Object_Type::Monster)
+Monster::Monster() : Character(Protocol::ObjectType::OBJECT_TYPE_MONSTER)
 {
-	_objectInfo.playerType = PlayerType::Monster;
+	_objectInfo.set_player_type(Protocol::PLAYER_TYPE_MONSTER);
 	
-	const CharacterData* statData = DataManager::GetCharacterData((int)_objectInfo.playerType);
+	const CharacterData* statData = DataManager::GetCharacterData((int)_objectInfo.player_type());
 	if (statData) {
-		_objectInfo.stat = { statData->maxHp, statData->hp, statData->attackDamage, statData->attackSpeed, statData->moveSpeed };
+		Protocol::StatInfo* stat = _objectInfo.mutable_stat();
+		stat->set_max_hp(statData->maxHp);
+		stat->set_hp(statData->hp);
+		stat->set_attack_damage(statData->attackDamage);
+		stat->set_attack_speed(statData->attackSpeed);
+		stat->set_move_speed(statData->moveSpeed);
+		_statInfo.Init(stat);
 	}
-
-	_statInfo.Init(&_objectInfo.stat);
 	
-	int myBasicAttackId = (int)_objectInfo.playerType * 100 + 1;
+	int myBasicAttackId = (int)_objectInfo.player_type() * 100 + 1;
 	if (const SkillData* skill = DataManager::GetSkillData(myBasicAttackId)) {
 		_attackRange = skill->radius;
 	}
@@ -46,7 +50,7 @@ void Monster::Update(float deltaTime)
 		FollowPath(deltaTime);
 	}
 
-	if (_objectInfo.position.state == Move_State::RUN)
+	if (_objectInfo.position().state() == Protocol::MoveState::MOVE_STATE_RUN)
 	{
 		if (auto room = GetCurrentRoom()) {
 			room->NPCMove(std::static_pointer_cast<Monster>(shared_from_this()));
@@ -62,7 +66,7 @@ void Monster::OnDamaged(int damage, std::shared_ptr<Character> attacker)
 
 	ChangeState(MonsterState::HIT);
 
-	if (attacker->GetType() == Object_Type::Player) {
+	if (attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) {
 		_targetPlayer = std::static_pointer_cast<Player>(attacker);
 		ChangeState(MonsterState::TRACE);
 	}
@@ -120,12 +124,12 @@ void Monster::UpdatePatrol()
 	for (int objectId : _viewList)
 	{
 		auto object = room->GetGameObject(objectId);
-		if (!object || object->GetType() != Object_Type::Player) continue;
+		if (!object || object->GetType() != Protocol::ObjectType::OBJECT_TYPE_PLAYER) continue;
 
-		auto player = std::static_pointer_cast<Player>(object);
+		shared_ptr<Player> player = std::static_pointer_cast<Player>(object);
 
-		float diffX = player->GetPosition().x - GetPosition().x;
-		float diffY = player->GetPosition().y - GetPosition().y;
+		float diffX = player->GetPosition().x() - GetPosition().x();
+		float diffY = player->GetPosition().y() - GetPosition().y();
 		float distSq = diffX * diffX + diffY * diffY;
 
 		if (distSq < currentMinDistSq && distSq <= traceRangeSq && !player->GetStat().IsDead())
@@ -144,10 +148,10 @@ void Monster::UpdatePatrol()
 
 	if (!_hasPath && _patrolTimer.IsReady())
 	{
-		PositionInfo randomDest = room->GetGameMap().GetRandomPosInCell(GetPosition());
+		Protocol::PositionInfo randomDest = room->GetGameMap().GetRandomPosInCell(_objectInfo.position());
 
-		std::vector<PositionInfo> newPath;
-		if (room->GetNavManager()->FindPath(GetPosition(), randomDest, newPath))
+		std::vector<Protocol::PositionInfo> newPath;
+		if (room->GetNavManager()->FindPath(_objectInfo.position(), randomDest, newPath))
 		{
 			/*cout << "NPC[" << _objectInfo.id << "] : " << GetPosition().x << ", " << GetPosition().y << ", " << GetPosition().z
 				<< " -> " << randomDest.x << ", " << randomDest.y << "," << randomDest.z << endl;*/
@@ -164,7 +168,7 @@ void Monster::UpdatePatrol()
 
 void Monster::UpdateTrace()
 {
-	auto target = _targetPlayer.lock();
+	shared_ptr<Player> target = _targetPlayer.lock();
 	if (target == nullptr || target->GetStat().IsDead())
 	{
 		_targetPlayer.reset();
@@ -172,8 +176,8 @@ void Monster::UpdateTrace()
 		return;
 	}
 
-	float diffX = target->GetPosition().x - _objectInfo.position.x;
-	float diffY = target->GetPosition().y - _objectInfo.position.y;
+	float diffX = target->GetPosition().x() - _objectInfo.position().x();
+	float diffY = target->GetPosition().y() - _objectInfo.position().y();
 	float distSq = diffX * diffX + diffY * diffY;
 
 	if (distSq > _traceRange * _traceRange)
@@ -188,14 +192,14 @@ void Monster::UpdateTrace()
 		ChangeState(MonsterState::ATTACK);
 		return;
 	}
-	float targetMovedDistSq = pow(target->GetPosition().x - _lastTargetPos.x, 2) + pow(target->GetPosition().y - _lastTargetPos.y, 2);
+	float targetMovedDistSq = pow(target->GetPosition().x() - _lastTargetPos.x(), 2) + pow(target->GetPosition().y() - _lastTargetPos.y(), 2);
 
 	if ((!_hasPath || targetMovedDistSq > 10000.f) && _pathSearchTimer.IsReady())
 	{
 		auto room = GetCurrentRoom();
 		if (room && room->GetNavManager())
 		{
-			std::vector<PositionInfo> newPath;
+			std::vector<Protocol::PositionInfo> newPath;
 			if (room->GetNavManager()->FindPath(GetPosition(), target->GetPosition(), newPath))
 			{
 				SetPath(newPath);
@@ -219,8 +223,8 @@ void Monster::UpdateAttack()
 		return;
 	}
 
-	float diffX = target->GetPosition().x - _objectInfo.position.x;
-	float diffY = target->GetPosition().y - _objectInfo.position.y;
+	float diffX = target->GetPosition().x() - _objectInfo.position().x();
+	float diffY = target->GetPosition().y() - _objectInfo.position().y();
 	float distSq = diffX * diffX + diffY * diffY;
 
 	// 거리가 멀어지면 다시 추적
@@ -232,14 +236,15 @@ void Monster::UpdateAttack()
 
 	if (_attackTimer.IsReady())
 	{
-		int myBasicAttackId = (int)_objectInfo.playerType * 100 + 1;
+		int myBasicAttackId = (int)_objectInfo.player_type() * 100 + 1;
 		const SkillData* skill = DataManager::GetSkillData(myBasicAttackId);
 		long long baseCooldownMs = skill ? skill->cooldownMs : 1000;
 		float statAttackSpeed = _statInfo.GetAttackSpeed();
 		long long finalCooldownMs = static_cast<long long>(baseCooldownMs / (statAttackSpeed > 0.f ? statAttackSpeed : 1.f));
 
 		_attackTimer.Reset(finalCooldownMs);
-		_objectInfo.position.yaw = XMConvertToDegrees(atan2f(diffY, diffX));
+		_objectInfo.mutable_position()->set_yaw(XMConvertToDegrees(atan2f(diffY, diffX)));
+
 
 		if (shared_ptr<Room> room = GetCurrentRoom()) {
 			room->CharacterAttack(static_pointer_cast<Character>(shared_from_this()), 0, target->GetId());
@@ -256,7 +261,7 @@ void Monster::UpdateHit()
 	ChangeState(MonsterState::NONE);
 }
 
-void Monster::SetPath(const std::vector<PositionInfo>& path)
+void Monster::SetPath(const std::vector<Protocol::PositionInfo>& path)
 {
 	_path = path;
 	_pathIndex = 0;
@@ -265,13 +270,13 @@ void Monster::SetPath(const std::vector<PositionInfo>& path)
 	}
 	else {
 		_hasPath = true;
-		_objectInfo.position.state = Move_State::RUN;
+		_objectInfo.mutable_position()->set_state(Protocol::MOVE_STATE_RUN);
 	}
 }
 
 void Monster::StopMove()
 {
-	if (_objectInfo.position.state == Move_State::IDLE) return;
+	if (_objectInfo.position().state() == Protocol::MoveState::MOVE_STATE_IDLE) return;
 
 	_hasPath = false;
 	MovableObject::StopMove();
@@ -312,14 +317,14 @@ void Monster::FollowPath(float deltaTime)
 {
 	if (!_hasPath || _pathIndex >= _path.size()) return;
 
-	PositionInfo& pos = _objectInfo.position;
+	const Protocol::PositionInfo& pos = _objectInfo.position();
 
 	while (_pathIndex < _path.size())
 	{
-		PositionInfo& targetPos = _path[_pathIndex];
+		Protocol::PositionInfo& targetPos = _path[_pathIndex];
 
-		XMVECTOR vCurr = XMVectorSet(pos.x, pos.y, pos.z, 0.0f);
-		XMVECTOR vDest = XMVectorSet(targetPos.x, targetPos.y, targetPos.z, 0.0f);
+		XMVECTOR vCurr = XMVectorSet(pos.x(), pos.y(), pos.z(), 0.0f);
+		XMVECTOR vDest = XMVectorSet(targetPos.x(), targetPos.y(), targetPos.z(), 0.0f);
 		float dist = XMVectorGetX(XMVector3Length(XMVectorSubtract(vDest, vCurr)));
 
 		if (dist < 50.0f)
@@ -328,7 +333,7 @@ void Monster::FollowPath(float deltaTime)
 		}
 		else
 		{
-			XMFLOAT3 desPos = { targetPos.x, targetPos.y, targetPos.z };
+			XMFLOAT3 desPos = { targetPos.x(), targetPos.y(), targetPos.z()};
 
 			if (Move(desPos))
 			{

@@ -35,9 +35,6 @@ void Session::Dispatch(IocpEvent* iocpEvent, int numBytes)
 	case EventType::Send:
 		ProcessSend(numBytes);
 		break;
-	case EventType::DBResult:
-		ProcessDBEvent();
-		break;
 
 	default:
 		cout << "Undefined Event" << endl;
@@ -113,7 +110,6 @@ void Session::ProcessPacket(BYTE* buffer, int len)
 	shared_ptr<Session> session = static_pointer_cast<Session>(shared_from_this());
 	
 	PacketHandler::ProcessPacket(session, buffer, len);
-
 }
 
 void Session::RegisterRecv()

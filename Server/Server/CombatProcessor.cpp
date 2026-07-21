@@ -12,7 +12,7 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 	const SkillData* skillData = DataManager::GetSkillData(skillId);
 	if (skillData == nullptr) return;
 
-	Object_Type targetTypeToFind = (attacker->GetType() == Object_Type::Player) ? Object_Type::Monster : Object_Type::Player;
+	Protocol::ObjectType targetTypeToFind = (attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) ? Protocol::ObjectType::OBJECT_TYPE_MONSTER : Protocol::ObjectType::OBJECT_TYPE_PLAYER;
 
 	std::shared_ptr<Character> closestProjTarget = nullptr;
 	float minProjDistSq = FLT_MAX;
@@ -42,8 +42,8 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 			{
 				if (skillData->hitShape == HitShape::Projectile)
 				{
-					float diffX = targetChar->GetPosition().x - attacker->GetPosition().x;
-					float diffY = targetChar->GetPosition().y - attacker->GetPosition().y;
+					float diffX = targetChar->GetPosition().x() - attacker->GetPosition().x();
+					float diffY = targetChar->GetPosition().y() - attacker->GetPosition().y();
 					float distSq = (diffX * diffX) + (diffY * diffY);
 
 					if (distSq < minProjDistSq)

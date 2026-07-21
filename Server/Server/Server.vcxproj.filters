@@ -34,6 +34,9 @@
     <Filter Include="Contents\GameRoom">
       <UniqueIdentifier>{827cae39-ed73-4845-97b7-93a9fac3dbae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Contents\Data">
+      <UniqueIdentifier>{bc0c4a54-8717-4971-82fb-ce50086550e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -147,6 +150,15 @@
     <ClCompile Include="AuthLobby.cpp">
       <Filter>Contents</Filter>
     </ClCompile>
+    <ClCompile Include="Protocol\Enum.pb.cc">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Protocol\Protocol.pb.cc">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Protocol\Struct.pb.cc">
+      <Filter>Protocol</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -173,9 +185,6 @@
     <ClInclude Include="NetAddress.h">
       <Filter>NetWork</Filter>
     </ClInclude>
-    <ClInclude Include="TestProtocol.h">
-      <Filter>Protocol</Filter>
-    </ClInclude>
     <ClInclude Include="SendBuffer.h">
       <Filter>NetWork</Filter>
     </ClInclude>
@@ -184,9 +193,6 @@
     </ClInclude>
     <ClInclude Include="RWLock.h">
       <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="ProtocolSturct.h">
-      <Filter>Protocol</Filter>
     </ClInclude>
     <ClInclude Include="Job.h">
       <Filter>Job</Filter>
@@ -248,5 +254,25 @@
     <ClInclude Include="AuthLobby.h">
       <Filter>Contents</Filter>
     </ClInclude>
+    <ClInclude Include="Protocol\Enum.pb.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\Protocol.pb.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\Struct.pb.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Common\Protocol\Enum.proto">
+      <Filter>Protocol</Filter>
+    </None>
+    <None Include="..\..\Common\Protocol\Protocol.proto">
+      <Filter>Protocol</Filter>
+    </None>
+    <None Include="..\..\Common\Protocol\Struct.proto">
+      <Filter>Protocol</Filter>
+    </None>
   </ItemGroup>
 </Project>

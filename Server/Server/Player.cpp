@@ -2,21 +2,28 @@
 #include "Player.h"
 #include "ServerData.h"
 
-Player::Player(shared_ptr<Session> ownerSession, PlayerType type) 
-	: Character(Object_Type::Player), _ownerSession(ownerSession)
+Player::Player(shared_ptr<Session> ownerSession, Protocol::PlayerType type) 
+	: Character(Protocol::ObjectType::OBJECT_TYPE_PLAYER), _ownerSession(ownerSession)
 {
-	_objectInfo.playerType = type;
-	const CharacterData* statData = DataManager::GetCharacterData((int)_objectInfo.playerType);
+	_objectInfo.set_player_type(type);
+	const CharacterData* statData = DataManager::GetCharacterData((int)_objectInfo.player_type());
 	if (statData) {
-		_objectInfo.stat = { statData->maxHp, statData->hp, statData->attackDamage, statData->attackSpeed, statData->moveSpeed };
+		// _objectInfo.stat = { statData->maxHp, statData->hp, statData->attackDamage, statData->attackSpeed, statData->moveSpeed };
+		Protocol::StatInfo* stat = _objectInfo.mutable_stat();
+		stat->set_max_hp(statData->maxHp);
+		stat->set_hp(statData->hp);
+		stat->set_attack_damage(statData->attackDamage);
+		stat->set_attack_speed(statData->attackSpeed);
+		stat->set_move_speed(statData->moveSpeed);
+		_statInfo.Init(stat);
 	}
-	_statInfo.Init(&_objectInfo.stat);
+	
 	_maxSpeed = _statInfo.GetMoveSpeed();
 }
 
 Player::~Player()
 {
-	cout << "~Player[" << _objectInfo.id << "]" << endl;
+	cout << "~Player[" << _objectInfo.id() << "]" << endl;
 	_ownerSession.reset();
 }
 
@@ -41,12 +48,17 @@ void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	_dbPlayerData = data;
 
 	// DB에서 가져온 위치로 세팅
-	SetPosition({ data.posX, data.posY, data.posZ, 0.0f });
-
+	
 	// 스탯 초기화 (기존 DataManager와 결합)
 	const CharacterData* statData = DataManager::GetCharacterData(info.playerType);
 	if (statData) {
-		_objectInfo.stat = { statData->maxHp, data.hp, statData->attackDamage, statData->attackSpeed, statData->moveSpeed };
+		Protocol::StatInfo* stat = _objectInfo.mutable_stat();
+		stat->set_max_hp(statData->maxHp);
+		stat->set_hp(statData->hp);
+		stat->set_attack_damage(statData->attackDamage);
+		stat->set_attack_speed(statData->attackSpeed);
+		stat->set_move_speed(statData->moveSpeed);
+		_statInfo.Init(stat);
 	}
 }
 
@@ -58,8 +70,8 @@ DB_PlayerData Player::GetCurrentDbData()
 	data.exp = 0;
 	data.hp = _statInfo.GetHp();
 	data.mp = 100; 
-	data.posX = _objectInfo.position.x;
-	data.posY = _objectInfo.position.y;
-	data.posZ = _objectInfo.position.z;
+	data.posX = _objectInfo.position().x();
+	data.posY = _objectInfo.position().y();
+	data.posZ = _objectInfo.position().z();
 	return data;
 }

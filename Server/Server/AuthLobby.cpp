@@ -14,7 +14,7 @@ void AuthLobby::OnLoginSuccess(shared_ptr<Session> session, DB_PlayerInfo info, 
     if (session->IsConnected() == false) return;
 
     int objectId = session->GetId();
-    shared_ptr<Player> player = make_shared<Player>(session, (PlayerType)info.playerType);
+    shared_ptr<Player> player = make_shared<Player>(session, (Protocol::PlayerType)info.playerType);
 
     player->SetId(objectId);
 
@@ -24,13 +24,21 @@ void AuthLobby::OnLoginSuccess(shared_ptr<Session> session, DB_PlayerInfo info, 
 
     session->_currPlayer = player;
 
-    SC_LOGIN_INFO_PACKET logInPacket;
-    logInPacket.header = { sizeof(SC_LOGIN_INFO_PACKET), SC_LOGIN };
-    logInPacket.objectInfo = player->GetInfo();
+    Protocol::SC_LOGIN_INFO_PACKET logInPacket;
+    logInPacket.mutable_object_info()->CopyFrom(player->GetInfo());
+    uint16_t dateSize = logInPacket.ByteSizeLong();
+    uint16_t packetSize = sizeof(PacketHeader) + dateSize;
 
-    shared_ptr<SendBuffer> loginInfoBuffer = make_shared<SendBuffer>(sizeof(logInPacket));
-    loginInfoBuffer->CopyData(&logInPacket, sizeof(logInPacket));
-    session->Send(loginInfoBuffer);
+    shared_ptr<SendBuffer> sendBuffer = make_shared<SendBuffer>(packetSize);
+
+    PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->Buffer());
+    header->size = packetSize;
+    header->id = Protocol::SC_LOGIN;
+
+    logInPacket.SerializeToArray(&header[1], dateSize);
+    sendBuffer->Commit(packetSize);
+
+    session->Send(sendBuffer);
 
     wcout << L"[" << playerName << L"] - 로그인 성공 및 객체 생성 완료" << std::endl;
 }
