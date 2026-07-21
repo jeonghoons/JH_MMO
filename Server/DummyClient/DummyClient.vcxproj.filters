@@ -7,6 +7,9 @@
     <Filter Include="Main">
       <UniqueIdentifier>{ec8c14ec-daa7-4b3d-941d-3969cbf35cfa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{89ebbc56-df46-4ef4-b059-0b91b8aee945}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Protocol\Protocol.pb.cc">
@@ -18,10 +21,28 @@
     <ClCompile Include="Protocol\Enum.pb.cc">
       <Filter>Protocol</Filter>
     </ClCompile>
-    <ClCompile Include="NetworkModule.cpp">
+    <ClCompile Include="Session.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkManager.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="RecvBuffer.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="SendBuffer.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketHandler.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="DrawModule.cpp">
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
       <Filter>Main</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,7 +56,25 @@
     <ClInclude Include="Protocol\Struct.pb.h">
       <Filter>Protocol</Filter>
     </ClInclude>
-    <ClInclude Include="NetworkModule.h">
+    <ClInclude Include="Session.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkManager.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="RecvBuffer.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="SendBuffer.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketHandler.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
       <Filter>Main</Filter>
     </ClInclude>
   </ItemGroup>
