@@ -20,8 +20,14 @@
 #pragma comment (lib, "opengl32.lib")
 #pragma comment (lib, "glu32.lib")
 
-
+#pragma warning(push)
+#pragma warning(disable: 26495) // 초기화 안 됨(C26495) 경고 끄기
+#pragma warning(disable: 4251)  // dll-interface 경고 끄기
+#pragma warning(disable: 4100)  // 참조되지 않은 매개변수 경고 끄기
+#pragma warning(disable: 4946) // reinterpret_cast 경고 끄기
 #include "Protocol/Protocol.pb.h"
+#pragma warning(pop)
+
 #include "SendBuffer.h"
 
 constexpr int MAX_TEST = 50000;

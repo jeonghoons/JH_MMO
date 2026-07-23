@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 
-// 전방 선언 (헤더 종속성 최소화)
 class Room;
 class Character;
 

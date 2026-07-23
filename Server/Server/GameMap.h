@@ -1,6 +1,6 @@
 #pragma once
 #include "NavmeshManager.h"
-constexpr int CELL_SIZE = 1000.f;
+constexpr int CELL_SIZE = 1000;
 const int VIEW_RANGE_CELLS = 1;
 
 struct ViewUpdate {

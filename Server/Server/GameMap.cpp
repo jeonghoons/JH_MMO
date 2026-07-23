@@ -203,7 +203,6 @@ Protocol::PositionInfo GameMap::GetRandomPosInCell(const Protocol::PositionInfo&
         randomDest.set_y(randY);
         randomDest.set_x(pos.z());
 
-        // IsOutOfBounds가 false(즉, 정상적인 NavMesh 위)일 경우에만 반환
         if (CanMove(pos, randomDest))
         {
             return randomDest;

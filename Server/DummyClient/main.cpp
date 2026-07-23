@@ -21,17 +21,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     NULL, NULL, L"OpenGL" };
     RegisterClass(&wc);
 
-    // 1. 원하는 실제 렌더링 화면(클라이언트 영역) 크기 지정
     RECT windowRect = { 0, 0, 640, 480 };
     DWORD dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
     DWORD dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 
-    // 2. 타이틀바와 테두리 두께를 포함한 최종 윈도우 크기 계산
     AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
     int windowWidth = windowRect.right - windowRect.left;
     int windowHeight = windowRect.bottom - windowRect.top;
 
-    // 3. (0, 0) 대신 CW_USEDEFAULT를 사용하여 화면 가장자리에 잘리지 않도록 안전한 위치에 생성
     HWND hWnd = CreateWindowEx(dwExStyle, L"OpenGL", L"Stress Test Client",
         dwStyle,
         CW_USEDEFAULT, CW_USEDEFAULT, windowWidth, windowHeight,
