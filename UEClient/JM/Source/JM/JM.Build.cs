@@ -7,17 +7,19 @@ public class JM : ModuleRules
 	public JM(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
-
-        PrivateDependencyModuleNames.AddRange(new string[] { "ProtobufCore" });
 
         PrivateIncludePaths.AddRange(new string[]
         {
-            "JM/",
-            "JM/Network/",
-            "JM/Game/",
+            "JM"
+            //"JM/Network/",
+            //"JM/Game/",
         });
+
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Sockets", "Networking" });
+
+        PrivateDependencyModuleNames.AddRange(new string[] { "ProtobufCore" });
+
+        
 
         // Uncomment if you are using Slate UI
         // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
