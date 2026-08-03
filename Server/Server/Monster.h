@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "pch.h"
 #include "Character.h"
 
@@ -58,7 +58,7 @@ public:
 	void SetPath(const std::vector<Protocol::PositionInfo>& path);
 	
 private:
-	// A* °æ·Î¸¦ µû¶ó °È´Â ¹°¸® ½Ã¹Ä·¹ÀÌ¼Ç
+	// A* ê²½ë¡œë¥¼ ë”°ë¼ ê±·ëŠ” ë¬¼ë¦¬ ì‹œë®¬ë ˆì´ì…˜
 	void FollowPath(float deltaTime);
 
 

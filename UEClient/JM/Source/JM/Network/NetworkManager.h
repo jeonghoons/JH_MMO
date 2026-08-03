@@ -25,8 +25,15 @@ public:
 
 	void SendPacket(TSharedPtr<class SendBuffer> sendBuffer);
 
+public:
+	void EnterGame(FString MapName);
+
+
+public:
+	int32 NetworkId = -1;
 
 private:
-	int32 NetworkId = -1;
+	
 	TSharedPtr<NetworkSession> Packet_Session;
+
 };

@@ -1,22 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 
-struct FPacketHeader
-{
-	FPacketHeader() : PacketSize(0), PacketId(0) {}
 
-	FPacketHeader(uint16 PacketSize, uint16 PacketId) : PacketSize(PacketSize), PacketId(PacketId) {}
-
-	friend FArchive& operator<<(FArchive& Ar, FPacketHeader& Header)
-	{
-		Ar << Header.PacketSize;
-		Ar << Header.PacketId;
-		return Ar;
-	}
-
-	uint16 PacketSize;
-	uint16 PacketId;
-};
 
 class FSocket;
 class NetworkSession;

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "RecvBuffer.h"
 #include "IocpCore.h"
 #include "NetAddress.h"
@@ -66,7 +66,7 @@ private:
 	unsigned int		_cid = {};
 
 	RecvEvent		_recvEvent;
-	SendEvent		_sendEvent; // ÆĞÅ¶À» ¸ğ¾Æ¼­ º¸³»±â À§ÇØ¼­ Àç»ç¿ë
+	SendEvent		_sendEvent; // íŒ¨í‚·ì„ ëª¨ì•„ì„œ ë³´ë‚´ê¸° ìœ„í•´ì„œ ì¬ì‚¬ìš©
 
 };
 

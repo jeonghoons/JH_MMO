@@ -1,4 +1,4 @@
-#pragma once
+癤�#pragma once
 
 
 class PacketSerializer
@@ -28,9 +28,8 @@ public:
 
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->Buffer());
 		header->size = packetSize;
-		header->id = packetId; // (만약 멤버명이 type이라면 header->type 으로 변경하세요)
+		header->id = packetId; 
 
-		// 임시 버퍼 없이 SendBuffer에 직접 직렬화
 		pkt.SerializeToArray(&header[1], dataSize);
 		sendBuffer->Commit(packetSize);
 

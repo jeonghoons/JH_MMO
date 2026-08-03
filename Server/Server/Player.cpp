@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "Player.h"
 #include "ServerData.h"
 
@@ -47,9 +47,9 @@ void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	_dbPlayerInfo = info;
 	_dbPlayerData = data;
 
-	// DB¿¡¼­ °¡Á®¿Â À§Ä¡·Î ¼¼ÆÃ
+	// DBì—ì„œ ê°€ì ¸ì˜¨ ìœ„ì¹˜ë¡œ ì„¸íŒ…
 	
-	// ½ºÅÈ ÃÊ±âÈ­ (±âÁ¸ DataManager¿Í °áÇÕ)
+	// ìŠ¤íƒ¯ ì´ˆê¸°í™” (ê¸°ì¡´ DataManagerì™€ ê²°í•©)
 	const CharacterData* statData = DataManager::GetCharacterData(info.playerType);
 	if (statData) {
 		Protocol::StatInfo* stat = _objectInfo.mutable_stat();

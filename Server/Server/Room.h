@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "pch.h"
 #include "JobQueue.h"
 #include "ServerService.h"
@@ -37,7 +37,7 @@ public:
 		_timer->Reserve(ectime, _jobQueue, shared_from_this(), memFunc, std::forward<Arguments>(args)...);
 	}
 	void Update(long long elapsedTime);
-	// °ø¿ë
+	// ê³µìš©
 	bool AddObject(shared_ptr<GameObject> object);
 	bool RemoveObject(int objectId);
 	shared_ptr<GameObject> GetGameObject(int objectId) const

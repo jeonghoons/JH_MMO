@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "Room.h"
 #include "Session.h"
 #include "PacketHandler.h"
@@ -16,14 +16,14 @@ void Room::InitRoom()
 {
 	if (!_gameMap.LoadMapData("ParagonSample"))
 	{
-		cout << "[Room] ¸Ê ÃÊ±âÈ­(LoadMapData) Áß ÀÏºÎ ¹®Á¦°¡ ¹ß»ıÇß½À´Ï´Ù." << endl;
+		cout << "[Room] ë§µ ì´ˆê¸°í™”(LoadMapData) ì¤‘ ì¼ë¶€ ë¬¸ì œê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤." << endl;
 	}
 	_gameMap.Init(weak_from_this());
 
 	const auto& spawnPoints = _gameMap.GetSpawnPoints();
 	if (spawnPoints.empty())
 	{
-		cout << "[Room] ½ºÆù Æ÷ÀÎÆ®°¡ ¾ø¾î ¸ó½ºÅÍ¸¦ »ı¼ºÇÒ ¼ö ¾ø½À´Ï´Ù!" << endl;
+		cout << "[Room] ìŠ¤í° í¬ì¸íŠ¸ê°€ ì—†ì–´ ëª¬ìŠ¤í„°ë¥¼ ìƒì„±í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤!" << endl;
 	}
 	else
 	{
@@ -90,7 +90,7 @@ bool Room::AddObject(shared_ptr<GameObject> object)
 
 	if (_gameMap.IsOutOfBounds(currentPos))
 	{
-		cout << "[°æ°í] ¿ÀºêÁ§Æ® ½ºÆù À§Ä¡°¡ ¸Ê(NavMesh) ¹Ù±ùÀÌ°Å³ª ¹Ù´ÚÀÌ ¾ø½À´Ï´Ù! ID: " << objectId;
+		cout << "[ê²½ê³ ] ì˜¤ë¸Œì íŠ¸ ìŠ¤í° ìœ„ì¹˜ê°€ ë§µ(NavMesh) ë°”ê¹¥ì´ê±°ë‚˜ ë°”ë‹¥ì´ ì—†ìŠµë‹ˆë‹¤! ID: " << objectId;
 		cout << ", " << currentPos.x() << ", " << currentPos.y() << ", " << currentPos.z() << endl;
 		
 	}
@@ -124,7 +124,7 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 		session->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(player));
 	}
 
-	// ¸Ê µî·Ï ¹× ½Ã¾ß µ¿±âÈ­
+	// ë§µ ë“±ë¡ ë° ì‹œì•¼ ë™ê¸°í™”
 	ViewUpdate result = _gameMap.EnterMap(player->GetId(), player->GetPosition());
 	if (!result.entered.empty()) {
 		UpdateView(player, result);
@@ -169,7 +169,7 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 			shared_ptr<SendBuffer> correctionBuffer = PacketSerializer::MAKE_SC_MOVE_OBJECT(player);
 			session->Send(correctionBuffer);
 		}
-		// cout << "ºñÁ¤»ó ÀÌµ¿ Â÷´Ü" << endl;
+		// cout << "ë¹„ì •ìƒ ì´ë™ ì°¨ë‹¨" << endl;
 		return;
 	}
 
@@ -318,7 +318,7 @@ void Room::UpdateView(shared_ptr<Character> subjectChar, const ViewUpdate& resul
 	shared_ptr<SendBuffer> removeSubjectBuffer = PacketSerializer::MAKE_SC_REMOVE_OBJECT(subjectId);
 	shared_ptr<SendBuffer> addSubjectBuffer = PacketSerializer::MAKE_SC_ADD_OBJECT(subjectChar);
 	
-	// ½Ã¾ß¿¡¼­ ³ª°£ °´Ã¼ Ã³¸®
+	// ì‹œì•¼ì—ì„œ ë‚˜ê°„ ê°ì²´ ì²˜ë¦¬
 	for (int targetId : result.leaved) {
 		if (targetId == subjectId) continue;
 		shared_ptr<GameObject> targetObj = GetGameObject(targetId);
@@ -361,7 +361,7 @@ void Room::UpdateView(shared_ptr<Character> subjectChar, const ViewUpdate& resul
 			}
 		}
 	}	
-	// »õ·Î ½Ã¾ß¿¡ µé¾î¿Â °´Ã¼ Ã³¸®
+	// ìƒˆë¡œ ì‹œì•¼ì— ë“¤ì–´ì˜¨ ê°ì²´ ì²˜ë¦¬
 	for (int targetId : result.entered) {
 		if (targetId == subjectId) continue;
 		shared_ptr<GameObject> targetObj = GetGameObject(targetId);

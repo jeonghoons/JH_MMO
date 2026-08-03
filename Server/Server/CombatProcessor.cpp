@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "CombatProcessor.h"
 #include "Room.h"
 #include "Character.h"
@@ -62,7 +62,7 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 		}
 	}
 
-	// Åõ»çÃ¼ÀÎ °æ¿ì, °¡Àå °¡±î¿î ÀûÀ» Ã£¾Æ ºñÇà ½Ã°£ °è»ê ÈÄ µ¥¹ÌÁö ¿¹¾à
+	// íˆ¬ì‚¬ì²´ì¸ ê²½ìš°, ê°€ìž¥ ê°€ê¹Œìš´ ì ì„ ì°¾ì•„ ë¹„í–‰ ì‹œê°„ ê³„ì‚° í›„ ë°ë¯¸ì§€ ì˜ˆì•½
 	if (skillData->hitShape == HitShape::Projectile && closestProjTarget != nullptr)
 	{
 		float dist = std::sqrt(minProjDistSq);

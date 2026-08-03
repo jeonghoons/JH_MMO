@@ -1,15 +1,15 @@
-#pragma once
+ï»¿#pragma once
 #include "pch.h"
 #include <functional>
 
 class Job
 {
 public:
-	// ÀÎÀÚ¸¦ ¾È¹Ş°í void¸¦ ¹İÈ¯ÇÏ´Â Job
+	// ì¸ìë¥¼ ì•ˆë°›ê³  voidë¥¼ ë°˜í™˜í•˜ëŠ” Job
 	Job(function<void()>&& func) : _func(move(func)) {}
 
 
-	// Å¬·¡½ºÀÇ ¸â¹ö ÇÔ¼ö¸¦ È£ÃâÇÏ´Â Job
+	// í´ë˜ìŠ¤ì˜ ë©¤ë²„ í•¨ìˆ˜ë¥¼ í˜¸ì¶œí•˜ëŠ” Job
 	template<typename T, typename... Arguments>
 	Job(shared_ptr<T> owner, void(T::* memFunc)(Arguments...), Arguments&&... args)
 	{

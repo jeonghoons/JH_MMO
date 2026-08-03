@@ -45,3 +45,18 @@ void UNetworkManager::DisconnectFromServer()
 	Packet_Session->Disconnect();
 	Packet_Session = nullptr;
 }
+
+void UNetworkManager::SendPacket(TSharedPtr<class SendBuffer> sendBuffer)
+{
+	if (Packet_Session == nullptr)
+		return;
+
+	Packet_Session->SendPacket(sendBuffer);
+}
+
+void UNetworkManager::EnterGame(FString MapName)
+{
+	
+}
+
+

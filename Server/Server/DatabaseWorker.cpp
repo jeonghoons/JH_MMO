@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "DatabaseWorker.h"
 #include "Player.h"
 
@@ -9,10 +9,10 @@ DatabaseWorker::DatabaseWorker(HANDLE iocpHandle, int num_connections) : _iocpHa
 	_dbConnectionPool = make_unique<DBConnectionPool>();
 	if (false == _dbConnectionPool->Connect(num_connections, connectionPath))
 	{
-		std::cout << "DB Connect ¿À·ù !" << std::endl;
+		std::cout << "DB Connect ì˜¤ë¥˜ !" << std::endl;
 		exit(-1);
 	}
-	std::cout << "DB ¼­¹ö Connected" << std::endl;
+	std::cout << "DB ì„œë²„ Connected" << std::endl;
 
 	for (int i = 0; i < num_connections; ++i) {
 		_threads.emplace_back(&DatabaseWorker::Run, this);
@@ -51,13 +51,13 @@ void DatabaseWorker::TryLogin(shared_ptr<Session> session, string recvId, string
 	SQLLEN loginIdLen = 0;
 	dbConn->BindParam(1, loginId, &loginIdLen);
 
-	// 1. µ¥ÀÌÅÍ¸¦ ¹ŞÀ» ±¸Á¶Ã¼ ¹× ¹öÆÛ ÁØºñ
+	// 1. ë°ì´í„°ë¥¼ ë°›ì„ êµ¬ì¡°ì²´ ë° ë²„í¼ ì¤€ë¹„
 	WCHAR outPassword[20] = {};
 	DB_PlayerInfo outPlayerInfo = {};
 	DB_PlayerData outPlayerData = {};
 	SQLLEN len[12] = { 0 };
 
-	// ¹ÙÀÎµù (¼ø¼­°¡ SELECT ¹®ÀÇ ÄÃ·³ ¼ø¼­¿Í Á¤È®È÷ ÀÏÄ¡ÇØ¾ß ÇÕ´Ï´Ù)
+	// ë°”ì¸ë”© (ìˆœì„œê°€ SELECT ë¬¸ì˜ ì»¬ëŸ¼ ìˆœì„œì™€ ì •í™•íˆ ì¼ì¹˜í•´ì•¼ í•©ë‹ˆë‹¤)
 	dbConn->BindCol(1, outPassword, sizeof(outPassword), &len[0]);
 	dbConn->BindCol(2, &outPlayerInfo.playerUID, &len[1]);
 	dbConn->BindCol(3, &outPlayerInfo.accountUID, &len[2]);
@@ -92,12 +92,12 @@ void DatabaseWorker::TryLogin(shared_ptr<Session> session, string recvId, string
 			}
 			else
 			{
-				GLobby->PushJob(&AuthLobby::OnLoginFailed, session, (string)"ºñ¹Ğ ¹øÈ£ ¿À·ù");
+				GLobby->PushJob(&AuthLobby::OnLoginFailed, session, (string)"ë¹„ë°€ ë²ˆí˜¸ ì˜¤ë¥˜");
 			}
 		}
 		else
 		{
-			GLobby->PushJob(&AuthLobby::OnLoginFailed, session, (string)"DB¿¡ Á¸ÀçÇÏÁö ¾Ê´Â ID");
+			GLobby->PushJob(&AuthLobby::OnLoginFailed, session, (string)"DBì— ì¡´ì¬í•˜ì§€ ì•ŠëŠ” ID");
 		}
 	}
 	_dbConnectionPool->Push(dbConn);
@@ -118,14 +118,14 @@ void DatabaseWorker::TrySignUP(shared_ptr<Session> session, string recvId, strin
 	SQLLEN pwLen = 0;
 	dbConn->BindParam(2, password, &pwLen);
 
-	dbConn->BindParam(3, loginId, &idLen); // ´Ğ³×ÀÓÀ» ID¿Í µ¿ÀÏÇÏ°Ô ¼³Á¤
+	dbConn->BindParam(3, loginId, &idLen); // ë‹‰ë„¤ì„ì„ IDì™€ ë™ì¼í•˜ê²Œ ì„¤ì •
 
-	// playerTypeÀ» À§ÇÑ ¹öÆÛ (TINYINT ¹ÙÀÎµù¿ë)
+	// playerTypeì„ ìœ„í•œ ë²„í¼ (TINYINT ë°”ì¸ë”©ìš©)
 	int32_t cType = (int32_t)playerType;
 	SQLLEN typeLen = 0;
 	dbConn->BindParam(4, &cType, &typeLen);
 
-	// Æ®·£Àè¼ÇÀ¸·Î Å×ÀÌºí 4°÷¿¡ µ¥ÀÌÅÍ ÀÏ°ı »ğÀÔ
+	// íŠ¸ëœì­ì…˜ìœ¼ë¡œ í…Œì´ë¸” 4ê³³ì— ë°ì´í„° ì¼ê´„ ì‚½ì…
 	const WCHAR* query = L" \
         BEGIN TRAN; \
         DECLARE @AccID BIGINT, @PlayerID BIGINT; \
@@ -137,11 +137,11 @@ void DatabaseWorker::TrySignUP(shared_ptr<Session> session, string recvId, strin
 
 	if (dbConn->Execute(query))
 	{
-		cout << "[DB] È¸¿ø°¡ÀÔ ¹× Ä³¸¯ÅÍ ÀÚµ¿»ı¼º ¼º°ø - ID : " << recvId << endl;
+		cout << "[DB] íšŒì›ê°€ì… ë° ìºë¦­í„° ìë™ìƒì„± ì„±ê³µ - ID : " << recvId << endl;
 	}
 	else
 	{
-		cout << "[DB] Áßº¹ ¾ÆÀÌµğ ¶Ç´Â °¡ÀÔ ¿À·ù" << endl;
+		cout << "[DB] ì¤‘ë³µ ì•„ì´ë”” ë˜ëŠ” ê°€ì… ì˜¤ë¥˜" << endl;
 	}
 
 	_dbConnectionPool->Push(dbConn);
@@ -163,7 +163,7 @@ void DatabaseWorker::SavePlayerData(DB_PlayerData data)
 
 	if (dbConn->Execute(L"UPDATE [dbo].[Player_Data] SET Hp=?, Mp=?, PosX=?, PosY=?, PosZ=? WHERE PlayerUID=?"))
 	{
-		// ¾÷µ¥ÀÌÆ® ¼º°ø
+		// ì—…ë°ì´íŠ¸ ì„±ê³µ
 	}
 
 	_dbConnectionPool->Push(dbConn);

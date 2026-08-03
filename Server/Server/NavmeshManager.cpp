@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "NavmeshManager.h"
 #include "DetourCommon.h"
 #include <cstdlib>
@@ -25,14 +25,14 @@ bool NavmeshManager::LoadNavMesh(const std::string& path, float& outMinX, float&
 	errno_t err = fopen_s(&fp, path.c_str(), "rb");
 
 	if (err != 0 || !fp) {
-		std::cerr << "[Navmesh] ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù: " << path << std::endl;
+		std::cerr << "[Navmesh] íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: " << path << std::endl;
 		return false;
 	}
 
 	NavMeshSetHeader header;
 	size_t readLen = fread(&header, sizeof(NavMeshSetHeader), 1, fp);
 	if (readLen != 1 || header.magic != NAVMESHSET_MAGIC || header.version != NAVMESHSET_VERSION) {
-		std::cerr << "[Navmesh] ¼Õ»óµÈ ÆÄÀÏÀÔ´Ï´Ù." << std::endl;
+		std::cerr << "[Navmesh] ì†ìƒëœ íŒŒì¼ì…ë‹ˆë‹¤." << std::endl;
 		fclose(fp);
 		return false;
 	}
@@ -57,7 +57,7 @@ bool NavmeshManager::LoadNavMesh(const std::string& path, float& outMinX, float&
 
 		_navMesh->addTile(data, tileHeader.dataSize, DT_TILE_FREE_DATA, tileHeader.tileRef, 0);
 
-		// ÇöÀç Å¸ÀÏÀÇ Bounding Box °»½Å
+		// í˜„ì¬ íƒ€ì¼ì˜ Bounding Box ê°±ì‹ 
 		const dtMeshTile* tile = _navMesh->getTileByRef(tileHeader.tileRef);
 		if (tile && tile->header) {
 			if (tile->header->bmin[0] < dMinX) dMinX = tile->header->bmin[0];
@@ -80,13 +80,13 @@ bool NavmeshManager::LoadNavMesh(const std::string& path, float& outMinX, float&
 	outMinX = -dMaxZ;
 	outMaxX = -dMinZ;
 
-	std::cout << "[Navmesh] ·Îµå ¼º°ø. " << std::endl;
+	std::cout << "[Navmesh] ë¡œë“œ ì„±ê³µ. " << std::endl;
 	return true;
 }
 
 void NavmeshManager::UeToDetour(const Protocol::PositionInfo& uePos, float* detourPos)
 {
-	// ±âÁ¸ Á¦°øÇØÁÖ½Å ¸ÅÇÎ ±âÁØ: X->Z, Y->X, Z->Y (Y-up º¯È¯)
+	// ê¸°ì¡´ ì œê³µí•´ì£¼ì‹  ë§¤í•‘ ê¸°ì¤€: X->Z, Y->X, Z->Y (Y-up ë³€í™˜)
 	detourPos[0] = uePos.y();
 	detourPos[1] = uePos.z();
 	detourPos[2] = -uePos.x();
@@ -101,18 +101,18 @@ void NavmeshManager::DetourToUe(const float* detourPos, Protocol::PositionInfo& 
 
 bool NavmeshManager::IsOutOfBounds(const Protocol::PositionInfo& pos)
 {
-	if (!_navQuery) return true; // ³×ºñ¸Ş½Ã°¡ ¾øÀ¸¸é ±âº»ÀûÀ¸·Î ¸ø °¨
+	if (!_navQuery) return true; // ë„¤ë¹„ë©”ì‹œê°€ ì—†ìœ¼ë©´ ê¸°ë³¸ì ìœ¼ë¡œ ëª» ê°
 
 	float detourPos[3];
 	UeToDetour(pos, detourPos);
 
-	const float extents[3] = { 200.0f, 400.0f, 200.0f }; // Å½»ö ¹üÀ§
+	const float extents[3] = { 200.0f, 400.0f, 200.0f }; // íƒìƒ‰ ë²”ìœ„
 	dtPolyRef nearestRef = 0;
 	float nearestPt[3];
 
 	_navQuery->findNearestPoly(detourPos, extents, &_filter, &nearestRef, nearestPt);
 
-	return (nearestRef == 0); // Æú¸®°ïÀ» ¸ø Ã£À¸¸é ¸Ê ¹Ù±ùÀÓ
+	return (nearestRef == 0); // í´ë¦¬ê³¤ì„ ëª» ì°¾ìœ¼ë©´ ë§µ ë°”ê¹¥ì„
 }
 
 bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos)
@@ -129,16 +129,16 @@ bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Proto
 
 	_navQuery->findNearestPoly(dStart, extents, &_filter, &startRef, nearestStart);
 	if (!startRef) {
-		// cout << "¿ÀºêÁ§Æ® ±ÙÃ³¿¡ Æú¸®°ïÀÌ ¾ø½À´Ï´Ù. " << endl;
+		// cout << "ì˜¤ë¸Œì íŠ¸ ê·¼ì²˜ì— í´ë¦¬ê³¤ì´ ì—†ìŠµë‹ˆë‹¤. " << endl;
 		return false;
 	}
 
-	float t = 0; // Ãæµ¹ ¹ß»ı ÁöÁ¡ ºñÀ² (0.0 ~ 1.0)
+	float t = 0; // ì¶©ëŒ ë°œìƒ ì§€ì  ë¹„ìœ¨ (0.0 ~ 1.0)
 	float hitNormal[3];
 	dtPolyRef path[256];
 	int pathCount = 0;
 
-	// ·¹ÀÌÄ³½ºÆ®¸¦ ½÷¼­ º®¿¡ ¸·È÷´ÂÁö °Ë»ç (t°¡ 1.0 ¹Ì¸¸ÀÌ¸é Áß°£¿¡ ¸·Èù °Í)
+	// ë ˆì´ìºìŠ¤íŠ¸ë¥¼ ì´ì„œ ë²½ì— ë§‰íˆëŠ”ì§€ ê²€ì‚¬ (tê°€ 1.0 ë¯¸ë§Œì´ë©´ ì¤‘ê°„ì— ë§‰íŒ ê²ƒ)
 	dtStatus status = _navQuery->raycast(startRef, nearestStart, dDest, &_filter, &t, hitNormal, path, &pathCount, 256);
 
 	if (dtStatusSucceed(status)) {
@@ -147,11 +147,11 @@ bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Proto
 		float hitPos[3];
 		dtVlerp(hitPos, nearestStart, dDest, t);
 
-		// Çã¿ëÇÒ ¿ÀÂ÷ °Å¸® (¿¹: 15cm)
+		// í—ˆìš©í•  ì˜¤ì°¨ ê±°ë¦¬ (ì˜ˆ: 15cm)
 		const float tolerance = 100.0f;
 
-		// dtVdist(·çÆ® ¿¬»ê Æ÷ÇÔ) ´ë½Å dtVdistSqr(´Ü¼ø °ö¼À ÇÕ)À» »ç¿ë
-		// ´ë½Å ºñ±³ÇÏ´Â ±âÁØ°ª(tolerance)À» Á¦°öÇØ¼­ ºñ±³ÇÕ´Ï´Ù.
+		// dtVdist(ë£¨íŠ¸ ì—°ì‚° í¬í•¨) ëŒ€ì‹  dtVdistSqr(ë‹¨ìˆœ ê³±ì…ˆ í•©)ì„ ì‚¬ìš©
+		// ëŒ€ì‹  ë¹„êµí•˜ëŠ” ê¸°ì¤€ê°’(tolerance)ì„ ì œê³±í•´ì„œ ë¹„êµí•©ë‹ˆë‹¤.
 		if (dtVdistSqr(hitPos, dDest) < (tolerance * tolerance)) {
 			return true;
 		}
@@ -205,7 +205,7 @@ bool NavmeshManager::RayCast(const Protocol::PositionInfo& startPos, const Proto
 	UeToDetour(startPos, dStart);
 	UeToDetour(destPos, dDest);
 
-	// Å¸°İ ÆÇÁ¤Àº ¿ÀÂ÷¸¦ ÃÖ¼ÒÈ­ÇÏ±â À§ÇØ Å½»ö ¹üÀ§¸¦ Á¶±İ ´õ Á¼°Ô Áİ´Ï´Ù.
+	// íƒ€ê²© íŒì •ì€ ì˜¤ì°¨ë¥¼ ìµœì†Œí™”í•˜ê¸° ìœ„í•´ íƒìƒ‰ ë²”ìœ„ë¥¼ ì¡°ê¸ˆ ë” ì¢ê²Œ ì¤ë‹ˆë‹¤.
 	const float extents[3] = { 50.0f, 100.0f, 50.0f };
 	dtPolyRef startRef = 0;
 	float nearestStart[3];
@@ -224,26 +224,26 @@ bool NavmeshManager::RayCast(const Protocol::PositionInfo& startPos, const Proto
 	dtStatus status = _navQuery->raycast(startRef, nearestStart, dDest, &_filter, &t, hitNormal, path, &pathCount, 256);
 
 	if (dtStatusSucceed(status)) {
-		// t°¡ 1.0f¿¡ ±ÙÁ¢ÇÏ´Ù¸é Áß°£¿¡ °¡·Î¸·´Â Àå¾Ö¹°(º®)ÀÌ ¾ø´Ù´Â ¶æÀÔ´Ï´Ù. (0.95f·Î ¹Ì¼¼ÇÑ ¹°¸® ¿ÀÂ÷ Çã¿ë)
+		// tê°€ 1.0fì— ê·¼ì ‘í•˜ë‹¤ë©´ ì¤‘ê°„ì— ê°€ë¡œë§‰ëŠ” ì¥ì• ë¬¼(ë²½)ì´ ì—†ë‹¤ëŠ” ëœ»ì…ë‹ˆë‹¤. (0.95fë¡œ ë¯¸ì„¸í•œ ë¬¼ë¦¬ ì˜¤ì°¨ í—ˆìš©)
 		if (t >= 0.95f) {
 			return true;
 		}
 	}
 
-	// º®¿¡ ¸·Èû
+	// ë²½ì— ë§‰í˜
 	return false;
 }
 
 Protocol::PositionInfo NavmeshManager::GetRandomPosition()
 {
-	Protocol::PositionInfo outPos{}; // ½ÇÆĞ ½Ã ±âº»°ª
+	Protocol::PositionInfo outPos{}; // ì‹¤íŒ¨ ì‹œ ê¸°ë³¸ê°’
 
 	if (!_navQuery || !_navMesh) return outPos;
 
 	dtPolyRef randomRef = 0;
 	float randomPt[3] = { 0.0f, 0.0f, 0.0f };
 
-	// ÃÖ´ë 10¹ø Àç½ÃµµÇÏ¿© °¥ ¼ö ÀÖ´Â "Á¤»óÀûÀÎ Æú¸®°ï"ÀÎÁö °ËÁõ
+	// ìµœëŒ€ 10ë²ˆ ì¬ì‹œë„í•˜ì—¬ ê°ˆ ìˆ˜ ìˆëŠ” "ì •ìƒì ì¸ í´ë¦¬ê³¤"ì¸ì§€ ê²€ì¦
 	for (int i = 0; i < 10; ++i)
 	{
 		dtStatus status = _navQuery->findRandomPoint(&_filter, GetRandomFloat, &randomRef, randomPt);
@@ -253,7 +253,7 @@ Protocol::PositionInfo NavmeshManager::GetRandomPosition()
 			unsigned char areaID = 0;
 			_navMesh->getPolyArea(randomRef, &areaID);
 
-			// ¾ÈÀüÇÑ Æú¸®°ïÀ» Ã£¾ÒÀ¸¹Ç·Î ¾ğ¸®¾ó ÁÂÇ¥(XYÆò¸é)·Î º¯È¯ ÈÄ ¹İÈ¯
+			// ì•ˆì „í•œ í´ë¦¬ê³¤ì„ ì°¾ì•˜ìœ¼ë¯€ë¡œ ì–¸ë¦¬ì–¼ ì¢Œí‘œ(XYí‰ë©´)ë¡œ ë³€í™˜ í›„ ë°˜í™˜
 			DetourToUe(randomPt, outPos);
 			return outPos;
 		}

@@ -66,6 +66,10 @@ UEClient/**/*.VC.opendb
 UEClient/**/SourceArt/**/*.png
 UEClient/**/SourceArt/**/*.tga
 
+# KiteDemo
+UEClient/JM/Content/KiteDemo/
+UEClient/JM/Content/ParagonProps/
+
 # 언리얼 엔진 임시, 바이너리, 캐시 폴더 전체 차단
 UEClient/**/Binaries/
 UEClient/**/Intermediate/

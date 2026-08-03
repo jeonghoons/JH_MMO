@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "AuthLobby.h"
 #include "Session.h"
 #include "Player.h"
@@ -40,7 +40,7 @@ void AuthLobby::OnLoginSuccess(shared_ptr<Session> session, DB_PlayerInfo info, 
 
     session->Send(sendBuffer);
 
-    wcout << L"[" << playerName << L"] - ·Î±×ÀÎ ¼º°ø ¹× °´Ã¼ »ý¼º ¿Ï·á" << std::endl;
+    wcout << L"[" << playerName << L"] - ë¡œê·¸ì¸ ì„±ê³µ ë° ê°ì²´ ìƒì„± ì™„ë£Œ" << std::endl;
 }
 
 void AuthLobby::OnLoginFailed(shared_ptr<Session> session, string errorMsg)

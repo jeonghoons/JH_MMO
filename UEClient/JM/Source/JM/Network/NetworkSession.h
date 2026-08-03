@@ -16,6 +16,7 @@ public:
 	void SendPacket(TSharedPtr<SendBuffer> sendBuffer);
 	void Disconnect();
 
+
 public:
 	FSocket* Socket;
 

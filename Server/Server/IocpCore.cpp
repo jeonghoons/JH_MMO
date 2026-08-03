@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "IocpCore.h"
 #include "IocpEvent.h"
 
@@ -14,7 +14,7 @@ IocpCore::~IocpCore()
 
 bool IocpCore::Register(shared_ptr<IocpObject> iocpObject)
 {
-	// iocp�ڵ鿡 Ŭ���̾�Ʈ ���
+	// iocp핸들에 클라이언트 등록
 	return ::CreateIoCompletionPort(iocpObject->GetHandle(), iocpHandle, 0, 0);
 }
 

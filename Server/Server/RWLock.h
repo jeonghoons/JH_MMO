@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "pch.h"
 #include <shared_mutex>
 
@@ -30,7 +30,7 @@ public:
     };
 
 private:
-    std::shared_mutex _mutex; // ³»ºÎ mutex
+    std::shared_mutex _mutex; // ë‚´ë¶€ mutex
 };
 
 

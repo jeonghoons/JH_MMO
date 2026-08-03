@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "JobQueue.h"
 #include "ConcurrentQueue.h"
 #include <concurrent_priority_queue.h>
@@ -38,7 +38,7 @@ public:
         }
     }
 
-    // Å¸ÀÌ¸Ó ÀÛ¾÷ ¿¹¾à ¸Ş¼Òµå
+    // íƒ€ì´ë¨¸ ì‘ì—… ì˜ˆì•½ ë©”ì†Œë“œ
     template<typename T, typename... Arguments>
     void Reserve(DWORD milliseconds,shared_ptr<JobQueue> jobQueue, shared_ptr<T> owner, void(T::* memFunc)(Arguments...), Arguments&&... args)
     {

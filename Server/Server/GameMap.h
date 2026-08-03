@@ -1,11 +1,11 @@
-#pragma once
+ï»¿#pragma once
 #include "NavmeshManager.h"
 constexpr int CELL_SIZE = 1000;
 const int VIEW_RANGE_CELLS = 1;
 
 struct ViewUpdate {
-    vector<int> entered;   // »õ·Î ½Ã¾ß¿¡ µé¾î¿Â °´Ã¼µé
-    vector<int> leaved; // ½Ã¾ß¿¡¼­ »ç¶óÁø °´Ã¼µé
+    vector<int> entered;   // ìƒˆë¡œ ì‹œì•¼ì— ë“¤ì–´ì˜¨ ê°ì²´ë“¤
+    vector<int> leaved; // ì‹œì•¼ì—ì„œ ì‚¬ë¼ì§„ ê°ì²´ë“¤
 };
 
 struct Cell

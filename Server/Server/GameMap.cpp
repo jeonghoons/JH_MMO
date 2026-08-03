@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "GameMap.h"
 #include <fstream>
 
@@ -16,7 +16,7 @@ ViewUpdate GameMap::EnterMap(int objectId, const Protocol::PositionInfo& pos)
     _grid[cellPos.y][cellPos.x].objectIds.push_back(objectId);
     _id2CellPos[objectId] = cellPos;
 
-    // Ã³À½ µé¾î¿ÔÀ» ¶§´Â ÁÖº¯ ¸ğµç °´Ã¼°¡ 'Ãß°¡' ´ë»óÀÓ
+    // ì²˜ìŒ ë“¤ì–´ì™”ì„ ë•ŒëŠ” ì£¼ë³€ ëª¨ë“  ê°ì²´ê°€ 'ì¶”ê°€' ëŒ€ìƒì„
     ViewUpdate result;
     vector<CellPos> neighbors = GetNeighborCells(cellPos);
     for (const auto& pos : neighbors) {
@@ -30,7 +30,7 @@ ViewUpdate GameMap::UpdateMap(int objectId, const Protocol::PositionInfo& pos)
     CellPos newPos = ToCellPos(pos);
     CellPos oldPos = _id2CellPos[objectId];
 
-    if (newPos == oldPos) return {}; // °°Àº ¼¿ÀÌ¸é ½Ã¾ß º¯È­ ¾øÀ½
+    if (newPos == oldPos) return {}; // ê°™ì€ ì…€ì´ë©´ ì‹œì•¼ ë³€í™” ì—†ìŒ
 
     auto& oldVec = _grid[oldPos.y][oldPos.x].objectIds;
     auto it = find(oldVec.begin(), oldVec.end(), objectId);
@@ -67,7 +67,7 @@ ViewUpdate GameMap::LeaveMap(int objectId)
 
     CellPos lastPos = itLoc->second;
 
-    // ±×¸®µå¿¡¼­ Á¦°Å
+    // ê·¸ë¦¬ë“œì—ì„œ ì œê±°
     auto& vec = _grid[lastPos.y][lastPos.x].objectIds;
     auto it = find(vec.begin(), vec.end(), objectId);
     if (it != vec.end()) {
@@ -75,7 +75,7 @@ ViewUpdate GameMap::LeaveMap(int objectId)
         vec.pop_back();
     }
 
-    // ³ª°¥ ¶§´Â ½Ã¾ß¿¡ ÀÖ´ø ¸ğµç °ÍÀÌ '»èÁ¦' ´ë»ó
+    // ë‚˜ê°ˆ ë•ŒëŠ” ì‹œì•¼ì— ìˆë˜ ëª¨ë“  ê²ƒì´ 'ì‚­ì œ' ëŒ€ìƒ
     ViewUpdate result;
     vector<CellPos> surrounding = GetNeighborCells(lastPos);
     for (const auto& cp : surrounding) {
@@ -114,12 +114,12 @@ bool GameMap::LoadMapData(const string& fileName)
 {
     bool isSuccess = true;
 
-    // 1. ÁöÇü µ¥ÀÌÅÍ (NavMesh) ·Îµå ¹× Bounds µ¿Àû ÃßÃâ
+    // 1. ì§€í˜• ë°ì´í„° (NavMesh) ë¡œë“œ ë° Bounds ë™ì  ì¶”ì¶œ
     _navManager = std::make_unique<NavmeshManager>();
     string navPath = "Resource/Map/" + fileName + "_Geo.nav";
 
     if (!_navManager->LoadNavMesh(navPath, _minX, _maxX, _minY, _maxY)) {
-        cout << "[GameMap] NavMesh ·Îµå ½ÇÆĞ: " << navPath << endl;
+        cout << "[GameMap] NavMesh ë¡œë“œ ì‹¤íŒ¨: " << navPath << endl;
         isSuccess = false;
     }
     else {
@@ -134,7 +134,7 @@ bool GameMap::LoadMapData(const string& fileName)
         
         _grid.assign(_gridHeight, vector<Cell>(_gridWidth));
 
-        /*cout << "[GameMap] NavMesh ±â¹İ µ¿Àû Grid »ı¼º ¿Ï·á!" << endl;
+        /*cout << "[GameMap] NavMesh ê¸°ë°˜ ë™ì  Grid ìƒì„± ì™„ë£Œ!" << endl;
         cout << " - Bounds X: " << _minX << " ~ " << _maxX << ", Y: " << _minY << " ~ " << _maxY << endl;
         cout << " - Grid Size: " << _gridWidth << " x " << _gridHeight << " cells" << endl;*/
     }
@@ -144,7 +144,7 @@ bool GameMap::LoadMapData(const string& fileName)
     std::ifstream file(logicPath, std::ios::binary);
     if (!file.is_open())
     {
-        cout << "[GameMap] ·ÎÁ÷ µ¥ÀÌÅÍ¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù: " << logicPath << endl;
+        cout << "[GameMap] ë¡œì§ ë°ì´í„°ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: " << logicPath << endl;
         isSuccess = false;
     }
     else
@@ -159,7 +159,7 @@ bool GameMap::LoadMapData(const string& fileName)
         }
 
         file.close();
-        cout << "[GameMap] ·ÎÁ÷ µ¥ÀÌÅÍ ·Îµå ¿Ï·á! " << endl;
+        cout << "[GameMap] ë¡œì§ ë°ì´í„° ë¡œë“œ ì™„ë£Œ! " << endl;
     }
 
     return isSuccess;

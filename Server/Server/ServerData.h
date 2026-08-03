@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <unordered_map>
 
 struct DB_PlayerInfo {
@@ -28,23 +28,23 @@ struct DB_InventoryData {
 
 enum class HitShape
 {
-	Sector,     // ºÎÃ¤²Ã (±Ù°Å¸® Áï½Ã Å¸°İ)
-	Line,       // Á÷¼± (¿ø°Å¸® °üÅë/Áï½Ã Å¸°İ)
-	Projectile  // Åõ»çÃ¼ (Á÷¼± + ´ÜÀÏ ´ë»ó + ºñÇà ½Ã°£ Áö¿¬ Å¸°İ)
+	Sector,     // ë¶€ì±„ê¼´ (ê·¼ê±°ë¦¬ ì¦‰ì‹œ íƒ€ê²©)
+	Line,       // ì§ì„  (ì›ê±°ë¦¬ ê´€í†µ/ì¦‰ì‹œ íƒ€ê²©)
+	Projectile  // íˆ¬ì‚¬ì²´ (ì§ì„  + ë‹¨ì¼ ëŒ€ìƒ + ë¹„í–‰ ì‹œê°„ ì§€ì—° íƒ€ê²©)
 };
 
 struct SkillData
 {
 	int skillId;
 	HitShape hitShape;
-	int hitDelayMs;     // ¹ß»ç ¼±µô·¹ÀÌ (¼Õ¿¡¼­ ÀÌÆåÆ®°¡ ¶°³ª´Â ½Ã°£)
-	int cooldownMs;     // ¾Ö´Ï¸ŞÀÌ¼Ç ÀüÃ¼ ±æÀÌ (±âº» ÄğÅ¸ÀÓ)
-	float radius;       // ºÎÃ¤²Ã ¹İ°æ
-	float angle;        // ºÎÃ¤²Ã °¢µµ
-	float range;        // Åõ»çÃ¼/Á÷¼± »ç°Å¸®
-	float width;        // Åõ»çÃ¼/Á÷¼± Æø
+	int hitDelayMs;     // ë°œì‚¬ ì„ ë”œë ˆì´ (ì†ì—ì„œ ì´í™íŠ¸ê°€ ë– ë‚˜ëŠ” ì‹œê°„)
+	int cooldownMs;     // ì• ë‹ˆë©”ì´ì…˜ ì „ì²´ ê¸¸ì´ (ê¸°ë³¸ ì¿¨íƒ€ì„)
+	float radius;       // ë¶€ì±„ê¼´ ë°˜ê²½
+	float angle;        // ë¶€ì±„ê¼´ ê°ë„
+	float range;        // íˆ¬ì‚¬ì²´/ì§ì„  ì‚¬ê±°ë¦¬
+	float width;        // íˆ¬ì‚¬ì²´/ì§ì„  í­
 	int baseDamage;
-	float projSpeed;    // Åõ»çÃ¼ ÀÌµ¿ ¼Óµµ (units/sec)
+	float projSpeed;    // íˆ¬ì‚¬ì²´ ì´ë™ ì†ë„ (units/sec)
 };
 
 struct CharacterData
@@ -53,7 +53,7 @@ struct CharacterData
 	int hp;
 	int maxHp;
 	int attackDamage;
-	float attackSpeed;  // ±âº» °ø°İ ¼Óµµ ¹èÀ²
+	float attackSpeed;  // ê¸°ë³¸ ê³µê²© ì†ë„ ë°°ìœ¨
 	float moveSpeed;
 };
 
@@ -62,13 +62,13 @@ class DataManager
 public:
 	static void Init()
 	{
-		// 101: ±âµğ¾ğ - Åõ»çÃ¼ ¸¶¹ı
+		// 101: ê¸°ë””ì–¸ - íˆ¬ì‚¬ì²´ ë§ˆë²•
 		_skillTable[101] = { 101, HitShape::Projectile, 300, 1230, 0.f, 0.f, 1500.f, 120.f, 40, 1500.f };
-		// 201: ½ºÆĞ·Î¿ì - ºü¸¥ Åõ»çÃ¼ È­»ì
+		// 201: ìŠ¤íŒ¨ë¡œìš° - ë¹ ë¥¸ íˆ¬ì‚¬ì²´ í™”ì‚´
 		_skillTable[201] = { 201, HitShape::Projectile, 200, 1000, 0.f, 0.f, 1800.f, 80.f, 35, 3000.f };
-		// 301: ±×·¹ÀÌ½ºÅæ - ºÎÃ¤²Ã
+		// 301: ê·¸ë ˆì´ìŠ¤í†¤ - ë¶€ì±„ê¼´
 		_skillTable[301] = { 301, HitShape::Sector, 250, 1670, 200.f, 120.f, 0.f, 0.f, 50, 0.f };
-		// 401: ·¥ÆäÀÌÁö - ºÎÃ¤²Ã
+		// 401: ë¨í˜ì´ì§€ - ë¶€ì±„ê¼´
 		_skillTable[401] = { 401, HitShape::Sector, 400, 2000, 170.f, 150.f, 0.f, 0.f, 60, 0.f };
 	
 	

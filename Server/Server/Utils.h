@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <random>
 
 class Utils
@@ -48,7 +48,7 @@ class MathUtils
 public:
 	static constexpr float PI = 3.14159265f;
 
-	// ºÎÃ¤²Ã Ãæµ¹ ÆÇÁ¤ 
+	// ë¶€ì±„ê¼´ ì¶©ëŒ íŒì • 
 	static bool CheckSector(const Protocol::PositionInfo& origin, const Protocol::PositionInfo& target, float radius, float angleDegree)
 	{
 		float dx = target.x() - origin.x();
@@ -72,7 +72,7 @@ public:
 		return dot >= cosHalf;
 	}
 
-	// Á÷¼± Ãæµ¹ ÆÇÁ¤ 
+	// ì§ì„  ì¶©ëŒ íŒì • 
 	static bool CheckLine(const Protocol::PositionInfo& origin, const Protocol::PositionInfo& target, float width, float range)
 	{
 		float dx = target.x() - origin.x();

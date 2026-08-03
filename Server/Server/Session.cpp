@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "Session.h"
 #include "ServerService.h"
 #include "PacketHandler.h"
@@ -96,7 +96,6 @@ int Session::ProcessData(BYTE* buffer, int len)
 		if (dataSize < header.size)
 			break;
 
-		// ÆÐÅ¶ Á¶¸³ ¼º°ø
 		ProcessPacket(&buffer[processLen], header.size);
 
 		processLen += header.size;

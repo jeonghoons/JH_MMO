@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "PacketHandler.h"
 #include "SendBuffer.h"
 #include "Player.h"
@@ -8,7 +8,7 @@ extern shared_ptr<DatabaseWorker> GDBWorker;
 
 //void PacketHandler::Handle_CS_LOGIN(shared_ptr<Session> session, CS_LOGIN_PACKET* packet)
 //{
-//	// DB ·Î±×ÀÎ
+//	// DB ë¡œê·¸ì¸
 //	string id = packet->accountID;
 //	string pw = packet->accountPW;
 //	if (packet->isDummy) {
@@ -173,7 +173,7 @@ void PacketHandler::ProcessPacket(shared_ptr<Session> session, BYTE* buffer, int
 
 void PacketHandler::Handle_CS_LOGIN(shared_ptr<Session> session, Protocol::CS_LOGIN_PACKET& pkt)
 {
-    // C++ string ¸ÅÇÎ È°¿ë
+    // C++ string ë§¤í•‘ í™œìš©
     string id = pkt.account_id();
     string pw = pkt.account_pw();
 
@@ -209,13 +209,13 @@ void PacketHandler::Handle_CS_CHAT(shared_ptr<Session> session, Protocol::CS_CHA
         utf8Msg = utf8Msg.substr(0, MAX_CHAT_LEN);
     }
 
-    // UTF-8(string) -> UTF-16(wstring) º¯È¯
+    // UTF-8(string) -> UTF-16(wstring) ë³€í™˜
     wstring chatMsg = Utils::UTF8ToWString(utf8Msg);
 
-    // 5. JobQueue¿¡ ¹Ğ¾î³Ö±â
+    // 5. JobQueueì— ë°€ì–´ë„£ê¸°
     room->PushJob(&Room::PlayerChat, player, chatMsg);
 
-    // 6. ÄÜ¼Ö Ãâ·Â (±âÁ¸ÀÇ ÁöÀúºĞÇÑ ÀÌÅÍ·¹ÀÌÅÍ Ä³½ºÆÃ Á¦°Å)
+    // 6. ì½˜ì†” ì¶œë ¥ (ê¸°ì¡´ì˜ ì§€ì €ë¶„í•œ ì´í„°ë ˆì´í„° ìºìŠ¤íŒ… ì œê±°)
     cout << "Client [" << session->GetId() << "] : " << utf8Msg << endl;
 }
 

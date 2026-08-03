@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "GameObject.h"
 
 GameObject::GameObject(Protocol::ObjectType objectType)
@@ -25,20 +25,20 @@ bool MovableObject::Move(const XMFLOAT3& desPos)
 {
     Protocol::PositionInfo* pos = _objectInfo.mutable_position();
 
-    // 1. ÇöÀç À§Ä¡¿¡¼­ ¸ñÀûÁö¸¦ ÇâÇÏ´Â º¤ÅÍ °è»ê
+    // 1. í˜„ìž¬ ìœ„ì¹˜ì—ì„œ ëª©ì ì§€ë¥¼ í–¥í•˜ëŠ” ë²¡í„° ê³„ì‚°
     XMVECTOR vCurr = XMVectorSet(pos->x(), pos->y(), pos->z(), 0.0f);
     XMVECTOR vDest = XMVectorSet(desPos.x, desPos.y, desPos.z, 0.0f);
     XMVECTOR vDir = XMVectorSubtract(vDest, vCurr);
 
     XMFLOAT3 newMoveDir;
-    XMStoreFloat3(&newMoveDir, XMVector3Normalize(vDir)); // Á¤±ÔÈ­(±æÀÌ¸¦ 1·Î ¸¸µê)
+    XMStoreFloat3(&newMoveDir, XMVector3Normalize(vDir)); // ì •ê·œí™”(ê¸¸ì´ë¥¼ 1ë¡œ ë§Œë“¦)
 
-    // 2. ¹æÇâÀÌ À¯ÀÇ¹ÌÇÏ°Ô ²ª¿´´ÂÁö È®ÀÎ (¿ÀÂ÷ Çã¿ë)
+    // 2. ë°©í–¥ì´ ìœ ì˜ë¯¸í•˜ê²Œ êº¾ì˜€ëŠ”ì§€ í™•ì¸ (ì˜¤ì°¨ í—ˆìš©)
     bool dirChanged = (abs(_moveDir.x - newMoveDir.x) > 0.01f ||
         abs(_moveDir.y - newMoveDir.y) > 0.01f ||
         abs(_moveDir.z - newMoveDir.z) > 0.01f);
 
-    // 3. ³» ÀÌµ¿ »óÅÂ(¹æÇâ, ¼Óµµ) °»½Å
+    // 3. ë‚´ ì´ë™ ìƒíƒœ(ë°©í–¥, ì†ë„) ê°±ì‹ 
     _moveDir = newMoveDir;
     _currentSpeed = _maxSpeed;
 
@@ -50,11 +50,11 @@ bool MovableObject::Move(const XMFLOAT3& desPos)
     pos->set_v_y(_velocity.y);
     pos->set_v_z(_velocity.z);
 
-    // Ä³¸¯ÅÍ°¡ ¹Ù¶óº¸´Â È¸Àü°¢µµ(Yaw) °»½Å (Z-up ±âÁØ)
+    // ìºë¦­í„°ê°€ ë°”ë¼ë³´ëŠ” íšŒì „ê°ë„(Yaw) ê°±ì‹  (Z-up ê¸°ì¤€)
     pos->set_yaw(XMConvertToDegrees(atan2f(_moveDir.y, _moveDir.x)));
     pos->set_state(Protocol::MOVE_STATE_RUN);
 
-    // ¹æÇâÀÌ ¹Ù²î¾úÀ¸¸é Å¬¶óÀÌ¾ðÆ®¿¡°Ô ÆÐÅ¶À» ½î¶ó°í ¾Ë·ÁÁÜ
+    // ë°©í–¥ì´ ë°”ë€Œì—ˆìœ¼ë©´ í´ë¼ì´ì–¸íŠ¸ì—ê²Œ íŒ¨í‚·ì„ ì˜ë¼ê³  ì•Œë ¤ì¤Œ
     return dirChanged;
 }
 
@@ -81,9 +81,9 @@ void MovableObject::ApplyMovement(float deltaTime)
 
 	XMVECTOR vDir = XMLoadFloat3(&_moveDir);
 	XMVECTOR vVel = XMVectorScale(vDir, _currentSpeed);
-	XMStoreFloat3(&_velocity, vVel); // °è»êµÈ ÃÖÁ¾ ¼Óµµ ÀúÀå
+	XMStoreFloat3(&_velocity, vVel); // ê³„ì‚°ëœ ìµœì¢… ì†ë„ ì €ìž¥
 
-	// (ÇöÀç À§Ä¡ + ¼Óµµ * ½Ã°£)
+	// (í˜„ìž¬ ìœ„ì¹˜ + ì†ë„ * ì‹œê°„)
 	XMVECTOR vCurr = XMVectorSet(pos->x(), pos->y(), pos->z(), 0);
 	XMVECTOR nextPos = XMVectorMultiplyAdd(vVel, XMVectorReplicate(deltaTime), vCurr);
 

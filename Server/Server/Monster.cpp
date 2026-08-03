@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "Monster.h"
 #include "Player.h"
 #include "Room.h"
@@ -227,7 +227,7 @@ void Monster::UpdateAttack()
 	float diffY = target->GetPosition().y() - _objectInfo.position().y();
 	float distSq = diffX * diffX + diffY * diffY;
 
-	// °Å¸®°¡ ¸Ö¾îÁö¸é ´Ù½Ã ÃßÀû
+	// ê±°ë¦¬ê°€ ë©€ì–´ì§€ë©´ ë‹¤ì‹œ ì¶”ì 
 	if (distSq > _attackRange * _attackRange)
 	{
 		ChangeState(MonsterState::TRACE);
@@ -295,7 +295,7 @@ void Monster::WakeUpByPlayer(std::shared_ptr<Player> player)
 	if (!_wakeUp)
 	{
 		_wakeUp = true;
-		ChangeState(MonsterState::PATROL); // ±ú¾î³ª¸é ÆĞÆ®·Ñ(»öÀû) »óÅÂ·Î µ¹ÀÔ
+		ChangeState(MonsterState::PATROL); // ê¹¨ì–´ë‚˜ë©´ íŒ¨íŠ¸ë¡¤(ìƒ‰ì ) ìƒíƒœë¡œ ëŒì…
 		// cout << "NPC[" << GetId() << "] Woke up by Player[" << player->GetId() << "]" << endl;
 	}
 }
@@ -304,7 +304,7 @@ void Monster::SleepIfNoPlayer()
 {
 	if (_statInfo.IsDead()) return;
 
-	// Room ·ÎÁ÷¿¡ ÀÇÇØ _viewList¿¡´Â ¿ÀÁ÷ ÇÃ·¹ÀÌ¾î¸¸ ³²À¸¹Ç·Î, ºñ¾îÀÖÀ¸¸é À¯Àú°¡ ¾ø´Ù´Â ¶æ
+	// Room ë¡œì§ì— ì˜í•´ _viewListì—ëŠ” ì˜¤ì§ í”Œë ˆì´ì–´ë§Œ ë‚¨ìœ¼ë¯€ë¡œ, ë¹„ì–´ìˆìœ¼ë©´ ìœ ì €ê°€ ì—†ë‹¤ëŠ” ëœ»
 	if (_viewList.empty())
 	{
 		_wakeUp = false;

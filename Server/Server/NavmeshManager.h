@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "pch.h"
 #include "DetourNavMesh.h"
 #include "DetourNavMeshQuery.h"
@@ -37,7 +37,7 @@ public:
 	}
 	Protocol::PositionInfo GetRandomPosition();
 private:
-	// ¾ð¸®¾ó(Z-up) <-> Detour(Y-up) ÁÂÇ¥ º¯È¯ À¯Æ¿¸®Æ¼
+	// ì–¸ë¦¬ì–¼(Z-up) <-> Detour(Y-up) ì¢Œí‘œ ë³€í™˜ ìœ í‹¸ë¦¬í‹°
 	void UeToDetour(const Protocol::PositionInfo& uePos, float* detourPos);
 	void DetourToUe(const float* detourPos, Protocol::PositionInfo& uePos);
 

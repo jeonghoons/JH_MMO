@@ -1,6 +1,6 @@
-#pragma once
+ï»¿#pragma once
 
-#define WIN32_LEAN_AND_MEAN // °ÅÀÇ »ç¿ëµÇÁö ¾Ê´Â ³»¿ëÀ» Windows Çì´õ¿¡¼­ Á¦¿ÜÇÕ´Ï´Ù.
+#define WIN32_LEAN_AND_MEAN // ê±°ì˜ ì‚¬ìš©ë˜ì§€ ì•ŠëŠ” ë‚´ìš©ì„ Windows í—¤ë”ì—ì„œ ì œì™¸í•©ë‹ˆë‹¤.
 #define NOMINMAX
 
 #include <iostream> 
@@ -43,10 +43,10 @@ using namespace DirectX;
 extern thread_local unsigned int Lthreadid;
 
 #pragma warning(push)
-#pragma warning(disable: 26495) // ÃÊ±âÈ­ ¾È µÊ(C26495) °æ°í ²ô±â
-#pragma warning(disable: 4251)  // dll-interface °æ°í ²ô±â
-#pragma warning(disable: 4100)  // ÂüÁ¶µÇÁö ¾ÊÀº ¸Å°³º¯¼ö °æ°í ²ô±â
-#pragma warning(disable: 4946) // reinterpret_cast °æ°í ²ô±â
+#pragma warning(disable: 26495) // ì´ˆê¸°í™” ì•ˆ ë¨(C26495) ê²½ê³  ë„ê¸°
+#pragma warning(disable: 4251)  // dll-interface ê²½ê³  ë„ê¸°
+#pragma warning(disable: 4100)  // ì°¸ì¡°ë˜ì§€ ì•Šì€ ë§¤ê°œë³€ìˆ˜ ê²½ê³  ë„ê¸°
+#pragma warning(disable: 4946) // reinterpret_cast ê²½ê³  ë„ê¸°
 #include "Protocol/Protocol.pb.h"
 #pragma warning(pop)
 

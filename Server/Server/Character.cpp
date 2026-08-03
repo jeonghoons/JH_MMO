@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "Character.h"
 
 Character::Character(Protocol::ObjectType type) : MovableObject(type)
@@ -19,7 +19,7 @@ bool Character::Attack(int& skillId)
 
 	if (skillId == 0)
 	{
-		skillId = (int)_objectInfo.player_type() * 100 + 1; // ¸ó½ºÅÍ ±âº» °ø°Ý
+		skillId = (int)_objectInfo.player_type() * 100 + 1; // ëª¬ìŠ¤í„° ê¸°ë³¸ ê³µê²©
 	}
 
 	return true;
@@ -62,6 +62,6 @@ void Character::RemoveView(int objectId)
 	if (it != _viewList.end()) {
 		*it = _viewList.back();
 		_viewList.pop_back();
-		// cout << "Object[" << GetId() << "]¿¡¼­ " << objectId << "Á¦°Å" << endl;
+		// cout << "Object[" << GetId() << "]ì—ì„œ " << objectId << "ì œê±°" << endl;
 	}
 }
