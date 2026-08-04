@@ -2,10 +2,14 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Tickable.h"
+#include "Protocol/Protocol.pb.h"
+
 
 #include "NetworkManager.generated.h"
 
 class NetworkSession;
+class AJMPlayer;
+class AJMMyPlayer;
 
 UCLASS()
 class JM_API UNetworkManager : public UGameInstanceSubsystem, public FTickableGameObject
@@ -26,8 +30,8 @@ public:
 	void SendPacket(TSharedPtr<class SendBuffer> sendBuffer);
 
 public:
-	void EnterGame(FString MapName);
-
+	void EnterGame();
+	void SwitchGameMapLevel(FName LevelToLoad);
 
 public:
 	int32 NetworkId = -1;

@@ -36,7 +36,7 @@ class JM_API UJMGameInstance : public UGameInstance
 	
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
-	UDataTable* CharacterAssetTable;
+	TObjectPtr<UDataTable> CharacterAssetTable;
 
 	FStreamableManager AssetLoader;
 
@@ -47,6 +47,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AJMMyPlayer> MyPlayerClass;
 
-	/*UPROPERTY(EditAnywhere)
-	TSubclassOf<class ANpcCharacter> NpcCharacterClass;*/
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class ANpcCharaceter> NpcCharacterClass;
 };

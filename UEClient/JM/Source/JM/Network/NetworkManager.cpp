@@ -3,6 +3,9 @@
 #include "Sockets.h"
 #include "Common/TcpSocketBuilder.h"
 #include "SocketSubsystem.h"
+#include "Kismet/GameplayStatics.h"
+#include "FPacketHandler.h"
+#include "Game/JMObjectManager.h"
 
 void UNetworkManager::Tick(float DeltaTime)
 {
@@ -29,6 +32,7 @@ void UNetworkManager::ConnectToServer()
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Connection Success")));
 
 		Packet_Session = MakeShared<NetworkSession>(socket, this);
+		FPacketHandler::Init();
 		Packet_Session->Run();
 	}
 	else 
@@ -54,9 +58,22 @@ void UNetworkManager::SendPacket(TSharedPtr<class SendBuffer> sendBuffer)
 	Packet_Session->SendPacket(sendBuffer);
 }
 
-void UNetworkManager::EnterGame(FString MapName)
+void UNetworkManager::EnterGame()
 {
-	
+	SwitchGameMapLevel(FName("ParagonSample"));
 }
+
+void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad)
+{
+	if (UJMObjectManager* ObjectManager = GetGameInstance()->GetSubsystem<UJMObjectManager>())
+	{
+		ObjectManager->ClearObjects();
+	}
+
+	UWorld* World = GetWorld();
+	if (World == nullptr) return;
+	UGameplayStatics::OpenLevel(World, LevelToLoad);
+}
+
 
 

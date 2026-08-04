@@ -2,6 +2,7 @@
 #include "NetworkManager.h"
 #include "SendBuffer.h"
 #include "Network/NetworkSession.h"
+#include "Game/JMObjectManager.h"
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
@@ -63,7 +64,7 @@ void FPacketHandler::Handle_SC_LOGIN(TSharedPtr<NetworkSession>& session, Protoc
     if (UNetworkManager* NetManager = session->OwnerNetwork.Get())
     {
         NetManager->NetworkId = pkt.object_info().id();
-
+		NetManager->EnterGame();
     }
 }
 
@@ -74,10 +75,24 @@ void FPacketHandler::Handle_SC_SIGNUP(TSharedPtr<NetworkSession>& session, Proto
 
 void FPacketHandler::Handle_SC_ADD_OBJECT(TSharedPtr<NetworkSession>& session, Protocol::SC_ADD_OBJECT_PACKET& pkt)
 {
+	if (UNetworkManager* NetManager = session->OwnerNetwork.Get())
+	{
+		if (UJMObjectManager* ObjectManager = NetManager->GetGameInstance()->GetSubsystem<UJMObjectManager>())
+		{
+			ObjectManager->HandleSpawn(pkt.object_info());
+		}
+	}
 }
 
 void FPacketHandler::Handle_SC_REMOVE_OBJECT(TSharedPtr<NetworkSession>& session, Protocol::SC_REMOVE_OBJECT_PACKET& pkt)
 {
+	if (UNetworkManager* NetManager = session->OwnerNetwork.Get())
+	{
+		if (UJMObjectManager* ObjectManager = NetManager->GetGameInstance()->GetSubsystem<UJMObjectManager>())
+		{
+			ObjectManager->HandleDespawn(pkt.object_id());
+		}
+	}
 }
 
 void FPacketHandler::Handle_SC_MOVE_OBJECT(TSharedPtr<NetworkSession>& session, Protocol::SC_MOVE_PACKET& pkt)

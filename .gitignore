@@ -69,6 +69,8 @@ UEClient/**/SourceArt/**/*.tga
 # KiteDemo
 UEClient/JM/Content/KiteDemo/
 UEClient/JM/Content/ParagonProps/
+# StarterAsset
+UEClient/JM/Content/LevelPrototyping
 
 # 언리얼 엔진 임시, 바이너리, 캐시 폴더 전체 차단
 UEClient/**/Binaries/
