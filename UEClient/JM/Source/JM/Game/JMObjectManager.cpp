@@ -17,7 +17,7 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	UWorld* World = GetWorld();
 	if (World == nullptr) return;
 
-	int32 ObjectId = ObjInfo.id();
+	int ObjectId = ObjInfo.id();
 
 	if (Objects.Contains(ObjectId)) return;
 
