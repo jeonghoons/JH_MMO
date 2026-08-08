@@ -19,7 +19,8 @@ public:
 	const Protocol::ObjectInfo& GetObjectInfo() const { return ObjectInfo; }
 	const Protocol::PositionInfo& GetDestInfo() const { return DestPosition; }
 	Protocol::MoveState GetMoveState() const { return ObjectInfo.position().state(); }
-	
+	FVector GetDestVelocity() const { return FVector(DestPosition.v_x(), DestPosition.v_y(), DestPosition.v_z()); }
+
 public:
 	virtual void SetPlayerData(const Protocol::ObjectInfo& ObjInfo);
 	static FName GetCharacterRowName(const Protocol::PlayerType Type);
@@ -42,7 +43,10 @@ protected:
 	class UAnimMontage* HitMontage;
 
 protected:
-	bool IsMyPlayer = false;
+	// bool IsMyPlayer = false;
 	Protocol::ObjectInfo				ObjectInfo;
 	Protocol::PositionInfo				DestPosition;
+
+public:
+	bool IsMyPlayer = false;
 };

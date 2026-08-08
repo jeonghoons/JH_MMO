@@ -5,6 +5,8 @@
 #include "Player/JMPlayer.h"
 #include "Player/NpcCharaceter.h"
 #include "Engine/World.h"
+#include "Player/JMPlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 void UJMObjectManager::ClearObjects()
 {
@@ -38,6 +40,11 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 			MyCharacter->SetPlayerData(ObjInfo);
 			MyPlayer = MyCharacter;
 			SpawnedActor = MyCharacter;
+
+			if (AJMPlayerController* PC = Cast<AJMPlayerController>(UGameplayStatics::GetPlayerController(this, 0)))
+			{
+				PC->Possess(MyCharacter);
+			}
 		}
 	}
 	else if (ObjInfo.player_type() == Protocol::PLAYER_TYPE_MONSTER)
