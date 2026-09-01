@@ -44,4 +44,14 @@ protected:
 	USpringArmComponent* CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+
+protected:
+	const float MOVE_PACKET_SEND_DELAY = 0.2f;
+	float MovePacketSendTimer = MOVE_PACKET_SEND_DELAY;
+
+	FVector2D	DesiredInput;
+	FVector		DesiredMovementDir;
+	float		DesiredYaw;
+
+	FVector2D	LastDesiredInput;
 };

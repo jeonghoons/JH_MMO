@@ -5,6 +5,7 @@
 #include "Protocol/Protocol.pb.h"
 #include "JMObjectManager.generated.h"
 
+class AJMCharacterBase;
 class AJMMyPlayer;
 
 UCLASS()
@@ -16,10 +17,11 @@ public:
 
 	void HandleSpawn(const Protocol::ObjectInfo& ObjInfo);
 	void HandleDespawn(int32 ObjectId);
+	void HandleMove(const Protocol::ObjectInfo& ObjInfo);
 
 public:
 	UPROPERTY()
 	TObjectPtr<AJMMyPlayer> MyPlayer;
 	UPROPERTY()
-	TMap<int32, TObjectPtr<AActor>> Objects;
+	TMap<int32, TObjectPtr<AJMCharacterBase>> Objects;
 };

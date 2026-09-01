@@ -97,6 +97,13 @@ void FPacketHandler::Handle_SC_REMOVE_OBJECT(TSharedPtr<NetworkSession>& session
 
 void FPacketHandler::Handle_SC_MOVE_OBJECT(TSharedPtr<NetworkSession>& session, Protocol::SC_MOVE_PACKET& pkt)
 {
+	if (UNetworkManager* NetManager = session->OwnerNetwork.Get())
+	{
+		if (UJMObjectManager* ObjectManager = NetManager->GetGameInstance()->GetSubsystem<UJMObjectManager>())
+		{
+			ObjectManager->HandleMove(pkt.object_info());
+		}
+	}
 }
 
 void FPacketHandler::Handle_SC_ATTACK(TSharedPtr<NetworkSession>& session, Protocol::SC_ATTACK_PACKET& pkt)

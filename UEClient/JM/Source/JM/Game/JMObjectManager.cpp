@@ -20,7 +20,6 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	if (World == nullptr) return;
 
 	int ObjectId = ObjInfo.id();
-
 	if (Objects.Contains(ObjectId)) return;
 
 	UJMGameInstance* GameInst = Cast<UJMGameInstance>(GetGameInstance());
@@ -30,14 +29,13 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	FVector SpawnLoc(ObjInfo.position().x(), ObjInfo.position().y(), ObjInfo.position().z());
 	FRotator SpawnRot(0, ObjInfo.position().yaw(), 0);
 
-	AActor* SpawnedActor = nullptr;
+	AJMCharacterBase* SpawnedActor = nullptr;
 
 	if (ObjectId == NetManager->NetworkId)
 	{
 		if (GameInst->MyPlayerClass)
 		{
 			AJMMyPlayer* MyCharacter = World->SpawnActor<AJMMyPlayer>(GameInst->MyPlayerClass, SpawnLoc, SpawnRot);
-			MyCharacter->SetPlayerData(ObjInfo);
 			MyPlayer = MyCharacter;
 			SpawnedActor = MyCharacter;
 
@@ -51,35 +49,44 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	{
 		if (GameInst->NpcCharacterClass)
 		{
-			ANpcCharaceter* NpcCharacter = World->SpawnActor<ANpcCharaceter>(GameInst->NpcCharacterClass, SpawnLoc, SpawnRot);
-			NpcCharacter->SetPlayerData(ObjInfo);
-			SpawnedActor = NpcCharacter;
+			SpawnedActor = World->SpawnActor<ANpcCharaceter>(GameInst->NpcCharacterClass, SpawnLoc, SpawnRot);
 		}
 	}
 	else
 	{
 		if (GameInst->PlayerClass)
 		{
-			AJMPlayer* OtherCharacter = World->SpawnActor<AJMPlayer>(GameInst->PlayerClass, SpawnLoc, SpawnRot);
-			OtherCharacter->SetPlayerData(ObjInfo);
-			SpawnedActor = OtherCharacter;
+			SpawnedActor = World->SpawnActor<AJMPlayer>(GameInst->PlayerClass, SpawnLoc, SpawnRot);
 		}
 	}
 
 	if (SpawnedActor)
 	{
+		SpawnedActor->SetPlayerData(ObjInfo);
 		Objects.Add(ObjectId, SpawnedActor);
 	}
 }
 
 void UJMObjectManager::HandleDespawn(int32 ObjectId)
 {
-	if (TObjectPtr<AActor>* FoundActor = Objects.Find(ObjectId))
+	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(ObjectId))
 	{
 		if (*FoundActor != nullptr)
 		{
 			(*FoundActor)->Destroy();
 		}
 		Objects.Remove(ObjectId);
+	}
+}
+
+void UJMObjectManager::HandleMove(const Protocol::ObjectInfo& ObjInfo)
+{
+	int ObjectId = ObjInfo.id();
+	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(ObjectId))
+	{
+		if (*FoundActor == nullptr) return;
+		if (*FoundActor == MyPlayer) return; 
+
+		(*FoundActor)->SetDestInfo(ObjInfo.position());
 	}
 }

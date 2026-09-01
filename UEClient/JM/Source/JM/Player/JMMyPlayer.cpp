@@ -5,17 +5,20 @@
 #include "Engine/LocalPlayer.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Network/NetworkManager.h"
+#include "Protocol/Protocol.pb.h"
+#include "Network/SendBuffer.h"
 
 AJMMyPlayer::AJMMyPlayer()
 {
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 400.0f;
-	CameraBoom->bUsePawnControlRotation = false;
+	CameraBoom->bUsePawnControlRotation = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	FollowCamera->bUsePawnControlRotation = true;
+	FollowCamera->bUsePawnControlRotation = false;
 
 	IsMyPlayer = true;
 }
@@ -64,6 +67,40 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 void AJMMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (GetGameInstance()->GetSubsystem<UNetworkManager>() == nullptr)
+		return;
+
+	UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>();
+	if (NetManager == nullptr) return;
+
+	bool forceSendPacket = false;
+
+	if (LastDesiredInput != DesiredInput) {
+		forceSendPacket = true;
+		LastDesiredInput = DesiredInput;
+	}
+
+	FVector currentVelocity = GetVelocity();
+
+	/*if (DesiredInput == FVector2D::Zero())
+		SetMoveState(Move_State::IDLE);
+	else
+		SetMoveState(Move_State::RUN);*/
+
+	MovePacketSendTimer -= DeltaTime;
+
+	if (MovePacketSendTimer <= 0 || forceSendPacket)
+	{
+		MovePacketSendTimer = MOVE_PACKET_SEND_DELAY;
+
+		Protocol::CS_MOVE_PACKET movePkt;
+		movePkt.mutable_pos_info()->CopyFrom(ObjectInfo.position());
+		movePkt.set_force(forceSendPacket);
+		TSharedPtr<SendBuffer> sendBuffer = SendBuffer::MakeSendBuffer(movePkt, Protocol::CS_MOVE);
+		NetManager->SendPacket(sendBuffer);
+	}
+
 }
 
 void AJMMyPlayer::Move(const FInputActionValue& Value)
@@ -80,6 +117,8 @@ void AJMMyPlayer::Move(const FInputActionValue& Value)
 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
+
+		DesiredInput = MovementVector;
 	}
 }
 
@@ -91,6 +130,6 @@ void AJMMyPlayer::Look(const FInputActionValue& Value)
 	{
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
-		// desiredYaw = GetActorRotation().Yaw;
+		DesiredYaw = GetActorRotation().Yaw;
 	}
 }
