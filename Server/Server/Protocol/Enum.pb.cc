@@ -22,38 +22,43 @@ namespace _pbi = _pb::internal;
 
 namespace Protocol {
 }  // namespace Protocol
-static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[4];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[5];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_Enum_2eproto = nullptr;
 const uint32_t TableStruct_Enum_2eproto::offsets[1] = {};
 static constexpr ::_pbi::MigrationSchema* schemas = nullptr;
 static constexpr ::_pb::Message* const* file_default_instances = nullptr;
 
 const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\nEnum.proto\022\010Protocol*\353\002\n\010PacketId\022\014\n\010P"
+  "\n\nEnum.proto\022\010Protocol*\227\003\n\010PacketId\022\014\n\010P"
   "KT_NONE\020\000\022\r\n\010CS_LOGIN\020\350\007\022\016\n\tCS_SIGNUP\020\351\007"
   "\022\016\n\tCS_LOGOUT\020\352\007\022\014\n\007CS_CHAT\020\353\007\022\014\n\007CS_MOV"
   "E\020\354\007\022\r\n\010CS_CMOVE\020\355\007\022\022\n\rCS_ENTER_ROOM\020\356\007\022"
-  "\022\n\rCS_LEAVE_ROOM\020\357\007\022\016\n\tCS_ATTACK\020\360\007\022\r\n\010S"
-  "C_LOGIN\020\320\017\022\016\n\tSC_SIGNUP\020\321\017\022\016\n\tSC_LOGOUT\020"
-  "\322\017\022\022\n\rSC_ADD_OBJECT\020\323\017\022\025\n\020SC_REMOVE_OBJE"
-  "CT\020\324\017\022\014\n\007SC_CHAT\020\325\017\022\023\n\016SC_MOVE_OBJECT\020\326\017"
-  "\022\024\n\017SC_CMOVE_OBJECT\020\327\017\022\016\n\tSC_ATTACK\020\330\017\022\016"
-  "\n\tSC_DAMAGE\020\331\017\022\014\n\007SC_DEAD\020\332\017*u\n\tMoveStat"
-  "e\022\023\n\017MOVE_STATE_NONE\020\000\022\023\n\017MOVE_STATE_IDL"
-  "E\020\001\022\022\n\016MOVE_STATE_RUN\020\002\022\023\n\017MOVE_STATE_JU"
-  "MP\020\003\022\025\n\021MOVE_STATE_ATTACK\020\004*\233\001\n\nObjectTy"
-  "pe\022\024\n\020OBJECT_TYPE_NONE\020\000\022\026\n\022OBJECT_TYPE_"
-  "PLAYER\020\001\022\027\n\023OBJECT_TYPE_MONSTER\020\002\022\023\n\017OBJ"
-  "ECT_TYPE_NPC\020\003\022\024\n\020OBJECT_TYPE_ITEM\020\004\022\033\n\027"
-  "OBJECT_TYPE_ENVIRONMENT\020\005*\207\001\n\nPlayerType"
-  "\022\024\n\020PLAYER_TYPE_NONE\020\000\022\031\n\025PLAYER_TYPE_GR"
-  "EYSTONE\020\001\022\027\n\023PLAYER_TYPE_SPARROW\020\002\022\026\n\022PL"
-  "AYER_TYPE_GIDEON\020\003\022\027\n\023PLAYER_TYPE_MONSTE"
-  "R\020\004b\006proto3"
+  "\022\n\rCS_LEAVE_ROOM\020\357\007\022\016\n\tCS_ATTACK\020\360\007\022\024\n\017C"
+  "S_CHANGE_EQUIP\020\361\007\022\r\n\010SC_LOGIN\020\320\017\022\016\n\tSC_S"
+  "IGNUP\020\321\017\022\016\n\tSC_LOGOUT\020\322\017\022\022\n\rSC_ADD_OBJEC"
+  "T\020\323\017\022\025\n\020SC_REMOVE_OBJECT\020\324\017\022\014\n\007SC_CHAT\020\325"
+  "\017\022\023\n\016SC_MOVE_OBJECT\020\326\017\022\024\n\017SC_CMOVE_OBJEC"
+  "T\020\327\017\022\016\n\tSC_ATTACK\020\330\017\022\016\n\tSC_DAMAGE\020\331\017\022\014\n\007"
+  "SC_DEAD\020\332\017\022\024\n\017SC_CHANGE_EQUIP\020\333\017*u\n\tMove"
+  "State\022\023\n\017MOVE_STATE_NONE\020\000\022\023\n\017MOVE_STATE"
+  "_IDLE\020\001\022\022\n\016MOVE_STATE_RUN\020\002\022\023\n\017MOVE_STAT"
+  "E_JUMP\020\003\022\025\n\021MOVE_STATE_ATTACK\020\004*\233\001\n\nObje"
+  "ctType\022\024\n\020OBJECT_TYPE_NONE\020\000\022\026\n\022OBJECT_T"
+  "YPE_PLAYER\020\001\022\027\n\023OBJECT_TYPE_MONSTER\020\002\022\023\n"
+  "\017OBJECT_TYPE_NPC\020\003\022\024\n\020OBJECT_TYPE_ITEM\020\004"
+  "\022\033\n\027OBJECT_TYPE_ENVIRONMENT\020\005*\232\001\n\nPlayer"
+  "Type\022\024\n\020PLAYER_TYPE_NONE\020\000\022\024\n\020PLAYER_TYP"
+  "E_MALE\020\001\022\026\n\022PLAYER_TYPE_FEMALE\020\002\022\027\n\023PLAY"
+  "ER_TYPE_MONSTER\020\003\022\027\n\023PLAYER_TYPE_WARRIOR"
+  "\020\004\022\026\n\022PLAYER_TYPE_ARCHER\020\005*\200\001\n\tEquipPart"
+  "\022\023\n\017EQUIP_PART_NONE\020\000\022\024\n\020EQUIP_PART_UPPE"
+  "R\020\001\022\024\n\020EQUIP_PART_LOWER\020\002\022\033\n\027EQUIP_PART_"
+  "OUTFIT_SHOES\020\003\022\025\n\021EQUIP_PART_WEAPON\020\005b\006p"
+  "roto3"
   ;
 static ::_pbi::once_flag descriptor_table_Enum_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Enum_2eproto = {
-    false, false, 811, descriptor_table_protodef_Enum_2eproto,
+    false, false, 1005, descriptor_table_protodef_Enum_2eproto,
     "Enum.proto",
     &descriptor_table_Enum_2eproto_once, nullptr, 0, 0,
     schemas, file_default_instances, TableStruct_Enum_2eproto::offsets,
@@ -83,6 +88,7 @@ bool PacketId_IsValid(int value) {
     case 1006:
     case 1007:
     case 1008:
+    case 1009:
     case 2000:
     case 2001:
     case 2002:
@@ -94,6 +100,7 @@ bool PacketId_IsValid(int value) {
     case 2008:
     case 2009:
     case 2010:
+    case 2011:
       return true;
     default:
       return false;
@@ -146,6 +153,24 @@ bool PlayerType_IsValid(int value) {
     case 2:
     case 3:
     case 4:
+    case 5:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EquipPart_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
+  return file_level_enum_descriptors_Enum_2eproto[4];
+}
+bool EquipPart_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 5:
       return true;
     default:
       return false;

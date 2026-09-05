@@ -14,6 +14,8 @@ xcopy /y "%OUT_DIR%\*" "%SERVER_DIR%\"
 if not exist %CLIENT_DIR% mkdir %CLIENT_DIR%
 xcopy /y "%OUT_DIR%\*" "%CLIENT_DIR%\"
 
+xcopy /y "%OUT_DIR%\*" ".\"
+
 rmdir /s /q %OUT_DIR%
 
 echo =========================================================

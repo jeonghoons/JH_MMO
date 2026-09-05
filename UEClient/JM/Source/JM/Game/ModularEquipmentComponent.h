@@ -17,7 +17,7 @@ public:
 	void ApplyEquipment(const TArray<int32>& EquipIDs);
 
 protected:
-	class USkeletalMeshComponent* GetOrAddMeshComponent(EEquipPart Part);
+	class USkeletalMeshComponent* GetOrAddMeshComponent(EEquipPart Part, FName AttachSocketName);
 	void OnEquipmentLoaded(TArray<int32> LoadedIDs);
 
 protected:

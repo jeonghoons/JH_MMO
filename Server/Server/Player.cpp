@@ -60,6 +60,12 @@ void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 		stat->set_move_speed(statData->moveSpeed);
 		_statInfo.Init(stat);
 	}
+
+	_objectInfo.clear_equip_items();
+	for (int32_t itemId : data.equipItemIds)
+	{
+		_objectInfo.add_equip_items(itemId);
+	}
 }
 
 DB_PlayerData Player::GetCurrentDbData()
@@ -70,8 +76,5 @@ DB_PlayerData Player::GetCurrentDbData()
 	data.exp = 0;
 	data.hp = _statInfo.GetHp();
 	data.mp = 100; 
-	data.posX = _objectInfo.position().x();
-	data.posY = _objectInfo.position().y();
-	data.posZ = _objectInfo.position().z();
 	return data;
 }

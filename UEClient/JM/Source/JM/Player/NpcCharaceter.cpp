@@ -3,3 +3,11 @@
 
 #include "Player/NpcCharaceter.h"
 
+ANpcCharaceter::ANpcCharaceter()
+{
+}
+
+void ANpcCharaceter::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
+{
+	Super::SetPlayerData(ObjInfo);
+}

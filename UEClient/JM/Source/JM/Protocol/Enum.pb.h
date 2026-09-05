@@ -58,6 +58,7 @@ enum PacketId : int {
   CS_ENTER_ROOM = 1006,
   CS_LEAVE_ROOM = 1007,
   CS_ATTACK = 1008,
+  CS_CHANGE_EQUIP = 1009,
   SC_LOGIN = 2000,
   SC_SIGNUP = 2001,
   SC_LOGOUT = 2002,
@@ -69,12 +70,13 @@ enum PacketId : int {
   SC_ATTACK = 2008,
   SC_DAMAGE = 2009,
   SC_DEAD = 2010,
+  SC_CHANGE_EQUIP = 2011,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_DEAD;
+constexpr PacketId PacketId_MAX = SC_CHANGE_EQUIP;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();
@@ -150,16 +152,17 @@ inline bool ObjectType_Parse(
 }
 enum PlayerType : int {
   PLAYER_TYPE_NONE = 0,
-  PLAYER_TYPE_GREYSTONE = 1,
-  PLAYER_TYPE_SPARROW = 2,
-  PLAYER_TYPE_GIDEON = 3,
-  PLAYER_TYPE_MONSTER = 4,
+  PLAYER_TYPE_MALE = 1,
+  PLAYER_TYPE_FEMALE = 2,
+  PLAYER_TYPE_MONSTER = 3,
+  PLAYER_TYPE_WARRIOR = 4,
+  PLAYER_TYPE_ARCHER = 5,
   PlayerType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PlayerType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PlayerType_IsValid(int value);
 constexpr PlayerType PlayerType_MIN = PLAYER_TYPE_NONE;
-constexpr PlayerType PlayerType_MAX = PLAYER_TYPE_MONSTER;
+constexpr PlayerType PlayerType_MAX = PLAYER_TYPE_ARCHER;
 constexpr int PlayerType_ARRAYSIZE = PlayerType_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PlayerType_descriptor();
@@ -175,6 +178,34 @@ inline bool PlayerType_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, PlayerType* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<PlayerType>(
     PlayerType_descriptor(), name, value);
+}
+enum EquipPart : int {
+  EQUIP_PART_NONE = 0,
+  EQUIP_PART_UPPER = 1,
+  EQUIP_PART_LOWER = 2,
+  EQUIP_PART_OUTFIT_SHOES = 3,
+  EQUIP_PART_WEAPON = 5,
+  EquipPart_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  EquipPart_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool EquipPart_IsValid(int value);
+constexpr EquipPart EquipPart_MIN = EQUIP_PART_NONE;
+constexpr EquipPart EquipPart_MAX = EQUIP_PART_WEAPON;
+constexpr int EquipPart_ARRAYSIZE = EquipPart_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EquipPart_descriptor();
+template<typename T>
+inline const std::string& EquipPart_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, EquipPart>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function EquipPart_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    EquipPart_descriptor(), enum_t_value);
+}
+inline bool EquipPart_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, EquipPart* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<EquipPart>(
+    EquipPart_descriptor(), name, value);
 }
 // ===================================================================
 
@@ -217,6 +248,11 @@ template <> struct is_proto_enum< ::Protocol::PlayerType> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::PlayerType>() {
   return ::Protocol::PlayerType_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::EquipPart> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::EquipPart>() {
+  return ::Protocol::EquipPart_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

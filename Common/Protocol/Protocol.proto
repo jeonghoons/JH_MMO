@@ -36,17 +36,22 @@ message CS_LEAVE_ROOM_PACKET {
 }
 
 message CS_MOVE_PACKET {
-  PositionInfo pos_info = 1;
-  bool force = 2;
+	PositionInfo pos_info = 1;
+	bool force = 2;
 }
 
 message CS_DMOVE_PACKET {
-  float input_x = 1;
-  float input_y = 2;
+	float input_x = 1;
+	float input_y = 2;
 }
 
 message CS_ATTACK_PACKET {
-  int32 target_id = 1;
+	int32 target_id = 1;
+}
+
+message CS_CHANGE_EQUIP_PACKET {
+	EquipPart part = 1;
+	int32 item_id = 2;
 }
 
 // ==========================================
@@ -54,44 +59,50 @@ message CS_ATTACK_PACKET {
 // ==========================================
 
 message SC_LOGIN_INFO_PACKET {
-  ObjectInfo object_info = 1;
+	ObjectInfo object_info = 1;
 }
 
 message SC_SIGNUP_PACKET {
-  bool result = 1;
+	bool result = 1;
 }
 
 message SC_ADD_OBJECT_PACKET {
-  ObjectInfo object_info = 1;
+	ObjectInfo object_info = 1;
 }
 
 message SC_REMOVE_OBJECT_PACKET {
-  int32 object_id = 1;
+	int32 object_id = 1;
 }
 
 message SC_CHAT_PACKET {
-  int32 sender_id = 1;
-  string message = 2;
+	int32 sender_id = 1;
+	string message = 2;
 }
 
 message SC_MOVE_PACKET {
-  ObjectInfo object_info = 1;
-  uint32 move_time = 2; 
+	ObjectInfo object_info = 1;
+	uint32 move_time = 2; 
 }
 
 message SC_ATTACK_PACKET {
-  int32 attacker_id = 1;
-  int32 skill_id = 2;
-  int32 target_id = 3;
+	int32 attacker_id = 1;
+	int32 skill_id = 2;
+	int32 target_id = 3;
 }
 
 message SC_DAMAGE_PACKET {
-  int32 attacker_id = 1;
-  int32 target_id = 2;
-  int32 damage = 3;
-  int32 remain_hp = 4;
+	int32 attacker_id = 1;
+	int32 target_id = 2;
+	int32 damage = 3;
+	int32 remain_hp = 4;
 }
 
 message SC_DEAD_PACKET {
-  int32 object_id = 1;
+	int32 object_id = 1;
+}
+
+message SC_CHANGE_EQUIP_PACKET {
+	int32 object_id = 1;
+	EquipPart part = 2;
+	int32 item_id = 3;
 }

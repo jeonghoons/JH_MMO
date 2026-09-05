@@ -27,6 +27,23 @@ public:
 	TSoftObjectPtr<USkeletalMesh> AppearanceMesh;
 };
 
+USTRUCT(BlueprintType)
+struct FCharacterBaseData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance")
+	TSoftObjectPtr<USkeletalMesh> BaseMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	TSoftObjectPtr<UAnimMontage> HitMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	TSoftObjectPtr<UAnimMontage> DeadMontage;
+};
+
+
 UENUM(BlueprintType)
 enum class EEquipPart : uint8
 {
@@ -39,27 +56,44 @@ struct FEquipAssetData : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common")
 	FText DisplayName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common")
 	EEquipPart EquipPart;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common")
 	TSoftObjectPtr<USkeletalMesh> EquipMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common")
 	FName AttachSocketName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Override")
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponOnly")
 	TSoftClassPtr<UAnimInstance> WeaponAnimClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Override")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponOnly")
 	TSoftObjectPtr<UAnimMontage> AttackMontage;
+};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Override")
-	TSoftObjectPtr<UAnimMontage> HitMontage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Override")
-	TSoftObjectPtr<UAnimMontage> DeadMontage;
+USTRUCT(BlueprintType)
+struct FCharacterAssetData : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Asset")
+	TSoftObjectPtr<USkeletalMesh> CharacterMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Asset")
+	TSoftClassPtr<UAnimInstance> AnimClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftObjectPtr<class UAnimMontage> AttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Asset")
+	TSoftObjectPtr<class UAnimMontage> HitMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Asset")
+	TSoftObjectPtr<class UAnimMontage> DeadMontage;
 };

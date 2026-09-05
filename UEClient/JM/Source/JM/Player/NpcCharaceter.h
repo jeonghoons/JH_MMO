@@ -13,5 +13,8 @@ UCLASS()
 class JM_API ANpcCharaceter : public AJMCharacterBase
 {
 	GENERATED_BODY()
-	
+public:
+	ANpcCharaceter();
+
+	virtual void SetPlayerData(const Protocol::ObjectInfo& ObjInfo) override;
 };

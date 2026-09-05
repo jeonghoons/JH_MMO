@@ -17,10 +17,6 @@ AJMCharacterBase::AJMCharacterBase()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 	GetCharacterMovement()->bRunPhysicsWithNoController = true;
-
-
-	AppearanceComponent = CreateDefaultSubobject<UModularAppearanceComponent>(TEXT("AppearanceComponent"));
-	EquipmentComponent = CreateDefaultSubobject<UModularEquipmentComponent>(TEXT("EquipmentComponent"));
 }
 
 void AJMCharacterBase::BeginPlay()
@@ -59,6 +55,9 @@ void AJMCharacterBase::ApplyNetworkMovement(float DeltaTime)
 	else
 	{
 		DestPos += DestVel * DeltaTime;
+		DestPosition.set_x(DestPos.X);
+		DestPosition.set_y(DestPos.Y);
+		DestPosition.set_z(DestPos.Z);
 		SetActorLocation(FMath::VInterpTo(CurrentLoc, DestPos, DeltaTime, 10.0f), false);
 	}
 
@@ -96,26 +95,7 @@ void AJMCharacterBase::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
 	ObjectInfo = ObjInfo;
 	DestPosition.CopyFrom(ObjectInfo.position());
 
-	TArray<int32> AppearanceIDs;
-	/*for (int i = 0; i < ObjInfo.appearance_items_size(); ++i)
-	{
-		AppearanceIDs.Add(ObjInfo.appearance_items(i));
-	}*/
-	for (int i = 0; i < 6; ++i) {
-		AppearanceIDs.Add((i+1) * 1000 + 2);
-	}
-	AppearanceComponent->ApplyAppearance(AppearanceIDs);
-
-	
-	TArray<int32> EquipIDs;
-	/*for (int i = 0; i < ObjInfo.equip_items_size(); ++i)
-	{
-		EquipIDs.Add(ObjInfo.equip_items(i));
-	}*/
-	EquipmentComponent->ApplyEquipment(EquipIDs);
 }
-
-
 
 void AJMCharacterBase::OnDamaged(int32_t Damage, int32_t RemainHP)
 {
@@ -150,15 +130,13 @@ void AJMCharacterBase::OnAttack()
 	}
 }
 
-void AJMCharacterBase::UpdateWeaponAnimation(TSubclassOf<UAnimInstance> AnimClass, UAnimMontage* Attack, UAnimMontage* Hit, UAnimMontage* Dead)
+void AJMCharacterBase::UpdateWeaponAnimation(TSubclassOf<UAnimInstance> AnimClass, UAnimMontage* Attack)
 {
 	if (AnimClass && GetMesh())
 	{
 		GetMesh()->SetAnimInstanceClass(AnimClass);
 	}
 	CurrentAttackMontage = Attack;
-	CurrentHitMontage = Hit;
-	CurrentDeadMontage = Dead;
 }
 
 

@@ -33,6 +33,8 @@ public:
 
 	void SavePlayerData(DB_PlayerData data);
 
+	void UpdateEquipData(int64_t playerUID, int32_t equipSlot, int64_t itemDbId, int32_t itemId);
+
 private:
 	ConcurrentQ<shared_ptr<Job>> _dbJobQueue;
 	vector<thread> _threads;

@@ -603,12 +603,59 @@ class ObjectInfo final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kAppearanceItemsFieldNumber = 7,
+    kEquipItemsFieldNumber = 8,
     kPositionFieldNumber = 4,
     kStatFieldNumber = 5,
     kIdFieldNumber = 1,
     kObjectTypeFieldNumber = 2,
     kPlayerTypeFieldNumber = 3,
+    kTemplateIdFieldNumber = 6,
   };
+  // repeated int32 appearance_items = 7;
+  int appearance_items_size() const;
+  private:
+  int _internal_appearance_items_size() const;
+  public:
+  void clear_appearance_items();
+  private:
+  int32_t _internal_appearance_items(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_appearance_items() const;
+  void _internal_add_appearance_items(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_appearance_items();
+  public:
+  int32_t appearance_items(int index) const;
+  void set_appearance_items(int index, int32_t value);
+  void add_appearance_items(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      appearance_items() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_appearance_items();
+
+  // repeated int32 equip_items = 8;
+  int equip_items_size() const;
+  private:
+  int _internal_equip_items_size() const;
+  public:
+  void clear_equip_items();
+  private:
+  int32_t _internal_equip_items(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_equip_items() const;
+  void _internal_add_equip_items(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_equip_items();
+  public:
+  int32_t equip_items(int index) const;
+  void set_equip_items(int index, int32_t value);
+  void add_equip_items(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      equip_items() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_equip_items();
+
   // .Protocol.PositionInfo position = 4;
   bool has_position() const;
   private:
@@ -672,6 +719,15 @@ class ObjectInfo final :
   void _internal_set_player_type(::Protocol::PlayerType value);
   public:
 
+  // int32 template_id = 6;
+  void clear_template_id();
+  int32_t template_id() const;
+  void set_template_id(int32_t value);
+  private:
+  int32_t _internal_template_id() const;
+  void _internal_set_template_id(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.ObjectInfo)
  private:
   class _Internal;
@@ -680,11 +736,16 @@ class ObjectInfo final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > appearance_items_;
+    mutable std::atomic<int> _appearance_items_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > equip_items_;
+    mutable std::atomic<int> _equip_items_cached_byte_size_;
     ::Protocol::PositionInfo* position_;
     ::Protocol::StatInfo* stat_;
     int32_t id_;
     int object_type_;
     int player_type_;
+    int32_t template_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1207,6 +1268,120 @@ inline void ObjectInfo::set_allocated_stat(::Protocol::StatInfo* stat) {
   }
   _impl_.stat_ = stat;
   // @@protoc_insertion_point(field_set_allocated:Protocol.ObjectInfo.stat)
+}
+
+// int32 template_id = 6;
+inline void ObjectInfo::clear_template_id() {
+  _impl_.template_id_ = 0;
+}
+inline int32_t ObjectInfo::_internal_template_id() const {
+  return _impl_.template_id_;
+}
+inline int32_t ObjectInfo::template_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.template_id)
+  return _internal_template_id();
+}
+inline void ObjectInfo::_internal_set_template_id(int32_t value) {
+  
+  _impl_.template_id_ = value;
+}
+inline void ObjectInfo::set_template_id(int32_t value) {
+  _internal_set_template_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.template_id)
+}
+
+// repeated int32 appearance_items = 7;
+inline int ObjectInfo::_internal_appearance_items_size() const {
+  return _impl_.appearance_items_.size();
+}
+inline int ObjectInfo::appearance_items_size() const {
+  return _internal_appearance_items_size();
+}
+inline void ObjectInfo::clear_appearance_items() {
+  _impl_.appearance_items_.Clear();
+}
+inline int32_t ObjectInfo::_internal_appearance_items(int index) const {
+  return _impl_.appearance_items_.Get(index);
+}
+inline int32_t ObjectInfo::appearance_items(int index) const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.appearance_items)
+  return _internal_appearance_items(index);
+}
+inline void ObjectInfo::set_appearance_items(int index, int32_t value) {
+  _impl_.appearance_items_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.appearance_items)
+}
+inline void ObjectInfo::_internal_add_appearance_items(int32_t value) {
+  _impl_.appearance_items_.Add(value);
+}
+inline void ObjectInfo::add_appearance_items(int32_t value) {
+  _internal_add_appearance_items(value);
+  // @@protoc_insertion_point(field_add:Protocol.ObjectInfo.appearance_items)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+ObjectInfo::_internal_appearance_items() const {
+  return _impl_.appearance_items_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+ObjectInfo::appearance_items() const {
+  // @@protoc_insertion_point(field_list:Protocol.ObjectInfo.appearance_items)
+  return _internal_appearance_items();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+ObjectInfo::_internal_mutable_appearance_items() {
+  return &_impl_.appearance_items_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+ObjectInfo::mutable_appearance_items() {
+  // @@protoc_insertion_point(field_mutable_list:Protocol.ObjectInfo.appearance_items)
+  return _internal_mutable_appearance_items();
+}
+
+// repeated int32 equip_items = 8;
+inline int ObjectInfo::_internal_equip_items_size() const {
+  return _impl_.equip_items_.size();
+}
+inline int ObjectInfo::equip_items_size() const {
+  return _internal_equip_items_size();
+}
+inline void ObjectInfo::clear_equip_items() {
+  _impl_.equip_items_.Clear();
+}
+inline int32_t ObjectInfo::_internal_equip_items(int index) const {
+  return _impl_.equip_items_.Get(index);
+}
+inline int32_t ObjectInfo::equip_items(int index) const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.equip_items)
+  return _internal_equip_items(index);
+}
+inline void ObjectInfo::set_equip_items(int index, int32_t value) {
+  _impl_.equip_items_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.equip_items)
+}
+inline void ObjectInfo::_internal_add_equip_items(int32_t value) {
+  _impl_.equip_items_.Add(value);
+}
+inline void ObjectInfo::add_equip_items(int32_t value) {
+  _internal_add_equip_items(value);
+  // @@protoc_insertion_point(field_add:Protocol.ObjectInfo.equip_items)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+ObjectInfo::_internal_equip_items() const {
+  return _impl_.equip_items_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+ObjectInfo::equip_items() const {
+  // @@protoc_insertion_point(field_list:Protocol.ObjectInfo.equip_items)
+  return _internal_equip_items();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+ObjectInfo::_internal_mutable_equip_items() {
+  return &_impl_.equip_items_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+ObjectInfo::mutable_equip_items() {
+  // @@protoc_insertion_point(field_mutable_list:Protocol.ObjectInfo.equip_items)
+  return _internal_mutable_equip_items();
 }
 
 #ifdef __GNUC__

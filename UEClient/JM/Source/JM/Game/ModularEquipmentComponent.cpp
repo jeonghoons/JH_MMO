@@ -1,40 +1,11 @@
 #include "ModularEquipmentComponent.h"
+#include "Game/EquipAssetData.h"
 #include "Character/JMCharacterBase.h"
 #include "JMGameInstance.h"
 
 UModularEquipmentComponent::UModularEquipmentComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-}
-
-USkeletalMeshComponent* UModularEquipmentComponent::GetOrAddMeshComponent(EEquipPart Part)
-{
-	if (EquipMeshes.Contains(Part))
-	{
-		return EquipMeshes[Part];
-	}
-
-	AJMCharacterBase* OwnerChar = Cast<AJMCharacterBase>(GetOwner());
-	if (!OwnerChar) return nullptr;
-
-	FString PartName = UEnum::GetValueAsString(Part);
-	PartName = PartName.RightChop(PartName.Find(TEXT("::")) + 2) + TEXT("Mesh");
-
-	USkeletalMeshComponent* NewMesh = NewObject<USkeletalMeshComponent>(OwnerChar, FName(*PartName));
-
-	if (Part == EEquipPart::Weapon)
-	{
-		NewMesh->SetupAttachment(OwnerChar->GetMesh(), FName("Weapon_Socket_R"));
-	}
-	else
-	{
-		NewMesh->SetupAttachment(OwnerChar->GetMesh());
-		NewMesh->SetLeaderPoseComponent(OwnerChar->GetMesh());
-	}
-	
-	NewMesh->RegisterComponent();
-	EquipMeshes.Add(Part, NewMesh);
-	return NewMesh;
 }
 
 void UModularEquipmentComponent::ApplyEquipment(const TArray<int32>& EquipIDs)
@@ -53,8 +24,6 @@ void UModularEquipmentComponent::ApplyEquipment(const TArray<int32>& EquipIDs)
 			if (Data->EquipMesh.IsPending()) AssetsToLoad.AddUnique(Data->EquipMesh.ToSoftObjectPath());
 			if (Data->WeaponAnimClass.IsPending()) AssetsToLoad.AddUnique(Data->WeaponAnimClass.ToSoftObjectPath());
 			if (Data->AttackMontage.IsPending()) AssetsToLoad.AddUnique(Data->AttackMontage.ToSoftObjectPath());
-			if (Data->HitMontage.IsPending()) AssetsToLoad.AddUnique(Data->HitMontage.ToSoftObjectPath());
-			if (Data->DeadMontage.IsPending()) AssetsToLoad.AddUnique(Data->DeadMontage.ToSoftObjectPath());
 		}
 	}
 
@@ -68,6 +37,46 @@ void UModularEquipmentComponent::ApplyEquipment(const TArray<int32>& EquipIDs)
 		AssetsToLoad,
 		FStreamableDelegate::CreateUObject(this, &UModularEquipmentComponent::OnEquipmentLoaded, EquipIDs)
 	);
+}
+
+USkeletalMeshComponent* UModularEquipmentComponent::GetOrAddMeshComponent(EEquipPart Part, FName AttachSocketName)
+{
+	if (EquipMeshes.Contains(Part))
+	{
+		USkeletalMeshComponent* ExistingMesh = EquipMeshes[Part];
+		AJMCharacterBase* OwnerChar = Cast<AJMCharacterBase>(GetOwner());
+		if (OwnerChar && !AttachSocketName.IsNone())
+		{
+			ExistingMesh->AttachToComponent(OwnerChar->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, AttachSocketName);
+		}
+		return ExistingMesh;
+	}
+
+	AJMCharacterBase* OwnerChar = Cast<AJMCharacterBase>(GetOwner());
+	if (!OwnerChar) return nullptr;
+
+	FString PartName = UEnum::GetValueAsString(Part);
+	PartName = PartName.RightChop(PartName.Find(TEXT("::")) + 2) + TEXT("Mesh");
+
+	USkeletalMeshComponent* NewMesh = NewObject<USkeletalMeshComponent>(OwnerChar, FName(*PartName));
+
+	if (!AttachSocketName.IsNone())
+	{
+		NewMesh->SetupAttachment(OwnerChar->GetMesh(), AttachSocketName);
+	}
+	else if (Part == EEquipPart::Weapon)
+	{
+		NewMesh->SetupAttachment(OwnerChar->GetMesh(), FName("Weapon_Socket_R"));
+	}
+	else
+	{
+		NewMesh->SetupAttachment(OwnerChar->GetMesh());
+		NewMesh->SetLeaderPoseComponent(OwnerChar->GetMesh());
+	}
+	
+	NewMesh->RegisterComponent();
+	EquipMeshes.Add(Part, NewMesh);
+	return NewMesh;
 }
 
 void UModularEquipmentComponent::OnEquipmentLoaded(TArray<int32> LoadedIDs)
@@ -86,7 +95,7 @@ void UModularEquipmentComponent::OnEquipmentLoaded(TArray<int32> LoadedIDs)
 		// 1. 장비/무기 메쉬 착용
 		if (Data->EquipMesh.IsValid())
 		{
-			if (USkeletalMeshComponent* TargetMesh = GetOrAddMeshComponent(Data->EquipPart))
+			if (USkeletalMeshComponent* TargetMesh = GetOrAddMeshComponent(Data->EquipPart, Data->AttachSocketName))
 			{
 				TargetMesh->SetSkeletalMesh(Data->EquipMesh.Get());
 			}
@@ -97,9 +106,7 @@ void UModularEquipmentComponent::OnEquipmentLoaded(TArray<int32> LoadedIDs)
 		{
 			OwnerChar->UpdateWeaponAnimation(
 				Data->WeaponAnimClass.Get(),
-				Data->AttackMontage.Get(),
-				Data->HitMontage.Get(),
-				Data->DeadMontage.Get()
+				Data->AttackMontage.Get()
 			);
 		}
 	}

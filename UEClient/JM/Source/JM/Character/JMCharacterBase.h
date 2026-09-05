@@ -34,17 +34,9 @@ public:
 	virtual void OnDead();
 	virtual void OnAttack();
 
-	void UpdateWeaponAnimation(TSubclassOf<UAnimInstance> AnimClass, UAnimMontage* Attack, UAnimMontage* Hit, UAnimMontage* Dead);
-
+	void UpdateWeaponAnimation(TSubclassOf<UAnimInstance> AnimClass, UAnimMontage* Attack);
 	
 protected:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	class UModularAppearanceComponent* AppearanceComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	class UModularEquipmentComponent* EquipmentComponent;
-
 	UPROPERTY() 
 	class UAnimMontage* CurrentAttackMontage;
 	UPROPERTY() 

@@ -46,18 +46,18 @@ void DatabaseWorker::TryLogin(shared_ptr<Session> session, string recvId, string
 	DBConnection* dbConn = _dbConnectionPool->Pop();
 	dbConn->Unbind();
 
-	WCHAR loginId[20] = {};
+	WCHAR loginId[50] = {};
 	MultiByteToWideChar(CP_ACP, 0, recvId.c_str(), -1, loginId, _countof(loginId));
 	SQLLEN loginIdLen = 0;
 	dbConn->BindParam(1, loginId, &loginIdLen);
 
-	// 1. 데이터를 받을 구조체 및 버퍼 준비
-	WCHAR outPassword[20] = {};
+	WCHAR outPassword[50] = {};
 	DB_PlayerInfo outPlayerInfo = {};
 	DB_PlayerData outPlayerData = {};
+	int32_t outEquipSlot = 0;
+	int32_t outItemId = 0;
 	SQLLEN len[12] = { 0 };
 
-	// 바인딩 (순서가 SELECT 문의 컬럼 순서와 정확히 일치해야 합니다)
 	dbConn->BindCol(1, outPassword, sizeof(outPassword), &len[0]);
 	dbConn->BindCol(2, &outPlayerInfo.playerUID, &len[1]);
 	dbConn->BindCol(3, &outPlayerInfo.accountUID, &len[2]);
@@ -68,34 +68,56 @@ void DatabaseWorker::TryLogin(shared_ptr<Session> session, string recvId, string
 	dbConn->BindCol(7, &outPlayerData.exp, &len[6]);
 	dbConn->BindCol(8, &outPlayerData.hp, &len[7]);
 	dbConn->BindCol(9, &outPlayerData.mp, &len[8]);
-	dbConn->BindCol(10, &outPlayerData.posX, &len[9]);
-	dbConn->BindCol(11, &outPlayerData.posY, &len[10]);
-	dbConn->BindCol(12, &outPlayerData.posZ, &len[11]);
+	dbConn->BindCol(10, &outPlayerData.gold, &len[9]);
+	
+	dbConn->BindCol(11, &outEquipSlot, &len[10]);
+	dbConn->BindCol(12, &outItemId, &len[11]);
 
 	const WCHAR* query = L" \
-        SELECT A.LoginPassword, P.PlayerId, P.AccountId, P.Name, P.playerType, \
-               P.[Level], P.Exp, P.Hp, P.Mp, P.PosX, P.PosY, P.PosZ \
+        SELECT A.LoginPassword, P.PlayerId, P.AccountId, P.Name, P.PlayerType, \
+               P.[Level], P.Exp, P.Hp, P.Mp, P.Gold, \
+               ISNULL(E.EquipSlot, 0) AS EquipSlot, ISNULL(E.ItemId, 0) AS ItemId \
         FROM [User_Account] A \
         INNER JOIN [Player_Info] P ON A.AccountId = P.AccountId \
+        LEFT JOIN [Player_Equipped] E ON P.PlayerId = E.PlayerId \
         WHERE A.LoginId = ?";
 
 	if (dbConn->Execute(query))
 	{
-		if (dbConn->Fetch())
+		bool isFirstRow = true;
+		bool loginSuccess = false;
+
+		while (dbConn->Fetch())
 		{
-			WCHAR clpassword[20] = {};
-			MultiByteToWideChar(CP_ACP, 0, recvPw.c_str(), -1, clpassword, _countof(clpassword));
-			if (lstrcmpW(clpassword, outPassword) == 0)
+			if (isFirstRow)
 			{
-				outPlayerData.playerUID = outPlayerInfo.playerUID;
-				GLobby->PushJob(&AuthLobby::OnLoginSuccess, session, outPlayerInfo, outPlayerData);
+				WCHAR clpassword[50] = {};
+				MultiByteToWideChar(CP_ACP, 0, recvPw.c_str(), -1, clpassword, _countof(clpassword));
+				
+				if (lstrcmpW(clpassword, outPassword) == 0)
+				{
+					outPlayerData.playerUID = outPlayerInfo.playerUID;
+					loginSuccess = true;
+				}
+				else
+				{
+					GLobby->PushJob(&AuthLobby::OnLoginFailed, session, (string)"비밀번호 오류");
+					break; 
+				}
+				isFirstRow = false;
 			}
-			else
+
+			if (loginSuccess && outItemId != 0)
 			{
-				GLobby->PushJob(&AuthLobby::OnLoginFailed, session, (string)"비밀 번호 오류");
+				outPlayerData.equipItemIds.push_back(outItemId);
 			}
 		}
-		else
+
+		if (loginSuccess)
+		{
+			GLobby->PushJob(&AuthLobby::OnLoginSuccess, session, outPlayerInfo, outPlayerData);
+		}
+		else if (isFirstRow) 
 		{
 			GLobby->PushJob(&AuthLobby::OnLoginFailed, session, (string)"DB에 존재하지 않는 ID");
 		}
@@ -120,19 +142,19 @@ void DatabaseWorker::TrySignUP(shared_ptr<Session> session, string recvId, strin
 
 	dbConn->BindParam(3, loginId, &idLen); // 닉네임을 ID와 동일하게 설정
 
-	// playerType을 위한 버퍼 (TINYINT 바인딩용)
 	int32_t cType = (int32_t)playerType;
 	SQLLEN typeLen = 0;
 	dbConn->BindParam(4, &cType, &typeLen);
 
-	// 트랜잭션으로 테이블 4곳에 데이터 일괄 삽입
+	
 	const WCHAR* query = L" \
         BEGIN TRAN; \
         DECLARE @AccID BIGINT, @PlayerID BIGINT; \
         INSERT INTO [User_Account] (LoginId, LoginPassword) VALUES (?, ?); \
         SET @AccID = SCOPE_IDENTITY(); \
         INSERT INTO [User_Info] (AccountId) VALUES (@AccID); \
-        INSERT INTO [Player_Info] (AccountId, Name, PlayerType, Hp, Mp) VALUES (@AccID, ?, ?, 500, 100); \
+        INSERT INTO [Player_Info] (AccountId, Name, PlayerType, [Level], Exp, Hp, Mp, Gold) \
+        VALUES (@AccID, ?, ?, 1, 0, 500, 100, 0); \
         COMMIT TRAN;";
 
 	if (dbConn->Execute(query))
@@ -156,14 +178,45 @@ void DatabaseWorker::SavePlayerData(DB_PlayerData data)
 	SQLLEN lenList[6] = { 0 };
 	dbConn->BindParam(1, &data.hp, &lenList[0]);
 	dbConn->BindParam(2, &data.mp, &lenList[1]);
-	dbConn->BindParam(3, &data.posX, &lenList[2]);
-	dbConn->BindParam(4, &data.posY, &lenList[3]);
-	dbConn->BindParam(5, &data.posZ, &lenList[4]);
 	dbConn->BindParam(6, &data.playerUID, &lenList[5]);
 
 	if (dbConn->Execute(L"UPDATE [dbo].[Player_Data] SET Hp=?, Mp=?, PosX=?, PosY=?, PosZ=? WHERE PlayerUID=?"))
 	{
 		// 업데이트 성공
+	}
+
+	_dbConnectionPool->Push(dbConn);
+}
+
+void DatabaseWorker::UpdateEquipData(int64_t playerUID, int32_t equipSlot, int64_t itemDbId, int32_t itemId)
+{
+	DBConnection* dbConn = _dbConnectionPool->Pop();
+	dbConn->Unbind();
+
+	SQLLEN lenList[4] = { 0 };
+	dbConn->BindParam(1, &playerUID, &lenList[0]);
+	dbConn->BindParam(2, &equipSlot, &lenList[1]);
+
+	if (itemId == 0)
+	{
+		dbConn->Execute(L"DELETE FROM [dbo].[Player_Equipped] WHERE PlayerId = ? AND EquipSlot = ?");
+	}
+	else
+	{
+		dbConn->BindParam(3, &itemDbId, &lenList[2]);
+		dbConn->BindParam(4, &itemId, &lenList[3]);
+
+		const WCHAR* query = L" \
+            MERGE INTO [dbo].[Player_Equipped] AS Target \
+            USING (SELECT ? AS PlayerId, ? AS EquipSlot, ? AS ItemDbId, ? AS ItemId) AS Source \
+            ON Target.PlayerId = Source.PlayerId AND Target.EquipSlot = Source.EquipSlot \
+            WHEN MATCHED THEN \
+                UPDATE SET ItemDbId = Source.ItemDbId, ItemId = Source.ItemId, EquippedAt = GETDATE() \
+            WHEN NOT MATCHED THEN \
+                INSERT (PlayerId, EquipSlot, ItemDbId, ItemId) \
+                VALUES (Source.PlayerId, Source.EquipSlot, Source.ItemDbId, Source.ItemId);";
+
+		dbConn->Execute(query);
 	}
 
 	_dbConnectionPool->Push(dbConn);
