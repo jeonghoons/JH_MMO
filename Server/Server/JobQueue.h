@@ -29,7 +29,7 @@ public:
 	{
 		while (true) {
 			shared_ptr<Job> job;
-			while (_jobQueue.try_pop(job)) {
+			while (_jobQueue.try_pop(job)) {				
 				job->Execute();
 			}
 

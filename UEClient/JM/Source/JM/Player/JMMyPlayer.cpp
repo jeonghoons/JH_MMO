@@ -68,8 +68,8 @@ void AJMMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (GetGameInstance()->GetSubsystem<UNetworkManager>() == nullptr)
-		return;
+	/*if (GetGameInstance()->GetSubsystem<UNetworkManager>() == nullptr)
+		return;*/
 
 	UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>();
 	if (NetManager == nullptr) return;
@@ -83,10 +83,10 @@ void AJMMyPlayer::Tick(float DeltaTime)
 
 	FVector currentVelocity = GetVelocity();
 
-	/*if (DesiredInput == FVector2D::Zero())
-		SetMoveState(Move_State::IDLE);
+	if (DesiredInput == FVector2D::Zero())
+		ObjectInfo.mutable_position()->set_state(Protocol::MOVE_STATE_IDLE);
 	else
-		SetMoveState(Move_State::RUN);*/
+		ObjectInfo.mutable_position()->set_state(Protocol::MOVE_STATE_RUN);
 
 	MovePacketSendTimer -= DeltaTime;
 
@@ -131,5 +131,14 @@ void AJMMyPlayer::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 		DesiredYaw = GetActorRotation().Yaw;
+	}
+}
+
+void AJMMyPlayer::RequestAttack()
+{
+
+	if (UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>())
+	{
+		NetManager->SendAttackPacket();
 	}
 }

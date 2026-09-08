@@ -15,7 +15,8 @@ public class JM : ModuleRules
             //"JM/Game/",
         });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Sockets", "Networking" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", 
+            "Engine", "InputCore", "EnhancedInput", "Sockets", "Networking", "UMG", "Slate", "SlateCore" });
 
         PrivateDependencyModuleNames.AddRange(new string[] { "ProtobufCore" });
 

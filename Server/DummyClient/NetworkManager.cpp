@@ -134,7 +134,7 @@ void NetworkManager::DummyBehaviorThread() {
             Protocol::PositionInfo* pos = move_pkt.mutable_pos_info();
             pos->set_x(static_cast<float>(s->x));
             pos->set_y(static_cast<float>(s->y));
-            float speed = 300.0f;
+            float speed = 450.0f;
             pos->set_v_x(0.f); pos->set_v_y(0.f); pos->set_v_z(0.f);
 
             switch (rand() % 4) {

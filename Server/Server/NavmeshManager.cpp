@@ -101,18 +101,18 @@ void NavmeshManager::DetourToUe(const float* detourPos, Protocol::PositionInfo& 
 
 bool NavmeshManager::IsOutOfBounds(const Protocol::PositionInfo& pos)
 {
-	if (!_navQuery) return true; // 네비메시가 없으면 기본적으로 못 감
+	if (!_navQuery) return true; 
 
 	float detourPos[3];
 	UeToDetour(pos, detourPos);
 
-	const float extents[3] = { 200.0f, 400.0f, 200.0f }; // 탐색 범위
+	const float extents[3] = { 200.0f, 400.0f, 200.0f };
 	dtPolyRef nearestRef = 0;
 	float nearestPt[3];
 
 	_navQuery->findNearestPoly(detourPos, extents, &_filter, &nearestRef, nearestPt);
 
-	return (nearestRef == 0); // 폴리곤을 못 찾으면 맵 바깥임
+	return (nearestRef == 0); 
 }
 
 bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos)
@@ -123,7 +123,7 @@ bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Proto
 	UeToDetour(startPos, dStart);
 	UeToDetour(destPos, dDest);
 
-	const float extents[3] = { 100.0f, 200.0f, 100.0f };
+	const float extents[3] = { 200.0f, 300.0f, 200.0f };
 	dtPolyRef startRef = 0;
 	float nearestStart[3];
 
@@ -138,7 +138,6 @@ bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Proto
 	dtPolyRef path[256];
 	int pathCount = 0;
 
-	// 레이캐스트를 쏴서 벽에 막히는지 검사 (t가 1.0 미만이면 중간에 막힌 것)
 	dtStatus status = _navQuery->raycast(startRef, nearestStart, dDest, &_filter, &t, hitNormal, path, &pathCount, 256);
 
 	if (dtStatusSucceed(status)) {
@@ -147,11 +146,8 @@ bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Proto
 		float hitPos[3];
 		dtVlerp(hitPos, nearestStart, dDest, t);
 
-		// 허용할 오차 거리 (예: 15cm)
 		const float tolerance = 100.0f;
 
-		// dtVdist(루트 연산 포함) 대신 dtVdistSqr(단순 곱셈 합)을 사용
-		// 대신 비교하는 기준값(tolerance)을 제곱해서 비교합니다.
 		if (dtVdistSqr(hitPos, dDest) < (tolerance * tolerance)) {
 			return true;
 		}
@@ -205,7 +201,6 @@ bool NavmeshManager::RayCast(const Protocol::PositionInfo& startPos, const Proto
 	UeToDetour(startPos, dStart);
 	UeToDetour(destPos, dDest);
 
-	// 타격 판정은 오차를 최소화하기 위해 탐색 범위를 조금 더 좁게 줍니다.
 	const float extents[3] = { 50.0f, 100.0f, 50.0f };
 	dtPolyRef startRef = 0;
 	float nearestStart[3];
@@ -224,7 +219,6 @@ bool NavmeshManager::RayCast(const Protocol::PositionInfo& startPos, const Proto
 	dtStatus status = _navQuery->raycast(startRef, nearestStart, dDest, &_filter, &t, hitNormal, path, &pathCount, 256);
 
 	if (dtStatusSucceed(status)) {
-		// t가 1.0f에 근접하다면 중간에 가로막는 장애물(벽)이 없다는 뜻입니다. (0.95f로 미세한 물리 오차 허용)
 		if (t >= 0.95f) {
 			return true;
 		}
@@ -236,14 +230,13 @@ bool NavmeshManager::RayCast(const Protocol::PositionInfo& startPos, const Proto
 
 Protocol::PositionInfo NavmeshManager::GetRandomPosition()
 {
-	Protocol::PositionInfo outPos{}; // 실패 시 기본값
+	Protocol::PositionInfo outPos{};
 
 	if (!_navQuery || !_navMesh) return outPos;
 
 	dtPolyRef randomRef = 0;
 	float randomPt[3] = { 0.0f, 0.0f, 0.0f };
 
-	// 최대 10번 재시도하여 갈 수 있는 "정상적인 폴리곤"인지 검증
 	for (int i = 0; i < 10; ++i)
 	{
 		dtStatus status = _navQuery->findRandomPoint(&_filter, GetRandomFloat, &randomRef, randomPt);
@@ -253,11 +246,31 @@ Protocol::PositionInfo NavmeshManager::GetRandomPosition()
 			unsigned char areaID = 0;
 			_navMesh->getPolyArea(randomRef, &areaID);
 
-			// 안전한 폴리곤을 찾았으므로 언리얼 좌표(XY평면)로 변환 후 반환
 			DetourToUe(randomPt, outPos);
 			return outPos;
 		}
 	}
 
 	return outPos;
+}
+
+bool NavmeshManager::AdjustPositionToNavMesh(Protocol::PositionInfo& pos)
+{
+	if (!_navQuery) return false;
+
+    float dPos[3];
+    UeToDetour(pos, dPos);
+
+    const float extents[3] = { 50.0f, 400.0f, 50.0f }; 
+    dtPolyRef nearestRef = 0;
+    float nearestPt[3];
+
+    _navQuery->findNearestPoly(dPos, extents, &_filter, &nearestRef, nearestPt);
+
+    if (nearestRef != 0)
+    {
+        DetourToUe(nearestPt, pos);
+        return true;
+    }
+    return false;
 }

@@ -201,10 +201,11 @@ Protocol::PositionInfo GameMap::GetRandomPosInCell(const Protocol::PositionInfo&
         Protocol::PositionInfo randomDest;
         randomDest.set_x(randX);
         randomDest.set_y(randY);
-        randomDest.set_x(pos.z());
+        randomDest.set_z(pos.z());
 
         if (CanMove(pos, randomDest))
         {
+            _navManager->AdjustPositionToNavMesh(randomDest);
             return randomDest;
         }
     }

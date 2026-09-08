@@ -16,7 +16,6 @@ void PacketHandler::Process(Session* session, BYTE* buffer, size_t len) {
         if (pkt.ParseFromArray(payload, payload_size)) {
             const Protocol::ObjectInfo& info = pkt.object_info();
 
-            // [중요] 배열 접근 전 반드시 범위 초과 검사! (몬스터/NPC 무시)
             if (info.id() < 0 || info.id() >= MAX_CLIENTS) return;
 
             int index = client_map[info.id()];

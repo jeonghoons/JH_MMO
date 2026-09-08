@@ -34,16 +34,27 @@ public:
 	virtual void OnDead();
 	virtual void OnAttack();
 
+	UFUNCTION()
+	void OnHitMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	UFUNCTION()
+	void OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Action")
+	void PlayAttackAnim();
+
 	void UpdateWeaponAnimation(TSubclassOf<UAnimInstance> AnimClass, UAnimMontage* Attack);
 	
 protected:
-	UPROPERTY() 
+	UPROPERTY(EditAnywhere) 
 	class UAnimMontage* CurrentAttackMontage;
-	UPROPERTY() 
-	class UAnimMontage* CurrentHitMontage;
-	UPROPERTY() 
-	class UAnimMontage* CurrentDeadMontage;
 
+	UPROPERTY(EditAnywhere) 
+	class UAnimMontage* CurrentHitMontage;
+
+	UPROPERTY(EditAnywhere) 
+	class UAnimMontage* CurrentDeadMontage;
+	
 protected:
 	Protocol::ObjectInfo				ObjectInfo;
 	Protocol::PositionInfo				DestPosition;

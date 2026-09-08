@@ -27,20 +27,20 @@ void Room::InitRoom()
 	}
 	else
 	{
-		// for(int k = 0; k < 100; ++k){
-		for (int i = 1; i < spawnPoints.size(); ++i) {
-			shared_ptr<Monster> monster = make_shared<Monster>();
-			monster->SetId(MonsterIdGenerator());
+		for (int k = 0; k < 1; ++k) {
+			for (int i = 1; i < spawnPoints.size(); ++i) {
+				shared_ptr<Monster> monster = make_shared<Monster>();
+				monster->SetId(MonsterIdGenerator());
 
-			Protocol::PositionInfo spawnPos;
-			spawnPos.set_x(spawnPoints[i].X);
-			spawnPos.set_y(spawnPoints[i].Y);
-			spawnPos.set_z(spawnPoints[i].Z);
-			spawnPos.set_yaw(spawnPoints[i].Yaw);
-			monster->SetPosition(spawnPos);
-			NpcEnterRoom(monster);
+				Protocol::PositionInfo spawnPos;
+				spawnPos.set_x(spawnPoints[i].X);
+				spawnPos.set_y(spawnPoints[i].Y);
+				spawnPos.set_z(spawnPoints[i].Z);
+				spawnPos.set_yaw(spawnPoints[i].Yaw);
+				monster->SetPosition(spawnPos);
+				NpcEnterRoom(monster);
+			}
 		}
-		
 	}
 	
 	long long currentTick = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
@@ -240,7 +240,7 @@ void Room::CharacterAttack(shared_ptr<Character> attacter, int skillId, int targ
 	const SkillData* skill = DataManager::GetSkillData(skillId);
 	if (!skill) return;
 
-	BroadcastAOI(attacter, PacketSerializer::MAKE_SC_ATTACK(attacter->GetId(), skillId, targetId));
+	BroadcastAOI(attacter, PacketSerializer::MAKE_SC_ATTACK(attacter->GetId(), skillId, targetId), true);
 
 	ReserveJob(skill->hitDelayMs, &Room::ExecuteSkillHit, attacter->GetId(), skillId, targetId);
 }

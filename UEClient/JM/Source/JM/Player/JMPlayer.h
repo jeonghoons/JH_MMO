@@ -19,8 +19,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UModularEquipmentComponent* EquipmentComponent;
 
-
 protected:
+	TSharedPtr<struct FStreamableHandle> AssetLoadHandle;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
 	class UAnimMontage* AttackMontage;
 
@@ -29,4 +30,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
 	class UAnimMontage* HitMontage;
+
+protected:
+	void OnAssetLoadCompleted(TSoftObjectPtr<USkeletalMesh> MeshAsset, TSoftClassPtr<UAnimInstance> AnimAsset, TSoftObjectPtr<class UAnimMontage> AttackMontageAsset, TSoftObjectPtr<class UAnimMontage> HitMontageAsset, TSoftObjectPtr<class UAnimMontage> DeadMontageAsset);
+
+public:
+
+	static FName GetCharacterRowName(Protocol::PlayerType Type);
+
 };

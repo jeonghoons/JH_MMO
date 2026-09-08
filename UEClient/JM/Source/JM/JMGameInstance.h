@@ -22,6 +22,9 @@ public:
 
 	FStreamableManager AssetLoader;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|Tables")
+	UDataTable* CharacterAssetTable;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|Classes")
 	TSubclassOf<class AJMMyPlayer> MyPlayerClass;

@@ -36,13 +36,13 @@ int main()
 
 	PacketHandler::Init();
 	GTimer = make_shared<Timer>();
-	GDBWorker = make_shared<DatabaseWorker>(service->GetIocpInstance()->GetHandle(), 6);
+	GDBWorker = make_shared<DatabaseWorker>(service->GetIocpInstance()->GetHandle(), 4);
 	GRoomManager = make_unique<RoomManager>(service->GetIocpInstance()->GetHandle());
 	GRoomManager->CreateRoom();
 	GLobby = make_shared<AuthLobby>(service->GetIocpInstance()->GetHandle());
 	
 	vector<thread> threads;
-	int num_threads = thread::hardware_concurrency();
+	int num_threads = thread::hardware_concurrency() / 2;
 	// int num_threads = 1;
 	for (int i = 0; i < num_threads; ++i) {
 		threads.emplace_back(worker_thread, service);

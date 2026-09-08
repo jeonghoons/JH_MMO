@@ -18,6 +18,9 @@ public:
 	void HandleSpawn(const Protocol::ObjectInfo& ObjInfo);
 	void HandleDespawn(int32 ObjectId);
 	void HandleMove(const Protocol::ObjectInfo& ObjInfo);
+	void HandleAttack(int32 AttackerId);
+	void HandleDamage(int32 AttackerId, int32 TargetId, int32 Damage, int32 RemainHp);
+	void HandleDead(int32 CharacterId);
 
 public:
 	UPROPERTY()

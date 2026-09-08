@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "FPacketHandler.h"
 #include "Game/JMObjectManager.h"
+#include "SendBuffer.h"
 
 void UNetworkManager::Tick(float DeltaTime)
 {
@@ -73,6 +74,15 @@ void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad)
 	UWorld* World = GetWorld();
 	if (World == nullptr) return;
 	UGameplayStatics::OpenLevel(World, LevelToLoad);
+}
+
+void UNetworkManager::SendAttackPacket()
+{
+	if (Packet_Session == nullptr) return;
+
+	Protocol::CS_ATTACK_PACKET attackPkt;
+	TSharedPtr<SendBuffer> sendBuffer = SendBuffer::MakeSendBuffer(attackPkt, Protocol::CS_ATTACK);
+	SendPacket(sendBuffer);
 }
 
 

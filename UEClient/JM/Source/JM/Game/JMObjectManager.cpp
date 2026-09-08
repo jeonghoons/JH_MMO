@@ -90,3 +90,34 @@ void UJMObjectManager::HandleMove(const Protocol::ObjectInfo& ObjInfo)
 		(*FoundActor)->SetDestInfo(ObjInfo.position());
 	}
 }
+
+void UJMObjectManager::HandleAttack(int32 AttackerId)
+{
+	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(AttackerId))
+	{
+		if (*FoundActor == nullptr) return;
+
+		(*FoundActor)->OnAttack();
+	}
+}
+
+void UJMObjectManager::HandleDamage(int32 AttackerId, int32 TargetId, int32 Damage, int32 RemainHp)
+{
+	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(TargetId))
+	{
+		if (*FoundActor == nullptr) return;
+
+		(*FoundActor)->OnDamaged(Damage, RemainHp);
+	}
+}
+
+
+void UJMObjectManager::HandleDead(int32 CharacterId)
+{
+	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(CharacterId))
+	{
+		if (*FoundActor == nullptr) return;
+
+		(*FoundActor)->OnDead();
+	}
+}

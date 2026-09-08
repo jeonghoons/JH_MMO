@@ -25,7 +25,6 @@ bool MovableObject::Move(const XMFLOAT3& desPos)
 {
     Protocol::PositionInfo* pos = _objectInfo.mutable_position();
 
-    // 1. 현재 위치에서 목적지를 향하는 벡터 계산
     XMVECTOR vCurr = XMVectorSet(pos->x(), pos->y(), pos->z(), 0.0f);
     XMVECTOR vDest = XMVectorSet(desPos.x, desPos.y, desPos.z, 0.0f);
     XMVECTOR vDir = XMVectorSubtract(vDest, vCurr);

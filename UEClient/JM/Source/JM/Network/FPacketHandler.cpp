@@ -108,12 +108,33 @@ void FPacketHandler::Handle_SC_MOVE_OBJECT(TSharedPtr<NetworkSession>& session, 
 
 void FPacketHandler::Handle_SC_ATTACK(TSharedPtr<NetworkSession>& session, Protocol::SC_ATTACK_PACKET& pkt)
 {
+	if (UNetworkManager* NetManager = session->OwnerNetwork.Get())
+	{
+		if (UJMObjectManager* ObjectManager = NetManager->GetGameInstance()->GetSubsystem<UJMObjectManager>())
+		{
+			ObjectManager->HandleAttack(pkt.attacker_id());
+		}
+	}
 }
 
 void FPacketHandler::Handle_SC_DAMAGE(TSharedPtr<NetworkSession>& session, Protocol::SC_DAMAGE_PACKET& pkt)
 {
+	if (UNetworkManager* NetManager = session->OwnerNetwork.Get())
+	{
+		if (UJMObjectManager* ObjectManager = NetManager->GetGameInstance()->GetSubsystem<UJMObjectManager>())
+		{
+			ObjectManager->HandleDamage(pkt.attacker_id(), pkt.target_id(), pkt.damage(), pkt.remain_hp());
+		}
+	}
 }
 
 void FPacketHandler::Handle_SC_DEAD(TSharedPtr<NetworkSession>& session, Protocol::SC_DEAD_PACKET& pkt)
 {
+	if (UNetworkManager* NetManager = session->OwnerNetwork.Get())
+	{
+		if (UJMObjectManager* ObjectManager = NetManager->GetGameInstance()->GetSubsystem<UJMObjectManager>())
+		{
+			ObjectManager->HandleDead(pkt.object_id());
+		}
+	}
 }

@@ -48,7 +48,6 @@ void Session::Send(uint16_t packet_type, const google::protobuf::Message& packet
     uint16_t payload_size = static_cast<uint16_t>(packet.ByteSizeLong());
     uint16_t total_size = sizeof(PacketHeader) + payload_size;
 
-    // SendBuffer 동적 할당 (완료 통지 후 삭제)
     SendBuffer* sendBuffer = new SendBuffer(total_size);
 
     PacketHeader header;

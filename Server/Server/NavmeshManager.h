@@ -36,6 +36,7 @@ public:
 		return (float)rand() / (float)RAND_MAX;
 	}
 	Protocol::PositionInfo GetRandomPosition();
+	bool AdjustPositionToNavMesh(Protocol::PositionInfo& pos);
 private:
 	// 언리얼(Z-up) <-> Detour(Y-up) 좌표 변환 유틸리티
 	void UeToDetour(const Protocol::PositionInfo& uePos, float* detourPos);

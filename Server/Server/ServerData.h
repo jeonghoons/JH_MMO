@@ -62,20 +62,17 @@ class DataManager
 public:
 	static void Init()
 	{
-		// 101: 기디언 - 투사체 마법
-		_skillTable[101] = { 101, HitShape::Projectile, 300, 1230, 0.f, 0.f, 1500.f, 120.f, 40, 1500.f };
-		// 201: 스패로우 - 빠른 투사체 화살
-		_skillTable[201] = { 201, HitShape::Projectile, 200, 1000, 0.f, 0.f, 1800.f, 80.f, 35, 3000.f };
+		
+		// 101: 램페이지 - 부채꼴
+		_skillTable[301] = { 401, HitShape::Sector, 400, 2000, 170.f, 150.f, 0.f, 0.f, 60, 0.f };
 		// 301: 그레이스톤 - 부채꼴
-		_skillTable[301] = { 301, HitShape::Sector, 250, 1670, 200.f, 120.f, 0.f, 0.f, 50, 0.f };
-		// 401: 램페이지 - 부채꼴
-		_skillTable[401] = { 401, HitShape::Sector, 400, 2000, 170.f, 150.f, 0.f, 0.f, 60, 0.f };
-	
-	
-		_characterTable[1] = { 1, 500, 500, 40, 1.0f, 500.0f };
-		_characterTable[2] = { 2, 450, 450, 35, 1.1f, 550.0f };
-		_characterTable[3] = { 3, 800, 800, 30, 0.9f, 450.0f };
-		_characterTable[4] = { 4, 150, 150, 20, 2.0f, 400.0f };
+		_skillTable[401] = { 301, HitShape::Sector, 250, 1670, 200.f, 120.f, 0.f, 0.f, 50, 0.f };
+		// 201: 스패로우 - 빠른 투사체 화살
+		_skillTable[501] = { 201, HitShape::Projectile, 200, 1000, 0.f, 0.f, 1800.f, 80.f, 35, 3000.f };
+		
+		_characterTable[3] = { 4, 150, 150, 20, 2.0f, 400.0f };
+		_characterTable[4] = { 3, 800, 800, 30, 0.9f, 450.0f };
+		_characterTable[5] = { 2, 450, 450, 35, 1.1f, 550.0f };
 	
 	}
 

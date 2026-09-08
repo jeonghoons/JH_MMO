@@ -47,9 +47,7 @@ void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	_dbPlayerInfo = info;
 	_dbPlayerData = data;
 
-	// DB에서 가져온 위치로 세팅
 	
-	// 스탯 초기화 (기존 DataManager와 결합)
 	const CharacterData* statData = DataManager::GetCharacterData(info.playerType);
 	if (statData) {
 		Protocol::StatInfo* stat = _objectInfo.mutable_stat();

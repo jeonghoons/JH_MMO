@@ -105,23 +105,39 @@ void AJMCharacterBase::OnDamaged(int32_t Damage, int32_t RemainHP)
 	{
 		AnimInst->Montage_Play(CurrentHitMontage);
 		FOnMontageEnded EndDelegate;
+		EndDelegate.BindUObject(this, &AJMCharacterBase::OnHitMontageEnded);
 		AnimInst->Montage_SetEndDelegate(EndDelegate, CurrentHitMontage);
 	}
 }
 
 void AJMCharacterBase::OnDead()
 {
-	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
 	if (AnimInst && CurrentDeadMontage)
 	{
 		AnimInst->Montage_Play(CurrentDeadMontage);
 		FOnMontageEnded EndDelegate;
+		EndDelegate.BindUObject(this, &AJMCharacterBase::OnDeathMontageEnded);
 		AnimInst->Montage_SetEndDelegate(EndDelegate, CurrentDeadMontage);
 	}
 }
 
 void AJMCharacterBase::OnAttack()
+{
+	PlayAttackAnim();
+}
+
+void AJMCharacterBase::OnHitMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+
+}
+
+void AJMCharacterBase::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+}
+
+void AJMCharacterBase::PlayAttackAnim()
 {
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
 	if (AnimInst && CurrentAttackMontage)

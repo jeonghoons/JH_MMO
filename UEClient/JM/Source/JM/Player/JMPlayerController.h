@@ -18,11 +18,11 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-    /*UFUNCTION()
+    UFUNCTION(BlueprintCallable, Category = "UI")
     void OnInventoryKeyPressed();
 
     UFUNCTION(BlueprintCallable, Category = "UI")
-    void OnChatKeyPressed();*/
+    void OnChatKeyPressed();
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")

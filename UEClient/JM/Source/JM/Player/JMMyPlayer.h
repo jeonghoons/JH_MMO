@@ -18,7 +18,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	// virtual void PossessedBy(AController* NewController) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Tick(float DeltaTime) override;
 	void Move(const FInputActionValue& Value);
@@ -27,6 +26,10 @@ protected:
 public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Action")
+	void RequestAttack();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")

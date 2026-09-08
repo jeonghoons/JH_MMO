@@ -5,7 +5,7 @@
 #include "Timer.h"
 #include "GameMap.h"
 
-constexpr int MAX_ROOM_CAPACITY = 1000;
+constexpr int MAX_ROOM_CAPACITY = 100;
 constexpr int MAX_CHAT_LEN = 100;
 
 class Session;
