@@ -1,20 +1,31 @@
 #include "RecastNavMesh.h"
 
-int main()
+int main(int argc, char** argv)
 {
-	RecastNavMesh navMesh;
-	std::string binPath = "../MapResource/Export/ParagonSample/Geometry/ParagonSample_Geo.bin";
+	std::string binPath;
+	std::string navPath;
 
-	std::string navPath = "../Server/Resource/Map/ParagonSample_Geo.nav";
+	if (argc >= 3) {
+		// NavGenerator.exe <GeoBinPath> <NavOutputPath>
+		binPath = argv[1];
+		navPath = argv[2];
+	}
+	else {
+		std::string mapName = (argc == 2) ? argv[1] : "ParagonSample";
+		binPath = "../MapResource/Export/" + mapName + "/Geometry/" + mapName + "_Geo.bin";
+		navPath = "../Server/Resource/Map/" + mapName + "_Geo.nav";
+	}
+
+	RecastNavMesh navMesh;
 	if (navMesh.Build(binPath)) {
-		std::cout << "\n=== NavMesh ºôµå ¼º°ø! ===" << std::endl;
+		std::cout << "\n=== NavMesh ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ===" << std::endl;
 
 		if (navMesh.SaveNavMeshBinary(navPath)) {
-			std::cout << "=== .navÆÄÀÏ Load ¿Ï·á! ===" << std::endl;
+			std::cout << "=== .navï¿½ï¿½ï¿½ï¿½ Load ï¿½Ï·ï¿½! ===" << std::endl;
 		}
 	}
 	else {
-		std::cerr << "\n=== NavMesh ºôµå ½ÇÆÐ! ===" << std::endl;
+		std::cerr << "\n=== NavMesh ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ===" << std::endl;
 	}
 
 }

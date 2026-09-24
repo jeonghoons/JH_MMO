@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "GameMap.h"
 #include <fstream>
+#include <nlohmann/json.hpp>
 
 CellPos GameMap::ToCellPos(const Protocol::PositionInfo& pos) const
 {
@@ -140,8 +141,8 @@ bool GameMap::LoadMapData(const string& fileName)
     }
 
     
-    string logicPath = "../MapResource/Export/" + fileName + "/Logic/" + fileName + "_Logic.bin";
-    std::ifstream file(logicPath, std::ios::binary);
+    string logicPath = "../MapResource/Export/" + fileName + "/Logic/" + fileName + "_Logic.json";
+    std::ifstream file(logicPath);
     if (!file.is_open())
     {
         cout << "[GameMap] 로직 데이터를 찾을 수 없습니다: " << logicPath << endl;
@@ -149,17 +150,73 @@ bool GameMap::LoadMapData(const string& fileName)
     }
     else
     {
-        int32_t spawnCount = 0;
-        file.read((char*)&spawnCount, sizeof(int32_t));
-
-        if (spawnCount > 0)
+        try
         {
-            _spawnPoints.resize(spawnCount);
-            file.read((char*)_spawnPoints.data(), spawnCount * sizeof(ServerSpawnPoint));
-        }
+            nlohmann::json root;
+            file >> root;
+            file.close();
 
-        file.close();
-        cout << "[GameMap] 로직 데이터 로드 완료! " << endl;
+            for (const auto& marker : root.at("markers"))
+            {
+                const string type = marker.at("type").get<string>();
+                const auto& posJson = marker.at("position");
+
+                MapPosition pos;
+                pos.X = posJson.at("x").get<float>();
+                pos.Y = posJson.at("y").get<float>();
+                pos.Z = posJson.at("z").get<float>();
+                pos.Yaw = posJson.value("yaw", 0.f);
+
+                int32_t pointId = marker.value("pointId", 0);
+
+                if (type == "PlayerStart")
+                {
+                    _playerStarts.push_back({ pointId, pos });
+                }
+                else if (type == "MonsterSpawn")
+                {
+                    MonsterSpawnPoint spawn;
+                    spawn.PointId = pointId;
+                    spawn.Pos = pos;
+                    spawn.MonsterTemplateId = marker.value("monsterTemplateId", 0);
+                    spawn.SpawnRadius = marker.value("spawnRadius", 0.f);
+                    spawn.MaxCount = marker.value("maxCount", 1);
+                    _monsterSpawns.push_back(spawn);
+                }
+                else if (type == "Npc")
+                {
+                    NpcSpawnPoint npc;
+                    npc.PointId = pointId;
+                    npc.Pos = pos;
+                    npc.NpcTemplateId = marker.value("npcTemplateId", 0);
+                    _npcSpawns.push_back(npc);
+                }
+                else if (type == "PortalTrigger")
+                {
+                    PortalTriggerPoint portal;
+                    portal.PointId = pointId;
+                    portal.Pos = pos;
+                    portal.TriggerRadius = marker.value("triggerRadius", 0.f);
+                    portal.TargetMap = marker.value("targetMap", string());
+                    portal.TargetPointId = marker.value("targetPointId", 0);
+                    _portalTriggers.push_back(portal);
+                }
+                else
+                {
+                    cout << "[GameMap] 알 수 없는 마커 타입: " << type << endl;
+                }
+            }
+
+            cout << "[GameMap] 로직 데이터 로드 완료! (PlayerStart " << _playerStarts.size()
+                 << ", MonsterSpawn " << _monsterSpawns.size()
+                 << ", Npc " << _npcSpawns.size()
+                 << ", PortalTrigger " << _portalTriggers.size() << ")" << endl;
+        }
+        catch (const nlohmann::json::exception& e)
+        {
+            cout << "[GameMap] 로직 데이터(JSON) 파싱 실패: " << logicPath << " - " << e.what() << endl;
+            isSuccess = false;
+        }
     }
 
     return isSuccess;
@@ -173,15 +230,6 @@ bool GameMap::CanMove(const Protocol::PositionInfo& from, const Protocol::Positi
 bool GameMap::IsOutOfBounds(const Protocol::PositionInfo& pos) const
 {
     return _navManager->IsOutOfBounds(pos);
-}
-
-std::optional<ServerSpawnPoint> GameMap::GetSpawnPoint(int index) const
-{
-    if (index >= 0 && index < _spawnPoints.size())
-    {
-        return _spawnPoints[index];
-    }
-    return std::nullopt;
 }
 
 Protocol::PositionInfo GameMap::GetRandomPosInCell(const Protocol::PositionInfo& pos) const

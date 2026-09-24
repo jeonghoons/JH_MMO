@@ -12,6 +12,15 @@
 				"Engine",
 				"UMG"
 			]
+		},
+		{
+			"Name": "JMEditorTools",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"UnrealEd"
+			]
 		}
 	],
 	"Plugins": [
@@ -21,6 +30,10 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "StructUtils",
+			"Enabled": true
 		}
 	]
 }

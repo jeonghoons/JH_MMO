@@ -43,7 +43,7 @@ public:
 	int32 NetworkId = -1;
 
 private:
-	
+
 	TSharedPtr<NetworkSession> Packet_Session;
 
 };

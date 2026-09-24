@@ -19,14 +19,45 @@ struct CellPos {
     bool operator==(const CellPos& other) const { return x == other.x && y == other.y; }
     bool operator!=(const CellPos& other) const { return !(*this == other); }
 };
-struct ServerSpawnPoint
+struct MapPosition
 {
-    int32_t PointID;
-    float X;
-    float Y;
-    float Z;
-    float Yaw;
+    float X = 0.f;
+    float Y = 0.f;
+    float Z = 0.f;
+    float Yaw = 0.f;
 };
+
+struct PlayerStartPoint
+{
+    int32_t PointId = 0;
+    MapPosition Pos;
+};
+
+struct MonsterSpawnPoint
+{
+    int32_t PointId = 0;
+    MapPosition Pos;
+    int32_t MonsterTemplateId = 0;
+    float SpawnRadius = 0.f;
+    int32_t MaxCount = 1;
+};
+
+struct NpcSpawnPoint
+{
+    int32_t PointId = 0;
+    MapPosition Pos;
+    int32_t NpcTemplateId = 0;
+};
+
+struct PortalTriggerPoint
+{
+    int32_t PointId = 0;
+    MapPosition Pos;
+    float TriggerRadius = 0.f;
+    string TargetMap;
+    int32_t TargetPointId = 0;
+};
+
 class Room;
 
 class GameMap
@@ -42,8 +73,10 @@ public:
     ViewUpdate LeaveMap(int objectId);
 
     bool LoadMapData(const string& fileName);
-    const vector<ServerSpawnPoint>& GetSpawnPoints() const { return _spawnPoints; }
-    std::optional<ServerSpawnPoint> GetSpawnPoint(int index) const;
+    const vector<PlayerStartPoint>& GetPlayerStarts() const { return _playerStarts; }
+    const vector<MonsterSpawnPoint>& GetMonsterSpawns() const { return _monsterSpawns; }
+    const vector<NpcSpawnPoint>& GetNpcSpawns() const { return _npcSpawns; }
+    const vector<PortalTriggerPoint>& GetPortalTriggers() const { return _portalTriggers; }
     bool CanMove(const Protocol::PositionInfo& from, const Protocol::PositionInfo& to) const;
     bool IsOutOfBounds(const Protocol::PositionInfo& pos) const;
 
@@ -66,7 +99,10 @@ private:
     int _gridWidth = 0;
     int _gridHeight = 0;
 
-    vector<ServerSpawnPoint> _spawnPoints;
+    vector<PlayerStartPoint> _playerStarts;
+    vector<MonsterSpawnPoint> _monsterSpawns;
+    vector<NpcSpawnPoint> _npcSpawns;
+    vector<PortalTriggerPoint> _portalTriggers;
     unique_ptr<NavmeshManager> _navManager;
 };
 

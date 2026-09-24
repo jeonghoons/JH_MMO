@@ -1,0 +1,44 @@
+{
+  "mapName": "ParagonSample",
+  "version": 1,
+  "markers": [
+    { "pointId": 0, "type": "PlayerStart",
+      "position": { "x": 29.00188, "y": -1438.82, "z": 290, "yaw": 0 } },
+
+    { "pointId": 1, "type": "MonsterSpawn",
+      "position": { "x": -120, "y": 3280, "z": 100, "yaw": 0 },
+      "monsterTemplateId": 3, "spawnRadius": 300.0, "maxCount": 1 },
+
+    { "pointId": 2, "type": "MonsterSpawn",
+      "position": { "x": 3150, "y": -1130, "z": 100, "yaw": 0 },
+      "monsterTemplateId": 3, "spawnRadius": 300.0, "maxCount": 1 },
+
+    { "pointId": 3, "type": "MonsterSpawn",
+      "position": { "x": 6210, "y": -3950, "z": 100, "yaw": 0 },
+      "monsterTemplateId": 3, "spawnRadius": 300.0, "maxCount": 1 },
+
+    { "pointId": 4, "type": "MonsterSpawn",
+      "position": { "x": 410, "y": -5090, "z": 100, "yaw": 0 },
+      "monsterTemplateId": 3, "spawnRadius": 300.0, "maxCount": 1 },
+
+    { "pointId": 5, "type": "MonsterSpawn",
+      "position": { "x": -5340, "y": 5240, "z": 100, "yaw": 0 },
+      "monsterTemplateId": 3, "spawnRadius": 300.0, "maxCount": 1 },
+
+    { "pointId": 6, "type": "MonsterSpawn",
+      "position": { "x": 4940, "y": 5550, "z": 100, "yaw": 0 },
+      "monsterTemplateId": 3, "spawnRadius": 300.0, "maxCount": 1 },
+
+    { "pointId": 7, "type": "MonsterSpawn",
+      "position": { "x": 1980, "y": 5600, "z": 100, "yaw": 0 },
+      "monsterTemplateId": 3, "spawnRadius": 300.0, "maxCount": 1 },
+
+    { "pointId": 8, "type": "MonsterSpawn",
+      "position": { "x": -2030, "y": -6100, "z": 100, "yaw": 0 },
+      "monsterTemplateId": 3, "spawnRadius": 300.0, "maxCount": 1 },
+
+    { "pointId": 9, "type": "MonsterSpawn",
+      "position": { "x": -4260, "y": -5700, "z": 100, "yaw": 0 },
+      "monsterTemplateId": 3, "spawnRadius": 300.0, "maxCount": 1 }
+  ]
+}

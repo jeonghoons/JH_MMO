@@ -5,10 +5,14 @@
 #include "NavmeshManager.h"
 #include "ServerData.h"
 
-Monster::Monster() : Character(Protocol::ObjectType::OBJECT_TYPE_MONSTER)
+Monster::Monster() : Monster(Protocol::PLAYER_TYPE_MONSTER)
 {
-	_objectInfo.set_player_type(Protocol::PLAYER_TYPE_MONSTER);
-	
+}
+
+Monster::Monster(Protocol::PlayerType type) : Character(Protocol::ObjectType::OBJECT_TYPE_MONSTER)
+{
+	_objectInfo.set_player_type(type);
+
 	const CharacterData* statData = DataManager::GetCharacterData((int)_objectInfo.player_type());
 	if (statData) {
 		Protocol::StatInfo* stat = _objectInfo.mutable_stat();

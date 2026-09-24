@@ -20,26 +20,24 @@ void Room::InitRoom()
 	}
 	_gameMap.Init(weak_from_this());
 
-	const auto& spawnPoints = _gameMap.GetSpawnPoints();
-	if (spawnPoints.empty())
+	const auto& monsterSpawns = _gameMap.GetMonsterSpawns();
+	if (monsterSpawns.empty())
 	{
 		cout << "[Room] 스폰 포인트가 없어 몬스터를 생성할 수 없습니다!" << endl;
 	}
 	else
 	{
-		for (int k = 0; k < 1; ++k) {
-			for (int i = 1; i < spawnPoints.size(); ++i) {
-				shared_ptr<Monster> monster = make_shared<Monster>();
-				monster->SetId(MonsterIdGenerator());
+		for (const auto& spawn : monsterSpawns) {
+			shared_ptr<Monster> monster = make_shared<Monster>((Protocol::PlayerType)spawn.MonsterTemplateId);
+			monster->SetId(MonsterIdGenerator());
 
-				Protocol::PositionInfo spawnPos;
-				spawnPos.set_x(spawnPoints[i].X);
-				spawnPos.set_y(spawnPoints[i].Y);
-				spawnPos.set_z(spawnPoints[i].Z);
-				spawnPos.set_yaw(spawnPoints[i].Yaw);
-				monster->SetPosition(spawnPos);
-				NpcEnterRoom(monster);
-			}
+			Protocol::PositionInfo spawnPos;
+			spawnPos.set_x(spawn.Pos.X);
+			spawnPos.set_y(spawn.Pos.Y);
+			spawnPos.set_z(spawn.Pos.Z);
+			spawnPos.set_yaw(spawn.Pos.Yaw);
+			monster->SetPosition(spawnPos);
+			NpcEnterRoom(monster);
 		}
 	}
 	
@@ -72,12 +70,12 @@ bool Room::AddObject(shared_ptr<GameObject> object)
 	}
 	object->SetOwnerRoom(shared_from_this());
 
-	const auto& spawnPoints = _gameMap.GetSpawnPoints();
-	if (object->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) {
+	const auto& playerStarts = _gameMap.GetPlayerStarts();
+	if (object->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER && !playerStarts.empty()) {
 		Protocol::PositionInfo spawnPos;
-		spawnPos.set_x(spawnPoints[0].X);
-		spawnPos.set_y(spawnPoints[0].Y);
-		spawnPos.set_z(spawnPoints[0].Z);
+		spawnPos.set_x(playerStarts[0].Pos.X);
+		spawnPos.set_y(playerStarts[0].Pos.Y);
+		spawnPos.set_z(playerStarts[0].Pos.Z);
 		object->SetPosition(spawnPos);
 				
 		shared_ptr<Player> dummyPlayer = static_pointer_cast<Player>(object);

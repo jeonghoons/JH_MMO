@@ -17,6 +17,7 @@ class Monster : public Character
 {
 public:
 	Monster();
+	explicit Monster(Protocol::PlayerType type);
 	virtual ~Monster();
 
 	friend ostream& operator<<(ostream& os, MonsterState state)
