@@ -1,71 +1,31 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+이 문서는 Claude Code(claude.ai/code)가 이 저장소에서 작업할 때 참고하는 최상위 가이드입니다. 각 하위 프로젝트의 세부 내용은 아래 링크된 문서를 참고하세요.
 
-## Project overview
+## 프로젝트 개요
 
-JH_MMO is a custom-built MMO game stack with three top-level pieces that must stay in sync:
+JH_MMO는 자체 제작 MMORPG 게임 프로젝트이며, 서로 동기화 상태를 유지해야 하는 3개의 최상위 구성 요소로 이루어져 있습니다.
 
-- `Server/` — a native C++ (IOCP-based) game server built with Visual Studio (`Server.sln`, `v143` toolset, x64/x86, Debug/Release).
-- `UEClient/JM/` — an Unreal Engine 5.6 client project (`JM.uproject`).
-- `Common/Protocol/` — the single source of truth for the network protocol (Protobuf `.proto` files), which is code-generated and copied into both `Server` and `UEClient` (see below).
+- `Server/` — IOCP 기반 네이티브 C++ 게임 서버 (Visual Studio, `Server.sln`, v143 툴셋, x64/x86, Debug/Release). 자세한 내용은 [Server/CLAUDE.md](Server/CLAUDE.md) 참고.
+- `UEClient/JM/` — 언리얼 엔진 5.6 클라이언트 프로젝트 (`JM.uproject`). 자세한 내용은 [UEClient/JM/CLAUDE.md](UEClient/JM/CLAUDE.md) 참고.
+- `Common/Protocol/` — 네트워크 프로토콜(Protobuf `.proto` 파일)의 단일 진실 공급원(source of truth)이며, 코드 생성 후 `Server`와 `UEClient` 양쪽에 복사됩니다. 자세한 내용은 [Common/Protocol/CLAUDE.md](Common/Protocol/CLAUDE.md) 참고.
 
-There is no shared build system across these three — each is built independently with its own toolchain.
+세 구성 요소는 공유 빌드 시스템이 없습니다 — 각각 독립적인 툴체인으로 빌드됩니다.
 
-## Build & run
+## 세 구성 요소를 모두 가로지르는 규칙
 
-### Protocol (must be regenerated whenever a `.proto` file changes)
+- **`.proto` 파일을 수정했다면 반드시 [Common/Protocol/CLAUDE.md](Common/Protocol/CLAUDE.md)의 절차대로 `GanPackets.bat`을 실행**해야 합니다. 생성된 `.pb.h`/`.pb.cc`는 `Server`와 `UEClient` 양쪽에 자동 복사되므로, 재생성을 빠뜨리면 서버-클라이언트 프로토콜이 조용히 어긋납니다(silent desync). 생성된 파일은 절대 손으로 수정하지 마세요.
+- 새 패킷을 추가하는 전체 흐름(Enum → Protocol → 코드 생성 → 서버 핸들러 → 클라이언트 핸들러)은 [Common/Protocol/CLAUDE.md](Common/Protocol/CLAUDE.md)에 정리되어 있습니다.
+- **런타임 상태 동기화는 항상 서버가 권위(authority)를 가집니다.** 위치, 스탯, 전투 결과, 장비 상태는 서버에서 계산되어 `ObjectInfo`/`SC_*` 패킷으로 클라이언트에 전달되며, 클라이언트는 그 값을 반영(reflect)할 뿐 직접 계산하지 않습니다. 서버 쪽 매커니즘(AOI/`BroadcastAOI`)은 [Server/CLAUDE.md](Server/CLAUDE.md), 클라이언트 쪽 반영 지점은 [UEClient/JM/CLAUDE.md](UEClient/JM/CLAUDE.md) 참고.
 
-From `Common/Protocol/`, run `GanPackets.bat`. This invokes the bundled `protoc.exe` against `Enum.proto`, `Struct.proto`, and `Protocol.proto`, then copies the generated `.pb.h`/`.pb.cc` files into:
-- `Server/Server/Protocol/`
-- `UEClient/JM/Source/JM/Protocol/`
-- `Common/Protocol/` itself
+## 설계 문서
 
-Both the server and the UE client compile their own copy of the generated protobuf sources — there is no shared build reference, so regenerating and letting the `.bat` re-copy is the only way to keep them in sync. Never hand-edit the `.pb.h`/`.pb.cc` files.
+진행 중인 기능 설계는 `Docs/`에 별도로 기록합니다 — 완료된 구현이 아니라 목표 아키텍처이며, 마이그레이션 순서는 문서에 명시된 범위 내에서만 정해져 있습니다.
 
-### Server
+- [Docs/DESIGN_CHARACTER_EQUIPMENT.md](Docs/DESIGN_CHARACTER_EQUIPMENT.md) — 플레이어 캐릭터 베이스를 매니퀸(Manny/Quinn)으로 통일하는 전환, 장비(`EEquipPart`)/외형(`EAppearancePart`) 데이터 모델과 스탯 필드 추가 계획.
+- [Docs/DESIGN_ANIMATION.md](Docs/DESIGN_ANIMATION.md) — 무기별 애니메이션을 Animation Layer Interface 구조로 전환하는 목표 아키텍처.
+- [Docs/DESIGN_COMBAT_SKILL.md](Docs/DESIGN_COMBAT_SKILL.md) — 스킬을 무기 타입에 종속시키고 타겟팅 타입(Targeted/NonTargeted)을 추가하는 목표 구조, 쿼터뷰 조준 입력 설계.
 
-Open `Server/Server.sln` in Visual Studio 2022 (or use `msbuild`) and build one of the three projects:
-- `GameServer` (`Server/Server/Server.vcxproj`) — the actual game server, entry point `gameserver.cpp`.
-- `DummyClient` (`Server/DummyClient/`) — a headless load-test/bot client that speaks the same protocol, useful for testing server logic without the UE client.
-- `NavGenerator` (`Server/NavGenerator/`) — offline tool that builds Recast/Detour navmesh data (`NavMesh_Output.obj`) consumed by the server at runtime via `NavmeshManager`.
+## 언어 관련 참고사항
 
-Third-party libs (Recast/Detour, Protobuf, ODBC via `sql.h`/`sqlext.h`) live under `Server/ThirdParty/`. There is no automated test suite for the server — verification is done by building and running `GameServer` against `DummyClient` or the UE client.
-
-### UE Client
-
-Open `UEClient/JM/JM.uproject` in Unreal Editor 5.6 (or generate/build via UBT). The `JM` module depends on `ProtobufCore` (a thin module wrapping the vendored `libprotobuf.lib` under `UEClient/JM/Source/ProtobufCore/`) for talking to the server, plus standard `Sockets`/`Networking`/`UMG`/`EnhancedInput`.
-
-## Server architecture
-
-The server is a single-process, multi-threaded IOCP server modeled as: network I/O → per-connection `Session` → `PacketHandler` → game logic dispatched as `Job`s onto per-owner `JobQueue`s.
-
-- **IOCP core** (`IocpCore`, `IocpEvent`, `Listener`, `ServerService`): raw accept/recv/send completion loop. `worker_thread` in `gameserver.cpp` just spins calling `IocpCore::Dispatch()`; there's no logic in the network threads themselves.
-- **Job/JobQueue pattern** (`Job.h`, `JobQueue.h`): this is the server's concurrency model. Any object that needs to be accessed safely from multiple IOCP worker threads (a `Room`, in practice) owns a `JobQueue` and only mutates its own state inside a `Job` executed off that queue (`Room::PushJob` / `Room::ReserveJob`). `JobQueue` itself is an `IocpObject` — pushing a job posts a completion event so it gets picked up and drained (`ExecuteJobs`) by an IOCP worker thread. Never touch a `Room`'s internal state directly from outside a job — route through `PushJob`/`ReserveJob`.
-- **Sessions & packets**: `Session` owns `RecvBuffer`/`SendBuffer`. `PacketHandler::ProcessPacket` parses raw bytes into a Protobuf message keyed by `PacketId` (see `Common/Protocol/Enum.proto`) and dispatches to a `Handle_CS_*` function via the `GPacketHandler` table.
-- **World model**: `RoomManager` owns one or more `Room`s (currently a single room is created at startup). Each `Room` owns its own `GameMap` (a uniform grid of `Cell`s used for area-of-interest / view culling — see `ViewUpdate`, `Room::UpdateView`, `BroadcastAOI`) and its own `NavmeshManager` (Recast/Detour navmesh, built offline by `NavGenerator`) for movement validation and monster pathing.
-- **Entities**: `GameObject` → `Character` → `Player` / `Monster`. Combat resolution goes through `CombatProcessor` and `Room::CharacterAttack` / `ExecuteSkillHit` / `ApplyDelayedDamage`, with skill/character tuning data in `ServerData.h` (`DataManager`, hardcoded `_skillTable`/`_characterTable` — not yet database- or datatable-driven).
-- **Persistence**: `DBConnection`/`DBConnectionPool`/`DatabaseWorker` wrap raw ODBC (`sql.h`/`sqlext.h`) calls to SQL Server; `DatabaseWorker` runs DB work asynchronously off a dedicated queue rather than blocking IOCP threads.
-- **Auth/lobby**: `AuthLobby` handles login/signup before a `Player` is handed off into a `Room`.
-- **`pch.h`** is the project-wide precompiled header — it pulls in the Windows/Winsock/ODBC/DirectXMath headers, the generated `Protocol.pb.h`, and the global singletons (`GRoomManager`, `GTimer`, `GDBWorker`, `GLobby`) declared as `extern` there and defined in `gameserver.cpp`.
-
-## Protocol conventions
-
-- `Enum.proto` defines `PacketId` (the wire discriminator, `CS_*` = client→server starting at 1000, `SC_*` = server→client starting at 2000) plus shared gameplay enums (`MoveState`, `ObjectType`, `PlayerType`, `EquipPart`).
-- `Struct.proto` defines shared value types (`PositionInfo`, `StatInfo`, `ObjectInfo`) reused across multiple packets.
-- `Protocol.proto` defines the actual packet messages, grouped by direction (`CS_*_PACKET` / `SC_*_PACKET`).
-- When adding a new packet: add the enum value in `Enum.proto`, the message in `Protocol.proto`, run `GanPackets.bat`, then implement `Handle_CS_*` in `Server/Server/PacketHandler.cpp` (registered in `PacketHandler::Init()`) and the corresponding handling in the UE client's `FPacketHandler`/`NetworkManager`.
-
-## UE client architecture (`UEClient/JM/Source/JM/`)
-
-- `Network/` — `NetworkManager` (owns the socket/connection), `NetworkWorker` (recv thread), `NetworkSession`, `FPacketHandler` (dispatches incoming `SC_*` packets, mirrors the server's `PacketHandler` role), `SendBuffer`.
-- `Protocol/` — generated Protobuf sources copied in by `GanPackets.bat`; do not edit by hand.
-- `Game/` — `JMGameInstance` (top-level persistent state), `JMObjectManager` (maps server object IDs to client actors), `JMAssetDataManager`/`EquipAssetData` (appearance/equipment lookup tables), `ModularAppearanceComponent`/`ModularEquipmentComponent` (drive the modular character's visual parts from equip data), `IngameGameModeBase`, `LoginGameMode`.
-- `Character/`, `Animation/`, `Player/` — `JMCharacterBase`, `JMAnimInstance`, `JMPlayer`/`JMMyPlayer` (locally-controlled vs. remote), `JMPlayerController`, `NpcCharaceter` (server-driven NPCs/monsters).
-- `UI/` — `JMUIManager` (central UI/widget-stack manager), `LoginWidget`, `ChatWidget`, `HpBarWidget`.
-
-The client is intentionally thin on gameplay authority: position, stats, combat outcomes, and equip state are all server-driven via `ObjectInfo`/`SC_*` packets; client-side components mostly reflect that state rather than compute it.
-
-## Language note
-
-Source comments and commit messages in this repo are frequently in Korean; match that when editing existing files with Korean comments.
+이 저장소의 소스 코드 주석과 커밋 메시지는 한국어로 작성된 경우가 많습니다. 기존 파일을 수정할 때는 그 파일의 언어(한국어 주석)에 맞춰 작성하세요.
