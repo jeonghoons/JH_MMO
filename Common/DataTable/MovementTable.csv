@@ -1,0 +1,2 @@
+Name,MaxSpeedCmSec,AccelCmSec2,BrakeDecelCmSec2,RotationRateYawDegSec,CameraArmLengthCm,CameraMinPitchDeg,CameraMaxPitchDeg,LookSensitivityYaw,LookSensitivityPitch
+1001,600,2048,2048,500,400,-60,30,1,1

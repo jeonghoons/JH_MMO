@@ -66,11 +66,12 @@ UEClient/**/*.VC.opendb
 UEClient/**/SourceArt/**/*.png
 UEClient/**/SourceArt/**/*.tga
 
-# KiteDemo
+# Fab/Marketplace에서 받은 에셋 팩 (docs/ExternalAssets.md 참고)
 UEClient/JM/Content/KiteDemo/
-UEClient/JM/Content/ParagonProps/
+UEClient/JM/Content/Paragon*/
 # StarterAsset
 UEClient/JM/Content/LevelPrototyping
+UEClient/JM/Content/StarterContent/
 
 # 언리얼 엔진 임시, 바이너리, 캐시 폴더 전체 차단
 UEClient/**/Binaries/
@@ -90,3 +91,5 @@ UEClient/**/.vs/
 !UEClient/**/Build/*/
 !UEClient/**/Build/*/PakBlacklist*.txt
 !UEClient/**/Build/**/*.ico
+# Excel 임시 파일
+~$*.xlsx

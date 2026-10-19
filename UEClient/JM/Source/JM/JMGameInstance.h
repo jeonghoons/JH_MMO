@@ -14,12 +14,6 @@ class JM_API UJMGameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|Tables")
-	UDataTable* AppearanceAssetTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|Tables")
-	UDataTable* EquipAssetTable;
-
 	FStreamableManager AssetLoader;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|Tables")

@@ -1,19 +1,14 @@
-# 무기별 애니메이션 아키텍처 (Animation Layer Interface)
+# 애니메이션 구조 (영웅별 AnimBP)
 
-이 문서도 목표 아키텍처만 기록합니다. 마이그레이션 순서/시점은 여기서 정하지 않습니다.
+목표 구조만 기록합니다. 마이그레이션 순서/시점은 정하지 않습니다.
+(2026-10-17 변경: 무기별 Animation Layer Interface 설계는 폐기됨. 이유: 영웅마다 스켈레톤이 다르고 무기가 영웅에 고정되어 무기 교체용 애니메이션 공유가 필요 없음. [DECISIONS.md](DECISIONS.md) 참고)
 
-## 현재 상태
-- `FEquipAssetData::WeaponAnimClass`(`TSoftClassPtr<UAnimInstance>`)로 무기 장착 시 `AJMCharacterBase::UpdateWeaponAnimation`이 캐릭터의 AnimInstance **클래스 전체를 교체**하는 방식입니다.
-- 이 방식은 캐릭터마다 스켈레톤이 다른 현재 구조(Greystone/Rampage/Sparrow)에서는 사실상 유일한 선택이었습니다 — 스켈레톤이 다르면 애니메이션 자체를 공유할 수 없어 무기·캐릭터·ABP가 1:1로 묶여 있었습니다.
+## 구조
+- 영웅 하나당 AnimBP 하나(예: Greystone → ABP_Greystone, Sparrow → ABP_Sparrow). `HeroTable`이 영웅 → AnimBP를 연결합니다.
+- 이동 애니메이션은 AnimBP 안의 상태머신/블렌드스페이스가 맡습니다.
+- 공격/스킬 애니메이션은 몽타주로 재생합니다. 어떤 몽타주를 쓰는지는 SkillTable(또는 HeroTable)이 가리킵니다.
+- **공격 타이밍은 C++ 타이머가 아니라 AnimNotify**입니다. 단, 클라이언트 AnimNotify는 시전·연출 타이밍에만 쓰고, 대상 산출과 데미지는 서버가 결정합니다([DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md)).
+- 맨손/무기 교체에 따른 AnimInstance 교체(`AJMCharacterBase::UpdateWeaponAnimation`, `WeaponAnimClass`)와 `LinkAnimClassLayers`는 사용하지 않습니다. 무기 아이템은 머티리얼만 바꾸므로 애니메이션이 변하지 않습니다.
 
-## 목표 구조
-[DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)의 매니퀸 통합을 전제로, 하나의 공용 스켈레톤 위에서 무기 타입별로 애니메이션만 갈아끼우는 **Animation Layer Interface** 구조로 전환합니다.
-
-- Animation Layer Interface 애셋에 `Locomotion`/`Attack` 등 함수 시그니처를 정의합니다.
-- 무기 타입별 AnimLayer 블루프린트: `AL_Unarmed`(맨손), `AL_OneHandSwordShield`(한손검+방패), `AL_TwoHandSword`(두손검), `AL_Bow`(활). 추후 무기 타입 확장 시 AnimLayer만 추가하면 됩니다.
-- 메인 `UJMAnimInstance`는 무기 전환 시 `LinkAnimClassLayers`로 해당 레이어를 링크합니다(현재의 AnimInstance 클래스 전체 교체 방식을 대체).
-- `FEquipAssetData::WeaponAnimClass`의 의미가 "AnimInstance 클래스 전체"에서 "AnimLayer 클래스"로 바뀝니다.
-- 무기 없이 맨손인 상태도 하나의 무기 타입(`Unarmed`)으로 취급합니다 — 별도 특수 케이스로 분기하지 않습니다.
-
-## 선행 조건
-캐릭터 베이스가 매니퀸으로 전환되어 모든 플레이어가 동일 스켈레톤을 쓴 뒤에야 의미가 있는 구조입니다. [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)의 전환이 먼저입니다.
+## 영웅 추가 시 해야 할 일
+메시 + AnimBP + 공격/피격/사망 몽타주를 준비하고 `HeroTable`, `SkillTable` 행을 추가합니다. 코드 수정은 필요 없어야 합니다.

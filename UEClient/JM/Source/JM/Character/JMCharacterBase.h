@@ -2,7 +2,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Protocol/Protocol.pb.h"
-#include "Game/EquipAssetData.h"
+#include "Game/CharacterAssetData.h"
 #include "JMCharacterBase.generated.h"
 
 UCLASS()
@@ -43,7 +43,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	void PlayAttackAnim();
 
-	void UpdateWeaponAnimation(TSubclassOf<UAnimInstance> AnimClass, UAnimMontage* Attack);
 	
 protected:
 	UPROPERTY(EditAnywhere) 

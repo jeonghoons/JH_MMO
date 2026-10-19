@@ -43,7 +43,11 @@ Server 코드는 별도 접두사 규칙 없이 기능 위주로 클래스/함�
 
 - `Room`의 내부 상태는 절대 `PushJob`/`ReserveJob` 밖에서 직접 변경하지 마세요 — 여러 IOCP 워커 스레드가 동시에 접근하는 객체이므로 레이스 컨디션이 발생합니다.
 
+## 데이터 테이블 (CSV 로더 — 예정)
+
+서버는 `ServerData.h`의 하드코딩 테이블 대신 `Common/DataTable/*.csv`를 읽어 스킬/스탯/이동 수치를 관리하는 방향으로 전환합니다(규약: [Docs/DESIGN_DATA.md](../Docs/DESIGN_DATA.md)). 애셋 참조 컬럼은 서버가 무시합니다. 로더 구현은 [Docs/ROADMAP.md](../Docs/ROADMAP.md) Phase M2에 있습니다.
+
 ## 설계 문서
 
-- [Docs/DESIGN_COMBAT_SKILL.md](../Docs/DESIGN_COMBAT_SKILL.md) — `SkillData`/`_skillTable`을 캐릭터 타입 종속에서 무기 타입 종속 + 타겟팅 타입(Targeted/NonTargeted) 구조로 바꾸는 목표 아키텍처(마이그레이션 순서 미정).
+- [Docs/DESIGN_COMBAT_SKILL.md](../Docs/DESIGN_COMBAT_SKILL.md) — `SkillData`/`_skillTable`을 캐릭터 타입당 1개에서 영웅 종속 스킬 목록 + 타겟팅 타입(Targeted/NonTargeted) 구조로 바꾸는 목표 아키텍처(마이그레이션 순서 미정).
 - [Docs/DESIGN_CHARACTER_EQUIPMENT.md](../Docs/DESIGN_CHARACTER_EQUIPMENT.md) — 장비 스탯을 캐릭터 최종 스탯에 반영하려면 서버에 아직 없는 아이템 데이터 테이블이 필요하다는 간극을 기록.

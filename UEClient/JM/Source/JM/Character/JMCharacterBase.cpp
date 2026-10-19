@@ -2,8 +2,6 @@
 #include "JMGameInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Game/ModularAppearanceComponent.h"
-#include "Game/ModularEquipmentComponent.h"
 
 AJMCharacterBase::AJMCharacterBase()
 {
@@ -144,15 +142,6 @@ void AJMCharacterBase::PlayAttackAnim()
 	{
 		AnimInst->Montage_Play(CurrentAttackMontage);
 	}
-}
-
-void AJMCharacterBase::UpdateWeaponAnimation(TSubclassOf<UAnimInstance> AnimClass, UAnimMontage* Attack)
-{
-	if (AnimClass && GetMesh())
-	{
-		GetMesh()->SetAnimInstanceClass(AnimClass);
-	}
-	CurrentAttackMontage = Attack;
 }
 
 

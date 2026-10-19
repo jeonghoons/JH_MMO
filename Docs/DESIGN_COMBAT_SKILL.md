@@ -10,8 +10,8 @@
 ## 목표 구조
 
 ### 스킬의 종속 대상 변경
-- 스킬은 캐릭터 타입이 아니라 **무기 타입에 종속**됩니다([DESIGN_ANIMATION.md](DESIGN_ANIMATION.md)의 무기 타입: Unarmed/OneHandSwordShield/TwoHandSword/Bow와 동일 축).
-- 기본 공격도 스킬 목록의 하나로 통합됩니다(무기 타입별 "기본 공격" 스킬 포함).
+- 스킬은 **영웅에 종속**됩니다(2026-10-17 결정, 무기가 영웅에 고정되었으므로 무기 종속 안을 대체). `SkillTable`의 각 행이 `HeroId`를 가지며, 영웅 한 행에 스킬 목록이 연결됩니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
+- 기본 공격도 스킬 목록의 하나로 통합됩니다(영웅별 "기본 공격" 스킬 포함).
 
 ### 타겟팅 타입 추가
 `SkillData`에 새 축을 추가합니다:
@@ -31,4 +31,15 @@
 
 ## 알아둘 간극
 - `Character::Attack`이 현재 타겟 정보를 전혀 다루지 않으므로, Targeted 스킬 도입 시 이 인터페이스 자체를 확장해야 합니다.
-- 스킬을 무기 종속으로 옮기면 "캐릭터 타입 → 스킬"이었던 `_skillTable`의 키 구조가 "무기 타입 → 스킬 목록"으로 바뀌어야 합니다 — 이 변경이 `CombatProcessor`/`Room::CharacterAttack` 등 호출부에 미치는 영향은 구현 시점에 파악합니다.
+- 스킬을 영웅 종속으로 옮기면 "캐릭터 타입당 스킬 1개"였던 `_skillTable`의 키 구조가 "영웅 → 스킬 목록"으로 바뀌어야 합니다 — 이 변경이 `CombatProcessor`/`Room::CharacterAttack` 등 호출부에 미치는 영향은 구현 시점에 파악합니다.
+
+## Test 프로젝트 병합 시 서버 권위 전환 방침
+`UEProjects/Test`(클라이언트 테스트 공간)는 서버 없이 `IGameBackend`/`ULocalGameBackend`로 서버 동작을 흉내 냈습니다. 병합 시 "나중에 서버가 할 일"로 설계된 동작은 모두 이 저장소의 서버 권위 동작(CS_ 패킷 → 서버 검증/계산 → SC_ 패킷 반영)으로 바꿉니다.
+
+- 스킬/공격 시전(`RequestAttack`/`RequestCastSkill`) → CS_ 패킷. 사거리/쿨다운은 서버가 재검증합니다.
+- Test의 "클라이언트가 AnimNotify 시점에 판정하고 맞은 대상을 보고"하는 방식은 채택하지 않습니다. 클라이언트는 AnimNotify로 시전·연출 타이밍만 맡고, 대상 산출·데미지·사망은 서버(`CombatProcessor`, `Room::CharacterAttack`)가 결정합니다.
+- 스폰/데미지/사망(`OnSpawnMonster`/`OnDamage`/`OnMonsterDead`) → 기존 SC_ 패킷과 `FPacketHandler`.
+- 아이템 드랍/줍기/장착(`RequestPickupItem`/`RequestEquip`/`OnDropItem`/`OnEquipChanged`) → 신규 CS_/SC_ 패킷이 필요하며, 서버에 아이템 테이블이 아직 없으므로 별도 작업으로 다룹니다.
+- 몬스터 AI/드랍 계산은 서버 책임이며 클라이언트에 만들지 않습니다.
+- `IGameBackend`/`ULocalGameBackend`는 병합하지 않습니다.
+- 스킬 쿨타임/데미지 등 수치의 권위는 서버(`ServerData.h`)에 있고, 클라이언트 데이터는 연출용으로 한정합니다.

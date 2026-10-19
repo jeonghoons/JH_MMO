@@ -13,12 +13,6 @@ public:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	class UModularAppearanceComponent* AppearanceComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	class UModularEquipmentComponent* EquipmentComponent;
-
 protected:
 	TSharedPtr<struct FStreamableHandle> AssetLoadHandle;
 
