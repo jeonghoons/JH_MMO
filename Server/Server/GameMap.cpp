@@ -8,6 +8,10 @@ CellPos GameMap::ToCellPos(const Protocol::PositionInfo& pos) const
     int x_index = static_cast<int>((pos.x() - _minX) / CELL_SIZE);
     int y_index = static_cast<int>((pos.y() - _minY) / CELL_SIZE);
 
+    // 맵 밖 좌표가 들어와도 _grid 인덱스가 범위를 벗어나지 않게 가장자리 셀로 고정한다.
+    x_index = std::clamp(x_index, 0, std::max(_gridWidth - 1, 0));
+    y_index = std::clamp(y_index, 0, std::max(_gridHeight - 1, 0));
+
     return { x_index, y_index };
 }
 

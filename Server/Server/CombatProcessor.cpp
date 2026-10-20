@@ -5,14 +5,52 @@
 #include "ServerData.h"
 #include "NavmeshManager.h"
 
-void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_ptr<Character> attacker, int skillId)
+void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_ptr<Character> attacker, int skillId, int targetId, float aimYaw, float aimX, float aimY)
 {
 	if (attacker == nullptr || attacker->GetStat().IsDead()) return;
 
 	const SkillData* skillData = DataManager::GetSkillData(skillId);
 	if (skillData == nullptr) return;
 
+	// 시전 시점에 서버가 확정한 방향으로 판정한다. (히트 딜레이 동안 공격자가 이동/회전해도 판정 방향은 바뀌지 않는다)
+	Protocol::PositionInfo origin = attacker->GetPosition();
+	origin.set_yaw(aimYaw);
+
+	// 지면 장판: 지점에 영역을 만들고 이후 Room::UpdateZones가 주기적으로 피해를 준다.
+	if (skillData->hitShape == HitShape::Zone)
+	{
+		room->CreateZone(attacker, *skillData, aimX, aimY);
+		return;
+	}
+
 	Protocol::ObjectType targetTypeToFind = (attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) ? Protocol::ObjectType::OBJECT_TYPE_MONSTER : Protocol::ObjectType::OBJECT_TYPE_PLAYER;
+
+	// 대상 지정 투사체: 지정된 대상 한 명에게만 거리/비행 속도에 따른 지연 후 피해를 준다. (판정 모양 검사 없음)
+	if (skillData->targeting == SkillTargeting::Targeted)
+	{
+		auto targetObj = room->GetGameObject(targetId);
+		if (!targetObj || targetObj->GetType() != targetTypeToFind) return;
+
+		auto targetChar = std::static_pointer_cast<Character>(targetObj);
+		if (targetChar->GetStat().IsDead()) return;
+
+		const float dx = targetChar->GetPosition().x() - attacker->GetPosition().x();
+		const float dy = targetChar->GetPosition().y() - attacker->GetPosition().y();
+		const float dist = std::sqrt(dx * dx + dy * dy);
+
+		int flightTimeMs = 0;
+		if (skillData->projSpeed > 0.f) {
+			flightTimeMs = static_cast<int>((dist / skillData->projSpeed) * 1000.f);
+		}
+
+		if (flightTimeMs <= 0) {
+			targetChar->OnDamaged(skillData->baseDamage, attacker);
+		}
+		else {
+			room->ReserveJob(flightTimeMs, &Room::ApplyDelayedDamage, targetChar->GetId(), attacker->GetId(), skillData->baseDamage);
+		}
+		return;
+	}
 
 	std::shared_ptr<Character> closestProjTarget = nullptr;
 	float minProjDistSq = FLT_MAX;
@@ -28,10 +66,10 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 		bool bIsHit = false;
 
 		if (skillData->hitShape == HitShape::Sector) {
-			bIsHit = MathUtils::CheckSector(attacker->GetPosition(), targetChar->GetPosition(), skillData->radius, skillData->angle);
+			bIsHit = MathUtils::CheckSector(origin, targetChar->GetPosition(), skillData->radius, skillData->angle);
 		}
 		else if (skillData->hitShape == HitShape::Line || skillData->hitShape == HitShape::Projectile) {
-			bIsHit = MathUtils::CheckLine(attacker->GetPosition(), targetChar->GetPosition(), skillData->width, skillData->range);
+			bIsHit = MathUtils::CheckLine(origin, targetChar->GetPosition(), skillData->width, skillData->range);
 		}
 
 		if (bIsHit)
@@ -56,13 +94,12 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 				{
 					int finalDamage = skillData->baseDamage;
 					targetChar->OnDamaged(finalDamage, attacker);
-					// std::cout << "Hit Target[" << targetChar->GetId() << "] Dmg: " << finalDamage << std::endl;
 				}
 			}
 		}
 	}
 
-	// 투사체인 경우, 가장 가까운 적을 찾아 비행 시간 계산 후 데미지 예약
+	// 방향 지정 투사체: 가장 가까운 적을 찾아 비행 시간 계산 후 데미지 예약
 	if (skillData->hitShape == HitShape::Projectile && closestProjTarget != nullptr)
 	{
 		float dist = std::sqrt(minProjDistSq);
@@ -77,8 +114,6 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 		}
 		else {
 			room->ReserveJob(flightTimeMs, &Room::ApplyDelayedDamage, closestProjTarget->GetId(), attacker->GetId(), skillData->baseDamage);
-			// std::cout << "Projectile Fired! Flight time: " << flightTimeMs << "ms" << std::endl;
 		}
 	}
 }
-

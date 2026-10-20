@@ -46,12 +46,21 @@ message CS_DMOVE_PACKET {
 }
 
 message CS_ATTACK_PACKET {
-	int32 target_id = 1;
+	int32 target_id = 1;      // Targeted 스킬의 대상 (NonTargeted는 0)
+	int32 skill_slot = 2;     // 0 = 기본 공격, 1~5 = 스킬 슬롯 (서버가 영웅의 SkillTable로 해석)
+	float aim_yaw = 3;       // NonTargeted의 시전 방향(deg)
+	float aim_x = 4;         // 지면 지정 스킬의 목표 지점
+	float aim_y = 5;
 }
 
 message CS_CHANGE_EQUIP_PACKET {
 	EquipPart part = 1;
 	int32 item_id = 2;
+}
+
+// 서버 JobQueue 지연까지 포함한 왕복 시간 측정용. client_time은 서버가 그대로 돌려준다.
+message CS_PING_PACKET {
+	int64 client_time = 1;
 }
 
 // ==========================================
@@ -88,6 +97,9 @@ message SC_ATTACK_PACKET {
 	int32 attacker_id = 1;
 	int32 skill_id = 2;
 	int32 target_id = 3;
+	float aim_yaw = 4;       // 서버가 확정한 시전 방향
+	float aim_x = 5;         // 서버가 사거리로 보정한 지면 목표 지점
+	float aim_y = 6;
 }
 
 message SC_DAMAGE_PACKET {
@@ -105,4 +117,8 @@ message SC_CHANGE_EQUIP_PACKET {
 	int32 object_id = 1;
 	EquipPart part = 2;
 	int32 item_id = 3;
+}
+
+message SC_PONG_PACKET {
+	int64 client_time = 1;
 }

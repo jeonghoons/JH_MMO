@@ -14,11 +14,49 @@ NavmeshManager::NavmeshManager()
 
 NavmeshManager::~NavmeshManager()
 {
+	// _navMesh는 Room들이 공유하므로 마지막 참조가 사라질 때 shared_ptr이 해제한다. 쿼리는 Room마다 따로 가진다.
 	if (_navQuery) dtFreeNavMeshQuery(_navQuery);
-	if (_navMesh) dtFreeNavMesh(_navMesh);
+}
+
+namespace
+{
+	// 같은 경로의 네비메시는 한 번만 읽고 모든 Room이 읽기 전용으로 공유한다. (dtNavMesh는 읽기 전용이면 스레드 안전)
+	struct SharedNavData
+	{
+		shared_ptr<dtNavMesh> mesh;
+		float minX = 0.f, maxX = 0.f, minY = 0.f, maxY = 0.f;
+	};
+	mutex GNavCacheMutex;
+	unordered_map<string, SharedNavData> GNavCache;
 }
 
 bool NavmeshManager::LoadNavMesh(const std::string& path, float& outMinX, float& outMaxX, float& outMinY, float& outMaxY)
+{
+	{
+		lock_guard<mutex> lock(GNavCacheMutex);
+
+		auto it = GNavCache.find(path);
+		if (it == GNavCache.end())
+		{
+			SharedNavData data;
+			if (!LoadNavMeshFile(path, data.mesh, data.minX, data.maxX, data.minY, data.maxY))
+				return false;
+			it = GNavCache.emplace(path, std::move(data)).first;
+		}
+
+		_navMesh = it->second.mesh;
+		outMinX = it->second.minX;
+		outMaxX = it->second.maxX;
+		outMinY = it->second.minY;
+		outMaxY = it->second.maxY;
+	}
+
+	_navQuery = dtAllocNavMeshQuery();
+	_navQuery->init(_navMesh.get(), 2048);
+	return true;
+}
+
+bool NavmeshManager::LoadNavMeshFile(const std::string& path, shared_ptr<dtNavMesh>& outMesh, float& outMinX, float& outMaxX, float& outMinY, float& outMaxY)
 {
 	FILE* fp = nullptr;
 
@@ -37,8 +75,9 @@ bool NavmeshManager::LoadNavMesh(const std::string& path, float& outMinX, float&
 		return false;
 	}
 
-	_navMesh = dtAllocNavMesh();
-	if (!_navMesh || dtStatusFailed(_navMesh->init(&header.params))) {
+	dtNavMesh* mesh = dtAllocNavMesh();
+	if (!mesh || dtStatusFailed(mesh->init(&header.params))) {
+		if (mesh) dtFreeNavMesh(mesh);
 		fclose(fp);
 		return false;
 	}
@@ -55,10 +94,10 @@ bool NavmeshManager::LoadNavMesh(const std::string& path, float& outMinX, float&
 		if (!data) break;
 		fread(data, tileHeader.dataSize, 1, fp);
 
-		_navMesh->addTile(data, tileHeader.dataSize, DT_TILE_FREE_DATA, tileHeader.tileRef, 0);
+		mesh->addTile(data, tileHeader.dataSize, DT_TILE_FREE_DATA, tileHeader.tileRef, 0);
 
 		// 현재 타일의 Bounding Box 갱신
-		const dtMeshTile* tile = _navMesh->getTileByRef(tileHeader.tileRef);
+		const dtMeshTile* tile = mesh->getTileByRef(tileHeader.tileRef);
 		if (tile && tile->header) {
 			if (tile->header->bmin[0] < dMinX) dMinX = tile->header->bmin[0];
 			if (tile->header->bmin[1] < dMinY) dMinY = tile->header->bmin[1];
@@ -70,10 +109,9 @@ bool NavmeshManager::LoadNavMesh(const std::string& path, float& outMinX, float&
 		}
 	}
 
-	fclose(fp);	
+	fclose(fp);
 
-	_navQuery = dtAllocNavMeshQuery();
-	_navQuery->init(_navMesh, 2048);
+	outMesh = shared_ptr<dtNavMesh>(mesh, [](dtNavMesh* m) { dtFreeNavMesh(m); });
 
 	outMinY = dMinX;
 	outMaxY = dMaxX;

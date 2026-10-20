@@ -37,6 +37,7 @@ public:
 	virtual void Update(float deltaTime) override;
 	virtual void StopMove() override;
 	virtual void OnDead(std::shared_ptr<Character> attacker) override;
+	virtual int GetHitStunMs() const override;
 	virtual void OnDamaged(int damage, std::shared_ptr<Character> attacker) override;
 
 
@@ -57,7 +58,11 @@ public:
 	void UpdateHit();
 	
 	void SetPath(const std::vector<Protocol::PositionInfo>& path);
-	
+
+	// 이 몬스터를 만든 스폰 마커(GameMap::GetMonsterSpawns 인덱스). 리스폰 시 같은 마커에서 다시 만든다.
+	int GetSpawnIndex() const { return _spawnIndex; }
+	void SetSpawnIndex(int index) { _spawnIndex = index; }
+
 private:
 	// A* 경로를 따라 걷는 물리 시뮬레이션
 	void FollowPath(float deltaTime);
@@ -80,6 +85,8 @@ private:
 	int _pathIndex = 0;
 	bool _hasPath = false;
 	Protocol::PositionInfo _lastTargetPos;
+
+	int _spawnIndex = -1;
 
 	float _traceRange = 800.f;
 	float _attackRange;

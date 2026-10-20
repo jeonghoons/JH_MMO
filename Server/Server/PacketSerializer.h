@@ -11,11 +11,13 @@ public:
 
 	static shared_ptr<SendBuffer> MAKE_SC_MOVE_OBJECT(shared_ptr<GameObject> object);
 
-	static shared_ptr<SendBuffer> MAKE_SC_ATTACK(int attackerId, int skillId, int targetId);
+	static shared_ptr<SendBuffer> MAKE_SC_ATTACK(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY);
 	
 	static shared_ptr<SendBuffer> MAKE_SC_DAMAGE(int attackerId, int targetId, int damage, int remainHp);
 
 	static shared_ptr<SendBuffer> MAKE_SC_DEAD(int objectId);
+
+	static shared_ptr<SendBuffer> MAKE_SC_PONG(long long clientTime);
 
 public:
 	template<typename T>

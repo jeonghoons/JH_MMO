@@ -14,6 +14,7 @@ class GameObject;
 class Character;
 class Player;
 class Monster;
+struct SkillData;
 
 class Room : public enable_shared_from_this<Room>
 {
@@ -59,12 +60,19 @@ public:
 	void BroadcastAOI(shared_ptr<class Character> viewableObj, shared_ptr<SendBuffer> sendBuffer, bool sendToSelf = false);
 
 	void PlayerChat(shared_ptr<Player> player, wstring msg);
+	void PlayerPing(shared_ptr<Player> player, long long clientTime);
 
-	void CharacterAttack(shared_ptr<Character> attacter, int skillId, int targetId);
-	void ExecuteSkillHit(int attackerId, int skillId, int targetId);
+	// 슬롯(0 = 기본 공격)의 스킬을 시전한다. 사거리/대상/방향은 서버가 검증·보정하며, 실패하면 아무 일도 일어나지 않는다.
+	void CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY);
+	void ExecuteSkillHit(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY);
 	void ApplyDelayedDamage(int targetId, int attackerId, int damage);
+
+	// 지면 장판 (HitShape::Zone)
+	void CreateZone(shared_ptr<Character> attacker, const SkillData& skill, float x, float y);
 	// Npc
 	void NpcEnterRoom(shared_ptr<Monster> monster);
+	void SpawnMonster(int spawnIndex);   // 스폰 마커 반경 안의 임의 위치에 몬스터 한 마리를 만든다.
+	void RemoveMonster(int monsterId);   // 사망한 몬스터를 월드에서 제거하고 리스폰을 예약한다.
 	void NPCMove(shared_ptr<Monster> monster);
 	int MonsterIdGenerator()
 	{
@@ -76,9 +84,36 @@ public:
 	shared_ptr<Player> Id2Player(int pId);
 	shared_ptr<Monster> Id2Monster(int mId);
 
-	int NumPlayers() { return static_cast<int>(_players.size()); }
+	// 입장 예약(정원 확인 + 자리 확보)을 원자적으로 한다. 입장 처리(PlayerEnterRoom)는 JobQueue에서 나중에 실행되므로
+	// _players.size()로 정원을 판단하면 동시에 들어오는 플레이어가 정원을 넘길 수 있다.
+	bool TryReserveSlot()
+	{
+		int count = _playerCount.load();
+		while (count < MAX_ROOM_CAPACITY)
+		{
+			if (_playerCount.compare_exchange_weak(count, count + 1))
+				return true;
+		}
+		return false;
+	}
+	void ReleaseSlot() { _playerCount.fetch_sub(1); }
+	int NumPlayers() const { return _playerCount.load(); }
 
 private:
+	struct SkillZone
+	{
+		int attackerId = 0;
+		float x = 0.f, y = 0.f;
+		float radius = 0.f;
+		int damage = 0;
+		int tickMs = 1000;
+		chrono::steady_clock::time_point endTime;
+		unordered_map<int, chrono::steady_clock::time_point> nextHit;   // 대상별 다음 피해 가능 시각
+	};
+	vector<SkillZone> _zones;
+	void UpdateZones();
+
+	atomic<int> _playerCount = 0;
 
 	unordered_map<int, shared_ptr<GameObject>> _objects;
 	unordered_map<int, shared_ptr<Player>> _players;
@@ -104,9 +139,14 @@ public:
 
 	int IdGenerator();
 
+private:
+	// 정원이 남은 기존 방에 입장 예약을 시도한다.
+	bool TryEnterExisting(shared_ptr<Player> player);
+
 public:
 
 	RWLock				_lock;
+	mutex				_createMutex; // 방 생성(맵 로딩 포함)은 한 번에 하나만, _lock 밖에서 수행한다.
 
 	unordered_map<int, shared_ptr<Room>> _rooms;
 

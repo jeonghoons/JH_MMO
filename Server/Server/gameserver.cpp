@@ -4,6 +4,7 @@
 #include "IocpCore.h"
 #include "Room.h"
 #include "PacketHandler.h"
+#include "Metrics.h"
 
 shared_ptr<Timer> GTimer = nullptr;
 shared_ptr<DatabaseWorker> GDBWorker = nullptr;
@@ -40,6 +41,7 @@ int main()
 	GRoomManager = make_unique<RoomManager>(service->GetIocpInstance()->GetHandle());
 	GRoomManager->CreateRoom();
 	GLobby = make_shared<AuthLobby>(service->GetIocpInstance()->GetHandle());
+	Metrics::StartReporter();
 	
 	vector<thread> threads;
 	int num_threads = thread::hardware_concurrency() / 2;

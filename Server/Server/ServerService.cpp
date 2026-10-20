@@ -11,7 +11,10 @@ ServerService::ServerService(NetAddress address, shared_ptr<IocpCore> iocpCore)
 		exit(-1);
 	}
 
-	DataManager::Init();
+	if (DataManager::Init() == false) {
+		printf("DataTable 로드에 실패해 서버를 시작할 수 없습니다.\n");
+		exit(-1);
+	}
 }
 
 ServerService::~ServerService()

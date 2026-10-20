@@ -15,6 +15,7 @@ enum PacketId {
     CS_LEAVE_ROOM = 1007; 
     CS_ATTACK = 1008;
     CS_CHANGE_EQUIP = 1009;
+    CS_PING = 1010;       // 부하 테스트/지연 측정용
     
     // Server -> Client
     SC_LOGIN = 2000;
@@ -29,6 +30,7 @@ enum PacketId {
     SC_DAMAGE = 2009;
     SC_DEAD = 2010;
     SC_CHANGE_EQUIP = 2011;
+    SC_PONG = 2012;
 }
 
 enum MoveState {

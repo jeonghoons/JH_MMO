@@ -171,6 +171,8 @@
     <ClInclude Include="NetAddress.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="PacketHandler.h" />
+    <ClInclude Include="CsvFile.h" />
+    <ClInclude Include="Metrics.h" />
     <ClInclude Include="PacketSerializer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Player.h" />
@@ -232,6 +234,9 @@
     <ClCompile Include="NetAddress.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
+    <ClCompile Include="CsvFile.cpp" />
+    <ClCompile Include="Metrics.cpp" />
+    <ClCompile Include="ServerData.cpp" />
     <ClCompile Include="PacketSerializer.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

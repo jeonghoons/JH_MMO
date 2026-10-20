@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Job.h"
 #include "IocpEvent.h"
 #include <concurrent_queue.h>
@@ -33,9 +33,15 @@ public:
 				job->Execute();
 			}
 
-			bool expected = true;
-			if (_isProcessing.compare_exchange_strong(expected, false))
+			// 플래그를 내린 뒤 큐를 다시 확인한다. 드레인과 플래그 해제 사이에 push된 잡은
+			// RegisterJobs가 플래그가 아직 true라서 이벤트를 포스트하지 않으므로 여기서 이어서 처리한다.
+			_isProcessing.store(false);
+			if (_jobQueue.empty())
 				break;
+
+			bool expected = false;
+			if (_isProcessing.compare_exchange_strong(expected, true) == false)
+				break; // 다른 스레드가 이미 재등록했다.
 		}
 	}
 

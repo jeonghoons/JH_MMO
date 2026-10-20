@@ -4,6 +4,7 @@
 #include "PacketHandler.h"
 #include "Room.h"
 #include "Player.h"
+#include "Metrics.h"
 
 Session::Session() : _recvBuffer(65536)
 {
@@ -45,6 +46,7 @@ void Session::Dispatch(IocpEvent* iocpEvent, int numBytes)
 void Session::OnConnected()
 {
 	_connected.store(true);
+	Metrics::Sessions.fetch_add(1);
 	// cout << "Client[" << _cid << "] Connected" << endl;
 
 	GetService()->AddSession(static_pointer_cast<Session>(shared_from_this()));
@@ -56,9 +58,14 @@ void Session::Disconnect(const WCHAR* cause)
 {
 	if (_connected.exchange(false) == false)
 		return;
-	
-	if (shared_ptr<Room> room = _currPlayer->GetCurrentRoom()) {
-		room->PushJob(&Room::PlayerLeaveRoom, _currPlayer);
+
+	Metrics::Sessions.fetch_sub(1);
+
+	// 로그인 전에 끊기면 _currPlayer가 아직 없다.
+	if (_currPlayer != nullptr) {
+		if (shared_ptr<Room> room = _currPlayer->GetCurrentRoom()) {
+			room->PushJob(&Room::PlayerLeaveRoom, _currPlayer);
+		}
 	}
 	GetService()->ReleaseSession(static_pointer_cast<Session>(shared_from_this()));
 	
@@ -70,7 +77,8 @@ void Session::Send(shared_ptr<SendBuffer> sendBuffer, bool pushOnly)
 {
 	if (false == IsConnected())
 		return;
-	
+
+	Metrics::MessagesOut.fetch_add(1);
 	_sendQueue.Push(sendBuffer);
 
 	if (pushOnly) return;
@@ -93,6 +101,8 @@ int Session::ProcessData(BYTE* buffer, int len)
 			break;
 
 		PacketHeader header = *(reinterpret_cast<PacketHeader*>(&buffer[processLen]));
+		if (header.size < sizeof(PacketHeader) || header.size > MAX_PACKET_SIZE)
+			return -1;
 		if (dataSize < header.size)
 			break;
 
@@ -107,7 +117,8 @@ int Session::ProcessData(BYTE* buffer, int len)
 void Session::ProcessPacket(BYTE* buffer, int len)
 {
 	shared_ptr<Session> session = static_pointer_cast<Session>(shared_from_this());
-	
+
+	Metrics::PacketsIn.fetch_add(1);
 	PacketHandler::ProcessPacket(session, buffer, len);
 }
 
@@ -148,12 +159,17 @@ void Session::ProcessRecv(int numOfBytes)
 	}
 
 	if (_recvBuffer.OnWrite(numOfBytes) == false) {
+		Disconnect(L"Recv Buffer Full");
 		return;
 	}
 
 	int dataSize = _recvBuffer.DataSize();
 
 	int processLen = ProcessData(_recvBuffer.ReadPos(), dataSize);
+	if (processLen < 0) {
+		Disconnect(L"Invalid Packet Size");
+		return;
+	}
 	if (_recvBuffer.OnRead(processLen) == false)
 	{
 		Disconnect(L"Recv Buffer Overflow");
@@ -217,10 +233,15 @@ void Session::ProcessSend(int numOfBytes)
 	}
 
 
-	if (_sendQueue.isEmpty())
-		_sendRegistered.store(false);
-	else 
-		RegisterSend();
+	// 플래그를 내린 뒤 큐를 다시 확인한다. isEmpty 검사와 플래그 해제 사이에 Send된 패킷은
+	// Send 쪽 CAS가 실패해서 등록되지 않으므로 여기서 이어서 보낸다.
+	_sendRegistered.store(false);
+	if (_sendQueue.isEmpty() == false)
+	{
+		bool expected = false;
+		if (_sendRegistered.compare_exchange_strong(expected, true))
+			RegisterSend();
+	}
 }
 
 void Session::ProcessDBEvent()

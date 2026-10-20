@@ -76,11 +76,24 @@ void Monster::OnDamaged(int damage, std::shared_ptr<Character> attacker)
 	}
 }
 
+int Monster::GetHitStunMs() const
+{
+	const MonsterData* data = DataManager::GetMonsterData((int)_objectInfo.player_type());
+	return data ? data->hitStunMs : Character::GetHitStunMs();
+}
+
 void Monster::OnDead(std::shared_ptr<Character> attacker)
 {
 	Character::OnDead(attacker);
 	StopMove();
 	ChangeState(MonsterState::NONE);
+
+	// 사망 연출 시간이 지나면 월드에서 제거하고, 그 시점부터 리스폰을 예약한다. (Room::RemoveMonster)
+	if (auto room = GetCurrentRoom()) {
+		const MonsterData* data = DataManager::GetMonsterData((int)_objectInfo.player_type());
+		const int removeDelayMs = data ? data->deathRemoveDelayMs : 3000;
+		room->ReserveJob(removeDelayMs, &Room::RemoveMonster, GetId());
+	}
 }
 
 void Monster::UpdateAI()
@@ -251,7 +264,7 @@ void Monster::UpdateAttack()
 
 
 		if (shared_ptr<Room> room = GetCurrentRoom()) {
-			room->CharacterAttack(static_pointer_cast<Character>(shared_from_this()), 0, target->GetId());
+			room->CastSkill(static_pointer_cast<Character>(shared_from_this()), 0, target->GetId(), _objectInfo.position().yaw(), 0.f, 0.f);
 		}
 
 		// std::cout << "NPC[" << GetId() << "] Attack -> Player[" << target->GetId() << "]" << std::endl;

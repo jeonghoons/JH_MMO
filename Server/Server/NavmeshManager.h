@@ -21,6 +21,7 @@ public:
 	NavmeshManager();
 	~NavmeshManager();
 
+	// 같은 path는 한 번만 읽어 Room 간에 공유한다. 쿼리 객체(_navQuery)는 스레드 안전하지 않으므로 인스턴스마다 만든다.
 	bool LoadNavMesh(const std::string& path, float& outMinX, float& outMaxX, float& outMinY, float& outMaxY);
 
 	bool IsOutOfBounds(const Protocol::PositionInfo& pos);
@@ -38,12 +39,14 @@ public:
 	Protocol::PositionInfo GetRandomPosition();
 	bool AdjustPositionToNavMesh(Protocol::PositionInfo& pos);
 private:
+	static bool LoadNavMeshFile(const std::string& path, shared_ptr<dtNavMesh>& outMesh, float& outMinX, float& outMaxX, float& outMinY, float& outMaxY);
+
 	// 언리얼(Z-up) <-> Detour(Y-up) 좌표 변환 유틸리티
 	void UeToDetour(const Protocol::PositionInfo& uePos, float* detourPos);
 	void DetourToUe(const float* detourPos, Protocol::PositionInfo& uePos);
 
 private:
-	dtNavMesh* _navMesh = nullptr;
+	shared_ptr<dtNavMesh> _navMesh;
 	dtNavMeshQuery* _navQuery = nullptr;
 	dtQueryFilter	_filter;
 };

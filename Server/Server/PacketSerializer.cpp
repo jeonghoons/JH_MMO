@@ -25,12 +25,15 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_ptr<GameObje
 	return MakeSendBuffer(packet, Protocol::SC_MOVE_OBJECT);
 }
 
-shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ATTACK(int attackerId, int skillId, int targetId)
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ATTACK(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY)
 {
 	Protocol::SC_ATTACK_PACKET packet;
 	packet.set_attacker_id(attackerId);
 	packet.set_skill_id(skillId);
 	packet.set_target_id(targetId);
+	packet.set_aim_yaw(aimYaw);
+	packet.set_aim_x(aimX);
+	packet.set_aim_y(aimY);
 
 	return MakeSendBuffer(packet, Protocol::SC_ATTACK);
 }
@@ -44,6 +47,14 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_DAMAGE(int attackerId, int targ
 	packet.set_remain_hp(remainHp);
 
 	return MakeSendBuffer(packet, Protocol::SC_DAMAGE);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PONG(long long clientTime)
+{
+	Protocol::SC_PONG_PACKET packet;
+	packet.set_client_time(clientTime);
+
+	return MakeSendBuffer(packet, Protocol::SC_PONG);
 }
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_DEAD(int objectId)

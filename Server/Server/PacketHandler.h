@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Protocol/Protocol.pb.h"
 class Session;
 
@@ -19,7 +19,7 @@ class Session;
 
 
 using PacketHandlerFunc = std::function<bool(shared_ptr<Session>, BYTE*, int)>;
-extern PacketHandlerFunc GPacketHandler[UINT16_MAX];
+extern PacketHandlerFunc GPacketHandler[UINT16_MAX + 1]; // id가 uint16_t 전체 범위이므로 +1
 
 class PacketHandler
 {
@@ -48,5 +48,6 @@ private:
     static void Handle_CS_ENTER_ROOM(shared_ptr<Session> session, Protocol::CS_ENTER_ROOM_PACKET& pkt);
     static void Handle_CS_MOVE(shared_ptr<Session> session, Protocol::CS_MOVE_PACKET& pkt);
     static void Handle_CS_ATTACK(shared_ptr<Session> session, Protocol::CS_ATTACK_PACKET& pkt);
+    static void Handle_CS_PING(shared_ptr<Session> session, Protocol::CS_PING_PACKET& pkt);
 };
 

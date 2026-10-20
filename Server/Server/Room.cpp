@@ -6,6 +6,7 @@
 #include "Monster.h"
 #include "CombatProcessor.h"
 #include "ServerData.h"
+#include "Metrics.h"
 
 Room::Room(shared_ptr<Timer> timer, HANDLE iocpHandle) : _timer(timer), _jobQueue(make_shared<JobQueue>(iocpHandle))
 {
@@ -27,17 +28,9 @@ void Room::InitRoom()
 	}
 	else
 	{
-		for (const auto& spawn : monsterSpawns) {
-			shared_ptr<Monster> monster = make_shared<Monster>((Protocol::PlayerType)spawn.MonsterTemplateId);
-			monster->SetId(MonsterIdGenerator());
-
-			Protocol::PositionInfo spawnPos;
-			spawnPos.set_x(spawn.Pos.X);
-			spawnPos.set_y(spawn.Pos.Y);
-			spawnPos.set_z(spawn.Pos.Z);
-			spawnPos.set_yaw(spawn.Pos.Yaw);
-			monster->SetPosition(spawnPos);
-			NpcEnterRoom(monster);
+		for (int i = 0; i < static_cast<int>(monsterSpawns.size()); ++i) {
+			for (int n = 0; n < max(1, monsterSpawns[i].MaxCount); ++n)
+				SpawnMonster(i);
 		}
 	}
 	
@@ -52,11 +45,19 @@ void Room::Update(long long elapsedTime)
 	ReserveJob(100, &Room::Update, currentTick);
 
 	float dt = (currentTick - elapsedTime) / 1000.f;
-	// if (dt <= 0.f || dt > 0.5f) dt = 0.1f;
+	// 예정 간격(100ms)보다 얼마나 늦게 틱이 돌았는지 기록한다. 첫 틱(InitRoom에서 직접 호출)은 제외한다.
+	if (elapsedTime != currentTick)
+		Metrics::TickLate.Add(max<long long>(0, (currentTick - elapsedTime - 100) * 1000));
 
+	// 서버가 멈췄다 재개되는 등 틱 간격이 비정상이면 한 번에 큰 이동이 일어나지 않게 기본 간격으로 대체한다.
+	if (dt <= 0.f || dt > 0.5f) dt = 0.1f;
+
+	const auto bodyStart = chrono::steady_clock::now();
 	for (const auto& object : _objects) {
 		object.second->Update(dt);
 	}
+	UpdateZones();
+	Metrics::TickBody.Add(chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - bodyStart).count());
 }
 
 bool Room::AddObject(shared_ptr<GameObject> object)
@@ -106,6 +107,7 @@ bool Room::RemoveObject(int objectId)
 void Room::PlayerEnterRoom(shared_ptr<Player> player)
 {
 	if (false == AddObject(player)) {
+		ReleaseSlot(); // EnterPlayer에서 예약한 자리를 반환한다.
 		return;
 	}
 
@@ -145,7 +147,8 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 		cout << "Error" << endl;
 	}
 
-	_players.erase(playerId);
+	if (_players.erase(playerId) > 0)
+		ReleaseSlot();
 
 }
 
@@ -183,6 +186,12 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 	}
 
 	// printf("Player[%d] - (%f, %f) Yaw: %f)\n", player->GetId(), position.x, position.y, position.yaw);
+}
+
+void Room::PlayerPing(shared_ptr<Player> player, long long clientTime)
+{
+	if (shared_ptr<Session> session = player->GetSession())
+		session->Send(PacketSerializer::MAKE_SC_PONG(clientTime));
 }
 
 void Room::Broadcast(shared_ptr<SendBuffer> sendBuffer)
@@ -227,32 +236,145 @@ void Room::PlayerChat(shared_ptr<Player> player, wstring msg)
 	// Broadcast(chatBuffer);
 }
 
-void Room::CharacterAttack(shared_ptr<Character> attacter, int skillId, int targetId)
+void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY)
 {
-	if (attacter == nullptr) return;
+	if (caster == nullptr) return;
+	if (GetGameObject(caster->GetId()) == nullptr) return;   // 이 방에 없는 시전자
 
-	if (attacter->Attack(skillId) == false) return;
+	const SkillData* skill = caster->FindCastableSkill(slot);
+	if (skill == nullptr) return;
 
-	if (attacter->IsHit()) return;
+	const Protocol::PositionInfo& pos = caster->GetPosition();
+	const bool casterIsPlayer = (caster->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER);
+	constexpr float RAD_TO_DEG = 180.0f / MathUtils::PI;
 
-	const SkillData* skill = DataManager::GetSkillData(skillId);
-	if (!skill) return;
+	float yaw = aimYaw;
+	float ax = aimX;
+	float ay = aimY;
 
-	BroadcastAOI(attacter, PacketSerializer::MAKE_SC_ATTACK(attacter->GetId(), skillId, targetId), true);
+	if (skill->targeting == SkillTargeting::Targeted)
+	{
+		// 클라이언트가 보낸 대상 id는 신뢰하지 않고, 존재/생존/적대 관계/사거리를 서버에서 다시 확인한다.
+		shared_ptr<GameObject> targetObj = GetGameObject(targetId);
+		if (targetObj == nullptr) return;
 
-	ReserveJob(skill->hitDelayMs, &Room::ExecuteSkillHit, attacter->GetId(), skillId, targetId);
+		const Protocol::ObjectType wantedType = casterIsPlayer ? Protocol::ObjectType::OBJECT_TYPE_MONSTER : Protocol::ObjectType::OBJECT_TYPE_PLAYER;
+		if (targetObj->GetType() != wantedType) return;
+		if (static_pointer_cast<Character>(targetObj)->GetStat().IsDead()) return;
+
+		const float dx = targetObj->GetPosition().x() - pos.x();
+		const float dy = targetObj->GetPosition().y() - pos.y();
+		const float dist = std::sqrt(dx * dx + dy * dy);
+		if (dist > skill->castRange * 1.1f) return;   // 이동 지연을 감안한 10% 여유
+
+		yaw = std::atan2(dy, dx) * RAD_TO_DEG;
+	}
+	else
+	{
+		if (!std::isfinite(yaw)) return;
+
+		if (skill->hitShape == HitShape::Zone)
+		{
+			if (!std::isfinite(ax) || !std::isfinite(ay)) return;
+
+			// 사거리를 넘는 지점은 사거리 끝으로 보정한다.
+			float dx = ax - pos.x();
+			float dy = ay - pos.y();
+			const float dist = std::sqrt(dx * dx + dy * dy);
+			if (dist > skill->castRange && dist > 0.f)
+			{
+				const float scale = skill->castRange / dist;
+				dx *= scale;
+				dy *= scale;
+				ax = pos.x() + dx;
+				ay = pos.y() + dy;
+			}
+			if (dist > 0.f) yaw = std::atan2(dy, dx) * RAD_TO_DEG;
+		}
+	}
+
+	// 여기부터 시전이 확정된다.
+	caster->GetMutablePosition()->set_yaw(yaw);
+	caster->BeginSkillCooldown(*skill);
+	if (casterIsPlayer)
+		Metrics::AttackAccepted.fetch_add(1);
+
+	BroadcastAOI(caster, PacketSerializer::MAKE_SC_ATTACK(caster->GetId(), skill->skillId, targetId, yaw, ax, ay), true);
+
+	ReserveJob(skill->hitDelayMs, &Room::ExecuteSkillHit, caster->GetId(), skill->skillId, targetId, yaw, ax, ay);
 }
 
-void Room::ExecuteSkillHit(int attackerId, int skillId, int targetId)
+void Room::ExecuteSkillHit(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY)
 {
 	auto attackerObj = GetGameObject(attackerId);
 	if (attackerObj == nullptr) return;
 
 	auto attackerChar = std::static_pointer_cast<Character>(attackerObj);
 
-	CombatProcessor::ProcessSkillHit(shared_from_this(), attackerChar, skillId);
+	CombatProcessor::ProcessSkillHit(shared_from_this(), attackerChar, skillId, targetId, aimYaw, aimX, aimY);
 }
 
+void Room::CreateZone(shared_ptr<Character> attacker, const SkillData& skill, float x, float y)
+{
+	SkillZone zone;
+	zone.attackerId = attacker->GetId();
+	zone.x = x;
+	zone.y = y;
+	zone.radius = skill.radius;
+	zone.damage = skill.baseDamage;
+	zone.tickMs = max(1, skill.tickMs);
+	zone.endTime = chrono::steady_clock::now() + chrono::milliseconds(skill.durationMs);
+	_zones.push_back(std::move(zone));
+	Metrics::ZonesCreated.fetch_add(1);
+}
+
+void Room::UpdateZones()
+{
+	if (_zones.empty()) return;
+
+	const auto now = chrono::steady_clock::now();
+
+	for (size_t i = 0; i < _zones.size();)
+	{
+		SkillZone& zone = _zones[i];
+
+		shared_ptr<GameObject> attackerObj = GetGameObject(zone.attackerId);
+		if (now >= zone.endTime || attackerObj == nullptr)
+		{
+			_zones[i] = std::move(_zones.back());
+			_zones.pop_back();
+			continue;
+		}
+
+		shared_ptr<Character> attacker = static_pointer_cast<Character>(attackerObj);
+		const float radiusSq = zone.radius * zone.radius;
+
+		// 시전자가 플레이어면 몬스터를, 몬스터면 플레이어를 맞힌다. 장판 안에 들어온 순간 바로 피해를 주고 이후 tickMs마다 반복한다.
+		auto hitTargets = [&](auto& container)
+		{
+			for (auto& [id, target] : container)
+			{
+				if (target->GetStat().IsDead()) continue;
+
+				const float dx = target->GetPosition().x() - zone.x;
+				const float dy = target->GetPosition().y() - zone.y;
+				if (dx * dx + dy * dy > radiusSq) continue;
+
+				auto& nextHit = zone.nextHit[id];
+				if (now < nextHit) continue;
+
+				nextHit = now + chrono::milliseconds(zone.tickMs);
+				Metrics::ZoneHits.fetch_add(1);
+				target->OnDamaged(zone.damage, attacker);
+			}
+		};
+
+		if (attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) hitTargets(_monsters);
+		else hitTargets(_players);
+
+		++i;
+	}
+}
 void Room::ApplyDelayedDamage(int targetId, int attackerId, int damage)
 {
 	auto targetObj = GetGameObject(targetId);
@@ -276,11 +398,73 @@ void Room::NpcEnterRoom(shared_ptr<Monster> monster)
 	}
 
 	_monsters.emplace(monster->GetId(), monster);
+	Metrics::Monsters.fetch_add(1);
 
 	ViewUpdate result = _gameMap.EnterMap(monster->GetId(), monster->GetPosition());
 	if (!result.entered.empty()) {
 		UpdateView(monster, result);
 	}
+}
+
+void Room::SpawnMonster(int spawnIndex)
+{
+	const auto& spawns = _gameMap.GetMonsterSpawns();
+	if (spawnIndex < 0 || spawnIndex >= static_cast<int>(spawns.size())) return;
+
+	const MonsterSpawnPoint& spawn = spawns[spawnIndex];
+
+	shared_ptr<Monster> monster = make_shared<Monster>((Protocol::PlayerType)spawn.MonsterTemplateId);
+	monster->SetId(MonsterIdGenerator());
+	monster->SetSpawnIndex(spawnIndex);
+
+	Protocol::PositionInfo spawnPos;
+	spawnPos.set_x(spawn.Pos.X);
+	spawnPos.set_y(spawn.Pos.Y);
+	spawnPos.set_z(spawn.Pos.Z);
+	spawnPos.set_yaw(spawn.Pos.Yaw);
+
+	// 마커 반경 안의 임의 위치. 내비메시 위로 보정할 수 없으면 마커 위치를 그대로 쓴다.
+	if (spawn.SpawnRadius > 0.f)
+	{
+		const float angle = (rand() / static_cast<float>(RAND_MAX)) * 2.f * MathUtils::PI;
+		const float dist = sqrtf(rand() / static_cast<float>(RAND_MAX)) * spawn.SpawnRadius;
+
+		Protocol::PositionInfo candidate = spawnPos;
+		candidate.set_x(spawn.Pos.X + cosf(angle) * dist);
+		candidate.set_y(spawn.Pos.Y + sinf(angle) * dist);
+
+		if (NavmeshManager* nav = GetNavManager()) {
+			if (nav->AdjustPositionToNavMesh(candidate))
+				spawnPos = candidate;
+		}
+	}
+
+	monster->SetPosition(spawnPos);
+	NpcEnterRoom(monster);
+}
+
+void Room::RemoveMonster(int monsterId)
+{
+	shared_ptr<Monster> monster = Id2Monster(monsterId);
+	if (monster == nullptr) return;
+
+	const int spawnIndex = monster->GetSpawnIndex();
+	const int templateId = (int)monster->GetInfo().player_type();
+
+	// 시야에 있던 플레이어들에게 SC_REMOVE_OBJECT가 전달된다.
+	ViewUpdate result = _gameMap.LeaveMap(monsterId);
+	if (!result.leaved.empty()) {
+		UpdateView(monster, result);
+	}
+
+	RemoveObject(monsterId);
+	_monsters.erase(monsterId);
+	Metrics::Monsters.fetch_sub(1);
+
+	// 사망 시점부터 RespawnSec가 지난 뒤 같은 마커에서 새로 만든다. (이미 deathRemoveDelay만큼 지났으므로 그만큼 뺀다)
+	const MonsterData* data = DataManager::GetMonsterData(templateId);
+	const int delayMs = data ? max(0, data->respawnMs - data->deathRemoveDelayMs) : 7000;
+	ReserveJob(delayMs, &Room::SpawnMonster, spawnIndex);
 }
 
 void Room::NPCMove(shared_ptr<Monster> monster)
@@ -427,8 +611,13 @@ shared_ptr<Room> RoomManager::CreateRoom()
 	int id = IdGenerator();
 
 	shared_ptr<Room> room = make_shared<Room>(GTimer, _iocpHandle);
-	_rooms.insert({ id, room });
+	// 맵·몬스터 로딩이 오래 걸리므로 매니저 락을 잡지 않고 먼저 초기화한 뒤 등록한다.
 	room->InitRoom();
+
+	{
+		RWLock::WriteGuard lock(_lock);
+		_rooms.insert({ id, room });
+	}
 
 	return room;
 }
@@ -444,17 +633,32 @@ void RoomManager::Remove(shared_ptr<Room> room)
 	return;
 }
 
-void RoomManager::EnterPlayer(shared_ptr<Player> player)
+bool RoomManager::TryEnterExisting(shared_ptr<Player> player)
 {
-	RWLock::WriteGuard lock(_lock);
+	RWLock::ReadGuard lock(_lock);
 	for (auto& [id, room] : _rooms) {
-		if (room->NumPlayers() < MAX_ROOM_CAPACITY) {
+		if (room->TryReserveSlot()) {
 			player->SetOwnerRoom(room);
 			room->PushJob(&Room::PlayerEnterRoom, player);
-			return;
+			return true;
 		}
 	}
+	return false;
+}
+
+void RoomManager::EnterPlayer(shared_ptr<Player> player)
+{
+	if (TryEnterExisting(player))
+		return;
+
+	// 방이 없으면 하나만 만든다. 락을 기다리는 동안 다른 스레드가 만든 방이 있으면 그 방을 쓴다.
+	lock_guard<mutex> createLock(_createMutex);
+	if (TryEnterExisting(player))
+		return;
+
 	shared_ptr<Room> newRoom = CreateRoom();
+	newRoom->TryReserveSlot();
+	player->SetOwnerRoom(newRoom);
 	newRoom->PushJob(&Room::PlayerEnterRoom, player);
 }
 

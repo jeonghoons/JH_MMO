@@ -76,3 +76,6 @@ struct PacketHeader
 	uint16_t id;
 };
 
+// 헤더를 포함한 패킷 하나의 최대 크기. 이보다 크거나 헤더보다 작으면 비정상 패킷으로 보고 연결을 끊는다.
+constexpr int MAX_PACKET_SIZE = 8192;
+
