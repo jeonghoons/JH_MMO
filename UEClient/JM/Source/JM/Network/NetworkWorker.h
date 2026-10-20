@@ -1,7 +1,6 @@
 #pragma once
 #include "CoreMinimal.h"
-
-
+#include <atomic>
 
 class FSocket;
 class NetworkSession;
@@ -15,18 +14,20 @@ public:
 
 	virtual bool Init() override;
 	virtual uint32 Run() override;
+	virtual void Stop() override { Running = false; }
 	virtual void Exit() override;
 
-	void Destroy() { Running = false; }
+	// 종료를 요청하고 스레드가 끝날 때까지 기다린다. 소켓을 해제하기 전에 호출해야 한다.
+	void Destroy();
 
 private:
 	bool ReceivePacket(TArray<uint8>& OutPacket);
 	bool ReceiveDesiredBytes(uint8* Results, int32 Size);
-
+	void NotifyConnectionLost();
 
 protected:
 	FRunnableThread* Thread = nullptr;
-	bool Running = true;
+	std::atomic<bool> Running{ true };
 	FSocket* Socket;
 	TWeakPtr<NetworkSession> Session;
 };
@@ -39,20 +40,21 @@ public:
 
 	virtual bool Init() override;
 	virtual uint32 Run() override;
+	virtual void Stop() override { Running = false; }
 	virtual void Exit() override;
 
 	bool SendPacket(TSharedPtr<SendBuffer> sendBuffer);
 
-	void Destroy() { Running = false; }
+	// 종료를 요청하고 스레드가 끝날 때까지 기다린다. 소켓을 해제하기 전에 호출해야 한다.
+	void Destroy();
 
 private:
-
 	bool SendDesiredBytes(uint8* buffer, int32 size);
-
+	void NotifyConnectionLost();
 
 protected:
 	FRunnableThread* Thread = nullptr;
-	bool Running = true;
+	std::atomic<bool> Running{ true };
 	FSocket* Socket;
 	TWeakPtr<NetworkSession> Session;
 };

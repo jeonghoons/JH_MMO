@@ -1,6 +1,9 @@
 #pragma once
 #include "CoreMinimal.h"
 
+// 서버와 같은 패킷 최대 크기(헤더 포함). 이 값을 넘는 패킷은 보내지도 받지도 않는다.
+constexpr int32 MaxPacketSize = 8192;
+
 struct FPacketHeader
 {
 	FPacketHeader() : PacketSize(0), PacketId(0) {}
@@ -36,17 +39,28 @@ public:
 	template<typename T>
 	static TSharedPtr<SendBuffer> MakeSendBuffer(const T& pkt, uint16 pktId)
 	{
-		const uint16 dataSize = static_cast<uint16>(pkt.ByteSizeLong());
-		const uint16 packetSize = dataSize + sizeof(FPacketHeader);
+		const size_t dataSize = pkt.ByteSizeLong();
+		const size_t packetSize = dataSize + sizeof(FPacketHeader);
 
-		TSharedPtr<SendBuffer> sendBuffer = MakeShared<SendBuffer>(packetSize);
+		// uint16으로 잘리거나 서버 한도를 넘는 패킷은 만들지 않는다. 호출하는 쪽은 nullptr을 확인해야 한다.
+		if (packetSize > static_cast<size_t>(MaxPacketSize))
+		{
+			UE_LOG(LogTemp, Error, TEXT("Packet too large : %d (PacketId : %d)"), static_cast<int32>(packetSize), pktId);
+			return nullptr;
+		}
+
+		TSharedPtr<SendBuffer> sendBuffer = MakeShared<SendBuffer>(static_cast<int32>(packetSize));
 
 		FPacketHeader* header = reinterpret_cast<FPacketHeader*>(sendBuffer->Buffer());
-		header->PacketSize = packetSize;
+		header->PacketSize = static_cast<uint16>(packetSize);
 		header->PacketId = pktId;
 
-		pkt.SerializeToArray(sendBuffer->Buffer() + sizeof(FPacketHeader), dataSize);
-		sendBuffer->Commit(packetSize);
+		if (pkt.SerializeToArray(sendBuffer->Buffer() + sizeof(FPacketHeader), static_cast<int>(dataSize)) == false)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Packet serialize failed (PacketId : %d)"), pktId);
+			return nullptr;
+		}
+		sendBuffer->Commit(static_cast<uint32>(packetSize));
 
 		return sendBuffer;
 	}

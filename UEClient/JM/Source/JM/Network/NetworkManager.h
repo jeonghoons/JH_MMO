@@ -16,6 +16,8 @@ class JM_API UNetworkManager : public UGameInstanceSubsystem, public FTickableGa
 {
 	GENERATED_BODY()
 public:
+	virtual void Deinitialize() override;
+
 	virtual void Tick(float DeltaTime) override;
 	virtual bool IsTickable() const override { return true; }
 	virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UNetworkManager, STATGROUP_Tickables); }

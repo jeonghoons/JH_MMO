@@ -46,19 +46,29 @@ void FPacketHandler::Init()
 
 void FPacketHandler::ProcessPacket(const TSharedPtr<NetworkSession>& session, BYTE* buffer, int len)
 {
-	if (len < sizeof(FPacketHeader)) return;
+	if (len < static_cast<int>(sizeof(FPacketHeader))) return;
 
     FPacketHeader* header = reinterpret_cast<FPacketHeader*>(buffer);
 	// 헤더에 적힌 크기가 실제로 받은 길이와 다르거나 헤더보다 작으면 버린다.
-	if (header->PacketSize < sizeof(FPacketHeader) || header->PacketSize != len) return;
+	if (header->PacketSize < sizeof(FPacketHeader) || header->PacketSize != len)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ProcessPacket: size mismatch (PacketId : %d, header : %d, recv : %d)"), header->PacketId, header->PacketSize, len);
+		return;
+	}
 
     BYTE* payloadBuffer = buffer + sizeof(FPacketHeader);
     int32_t payloadLen = header->PacketSize - sizeof(FPacketHeader);
 
     auto& func = GPacketHandler[header->PacketId];
-    if (func)
+    if (!func)
     {
-        func(session, payloadBuffer, payloadLen);
+        UE_LOG(LogTemp, Warning, TEXT("ProcessPacket: no handler for PacketId %d"), header->PacketId);
+        return;
+    }
+
+    if (func(session, payloadBuffer, payloadLen) == false)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("ProcessPacket: handler failed to parse PacketId %d"), header->PacketId);
     }
 }
 

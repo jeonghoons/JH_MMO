@@ -1,5 +1,6 @@
 #pragma once
 #include "CoreMinimal.h"
+#include <atomic>
 
 class FSocket;
 class SendBuffer;
@@ -16,6 +17,9 @@ public:
 	void SendPacket(TSharedPtr<SendBuffer> sendBuffer);
 	void Disconnect();
 
+	// 워커 스레드가 연결 끊김을 감지하면 호출한다. 정리는 게임 스레드(UNetworkManager::Tick)가 한다.
+	void MarkConnectionLost() { bConnectionLost = true; }
+	bool IsConnectionLost() const { return bConnectionLost; }
 
 public:
 	FSocket* Socket;
@@ -27,4 +31,7 @@ public:
 	TQueue<TSharedPtr<SendBuffer>> SendPacketQueue;
 
 	TWeakObjectPtr<UNetworkManager> OwnerNetwork;
+
+private:
+	std::atomic<bool> bConnectionLost{ false };
 };
