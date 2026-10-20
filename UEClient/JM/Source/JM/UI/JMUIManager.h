@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
@@ -10,7 +10,7 @@ struct FWidgetInfo
 {
     GENERATED_BODY()
 
-    // ½ÇÁ¦ È­¸é¿¡ »ı¼ºµÈ À§Á¬ °´Ã¼
+    // ì‹¤ì œ í™”ë©´ì— ìƒì„±ëœ ìœ„ì ¯ ê°ì²´
     UPROPERTY()
     UUserWidget* WidgetInstance;
 
@@ -28,26 +28,26 @@ class JM_API UJMUIManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 public:
-    // 1. À§Á¬À» ¸Å´ÏÀú¿¡ µî·ÏÇÏ°í »ı¼ºÇÏ´Â ÇÔ¼ö
+    // 1. ìœ„ì ¯ì„ ë§¤ë‹ˆì €ì— ë“±ë¡í•˜ê³  ìƒì„±í•˜ëŠ” í•¨ìˆ˜
     void RegisterWidget(AJMPlayerController* PC, FName WidgetName, TSubclassOf<UUserWidget> WidgetClass, bool bIsWindow);
 
-    // 2. À§Á¬À» ²°´Ù Ä×´Ù ÇÏ´Â ÇÔ¼ö
+    // 2. ìœ„ì ¯ì„ ê»ë‹¤ ì¼°ë‹¤ í•˜ëŠ” í•¨ìˆ˜
     void ToggleWidget(FName WidgetName);
 
     UUserWidget* GetWidget(FName WidgetName);
 
-    // ¸¶¿ì½º Ä¿¼­ µî ÀÔ·ÂÀ» Á¦¾îÇÏ´Â ³»ºÎ ÇÔ¼ö
+    // ë§ˆìš°ìŠ¤ ì»¤ì„œ ë“± ì…ë ¥ì„ ì œì–´í•˜ëŠ” ë‚´ë¶€ í•¨ìˆ˜
     void UpdateInputMode();
 
 private:
-    // ¸ğµç À§Á¬À» ÀÌ¸§À¸·Î º¸°üÇÏ´Â »çÀü(Dictionary)
+    // ëª¨ë“  ìœ„ì ¯ì„ ì´ë¦„ìœ¼ë¡œ ë³´ê´€í•˜ëŠ” ì‚¬ì „(Dictionary)
     UPROPERTY()
     TMap<FName, FWidgetInfo> ManagedWidgets;
 
-    // ÇöÀç È­¸é¿¡ ÄÑÁ® ÀÖ´Â 'Ã¢(Window)'µéÀÇ ÀÌ¸§À» ´ã¾ÆµÎ´Â ½ºÅÃ
+    // í˜„ì¬ í™”ë©´ì— ì¼œì ¸ ìˆëŠ” 'ì°½(Window)'ë“¤ì˜ ì´ë¦„ì„ ë‹´ì•„ë‘ëŠ” ìŠ¤íƒ
     TArray<FName> OpenedWindows;
 
-    // ÀÔ·ÂÀ» Á¦¾îÇÏ±â À§ÇØ ÇÃ·¹ÀÌ¾î ÄÁÆ®·Ñ·¯¸¦ ±â¾ïÇØ µÓ´Ï´Ù.
+    // ì…ë ¥ì„ ì œì–´í•˜ê¸° ìœ„í•´ í”Œë ˆì´ì–´ ì»¨íŠ¸ë¡¤ëŸ¬ë¥¼ ê¸°ì–µí•´ ë‘¡ë‹ˆë‹¤.
     UPROPERTY()
     AJMPlayerController* Controller;
 

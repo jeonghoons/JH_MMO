@@ -2,7 +2,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Protocol/Protocol.pb.h"
-#include "Game/CharacterAssetData.h"
+#include "Data/CharacterAssetData.h"
 #include "JMCharacterBase.generated.h"
 
 UCLASS()

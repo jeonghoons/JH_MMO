@@ -1,10 +1,10 @@
-﻿#include "Player/NpcCharaceter.h"
+﻿#include "Character/NpcCharacter.h"
 #include "Components/WidgetComponent.h"
 #include "UI/HpBarWidget.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-ANpcCharaceter::ANpcCharaceter()
+ANpcCharacter::ANpcCharacter()
 {
     HpBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HpBarComponent"));
 
@@ -14,7 +14,7 @@ ANpcCharaceter::ANpcCharaceter()
     HpBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
 }
 
-void ANpcCharaceter::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
+void ANpcCharacter::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
 {
 	Super::SetPlayerData(ObjInfo);
 
@@ -24,7 +24,7 @@ void ANpcCharaceter::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
     }
 }
 
-void ANpcCharaceter::OnDamaged(int damage, int remainHp)
+void ANpcCharacter::OnDamaged(int damage, int remainHp)
 {
 	Super::OnDamaged(damage, remainHp);
 
@@ -34,7 +34,7 @@ void ANpcCharaceter::OnDamaged(int damage, int remainHp)
     }
 }
 
-void ANpcCharaceter::OnDead()
+void ANpcCharacter::OnDead()
 {
 	Super::OnDead();
 

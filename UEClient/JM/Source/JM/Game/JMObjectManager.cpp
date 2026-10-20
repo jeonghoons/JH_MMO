@@ -3,7 +3,7 @@
 #include "Network/NetworkManager.h"
 #include "Player/JMMyPlayer.h"
 #include "Player/JMPlayer.h"
-#include "Player/NpcCharaceter.h"
+#include "Character/NpcCharacter.h"
 #include "Engine/World.h"
 #include "Player/JMPlayerController.h"
 #include "Kismet/GameplayStatics.h"
@@ -52,7 +52,7 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	{
 		if (GameInst->NpcCharacterClass)
 		{
-			SpawnedActor = World->SpawnActor<ANpcCharaceter>(GameInst->NpcCharacterClass, SpawnLoc, SpawnRot);
+			SpawnedActor = World->SpawnActor<ANpcCharacter>(GameInst->NpcCharacterClass, SpawnLoc, SpawnRot);
 		}
 	}
 	else

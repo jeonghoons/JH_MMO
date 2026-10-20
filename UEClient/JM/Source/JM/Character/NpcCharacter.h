@@ -2,14 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "Character/JMCharacterBase.h"
-#include "NpcCharaceter.generated.h"
+#include "NpcCharacter.generated.h"
 
 UCLASS()
-class JM_API ANpcCharaceter : public AJMCharacterBase
+class JM_API ANpcCharacter : public AJMCharacterBase
 {
 	GENERATED_BODY()
 public:
-	ANpcCharaceter();
+	ANpcCharacter();
 
 	virtual void SetPlayerData(const Protocol::ObjectInfo& ObjInfo) override;
 

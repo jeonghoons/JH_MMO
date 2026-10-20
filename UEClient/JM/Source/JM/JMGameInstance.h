@@ -27,5 +27,5 @@ public:
 	TSubclassOf<class AJMPlayer> PlayerClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|Classes")
-	TSubclassOf<class ANpcCharaceter> NpcCharacterClass;
+	TSubclassOf<class ANpcCharacter> NpcCharacterClass;
 };

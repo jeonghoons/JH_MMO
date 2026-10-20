@@ -1,6 +1,6 @@
-#include "Player/JMPlayer.h"
+ï»¿#include "Player/JMPlayer.h"
 #include "JMGameInstance.h"
-#include "Game/CharacterAssetData.h"
+#include "Data/CharacterAssetData.h"
 
 AJMPlayer::AJMPlayer()
 {
@@ -9,17 +9,29 @@ AJMPlayer::AJMPlayer()
 void AJMPlayer::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
 {
 	UJMGameInstance* GameInst = Cast<UJMGameInstance>(GetGameInstance());
-	if (GameInst == nullptr || GameInst->CharacterAssetTable == nullptr) return;
 
-
+	// ì„œë²„ ì •ë³´ëŠ” ì—ì…‹ í…Œì´ë¸”ê³¼ ë¬´ê´€í•˜ê²Œ í•­ìƒ ë°˜ì˜í•œë‹¤.
 	Super::SetPlayerData(ObjInfo);
+
+	if (GameInst == nullptr || GameInst->CharacterAssetTable == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SetPlayerData: CharacterAssetTable is not set"));
+		return;
+	}
 
 	Protocol::PlayerType TypeEnum = ObjInfo.player_type();
 	FName RowName = GetCharacterRowName(TypeEnum);
 	FString ContextString;
 	FCharacterAssetData* AssetData = GameInst->CharacterAssetTable->FindRow<FCharacterAssetData>(RowName, ContextString);
-	if (AssetData == nullptr) return;
-	
+	if (AssetData == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SetPlayerData: no asset row for %s"), *RowName.ToString());
+		return;
+	}
+
+	// ì´ì „ ë¡œë“œ ìš”ì²­ì´ ë‚¨ì•„ ìˆìœ¼ë©´ ì·¨ì†Œí•œë‹¤.
+	AssetLoadHandle.Reset();
+
 	TArray<FSoftObjectPath> AssetsToLoad;
 	if (AssetData->CharacterMesh.IsPending())
 	{
@@ -33,7 +45,7 @@ void AJMPlayer::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
 	{
 		AssetsToLoad.AddUnique(AssetData->AttackMontage.ToSoftObjectPath());
 	}
-	if (AssetData->DeadMontage.IsPending())
+	if (AssetData->HitMontage.IsPending())
 	{
 		AssetsToLoad.AddUnique(AssetData->HitMontage.ToSoftObjectPath());
 	}
@@ -93,9 +105,8 @@ FName AJMPlayer::GetCharacterRowName(Protocol::PlayerType Type)
 	using namespace Protocol;
 	switch (Type)
 	{
-    case PLAYER_TYPE_WARRIOR: // ÇÁ·ÎÅä¹öÆÛ¿¡¼­ »ı¼ºµÈ ¿­°ÅÇü ÀÌ¸§¿¡ ¸Â°Ô ¼öÁ¤ (¿¹: Protocol::PLAYER_TYPE_WARRIOR)
+    case PLAYER_TYPE_WARRIOR:
         return FName(TEXT("Greystone"));
-        break;
     case PLAYER_TYPE_ARCHER:
         return FName(TEXT("Sparrow"));
         break;

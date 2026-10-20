@@ -1,4 +1,4 @@
-#include "Player/JMPlayerController.h"
+ï»¿#include "Player/JMPlayerController.h"
 #include "Protocol/Protocol.pb.h"
 #include "Network/SendBuffer.h"
 #include "Network/NetworkManager.h"
@@ -33,11 +33,11 @@ void AJMPlayerController::BeginPlay()
 	UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
 	if (UIManager)
 	{
-		// ºí·çÇÁ¸°Æ®¿¡¼­ ÇÒ´çÇØ µĞ Å¬·¡½ºµéÀ» ÀÌ¸§Ç¥¿Í ÇÔ²² ´øÁ®Áİ´Ï´Ù.
+		// ë¸”ë£¨í”„ë¦°íŠ¸ì—ì„œ í• ë‹¹í•´ ë‘” í´ë˜ìŠ¤ë“¤ì„ ì´ë¦„í‘œì™€ í•¨ê»˜ ë˜ì ¸ì¤ë‹ˆë‹¤.
 		UIManager->RegisterWidget(this, FName("Chatting"), ChatWidgetClass, false);
 		UIManager->RegisterWidget(this, FName("Inventory"), InventoryWidgetClass, true);
 		UIManager->RegisterWidget(this, FName("MainInfo"), InfoWidgetClass, false);
-		// ½ÃÀÛÇÏÀÚ¸¶ÀÚ ¶ç¿öµÑ UI´Â ÇÑ ¹ø ÄÑÁİ´Ï´Ù.
+		// ì‹œì‘í•˜ìë§ˆì ë„ì›Œë‘˜ UIëŠ” í•œ ë²ˆ ì¼œì¤ë‹ˆë‹¤.
 		UIManager->ToggleWidget(FName("MainInfo"));
 		UIManager->ToggleWidget(FName("Chatting"));
 	}
@@ -57,10 +57,10 @@ void AJMPlayerController::OnChatKeyPressed()
 	UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
 	if (UIManager)
 	{
-		// ¸Å´ÏÀú¿¡¼­ Ã¤ÆÃ À§Á¬À» ²¨³»¿Â µÚ, ¿ì¸®°¡ ¸¸µç UCChatWidgetÀ¸·Î Çüº¯È¯(Cast)ÇÕ´Ï´Ù.
+		// ë§¤ë‹ˆì €ì—ì„œ ì±„íŒ… ìœ„ì ¯ì„ êº¼ë‚´ì˜¨ ë’¤, ìš°ë¦¬ê°€ ë§Œë“  UCChatWidgetìœ¼ë¡œ í˜•ë³€í™˜(Cast)í•©ë‹ˆë‹¤.
 		if (UChatWidget* ChatWidget = Cast<UChatWidget>(UIManager->GetWidget(FName("Chatting"))))
 		{
-			// Æ÷Ä¿½º¸¦ ÁÖ´Â ÇÔ¼ö¸¦ ½ÇÇàÇÕ´Ï´Ù.
+			// í¬ì»¤ìŠ¤ë¥¼ ì£¼ëŠ” í•¨ìˆ˜ë¥¼ ì‹¤í–‰í•©ë‹ˆë‹¤.
 			ChatWidget->FocusChatInput(this);
 		}
 	}

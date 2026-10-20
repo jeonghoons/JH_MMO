@@ -1,11 +1,11 @@
-#include "HpBarWidget.h"
+ï»¿#include "HpBarWidget.h"
 #include "Components/ProgressBar.h"
 
 void UHpBarWidget::UpdateHp(float CurrentHp, float MaxHp)
 {
     if (HpProgressBar && MaxHp > 0.f)
     {
-        // ProgressBarÀÇ Percent´Â 0.0 ~ 1.0 »çÀÌÀÇ °ªÀÔ´Ï´Ù.
+        // ProgressBarì˜ PercentëŠ” 0.0 ~ 1.0 ì‚¬ì´ì˜ ê°’ìž…ë‹ˆë‹¤.
         HpProgressBar->SetPercent(CurrentHp / MaxHp);
     }
 }

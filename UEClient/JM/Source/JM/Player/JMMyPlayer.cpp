@@ -15,7 +15,7 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "Data/SkillTableRow.h"
-#include "Player/NpcCharaceter.h"
+#include "Character/NpcCharacter.h"
 
 AJMMyPlayer::AJMMyPlayer()
 {
@@ -241,11 +241,11 @@ bool AJMMyPlayer::ComputeAim(const FSkillTableRow& Skill, FAimResult& Out) const
 		TArray<FHitResult> Hits;
 		GetWorld()->SweepMultiByChannel(Hits, Start, End, FQuat::Identity, ECC_Pawn, FCollisionShape::MakeSphere(AimAssistRadius), Params);
 
-		const ANpcCharaceter* Best = nullptr;
+		const ANpcCharacter* Best = nullptr;
 		float BestDistSq = TNumericLimits<float>::Max();
 		for (const FHitResult& Hit : Hits)
 		{
-			const ANpcCharaceter* Npc = Cast<ANpcCharaceter>(Hit.GetActor());
+			const ANpcCharacter* Npc = Cast<ANpcCharacter>(Hit.GetActor());
 			if (Npc == nullptr || Npc->IsDeadActor()) continue;
 
 			const float DistSq = FVector::DistSquaredXY(Self, Npc->GetActorLocation());

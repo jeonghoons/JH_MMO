@@ -1,4 +1,4 @@
-#include "ChatWidget.h"
+ï»¿#include "ChatWidget.h"
 #include "Components/EditableText.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
@@ -10,10 +10,10 @@ void UChatWidget::FocusChatInput(APlayerController* PC)
 {
 	if (ChatInput && PC)
 	{
-		// 1. Å°º¸µå ÀÔ·ÂÀ» ÀÌ ÅØ½ºÆ® ¹Ú½º·Î °¡Á®¿É´Ï´Ù.
+		// 1. í‚¤ë³´ë“œ ì…ë ¥ì„ ì´ í…ìŠ¤íŠ¸ ë°•ìŠ¤ë¡œ ê°€ì ¸ì˜µë‹ˆë‹¤.
 		ChatInput->SetKeyboardFocus();
 
-		// 2. ÀÔ·Â ¸ğµå¸¦ UI Àü¿ë(¶Ç´Â GameAndUI)À¸·Î ¹Ù²ã¼­ WASD·Î Ä³¸¯ÅÍ°¡ ¿òÁ÷ÀÌÁö ¾Ê°Ô ÇÕ´Ï´Ù.
+		// 2. ì…ë ¥ ëª¨ë“œë¥¼ UI ì „ìš©(ë˜ëŠ” GameAndUI)ìœ¼ë¡œ ë°”ê¿”ì„œ WASDë¡œ ìºë¦­í„°ê°€ ì›€ì§ì´ì§€ ì•Šê²Œ í•©ë‹ˆë‹¤.
 		FInputModeUIOnly InputMode;
 		InputMode.SetWidgetToFocus(ChatInput->TakeWidget());
 		PC->SetInputMode(InputMode);
@@ -32,25 +32,25 @@ void UChatWidget::AddChatMessage(int32 SenderId, const FString& Message)
 	{
 		NewChatBlock->SetText(FText::FromString(FormattedString));
 
-		// 1. ÆùÆ® Á¤º¸ °¡Á®¿À±â
+		// 1. í°íŠ¸ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
 		FSlateFontInfo FontInfo = NewChatBlock->GetFont();
 
-		// 2. ±Û¾¾ Å©±â Å°¿ì±â (±âÁ¸ 14 -> 18 ¶Ç´Â 20À¸·Î Á¶Àı)
+		// 2. ê¸€ì”¨ í¬ê¸° í‚¤ìš°ê¸° (ê¸°ì¡´ 14 -> 18 ë˜ëŠ” 20ìœ¼ë¡œ ì¡°ì ˆ)
 		FontInfo.Size = 18;
 
-		// 3. ±Û¾¾ À±°û¼±(Outline) ¼³Á¤
-		FontInfo.OutlineSettings.OutlineSize = 1; // À±°û¼± µÎ²² (1~2 ÃßÃµ)
-		FontInfo.OutlineSettings.OutlineColor = FLinearColor::Black; // À±°û¼± »ö»ó
+		// 3. ê¸€ì”¨ ìœ¤ê³½ì„ (Outline) ì„¤ì •
+		FontInfo.OutlineSettings.OutlineSize = 1; // ìœ¤ê³½ì„  ë‘ê»˜ (1~2 ì¶”ì²œ)
+		FontInfo.OutlineSettings.OutlineColor = FLinearColor::Black; // ìœ¤ê³½ì„  ìƒ‰ìƒ
 
-		// 4. º¯°æµÈ ÆùÆ® Á¤º¸ ¹× ±Û¾¾ »ö»ó Àû¿ë
+		// 4. ë³€ê²½ëœ í°íŠ¸ ì •ë³´ ë° ê¸€ì”¨ ìƒ‰ìƒ ì ìš©
 		NewChatBlock->SetFont(FontInfo);
-		NewChatBlock->SetColorAndOpacity(FSlateColor(FLinearColor::White)); // ±Û¾¾ ¼Ó »ö»ó
+		NewChatBlock->SetColorAndOpacity(FSlateColor(FLinearColor::White)); // ê¸€ì”¨ ì† ìƒ‰ìƒ
 
-		// (¼±ÅÃ »çÇ×) °¡µ¶¼ºÀ» ±Ø´ëÈ­ÇÏ±â À§ÇØ ±Û¾¾ µÚ¿¡ ¿¶Àº ±×¸²ÀÚ Ãß°¡
+		// (ì„ íƒ ì‚¬í•­) ê°€ë…ì„±ì„ ê·¹ëŒ€í™”í•˜ê¸° ìœ„í•´ ê¸€ì”¨ ë’¤ì— ì˜…ì€ ê·¸ë¦¼ì ì¶”ê°€
 		NewChatBlock->SetShadowOffset(FVector2D(1.0f, 1.0f));
-		NewChatBlock->SetShadowColorAndOpacity(FLinearColor(0.0f, 0.0f, 0.0f, 0.8f)); // ¹İÅõ¸í °ËÀº»ö ±×¸²ÀÚ
+		NewChatBlock->SetShadowColorAndOpacity(FLinearColor(0.0f, 0.0f, 0.0f, 0.8f)); // ë°˜íˆ¬ëª… ê²€ì€ìƒ‰ ê·¸ë¦¼ì
 
-		// ½ºÅ©·Ñ ¹Ú½º¿¡ Ãß°¡ ¹× ¸Ç ¾Æ·¡·Î ½ºÅ©·Ñ
+		// ìŠ¤í¬ë¡¤ ë°•ìŠ¤ì— ì¶”ê°€ ë° ë§¨ ì•„ë˜ë¡œ ìŠ¤í¬ë¡¤
 		ChatHistoryBox->AddChild(NewChatBlock);
 		ChatHistoryBox->ScrollToEnd();
 	}
@@ -62,14 +62,14 @@ void UChatWidget::NativeConstruct()
 
 	if (ChatInput)
 	{
-		// ÅØ½ºÆ® ¹Ú½º¿¡¼­ ¿£ÅÍ¸¦ Ä¡°Å³ª Æ÷Ä¿½º¸¦ ÀÒ¾úÀ» ¶§ OnChatTextCommitted ÇÔ¼ö°¡ ½ÇÇàµÇµµ·Ï ¿¬°á
+		// í…ìŠ¤íŠ¸ ë°•ìŠ¤ì—ì„œ ì—”í„°ë¥¼ ì¹˜ê±°ë‚˜ í¬ì»¤ìŠ¤ë¥¼ ìƒì—ˆì„ ë•Œ OnChatTextCommitted í•¨ìˆ˜ê°€ ì‹¤í–‰ë˜ë„ë¡ ì—°ê²°
 		ChatInput->OnTextCommitted.AddDynamic(this, &UChatWidget::OnChatTextCommitted);
 	}
 }
 
 void UChatWidget::OnChatTextCommitted(const FText& Text, ETextCommit::Type CommitMethod)
 {
-	// 1. ¿£ÅÍÅ°¸¦ ÃÆÀ» ¶§¸¸ Àü¼Û ·ÎÁ÷ ¼öÇà
+	// 1. ì—”í„°í‚¤ë¥¼ ì³¤ì„ ë•Œë§Œ ì „ì†¡ ë¡œì§ ìˆ˜í–‰
 	if (CommitMethod == ETextCommit::OnEnter)
 	{
 		FString ChatString = Text.ToString();
@@ -85,7 +85,7 @@ void UChatWidget::OnChatTextCommitted(const FText& Text, ETextCommit::Type Commi
 			//FCString::Strncpy(chatPacket.message, *ChatString, MAX_CHAT_LEN);
 
 			//TSharedPtr<SendBuffer> sendBuffer = MakeShared<SendBuffer>(packetSize);
-			//sendBuffer->CopyData(&chatPacket, packetSize); // <-- packetSize·Î ¼öÁ¤!
+			//sendBuffer->CopyData(&chatPacket, packetSize); // <-- packetSizeë¡œ ìˆ˜ì •!
 
 			//UMyGameInstance* GameInst = Cast<UMyGameInstance>(GetGameInstance());
 			//if (GameInst && GameInst->GetSubsystem<UNetworkManager>())
@@ -97,7 +97,7 @@ void UChatWidget::OnChatTextCommitted(const FText& Text, ETextCommit::Type Commi
 		}
 	}
 
-	// 2. ÀÔ·ÂÀÌ ¾î¶² ½ÄÀ¸·Îµç Á¾·áµÇ¾ú´Ù¸é °ÔÀÓ ¸ğµå·Î ¿Ïº®È÷ º¹±Í (if¹® ¹ÛÀ¸·Î ºĞ¸®)
+	// 2. ì…ë ¥ì´ ì–´ë–¤ ì‹ìœ¼ë¡œë“  ì¢…ë£Œë˜ì—ˆë‹¤ë©´ ê²Œì„ ëª¨ë“œë¡œ ì™„ë²½íˆ ë³µê·€ (ifë¬¸ ë°–ìœ¼ë¡œ ë¶„ë¦¬)
 	if (CommitMethod == ETextCommit::OnEnter ||
 		CommitMethod == ETextCommit::OnUserMovedFocus ||
 		CommitMethod == ETextCommit::OnCleared)

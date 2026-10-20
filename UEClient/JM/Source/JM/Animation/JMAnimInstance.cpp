@@ -1,4 +1,4 @@
-#include "Animation/JMAnimInstance.h"
+ï»¿#include "Animation/JMAnimInstance.h"
 #include "Character/JMCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -32,21 +32,21 @@ void UJMAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 	}
 	else
 	{
-		// ¹°¸® ¿£ÁøÀÇ ¹æÇØ(°¡¼Óµµ 0)¸¦ ¹«½ÃÇÏ°í ¼­¹ö°¡ ÁØ ¼Óµµ¸¸ ½Å·ÚÇÕ´Ï´Ù.
+		// ë¬¼ë¦¬ ì—”ì§„ì˜ ë°©í•´(ê°€ì†ë„ 0)ë¥¼ ë¬´ì‹œí•˜ê³  ì„œë²„ê°€ ì¤€ ì†ë„ë§Œ ì‹ ë¢°í•©ë‹ˆë‹¤.
 		GroundSpeed = DestVelocity.Size2D();
 
-		// ¼Óµµ°¡ 3 ÀÌ»óÀÌ¸é °¡¼Óµµ Á¶°Ç ¾øÀÌ ¹«Á¶°Ç ´Ù¸®¸¦ ¿òÁ÷ÀÔ´Ï´Ù.
+		// ì†ë„ê°€ 3 ì´ìƒì´ë©´ ê°€ì†ë„ ì¡°ê±´ ì—†ì´ ë¬´ì¡°ê±´ ë‹¤ë¦¬ë¥¼ ì›€ì§ì…ë‹ˆë‹¤.
 		ShouldMove = (GroundSpeed > 3.0f);
 	}
 
 	if (GroundSpeed > 3.0f)
 	{
-		// ³» Ä³¸¯ÅÍµç Å¸ À¯Àú(NetworkVelocity)µç ÇöÀç Àû¿ëµÈ Velocity_Cached¸¦ »ç¿ëÇÕ´Ï´Ù.
+		// ë‚´ ìºë¦­í„°ë“  íƒ€ ìœ ì €(NetworkVelocity)ë“  í˜„ì¬ ì ìš©ëœ Velocity_Cachedë¥¼ ì‚¬ìš©í•©ë‹ˆë‹¤.
 		FVector CurrentVel = IsMyPlayer ? Velocity : DestVelocity;
 
-		FRotator VelocityRot = CurrentVel.ToOrientationRotator(); // ÀÌµ¿ º¤ÅÍ¸¦ È¸Àü°ªÀ¸·Î º¯È¯
-		FRotator DeltaRot = VelocityRot - Rotation;   // ÀÌµ¿ ¹æÇâ - ¹Ù¶óº¸´Â ¹æÇâ
-		DeltaRot.Normalize(); // -180 ~ 180À¸·Î Á¤±ÔÈ­
+		FRotator VelocityRot = CurrentVel.ToOrientationRotator(); // ì´ë™ ë²¡í„°ë¥¼ íšŒì „ê°’ìœ¼ë¡œ ë³€í™˜
+		FRotator DeltaRot = VelocityRot - Rotation;   // ì´ë™ ë°©í–¥ - ë°”ë¼ë³´ëŠ” ë°©í–¥
+		DeltaRot.Normalize(); // -180 ~ 180ìœ¼ë¡œ ì •ê·œí™”
 
 		Direction = DeltaRot.Yaw;
 	}

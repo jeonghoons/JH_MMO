@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 #include "JMUIManager.h"
 #include "Player/JMPlayerController.h"
 #include "Player/GameplayInputMode.h"
@@ -9,39 +9,39 @@ void UJMUIManager::RegisterWidget(AJMPlayerController* PC, FName WidgetName, TSu
 
     Controller = PC;
 
-    // À§Á¬À» »ı¼ºÇØ¼­ º¯¼ö¿¡ ´ã¾ÆµÓ´Ï´Ù.
+    // ìœ„ì ¯ì„ ìƒì„±í•´ì„œ ë³€ìˆ˜ì— ë‹´ì•„ë‘¡ë‹ˆë‹¤.
     UUserWidget* NewWidget = CreateWidget<UUserWidget>(PC, WidgetClass);
     if (NewWidget)
     {
-        // È­¸é¿¡ ºÙÀÌµÇ, Ã³À½¿¡´Â ¹«Á¶°Ç ¼û°ÜµÓ´Ï´Ù. (¿øÇÒ ¶§ ÄÑ±â À§ÇØ)
+        // í™”ë©´ì— ë¶™ì´ë˜, ì²˜ìŒì—ëŠ” ë¬´ì¡°ê±´ ìˆ¨ê²¨ë‘¡ë‹ˆë‹¤. (ì›í•  ë•Œ ì¼œê¸° ìœ„í•´)
         NewWidget->AddToViewport();
         NewWidget->SetVisibility(ESlateVisibility::Collapsed);
 
-        // Map¿¡ ÀúÀåÇÕ´Ï´Ù.
+        // Mapì— ì €ì¥í•©ë‹ˆë‹¤.
         ManagedWidgets.Add(WidgetName, FWidgetInfo(NewWidget, bIsWindow));
     }
 }
 
 void UJMUIManager::ToggleWidget(FName WidgetName)
 {
-    // ÀÌ¸§À¸·Î À§Á¬À» Ã£½À´Ï´Ù.
+    // ì´ë¦„ìœ¼ë¡œ ìœ„ì ¯ì„ ì°¾ìŠµë‹ˆë‹¤.
     if (!ManagedWidgets.Contains(WidgetName)) return;
 
     FWidgetInfo& Info = ManagedWidgets[WidgetName];
     if (!Info.WidgetInstance) return;
 
-    // ÇöÀç À§Á¬ÀÌ ¼û°ÜÁ® ÀÖ´Ù¸é -> ÄÕ´Ï´Ù.
+    // í˜„ì¬ ìœ„ì ¯ì´ ìˆ¨ê²¨ì ¸ ìˆë‹¤ë©´ -> ì¼­ë‹ˆë‹¤.
     if (Info.WidgetInstance->GetVisibility() == ESlateVisibility::Collapsed)
     {
         Info.WidgetInstance->SetVisibility(ESlateVisibility::Visible);
 
-        // Ã¢(Window) Á¾·ù¶ó¸é ¿­·ÁÀÖ´Â ¸ñ·Ï¿¡ ÀÌ¸§À» Ãß°¡ÇÕ´Ï´Ù.
+        // ì°½(Window) ì¢…ë¥˜ë¼ë©´ ì—´ë ¤ìˆëŠ” ëª©ë¡ì— ì´ë¦„ì„ ì¶”ê°€í•©ë‹ˆë‹¤.
         if (Info.bIsWindow)
         {
             OpenedWindows.AddUnique(WidgetName);
         }
     }
-    // ÇöÀç À§Á¬ÀÌ ÄÑÁ® ÀÖ´Ù¸é -> ²ü´Ï´Ù.
+    // í˜„ì¬ ìœ„ì ¯ì´ ì¼œì ¸ ìˆë‹¤ë©´ -> ë•ë‹ˆë‹¤.
     else
     {
         Info.WidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
@@ -52,7 +52,7 @@ void UJMUIManager::ToggleWidget(FName WidgetName)
         }
     }
 
-    // Ã¢ÀÌ ÄÑÁö°Å³ª ²¨Á³À¸¹Ç·Î, ¸¶¿ì½º Ä¿¼­ »óÅÂ¸¦ °»½ÅÇÕ´Ï´Ù.
+    // ì°½ì´ ì¼œì§€ê±°ë‚˜ êº¼ì¡Œìœ¼ë¯€ë¡œ, ë§ˆìš°ìŠ¤ ì»¤ì„œ ìƒíƒœë¥¼ ê°±ì‹ í•©ë‹ˆë‹¤.
     UpdateInputMode();
 }
 
@@ -70,19 +70,19 @@ void UJMUIManager::UpdateInputMode()
 {
     if (!Controller) return;
 
-    // ¿­·ÁÀÖ´Â Ã¢(ÀÎº¥Åä¸®, ¸Ş´º µî)ÀÌ 1°³¶óµµ ÀÖ´Ù¸é
+    // ì—´ë ¤ìˆëŠ” ì°½(ì¸ë²¤í† ë¦¬, ë©”ë‰´ ë“±)ì´ 1ê°œë¼ë„ ìˆë‹¤ë©´
     if (OpenedWindows.Num() > 0)
     {
-        // UI¿Í °ÔÀÓ µÑ ´Ù Á¶ÀÛ °¡´ÉÇÏ°Ô ÇÏ°í ¸¶¿ì½º Ä¿¼­¸¦ ÄÕ´Ï´Ù.
+        // UIì™€ ê²Œì„ ë‘˜ ë‹¤ ì¡°ì‘ ê°€ëŠ¥í•˜ê²Œ í•˜ê³  ë§ˆìš°ìŠ¤ ì»¤ì„œë¥¼ ì¼­ë‹ˆë‹¤.
         FInputModeGameAndUI InputMode;
-        InputMode.SetHideCursorDuringCapture(false); // ¸¶¿ì½º Å¬¸¯ÇØµµ Ä¿¼­ À¯Áö
+        InputMode.SetHideCursorDuringCapture(false); // ë§ˆìš°ìŠ¤ í´ë¦­í•´ë„ ì»¤ì„œ ìœ ì§€
         Controller->SetInputMode(InputMode);
         Controller->bShowMouseCursor = true;
     }
-    // ¿­·ÁÀÖ´Â Ã¢ÀÌ ÇÏ³ªµµ ¾ø´Ù¸é (Æò»ó½Ã »óÅÂ)
+    // ì—´ë ¤ìˆëŠ” ì°½ì´ í•˜ë‚˜ë„ ì—†ë‹¤ë©´ (í‰ìƒì‹œ ìƒíƒœ)
     else
     {
-        // ¿ÀÁ÷ °ÔÀÓ(Ä³¸¯ÅÍ)¸¸ Á¶ÀÛÇÏ°Ô ÇÏ°í ¸¶¿ì½º Ä¿¼­¸¦ ¼û±é´Ï´Ù.
+        // ì˜¤ì§ ê²Œì„(ìºë¦­í„°)ë§Œ ì¡°ì‘í•˜ê²Œ í•˜ê³  ë§ˆìš°ìŠ¤ ì»¤ì„œë¥¼ ìˆ¨ê¹ë‹ˆë‹¤.
         ApplyCombatInputMode(Controller);
     }
 }

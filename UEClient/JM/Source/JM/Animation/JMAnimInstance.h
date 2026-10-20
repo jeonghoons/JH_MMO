@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
@@ -9,9 +9,9 @@ class JM_API UJMAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 public:
-	// °ÔÀÓ ½º·¹µå µ¥ÀÌÅÍ Ä³½Ì
+	// ê²Œì„ ìŠ¤ë ˆë“œ ë°ì´í„° ìºì‹±
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
-	// ¿öÄ¿ ½º·¹µå
+	// ì›Œì»¤ ìŠ¤ë ˆë“œ
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 
 protected:

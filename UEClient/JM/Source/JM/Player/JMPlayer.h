@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Character/JMCharacterBase.h"
@@ -10,8 +10,6 @@ class JM_API AJMPlayer : public AJMCharacterBase
 public:
 	AJMPlayer();
 	virtual void SetPlayerData(const Protocol::ObjectInfo& ObjInfo) override;
-
-protected:
 
 protected:
 	TSharedPtr<struct FStreamableHandle> AssetLoadHandle;
