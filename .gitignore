@@ -72,6 +72,9 @@ UEClient/JM/Content/Paragon*/
 # StarterAsset
 UEClient/JM/Content/LevelPrototyping
 UEClient/JM/Content/StarterContent/
+# UE 템플릿 기능 팩 잔재 (Mannequins 등). 우리 에셋은 Content/Character(단수)에 있다
+UEClient/JM/Content/Characters/
+UEClient/JM/Content/FirstPerson/
 
 # 언리얼 엔진 임시, 바이너리, 캐시 폴더 전체 차단
 UEClient/**/Binaries/
