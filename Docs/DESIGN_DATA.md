@@ -45,6 +45,23 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 
 기존 `DT_Appearance`/`DT_Equip`/`DT_CharacterAsset`과 `UJMAssetDataManager`의 Mock DB는 `HeroTable`/`WeaponItemTable`로 대체합니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)). 대체 시점은 ROADMAP M2/M3.
 
+## 서버 로더 (구현됨, 2026-10-20)
+- `Server/Server/CsvFile.h/.cpp`가 CSV를 파싱하고(UTF-8·BOM·따옴표 지원, 컬럼 수/숫자 형식 검증), `DataManager::Init()`(`ServerData.cpp`)가 테이블을 읽어 `GetCharacterData`/`GetSkillData`로 제공합니다.
+- 데이터 폴더는 환경변수 `JH_DATA_DIR`, 없으면 `../../Common/DataTable` 등 서버 작업 디렉터리 기준 후보 경로에서 찾습니다.
+- **형식 오류·중복 키·존재하지 않는 참조는 서버 시작을 중단**합니다(줄 번호 포함 메시지). 데이터 버그를 조용히 넘기지 않기 위함입니다.
+- 수치 변경은 CSV 수정 후 **서버 재시작**으로 반영됩니다(핫 리로드 없음).
+
+### StatTable (서버 구현됨)
+`Name`(ID, 1001~), `PlayerType`(`Enum.proto`의 PlayerType 값, 서버 조회 키·중복 불가), `MaxHp`, `AttackDamage`, `AttackSpeed`, `MoveSpeed`. 생성 시 HP는 `MaxHp`입니다. 현재 행: 몬스터(3), 전사(4), 궁수(5).
+
+### SkillTable (서버 구현됨)
+`Name`(skillId), `PlayerType`(영웅 종속), `Slot`(0 = 기본 공격, 1~5 = 숫자키), `TargetingType`(`Targeted`/`NonTargeted`), `HitShape`(`Sector`/`Line`/`Projectile`/`Zone`), `HitDelayMs`, `CooldownMs`, `CastRange`(Targeted는 대상까지, Zone은 지점까지 최대 거리), `Radius`, `Angle`, `Range`, `Width`, `BaseDamage`, `ProjSpeed`, `DurationMs`/`TickMs`(Zone: 지속 시간 / 한 대상에게 피해를 주는 최소 간격 — 진입 즉시 피해 후 `TickMs`마다 반복).
+- 클라이언트는 skillId가 아니라 **슬롯**을 보내고, 서버가 영웅의 SkillTable로 해석합니다(다른 영웅의 스킬 사용 불가). 쿨타임은 스킬별이며 기본 공격(슬롯 0)만 공격 속도 배율을 반영합니다.
+- 현재 행: 301(몬스터), 401/402(전사 기본·광역 강타), 501/502(궁수 기본 타겟팅 투사체·지면 장판). skillId 규칙은 `PlayerType*100+Slot+1`(기존 기본 공격 id 유지)이며, `HeroId` 기반 ID 체계(1001~)로의 재편은 M4에서 합니다.
+
+### MonsterTable (서버 구현됨)
+`Name`(=스폰 마커의 `monsterTemplateId`, StatTable.PlayerType과 동일해야 함), `RespawnSec`(사망 후 리스폰까지), `DeathRemoveDelaySec`(시체를 남기는 시간, `<= RespawnSec`), `HitStunMs`(피격 후 행동이 막히는 시간, 0~10000 — 피격 모션 길이에 맞춘다). 사망 연출 길이에 맞춰 `DeathRemoveDelaySec`를 조절합니다. 스폰 위치/수는 맵 JSON의 `spawnRadius`/`maxCount`를 따릅니다. 보상(경험치/골드) 컬럼은 A2.3에서 추가합니다.
+
 ## 조회
 - UE 쪽 조회는 `UDataManager`(GameInstanceSubsystem)를 통해서만 합니다. DataTable 애셋 경로는 코드에 쓰지 않고 `UDeveloperSettings`(`DefaultGame.ini`)에서 지정합니다. 테이블별 `Find<Table>Row(int32 Id)`가 행 포인터 또는 nullptr를 반환합니다.
 - Test의 `UDataManager`/`UDataTableSettings` 구현을 이식하되 `JM` 접두사 규칙(UE와 충돌할 때만)을 따릅니다.
@@ -58,7 +75,8 @@ ID `1001` = 플레이어 기본값.
 | `AccelCmSec2` | 2048 | 이동 입력 시 가속도 |
 | `BrakeDecelCmSec2` | 2048 | 입력 없을 때 감속도 |
 | `RotationRateYawDegSec` | 500 | 이동 방향으로 도는 속도(deg/s) |
-| `CameraArmLengthCm` | 400 | 카메라 붐 길이 |
+| `CameraArmLengthCm` | 450 | 카메라 붐 길이 (3인칭 마우스 회전) |
+| `CameraDefaultPitchDeg` | -15 | 시작 카메라 피치 (음수 = 아래로 내려다봄) |
 | `CameraMinPitchDeg` / `CameraMaxPitchDeg` | -60 / 30 | 카메라 피치 제한 |
 | `LookSensitivityYaw` / `LookSensitivityPitch` | 1 / 1 | 마우스 감도 배율 |
 

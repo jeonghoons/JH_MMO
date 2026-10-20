@@ -93,3 +93,7 @@ UEClient/**/.vs/
 !UEClient/**/Build/**/*.ico
 # Excel 임시 파일
 ~$*.xlsx
+
+# 부하 테스트 산출물
+Server/**/metrics.csv
+Server/**/loadtest_*.csv

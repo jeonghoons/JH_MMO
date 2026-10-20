@@ -6,7 +6,7 @@
 
 ## 예정
 
-(진행 순서와 체크박스는 [ROADMAP.md](ROADMAP.md)를 따릅니다. 아래는 설계 문서와의 연결용 메모입니다.)
+(진행 순서와 체크박스는 [ROADMAP.md](ROADMAP.md)를 따릅니다. 2026-10-20부터 트랙 A(서버/포트폴리오: 몬스터·전투 → 아이템 → 거래/경매장 → 동접 테스트)와 트랙 B(기존 M0~M4)를 병행합니다. 아래는 설계 문서와의 연결용 메모입니다.)
 
 - 플레이어 영웅을 Greystone/Sparrow(Paragon) 고정으로 사용, 영웅별 AnimBP — [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), [DESIGN_ANIMATION.md](DESIGN_ANIMATION.md)
 - 무기 아이템 = 스탯 + 머티리얼 교체 (서버가 스탯 계산) — [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)

@@ -9,6 +9,62 @@
 3. 봇 개수를 바꾸고 싶다면 `Server/DummyClient/pch.h`의 `MAX_TEST`(현재 50000) / `MAX_CLIENTS`(= `MAX_TEST * 2`) 상수를 수정한 뒤 재빌드합니다 — 런타임 인자로는 조절되지 않습니다.
 4. 서버 콘솔/로그에서 접속·이동·전투 등 확인하려는 패킷 흐름을 관찰합니다.
 
+## 부하 테스트 하니스 (LoadTest)
+
+`Server/LoadTest` — 헤드리스 콘솔 봇 클라이언트(`DummyClient`는 OpenGL 시각화용으로 그대로 둠). 서버의 `metrics.csv`/콘솔 `[metrics]` 줄과 함께 본다.
+
+```
+msbuild Server.sln /p:Configuration=Release /p:Platform=x64 /t:GameServer
+msbuild Server.sln /p:Configuration=Release /p:Platform=x64 /t:LoadTest
+cd Server\Server && ..\x64\Release\GameServer.exe          # 서버 (SQL Server Express 필요)
+..\x64\Release\LoadTest.exe --bots 1000 --ramp-rate 200 --duration 60 --threads 4
+```
+
+| 옵션 | 기본 | 설명 |
+|---|---|---|
+| `--bots` | 100 | 봇 수 |
+| `--ramp-rate` | 50 | 초당 접속 시도 수(램프업) |
+| `--duration` | 60 | 램프 시작부터 종료까지 전체 시간(초) |
+| `--threads` | 4 | 워커 스레드 수 |
+| `--profile` | move | `move`(이동+핑) / `idle`(핑만) / `hunt`(몬스터 스폰으로 이동해 공격·스킬 사용) |
+| `--hero` | warrior | `warrior` / `archer`(가입 후 로그인, 타겟팅 일반공격·지면 장판 사용) |
+| `--chaos` | 끔 | 공격 요청의 일부를 일부러 잘못된 값으로 보냄(오류 테스트) |
+| `--map` | 자동 | hunt용 맵 로직 JSON 경로(몬스터 스폰 위치). 생략하면 `../../MapResource/...`를 찾음 |
+| `--move-interval`, `--ping-interval` | 1000 | ms |
+| `--host`, `--port` | 127.0.0.1, 8888 | 서버 주소 |
+| `--out` | loadtest_<time>.csv | 5초 간격 결과 CSV |
+| `--server-proc` | GameServer.exe | CPU/메모리를 샘플링할 서버 프로세스 이름 |
+
+- 봇은 `CS_LOGIN`(`is_dummy`) → `CS_ENTER_ROOM` → 주기적 `CS_MOVE` / `CS_PING`을 보낸다. 핑 RTT는 서버 Room의 JobQueue를 거쳐 응답되므로 Room 처리 지연이 포함된다.
+- 현재 봇 로그인은 서버가 `dummy` 계정으로 치환한다(A5.1에서 제거 예정).
+- 서버 지표(`[metrics]`, `Server/Server/metrics.csv`): `sessions, rooms, players, in/s, out/s, tickLate(예정 대비 지연), tickBody(Update 처리 시간)`.
+- 악성 패킷 주입은 PowerShell 원시 소켓으로 수행했다(결과는 아래 기록). 한 PC에서 서버와 LoadTest를 같이 돌리면 CPU를 공유하므로 보고서에 명시한다.
+
+## 검증 기록 (ROADMAP 검증 게이트)
+
+단계별 오류 테스트·부하 테스트 결과를 한 줄 이상 누적합니다.
+
+| 날짜 | 단계 | 오류 테스트 | 부하 테스트 | 결과 |
+|---|---|---|---|---|
+| 2026-10-20 | A0.1 `Session::Disconnect` null 체크 | 로그인 전 TCP 접속→즉시 종료 200회 반복 (PowerShell `TcpClient`) | 해당 없음(A0.6 하니스 이전) | 통과 — 서버 생존, `DisConnect`/`~Session` 로그 정상 (사용자 확인) |
+
+| 2026-10-20 | A0.2 패킷 크기/ID 경계 검증 (서버 + UE 클라이언트) | 원시 소켓 PowerShell 스크립트로 size=0, 2, 3, 8193, 65535, 파싱 불가 페이로드 → 모두 서버가 연결 종료. id=65535(size 4)는 핸들러 없음으로 로그만, 크래시·OOB 없음. 이후 새 접속 정상 | 해당 없음 | 통과(서버, 런타임). UE 클라이언트는 컴파일만 확인(런타임 미검증). 관찰: 유휴 상태 서버가 CPU 코어 1개를 100% 사용 → A0.3(Timer busy-spin)에서 처리 |
+
+| 2026-10-20 | A0.3 Timer busy-spin / JobQueue 깨우기 누락 / 송신 큐 잔류 (코드 수정) | 악성 패킷 스크립트 재실행 통과, 접속·종료 300회 0.2초 내 처리 후 서버 생존 | 유휴 CPU: 수정 전 코어 1개 100%(10초에 약 10초) → 수정 후 10초에 0.02초. **봇 부하 중 검증과 Room 틱 동작 확인은 미실시(A0.6 이후)** | 부분 통과 — 체크박스 보류 |
+
+| 2026-10-20 | A0.4 `StatComponent` null 안전, 가입 PlayerType 검증, `dt` 클램프, `GameMap` 셀 클램프 | PlayerType=1(MALE)로 `CS_SIGNUP` 원시 패킷 전송 → 서버가 `Invalid PlayerType` 로그 후 거부, 서버 생존. 악성 패킷 스크립트 재통과 | 해당 없음 | 통과(가입 검증). `dt` 클램프·맵 밖 좌표는 재현 수단 없어 코드 리뷰만 — A0.6 이후 재확인 |
+
+| 2026-10-20 | A0.5 Room 입장 정원 원자 예약 / 방 생성 직렬화·락 밖 로딩 / 네비메시 공유 | 로그인 후 `CS_ENTER_ROOM`을 일제히 전송(정원 100): 250명 → 방 3개, 1,000명 → 방 10개. 서버 생존 | 정적 봇(로그인+입장만, 이동 없음) 1,000명 램프, 스크립트 16.5초, 서버 메모리 29MB, 이후 유휴 CPU 0 | 통과. 한계: 봇 행동 없음(A0.6), 콘솔 출력이 스레드 간 섞여 `Enter Room` 로그 줄 수는 부정확(방 수는 `PlayerStart` 로드 줄로 확인) → A1.2 로거 필요 |
+
+| 2026-10-20 | A0.3 부하 중 재검증 / A0.6 하니스 | 부하 후 악성 패킷 스크립트 재통과, 서버 생존 | LoadTest(Debug 빌드, 같은 PC): **200봇** 30초 — 접속 실패 0, 핑 p50/p95/p99 = 0.8/3.0/4.7ms, 서버 CPU ~12%. **1,000봇**(ramp 200/s) 45초 — 접속 실패 0, 비정상 종료 0, 로그인 p50/p95 = 1.9/4.6ms, 핑 p50/p95/p99/max = 1.4/3.6/6.0/26ms, 서버 CPU 20~56%(코어 1개 기준), 메모리 95MB, tickLate avg/max ≈ 4.4/13ms, tickBody avg ≈ 0.5ms, 방 10개 | 통과. 한계: Debug 빌드·같은 PC·이동 보정 패킷 비율 약 30%(봇이 벽에 막힘) |
+
+| 2026-10-20 | A1.4 서버 CSV 로더 (`StatTable.csv`, `SkillTable.csv`) | 잘못된 CSV 6종 — 숫자 칸에 문자, 컬럼 수 부족, 잘못된 HitShape, PlayerType 중복, StatTable에 없는 PlayerType을 쓰는 스킬, 파일 없음 — 모두 서버가 줄 번호가 포함된 오류를 남기고 시작을 중단. CSV 수치(전사 MaxHp 800→1234 등)를 고치고 재시작만 해도 `SC_LOGIN` 스탯에 반영(재컴파일 없음) | 1,000봇 30초 회귀: 접속 실패 0, 비정상 종료 0, 핑 p50/p95/p99 = 2.7/6.9/10.0ms (이전 1.4/3.6/6.0ms는 PC 상태에 따른 편차로 보이며 로더와 무관: 로드는 시작 시 1회) | 통과 |
+
+| 2026-10-20 | A2.1 몬스터 사망 제거·리스폰 (서버) + `MonsterTable.csv` | MonsterTable 오류 3종(DeathRemoveDelaySec > RespawnSec, StatTable에 없는 템플릿, 중복 키) 모두 서버 시작 중단. 몬스터 처치 직후 동일 id 공격·시야 이탈 중 접속 해제 포함 시나리오에서 크래시 없음 | LoadTest `--profile hunt`(몬스터에게 이동 후 공격): 20봇 60초 — 몬스터 수 9→8→9 반복(사망·제거·리스폰 확인), SC_DEAD 30 = SC_REMOVE_OBJECT 30. 500봇 60초(5개 방) — 접속 실패 0, 서버 CPU ~31%, 핑 p50/p95/p99 = 1.4/3.2/6.2ms, tickLate avg ≈ 7ms, 몬스터 사망 737회·제거 744회, 서버 생존, 이후 악성 패킷 시험 통과 | 서버 통과. UE 클라이언트는 컴파일만 확인(에디터 설정·PIE 검증 대기) |
+| 2026-10-20 | A2.1 후속(PIE 피드백 반영): 몬스터 HitStunMs(MonsterTable), 플레이어 공격 서버 쿨타임, tk(req/ok) 지표 | LoadTest hunt 20봇 40초: 공격 요청이 쿨타임(전사 1670ms/0.9)에 의해 일부만 수락(tk(req/ok per s) = 4.2/1.4 등), 서버 생존 | 20봇 소규모 확인(부하 영향 없음) | 통과. UE 클라이언트 수정(시체 충돌 처리)은 에디터가 켜져 있어 컴파일 미실시 |
+
+| 2026-10-20 | A2.2a 스킬 시전 서버(슬롯·타겟팅·지면 장판·스킬별 쿨타임) + 프로토콜 확장 | LoadTest `--chaos`(요청의 40%를 잘못된 값으로: 슬롯 -3/9/빈 슬롯, NaN/Inf 방향, 존재하지 않는 대상, 자기 자신 대상, 사거리 밖 1e9 지점) — 전사 100봇 45초, 궁수 100봇 50초 모두 서버 생존, 이후 악성 패킷 시험 통과. 서버가 잘못된 요청은 무시하고 정상 요청만 수락(`atk req/ok` 39.8/18.6 등) | hunt 프로필(봇이 스폰 위치를 찾아가 공격): 전사 20봇 60초 몬스터 사망 35·제거 34, 궁수 20봇 60초 일반공격(타겟팅 투사체) + 1번 스킬 장판 생성 17·피해 26, 전사 500봇 60초 — 접속 실패 0, 사망 1,177·제거 1,253, 핑 p50/p95/p99 = 1.8/8.5/15.5ms | 통과. 장판의 `DurationMs=3000/TickMs=1000`(대상당 진입 즉시 + 1초마다) 동작은 지표(생성/피해 수)로만 확인했고, 시각적 확인은 클라이언트 단계(A2.2c/d) |
+
 ## 새 패킷/기능을 추가했을 때 체크리스트
 
 - [ ] `GanPackets.bat`을 실행해 `Server`/`UEClient` 양쪽에 최신 프로토콜이 복사됐는지 확인
