@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Character/JMCharacterBase.h"
@@ -14,6 +14,7 @@ public:
 	virtual void SetPlayerData(const Protocol::ObjectInfo& ObjInfo) override;
 
 	virtual void OnDamaged(int damage, int remainHp) override;
+	virtual void OnDead() override;
     
 
 protected:

@@ -3,13 +3,24 @@
 #include "Network/SendBuffer.h"
 #include "Network/NetworkManager.h"
 #include "UI/JMUIManager.h"
+#include "Blueprint/UserWidget.h"
+#include "Player/GameplayInputMode.h"
 #include "UI/ChatWidget.h"
 
 void AJMPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	bShowMouseCursor = false;
-	SetInputMode(FInputModeGameOnly());
+	ApplyCombatInputMode(this);
+
+	// Crosshair at the screen center (aim reference). The widget class is assigned in BP_PControler.
+	if (CrosshairWidgetClass)
+	{
+		CrosshairWidget = CreateWidget<UUserWidget>(this, CrosshairWidgetClass);
+		if (CrosshairWidget)
+		{
+			CrosshairWidget->AddToViewport(100);
+		}
+	}
 
 	Protocol::CS_ENTER_ROOM_PACKET EnterPkt;
 	TSharedPtr<SendBuffer> sendBuffer = SendBuffer::MakeSendBuffer(EnterPkt, Protocol::CS_ENTER_ROOM);
@@ -52,5 +63,34 @@ void AJMPlayerController::OnChatKeyPressed()
 			// 포커스를 주는 함수를 실행합니다.
 			ChatWidget->FocusChatInput(this);
 		}
+	}
+}
+
+void AJMPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (InputComponent)
+	{
+		InputComponent->BindKey(EKeys::LeftAlt, IE_Pressed, this, &AJMPlayerController::OnFreeCursorPressed);
+		InputComponent->BindKey(EKeys::LeftAlt, IE_Released, this, &AJMPlayerController::OnFreeCursorReleased);
+	}
+}
+
+void AJMPlayerController::OnFreeCursorPressed()
+{
+	ApplyFreeCursorInputMode(this);
+}
+
+void AJMPlayerController::OnFreeCursorReleased()
+{
+	// If a window (inventory etc.) is open the UI manager keeps the cursor; otherwise it returns to combat mode.
+	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+	{
+		UIManager->UpdateInputMode();
+	}
+	else
+	{
+		ApplyCombatInputMode(this);
 	}
 }

@@ -35,7 +35,7 @@ public:
     void ToggleWidget(FName WidgetName);
 
     UUserWidget* GetWidget(FName WidgetName);
-protected:
+
     // 마우스 커서 등 입력을 제어하는 내부 함수
     void UpdateInputMode();
 

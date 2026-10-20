@@ -1,5 +1,6 @@
-#include "Game/IngameGameModeBase.h"
+﻿#include "Game/IngameGameModeBase.h"
 #include "Player/JMPlayerController.h"
+#include "Player/GameplayInputMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 #include "Network/NetworkManager.h"
@@ -15,9 +16,7 @@ void AIngameGameModeBase::BeginPlay()
 	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 	if (PC)
 	{
-		FInputModeGameOnly InputMode;
-		PC->SetInputMode(InputMode);
-		PC->bShowMouseCursor = false;
+		ApplyCombatInputMode(PC);
 	}
 
 	if (HUDWidgetClass)

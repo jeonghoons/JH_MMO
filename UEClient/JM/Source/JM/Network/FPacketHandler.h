@@ -5,7 +5,7 @@
 class NetworkSession;
 
 using PacketHandlerFunc = std::function<bool(TSharedPtr<NetworkSession>, BYTE*, int)>;
-extern PacketHandlerFunc GPacketHandler[UINT16_MAX];
+extern PacketHandlerFunc GPacketHandler[UINT16_MAX + 1]; // PacketId가 uint16 전체 범위이므로 +1
 
 class FPacketHandler
 {

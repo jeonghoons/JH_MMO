@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "JMUIManager.h"
 #include "Player/JMPlayerController.h"
+#include "Player/GameplayInputMode.h"
 
 void UJMUIManager::RegisterWidget(AJMPlayerController* PC, FName WidgetName, TSubclassOf<UUserWidget> WidgetClass, bool bIsWindow)
 {
@@ -82,8 +83,6 @@ void UJMUIManager::UpdateInputMode()
     else
     {
         // 오직 게임(캐릭터)만 조작하게 하고 마우스 커서를 숨깁니다.
-        FInputModeGameOnly InputMode;
-        Controller->SetInputMode(InputMode);
-        Controller->bShowMouseCursor = false;
+        ApplyCombatInputMode(Controller);
     }
 }

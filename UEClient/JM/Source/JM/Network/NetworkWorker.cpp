@@ -59,6 +59,14 @@ bool RecvWorker::ReceivePacket(TArray<uint8>& OutPacket)
 		UE_LOG(LogTemp, Log, TEXT("Recv PacketID : %d, PacketSize : %d"), Header.PacketId, Header.PacketSize);
 	}
 
+	// 서버와 같은 기준(헤더 이상, 최대 8192)을 벗어나면 스트림이 깨진 것으로 보고 수신을 멈춘다.
+	if (Header.PacketSize < HeaderSize || Header.PacketSize > 8192)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid PacketSize : %d"), Header.PacketSize);
+		Running = false;
+		return false;
+	}
+
 	OutPacket = HeaderBuffer;
 
 	TArray<uint8> PayloadBuffer;

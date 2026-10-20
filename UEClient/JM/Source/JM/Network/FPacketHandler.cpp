@@ -4,7 +4,7 @@
 #include "Network/NetworkSession.h"
 #include "Game/JMObjectManager.h"
 
-PacketHandlerFunc GPacketHandler[UINT16_MAX];
+PacketHandlerFunc GPacketHandler[UINT16_MAX + 1];
 
 void FPacketHandler::Init()
 {
@@ -49,6 +49,9 @@ void FPacketHandler::ProcessPacket(const TSharedPtr<NetworkSession>& session, BY
 	if (len < sizeof(FPacketHeader)) return;
 
     FPacketHeader* header = reinterpret_cast<FPacketHeader*>(buffer);
+	// 헤더에 적힌 크기가 실제로 받은 길이와 다르거나 헤더보다 작으면 버린다.
+	if (header->PacketSize < sizeof(FPacketHeader) || header->PacketSize != len) return;
+
     BYTE* payloadBuffer = buffer + sizeof(FPacketHeader);
     int32_t payloadLen = header->PacketSize - sizeof(FPacketHeader);
 
@@ -112,7 +115,7 @@ void FPacketHandler::Handle_SC_ATTACK(TSharedPtr<NetworkSession>& session, Proto
 	{
 		if (UJMObjectManager* ObjectManager = NetManager->GetGameInstance()->GetSubsystem<UJMObjectManager>())
 		{
-			ObjectManager->HandleAttack(pkt.attacker_id());
+			ObjectManager->HandleAttack(pkt.attacker_id(), pkt.skill_id(), pkt.aim_yaw(), pkt.aim_x(), pkt.aim_y());
 		}
 	}
 }
