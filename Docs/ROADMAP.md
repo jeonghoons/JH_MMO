@@ -15,7 +15,7 @@
 
 ## ▶ 중단점 (2026-10-27) — "이어서 진행"이라고 하면 여기서 재개 (다음: A2.3)
 **상태:** A2.2 서브 단계(a~d) 완료, M0.5 전체 완료, 캐릭터 전투 보완 완료 (2026-10-27). 2026-10-21 사용자 확정 순서: **M0.5 항목 4(완료) → 3(완료) → 2(완료) → 1 → 5** (Content 정리 → 명명/배치 → `JMPlayer.cpp` 버그 → 네트워크 안정화 → 레이어 분리). 그다음 캐릭터 전투 보완(서 있을 때 상체 블렌드, 장판 이펙트 에셋), 그다음 **A2.3 경험치/레벨/골드**(보상 패킷, HUD, 스탯 반영 대미지).
-**다음 작업 (2026-10-27 우선순위 변경, `DECISIONS.md`):** ① A2.2e 전사 스킬 모션·이펙트 → ② A2.2f 전투 HUD(HP·쿨타임) → ③ 폴더·파일 정리 → ④ 아이템(A3) → ⑤ 서버 권위 이동 → ⑥ 서버 설정(A1.1). A2.3은 그 이후. ③~⑥은 차례가 되면 코드를 읽고 따로 계획합니다. 현재: A2.2e 완료 (2026-10-28, 1a 모션 + 1b 이펙트·타격 시점 도구, Play 확인). 다음: 전사 판정 형태를 모션·이펙트에 맞추기(논의 중) → A2.2f. 아래는 M0.5 항목 5 진행 기록입니다.
+**다음 작업 (2026-10-27 우선순위 변경, `DECISIONS.md`):** ① A2.2e 전사 스킬 모션·이펙트 → ② A2.2f 전투 HUD(HP·쿨타임) → ③ 폴더·파일 정리 → ④ 아이템(A3) → ⑤ 서버 권위 이동 → ⑥ 서버 설정(A1.1). A2.3은 그 이후. ③~⑥은 차례가 되면 코드를 읽고 따로 계획합니다. 현재: A2.2e 완료 (2026-10-28, 1a 모션 + 1b 이펙트·타격 시점 도구, Play 확인). 전사 판정 형태 조정 완료(2026-10-28). 다음: A2.2f. 아래는 M0.5 항목 5 진행 기록입니다.
 - 5a 송신 파사드: 완료 (2026-10-27, 빌드 + Play 확인). `UNetworkManager::Get(WorldContext)`와 `SendLogin/SendSignUp/SendEnterRoom/SendMove/SendAttack` 추가, `LoginWidget`·`JMPlayerController`·`JMMyPlayer`가 파사드 사용, `ChatWidget`의 죽은 주석 삭제.
 - 5b 핸들러 보일러플레이트(`RegisterHandler<PacketT>` 템플릿, `GetObjectManager(session)` 헬퍼, 미사용 `SendAttackPacket` 삭제): 완료 (2026-10-27, 빌드 + Play 확인).
 - 5c UIManager 일원화: 완료 (2026-10-27, 빌드 + Play 확인. 인벤토리 키 미연결·채팅 미구현은 기존 상태로 `TODO.md` 백로그). 로그인 위젯·HUD·크로스헤어를 `UJMUIManager::RegisterWidget`(Z-Order, 시작 표시 인자 추가)으로 생성, 위젯 이름 상수 `UI/WidgetNames.h`, 레벨 전환 시 `ClearWidgets()`. `LoginWidgetClass`·`HUDWidgetClass`·`CrosshairWidgetClass` UPROPERTY는 유지하므로 에디터 작업 없음.
@@ -136,6 +136,7 @@
 - [x] Greystone, Sparrow: 몽타주 Duplicate(`AM_`), AnimBP·피격·사망 Rename, `DT_CharacterAsset` 경로 갱신 (2026-10-19 완료)
 - [ ] Rampage: 사용 에셋 확인(`BP_Npc`) 후 같은 방식으로 처리 — 몽타주 Rename은 완료, `BP_Npc`의 `CurrentAttackMontage`는 아직 팩 원본(`Attack_Biped_Melee_A_Montage`)을 참조하고 사망/피격 몽타주는 미지정 (A2.1에서 지정)
 - [ ] Paragon 에셋 최종 Move: 캐릭터 작업 종료 시 (아래 중단점 4번 참고)
+- [x] 전사 판정 조정: `AM_Greystone_Attack` 약 0.41초에 Skill Hit 노티파이 → `ExportSkillTiming.bat`(401 `HitDelayMs`, `DT_SkillTable` 갱신) (2026-10-28 완료)
 - [x] A2.2e-1b: `P_Greystone_GroundSmash` Copy, `AS/AM_Greystone_Skill2`(전신 `DefaultSlot`), ABP 2개에 `Slot 'DefaultSlot'`, 몽타주 2개에 Skill Hit 노티파이, `ExportSkillTiming.bat`으로 `DT_SkillTable` 갱신 (2026-10-28 완료)
 - [x] A2.2e-1a: `AM_Sparrow_Skill1`(실제로는 시퀀스) → `AS_Sparrow_Skill1` 이름 변경, 몽타주 `AM_Sparrow_Skill1`(슬롯 `UpperBody`) 생성, `DT_SkillTable` Reimport (2026-10-27 완료)
 - [x] 장판 이펙트: `P_RainofArrows` → `Character/Sparrow/P_Sparrow_RainofArrows` Copy, `DT_SkillTable` Reimport (2026-10-27 완료)
