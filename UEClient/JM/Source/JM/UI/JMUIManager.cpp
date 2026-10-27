@@ -1,25 +1,54 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #include "JMUIManager.h"
-#include "Player/JMPlayerController.h"
+#include "GameFramework/PlayerController.h"
 #include "Player/GameplayInputMode.h"
 
-void UJMUIManager::RegisterWidget(AJMPlayerController* PC, FName WidgetName, TSubclassOf<UUserWidget> WidgetClass, bool bIsWindow)
+UUserWidget* UJMUIManager::RegisterWidget(APlayerController* PC, FName WidgetName, TSubclassOf<UUserWidget> WidgetClass, bool bIsWindow, int32 ZOrder, bool bStartVisible)
 {
-    if (!PC || !WidgetClass) return;
+    if (!PC || !WidgetClass) return nullptr;
 
     Controller = PC;
+
+    // 같은 이름이 이미 있으면 이전 위젯을 떼어내고 교체합니다.
+    if (FWidgetInfo* Old = ManagedWidgets.Find(WidgetName))
+    {
+        if (Old->WidgetInstance)
+        {
+            Old->WidgetInstance->RemoveFromParent();
+        }
+        ManagedWidgets.Remove(WidgetName);
+        OpenedWindows.Remove(WidgetName);
+    }
 
     // 위젯을 생성해서 변수에 담아둡니다.
     UUserWidget* NewWidget = CreateWidget<UUserWidget>(PC, WidgetClass);
     if (NewWidget)
     {
-        // 화면에 붙이되, 처음에는 무조건 숨겨둡니다. (원할 때 켜기 위해)
-        NewWidget->AddToViewport();
-        NewWidget->SetVisibility(ESlateVisibility::Collapsed);
+        NewWidget->AddToViewport(ZOrder);
+        NewWidget->SetVisibility(bStartVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+        if (bStartVisible && bIsWindow)
+        {
+            OpenedWindows.AddUnique(WidgetName);
+        }
 
         // Map에 저장합니다.
         ManagedWidgets.Add(WidgetName, FWidgetInfo(NewWidget, bIsWindow));
     }
+    return NewWidget;
+}
+
+void UJMUIManager::ClearWidgets()
+{
+    for (TPair<FName, FWidgetInfo>& Pair : ManagedWidgets)
+    {
+        if (Pair.Value.WidgetInstance)
+        {
+            Pair.Value.WidgetInstance->RemoveFromParent();
+        }
+    }
+    ManagedWidgets.Empty();
+    OpenedWindows.Empty();
+    Controller = nullptr;
 }
 
 void UJMUIManager::ToggleWidget(FName WidgetName)

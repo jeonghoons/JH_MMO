@@ -4,6 +4,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 #include "Network/NetworkManager.h"
+#include "UI/JMUIManager.h"
+#include "UI/WidgetNames.h"
 
 AIngameGameModeBase::AIngameGameModeBase()
 {
@@ -17,14 +19,10 @@ void AIngameGameModeBase::BeginPlay()
 	if (PC)
 	{
 		ApplyCombatInputMode(PC);
-	}
 
-	if (HUDWidgetClass)
-	{
-		HUDWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClass);
-		if (HUDWidgetInstance)
+		if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
 		{
-			HUDWidgetInstance->AddToViewport();
+			UIManager->RegisterWidget(PC, WidgetNames::HUD, HUDWidgetClass, false, 0, true);
 		}
 	}
 

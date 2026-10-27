@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "FPacketHandler.h"
 #include "Game/JMObjectManager.h"
+#include "UI/JMUIManager.h"
 #include "SendBuffer.h"
 
 void UNetworkManager::Deinitialize()
@@ -166,6 +167,12 @@ void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad)
 	if (UJMObjectManager* ObjectManager = GetGameInstance()->GetSubsystem<UJMObjectManager>())
 	{
 		ObjectManager->ClearObjects();
+	}
+
+	// 이전 레벨의 위젯 참조가 남지 않도록 UI 목록도 비운다.
+	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+	{
+		UIManager->ClearWidgets();
 	}
 
 	UWorld* World = GetWorld();

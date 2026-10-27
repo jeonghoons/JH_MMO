@@ -18,7 +18,4 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> LoginWidgetClass;
-
-	UPROPERTY()
-	TObjectPtr<class UUserWidget> LoginWidgetInstance;
 };

@@ -42,7 +42,4 @@ protected:
     // Crosshair shown at the screen center. Set this in BP_PControler (e.g. WBP_Crosshair).
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<class UUserWidget> CrosshairWidgetClass;
-
-    UPROPERTY()
-    TObjectPtr<class UUserWidget> CrosshairWidget;
 };

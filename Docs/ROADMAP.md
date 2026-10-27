@@ -18,12 +18,12 @@
 **다음 작업:** M0.5 항목 5(레이어 분리)를 서브 단계로 진행 중. 계획은 사용자 승인 완료(순서 5a → 5b → 5c, 단계마다 빌드 + Play 확인 후 커밋).
 - 5a 송신 파사드: 완료 (2026-10-27, 빌드 + Play 확인). `UNetworkManager::Get(WorldContext)`와 `SendLogin/SendSignUp/SendEnterRoom/SendMove/SendAttack` 추가, `LoginWidget`·`JMPlayerController`·`JMMyPlayer`가 파사드 사용, `ChatWidget`의 죽은 주석 삭제.
 - 5b 핸들러 보일러플레이트(`RegisterHandler<PacketT>` 템플릿, `GetObjectManager(session)` 헬퍼, 미사용 `SendAttackPacket` 삭제): 완료 (2026-10-27, 빌드 + Play 확인).
-- **5c UIManager 일원화: 진행 중.** (로그인 위젯·HUD·크로스헤어를 `UJMUIManager`로 생성, 위젯 이름 상수 헤더, Z-Order 인자, 레벨 전환 시 `ClearWidgets()`; `LoginWidgetClass`·`HUDWidgetClass` UPROPERTY는 유지하므로 에디터 작업 없음): 미착수.
+- 5c UIManager 일원화: 완료 (2026-10-27, 빌드 + Play 확인. 인벤토리 키 미연결·채팅 미구현은 기존 상태로 `TODO.md` 백로그). 로그인 위젯·HUD·크로스헤어를 `UJMUIManager::RegisterWidget`(Z-Order, 시작 표시 인자 추가)으로 생성, 위젯 이름 상수 `UI/WidgetNames.h`, 레벨 전환 시 `ClearWidgets()`. `LoginWidgetClass`·`HUDWidgetClass`·`CrosshairWidgetClass` UPROPERTY는 유지하므로 에디터 작업 없음.
 - M0.5 항목 1 Play 확인 완료 (2026-10-27).
-- 재개할 때는 5c부터 진행합니다. C++ 수정이라 에디터를 닫아야 합니다. `Content/` 구조 기준은 `DECISIONS.md` 2026-10-21 폴더 구조 항목 참고.
+- M0.5 완료. 재개할 때는 캐릭터 전투 보완(서 있을 때 상체 블렌드, 장판 이펙트 에셋) → A2.3 순서입니다. C++ 수정이라 에디터를 닫아야 합니다. `Content/` 구조 기준은 `DECISIONS.md` 2026-10-21 폴더 구조 항목 참고.
 **Claude가 못 보는 것:** 에디터의 애니메이션·이펙트 모양. 스크린샷이나 블루프린트 노드 복사 텍스트(Ctrl+C)를 붙여넣어 확인합니다.
 **주의:** UE 빌드는 에디터가 켜져 있으면 Live Coding 때문에 막히니, C++를 고칠 일이 생기면 에디터를 닫아야 합니다. 서버는 `Server/x64/Debug/GameServer.exe`(SQL Server Express 필요). 궁수 계정은 `LoadTest --hero archer`의 `arc_*` 계정이나 UE 로그인 화면에서 궁수 타입으로 가입하면 됩니다.
-**참고:** M0.5 항목 4·3·2·1은 커밋 완료(`b352400`, `2b66c6c`, `7c4d65a`). 5a `a95d3e8`, 5b `클라이언트: 패킷 핸들러 정리 (M0.5-5b)` 커밋.
+**참고:** M0.5 항목 4·3·2·1은 커밋 완료(`b352400`, `2b66c6c`, `7c4d65a`). 5a `a95d3e8`, 5b `1fa1780`, 5c `클라이언트: UIManager 일원화 (M0.5-5c)` 커밋.
 
 ## 트랙 A — 서버/포트폴리오
 
@@ -102,7 +102,7 @@
 - [x] 2. `JMPlayer.cpp` 몽타주 로드 버그·조기 return 수정, 죽은 코드·미사용 include 삭제 — 완료 (2026-10-21, 빌드 + Play 확인). 피격 몽타주 로드 조건(`HitMontage.IsPending()`), `Super::SetPlayerData` 선행 호출, 중복 로드 핸들 정리, Row 없음 경고 로그. 미사용 include는 없었음
 - [x] 3. 명명/배치: `NpcCharaceter` 오타·위치, `CharacterAssetData.h` 위치, CP949 주석 UTF-8 변환 (BP 참조는 에디터에서 안내) — 완료 (2026-10-21, 빌드 + Play 확인). `ANpcCharacter`(`Character/`), `CharacterAssetData.h`(`Data/`), CP949 8개 파일 UTF-8(BOM) 변환, `DefaultEngine.ini`에 `[CoreRedirects]` 클래스 리디렉터 추가, `BP_Npc` 재저장
 - [x] 4. Content 정리(에디터 수동): WBP 중복 통일, 깨진 참조(`ABP_Base`, `BP_Player`, `DT_Appearance/Equip`) 제거, 잔재 에셋·`Character/` 루트 정리, Config(기본 맵·레거시 입력) — 완료 (2026-10-21, Play 확인 통과). WBP는 이미 `_Core/UI/` 한 벌. `Maps/TestMap`은 사용자 결정으로 유지
-- [ ] 5. 레이어 분리: 송신 파사드(5a, 완료 2026-10-27), 핸들러 보일러플레이트(5b, 완료 2026-10-27), UIManager 일원화(5c) — 상세는 위 중단점 참고
+- [x] 5. 레이어 분리: 송신 파사드(5a), 핸들러 보일러플레이트(5b), UIManager 일원화(5c) — 완료 (2026-10-27, 각 단계 빌드 + Play 확인)
 - 이월: 서버 권위 이동·하드코딩 이전 → `Docs/TODO.md` 기록. `ParagonSample` 맵·`_Core/Materials·Environment`는 `NetworkManager.cpp:64`가 인게임 레벨로 하드코딩해 사용 중이므로 자체 제작 맵으로 교체한 뒤 제외·삭제
 
 ## Phase M1 – 에디터 검증 (JH_MMO에서 진행, 에셋 재다운로드 이후)

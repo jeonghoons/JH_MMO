@@ -17,7 +17,4 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> HUDWidgetClass;
-
-	UPROPERTY()
-	TObjectPtr<class UUserWidget> HUDWidgetInstance;
 };

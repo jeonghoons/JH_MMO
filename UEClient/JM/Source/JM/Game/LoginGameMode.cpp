@@ -2,6 +2,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 #include "Network/NetworkManager.h"
+#include "UI/JMUIManager.h"
+#include "UI/WidgetNames.h"
 
 ALoginGameMode::ALoginGameMode()
 {
@@ -19,13 +21,9 @@ void ALoginGameMode::BeginPlay()
 		PC->SetInputMode(InputMode);
 		PC->bShowMouseCursor = true;
 
-		if (LoginWidgetClass)
+		if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
 		{
-			LoginWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), LoginWidgetClass);
-			if (LoginWidgetInstance)
-			{
-				LoginWidgetInstance->AddToViewport();
-			}
+			UIManager->RegisterWidget(PC, WidgetNames::Login, LoginWidgetClass, false, 0, true);
 		}
 
 		UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>();
