@@ -113,7 +113,7 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYa
 		}
 		if (Skill) Attacker->LockFacingForSkill(*Skill);
 
-		Attacker->OnAttack();
+		Attacker->OnAttack(Skill);
 
 		// 지면 장판: 서버가 사거리로 보정한 지점에 지속시간 동안 이펙트를 재생한다. 이펙트가 없으면 디버그 원으로 표시한다.
 		if (Skill && Skill->HitShape == ESkillHitShape::Zone && Skill->DurationMs > 0)

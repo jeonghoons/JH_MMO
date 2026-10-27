@@ -39,7 +39,8 @@ public:
 	virtual void SetPlayerData(const Protocol::ObjectInfo& ObjInfo);
 	virtual void OnDamaged(int32_t Damage, int32_t RemainHP);
 	virtual void OnDead();
-	virtual void OnAttack();
+	// Skill이 있고 Montage가 지정돼 있으면 그 몽타주를, 아니면 기본 공격 몽타주를 재생한다. (몬스터 스킬은 SkillTable에 없을 수 있음)
+	virtual void OnAttack(const struct FSkillTableRow* Skill);
 
 	UFUNCTION()
 	void OnHitMontageEnded(UAnimMontage* Montage, bool bInterrupted);

@@ -142,9 +142,23 @@ void AJMCharacterBase::OnDead()
 	}
 }
 
-void AJMCharacterBase::OnAttack()
+void AJMCharacterBase::OnAttack(const FSkillTableRow* Skill)
 {
-	PlayAttackAnim();
+	UAnimMontage* SkillMontage = (Skill && !Skill->Montage.IsNull()) ? Skill->Montage.LoadSynchronous() : nullptr;
+	if (SkillMontage == nullptr)
+	{
+		if (Skill && !Skill->Montage.IsNull())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("OnAttack: skill montage load failed (%s)"), *Skill->Montage.ToString());
+		}
+		PlayAttackAnim();
+		return;
+	}
+
+	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+	{
+		AnimInst->Montage_Play(SkillMontage);
+	}
 }
 
 void AJMCharacterBase::FaceYaw(float Yaw)

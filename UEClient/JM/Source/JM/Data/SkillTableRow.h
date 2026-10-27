@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "Particles/ParticleSystem.h"
+#include "Animation/AnimMontage.h"
 #include "SkillTableRow.generated.h"
 
 // Common/DataTable/SkillTable.csv 의 enum 값과 이름이 같아야 한다. (서버 ServerData.h 의 HitShape / SkillTargeting)
@@ -44,6 +45,9 @@ struct FSkillTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ProjSpeed = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 DurationMs = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 TickMs = 0;
+
+	// 클라이언트 전용(서버 로더는 읽지 않음). 시전 몽타주. 비어 있으면 DT_CharacterAsset의 기본 공격 몽타주를 쓴다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UAnimMontage> Montage;
 
 	// 클라이언트 전용(서버 로더는 읽지 않음). 지면 장판 이펙트. 비어 있으면 디버그 원으로 표시한다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UParticleSystem> ZoneFx;

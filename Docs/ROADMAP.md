@@ -15,7 +15,7 @@
 
 ## ▶ 중단점 (2026-10-27) — "이어서 진행"이라고 하면 여기서 재개 (다음: A2.3)
 **상태:** A2.2 서브 단계(a~d) 완료, M0.5 전체 완료, 캐릭터 전투 보완 완료 (2026-10-27). 2026-10-21 사용자 확정 순서: **M0.5 항목 4(완료) → 3(완료) → 2(완료) → 1 → 5** (Content 정리 → 명명/배치 → `JMPlayer.cpp` 버그 → 네트워크 안정화 → 레이어 분리). 그다음 캐릭터 전투 보완(서 있을 때 상체 블렌드, 장판 이펙트 에셋), 그다음 **A2.3 경험치/레벨/골드**(보상 패킷, HUD, 스탯 반영 대미지).
-**다음 작업:** A2.3 경험치/레벨/골드(보상 패킷, HUD, 스탯 반영 대미지). 범위가 크므로 먼저 계획을 제시합니다. 아래는 M0.5 항목 5 진행 기록입니다.
+**다음 작업 (2026-10-27 우선순위 변경, `DECISIONS.md`):** ① A2.2e 전사 스킬 모션·이펙트 → ② A2.2f 전투 HUD(HP·쿨타임) → ③ 폴더·파일 정리 → ④ 아이템(A3) → ⑤ 서버 권위 이동 → ⑥ 서버 설정(A1.1). A2.3은 그 이후. ③~⑥은 차례가 되면 코드를 읽고 따로 계획합니다. 현재: A2.2e-1a 스킬 모션 연결 완료 (2026-10-27, 빌드 + Play 확인). **다음: A2.2e-1b 스킬 이펙트 일반화 + 전사 402 지면 강타 이펙트.** 아래는 M0.5 항목 5 진행 기록입니다.
 - 5a 송신 파사드: 완료 (2026-10-27, 빌드 + Play 확인). `UNetworkManager::Get(WorldContext)`와 `SendLogin/SendSignUp/SendEnterRoom/SendMove/SendAttack` 추가, `LoginWidget`·`JMPlayerController`·`JMMyPlayer`가 파사드 사용, `ChatWidget`의 죽은 주석 삭제.
 - 5b 핸들러 보일러플레이트(`RegisterHandler<PacketT>` 템플릿, `GetObjectManager(session)` 헬퍼, 미사용 `SendAttackPacket` 삭제): 완료 (2026-10-27, 빌드 + Play 확인).
 - 5c UIManager 일원화: 완료 (2026-10-27, 빌드 + Play 확인. 인벤토리 키 미연결·채팅 미구현은 기존 상태로 `TODO.md` 백로그). 로그인 위젯·HUD·크로스헤어를 `UJMUIManager::RegisterWidget`(Z-Order, 시작 표시 인자 추가)으로 생성, 위젯 이름 상수 `UI/WidgetNames.h`, 레벨 전환 시 `ClearWidgets()`. `LoginWidgetClass`·`HUDWidgetClass`·`CrosshairWidgetClass` UPROPERTY는 유지하므로 에디터 작업 없음.
@@ -42,6 +42,8 @@
   - [x] A2.2b 클라이언트 카메라/입력 (2026-10-21 완료: 검은사막식 3인칭 마우스 회전 카메라 + 전투 중 커서 숨김 + `Left Alt` 자유 커서, `DT_MovementTable` 데이터 기반 카메라/이동 수치, PIE 확인). 쿼터뷰 고정안은 폐기(`DECISIONS.md` 2026-10-21)
   - [x] A2.2c (2026-10-21 완료: 에디터 작업·PIE 확인. 궁수 장판 거리 고정은 `IMC_Default`의 Mouse Y에 Swizzle/Negate가 없어 카메라 피치가 0으로 고정된 것이 원인이었고, 에디터에서 모디파이어를 추가해 해결. 코드 쪽은 `ClientRestart`가 시작 피치를 덮어쓰는 문제를 다음 틱 재적용으로 수정, 장판 지점 폴백을 발밑 평면 교점으로 변경) 클라이언트 조준(크로스헤어 기준, 검은사막식): 전사 일반공격·스킬 = 카메라 방향 논타겟, 궁수 일반공격 = 크로스헤어 아래 몬스터 지정(없으면 무동작), 1번 키 = 조준 모드(범위 인디케이터) → 좌클릭 확정 시 1회 전송, 우클릭 = 취소. **C++ 작성 완료(컴파일 대기)**: `FSkillTableRow`/`DT_SkillTable`, `UDataManager::FindSkillBySlot`, `AJMMyPlayer` 조준·시전·인디케이터(디버그 도형), 카메라 피벗 높이/어깨 오프셋(`MovementTable`), `SC_ATTACK` 방향 반영, 크로스헤어 위젯 훅. **남은 것(에디터): `IA_Attack/IA_Skill1/IA_CancelAim` + `IMC_Default` 매핑, `DT_SkillTable` 임포트, `DT_MovementTable` Reimport, `WBP_Crosshair`, `BP_MyPlayer`·`BP_PControler` 지정, `BP_PControler` 좌클릭 노드 삭제**
   - [x] A2.2d 전투 연출 (2026-10-21 완료, PIE 확인): 공격 중 이동 시 상체 레이어 블렌드(AnimBP `Layered blend per bone` + `UpperBody` 슬롯, Greystone·Sparrow), 시전 중 방향 고정(`LockFacing`, `HitDelayMs`+0.2초), 장판 최소 표시(`SC_ATTACK`의 `skill_id`/`aim_x,y`로 모든 클라이언트에 디버그 원 `DurationMs` 동안 — 이펙트 에셋 교체는 이후). 남은 개선: 서 있을 때 하체 고정이 어색하면 이동 속도로 Blend Weight 제어
+- [ ] A2.2e 전사 스킬 모션·이펙트 (2026-10-27 추가, 1a 완료): 1a SkillTable 클라 전용 `Montage` 열로 스킬별 몽타주 재생(402 `AM_Greystone_Skill1`, 502 `AM_Sparrow_Skill1`), 1b 이펙트 열 일반화(`Fx`/`FxBaseRadius`) + 402 지면 강타 이펙트
+- [ ] A2.2f 전투 HUD (2026-10-27 추가): 내 HP 바·수치, 스킬 슬롯(좌클릭·1번) 쿨타임. `SC_ATTACK.cooldown_ms` 추가
 - [ ] A2.3 서버+클라이언트: 경험치/레벨/골드 보상 패킷과 HUD(내 HP·EXP·레벨)
 - [ ] A2.4 서버+클라이언트: 플레이어 사망/부활
 - [ ] A2.5 서버: DB 저장 연결(`InitFromDb`, 접속 해제·주기 저장, `SavePlayerData` SQL 수정). 완료: 재접속 시 레벨·HP·골드 유지
@@ -134,6 +136,7 @@
 - [x] Greystone, Sparrow: 몽타주 Duplicate(`AM_`), AnimBP·피격·사망 Rename, `DT_CharacterAsset` 경로 갱신 (2026-10-19 완료)
 - [ ] Rampage: 사용 에셋 확인(`BP_Npc`) 후 같은 방식으로 처리 — 몽타주 Rename은 완료, `BP_Npc`의 `CurrentAttackMontage`는 아직 팩 원본(`Attack_Biped_Melee_A_Montage`)을 참조하고 사망/피격 몽타주는 미지정 (A2.1에서 지정)
 - [ ] Paragon 에셋 최종 Move: 캐릭터 작업 종료 시 (아래 중단점 4번 참고)
+- [x] A2.2e-1a: `AM_Sparrow_Skill1`(실제로는 시퀀스) → `AS_Sparrow_Skill1` 이름 변경, 몽타주 `AM_Sparrow_Skill1`(슬롯 `UpperBody`) 생성, `DT_SkillTable` Reimport (2026-10-27 완료)
 - [x] 장판 이펙트: `P_RainofArrows` → `Character/Sparrow/P_Sparrow_RainofArrows` Copy, `DT_SkillTable` Reimport (2026-10-27 완료)
 - [x] M0.5-4 Content 정리 (2026-10-21): `Input/Touch` 삭제, `BP_JMGameInstance`의 깨진 변수 `DT_Appearance/Equip` 제거, `BP_Player`/`BP_MyPlayer`의 `ABP_Base`·Mannequin 참조 해제 후 `ABP_Base`·`NewInterchange…` 삭제, `BP_MyPlayer/Player/Npc` → `_Core/Blueprints/Character/`, `DT_CharacterAsset` → `Data/` 이동(커맨드렛 Python, 리디렉터 없음), `DefaultInput.ini` 레거시 Action/Axis Mappings 삭제, `Characters/`·`FirstPerson/`·`LevelPrototyping/` 삭제
 
