@@ -3,8 +3,6 @@
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Fonts/SlateFontInfo.h"
-#include "Network/NetworkManager.h"
-#include "Network/SendBuffer.h"
 
 void UChatWidget::FocusChatInput(APlayerController* PC)
 {
@@ -76,23 +74,7 @@ void UChatWidget::OnChatTextCommitted(const FText& Text, ETextCommit::Type Commi
 
 		if (!ChatString.IsEmpty())
 		{
-			//int chatLen = ChatString.Len();
-			//if (chatLen >= MAX_CHAT_LEN) chatLen = MAX_CHAT_LEN - 1;
-
-			//CS_CHAT_PACKET chatPacket;
-			//unsigned short packetSize = sizeof(PacketHeader) + ((chatLen + 1) * sizeof(wchar_t));
-			//chatPacket.header = { packetSize , CS_CHAT };
-			//FCString::Strncpy(chatPacket.message, *ChatString, MAX_CHAT_LEN);
-
-			//TSharedPtr<SendBuffer> sendBuffer = MakeShared<SendBuffer>(packetSize);
-			//sendBuffer->CopyData(&chatPacket, packetSize); // <-- packetSize로 수정!
-
-			//UMyGameInstance* GameInst = Cast<UMyGameInstance>(GetGameInstance());
-			//if (GameInst && GameInst->GetSubsystem<UNetworkManager>())
-			//{
-			//	GameInst->GetSubsystem<UNetworkManager>()->SendPacket(sendBuffer);
-			//}
-
+			// TODO: 채팅 프로토콜 확정 후 UNetworkManager::SendChat으로 전송한다.
 			ChatInput->SetText(FText::GetEmpty());
 		}
 	}

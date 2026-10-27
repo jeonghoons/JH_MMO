@@ -31,6 +31,16 @@ public:
 
 	void SendPacket(TSharedPtr<class SendBuffer> sendBuffer);
 
+	// 월드 컨텍스트 오브젝트(액터, 위젯 등)로 NetworkManager를 얻는다. GameInstance가 없으면 nullptr.
+	static UNetworkManager* Get(const UObject* WorldContext);
+
+	// 패킷별 송신 함수. 패킷 구성과 SendBuffer 생성은 이 함수들에서만 한다.
+	void SendLogin(const FString& AccountId, const FString& AccountPw);
+	void SendSignUp(const FString& AccountId, const FString& AccountPw);
+	void SendEnterRoom();
+	void SendMove(const Protocol::PositionInfo& PosInfo, bool bForce);
+	void SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY);
+
 public:
 	void EnterGame();
 	void SwitchGameMapLevel(FName LevelToLoad);

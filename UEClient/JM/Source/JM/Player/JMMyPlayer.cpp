@@ -7,7 +7,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "Network/NetworkManager.h"
 #include "Protocol/Protocol.pb.h"
-#include "Network/SendBuffer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Game/DataManager.h"
 #include "Camera/PlayerCameraManager.h"
@@ -139,7 +138,7 @@ void AJMMyPlayer::Tick(float DeltaTime)
 	/*if (GetGameInstance()->GetSubsystem<UNetworkManager>() == nullptr)
 		return;*/
 
-	UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>();
+	UNetworkManager* NetManager = UNetworkManager::Get(this);
 	if (NetManager == nullptr) return;
 
 	bool forceSendPacket = false;
@@ -162,11 +161,7 @@ void AJMMyPlayer::Tick(float DeltaTime)
 	{
 		MovePacketSendTimer = MOVE_PACKET_SEND_DELAY;
 
-		Protocol::CS_MOVE_PACKET movePkt;
-		movePkt.mutable_pos_info()->CopyFrom(ObjectInfo.position());
-		movePkt.set_force(forceSendPacket);
-		TSharedPtr<SendBuffer> sendBuffer = SendBuffer::MakeSendBuffer(movePkt, Protocol::CS_MOVE);
-		NetManager->SendPacket(sendBuffer);
+		NetManager->SendMove(ObjectInfo.position(), forceSendPacket);
 	}
 
 }
@@ -342,16 +337,9 @@ void AJMMyPlayer::CastSkillSlot(int32 Slot)
 	FAimResult Aim;
 	if (!ComputeAim(*Skill, Aim)) return;   // 대상 없음: 조준 중이면 조준을 유지한다.
 
-	if (UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>())
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this))
 	{
-		Protocol::CS_ATTACK_PACKET AttackPkt;
-		AttackPkt.set_skill_slot(Slot);
-		AttackPkt.set_target_id(Aim.TargetId);
-		AttackPkt.set_aim_yaw(Aim.Yaw);
-		AttackPkt.set_aim_x(Aim.Point.X);
-		AttackPkt.set_aim_y(Aim.Point.Y);
-		TSharedPtr<SendBuffer> SendBuf = SendBuffer::MakeSendBuffer(AttackPkt, Protocol::CS_ATTACK);
-		NetManager->SendPacket(SendBuf);
+		NetManager->SendAttack(Slot, Aim.TargetId, Aim.Yaw, Aim.Point.X, Aim.Point.Y);
 	}
 
 	// 반응성을 위해 시전 방향으로 바로 돌린다. 실제 판정 방향은 서버가 확정한다.

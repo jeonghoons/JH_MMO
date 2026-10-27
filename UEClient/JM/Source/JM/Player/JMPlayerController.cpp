@@ -1,6 +1,4 @@
 ﻿#include "Player/JMPlayerController.h"
-#include "Protocol/Protocol.pb.h"
-#include "Network/SendBuffer.h"
 #include "Network/NetworkManager.h"
 #include "UI/JMUIManager.h"
 #include "Blueprint/UserWidget.h"
@@ -22,12 +20,9 @@ void AJMPlayerController::BeginPlay()
 		}
 	}
 
-	Protocol::CS_ENTER_ROOM_PACKET EnterPkt;
-	TSharedPtr<SendBuffer> sendBuffer = SendBuffer::MakeSendBuffer(EnterPkt, Protocol::CS_ENTER_ROOM);
-	UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>();
-	if (NetManager)
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this))
 	{
-		NetManager->SendPacket(sendBuffer);
+		NetManager->SendEnterRoom();
 	}
 
 	UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();

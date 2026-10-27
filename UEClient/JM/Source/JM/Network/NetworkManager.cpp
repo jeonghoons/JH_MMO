@@ -92,6 +92,70 @@ void UNetworkManager::SendPacket(TSharedPtr<class SendBuffer> sendBuffer)
 	Packet_Session->SendPacket(sendBuffer);
 }
 
+UNetworkManager* UNetworkManager::Get(const UObject* WorldContext)
+{
+	if (WorldContext == nullptr || GEngine == nullptr)
+		return nullptr;
+
+	const UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull);
+	if (World == nullptr)
+		return nullptr;
+
+	UGameInstance* GameInstance = World->GetGameInstance();
+	return GameInstance ? GameInstance->GetSubsystem<UNetworkManager>() : nullptr;
+}
+
+namespace
+{
+	template<typename T>
+	void SendProtocol(UNetworkManager& Manager, const T& Pkt, uint16 PacketId)
+	{
+		Manager.SendPacket(SendBuffer::MakeSendBuffer(Pkt, PacketId));
+	}
+}
+
+void UNetworkManager::SendLogin(const FString& AccountId, const FString& AccountPw)
+{
+	Protocol::CS_LOGIN_PACKET pkt;
+	pkt.set_account_id(TCHAR_TO_UTF8(*AccountId));
+	pkt.set_account_pw(TCHAR_TO_UTF8(*AccountPw));
+	pkt.set_is_dummy(false);
+	SendProtocol(*this, pkt, Protocol::CS_LOGIN);
+}
+
+void UNetworkManager::SendSignUp(const FString& AccountId, const FString& AccountPw)
+{
+	Protocol::CS_SIGNUP_PACKET pkt;
+	pkt.set_account_id(TCHAR_TO_UTF8(*AccountId));
+	pkt.set_account_pw(TCHAR_TO_UTF8(*AccountPw));
+	SendProtocol(*this, pkt, Protocol::CS_SIGNUP);
+}
+
+void UNetworkManager::SendEnterRoom()
+{
+	Protocol::CS_ENTER_ROOM_PACKET pkt;
+	SendProtocol(*this, pkt, Protocol::CS_ENTER_ROOM);
+}
+
+void UNetworkManager::SendMove(const Protocol::PositionInfo& PosInfo, bool bForce)
+{
+	Protocol::CS_MOVE_PACKET pkt;
+	pkt.mutable_pos_info()->CopyFrom(PosInfo);
+	pkt.set_force(bForce);
+	SendProtocol(*this, pkt, Protocol::CS_MOVE);
+}
+
+void UNetworkManager::SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY)
+{
+	Protocol::CS_ATTACK_PACKET pkt;
+	pkt.set_skill_slot(SkillSlot);
+	pkt.set_target_id(TargetId);
+	pkt.set_aim_yaw(AimYaw);
+	pkt.set_aim_x(AimX);
+	pkt.set_aim_y(AimY);
+	SendProtocol(*this, pkt, Protocol::CS_ATTACK);
+}
+
 void UNetworkManager::EnterGame()
 {
 	SwitchGameMapLevel(FName("ParagonSample"));
@@ -114,8 +178,7 @@ void UNetworkManager::SendAttackPacket()
 	if (Packet_Session == nullptr) return;
 
 	Protocol::CS_ATTACK_PACKET attackPkt;
-	TSharedPtr<SendBuffer> sendBuffer = SendBuffer::MakeSendBuffer(attackPkt, Protocol::CS_ATTACK);
-	SendPacket(sendBuffer);
+	SendProtocol(*this, attackPkt, Protocol::CS_ATTACK);
 }
 
 
