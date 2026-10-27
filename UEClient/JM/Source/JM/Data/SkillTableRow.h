@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "Particles/ParticleSystem.h"
 #include "SkillTableRow.generated.h"
 
 // Common/DataTable/SkillTable.csv 의 enum 값과 이름이 같아야 한다. (서버 ServerData.h 의 HitShape / SkillTargeting)
@@ -43,4 +44,9 @@ struct FSkillTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ProjSpeed = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 DurationMs = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 TickMs = 0;
+
+	// 클라이언트 전용(서버 로더는 읽지 않음). 지면 장판 이펙트. 비어 있으면 디버그 원으로 표시한다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UParticleSystem> ZoneFx;
+	// 이펙트가 배율 1일 때 덮는 반지름. 재생 배율 = Radius / ZoneFxBaseRadius 이므로 조준 원(Radius)과 크기가 같아진다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ZoneFxBaseRadius = 0.f;
 };

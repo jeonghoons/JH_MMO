@@ -10,6 +10,8 @@
 #include "Game/DataManager.h"
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "TimerManager.h"
 
 void UJMObjectManager::ClearObjects()
 {
@@ -113,12 +115,30 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYa
 
 		Attacker->OnAttack();
 
-		// 지면 장판: 서버가 사거리로 보정한 지점에 지속시간 동안 범위를 표시한다. (임시 표시: 디버그 원. 이펙트 에셋은 이후 교체)
+		// 지면 장판: 서버가 사거리로 보정한 지점에 지속시간 동안 이펙트를 재생한다. 이펙트가 없으면 디버그 원으로 표시한다.
 		if (Skill && Skill->HitShape == ESkillHitShape::Zone && Skill->DurationMs > 0)
 		{
 			const float FeetZ = Attacker->GetActorLocation().Z - Attacker->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + 5.f;
 			const FVector Center(AimX, AimY, FeetZ);
-			DrawDebugCircle(GetWorld(), Center, Skill->Radius, 48, FColor(255, 80, 80), false, Skill->DurationMs / 1000.f, 0, 4.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+			const float DurationSec = Skill->DurationMs / 1000.f;
+
+			UParticleSystem* ZoneFx = Skill->ZoneFx.IsNull() ? nullptr : Skill->ZoneFx.LoadSynchronous();
+			const float FxScale = Skill->ZoneFxBaseRadius > 0.f ? Skill->Radius / Skill->ZoneFxBaseRadius : 1.f;
+			UParticleSystemComponent* FxComp = ZoneFx ? UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ZoneFx, Center, FRotator::ZeroRotator, FVector(FxScale)) : nullptr;
+			if (FxComp)
+			{
+				// 반복 재생 이펙트도 지속시간이 끝나면 멈춘다. 비활성화 후 남은 파티클이 사라지면 자동 삭제된다.
+				FTimerHandle Handle;
+				GetWorld()->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(FxComp, [FxComp]() { FxComp->Deactivate(); }), DurationSec, false);
+			}
+			else
+			{
+				if (!Skill->ZoneFx.IsNull())
+				{
+					UE_LOG(LogTemp, Warning, TEXT("HandleAttack: ZoneFx load failed (%s)"), *Skill->ZoneFx.ToString());
+				}
+				DrawDebugCircle(GetWorld(), Center, Skill->Radius, 48, FColor(255, 80, 80), false, DurationSec, 0, 4.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+			}
 		}
 	}
 }

@@ -13,14 +13,14 @@
 
 **검증 게이트 (모든 콘텐츠 단계 공통):** 체크박스는 해당 기능의 **오류 테스트**(비정상 입력, 중간 접속 해제, 중복·상태 불일치 요청)와 **부하 테스트**(단계 목표 CCU까지 램프, 200 → 1,000 → 5,000)를 통과하고 결과를 `Docs/TESTING.md`에 기록한 뒤에만 `[x]`로 표시합니다.
 
-## ▶ 중단점 (2026-10-21) — "M0.5 이어서 진행"이라고 하면 여기서 재개 (M0.5 항목 1 이후는 아래 Phase M0.5 참고, 그다음 A2.3)
-**상태:** A2.2 서브 단계(a~d) 완료, M0.5 항목 0·4·3·2 완료. 2026-10-21 사용자 확정 순서: **M0.5 항목 4(완료) → 3(완료) → 2(완료) → 1 → 5** (Content 정리 → 명명/배치 → `JMPlayer.cpp` 버그 → 네트워크 안정화 → 레이어 분리). 그다음 캐릭터 전투 보완(서 있을 때 상체 블렌드, 장판 이펙트 에셋), 그다음 **A2.3 경험치/레벨/골드**(보상 패킷, HUD, 스탯 반영 대미지).
-**다음 작업:** M0.5 항목 5(레이어 분리)를 서브 단계로 진행 중. 계획은 사용자 승인 완료(순서 5a → 5b → 5c, 단계마다 빌드 + Play 확인 후 커밋).
+## ▶ 중단점 (2026-10-27) — "이어서 진행"이라고 하면 여기서 재개 (다음: A2.3)
+**상태:** A2.2 서브 단계(a~d) 완료, M0.5 전체 완료, 캐릭터 전투 보완 완료 (2026-10-27). 2026-10-21 사용자 확정 순서: **M0.5 항목 4(완료) → 3(완료) → 2(완료) → 1 → 5** (Content 정리 → 명명/배치 → `JMPlayer.cpp` 버그 → 네트워크 안정화 → 레이어 분리). 그다음 캐릭터 전투 보완(서 있을 때 상체 블렌드, 장판 이펙트 에셋), 그다음 **A2.3 경험치/레벨/골드**(보상 패킷, HUD, 스탯 반영 대미지).
+**다음 작업:** A2.3 경험치/레벨/골드(보상 패킷, HUD, 스탯 반영 대미지). 범위가 크므로 먼저 계획을 제시합니다. 아래는 M0.5 항목 5 진행 기록입니다.
 - 5a 송신 파사드: 완료 (2026-10-27, 빌드 + Play 확인). `UNetworkManager::Get(WorldContext)`와 `SendLogin/SendSignUp/SendEnterRoom/SendMove/SendAttack` 추가, `LoginWidget`·`JMPlayerController`·`JMMyPlayer`가 파사드 사용, `ChatWidget`의 죽은 주석 삭제.
 - 5b 핸들러 보일러플레이트(`RegisterHandler<PacketT>` 템플릿, `GetObjectManager(session)` 헬퍼, 미사용 `SendAttackPacket` 삭제): 완료 (2026-10-27, 빌드 + Play 확인).
 - 5c UIManager 일원화: 완료 (2026-10-27, 빌드 + Play 확인. 인벤토리 키 미연결·채팅 미구현은 기존 상태로 `TODO.md` 백로그). 로그인 위젯·HUD·크로스헤어를 `UJMUIManager::RegisterWidget`(Z-Order, 시작 표시 인자 추가)으로 생성, 위젯 이름 상수 `UI/WidgetNames.h`, 레벨 전환 시 `ClearWidgets()`. `LoginWidgetClass`·`HUDWidgetClass`·`CrosshairWidgetClass` UPROPERTY는 유지하므로 에디터 작업 없음.
 - M0.5 항목 1 Play 확인 완료 (2026-10-27).
-- M0.5 완료. 재개할 때는 캐릭터 전투 보완(서 있을 때 상체 블렌드, 장판 이펙트 에셋) → A2.3 순서입니다. C++ 수정이라 에디터를 닫아야 합니다. `Content/` 구조 기준은 `DECISIONS.md` 2026-10-21 폴더 구조 항목 참고.
+- M0.5 완료. 캐릭터 전투 보완 완료 (2026-10-27): 서 있을 때 상체 블렌드는 하지 않기로 함, 궁수 장판은 `P_Sparrow_RainofArrows` 이펙트로 교체(`SkillTable`의 클라이언트 전용 `ZoneFx`·`ZoneFxBaseRadius`, 배율 = `Radius / ZoneFxBaseRadius`), 502 `Radius` 250 → 400으로 이펙트 원본 크기에 맞춤(`DECISIONS.md` 2026-10-27). PIE 확인: 조준 원과 이펙트가 대략 일치, 이펙트가 약간 더 큼(필요하면 500으로 재조정). **다음 작업: A2.3 경험치/레벨/골드.**
 **Claude가 못 보는 것:** 에디터의 애니메이션·이펙트 모양. 스크린샷이나 블루프린트 노드 복사 텍스트(Ctrl+C)를 붙여넣어 확인합니다.
 **주의:** UE 빌드는 에디터가 켜져 있으면 Live Coding 때문에 막히니, C++를 고칠 일이 생기면 에디터를 닫아야 합니다. 서버는 `Server/x64/Debug/GameServer.exe`(SQL Server Express 필요). 궁수 계정은 `LoadTest --hero archer`의 `arc_*` 계정이나 UE 로그인 화면에서 궁수 타입으로 가입하면 됩니다.
 **참고:** M0.5 항목 4·3·2·1은 커밋 완료(`b352400`, `2b66c6c`, `7c4d65a`). 5a `a95d3e8`, 5b `1fa1780`, 5c `클라이언트: UIManager 일원화 (M0.5-5c)` 커밋.
@@ -134,6 +134,7 @@
 - [x] Greystone, Sparrow: 몽타주 Duplicate(`AM_`), AnimBP·피격·사망 Rename, `DT_CharacterAsset` 경로 갱신 (2026-10-19 완료)
 - [ ] Rampage: 사용 에셋 확인(`BP_Npc`) 후 같은 방식으로 처리 — 몽타주 Rename은 완료, `BP_Npc`의 `CurrentAttackMontage`는 아직 팩 원본(`Attack_Biped_Melee_A_Montage`)을 참조하고 사망/피격 몽타주는 미지정 (A2.1에서 지정)
 - [ ] Paragon 에셋 최종 Move: 캐릭터 작업 종료 시 (아래 중단점 4번 참고)
+- [x] 장판 이펙트: `P_RainofArrows` → `Character/Sparrow/P_Sparrow_RainofArrows` Copy, `DT_SkillTable` Reimport (2026-10-27 완료)
 - [x] M0.5-4 Content 정리 (2026-10-21): `Input/Touch` 삭제, `BP_JMGameInstance`의 깨진 변수 `DT_Appearance/Equip` 제거, `BP_Player`/`BP_MyPlayer`의 `ABP_Base`·Mannequin 참조 해제 후 `ABP_Base`·`NewInterchange…` 삭제, `BP_MyPlayer/Player/Npc` → `_Core/Blueprints/Character/`, `DT_CharacterAsset` → `Data/` 이동(커맨드렛 Python, 리디렉터 없음), `DefaultInput.ini` 레거시 Action/Axis Mappings 삭제, `Characters/`·`FirstPerson/`·`LevelPrototyping/` 삭제
 
 ## ▶ 중단점 (2026-10-17 종료 시점) — "에셋 정리 이어서 진행"이라고 하면 여기서 재개
