@@ -49,8 +49,9 @@ struct FSkillTableRow : public FTableRowBase
 	// 클라이언트 전용(서버 로더는 읽지 않음). 시전 몽타주. 비어 있으면 DT_CharacterAsset의 기본 공격 몽타주를 쓴다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UAnimMontage> Montage;
 
-	// 클라이언트 전용(서버 로더는 읽지 않음). 지면 장판 이펙트. 비어 있으면 디버그 원으로 표시한다.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UParticleSystem> ZoneFx;
-	// 이펙트가 배율 1일 때 덮는 반지름. 재생 배율 = Radius / ZoneFxBaseRadius 이므로 조준 원(Radius)과 크기가 같아진다.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ZoneFxBaseRadius = 0.f;
+	// 클라이언트 전용(서버 로더는 읽지 않음). 스킬 이펙트. 장판은 조준 지점, 부채꼴·직선은 시전자 발밑에서 재생한다.
+	// 비어 있으면 장판만 디버그 원으로 표시한다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UParticleSystem> Fx;
+	// 이펙트가 배율 1일 때 덮는 반지름. 재생 배율 = Radius / FxBaseRadius 이므로 조준 인디케이터(Radius)와 크기가 같아진다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float FxBaseRadius = 0.f;
 };

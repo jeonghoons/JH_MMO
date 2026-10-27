@@ -9,7 +9,7 @@ public class JMEditorTools : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"Core", "CoreUObject", "Engine", "UnrealEd",
-			"Json", "JsonUtilities", "StructUtils"
+			"Json", "JsonUtilities", "StructUtils", "DeveloperSettings", "JM"
 		});
 	}
 }

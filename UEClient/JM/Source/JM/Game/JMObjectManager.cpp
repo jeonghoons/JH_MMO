@@ -115,31 +115,65 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYa
 
 		Attacker->OnAttack(Skill);
 
-		// 지면 장판: 서버가 사거리로 보정한 지점에 지속시간 동안 이펙트를 재생한다. 이펙트가 없으면 디버그 원으로 표시한다.
-		if (Skill && Skill->HitShape == ESkillHitShape::Zone && Skill->DurationMs > 0)
-		{
-			const float FeetZ = Attacker->GetActorLocation().Z - Attacker->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + 5.f;
-			const FVector Center(AimX, AimY, FeetZ);
-			const float DurationSec = Skill->DurationMs / 1000.f;
+		if (Skill) SpawnSkillFx(Attacker, *Skill, AimYaw, AimX, AimY);
+	}
+}
 
-			UParticleSystem* ZoneFx = Skill->ZoneFx.IsNull() ? nullptr : Skill->ZoneFx.LoadSynchronous();
-			const float FxScale = Skill->ZoneFxBaseRadius > 0.f ? Skill->Radius / Skill->ZoneFxBaseRadius : 1.f;
-			UParticleSystemComponent* FxComp = ZoneFx ? UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ZoneFx, Center, FRotator::ZeroRotator, FVector(FxScale)) : nullptr;
-			if (FxComp)
-			{
-				// 반복 재생 이펙트도 지속시간이 끝나면 멈춘다. 비활성화 후 남은 파티클이 사라지면 자동 삭제된다.
-				FTimerHandle Handle;
-				GetWorld()->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(FxComp, [FxComp]() { FxComp->Deactivate(); }), DurationSec, false);
-			}
-			else
-			{
-				if (!Skill->ZoneFx.IsNull())
-				{
-					UE_LOG(LogTemp, Warning, TEXT("HandleAttack: ZoneFx load failed (%s)"), *Skill->ZoneFx.ToString());
-				}
-				DrawDebugCircle(GetWorld(), Center, Skill->Radius, 48, FColor(255, 80, 80), false, DurationSec, 0, 4.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
-			}
+void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTableRow& Skill, float AimYaw, float AimX, float AimY)
+{
+	UWorld* World = GetWorld();
+	if (World == nullptr || Attacker == nullptr) return;
+
+	UParticleSystem* Fx = Skill.Fx.IsNull() ? nullptr : Skill.Fx.LoadSynchronous();
+	if (Fx == nullptr && !Skill.Fx.IsNull())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SpawnSkillFx: Fx load failed (%s)"), *Skill.Fx.ToString());
+	}
+	// 이펙트 크기는 스킬 범위(Radius) 기준이다. 서버 판정·조준 인디케이터와 같은 값을 쓴다.
+	const float FxScale = Skill.FxBaseRadius > 0.f ? Skill.Radius / Skill.FxBaseRadius : 1.f;
+	const float FeetZOffset = -Attacker->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + 5.f;
+
+	// 지면 장판: 서버가 사거리로 보정한 지점에 지속시간 동안 재생한다. 이펙트가 없으면 디버그 원으로 표시한다.
+	if (Skill.HitShape == ESkillHitShape::Zone)
+	{
+		if (Skill.DurationMs <= 0) return;
+		const FVector Center(AimX, AimY, Attacker->GetActorLocation().Z + FeetZOffset);
+		const float DurationSec = Skill.DurationMs / 1000.f;
+
+		UParticleSystemComponent* FxComp = Fx ? UGameplayStatics::SpawnEmitterAtLocation(World, Fx, Center, FRotator::ZeroRotator, FVector(FxScale)) : nullptr;
+		if (FxComp)
+		{
+			// 반복 재생 이펙트도 지속시간이 끝나면 멈춘다. 비활성화 후 남은 파티클이 사라지면 자동 삭제된다.
+			FTimerHandle Handle;
+			World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(FxComp, [FxComp]() { FxComp->Deactivate(); }), DurationSec, false);
 		}
+		else
+		{
+			DrawDebugCircle(World, Center, Skill.Radius, 48, FColor(255, 80, 80), false, DurationSec, 0, 4.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+		}
+		return;
+	}
+
+	// 부채꼴·직선: 타격 시점(HitDelayMs)에 시전자 발밑에서 시전 방향으로 한 번 재생한다. 이펙트가 없으면 표시하지 않는다.
+	if (Fx == nullptr || (Skill.HitShape != ESkillHitShape::Sector && Skill.HitShape != ESkillHitShape::Line)) return;
+
+	TWeakObjectPtr<AJMCharacterBase> WeakAttacker = Attacker;
+	TWeakObjectPtr<UParticleSystem> WeakFx = Fx;
+	auto Play = [WeakAttacker, WeakFx, AimYaw, FxScale, FeetZOffset]()
+		{
+			if (!WeakAttacker.IsValid() || !WeakFx.IsValid()) return;
+			const FVector Location = WeakAttacker->GetActorLocation() + FVector(0.f, 0.f, FeetZOffset);
+			UGameplayStatics::SpawnEmitterAtLocation(WeakAttacker->GetWorld(), WeakFx.Get(), Location, FRotator(0.f, AimYaw, 0.f), FVector(FxScale));
+		};
+
+	if (Skill.HitDelayMs > 0)
+	{
+		FTimerHandle Handle;
+		World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(Attacker, Play), Skill.HitDelayMs / 1000.f, false);
+	}
+	else
+	{
+		Play();
 	}
 }
 
