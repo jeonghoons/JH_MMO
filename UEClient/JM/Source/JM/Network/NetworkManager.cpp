@@ -173,13 +173,6 @@ void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad)
 	UGameplayStatics::OpenLevel(World, LevelToLoad);
 }
 
-void UNetworkManager::SendAttackPacket()
-{
-	if (Packet_Session == nullptr) return;
-
-	Protocol::CS_ATTACK_PACKET attackPkt;
-	SendProtocol(*this, attackPkt, Protocol::CS_ATTACK);
-}
 
 
 

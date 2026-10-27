@@ -45,12 +45,6 @@ public:
 	void EnterGame();
 	void SwitchGameMapLevel(FName LevelToLoad);
 
-
-public:
-
-	UFUNCTION(BlueprintCallable, Category = "Network")
-	void SendAttackPacket();
-
 public:
 	int32 NetworkId = -1;
 

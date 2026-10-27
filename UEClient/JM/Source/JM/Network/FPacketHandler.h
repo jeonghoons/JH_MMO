@@ -3,6 +3,7 @@
 #include "Protocol/Protocol.pb.h"
 
 class NetworkSession;
+class UJMObjectManager;
 
 using PacketHandlerFunc = std::function<bool(TSharedPtr<NetworkSession>, BYTE*, int)>;
 extern PacketHandlerFunc GPacketHandler[UINT16_MAX + 1]; // PacketId가 uint16 전체 범위이므로 +1
@@ -26,6 +27,18 @@ private:
         func(session, pkt);
         return true;
     }
+
+    // 패킷 타입은 핸들러 시그니처에서 추론한다.
+    template<typename T>
+    static void RegisterHandler(uint16 PacketId, void(*Func)(TSharedPtr<NetworkSession>&, T&))
+    {
+        GPacketHandler[PacketId] = [Func](TSharedPtr<NetworkSession> session, BYTE* buffer, int len) {
+            return ParseAndHandle<T>(Func, session, buffer, len);
+            };
+    }
+
+    // 세션 → NetworkManager → GameInstance → ObjectManager. 중간에 없으면 nullptr.
+    static UJMObjectManager* GetObjectManager(const TSharedPtr<NetworkSession>& session);
 
     static void Handle_SC_LOGIN(TSharedPtr<NetworkSession>& session, Protocol::SC_LOGIN_INFO_PACKET& pkt);
     static void Handle_SC_SIGNUP(TSharedPtr<NetworkSession>& session, Protocol::SC_SIGNUP_PACKET& pkt);
