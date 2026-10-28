@@ -78,7 +78,7 @@ static long long NowUs()
 struct Counters
 {
 	atomic<long long> connectAttempts{ 0 }, connectOk{ 0 }, connectFail{ 0 };
-	atomic<long long> loginOk{ 0 }, unexpectedClose{ 0 }, protocolError{ 0 }, sendDropped{ 0 };
+	atomic<long long> loginOk{ 0 }, loginFail{ 0 }, unexpectedClose{ 0 }, protocolError{ 0 }, sendDropped{ 0 };
 	atomic<long long> pktSent{ 0 }, pktRecv{ 0 }, bytesRecv{ 0 }, pongRecv{ 0 }, moveCorrected{ 0 };
 	atomic<long long> monsterDead{ 0 }, monsterRemoved{ 0 }, monsterAdded{ 0 }, damageRecv{ 0 }, objectAdded{ 0 };
 	atomic<int> connected{ 0 }, inGame{ 0 };
@@ -250,6 +250,13 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 	{
 		Protocol::SC_LOGIN_INFO_PACKET pkt;
 		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		// 로그인 실패도 SC_LOGIN으로 온다. 실패면 object_info가 비어 있으므로 성공으로 세지 않는다.
+		if (pkt.result() != Protocol::LOGIN_RESULT_SUCCESS)
+		{
+			GStat.loginFail.fetch_add(1);
+			if (b.index == 0) printf("[loadtest] bot0 login failed: %s\n", Protocol::LoginResult_Name(pkt.result()).c_str());
+			return;
+		}
 
 		b.objectId = pkt.object_info().id();
 		b.x = pkt.object_info().position().x();
@@ -802,8 +809,8 @@ int main(int argc, char** argv)
 
 	sort(allPing.begin(), allPing.end());
 	sort(allLogin.begin(), allLogin.end());
-	printf("\n[summary] attempts=%lld ok=%lld fail=%lld loginOk=%lld unexpectedClose=%lld protocolError=%lld sendDropped=%lld\n",
-		GStat.connectAttempts.load(), GStat.connectOk.load(), GStat.connectFail.load(), GStat.loginOk.load(),
+	printf("\n[summary] attempts=%lld ok=%lld fail=%lld loginOk=%lld loginFail=%lld unexpectedClose=%lld protocolError=%lld sendDropped=%lld\n",
+		GStat.connectAttempts.load(), GStat.connectOk.load(), GStat.connectFail.load(), GStat.loginOk.load(), GStat.loginFail.load(),
 		GStat.unexpectedClose.load(), GStat.protocolError.load(), GStat.sendDropped.load());
 	printf("[summary] login   p50/p95/p99/max = %.1f/%.1f/%.1f/%.1f ms (n=%zu)\n",
 		Percentile(allLogin, 0.50) / 1000.0, Percentile(allLogin, 0.95) / 1000.0, Percentile(allLogin, 0.99) / 1000.0,

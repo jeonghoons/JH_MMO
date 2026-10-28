@@ -64,13 +64,14 @@ void Monster::Update(float deltaTime)
 	Character::Update(deltaTime);
 }
 
-void Monster::OnDamaged(int damage, std::shared_ptr<Character> attacker)
+void Monster::OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker)
 {
-	Character::OnDamaged(damage, attacker);
+	Character::OnDamaged(damage, attackerId, attacker);
 
 	ChangeState(MonsterState::HIT);
 
-	if (attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) {
+	// 공격자가 이미 사라졌으면 어그로 대상은 바꾸지 않는다.
+	if (attacker && attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) {
 		_targetPlayer = std::static_pointer_cast<Player>(attacker);
 		ChangeState(MonsterState::TRACE);
 	}

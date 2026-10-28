@@ -15,7 +15,7 @@
 
 ## ▶ 중단점 (2026-10-27) — "이어서 진행"이라고 하면 여기서 재개 (다음: A2.3)
 **상태:** A2.2 서브 단계(a~d) 완료, M0.5 전체 완료, 캐릭터 전투 보완 완료 (2026-10-27). 2026-10-21 사용자 확정 순서: **M0.5 항목 4(완료) → 3(완료) → 2(완료) → 1 → 5** (Content 정리 → 명명/배치 → `JMPlayer.cpp` 버그 → 네트워크 안정화 → 레이어 분리). 그다음 캐릭터 전투 보완(서 있을 때 상체 블렌드, 장판 이펙트 에셋), 그다음 **A2.3 경험치/레벨/골드**(보상 패킷, HUD, 스탯 반영 대미지).
-**다음 작업 (2026-10-27 우선순위 변경, `DECISIONS.md`):** ① A2.2e 전사 스킬 모션·이펙트 → ② A2.2f 전투 HUD(HP·쿨타임) → ③ 폴더·파일 정리 → ④ 아이템(A3) → ⑤ 서버 권위 이동 → ⑥ 서버 설정(A1.1). A2.3은 그 이후. ③~⑥은 차례가 되면 코드를 읽고 따로 계획합니다. 현재: A2.2e 완료 (2026-10-28, 1a 모션 + 1b 이펙트·타격 시점 도구, Play 확인). 전사 판정 형태 조정 완료(2026-10-28). 다음: A2.2f. 아래는 M0.5 항목 5 진행 기록입니다.
+**다음 작업 (2026-10-27 우선순위 변경, `DECISIONS.md`):** ① A2.2e 전사 스킬 모션·이펙트 → ② A2.2f 전투 HUD(HP·쿨타임) → ③ 폴더·파일 정리 → ④ 아이템(A3) → ⑤ 서버 권위 이동 → ⑥ 서버 설정(A1.1). A2.3은 그 이후. ③~⑥은 차례가 되면 코드를 읽고 따로 계획합니다. 현재: A2.2e 완료 (2026-10-28, 1a 모션 + 1b 이펙트·타격 시점 도구, Play 확인). 전사 판정 형태 조정 완료(2026-10-28). 2026-10-28 QA(`TESTING.md`) 결과로 **A0.7 QA 버그 수정을 A2.2f보다 먼저** 진행 → 완료(2026-10-28, 서버 재현 테스트·회귀 + PIE 로그인 실패·가입·궁수 로그인 확인). 다음: A2.2f. 아래는 M0.5 항목 5 진행 기록입니다.
 - 5a 송신 파사드: 완료 (2026-10-27, 빌드 + Play 확인). `UNetworkManager::Get(WorldContext)`와 `SendLogin/SendSignUp/SendEnterRoom/SendMove/SendAttack` 추가, `LoginWidget`·`JMPlayerController`·`JMMyPlayer`가 파사드 사용, `ChatWidget`의 죽은 주석 삭제.
 - 5b 핸들러 보일러플레이트(`RegisterHandler<PacketT>` 템플릿, `GetObjectManager(session)` 헬퍼, 미사용 `SendAttackPacket` 삭제): 완료 (2026-10-27, 빌드 + Play 확인).
 - 5c UIManager 일원화: 완료 (2026-10-27, 빌드 + Play 확인. 인벤토리 키 미연결·채팅 미구현은 기존 상태로 `TODO.md` 백로그). 로그인 위젯·HUD·크로스헤어를 `UJMUIManager::RegisterWidget`(Z-Order, 시작 표시 인자 추가)으로 생성, 위젯 이름 상수 `UI/WidgetNames.h`, 레벨 전환 시 `ClearWidgets()`. `LoginWidgetClass`·`HUDWidgetClass`·`CrosshairWidgetClass` UPROPERTY는 유지하므로 에디터 작업 없음.
@@ -34,6 +34,7 @@
 - [x] A0.4 `dt` 클램프 복구(`Room.cpp:55`), `StatComponent` 초기화(null 안전), `GameMap` 경계 검사(`ToCellPos` 클램프), 가입 시 스탯 없는 PlayerType 거부 (2026-10-20, 빌드·오류 테스트 통과. `dt` 클램프와 맵 밖 좌표는 직접 재현 수단이 없어 코드 리뷰로만 확인 — A0.6 하니스에서 재확인)
 - [x] A0.5 Room 입장 경쟁 조건(정원·방 생성 락) + 맵 리소스 로딩 공유. 완료: 동시 접속 100 → 방 수 정확 (2026-10-20: 250명 → 3개, 1,000명 → 10개 방, `TESTING.md`. 네비메시는 공유, 로직 JSON은 방마다 읽음 — 작아서 유지)
 - [x] A0.6 최소 검증 하니스: 헤드리스 `Server/LoadTest`(`--bots --host --ramp-rate` 등; DummyClient는 CP949·OpenGL 결합으로 새 프로젝트로 대체), 서버 지표(`Metrics`: 세션·방·플레이어·패킷/초·틱 지연/처리시간, `metrics.csv`), `CS_PING`/`SC_PONG` RTT 측정, 악성 패킷 주입 스크립트. 완료: 200봇 램프 + 악성 패킷 시험 결과가 `Docs/TESTING.md`에 기록됨 (2026-10-20, 1,000봇까지 확인)
+- [x] A0.7 QA 버그 수정 (2026-10-28 QA 결과, `TESTING.md`): C1 로그인 전 `CS_ENTER_ROOM` 크래시, C2 공격자 이탈 후 지연 피해 크래시, H1 같은 연결 재로그인 시 유령 플레이어, H2 로그인 실패·가입 결과 미전송(`SC_LOGIN` 결과 코드 + `SC_SIGNUP` 전송, 로그인 화면 결과 표시) + 가입 시 영웅 선택(`player_type` 미전송으로 가입이 항상 실패). 완료: 재현 스크립트 재실행 통과 + LoadTest 회귀 + PIE 로그인 실패·성공·가입 (2026-10-28 완료)
 
 ### A2′. 몬스터·전투 (서버 + UE 클라이언트, 최우선)
 - [x] A2.1 서버: 몬스터 사망 제거 + 리스폰(`MaxCount`, `SpawnRadius`, 지연). 클라이언트: `SC_DEAD`/`SC_REMOVE_OBJECT` 반영, 사망 몽타주 후 제거 (2026-10-20 완료: 서버 시험 + PIE 확인 — 피격/HP바/쓰러진 자세 유지/3초 후 제거/10초 후 리스폰). 과정에서 `MonsterTable`(`HitStunMs` 포함), 플레이어 공격 서버 쿨타임, `atk(req/ok)` 지표 추가, `DT_CharacterAsset` 몽타주 오등록 수정, 사망 몽타주 `Enable Auto Blend Out` 해제. 남은 개선: 사망을 AnimBP 상태(`bIsDead`)로 전환(A2.4), 공격 중 이동 시 하체 모션(AnimBP 상체 레이어)
@@ -136,6 +137,7 @@
 - [x] Greystone, Sparrow: 몽타주 Duplicate(`AM_`), AnimBP·피격·사망 Rename, `DT_CharacterAsset` 경로 갱신 (2026-10-19 완료)
 - [ ] Rampage: 사용 에셋 확인(`BP_Npc`) 후 같은 방식으로 처리 — 몽타주 Rename은 완료, `BP_Npc`의 `CurrentAttackMontage`는 아직 팩 원본(`Attack_Biped_Melee_A_Montage`)을 참조하고 사망/피격 몽타주는 미지정 (A2.1에서 지정)
 - [ ] Paragon 에셋 최종 Move: 캐릭터 작업 종료 시 (아래 중단점 4번 참고)
+- [x] A0.7: `WBP_Login`에 `TxtResult`(Text) + `ComboHero`(ComboBox (String)) 추가, 라벨 `TxtHeroLabel`("가입할 영웅"), 순서 비밀번호 → 영웅 라벨 → 콤보 → 버튼 → 결과 메시지, 글꼴·여백을 기존 항목에 맞춤 (2026-10-28 완료)
 - [x] 전사 판정 조정: `AM_Greystone_Attack` 약 0.41초에 Skill Hit 노티파이 → `ExportSkillTiming.bat`(401 `HitDelayMs`, `DT_SkillTable` 갱신) (2026-10-28 완료)
 - [x] A2.2e-1b: `P_Greystone_GroundSmash` Copy, `AS/AM_Greystone_Skill2`(전신 `DefaultSlot`), ABP 2개에 `Slot 'DefaultSlot'`, 몽타주 2개에 Skill Hit 노티파이, `ExportSkillTiming.bat`으로 `DT_SkillTable` 갱신 (2026-10-28 완료)
 - [x] A2.2e-1a: `AM_Sparrow_Skill1`(실제로는 시퀀스) → `AS_Sparrow_Skill1` 이름 변경, 몽타주 `AM_Sparrow_Skill1`(슬롯 `UpperBody`) 생성, `DT_SkillTable` Reimport (2026-10-27 완료)

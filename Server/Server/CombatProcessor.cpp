@@ -44,7 +44,7 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 		}
 
 		if (flightTimeMs <= 0) {
-			targetChar->OnDamaged(skillData->baseDamage, attacker);
+			targetChar->OnDamaged(skillData->baseDamage, attacker->GetId(), attacker);
 		}
 		else {
 			room->ReserveJob(flightTimeMs, &Room::ApplyDelayedDamage, targetChar->GetId(), attacker->GetId(), skillData->baseDamage);
@@ -93,7 +93,7 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 				else
 				{
 					int finalDamage = skillData->baseDamage;
-					targetChar->OnDamaged(finalDamage, attacker);
+					targetChar->OnDamaged(finalDamage, attacker->GetId(), attacker);
 				}
 			}
 		}
@@ -110,7 +110,7 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 		}
 
 		if (flightTimeMs <= 0) {
-			closestProjTarget->OnDamaged(skillData->baseDamage, attacker);
+			closestProjTarget->OnDamaged(skillData->baseDamage, attacker->GetId(), attacker);
 		}
 		else {
 			room->ReserveJob(flightTimeMs, &Room::ApplyDelayedDamage, closestProjTarget->GetId(), attacker->GetId(), skillData->baseDamage);

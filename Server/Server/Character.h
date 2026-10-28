@@ -12,7 +12,8 @@ public:
 
 public:
 	virtual void Update(float deltaTime) override;
-	virtual void OnDamaged(int damage, std::shared_ptr<Character> attacker);
+	// attacker는 nullptr일 수 있다(투사체가 날아가는 동안 공격자가 접속을 끊거나 사라진 경우). 그래도 피해는 적용하고 attackerId를 그대로 알린다.
+	virtual void OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker);
 
 	virtual void OnDead(std::shared_ptr<Character> attacker);
 

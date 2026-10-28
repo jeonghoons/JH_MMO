@@ -32,9 +32,9 @@ void Player::Update(float deltaTime)
 	Character::Update(deltaTime);
 }
 
-void Player::OnDamaged(int damage, std::shared_ptr<Character> attacker)
+void Player::OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker)
 {
-	Character::OnDamaged(damage, attacker);	
+	Character::OnDamaged(damage, attackerId, attacker);	
 }
 
 void Player::OnDead(std::shared_ptr<Character> attacker)

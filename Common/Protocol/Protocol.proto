@@ -68,11 +68,12 @@ message CS_PING_PACKET {
 // ==========================================
 
 message SC_LOGIN_INFO_PACKET {
-	ObjectInfo object_info = 1;
+	ObjectInfo object_info = 1;   // result가 SUCCESS일 때만 채워진다
+	LoginResult result = 2;
 }
 
 message SC_SIGNUP_PACKET {
-	bool result = 1;
+	bool result = 1;   // false: 중복 ID, 잘못된 영웅, 이미 로그인한 연결 등
 }
 
 message SC_ADD_OBJECT_PACKET {

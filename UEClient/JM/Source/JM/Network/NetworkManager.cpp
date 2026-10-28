@@ -124,11 +124,12 @@ void UNetworkManager::SendLogin(const FString& AccountId, const FString& Account
 	SendProtocol(*this, pkt, Protocol::CS_LOGIN);
 }
 
-void UNetworkManager::SendSignUp(const FString& AccountId, const FString& AccountPw)
+void UNetworkManager::SendSignUp(const FString& AccountId, const FString& AccountPw, int32 PlayerType)
 {
 	Protocol::CS_SIGNUP_PACKET pkt;
 	pkt.set_account_id(TCHAR_TO_UTF8(*AccountId));
 	pkt.set_account_pw(TCHAR_TO_UTF8(*AccountPw));
+	pkt.set_player_type(static_cast<Protocol::PlayerType>(PlayerType));
 	SendProtocol(*this, pkt, Protocol::CS_SIGNUP);
 }
 

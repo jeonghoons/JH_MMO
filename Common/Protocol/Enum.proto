@@ -66,3 +66,13 @@ enum EquipPart {
     EQUIP_PART_OUTFIT_SHOES = 3;
     EQUIP_PART_WEAPON = 5;
 }
+
+// SC_LOGIN_INFO_PACKET.result. 성공일 때만 object_info가 채워진다.
+enum LoginResult {
+    LOGIN_RESULT_NONE = 0;
+    LOGIN_RESULT_SUCCESS = 1;
+    LOGIN_RESULT_NO_ACCOUNT = 2;       // 없는 ID
+    LOGIN_RESULT_WRONG_PASSWORD = 3;
+    LOGIN_RESULT_ALREADY_LOGGED_IN = 4; // 같은 연결에서 이미 로그인함
+    LOGIN_RESULT_SERVER_ERROR = 5;      // DB 오류 등
+}

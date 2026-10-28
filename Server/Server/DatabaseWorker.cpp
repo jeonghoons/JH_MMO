@@ -101,7 +101,8 @@ void DatabaseWorker::TryLogin(shared_ptr<Session> session, string recvId, string
 				}
 				else
 				{
-					GLobby->PushJob(&AuthLobby::OnLoginFailed, session, (string)"비밀번호 오류");
+					GLobby->PushJob(&AuthLobby::OnLoginFailed, session, Protocol::LOGIN_RESULT_WRONG_PASSWORD);
+					isFirstRow = false;   // 아래의 "없는 ID" 응답이 한 번 더 나가지 않게 한다.
 					break; 
 				}
 				isFirstRow = false;
@@ -119,8 +120,12 @@ void DatabaseWorker::TryLogin(shared_ptr<Session> session, string recvId, string
 		}
 		else if (isFirstRow) 
 		{
-			GLobby->PushJob(&AuthLobby::OnLoginFailed, session, (string)"DB에 존재하지 않는 ID");
+			GLobby->PushJob(&AuthLobby::OnLoginFailed, session, Protocol::LOGIN_RESULT_NO_ACCOUNT);
 		}
+	}
+	else
+	{
+		GLobby->PushJob(&AuthLobby::OnLoginFailed, session, Protocol::LOGIN_RESULT_SERVER_ERROR);
 	}
 	_dbConnectionPool->Push(dbConn);
 }
@@ -157,7 +162,8 @@ void DatabaseWorker::TrySignUP(shared_ptr<Session> session, string recvId, strin
         VALUES (@AccID, ?, ?, 1, 0, 500, 100, 0); \
         COMMIT TRAN;";
 
-	if (dbConn->Execute(query))
+	const bool success = dbConn->Execute(query);
+	if (success)
 	{
 		cout << "[DB] 회원가입 및 캐릭터 자동생성 성공 - ID : " << recvId << endl;
 	}
@@ -165,6 +171,7 @@ void DatabaseWorker::TrySignUP(shared_ptr<Session> session, string recvId, strin
 	{
 		cout << "[DB] 중복 아이디 또는 가입 오류" << endl;
 	}
+	GLobby->PushJob(&AuthLobby::OnSignUpResult, session, success);
 
 	_dbConnectionPool->Push(dbConn);
 }

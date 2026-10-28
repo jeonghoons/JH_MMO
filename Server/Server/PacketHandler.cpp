@@ -190,6 +190,13 @@ void PacketHandler::Handle_CS_LOGIN(shared_ptr<Session> session, Protocol::CS_LO
         pw = "dummy";
     }
 
+    // 같은 연결로 다시 로그인하면 이전 캐릭터가 방에 남으므로 거부한다. (DB 응답 전에 연달아 온 요청은 AuthLobby::OnLoginSuccess에서 거른다)
+    if (session->_currPlayer != nullptr)
+    {
+        GLobby->PushJob(&AuthLobby::OnLoginFailed, session, Protocol::LOGIN_RESULT_ALREADY_LOGGED_IN);
+        return;
+    }
+
     GDBWorker->PushDBJob(&DatabaseWorker::TryLogin, session, id, pw);
 }
 
@@ -203,6 +210,13 @@ void PacketHandler::Handle_CS_SIGNUP(shared_ptr<Session> session, Protocol::CS_S
     if (DataManager::GetCharacterData(type) == nullptr)
     {
         cout << "Invalid PlayerType on signup : " << type << endl;
+        GLobby->PushJob(&AuthLobby::OnSignUpResult, session, false);
+        return;
+    }
+    // 이미 로그인한 연결에서는 가입하지 않는다.
+    if (session->_currPlayer != nullptr)
+    {
+        GLobby->PushJob(&AuthLobby::OnSignUpResult, session, false);
         return;
     }
 
@@ -236,7 +250,11 @@ void PacketHandler::Handle_CS_CHAT(shared_ptr<Session> session, Protocol::CS_CHA
 
 void PacketHandler::Handle_CS_ENTER_ROOM(shared_ptr<Session> session, Protocol::CS_ENTER_ROOM_PACKET& pkt)
 {
+    // 로그인 전(DB 응답 전 포함)이거나 이미 방에 배정된 플레이어의 입장 요청은 무시한다.
+    // 방 배정(SetOwnerRoom)은 EnterPlayer 안에서 바로 되므로 연달아 온 두 번째 요청도 여기서 걸러진다.
     shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr || player->GetCurrentRoom() != nullptr) return;
+
     GRoomManager->EnterPlayer(player);
 }
 

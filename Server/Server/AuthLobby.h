@@ -16,7 +16,8 @@ public:
 
 public:
 	void OnLoginSuccess(shared_ptr<Session> session, DB_PlayerInfo info, DB_PlayerData data);
-	void OnLoginFailed(shared_ptr<Session> session, string errorMsg);
+	void OnLoginFailed(shared_ptr<Session> session, Protocol::LoginResult result);
+	void OnSignUpResult(shared_ptr<Session> session, bool success);
 
 private:
 	shared_ptr<JobQueue> _jobQueue;

@@ -365,7 +365,7 @@ void Room::UpdateZones()
 
 				nextHit = now + chrono::milliseconds(zone.tickMs);
 				Metrics::ZoneHits.fetch_add(1);
-				target->OnDamaged(zone.damage, attacker);
+				target->OnDamaged(zone.damage, zone.attackerId, attacker);
 			}
 		};
 
@@ -378,6 +378,7 @@ void Room::UpdateZones()
 void Room::ApplyDelayedDamage(int targetId, int attackerId, int damage)
 {
 	auto targetObj = GetGameObject(targetId);
+	// 이미 발사된 투사체는 공격자가 날아가는 동안 사라졌어도(접속 종료 등) 피해를 준다. 이때 attackerObj는 nullptr다.
 	auto attackerObj = GetGameObject(attackerId);
 
 	if (targetObj == nullptr) return;
@@ -387,7 +388,7 @@ void Room::ApplyDelayedDamage(int targetId, int attackerId, int damage)
 	if (!targetChar->GetStat().IsDead())
 	{
 		std::cout << "[Room] Target[" << targetId << "] Dmg: " << damage <<  std::endl;
-		targetChar->OnDamaged(damage, static_pointer_cast<Character>(attackerObj));
+		targetChar->OnDamaged(damage, attackerId, static_pointer_cast<Character>(attackerObj));
 	}
 }
 
@@ -648,6 +649,8 @@ bool RoomManager::TryEnterExisting(shared_ptr<Player> player)
 
 void RoomManager::EnterPlayer(shared_ptr<Player> player)
 {
+	if (player == nullptr) return;
+
 	if (TryEnterExisting(player))
 		return;
 

@@ -209,6 +209,35 @@ inline bool EquipPart_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<EquipPart>(
     EquipPart_descriptor(), name, value);
 }
+enum LoginResult : int {
+  LOGIN_RESULT_NONE = 0,
+  LOGIN_RESULT_SUCCESS = 1,
+  LOGIN_RESULT_NO_ACCOUNT = 2,
+  LOGIN_RESULT_WRONG_PASSWORD = 3,
+  LOGIN_RESULT_ALREADY_LOGGED_IN = 4,
+  LOGIN_RESULT_SERVER_ERROR = 5,
+  LoginResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  LoginResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool LoginResult_IsValid(int value);
+constexpr LoginResult LoginResult_MIN = LOGIN_RESULT_NONE;
+constexpr LoginResult LoginResult_MAX = LOGIN_RESULT_SERVER_ERROR;
+constexpr int LoginResult_ARRAYSIZE = LoginResult_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* LoginResult_descriptor();
+template<typename T>
+inline const std::string& LoginResult_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, LoginResult>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function LoginResult_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    LoginResult_descriptor(), enum_t_value);
+}
+inline bool LoginResult_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, LoginResult* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<LoginResult>(
+    LoginResult_descriptor(), name, value);
+}
 // ===================================================================
 
 
@@ -255,6 +284,11 @@ template <> struct is_proto_enum< ::Protocol::EquipPart> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::EquipPart>() {
   return ::Protocol::EquipPart_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::LoginResult> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::LoginResult>() {
+  return ::Protocol::LoginResult_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

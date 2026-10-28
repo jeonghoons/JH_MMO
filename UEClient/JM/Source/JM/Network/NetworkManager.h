@@ -36,7 +36,7 @@ public:
 
 	// 패킷별 송신 함수. 패킷 구성과 SendBuffer 생성은 이 함수들에서만 한다.
 	void SendLogin(const FString& AccountId, const FString& AccountPw);
-	void SendSignUp(const FString& AccountId, const FString& AccountPw);
+	void SendSignUp(const FString& AccountId, const FString& AccountPw, int32 PlayerType);   // PlayerType = Protocol::PlayerType (전사/궁수)
 	void SendEnterRoom();
 	void SendMove(const Protocol::PositionInfo& PosInfo, bool bForce);
 	void SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY);

@@ -41,7 +41,7 @@ void Character::BeginSkillCooldown(const SkillData& skill)
 	}
 	_skillCooldowns[skill.skillId].Reset(cooldownMs);
 }
-void Character::OnDamaged(int damage, shared_ptr<Character> attacker)
+void Character::OnDamaged(int damage, int attackerId, shared_ptr<Character> attacker)
 {
 	if (_statInfo.IsDead()) return;
 
@@ -52,7 +52,7 @@ void Character::OnDamaged(int damage, shared_ptr<Character> attacker)
 
 	auto room = GetCurrentRoom();
 	if (room) {
-		shared_ptr<SendBuffer> damageBuffer = PacketSerializer::MAKE_SC_DAMAGE(attacker->GetId(), GetId(), actualDamage, _statInfo.GetHp());
+		shared_ptr<SendBuffer> damageBuffer = PacketSerializer::MAKE_SC_DAMAGE(attackerId, GetId(), actualDamage, _statInfo.GetHp());
 		room->BroadcastAOI(static_pointer_cast<Character>(shared_from_this()), damageBuffer, true);
 	}
 

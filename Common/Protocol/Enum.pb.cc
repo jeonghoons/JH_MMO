@@ -22,7 +22,7 @@ namespace _pbi = _pb::internal;
 
 namespace Protocol {
 }  // namespace Protocol
-static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[5];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[6];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_Enum_2eproto = nullptr;
 const uint32_t TableStruct_Enum_2eproto::offsets[1] = {};
 static constexpr ::_pbi::MigrationSchema* schemas = nullptr;
@@ -54,11 +54,16 @@ const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   "_TYPE_ARCHER\020\005*\200\001\n\tEquipPart\022\023\n\017EQUIP_PA"
   "RT_NONE\020\000\022\024\n\020EQUIP_PART_UPPER\020\001\022\024\n\020EQUIP"
   "_PART_LOWER\020\002\022\033\n\027EQUIP_PART_OUTFIT_SHOES"
-  "\020\003\022\025\n\021EQUIP_PART_WEAPON\020\005b\006proto3"
+  "\020\003\022\025\n\021EQUIP_PART_WEAPON\020\005*\277\001\n\013LoginResul"
+  "t\022\025\n\021LOGIN_RESULT_NONE\020\000\022\030\n\024LOGIN_RESULT"
+  "_SUCCESS\020\001\022\033\n\027LOGIN_RESULT_NO_ACCOUNT\020\002\022"
+  "\037\n\033LOGIN_RESULT_WRONG_PASSWORD\020\003\022\"\n\036LOGI"
+  "N_RESULT_ALREADY_LOGGED_IN\020\004\022\035\n\031LOGIN_RE"
+  "SULT_SERVER_ERROR\020\005b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_Enum_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Enum_2eproto = {
-    false, false, 1033, descriptor_table_protodef_Enum_2eproto,
+    false, false, 1227, descriptor_table_protodef_Enum_2eproto,
     "Enum.proto",
     &descriptor_table_Enum_2eproto_once, nullptr, 0, 0,
     schemas, file_default_instances, TableStruct_Enum_2eproto::offsets,
@@ -172,6 +177,24 @@ bool EquipPart_IsValid(int value) {
     case 1:
     case 2:
     case 3:
+    case 5:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* LoginResult_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
+  return file_level_enum_descriptors_Enum_2eproto[5];
+}
+bool LoginResult_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
     case 5:
       return true;
     default:

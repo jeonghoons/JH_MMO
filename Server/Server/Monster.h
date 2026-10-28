@@ -38,7 +38,7 @@ public:
 	virtual void StopMove() override;
 	virtual void OnDead(std::shared_ptr<Character> attacker) override;
 	virtual int GetHitStunMs() const override;
-	virtual void OnDamaged(int damage, std::shared_ptr<Character> attacker) override;
+	virtual void OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker) override;
 
 
 

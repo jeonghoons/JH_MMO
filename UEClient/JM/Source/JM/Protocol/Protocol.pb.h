@@ -1988,6 +1988,7 @@ class SC_LOGIN_INFO_PACKET final :
 
   enum : int {
     kObjectInfoFieldNumber = 1,
+    kResultFieldNumber = 2,
   };
   // .Protocol.ObjectInfo object_info = 1;
   bool has_object_info() const;
@@ -2007,6 +2008,15 @@ class SC_LOGIN_INFO_PACKET final :
       ::Protocol::ObjectInfo* object_info);
   ::Protocol::ObjectInfo* unsafe_arena_release_object_info();
 
+  // .Protocol.LoginResult result = 2;
+  void clear_result();
+  ::Protocol::LoginResult result() const;
+  void set_result(::Protocol::LoginResult value);
+  private:
+  ::Protocol::LoginResult _internal_result() const;
+  void _internal_set_result(::Protocol::LoginResult value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.SC_LOGIN_INFO_PACKET)
  private:
   class _Internal;
@@ -2016,6 +2026,7 @@ class SC_LOGIN_INFO_PACKET final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::Protocol::ObjectInfo* object_info_;
+    int result_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -4409,6 +4420,26 @@ inline void SC_LOGIN_INFO_PACKET::set_allocated_object_info(::Protocol::ObjectIn
   }
   _impl_.object_info_ = object_info;
   // @@protoc_insertion_point(field_set_allocated:Protocol.SC_LOGIN_INFO_PACKET.object_info)
+}
+
+// .Protocol.LoginResult result = 2;
+inline void SC_LOGIN_INFO_PACKET::clear_result() {
+  _impl_.result_ = 0;
+}
+inline ::Protocol::LoginResult SC_LOGIN_INFO_PACKET::_internal_result() const {
+  return static_cast< ::Protocol::LoginResult >(_impl_.result_);
+}
+inline ::Protocol::LoginResult SC_LOGIN_INFO_PACKET::result() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_LOGIN_INFO_PACKET.result)
+  return _internal_result();
+}
+inline void SC_LOGIN_INFO_PACKET::_internal_set_result(::Protocol::LoginResult value) {
+  
+  _impl_.result_ = value;
+}
+inline void SC_LOGIN_INFO_PACKET::set_result(::Protocol::LoginResult value) {
+  _internal_set_result(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_LOGIN_INFO_PACKET.result)
 }
 
 // -------------------------------------------------------------------
