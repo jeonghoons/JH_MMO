@@ -114,7 +114,6 @@ void Monster::ChangeState(MonsterState newState)
 	if (_monsterState == newState) return;
 
 	StopMove();
-	// std::cout << "NPC[" << GetId() << "] State Changed: " << _monsterState << " -> " << newState << std::endl;
 	_monsterState = newState;
 
 	if (_monsterState == MonsterState::TRACE) {
@@ -171,8 +170,6 @@ void Monster::UpdatePatrol()
 		std::vector<Protocol::PositionInfo> newPath;
 		if (room->GetNavManager()->FindPath(_objectInfo.position(), randomDest, newPath))
 		{
-			/*cout << "NPC[" << _objectInfo.id << "] : " << GetPosition().x << ", " << GetPosition().y << ", " << GetPosition().z
-				<< " -> " << randomDest.x << ", " << randomDest.y << "," << randomDest.z << endl;*/
 			SetPath(newPath);
 			long long waitTime = 1000;
 			_patrolTimer.Reset(waitTime);
@@ -262,7 +259,6 @@ void Monster::UpdateAttack()
 			room->CastSkill(static_pointer_cast<Character>(shared_from_this()), 0, target->GetId(), _objectInfo.position().yaw(), 0.f, 0.f);
 		}
 
-		// std::cout << "NPC[" << GetId() << "] Attack -> Player[" << target->GetId() << "]" << std::endl;
 	}
 }
 
@@ -308,7 +304,6 @@ void Monster::WakeUpByPlayer(std::shared_ptr<Player> player)
 	{
 		_wakeUp = true;
 		ChangeState(MonsterState::PATROL); // 깨어나면 패트롤(색적) 상태로 돌입
-		// cout << "NPC[" << GetId() << "] Woke up by Player[" << player->GetId() << "]" << endl;
 	}
 }
 
@@ -321,7 +316,6 @@ void Monster::SleepIfNoPlayer()
 	{
 		_wakeUp = false;
 		ChangeState(MonsterState::NONE);
-		// cout << "NPC[" << GetId() << "] Goes to sleep." << endl;
 	}
 }
 

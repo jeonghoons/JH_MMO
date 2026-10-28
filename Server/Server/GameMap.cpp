@@ -139,9 +139,6 @@ bool GameMap::LoadMapData(const string& fileName)
         
         _grid.assign(_gridHeight, vector<Cell>(_gridWidth));
 
-        /*cout << "[GameMap] NavMesh 기반 동적 Grid 생성 완료!" << endl;
-        cout << " - Bounds X: " << _minX << " ~ " << _maxX << ", Y: " << _minY << " ~ " << _maxY << endl;
-        cout << " - Grid Size: " << _gridWidth << " x " << _gridHeight << " cells" << endl;*/
     }
 
     

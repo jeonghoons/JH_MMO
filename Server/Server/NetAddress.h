@@ -7,7 +7,6 @@ public:
 	NetAddress(wstring ip, USHORT port);
 
 	SOCKADDR_IN& GetSockAddr() { return _sockAddr; }
-	wstring		GetIpAddr();
 	USHORT		GetPort() { return ::ntohs(_sockAddr.sin_port); }
 
 public:

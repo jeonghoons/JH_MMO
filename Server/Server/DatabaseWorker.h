@@ -31,7 +31,6 @@ public:
 	void TryLogin(shared_ptr<Session> session, string recvId, string recvPw);
 	void TrySignUP(shared_ptr<Session> session, string recvId, string recvPw, int playerType);
 
-	void SavePlayerData(DB_PlayerData data);
 
 	void UpdateEquipData(int64_t playerUID, int32_t equipSlot, int64_t itemDbId, int32_t itemId);
 

@@ -40,7 +40,6 @@ void Room::InitRoom()
 
 void Room::Update(long long elapsedTime)
 {
-	// cout << "Update Room" << endl;
 	long long currentTick = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 	ReserveJob(100, &Room::Update, currentTick);
 
@@ -170,7 +169,6 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 			shared_ptr<SendBuffer> correctionBuffer = PacketSerializer::MAKE_SC_MOVE_OBJECT(player);
 			session->Send(correctionBuffer);
 		}
-		// cout << "비정상 이동 차단" << endl;
 		return;
 	}
 
@@ -185,7 +183,6 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 		UpdateView(player, result);
 	}
 
-	// printf("Player[%d] - (%f, %f) Yaw: %f)\n", player->GetId(), position.x, position.y, position.yaw);
 }
 
 void Room::PlayerPing(shared_ptr<Player> player, long long clientTime)
@@ -477,15 +474,6 @@ void Room::NPCMove(shared_ptr<Monster> monster)
 	if (!result.entered.empty() || !result.leaved.empty()) {
 		UpdateView(monster, result);
 	}
-}
-
-std::optional<Protocol::PositionInfo> Room::GetObjectPosition(int objectId) const
-{
-	if (shared_ptr<GameObject> object = GetGameObject(objectId)) {
-		return object->GetPosition();
-	}
-
-	return nullopt;
 }
 
 void Room::UpdateView(shared_ptr<Character> subjectChar, const ViewUpdate& result)

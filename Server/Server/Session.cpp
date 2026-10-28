@@ -47,7 +47,6 @@ void Session::OnConnected()
 {
 	_connected.store(true);
 	Metrics::Sessions.fetch_add(1);
-	// cout << "Client[" << _cid << "] Connected" << endl;
 
 	GetService()->AddSession(static_pointer_cast<Session>(shared_from_this()));
 	
@@ -242,11 +241,6 @@ void Session::ProcessSend(int numOfBytes)
 		if (_sendRegistered.compare_exchange_strong(expected, true))
 			RegisterSend();
 	}
-}
-
-void Session::ProcessDBEvent()
-{
-	// GRoomManager->EnterPlayer(static_pointer_cast<Session>(shared_from_this()));
 }
 
 

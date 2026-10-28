@@ -13,13 +13,6 @@ NetAddress::NetAddress(wstring ip, USHORT port)
 	_sockAddr.sin_port = ::htons(port);
 }
 
-wstring NetAddress::GetIpAddr()
-{
-	WCHAR buffer[100];
-	::InetNtopW(AF_INET, &_sockAddr.sin_addr, buffer, static_cast<int>(sizeof(buffer) / sizeof(buffer[0])));
-	return wstring(buffer);
-}
-
 IN_ADDR NetAddress::Ip2Address(const WCHAR* ip)
 {
 	IN_ADDR address;

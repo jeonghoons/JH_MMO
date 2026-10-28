@@ -44,7 +44,6 @@ private:
 	void			RegisterSend();
 	void			ProcessSend(int numOfBytes);
 
-	void			ProcessDBEvent();
 
 public:
 	RWLock		_lock;

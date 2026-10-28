@@ -603,7 +603,6 @@ class ObjectInfo final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kAppearanceItemsFieldNumber = 7,
     kEquipItemsFieldNumber = 8,
     kPositionFieldNumber = 4,
     kStatFieldNumber = 5,
@@ -612,28 +611,6 @@ class ObjectInfo final :
     kPlayerTypeFieldNumber = 3,
     kTemplateIdFieldNumber = 6,
   };
-  // repeated int32 appearance_items = 7;
-  int appearance_items_size() const;
-  private:
-  int _internal_appearance_items_size() const;
-  public:
-  void clear_appearance_items();
-  private:
-  int32_t _internal_appearance_items(int index) const;
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-      _internal_appearance_items() const;
-  void _internal_add_appearance_items(int32_t value);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-      _internal_mutable_appearance_items();
-  public:
-  int32_t appearance_items(int index) const;
-  void set_appearance_items(int index, int32_t value);
-  void add_appearance_items(int32_t value);
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-      appearance_items() const;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-      mutable_appearance_items();
-
   // repeated int32 equip_items = 8;
   int equip_items_size() const;
   private:
@@ -736,8 +713,6 @@ class ObjectInfo final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > appearance_items_;
-    mutable std::atomic<int> _appearance_items_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > equip_items_;
     mutable std::atomic<int> _equip_items_cached_byte_size_;
     ::Protocol::PositionInfo* position_;
@@ -1288,53 +1263,6 @@ inline void ObjectInfo::_internal_set_template_id(int32_t value) {
 inline void ObjectInfo::set_template_id(int32_t value) {
   _internal_set_template_id(value);
   // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.template_id)
-}
-
-// repeated int32 appearance_items = 7;
-inline int ObjectInfo::_internal_appearance_items_size() const {
-  return _impl_.appearance_items_.size();
-}
-inline int ObjectInfo::appearance_items_size() const {
-  return _internal_appearance_items_size();
-}
-inline void ObjectInfo::clear_appearance_items() {
-  _impl_.appearance_items_.Clear();
-}
-inline int32_t ObjectInfo::_internal_appearance_items(int index) const {
-  return _impl_.appearance_items_.Get(index);
-}
-inline int32_t ObjectInfo::appearance_items(int index) const {
-  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.appearance_items)
-  return _internal_appearance_items(index);
-}
-inline void ObjectInfo::set_appearance_items(int index, int32_t value) {
-  _impl_.appearance_items_.Set(index, value);
-  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.appearance_items)
-}
-inline void ObjectInfo::_internal_add_appearance_items(int32_t value) {
-  _impl_.appearance_items_.Add(value);
-}
-inline void ObjectInfo::add_appearance_items(int32_t value) {
-  _internal_add_appearance_items(value);
-  // @@protoc_insertion_point(field_add:Protocol.ObjectInfo.appearance_items)
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-ObjectInfo::_internal_appearance_items() const {
-  return _impl_.appearance_items_;
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-ObjectInfo::appearance_items() const {
-  // @@protoc_insertion_point(field_list:Protocol.ObjectInfo.appearance_items)
-  return _internal_appearance_items();
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-ObjectInfo::_internal_mutable_appearance_items() {
-  return &_impl_.appearance_items_;
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-ObjectInfo::mutable_appearance_items() {
-  // @@protoc_insertion_point(field_mutable_list:Protocol.ObjectInfo.appearance_items)
-  return _internal_mutable_appearance_items();
 }
 
 // repeated int32 equip_items = 8;

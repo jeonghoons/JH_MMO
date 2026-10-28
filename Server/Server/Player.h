@@ -22,7 +22,6 @@ public:
 public:
 
 	void InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data);
-	DB_PlayerData GetCurrentDbData();
 	int64_t GetPlayerUID() const { return _dbPlayerInfo.playerUID; }
 
 	void SetPlayerType(Protocol::PlayerType type) { _objectInfo.set_player_type(type); }

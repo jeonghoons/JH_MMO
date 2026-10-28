@@ -177,24 +177,6 @@ void DatabaseWorker::TrySignUP(shared_ptr<Session> session, string recvId, strin
 }
 
 
-void DatabaseWorker::SavePlayerData(DB_PlayerData data)
-{
-	DBConnection* dbConn = _dbConnectionPool->Pop();
-	dbConn->Unbind();
-
-	SQLLEN lenList[6] = { 0 };
-	dbConn->BindParam(1, &data.hp, &lenList[0]);
-	dbConn->BindParam(2, &data.mp, &lenList[1]);
-	dbConn->BindParam(6, &data.playerUID, &lenList[5]);
-
-	if (dbConn->Execute(L"UPDATE [dbo].[Player_Data] SET Hp=?, Mp=?, PosX=?, PosY=?, PosZ=? WHERE PlayerUID=?"))
-	{
-		// 업데이트 성공
-	}
-
-	_dbConnectionPool->Push(dbConn);
-}
-
 void DatabaseWorker::UpdateEquipData(int64_t playerUID, int32_t equipSlot, int64_t itemDbId, int32_t itemId)
 {
 	DBConnection* dbConn = _dbConnectionPool->Pop();

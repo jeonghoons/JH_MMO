@@ -30,7 +30,7 @@ message ObjectInfo {
 	StatInfo stat = 5;
 
 	int32 template_id = 6;
-	repeated int32 appearance_items = 7;
+	reserved 7;   // appearance_items (모듈러 외형 잔재, 2026-10-28 삭제)
 	repeated int32 equip_items = 8;
 }
 

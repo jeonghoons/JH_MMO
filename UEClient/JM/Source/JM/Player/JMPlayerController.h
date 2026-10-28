@@ -24,17 +24,11 @@ protected:
 
 public:
     UFUNCTION(BlueprintCallable, Category = "UI")
-    void OnInventoryKeyPressed();
-
-    UFUNCTION(BlueprintCallable, Category = "UI")
     void OnChatKeyPressed();
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<class UUserWidget> ChatWidgetClass;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
-    TSubclassOf<class UUserWidget> InventoryWidgetClass;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<class UUserWidget> InfoWidgetClass;

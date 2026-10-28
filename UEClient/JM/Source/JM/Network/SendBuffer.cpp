@@ -10,12 +10,6 @@ SendBuffer::~SendBuffer()
 
 }
 
-void SendBuffer::CopyData(void* data, int32 len)
-{
-	memcpy(_buffer.GetData(), data, len);
-	_writePos = len;
-}
-
 void SendBuffer::Commit(uint32 writeSize)
 {
 	_writePos = writeSize;

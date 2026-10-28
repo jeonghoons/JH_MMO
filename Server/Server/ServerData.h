@@ -19,13 +19,6 @@ struct DB_PlayerData {
 	std::vector<int32_t> equipItemIds;
 };
 
-struct DB_InventoryData {
-	int64_t inventoryUID;
-	int32_t itemCode;
-	int16_t stackCount;
-	int16_t slotIndex;
-};
-
 enum class HitShape
 {
 	Sector,     // 부채꼴 (근거리 즉시 타격)

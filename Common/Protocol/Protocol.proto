@@ -20,19 +20,12 @@ message CS_SIGNUP_PACKET {
 	PlayerType player_type = 3;
 }
 
-message CS_LOGOUT_PACKET {
-}
-
 message CS_CHAT_PACKET {
 	string message = 1;
 }
 
 message CS_ENTER_ROOM_PACKET {
 	bool result = 1;
-}
-
-message CS_LEAVE_ROOM_PACKET {
-
 }
 
 message CS_MOVE_PACKET {

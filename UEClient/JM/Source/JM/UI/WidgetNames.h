@@ -9,6 +9,5 @@ namespace WidgetNames
 	inline const FName HUD(TEXT("HUD"));
 	inline const FName Crosshair(TEXT("Crosshair"));
 	inline const FName Chatting(TEXT("Chatting"));
-	inline const FName Inventory(TEXT("Inventory"));
 	inline const FName MainInfo(TEXT("MainInfo"));
 }

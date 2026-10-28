@@ -45,7 +45,6 @@ int main()
 	
 	vector<thread> threads;
 	int num_threads = thread::hardware_concurrency() / 2;
-	// int num_threads = 1;
 	for (int i = 0; i < num_threads; ++i) {
 		threads.emplace_back(worker_thread, service);
 	}

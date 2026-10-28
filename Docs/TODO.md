@@ -20,7 +20,7 @@
 - 하드코딩 → 데이터: 서버 주소/포트, 인게임 맵 이름, PlayerType→영웅 매핑(`JMPlayer.cpp:91-106`), 캡슐/보간/카메라/이동 임계값, UI 위젯 이름·크기 (`MovementTable`/`HeroTable`/`UITable`)
 - 몬스터 데이터: `template_id` 기반 메시/AnimBP 로드, Rampage `DT_CharacterAsset` 행
 - 채팅 기능 복구(송신 주석 처리 — `ChatWidget.cpp`의 TODO, `UNetworkManager::SendChat` 없음, 클라이언트 `SC_CHAT` 핸들러 없음. 2026-10-27 PIE에서 입력 후 메시지가 쌓이지 않음 확인). 로그인 실패 응답은 A0.7에서 처리
-- 인벤토리 키 미연결: `AJMPlayerController::OnInventoryKeyPressed`를 호출하는 입력이 `BP_PControler`에 처음부터 없음(위젯 `WBP_Inventory`는 등록됨). A6.1 인벤토리 UI 때 `IA_Inventory` 입력 액션으로 연결, 로그아웃/`SC_CMOVE_OBJECT` 핸들러
+- 인벤토리 UI는 A6.1에서 새로 만든다(2026-10-28 C-1: 입력이 연결된 적 없던 `OnInventoryKeyPressed`·인벤토리 위젯 등록 삭제, 로그아웃·`CMOVE` 패킷 삭제)
 - 렌더 설정(레이트레이싱 등) MMO 클라이언트 기준 재검토, 안드로이드 토큰 저장소 노출 확인
 - `ProtobufCore/Include`(686개, 테스트·타 언어 생성기 포함)를 헤더만 남기고 `ThirdParty`로 정리
 

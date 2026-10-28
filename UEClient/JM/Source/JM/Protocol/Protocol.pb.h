@@ -23,7 +23,6 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/arenastring.h>
-#include <google/protobuf/generated_message_bases.h>
 #include <google/protobuf/generated_message_util.h>
 #include <google/protobuf/metadata_lite.h>
 #include <google/protobuf/generated_message_reflection.h>
@@ -63,15 +62,9 @@ extern CS_DMOVE_PACKETDefaultTypeInternal _CS_DMOVE_PACKET_default_instance_;
 class CS_ENTER_ROOM_PACKET;
 struct CS_ENTER_ROOM_PACKETDefaultTypeInternal;
 extern CS_ENTER_ROOM_PACKETDefaultTypeInternal _CS_ENTER_ROOM_PACKET_default_instance_;
-class CS_LEAVE_ROOM_PACKET;
-struct CS_LEAVE_ROOM_PACKETDefaultTypeInternal;
-extern CS_LEAVE_ROOM_PACKETDefaultTypeInternal _CS_LEAVE_ROOM_PACKET_default_instance_;
 class CS_LOGIN_PACKET;
 struct CS_LOGIN_PACKETDefaultTypeInternal;
 extern CS_LOGIN_PACKETDefaultTypeInternal _CS_LOGIN_PACKET_default_instance_;
-class CS_LOGOUT_PACKET;
-struct CS_LOGOUT_PACKETDefaultTypeInternal;
-extern CS_LOGOUT_PACKETDefaultTypeInternal _CS_LOGOUT_PACKET_default_instance_;
 class CS_MOVE_PACKET;
 struct CS_MOVE_PACKETDefaultTypeInternal;
 extern CS_MOVE_PACKETDefaultTypeInternal _CS_MOVE_PACKET_default_instance_;
@@ -121,9 +114,7 @@ template<> ::Protocol::CS_CHANGE_EQUIP_PACKET* Arena::CreateMaybeMessage<::Proto
 template<> ::Protocol::CS_CHAT_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_CHAT_PACKET>(Arena*);
 template<> ::Protocol::CS_DMOVE_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_DMOVE_PACKET>(Arena*);
 template<> ::Protocol::CS_ENTER_ROOM_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_ENTER_ROOM_PACKET>(Arena*);
-template<> ::Protocol::CS_LEAVE_ROOM_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_LEAVE_ROOM_PACKET>(Arena*);
 template<> ::Protocol::CS_LOGIN_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_LOGIN_PACKET>(Arena*);
-template<> ::Protocol::CS_LOGOUT_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_LOGOUT_PACKET>(Arena*);
 template<> ::Protocol::CS_MOVE_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_MOVE_PACKET>(Arena*);
 template<> ::Protocol::CS_PING_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_PING_PACKET>(Arena*);
 template<> ::Protocol::CS_SIGNUP_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_SIGNUP_PACKET>(Arena*);
@@ -503,124 +494,6 @@ class CS_SIGNUP_PACKET final :
 };
 // -------------------------------------------------------------------
 
-class CS_LOGOUT_PACKET final :
-    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:Protocol.CS_LOGOUT_PACKET) */ {
- public:
-  inline CS_LOGOUT_PACKET() : CS_LOGOUT_PACKET(nullptr) {}
-  explicit PROTOBUF_CONSTEXPR CS_LOGOUT_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  CS_LOGOUT_PACKET(const CS_LOGOUT_PACKET& from);
-  CS_LOGOUT_PACKET(CS_LOGOUT_PACKET&& from) noexcept
-    : CS_LOGOUT_PACKET() {
-    *this = ::std::move(from);
-  }
-
-  inline CS_LOGOUT_PACKET& operator=(const CS_LOGOUT_PACKET& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline CS_LOGOUT_PACKET& operator=(CS_LOGOUT_PACKET&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const CS_LOGOUT_PACKET& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const CS_LOGOUT_PACKET* internal_default_instance() {
-    return reinterpret_cast<const CS_LOGOUT_PACKET*>(
-               &_CS_LOGOUT_PACKET_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    2;
-
-  friend void swap(CS_LOGOUT_PACKET& a, CS_LOGOUT_PACKET& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(CS_LOGOUT_PACKET* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(CS_LOGOUT_PACKET* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  CS_LOGOUT_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<CS_LOGOUT_PACKET>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
-  inline void CopyFrom(const CS_LOGOUT_PACKET& from) {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
-  void MergeFrom(const CS_LOGOUT_PACKET& from) {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
-  }
-  public:
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "Protocol.CS_LOGOUT_PACKET";
-  }
-  protected:
-  explicit CS_LOGOUT_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // @@protoc_insertion_point(class_scope:Protocol.CS_LOGOUT_PACKET)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-  };
-  friend struct ::TableStruct_Protocol_2eproto;
-};
-// -------------------------------------------------------------------
-
 class CS_CHAT_PACKET final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_CHAT_PACKET) */ {
  public:
@@ -669,7 +542,7 @@ class CS_CHAT_PACKET final :
                &_CS_CHAT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    2;
 
   friend void swap(CS_CHAT_PACKET& a, CS_CHAT_PACKET& b) {
     a.Swap(&b);
@@ -822,7 +695,7 @@ class CS_ENTER_ROOM_PACKET final :
                &_CS_ENTER_ROOM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    3;
 
   friend void swap(CS_ENTER_ROOM_PACKET& a, CS_ENTER_ROOM_PACKET& b) {
     a.Swap(&b);
@@ -922,124 +795,6 @@ class CS_ENTER_ROOM_PACKET final :
 };
 // -------------------------------------------------------------------
 
-class CS_LEAVE_ROOM_PACKET final :
-    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:Protocol.CS_LEAVE_ROOM_PACKET) */ {
- public:
-  inline CS_LEAVE_ROOM_PACKET() : CS_LEAVE_ROOM_PACKET(nullptr) {}
-  explicit PROTOBUF_CONSTEXPR CS_LEAVE_ROOM_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  CS_LEAVE_ROOM_PACKET(const CS_LEAVE_ROOM_PACKET& from);
-  CS_LEAVE_ROOM_PACKET(CS_LEAVE_ROOM_PACKET&& from) noexcept
-    : CS_LEAVE_ROOM_PACKET() {
-    *this = ::std::move(from);
-  }
-
-  inline CS_LEAVE_ROOM_PACKET& operator=(const CS_LEAVE_ROOM_PACKET& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline CS_LEAVE_ROOM_PACKET& operator=(CS_LEAVE_ROOM_PACKET&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const CS_LEAVE_ROOM_PACKET& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const CS_LEAVE_ROOM_PACKET* internal_default_instance() {
-    return reinterpret_cast<const CS_LEAVE_ROOM_PACKET*>(
-               &_CS_LEAVE_ROOM_PACKET_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    5;
-
-  friend void swap(CS_LEAVE_ROOM_PACKET& a, CS_LEAVE_ROOM_PACKET& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(CS_LEAVE_ROOM_PACKET* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(CS_LEAVE_ROOM_PACKET* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  CS_LEAVE_ROOM_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<CS_LEAVE_ROOM_PACKET>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
-  inline void CopyFrom(const CS_LEAVE_ROOM_PACKET& from) {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
-  void MergeFrom(const CS_LEAVE_ROOM_PACKET& from) {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
-  }
-  public:
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "Protocol.CS_LEAVE_ROOM_PACKET";
-  }
-  protected:
-  explicit CS_LEAVE_ROOM_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // @@protoc_insertion_point(class_scope:Protocol.CS_LEAVE_ROOM_PACKET)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-  };
-  friend struct ::TableStruct_Protocol_2eproto;
-};
-// -------------------------------------------------------------------
-
 class CS_MOVE_PACKET final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_MOVE_PACKET) */ {
  public:
@@ -1088,7 +843,7 @@ class CS_MOVE_PACKET final :
                &_CS_MOVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    4;
 
   friend void swap(CS_MOVE_PACKET& a, CS_MOVE_PACKET& b) {
     a.Swap(&b);
@@ -1256,7 +1011,7 @@ class CS_DMOVE_PACKET final :
                &_CS_DMOVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    5;
 
   friend void swap(CS_DMOVE_PACKET& a, CS_DMOVE_PACKET& b) {
     a.Swap(&b);
@@ -1415,7 +1170,7 @@ class CS_ATTACK_PACKET final :
                &_CS_ATTACK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    6;
 
   friend void swap(CS_ATTACK_PACKET& a, CS_ATTACK_PACKET& b) {
     a.Swap(&b);
@@ -1607,7 +1362,7 @@ class CS_CHANGE_EQUIP_PACKET final :
                &_CS_CHANGE_EQUIP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    7;
 
   friend void swap(CS_CHANGE_EQUIP_PACKET& a, CS_CHANGE_EQUIP_PACKET& b) {
     a.Swap(&b);
@@ -1766,7 +1521,7 @@ class CS_PING_PACKET final :
                &_CS_PING_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    8;
 
   friend void swap(CS_PING_PACKET& a, CS_PING_PACKET& b) {
     a.Swap(&b);
@@ -1914,7 +1669,7 @@ class SC_LOGIN_INFO_PACKET final :
                &_SC_LOGIN_INFO_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    9;
 
   friend void swap(SC_LOGIN_INFO_PACKET& a, SC_LOGIN_INFO_PACKET& b) {
     a.Swap(&b);
@@ -2082,7 +1837,7 @@ class SC_SIGNUP_PACKET final :
                &_SC_SIGNUP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    10;
 
   friend void swap(SC_SIGNUP_PACKET& a, SC_SIGNUP_PACKET& b) {
     a.Swap(&b);
@@ -2230,7 +1985,7 @@ class SC_ADD_OBJECT_PACKET final :
                &_SC_ADD_OBJECT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    11;
 
   friend void swap(SC_ADD_OBJECT_PACKET& a, SC_ADD_OBJECT_PACKET& b) {
     a.Swap(&b);
@@ -2387,7 +2142,7 @@ class SC_REMOVE_OBJECT_PACKET final :
                &_SC_REMOVE_OBJECT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    12;
 
   friend void swap(SC_REMOVE_OBJECT_PACKET& a, SC_REMOVE_OBJECT_PACKET& b) {
     a.Swap(&b);
@@ -2535,7 +2290,7 @@ class SC_CHAT_PACKET final :
                &_SC_CHAT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    13;
 
   friend void swap(SC_CHAT_PACKET& a, SC_CHAT_PACKET& b) {
     a.Swap(&b);
@@ -2699,7 +2454,7 @@ class SC_MOVE_PACKET final :
                &_SC_MOVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    14;
 
   friend void swap(SC_MOVE_PACKET& a, SC_MOVE_PACKET& b) {
     a.Swap(&b);
@@ -2867,7 +2622,7 @@ class SC_ATTACK_PACKET final :
                &_SC_ATTACK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    15;
 
   friend void swap(SC_ATTACK_PACKET& a, SC_ATTACK_PACKET& b) {
     a.Swap(&b);
@@ -3081,7 +2836,7 @@ class SC_DAMAGE_PACKET final :
                &_SC_DAMAGE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    16;
 
   friend void swap(SC_DAMAGE_PACKET& a, SC_DAMAGE_PACKET& b) {
     a.Swap(&b);
@@ -3262,7 +3017,7 @@ class SC_DEAD_PACKET final :
                &_SC_DEAD_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    17;
 
   friend void swap(SC_DEAD_PACKET& a, SC_DEAD_PACKET& b) {
     a.Swap(&b);
@@ -3410,7 +3165,7 @@ class SC_CHANGE_EQUIP_PACKET final :
                &_SC_CHANGE_EQUIP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    18;
 
   friend void swap(SC_CHANGE_EQUIP_PACKET& a, SC_CHANGE_EQUIP_PACKET& b) {
     a.Swap(&b);
@@ -3580,7 +3335,7 @@ class SC_PONG_PACKET final :
                &_SC_PONG_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    19;
 
   friend void swap(SC_PONG_PACKET& a, SC_PONG_PACKET& b) {
     a.Swap(&b);
@@ -3935,10 +3690,6 @@ inline void CS_SIGNUP_PACKET::set_player_type(::Protocol::PlayerType value) {
 
 // -------------------------------------------------------------------
 
-// CS_LOGOUT_PACKET
-
-// -------------------------------------------------------------------
-
 // CS_CHAT_PACKET
 
 // string message = 1;
@@ -4014,10 +3765,6 @@ inline void CS_ENTER_ROOM_PACKET::set_result(bool value) {
   _internal_set_result(value);
   // @@protoc_insertion_point(field_set:Protocol.CS_ENTER_ROOM_PACKET.result)
 }
-
-// -------------------------------------------------------------------
-
-// CS_LEAVE_ROOM_PACKET
 
 // -------------------------------------------------------------------
 
@@ -5116,10 +4863,6 @@ inline void SC_PONG_PACKET::set_client_time(int64_t value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
-// -------------------------------------------------------------------
-
-// -------------------------------------------------------------------
-
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

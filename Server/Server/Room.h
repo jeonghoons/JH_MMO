@@ -49,7 +49,6 @@ public:
 		}
 		return it->second;
 	}
-	optional<Protocol::PositionInfo> GetObjectPosition(int objectId) const;
 	void UpdateView(shared_ptr<Character> subjectChar, const ViewUpdate& result);
 
 	// Player

@@ -57,17 +57,6 @@ bool DBConnection::Fetch()
 	}
 }
 
-int DBConnection::GetRowCount()
-{
-	SQLLEN count = 0;
-	SQLRETURN ret = ::SQLRowCount(_statement, &count);
-
-	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
-		return static_cast<int>(count);
-
-	return -1;
-}
-
 void DBConnection::Unbind()
 {
 	::SQLFreeStmt(_statement, SQL_UNBIND);

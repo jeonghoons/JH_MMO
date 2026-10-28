@@ -32,7 +32,6 @@ public:
 	int32 WritePos() { return _writePos; }
 	int32 GetSize() const { return static_cast<int32>(_buffer.Num()); }
 
-	void CopyData(void* data, int32 len);
 	void Commit(uint32 writeSize);
 
 

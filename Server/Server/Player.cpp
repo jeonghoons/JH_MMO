@@ -8,7 +8,6 @@ Player::Player(shared_ptr<Session> ownerSession, Protocol::PlayerType type)
 	_objectInfo.set_player_type(type);
 	const CharacterData* statData = DataManager::GetCharacterData((int)_objectInfo.player_type());
 	if (statData) {
-		// _objectInfo.stat = { statData->maxHp, statData->hp, statData->attackDamage, statData->attackSpeed, statData->moveSpeed };
 		Protocol::StatInfo* stat = _objectInfo.mutable_stat();
 		stat->set_max_hp(statData->maxHp);
 		stat->set_hp(statData->hp);
@@ -66,13 +65,3 @@ void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	}
 }
 
-DB_PlayerData Player::GetCurrentDbData()
-{
-	DB_PlayerData data;
-	data.playerUID = _dbPlayerInfo.playerUID;
-	data.level = 1;
-	data.exp = 0;
-	data.hp = _statInfo.GetHp();
-	data.mp = 100; 
-	return data;
-}

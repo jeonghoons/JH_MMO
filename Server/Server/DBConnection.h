@@ -8,7 +8,6 @@ public:
 
 	bool			Execute(const WCHAR* query);
 	bool			Fetch();
-	int			GetRowCount();
 	void			Unbind();
 
 

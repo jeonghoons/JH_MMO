@@ -106,10 +106,6 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 
-		//// Jumping
-		//EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		//EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AJMMyPlayer::Move);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AJMMyPlayer::Move);
@@ -134,9 +130,6 @@ void AJMMyPlayer::Tick(float DeltaTime)
 		if (AimSkill && ComputeAim(*AimSkill, Aim)) DrawAimIndicator(*AimSkill, Aim);
 		else if (AimSkill == nullptr) bAiming = false;
 	}
-
-	/*if (GetGameInstance()->GetSubsystem<UNetworkManager>() == nullptr)
-		return;*/
 
 	UNetworkManager* NetManager = UNetworkManager::Get(this);
 	if (NetManager == nullptr) return;

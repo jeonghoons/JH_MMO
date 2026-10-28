@@ -11,7 +11,6 @@ public:
 	int WritePos() { return _writePos; }
 	int GetSize() const { return static_cast<int>(_buffer.size()); }
 
-	void CopyData(void* data, int len);
 	void Commit(int len);
 
 private:
