@@ -91,7 +91,7 @@ bool DataManager::Init()
 		_characterTable[playerType] = { playerType, maxHp, maxHp, attackDamage, attackSpeed, moveSpeed };
 	}
 
-	// SkillTable: Name(=skillId), PlayerType, Slot, TargetingType, HitShape, HitDelayMs, CooldownMs, CastRange,
+	// SkillTable: Name(=skillId), PlayerType, Slot, TargetingType, HitShape, HitDelayMs, CooldownMs, AnimMs, CastRange,
 	//             Radius, Angle, Range, Width, BaseDamage, ProjSpeed, DurationMs, TickMs
 	CsvFile skill;
 	if (!skill.Load((dir / "SkillTable.csv").string(), err)) { std::cout << "[Data] " << err << std::endl; return false; }
@@ -103,7 +103,8 @@ bool DataManager::Init()
 		if (!row.GetInt("Name", d.skillId, err) || !row.GetInt("PlayerType", d.ownerType, err) ||
 			!row.GetInt("Slot", d.slot, err) || !row.GetString("TargetingType", targeting, err) ||
 			!row.GetString("HitShape", shape, err) || !row.GetInt("HitDelayMs", d.hitDelayMs, err) ||
-			!row.GetInt("CooldownMs", d.cooldownMs, err) || !row.GetFloat("CastRange", d.castRange, err) ||
+			!row.GetInt("CooldownMs", d.cooldownMs, err) || !row.GetInt("AnimMs", d.animMs, err) ||
+			!row.GetFloat("CastRange", d.castRange, err) ||
 			!row.GetFloat("Radius", d.radius, err) || !row.GetFloat("Angle", d.angle, err) ||
 			!row.GetFloat("Range", d.range, err) || !row.GetFloat("Width", d.width, err) ||
 			!row.GetInt("BaseDamage", d.baseDamage, err) || !row.GetFloat("ProjSpeed", d.projSpeed, err) ||
@@ -128,11 +129,11 @@ bool DataManager::Init()
 			return false;
 		}
 
-		if (d.hitDelayMs < 0 || d.cooldownMs <= 0 || d.baseDamage < 0 || d.slot < 0 || d.slot > 5 ||
+		if (d.hitDelayMs < 0 || d.cooldownMs < 0 || d.animMs <= 0 || (d.slot > 0 && d.cooldownMs <= 0) || d.baseDamage < 0 || d.slot < 0 || d.slot > 5 ||
 			d.castRange < 0.f || d.radius < 0.f || d.angle < 0.f || d.range < 0.f || d.width < 0.f || d.projSpeed < 0.f ||
 			d.durationMs < 0 || d.tickMs < 0)
 		{
-			std::cout << "[Data] " << where << "값이 허용 범위를 벗어났습니다 (Slot 0~5, 나머지 음수 불가, CooldownMs>0)" << std::endl;
+			std::cout << "[Data] " << where << "값이 허용 범위를 벗어났습니다 (Slot 0~5, 나머지 음수 불가, AnimMs>0, 스킬(Slot 1~5)은 CooldownMs>0)" << std::endl;
 			return false;
 		}
 		if (d.targeting == SkillTargeting::Targeted && d.castRange <= 0.f)

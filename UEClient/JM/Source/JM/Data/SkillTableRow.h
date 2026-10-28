@@ -4,6 +4,7 @@
 #include "Engine/DataTable.h"
 #include "Particles/ParticleSystem.h"
 #include "Animation/AnimMontage.h"
+#include "Engine/Texture2D.h"
 #include "SkillTableRow.generated.h"
 
 // Common/DataTable/SkillTable.csv 의 enum 값과 이름이 같아야 한다. (서버 ServerData.h 의 HitShape / SkillTargeting)
@@ -35,7 +36,8 @@ struct FSkillTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) ESkillTargetingType TargetingType = ESkillTargetingType::NonTargeted;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) ESkillHitShape HitShape = ESkillHitShape::Sector;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 HitDelayMs = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 CooldownMs = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 CooldownMs = 0;   // 스킬 쿨타임(시전 순간부터). 기본 공격은 0
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 AnimMs = 0;       // 행동 시간 = 애니메이션 1회. 기본 공격은 AttackSpeed로 나눈다
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float CastRange = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float Radius = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float Angle = 0.f;
@@ -54,4 +56,7 @@ struct FSkillTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UParticleSystem> Fx;
 	// 이펙트가 배율 1일 때 덮는 반지름. 재생 배율 = Radius / FxBaseRadius 이므로 조준 인디케이터(Radius)와 크기가 같아진다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float FxBaseRadius = 0.f;
+
+	// 클라이언트 전용(서버 로더는 읽지 않음). 전투 HUD 스킬 슬롯 아이콘. 비어 있으면 키 글자만 표시한다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UTexture2D> Icon;
 };

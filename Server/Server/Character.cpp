@@ -21,25 +21,35 @@ const SkillData* Character::FindCastableSkill(int slot) const
 	const SkillData* skill = DataManager::GetSkillBySlot((int)_objectInfo.player_type(), slot);
 	if (skill == nullptr) return nullptr;
 
+	// 이전 시전의 애니메이션이 끝나기 전에는 기본 공격도 스킬도 받지 않는다.
+	if (IsActing()) return nullptr;
+
 	// 클라이언트가 공격 패킷을 연달아 보내도 스킬 쿨타임 안에서는 받아들이지 않는다.
-	if (GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER)
-	{
-		auto it = _skillCooldowns.find(skill->skillId);
-		if (it != _skillCooldowns.end() && !it->second.IsReady()) return nullptr;
-	}
+	auto it = _skillCooldowns.find(skill->skillId);
+	if (it != _skillCooldowns.end() && !it->second.IsReady()) return nullptr;
 
 	return skill;
 }
 
-void Character::BeginSkillCooldown(const SkillData& skill)
+Character::CastTiming Character::BeginCast(const SkillData& skill)
 {
-	long long cooldownMs = skill.cooldownMs;
+	// 기본 공격만 AttackSpeed만큼 애니메이션을 빨리 재생한다. (클라이언트도 같은 배율로 몽타주를 재생)
+	float rate = 1.f;
 	if (skill.slot == 0)
 	{
 		const float attackSpeed = _statInfo.GetAttackSpeed();
-		cooldownMs = static_cast<long long>(skill.cooldownMs / (attackSpeed > 0.f ? attackSpeed : 1.f));
+		rate = attackSpeed > 0.f ? attackSpeed : 1.f;
 	}
-	_skillCooldowns[skill.skillId].Reset(cooldownMs);
+
+	CastTiming timing;
+	timing.actionMs = static_cast<long long>(skill.animMs / rate);
+	timing.hitDelayMs = static_cast<long long>(skill.hitDelayMs / rate);
+	timing.cooldownMs = skill.cooldownMs;
+
+	_actionTimer.Reset(timing.actionMs);
+	if (timing.cooldownMs > 0)
+		_skillCooldowns[skill.skillId].Reset(timing.cooldownMs);
+	return timing;
 }
 void Character::OnDamaged(int damage, int attackerId, shared_ptr<Character> attacker)
 {

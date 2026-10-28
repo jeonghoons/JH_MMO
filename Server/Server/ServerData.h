@@ -49,7 +49,8 @@ struct SkillData
 	float castRange;       // Targeted: 대상까지 최대 거리, Zone: 지점까지 최대 거리
 	HitShape hitShape;
 	int hitDelayMs;     // 발사 선딜레이 (손에서 이펙트가 떠나는 시간)
-	int cooldownMs;     // 애니메이션 전체 길이 (기본 쿨타임)
+	int cooldownMs;     // 스킬 쿨타임(시전 순간부터). 기본 공격은 0
+	int animMs;         // 행동 시간 = 애니메이션 1회. 이 동안 다음 시전 불가. 기본 공격은 AttackSpeed로 나눈다
 	float radius;       // 부채꼴 반경
 	float angle;        // 부채꼴 각도
 	float range;        // 투사체/직선 사거리
@@ -66,7 +67,7 @@ struct CharacterData
 	int hp;
 	int maxHp;
 	int attackDamage;
-	float attackSpeed;  // 기본 공격 속도 배율
+	float attackSpeed;  // 기본 공격 애니메이션 재생 배율 (행동 시간·판정 시점 ÷ attackSpeed)
 	float moveSpeed;
 };
 

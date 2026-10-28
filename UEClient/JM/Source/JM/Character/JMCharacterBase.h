@@ -27,8 +27,11 @@ public:
 	void FaceYaw(float Yaw);
 	// 시전 직후 Seconds 동안 이동 방향 회전을 끄고 현재 방향을 유지한다. 이동하며 시전해도 조준 방향이 바로 풀리지 않게 한다.
 	void LockFacing(float Seconds);
-	// 스킬의 타격 시점(HitDelayMs)까지 방향을 유지한다.
+	// 스킬의 타격 시점(HitDelayMs ÷ 재생 배율)까지 방향을 유지한다.
 	void LockFacingForSkill(const struct FSkillTableRow& Skill);
+	// 시전 애니메이션 재생 배율. 기본 공격(Slot 0, 또는 SkillTable에 없는 공격)은 서버 스탯 AttackSpeed, 스킬은 1.
+	// 서버도 같은 배율로 행동 시간·판정 시점을 나눈다. (Docs/DECISIONS.md 2026-10-28)
+	float GetAttackPlayRate(const struct FSkillTableRow* Skill) const;
 	const Protocol::PositionInfo& GetDestInfo() const { return DestPosition; }
 	Protocol::MoveState GetMoveState() const { return ObjectInfo.position().state(); }
 	FVector GetDestVelocity() const { return FVector(DestPosition.v_x(), DestPosition.v_y(), DestPosition.v_z()); }
@@ -49,7 +52,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Category = "Action")
-	void PlayAttackAnim();
+	void PlayAttackAnim(float PlayRate = 1.f);
 
 	
 protected:

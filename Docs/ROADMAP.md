@@ -15,7 +15,7 @@
 
 ## ▶ 중단점 (2026-10-27) — "이어서 진행"이라고 하면 여기서 재개 (다음: A2.3)
 **상태:** A2.2 서브 단계(a~d) 완료, M0.5 전체 완료, 캐릭터 전투 보완 완료 (2026-10-27). 2026-10-21 사용자 확정 순서: **M0.5 항목 4(완료) → 3(완료) → 2(완료) → 1 → 5** (Content 정리 → 명명/배치 → `JMPlayer.cpp` 버그 → 네트워크 안정화 → 레이어 분리). 그다음 캐릭터 전투 보완(서 있을 때 상체 블렌드, 장판 이펙트 에셋), 그다음 **A2.3 경험치/레벨/골드**(보상 패킷, HUD, 스탯 반영 대미지).
-**다음 작업 (2026-10-27 우선순위 변경, `DECISIONS.md`):** ① A2.2e 전사 스킬 모션·이펙트 → ② A2.2f 전투 HUD(HP·쿨타임) → ③ 폴더·파일 정리 → ④ 아이템(A3) → ⑤ 서버 권위 이동 → ⑥ 서버 설정(A1.1). A2.3은 그 이후. ③~⑥은 차례가 되면 코드를 읽고 따로 계획합니다. 현재: A2.2e 완료 (2026-10-28, 1a 모션 + 1b 이펙트·타격 시점 도구, Play 확인). 전사 판정 형태 조정 완료(2026-10-28). 2026-10-28 QA(`TESTING.md`) 결과로 **A0.7 QA 버그 수정을 A2.2f보다 먼저** 진행 → 완료(2026-10-28, 서버 재현 테스트·회귀 + PIE 로그인 실패·가입·궁수 로그인 확인). 다음: A2.2f. 아래는 M0.5 항목 5 진행 기록입니다.
+**다음 작업 (2026-10-27 우선순위 변경, `DECISIONS.md`):** ① A2.2e 전사 스킬 모션·이펙트 → ② A2.2f 전투 HUD(HP·쿨타임) → ③ 폴더·파일 정리 → ④ 아이템(A3) → ⑤ 서버 권위 이동 → ⑥ 서버 설정(A1.1). A2.3은 그 이후. ③~⑥은 차례가 되면 코드를 읽고 따로 계획합니다. 현재: A2.2e 완료 (2026-10-28, 1a 모션 + 1b 이펙트·타격 시점 도구, Play 확인). 전사 판정 형태 조정 완료(2026-10-28). 2026-10-28 QA(`TESTING.md`) 결과로 **A0.7 QA 버그 수정을 A2.2f보다 먼저** 진행 → 완료(2026-10-28, 서버 재현 테스트·회귀 + PIE 로그인 실패·가입·궁수 로그인 확인). A2.2g 행동 잠금·공격 속도 구조 + A2.2f 전투 HUD 완료(2026-10-28, PIE 확인). 다음: ③ 폴더·파일 정리(차례가 되면 코드를 읽고 따로 계획). 아래는 M0.5 항목 5 진행 기록입니다.
 - 5a 송신 파사드: 완료 (2026-10-27, 빌드 + Play 확인). `UNetworkManager::Get(WorldContext)`와 `SendLogin/SendSignUp/SendEnterRoom/SendMove/SendAttack` 추가, `LoginWidget`·`JMPlayerController`·`JMMyPlayer`가 파사드 사용, `ChatWidget`의 죽은 주석 삭제.
 - 5b 핸들러 보일러플레이트(`RegisterHandler<PacketT>` 템플릿, `GetObjectManager(session)` 헬퍼, 미사용 `SendAttackPacket` 삭제): 완료 (2026-10-27, 빌드 + Play 확인).
 - 5c UIManager 일원화: 완료 (2026-10-27, 빌드 + Play 확인. 인벤토리 키 미연결·채팅 미구현은 기존 상태로 `TODO.md` 백로그). 로그인 위젯·HUD·크로스헤어를 `UJMUIManager::RegisterWidget`(Z-Order, 시작 표시 인자 추가)으로 생성, 위젯 이름 상수 `UI/WidgetNames.h`, 레벨 전환 시 `ClearWidgets()`. `LoginWidgetClass`·`HUDWidgetClass`·`CrosshairWidgetClass` UPROPERTY는 유지하므로 에디터 작업 없음.
@@ -38,13 +38,14 @@
 
 ### A2′. 몬스터·전투 (서버 + UE 클라이언트, 최우선)
 - [x] A2.1 서버: 몬스터 사망 제거 + 리스폰(`MaxCount`, `SpawnRadius`, 지연). 클라이언트: `SC_DEAD`/`SC_REMOVE_OBJECT` 반영, 사망 몽타주 후 제거 (2026-10-20 완료: 서버 시험 + PIE 확인 — 피격/HP바/쓰러진 자세 유지/3초 후 제거/10초 후 리스폰). 과정에서 `MonsterTable`(`HitStunMs` 포함), 플레이어 공격 서버 쿨타임, `atk(req/ok)` 지표 추가, `DT_CharacterAsset` 몽타주 오등록 수정, 사망 몽타주 `Enable Auto Blend Out` 해제. 남은 개선: 사망을 AnimBP 상태(`bIsDead`)로 전환(A2.4), 공격 중 이동 시 하체 모션(AnimBP 상체 레이어)
-- [ ] A2.2 전투 입력·스킬 (2026-10-20 결정: DECISIONS.md, 설계: DESIGN_COMBAT_SKILL.md). 서브 단계, 각각 검증 게이트 통과 후 완료
+- [x] A2.2 전투 입력·스킬 (2026-10-20 결정: DECISIONS.md, 설계: DESIGN_COMBAT_SKILL.md). 서브 단계, 각각 검증 게이트 통과 후 완료 — a~g 완료(2026-10-28)
   - [x] A2.2a 프로토콜 + 서버 (2026-10-20 완료, `TESTING.md`): `CS_ATTACK`(skill_slot, target_id, aim_yaw, aim_x/y)·`SC_ATTACK`(aim_yaw, aim_x/y) 확장, `SkillTable` 확장(Slot·TargetingType·CastRange·DurationMs·TickMs) + 1번 스킬(402 전사 광역 강타 / 502 궁수 지면 장판), 스킬별 쿨타임, 서버 검증(사거리·대상 생존/적대·슬롯·NaN), 지면 장판(진입 즉시 + 1초 간격 피해, 3초), LoadTest `--profile hunt --hero --chaos`. **이월: 스탯을 반영한 대미지는 A2.3(레벨/성장)에서 처리**
   - [x] A2.2b 클라이언트 카메라/입력 (2026-10-21 완료: 검은사막식 3인칭 마우스 회전 카메라 + 전투 중 커서 숨김 + `Left Alt` 자유 커서, `DT_MovementTable` 데이터 기반 카메라/이동 수치, PIE 확인). 쿼터뷰 고정안은 폐기(`DECISIONS.md` 2026-10-21)
   - [x] A2.2c (2026-10-21 완료: 에디터 작업·PIE 확인. 궁수 장판 거리 고정은 `IMC_Default`의 Mouse Y에 Swizzle/Negate가 없어 카메라 피치가 0으로 고정된 것이 원인이었고, 에디터에서 모디파이어를 추가해 해결. 코드 쪽은 `ClientRestart`가 시작 피치를 덮어쓰는 문제를 다음 틱 재적용으로 수정, 장판 지점 폴백을 발밑 평면 교점으로 변경) 클라이언트 조준(크로스헤어 기준, 검은사막식): 전사 일반공격·스킬 = 카메라 방향 논타겟, 궁수 일반공격 = 크로스헤어 아래 몬스터 지정(없으면 무동작), 1번 키 = 조준 모드(범위 인디케이터) → 좌클릭 확정 시 1회 전송, 우클릭 = 취소. **C++ 작성 완료(컴파일 대기)**: `FSkillTableRow`/`DT_SkillTable`, `UDataManager::FindSkillBySlot`, `AJMMyPlayer` 조준·시전·인디케이터(디버그 도형), 카메라 피벗 높이/어깨 오프셋(`MovementTable`), `SC_ATTACK` 방향 반영, 크로스헤어 위젯 훅. **남은 것(에디터): `IA_Attack/IA_Skill1/IA_CancelAim` + `IMC_Default` 매핑, `DT_SkillTable` 임포트, `DT_MovementTable` Reimport, `WBP_Crosshair`, `BP_MyPlayer`·`BP_PControler` 지정, `BP_PControler` 좌클릭 노드 삭제**
   - [x] A2.2d 전투 연출 (2026-10-21 완료, PIE 확인): 공격 중 이동 시 상체 레이어 블렌드(AnimBP `Layered blend per bone` + `UpperBody` 슬롯, Greystone·Sparrow), 시전 중 방향 고정(`LockFacing`, `HitDelayMs`+0.2초), 장판 최소 표시(`SC_ATTACK`의 `skill_id`/`aim_x,y`로 모든 클라이언트에 디버그 원 `DurationMs` 동안 — 이펙트 에셋 교체는 이후). 남은 개선: 서 있을 때 하체 고정이 어색하면 이동 속도로 Blend Weight 제어
 - [x] A2.2e 전사 스킬 모션·이펙트 (2026-10-27 추가, 2026-10-28 완료): 1a SkillTable 클라 전용 `Montage` 열로 스킬별 몽타주 재생(402 `AM_Greystone_Skill1`, 502 `AM_Sparrow_Skill1`), 1b 이펙트 열 일반화(`Fx`/`FxBaseRadius`) + 402 지면 강타 이펙트·전신 점프 몽타주, 타격 시점은 몽타주 `Skill Hit` 노티파이 → `ExportSkillTiming.bat`으로 `HitDelayMs` 갱신
-- [ ] A2.2f 전투 HUD (2026-10-27 추가): 내 HP 바·수치, 스킬 슬롯(좌클릭·1번) 쿨타임. `SC_ATTACK.cooldown_ms` 추가
+- [x] A2.2f 전투 HUD (2026-10-27 추가): 내 HP 바·수치, 스킬 슬롯(좌클릭·1번) 쿨타임. `SC_ATTACK.cooldown_ms` 추가 — 진행 중(2026-10-28): f-1 서버·프로토콜 완료(`TESTING.md`), f-2 클라이언트 C++(`UCombatHudWidget`/`USkillSlotWidget`, SkillTable `Icon` 열) 빌드 완료, f-3 에셋(`WBP_CombatHud`/`WBP_SkillSlot`, `BP_GameMode` 부모 변경) 완료. 기본 공격 슬롯 제거(2026-10-28 결정), 스킬1 아이콘 적용 완료. PIE 확인 완료(2026-10-28)
+- [x] A2.2g 행동 잠금·공격 속도 구조 (2026-10-28 추가, `DECISIONS.md`): SkillTable `AnimMs`(도구 추출), 기본 공격 `CooldownMs` 0, 서버 공용 행동 잠금, AttackSpeed = 기본 공격 재생 배율(서버 행동 시간·타격 시점, 클라 몽타주 재생 속도), 몬스터 AI 간격도 같은 규칙. A2.2f보다 먼저 — 코드·데이터 완료(2026-10-28, 서버 행동 잠금 시나리오·회귀 통과 `TESTING.md`, 클라이언트 빌드). PIE 확인 완료
 - [ ] A2.3 서버+클라이언트: 경험치/레벨/골드 보상 패킷과 HUD(내 HP·EXP·레벨)
 - [ ] A2.4 서버+클라이언트: 플레이어 사망/부활
 - [ ] A2.5 서버: DB 저장 연결(`InitFromDb`, 접속 해제·주기 저장, `SavePlayerData` SQL 수정). 완료: 재접속 시 레벨·HP·골드 유지
@@ -137,6 +138,9 @@
 - [x] Greystone, Sparrow: 몽타주 Duplicate(`AM_`), AnimBP·피격·사망 Rename, `DT_CharacterAsset` 경로 갱신 (2026-10-19 완료)
 - [ ] Rampage: 사용 에셋 확인(`BP_Npc`) 후 같은 방식으로 처리 — 몽타주 Rename은 완료, `BP_Npc`의 `CurrentAttackMontage`는 아직 팩 원본(`Attack_Biped_Melee_A_Montage`)을 참조하고 사망/피격 몽타주는 미지정 (A2.1에서 지정)
 - [ ] Paragon 에셋 최종 Move: 캐릭터 작업 종료 시 (아래 중단점 4번 참고)
+- [x] A2.2f: `WBP_SkillSlot`·`WBP_CombatHud` 생성, `BP_GameMode` 부모 → `AIngameGameModeBase` + `HUDWidgetClass = WBP_CombatHud` (2026-10-28, 도구로 처리)
+- [x] A2.2f: 스킬1 아이콘 2개(배경 투명 처리) → `Character/<영웅>/Icons` 가져오기, SkillTable `Icon` 경로 + `DT_SkillTable` Reimport, `WBP_CombatHud`에서 `SlotAttack` 제거 (2026-10-28, 도구로 처리)
+- [x] A2.2g: SkillTable `AnimMs` 열 + 501 `Montage`(`AM_Sparrow_Attack`), `ExportSkillTiming.bat`으로 `DT_SkillTable` Reimport (2026-10-28)
 - [x] A0.7: `WBP_Login`에 `TxtResult`(Text) + `ComboHero`(ComboBox (String)) 추가, 라벨 `TxtHeroLabel`("가입할 영웅"), 순서 비밀번호 → 영웅 라벨 → 콤보 → 버튼 → 결과 메시지, 글꼴·여백을 기존 항목에 맞춤 (2026-10-28 완료)
 - [x] 전사 판정 조정: `AM_Greystone_Attack` 약 0.41초에 Skill Hit 노티파이 → `ExportSkillTiming.bat`(401 `HitDelayMs`, `DT_SkillTable` 갱신) (2026-10-28 완료)
 - [x] A2.2e-1b: `P_Greystone_GroundSmash` Copy, `AS/AM_Greystone_Skill2`(전신 `DefaultSlot`), ABP 2개에 `Slot 'DefaultSlot'`, 몽타주 2개에 Skill Hit 노티파이, `ExportSkillTiming.bat`으로 `DT_SkillTable` 갱신 (2026-10-28 완료)

@@ -64,9 +64,10 @@ int32 USkillTimingExportCommandlet::Main(const FString& Params)
 	const int32 NameCol = Header.IndexOfByKey(TEXT("Name"));
 	const int32 HitCol = Header.IndexOfByKey(TEXT("HitDelayMs"));
 	const int32 MontageCol = Header.IndexOfByKey(TEXT("Montage"));
-	if (NameCol == INDEX_NONE || HitCol == INDEX_NONE || MontageCol == INDEX_NONE)
+	const int32 AnimCol = Header.IndexOfByKey(TEXT("AnimMs"));
+	if (NameCol == INDEX_NONE || HitCol == INDEX_NONE || MontageCol == INDEX_NONE || AnimCol == INDEX_NONE)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[SkillTiming] Name/HitDelayMs/Montage 열이 필요합니다."));
+		UE_LOG(LogTemp, Error, TEXT("[SkillTiming] Name/HitDelayMs/AnimMs/Montage 열이 필요합니다."));
 		return 1;
 	}
 
@@ -84,7 +85,7 @@ int32 USkillTimingExportCommandlet::Main(const FString& Params)
 
 		const FString& SkillName = Cells[NameCol];
 		const FString MontagePath = Cells[MontageCol].TrimStartAndEnd();
-		if (MontagePath.IsEmpty()) continue;   // 기본 공격 등 몽타주를 지정하지 않은 행은 HitDelayMs를 직접 관리한다.
+		if (MontagePath.IsEmpty()) continue;   // 몽타주를 지정하지 않은 행(몬스터 기본 공격 등)은 HitDelayMs·AnimMs를 직접 관리한다.
 
 		UAnimMontage* Montage = LoadObject<UAnimMontage>(nullptr, *MontagePath);
 		if (Montage == nullptr)
@@ -101,6 +102,22 @@ int32 USkillTimingExportCommandlet::Main(const FString& Params)
 				UE_LOG(LogTemp, Warning, TEXT("[SkillTiming] %s: 슬롯 '%s'는 UpperBody/DefaultSlot이 아닙니다 (%s)"), *SkillName, *Track.SlotName.ToString(), *MontagePath);
 				++Warnings;
 			}
+		}
+
+		const float RateScale = Montage->RateScale > 0.f ? Montage->RateScale : 1.f;
+
+		// 행동 시간: 몽타주 1회 길이
+		const FString AnimValue = FString::FromInt(FMath::RoundToInt(Montage->GetPlayLength() / RateScale * 1000.f));
+		if (Cells[AnimCol] != AnimValue)
+		{
+			UE_LOG(LogTemp, Display, TEXT("[SkillTiming] %s: AnimMs %s -> %s"), *SkillName, *Cells[AnimCol], *AnimValue);
+			Cells[AnimCol] = AnimValue;
+			Lines[i] = FString::Join(Cells, TEXT(","));
+			++Updated;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Display, TEXT("[SkillTiming] %s: AnimMs %s (변경 없음)"), *SkillName, *AnimValue);
 		}
 
 		TArray<float> HitTimes;
@@ -124,7 +141,6 @@ int32 USkillTimingExportCommandlet::Main(const FString& Params)
 			++Warnings;
 		}
 
-		const float RateScale = Montage->RateScale > 0.f ? Montage->RateScale : 1.f;
 		const int32 HitMs = FMath::RoundToInt(HitTimes[0] / RateScale * 1000.f);
 		const FString NewValue = FString::FromInt(HitMs);
 		if (Cells[HitCol] != NewValue)

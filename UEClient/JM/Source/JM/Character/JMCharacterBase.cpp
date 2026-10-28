@@ -144,6 +144,8 @@ void AJMCharacterBase::OnDead()
 
 void AJMCharacterBase::OnAttack(const FSkillTableRow* Skill)
 {
+	const float PlayRate = GetAttackPlayRate(Skill);
+
 	UAnimMontage* SkillMontage = (Skill && !Skill->Montage.IsNull()) ? Skill->Montage.LoadSynchronous() : nullptr;
 	if (SkillMontage == nullptr)
 	{
@@ -151,14 +153,22 @@ void AJMCharacterBase::OnAttack(const FSkillTableRow* Skill)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("OnAttack: skill montage load failed (%s)"), *Skill->Montage.ToString());
 		}
-		PlayAttackAnim();
+		PlayAttackAnim(PlayRate);
 		return;
 	}
 
 	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
 	{
-		AnimInst->Montage_Play(SkillMontage);
+		AnimInst->Montage_Play(SkillMontage, PlayRate);
 	}
+}
+
+float AJMCharacterBase::GetAttackPlayRate(const FSkillTableRow* Skill) const
+{
+	if (Skill && Skill->Slot != 0) return 1.f;
+
+	const float AttackSpeed = ObjectInfo.stat().attack_speed();
+	return AttackSpeed > 0.f ? AttackSpeed : 1.f;
 }
 
 void AJMCharacterBase::FaceYaw(float Yaw)
@@ -185,7 +195,7 @@ void AJMCharacterBase::LockFacingForSkill(const FSkillTableRow& Skill)
 {
 	// 타격 시점이 지난 뒤에도 잠깐 더 유지해 모션이 끝나기 전에 몸이 돌아가지 않게 한다.
 	constexpr float MarginSec = 0.2f;
-	LockFacing(Skill.HitDelayMs / 1000.f + MarginSec);
+	LockFacing(Skill.HitDelayMs / 1000.f / GetAttackPlayRate(&Skill) + MarginSec);
 }
 
 void AJMCharacterBase::UnlockFacing()
@@ -203,12 +213,12 @@ void AJMCharacterBase::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrup
 {
 }
 
-void AJMCharacterBase::PlayAttackAnim()
+void AJMCharacterBase::PlayAttackAnim(float PlayRate)
 {
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
 	if (AnimInst && CurrentAttackMontage)
 	{
-		AnimInst->Montage_Play(CurrentAttackMontage);
+		AnimInst->Montage_Play(CurrentAttackMontage, PlayRate);
 	}
 }
 

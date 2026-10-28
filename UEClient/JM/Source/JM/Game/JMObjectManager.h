@@ -18,11 +18,15 @@ public:
 	void HandleSpawn(const Protocol::ObjectInfo& ObjInfo);
 	void HandleDespawn(int32 ObjectId);
 	void HandleMove(const Protocol::ObjectInfo& ObjInfo);
-	void HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY);
+	// CooldownMs: 서버가 적용한 쿨타임(SC_ATTACK.cooldown_ms). 내 시전이면 HUD 슬롯에 표시한다.
+	void HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY, int32 CooldownMs);
 	void HandleDamage(int32 AttackerId, int32 TargetId, int32 Damage, int32 RemainHp);
 	void HandleDead(int32 CharacterId);
 
 private:
+	// 전투 HUD(UIManager에 HUD 이름으로 등록된 위젯). 로그인 화면처럼 HUD가 없으면 nullptr
+	class UCombatHudWidget* GetCombatHud() const;
+
 	// SkillTable의 Fx를 HitShape에 맞춰 재생한다. 장판은 조준 지점에 DurationMs 동안, 부채꼴·직선은 타격 시점에 시전자 발밑에서 1회.
 	void SpawnSkillFx(AJMCharacterBase* Attacker, const struct FSkillTableRow& Skill, float AimYaw, float AimX, float AimY);
 

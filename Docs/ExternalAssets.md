@@ -16,3 +16,10 @@
 | (Test) `Content/Pirate`, `Adventures_woman` | (에셋 이름 기입) | (Fab 링크 기입) | 모듈러 캐릭터 검토용, 캐릭터 베이스 결정 후 폐기 여부 확정 | 위와 동일 |
 
 > 팩을 다시 받을 때는 기존 이주본과 경로가 겹치므로, 덮어쓰기 전에 `Content/Character/*`(ABP, DT, BP)와 `DT_Appearance`/`DT_Equip`은 git으로 커밋된 상태인지 확인하세요.
+
+## 직접 추가한 이미지 (원본 PNG는 git 제외, 가져온 텍스처 에셋은 git 포함)
+
+| 에셋 | 원본 | 출처 | 비고 |
+|---|---|---|---|
+| `Content/Character/Greystone/Icons/T_Greystone_Icon_Skill1` | `UEClient/JM/SourceArt/Icons/Original/SwordSkill.png` | 사용자 제공 임시 아이콘(출처 미기재) | 2026-10-28. 그려진 체크무늬 배경을 투명 처리·256px 축소한 `SourceArt/Icons/T_Greystone_Icon_Skill1.png`를 가져옴. 정식 아이콘으로 교체 예정 |
+| `Content/Character/Sparrow/Icons/T_Sparrow_Icon_Skill1` | `UEClient/JM/SourceArt/Icons/Original/ArrowSkill.png` | 위와 같음 | 위와 같음 |

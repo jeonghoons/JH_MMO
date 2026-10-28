@@ -1,4 +1,4 @@
 Name,PlayerType,MaxHp,AttackDamage,AttackSpeed,MoveSpeed
-1001,3,150,20,2.0,400
+1001,3,150,20,1.0,400
 1002,4,800,30,0.9,450
 1003,5,450,35,1.1,550

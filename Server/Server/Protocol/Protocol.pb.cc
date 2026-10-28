@@ -260,6 +260,7 @@ PROTOBUF_CONSTEXPR SC_ATTACK_PACKET::SC_ATTACK_PACKET(
   , /*decltype(_impl_.aim_yaw_)*/0
   , /*decltype(_impl_.aim_x_)*/0
   , /*decltype(_impl_.aim_y_)*/0
+  , /*decltype(_impl_.cooldown_ms_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct SC_ATTACK_PACKETDefaultTypeInternal {
   PROTOBUF_CONSTEXPR SC_ATTACK_PACKETDefaultTypeInternal()
@@ -476,6 +477,7 @@ const uint32_t TableStruct_Protocol_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
   PROTOBUF_FIELD_OFFSET(::Protocol::SC_ATTACK_PACKET, _impl_.aim_yaw_),
   PROTOBUF_FIELD_OFFSET(::Protocol::SC_ATTACK_PACKET, _impl_.aim_x_),
   PROTOBUF_FIELD_OFFSET(::Protocol::SC_ATTACK_PACKET, _impl_.aim_y_),
+  PROTOBUF_FIELD_OFFSET(::Protocol::SC_ATTACK_PACKET, _impl_.cooldown_ms_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Protocol::SC_DAMAGE_PACKET, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -529,10 +531,10 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 115, -1, -1, sizeof(::Protocol::SC_CHAT_PACKET)},
   { 123, -1, -1, sizeof(::Protocol::SC_MOVE_PACKET)},
   { 131, -1, -1, sizeof(::Protocol::SC_ATTACK_PACKET)},
-  { 143, -1, -1, sizeof(::Protocol::SC_DAMAGE_PACKET)},
-  { 153, -1, -1, sizeof(::Protocol::SC_DEAD_PACKET)},
-  { 160, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_PACKET)},
-  { 169, -1, -1, sizeof(::Protocol::SC_PONG_PACKET)},
+  { 144, -1, -1, sizeof(::Protocol::SC_DAMAGE_PACKET)},
+  { 154, -1, -1, sizeof(::Protocol::SC_DEAD_PACKET)},
+  { 161, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_PACKET)},
+  { 170, -1, -1, sizeof(::Protocol::SC_PONG_PACKET)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -588,17 +590,17 @@ const char descriptor_table_protodef_Protocol_2eproto[] PROTOBUF_SECTION_VARIABL
   "\016SC_CHAT_PACKET\022\021\n\tsender_id\030\001 \001(\005\022\017\n\007me"
   "ssage\030\002 \001(\t\"N\n\016SC_MOVE_PACKET\022)\n\013object_"
   "info\030\001 \001(\0132\024.Protocol.ObjectInfo\022\021\n\tmove"
-  "_time\030\002 \001(\r\"{\n\020SC_ATTACK_PACKET\022\023\n\013attac"
-  "ker_id\030\001 \001(\005\022\020\n\010skill_id\030\002 \001(\005\022\021\n\ttarget"
-  "_id\030\003 \001(\005\022\017\n\007aim_yaw\030\004 \001(\002\022\r\n\005aim_x\030\005 \001("
-  "\002\022\r\n\005aim_y\030\006 \001(\002\"]\n\020SC_DAMAGE_PACKET\022\023\n\013"
-  "attacker_id\030\001 \001(\005\022\021\n\ttarget_id\030\002 \001(\005\022\016\n\006"
-  "damage\030\003 \001(\005\022\021\n\tremain_hp\030\004 \001(\005\"#\n\016SC_DE"
-  "AD_PACKET\022\021\n\tobject_id\030\001 \001(\005\"_\n\026SC_CHANG"
-  "E_EQUIP_PACKET\022\021\n\tobject_id\030\001 \001(\005\022!\n\004par"
-  "t\030\002 \001(\0162\023.Protocol.EquipPart\022\017\n\007item_id\030"
-  "\003 \001(\005\"%\n\016SC_PONG_PACKET\022\023\n\013client_time\030\001"
-  " \001(\003b\006proto3"
+  "_time\030\002 \001(\r\"\220\001\n\020SC_ATTACK_PACKET\022\023\n\013atta"
+  "cker_id\030\001 \001(\005\022\020\n\010skill_id\030\002 \001(\005\022\021\n\ttarge"
+  "t_id\030\003 \001(\005\022\017\n\007aim_yaw\030\004 \001(\002\022\r\n\005aim_x\030\005 \001"
+  "(\002\022\r\n\005aim_y\030\006 \001(\002\022\023\n\013cooldown_ms\030\007 \001(\005\"]"
+  "\n\020SC_DAMAGE_PACKET\022\023\n\013attacker_id\030\001 \001(\005\022"
+  "\021\n\ttarget_id\030\002 \001(\005\022\016\n\006damage\030\003 \001(\005\022\021\n\tre"
+  "main_hp\030\004 \001(\005\"#\n\016SC_DEAD_PACKET\022\021\n\tobjec"
+  "t_id\030\001 \001(\005\"_\n\026SC_CHANGE_EQUIP_PACKET\022\021\n\t"
+  "object_id\030\001 \001(\005\022!\n\004part\030\002 \001(\0162\023.Protocol"
+  ".EquipPart\022\017\n\007item_id\030\003 \001(\005\"%\n\016SC_PONG_P"
+  "ACKET\022\023\n\013client_time\030\001 \001(\003b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_Protocol_2eproto_deps[2] = {
   &::descriptor_table_Enum_2eproto,
@@ -606,7 +608,7 @@ static const ::_pbi::DescriptorTable* const descriptor_table_Protocol_2eproto_de
 };
 static ::_pbi::once_flag descriptor_table_Protocol_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Protocol_2eproto = {
-    false, false, 1492, descriptor_table_protodef_Protocol_2eproto,
+    false, false, 1514, descriptor_table_protodef_Protocol_2eproto,
     "Protocol.proto",
     &descriptor_table_Protocol_2eproto_once, descriptor_table_Protocol_2eproto_deps, 2, 22,
     schemas, file_default_instances, TableStruct_Protocol_2eproto::offsets,
@@ -4091,12 +4093,13 @@ SC_ATTACK_PACKET::SC_ATTACK_PACKET(const SC_ATTACK_PACKET& from)
     , decltype(_impl_.aim_yaw_){}
     , decltype(_impl_.aim_x_){}
     , decltype(_impl_.aim_y_){}
+    , decltype(_impl_.cooldown_ms_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::memcpy(&_impl_.attacker_id_, &from._impl_.attacker_id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.aim_y_) -
-    reinterpret_cast<char*>(&_impl_.attacker_id_)) + sizeof(_impl_.aim_y_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.cooldown_ms_) -
+    reinterpret_cast<char*>(&_impl_.attacker_id_)) + sizeof(_impl_.cooldown_ms_));
   // @@protoc_insertion_point(copy_constructor:Protocol.SC_ATTACK_PACKET)
 }
 
@@ -4111,6 +4114,7 @@ inline void SC_ATTACK_PACKET::SharedCtor(
     , decltype(_impl_.aim_yaw_){0}
     , decltype(_impl_.aim_x_){0}
     , decltype(_impl_.aim_y_){0}
+    , decltype(_impl_.cooldown_ms_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
 }
@@ -4139,8 +4143,8 @@ void SC_ATTACK_PACKET::Clear() {
   (void) cached_has_bits;
 
   ::memset(&_impl_.attacker_id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.aim_y_) -
-      reinterpret_cast<char*>(&_impl_.attacker_id_)) + sizeof(_impl_.aim_y_));
+      reinterpret_cast<char*>(&_impl_.cooldown_ms_) -
+      reinterpret_cast<char*>(&_impl_.attacker_id_)) + sizeof(_impl_.cooldown_ms_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -4195,6 +4199,14 @@ const char* SC_ATTACK_PACKET::_InternalParse(const char* ptr, ::_pbi::ParseConte
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 53)) {
           _impl_.aim_y_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
           ptr += sizeof(float);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 cooldown_ms = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.cooldown_ms_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
@@ -4275,6 +4287,12 @@ uint8_t* SC_ATTACK_PACKET::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteFloatToArray(6, this->_internal_aim_y(), target);
   }
 
+  // int32 cooldown_ms = 7;
+  if (this->_internal_cooldown_ms() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_cooldown_ms(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -4333,6 +4351,11 @@ size_t SC_ATTACK_PACKET::ByteSizeLong() const {
     total_size += 1 + 4;
   }
 
+  // int32 cooldown_ms = 7;
+  if (this->_internal_cooldown_ms() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_cooldown_ms());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -4381,6 +4404,9 @@ void SC_ATTACK_PACKET::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const
   if (raw_aim_y != 0) {
     _this->_internal_set_aim_y(from._internal_aim_y());
   }
+  if (from._internal_cooldown_ms() != 0) {
+    _this->_internal_set_cooldown_ms(from._internal_cooldown_ms());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -4399,8 +4425,8 @@ void SC_ATTACK_PACKET::InternalSwap(SC_ATTACK_PACKET* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(SC_ATTACK_PACKET, _impl_.aim_y_)
-      + sizeof(SC_ATTACK_PACKET::_impl_.aim_y_)
+      PROTOBUF_FIELD_OFFSET(SC_ATTACK_PACKET, _impl_.cooldown_ms_)
+      + sizeof(SC_ATTACK_PACKET::_impl_.cooldown_ms_)
       - PROTOBUF_FIELD_OFFSET(SC_ATTACK_PACKET, _impl_.attacker_id_)>(
           reinterpret_cast<char*>(&_impl_.attacker_id_),
           reinterpret_cast<char*>(&other->_impl_.attacker_id_));

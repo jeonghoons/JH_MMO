@@ -252,15 +252,9 @@ void Monster::UpdateAttack()
 		return;
 	}
 
-	if (_attackTimer.IsReady())
+	// 공격 간격은 공용 행동 잠금(Character::BeginCast, 애니메이션 1회 ÷ AttackSpeed)이 정한다.
+	if (!IsActing())
 	{
-		int myBasicAttackId = (int)_objectInfo.player_type() * 100 + 1;
-		const SkillData* skill = DataManager::GetSkillData(myBasicAttackId);
-		long long baseCooldownMs = skill ? skill->cooldownMs : 1000;
-		float statAttackSpeed = _statInfo.GetAttackSpeed();
-		long long finalCooldownMs = static_cast<long long>(baseCooldownMs / (statAttackSpeed > 0.f ? statAttackSpeed : 1.f));
-
-		_attackTimer.Reset(finalCooldownMs);
 		_objectInfo.mutable_position()->set_yaw(XMConvertToDegrees(atan2f(diffY, diffX)));
 
 

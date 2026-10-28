@@ -8,4 +8,4 @@
   - xlsx 편집: CSV UTF-8로 저장 → UE에서 DataTable Reimport
   - DataTable 편집: Export as CSV로 이 폴더에 덮어쓰기 → xlsx도 갱신
 - 첫 컬럼 `Name` = 정수 ID(1001부터), 컬럼명은 Row 구조체 프로퍼티명(PascalCase)과 동일
-- `SkillTable.csv`의 `HitDelayMs`는 `Montage` 열이 있는 행에 한해 몽타주의 **Skill Hit** 노티파이 시각에서 뽑습니다. 몽타주를 고친 뒤 에디터를 닫고 `ExportSkillTiming.bat`을 실행하면 CSV와 `DT_SkillTable`이 함께 갱신되고, 서버를 재시작하면 판정 시점에 반영됩니다.
+- `SkillTable.csv`의 `AnimMs`(행동 시간 = 몽타주 1회 길이)와 `HitDelayMs`는 `Montage` 열이 있는 행에 한해 몽타주에서 뽑습니다(`HitDelayMs`는 **Skill Hit** 노티파이 시각, 노티파이가 없으면 기존 값 유지). `Montage`가 빈 행(몬스터 기본 공격)은 두 값을 직접 관리합니다. 기본 공격(`Slot` 0)은 `CooldownMs` 0이고 행동 시간·타격 시점이 `StatTable.AttackSpeed`로 나뉩니다(`Docs/DECISIONS.md` 2026-10-28). 몽타주를 고친 뒤 에디터를 닫고 `ExportSkillTiming.bat`을 실행하면 CSV와 `DT_SkillTable`이 함께 갱신되고, 서버를 재시작하면 판정 시점에 반영됩니다.

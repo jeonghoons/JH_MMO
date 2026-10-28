@@ -295,13 +295,13 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 
 	// 여기부터 시전이 확정된다.
 	caster->GetMutablePosition()->set_yaw(yaw);
-	caster->BeginSkillCooldown(*skill);
+	const Character::CastTiming timing = caster->BeginCast(*skill);
 	if (casterIsPlayer)
 		Metrics::AttackAccepted.fetch_add(1);
 
-	BroadcastAOI(caster, PacketSerializer::MAKE_SC_ATTACK(caster->GetId(), skill->skillId, targetId, yaw, ax, ay), true);
+	BroadcastAOI(caster, PacketSerializer::MAKE_SC_ATTACK(caster->GetId(), skill->skillId, targetId, yaw, ax, ay, static_cast<int>(timing.cooldownMs)), true);
 
-	ReserveJob(skill->hitDelayMs, &Room::ExecuteSkillHit, caster->GetId(), skill->skillId, targetId, yaw, ax, ay);
+	ReserveJob(static_cast<DWORD>(timing.hitDelayMs), &Room::ExecuteSkillHit, caster->GetId(), skill->skillId, targetId, yaw, ax, ay);
 }
 
 void Room::ExecuteSkillHit(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY)

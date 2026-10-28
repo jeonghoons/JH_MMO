@@ -55,7 +55,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 `Name`(ID, 1001~), `PlayerType`(`Enum.proto`의 PlayerType 값, 서버 조회 키·중복 불가), `MaxHp`, `AttackDamage`, `AttackSpeed`, `MoveSpeed`. 생성 시 HP는 `MaxHp`입니다. 현재 행: 몬스터(3), 전사(4), 궁수(5).
 
 ### SkillTable (서버 구현됨)
-`Name`(skillId), `PlayerType`(영웅 종속), `Slot`(0 = 기본 공격, 1~5 = 숫자키), `TargetingType`(`Targeted`/`NonTargeted`), `HitShape`(`Sector`/`Line`/`Projectile`/`Zone`), `HitDelayMs`, `CooldownMs`, `CastRange`(Targeted는 대상까지, Zone은 지점까지 최대 거리), `Radius`, `Angle`, `Range`, `Width`, `BaseDamage`, `ProjSpeed`, `DurationMs`/`TickMs`(Zone: 지속 시간 / 한 대상에게 피해를 주는 최소 간격 — 진입 즉시 피해 후 `TickMs`마다 반복).
+`Name`(skillId), `PlayerType`(영웅 종속), `Slot`(0 = 기본 공격, 1~5 = 숫자키), `TargetingType`(`Targeted`/`NonTargeted`), `HitShape`(`Sector`/`Line`/`Projectile`/`Zone`), `HitDelayMs`, `CooldownMs`, `CastRange`(Targeted는 대상까지, Zone은 지점까지 최대 거리), `Radius`, `Angle`, `Range`, `Width`, `BaseDamage`, `ProjSpeed`, `DurationMs`/`TickMs`(Zone: 지속 시간 / 한 대상에게 피해를 주는 최소 간격 — 진입 즉시 피해 후 `TickMs`마다 반복). 클라이언트 전용 열(서버 로더는 무시): `Fx`/`FxBaseRadius`(이펙트), `Montage`(시전 몽타주), `Icon`(전투 HUD 슬롯 아이콘 텍스처).
 - 클라이언트는 skillId가 아니라 **슬롯**을 보내고, 서버가 영웅의 SkillTable로 해석합니다(다른 영웅의 스킬 사용 불가). 쿨타임은 스킬별이며 기본 공격(슬롯 0)만 공격 속도 배율을 반영합니다.
 - 현재 행: 301(몬스터), 401/402(전사 기본·광역 강타), 501/502(궁수 기본 타겟팅 투사체·지면 장판). skillId 규칙은 `PlayerType*100+Slot+1`(기존 기본 공격 id 유지)이며, `HeroId` 기반 ID 체계(1001~)로의 재편은 M4에서 합니다.
 

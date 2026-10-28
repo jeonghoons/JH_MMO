@@ -2946,6 +2946,7 @@ class SC_ATTACK_PACKET final :
     kAimYawFieldNumber = 4,
     kAimXFieldNumber = 5,
     kAimYFieldNumber = 6,
+    kCooldownMsFieldNumber = 7,
   };
   // int32 attacker_id = 1;
   void clear_attacker_id();
@@ -3001,6 +3002,15 @@ class SC_ATTACK_PACKET final :
   void _internal_set_aim_y(float value);
   public:
 
+  // int32 cooldown_ms = 7;
+  void clear_cooldown_ms();
+  int32_t cooldown_ms() const;
+  void set_cooldown_ms(int32_t value);
+  private:
+  int32_t _internal_cooldown_ms() const;
+  void _internal_set_cooldown_ms(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.SC_ATTACK_PACKET)
  private:
   class _Internal;
@@ -3015,6 +3025,7 @@ class SC_ATTACK_PACKET final :
     float aim_yaw_;
     float aim_x_;
     float aim_y_;
+    int32_t cooldown_ms_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -4884,6 +4895,26 @@ inline void SC_ATTACK_PACKET::_internal_set_aim_y(float value) {
 inline void SC_ATTACK_PACKET::set_aim_y(float value) {
   _internal_set_aim_y(value);
   // @@protoc_insertion_point(field_set:Protocol.SC_ATTACK_PACKET.aim_y)
+}
+
+// int32 cooldown_ms = 7;
+inline void SC_ATTACK_PACKET::clear_cooldown_ms() {
+  _impl_.cooldown_ms_ = 0;
+}
+inline int32_t SC_ATTACK_PACKET::_internal_cooldown_ms() const {
+  return _impl_.cooldown_ms_;
+}
+inline int32_t SC_ATTACK_PACKET::cooldown_ms() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ATTACK_PACKET.cooldown_ms)
+  return _internal_cooldown_ms();
+}
+inline void SC_ATTACK_PACKET::_internal_set_cooldown_ms(int32_t value) {
+  
+  _impl_.cooldown_ms_ = value;
+}
+inline void SC_ATTACK_PACKET::set_cooldown_ms(int32_t value) {
+  _internal_set_cooldown_ms(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_ATTACK_PACKET.cooldown_ms)
 }
 
 // -------------------------------------------------------------------

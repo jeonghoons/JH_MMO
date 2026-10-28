@@ -78,7 +78,6 @@ public:
 private:
 	Cooldown _aiDecisionTimer;
 	Cooldown _patrolTimer;
-	Cooldown _attackTimer;
 	Cooldown _pathSearchTimer;
 
 	std::vector<Protocol::PositionInfo> _path;

@@ -12,6 +12,9 @@
 #include "DrawDebugHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "TimerManager.h"
+#include "UI/JMUIManager.h"
+#include "UI/WidgetNames.h"
+#include "UI/CombatHudWidget.h"
 
 void UJMObjectManager::ClearObjects()
 {
@@ -69,7 +72,22 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	{
 		SpawnedActor->SetPlayerData(ObjInfo);
 		Objects.Add(ObjectId, SpawnedActor);
+
+		if (SpawnedActor == MyPlayer)
+		{
+			if (UCombatHudWidget* Hud = GetCombatHud())
+			{
+				Hud->SetHero(static_cast<int32>(ObjInfo.player_type()));
+				Hud->SetHp(ObjInfo.stat().hp(), ObjInfo.stat().max_hp());
+			}
+		}
 	}
+}
+
+UCombatHudWidget* UJMObjectManager::GetCombatHud() const
+{
+	UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr;
+	return UIManager ? Cast<UCombatHudWidget>(UIManager->GetWidget(WidgetNames::HUD)) : nullptr;
 }
 
 void UJMObjectManager::HandleDespawn(int32 ObjectId)
@@ -96,7 +114,7 @@ void UJMObjectManager::HandleMove(const Protocol::ObjectInfo& ObjInfo)
 	}
 }
 
-void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY)
+void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY, int32 CooldownMs)
 {
 	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(AttackerId))
 	{
@@ -116,6 +134,12 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYa
 		Attacker->OnAttack(Skill);
 
 		if (Skill) SpawnSkillFx(Attacker, *Skill, AimYaw, AimX, AimY);
+
+		// 내 시전만 HUD 쿨타임에 반영한다. 길이는 서버가 적용한 값이다.
+		if (Skill && Attacker == MyPlayer)
+		{
+			if (UCombatHudWidget* Hud = GetCombatHud()) Hud->StartCooldown(Skill->Slot, CooldownMs);
+		}
 	}
 }
 
@@ -168,8 +192,9 @@ void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTabl
 
 	if (Skill.HitDelayMs > 0)
 	{
+		// 서버 판정 시점과 같게 재생 배율(기본 공격은 AttackSpeed)로 나눈다.
 		FTimerHandle Handle;
-		World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(Attacker, Play), Skill.HitDelayMs / 1000.f, false);
+		World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(Attacker, Play), Skill.HitDelayMs / 1000.f / Attacker->GetAttackPlayRate(&Skill), false);
 	}
 	else
 	{
@@ -184,6 +209,11 @@ void UJMObjectManager::HandleDamage(int32 AttackerId, int32 TargetId, int32 Dama
 		if (*FoundActor == nullptr) return;
 
 		(*FoundActor)->OnDamaged(Damage, RemainHp);
+
+		if (*FoundActor == MyPlayer)
+		{
+			if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetHp(RemainHp, MyPlayer->GetObjectInfo().stat().max_hp());
+		}
 	}
 }
 
@@ -195,5 +225,10 @@ void UJMObjectManager::HandleDead(int32 CharacterId)
 		if (*FoundActor == nullptr) return;
 
 		(*FoundActor)->OnDead();
+
+		if (*FoundActor == MyPlayer)
+		{
+			if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetHp(0, MyPlayer->GetObjectInfo().stat().max_hp());
+		}
 	}
 }

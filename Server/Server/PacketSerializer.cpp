@@ -25,7 +25,7 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_ptr<GameObje
 	return MakeSendBuffer(packet, Protocol::SC_MOVE_OBJECT);
 }
 
-shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ATTACK(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY)
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ATTACK(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY, int cooldownMs)
 {
 	Protocol::SC_ATTACK_PACKET packet;
 	packet.set_attacker_id(attackerId);
@@ -34,6 +34,7 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ATTACK(int attackerId, int skil
 	packet.set_aim_yaw(aimYaw);
 	packet.set_aim_x(aimX);
 	packet.set_aim_y(aimY);
+	packet.set_cooldown_ms(cooldownMs);
 
 	return MakeSendBuffer(packet, Protocol::SC_ATTACK);
 }
