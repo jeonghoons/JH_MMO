@@ -13,7 +13,6 @@ struct DB_PlayerData {
 	int16_t level;
 	int64_t exp;
 	int32_t hp;
-	int32_t mp;
 	int64_t gold;
 	
 	std::vector<int32_t> equipItemIds;

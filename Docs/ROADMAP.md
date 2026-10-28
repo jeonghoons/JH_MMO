@@ -53,7 +53,7 @@
 
 ### R. ③ 저장소 정리 (2026-10-28 계획, `DECISIONS.md`) — 지우는 일 먼저, 옮기는 일은 나중에
 - [x] C-1 안 쓰는 코드·패킷 삭제 (2026-10-28 완료: 서버·클라이언트 빌드, 회귀 스크립트(A0.7·가입/로그인 결과·행동 잠금)·LoadTest 이동 1,000/hunt/chaos 통과, PIE는 C-3 뒤에 함께): `CS/SC_LOGOUT`, `CS_CMOVE`/`SC_CMOVE_OBJECT`, `CS_LEAVE_ROOM`, `ObjectInfo.appearance_items`(번호는 `reserved`), 서버 옛 주석 코드·깨진 `SavePlayerData`(없는 `Player_Data` 테이블)·미사용 함수, 클라이언트 인벤토리 키·`SendBuffer::CopyData`·주석 코드
-- [ ] C-2 DB 정리: 미사용 테이블 `Item_Meta`/`Player_Inventory`/`Trade_Log` 삭제(백업 + 마이그레이션 스크립트 + `schema.sql` 재생성), 미사용 열은 목록 확인 후
+- [x] C-2 DB 정리 (2026-10-29 완료: 백업 `GameServer_2026-10-28_preC2.bak` 후 마이그레이션 실행, `Mp`·`Status` 열도 삭제, `LastLoginAt`은 유지, 회귀·LoadTest 통과): 미사용 테이블 `Item_Meta`/`Player_Inventory`/`Trade_Log` 삭제(백업 + 마이그레이션 스크립트 + `schema.sql` 재생성), 미사용 열은 목록 확인 후
 - [ ] C-3 미사용 에셋 삭제: 참조 검사 보고 → 승인 목록만 삭제 (`WBP_Info`, `AM_Greystone_Skill1`, `WBP_Inventory` 등)
 - [ ] C-4 채팅 복구(A2.6 완료 처리): `CS_CHAT` → 서버 검증·방 방송 `SC_CHAT` → 클라이언트 `SendChat`·`Handle_SC_CHAT`·`ChatWidget`
 - [ ] C-5 소스 폴더 구조화: `Server/Server`를 Network/Packet/Job/DB/Data/Game(Object·Room·NavMesh)/Utils로(`git mv`, include 경로는 vcxproj), 클라이언트 `JMGameInstance` → `Game/`

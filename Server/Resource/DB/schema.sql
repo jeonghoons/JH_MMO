@@ -1,4 +1,5 @@
-﻿USE [master]
+﻿-- 2026-10-28: Item_Meta/Player_Inventory/Trade_Log, Player_Info.Mp, User_Account.Status 삭제 반영 (migrations/2026-10-28_drop_unused.sql)
+USE [master]
 GO
 /****** 개체: Database [GameServer] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
 CREATE DATABASE [GameServer]
@@ -84,22 +85,6 @@ ALTER DATABASE [GameServer] SET QUERY_STORE (OPERATION_MODE = READ_WRITE, CLEANU
 GO
 USE [GameServer]
 GO
-/****** 개체: Table [dbo].[Item_Meta] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[Item_Meta](
-	[ItemId] [int] NOT NULL,
-	[Name] [nvarchar](50) NOT NULL,
-	[ItemType] [tinyint] NOT NULL,
-	[MaxStack] [int] NOT NULL,
- CONSTRAINT [PK_Item_Meta] PRIMARY KEY CLUSTERED 
-(
-	[ItemId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
 /****** 개체: Table [dbo].[Player_Equipped] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
 SET ANSI_NULLS ON
 GO
@@ -131,49 +116,11 @@ CREATE TABLE [dbo].[Player_Info](
 	[Level] [int] NOT NULL,
 	[Exp] [bigint] NOT NULL,
 	[Hp] [int] NOT NULL,
-	[Mp] [int] NOT NULL,
 	[Gold] [bigint] NOT NULL,
 	[CreateDate] [datetime] NOT NULL,
  CONSTRAINT [PK_Player_Info] PRIMARY KEY CLUSTERED 
 (
 	[PlayerId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-/****** 개체: Table [dbo].[Player_Inventory] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[Player_Inventory](
-	[ItemDbId] [bigint] IDENTITY(1,1) NOT NULL,
-	[PlayerId] [bigint] NOT NULL,
-	[ItemId] [int] NOT NULL,
-	[Quantity] [int] NOT NULL,
-	[SlotIndex] [int] NOT NULL,
-	[AcquiredAt] [datetime] NOT NULL,
- CONSTRAINT [PK_Player_Inventory] PRIMARY KEY CLUSTERED 
-(
-	[ItemDbId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-/****** 개체: Table [dbo].[Trade_Log] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[Trade_Log](
-	[LogId] [bigint] IDENTITY(1,1) NOT NULL,
-	[TradeType] [tinyint] NOT NULL,
-	[FromId] [int] NULL,
-	[ToPlayerDbId] [int] NOT NULL,
-	[ItemId] [int] NOT NULL,
-	[Quantity] [int] NOT NULL,
-	[TradeAt] [datetime] NOT NULL,
- CONSTRAINT [PK_Trade_Log] PRIMARY KEY CLUSTERED 
-(
-	[LogId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
@@ -186,7 +133,6 @@ CREATE TABLE [dbo].[User_Account](
 	[AccountId] [bigint] IDENTITY(1,1) NOT NULL,
 	[LoginId] [varchar](50) NOT NULL,
 	[LoginPassword] [varchar](50) NOT NULL,
-	[Status] [tinyint] NOT NULL,
  CONSTRAINT [PK_User_Account] PRIMARY KEY CLUSTERED 
 (
 	[AccountId] ASC
@@ -222,18 +168,6 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_Player_Info_Name] ON [dbo].[Player_Info]
 	[Name] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** 개체: Index [IX_Inventory_PlayerDbId] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
-CREATE NONCLUSTERED INDEX [IX_Inventory_PlayerDbId] ON [dbo].[Player_Inventory]
-(
-	[PlayerId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-GO
-/****** 개체: Index [IX_Trade_Log_ToPlayer] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
-CREATE NONCLUSTERED INDEX [IX_Trade_Log_ToPlayer] ON [dbo].[Trade_Log]
-(
-	[ToPlayerDbId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-GO
 SET ANSI_PADDING ON
 GO
 /****** 개체: Index [IX_User_Account_LoginId] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
@@ -241,8 +175,6 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_User_Account_LoginId] ON [dbo].[User_Accoun
 (
 	[LoginId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-GO
-ALTER TABLE [dbo].[Item_Meta] ADD  DEFAULT ((1)) FOR [MaxStack]
 GO
 ALTER TABLE [dbo].[Player_Equipped] ADD  DEFAULT (getdate()) FOR [EquippedAt]
 GO
@@ -254,26 +186,11 @@ ALTER TABLE [dbo].[Player_Info] ADD  CONSTRAINT [DF__Player_Info__Exp__71D1E811]
 GO
 ALTER TABLE [dbo].[Player_Info] ADD  CONSTRAINT [DF_Player_Info_Hp]  DEFAULT ((100)) FOR [Hp]
 GO
-ALTER TABLE [dbo].[Player_Info] ADD  CONSTRAINT [DF_Player_Info_Mp]  DEFAULT ((100)) FOR [Mp]
-GO
 ALTER TABLE [dbo].[Player_Info] ADD  CONSTRAINT [DF__Player_Inf__Gold__72C60C4A]  DEFAULT ((0)) FOR [Gold]
 GO
 ALTER TABLE [dbo].[Player_Info] ADD  CONSTRAINT [DF__Player_In__Creat__76969D2E]  DEFAULT (getdate()) FOR [CreateDate]
 GO
-ALTER TABLE [dbo].[Player_Inventory] ADD  DEFAULT ((1)) FOR [Quantity]
-GO
-ALTER TABLE [dbo].[Player_Inventory] ADD  DEFAULT (getdate()) FOR [AcquiredAt]
-GO
-ALTER TABLE [dbo].[Trade_Log] ADD  DEFAULT (getdate()) FOR [TradeAt]
-GO
-ALTER TABLE [dbo].[User_Account] ADD  DEFAULT ((0)) FOR [Status]
-GO
 ALTER TABLE [dbo].[User_Info] ADD  DEFAULT (getdate()) FOR [CreateDate]
-GO
-ALTER TABLE [dbo].[Player_Equipped]  WITH CHECK ADD  CONSTRAINT [FK_Player_Equipped_Item_Meta] FOREIGN KEY([ItemId])
-REFERENCES [dbo].[Item_Meta] ([ItemId])
-GO
-ALTER TABLE [dbo].[Player_Equipped] CHECK CONSTRAINT [FK_Player_Equipped_Item_Meta]
 GO
 ALTER TABLE [dbo].[Player_Equipped]  WITH CHECK ADD  CONSTRAINT [FK_Player_Equipped_Player_Info] FOREIGN KEY([PlayerId])
 REFERENCES [dbo].[Player_Info] ([PlayerId])
@@ -284,22 +201,6 @@ ALTER TABLE [dbo].[Player_Info]  WITH CHECK ADD  CONSTRAINT [FK_Player_Info_User
 REFERENCES [dbo].[User_Account] ([AccountId])
 GO
 ALTER TABLE [dbo].[Player_Info] CHECK CONSTRAINT [FK_Player_Info_User_Account]
-GO
-ALTER TABLE [dbo].[Player_Inventory]  WITH CHECK ADD  CONSTRAINT [FK_Inventory_ItemMeta] FOREIGN KEY([ItemId])
-REFERENCES [dbo].[Item_Meta] ([ItemId])
-GO
-ALTER TABLE [dbo].[Player_Inventory] CHECK CONSTRAINT [FK_Inventory_ItemMeta]
-GO
-ALTER TABLE [dbo].[Player_Inventory]  WITH CHECK ADD  CONSTRAINT [FK_Inventory_Player] FOREIGN KEY([PlayerId])
-REFERENCES [dbo].[Player_Info] ([PlayerId])
-ON DELETE CASCADE
-GO
-ALTER TABLE [dbo].[Player_Inventory] CHECK CONSTRAINT [FK_Inventory_Player]
-GO
-ALTER TABLE [dbo].[Trade_Log]  WITH CHECK ADD  CONSTRAINT [FK_Trade_Log_Item_Meta] FOREIGN KEY([ItemId])
-REFERENCES [dbo].[Item_Meta] ([ItemId])
-GO
-ALTER TABLE [dbo].[Trade_Log] CHECK CONSTRAINT [FK_Trade_Log_Item_Meta]
 GO
 ALTER TABLE [dbo].[User_Info]  WITH CHECK ADD  CONSTRAINT [FK_User_Info_User_Account] FOREIGN KEY([AccountId])
 REFERENCES [dbo].[User_Account] ([AccountId])

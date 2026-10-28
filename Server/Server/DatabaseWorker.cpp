@@ -56,7 +56,7 @@ void DatabaseWorker::TryLogin(shared_ptr<Session> session, string recvId, string
 	DB_PlayerData outPlayerData = {};
 	int32_t outEquipSlot = 0;
 	int32_t outItemId = 0;
-	SQLLEN len[12] = { 0 };
+	SQLLEN len[11] = { 0 };
 
 	dbConn->BindCol(1, outPassword, sizeof(outPassword), &len[0]);
 	dbConn->BindCol(2, &outPlayerInfo.playerUID, &len[1]);
@@ -67,15 +67,14 @@ void DatabaseWorker::TryLogin(shared_ptr<Session> session, string recvId, string
 	dbConn->BindCol(6, &outPlayerData.level, &len[5]);
 	dbConn->BindCol(7, &outPlayerData.exp, &len[6]);
 	dbConn->BindCol(8, &outPlayerData.hp, &len[7]);
-	dbConn->BindCol(9, &outPlayerData.mp, &len[8]);
-	dbConn->BindCol(10, &outPlayerData.gold, &len[9]);
+	dbConn->BindCol(9, &outPlayerData.gold, &len[8]);
 	
-	dbConn->BindCol(11, &outEquipSlot, &len[10]);
-	dbConn->BindCol(12, &outItemId, &len[11]);
+	dbConn->BindCol(10, &outEquipSlot, &len[9]);
+	dbConn->BindCol(11, &outItemId, &len[10]);
 
 	const WCHAR* query = L" \
         SELECT A.LoginPassword, P.PlayerId, P.AccountId, P.Name, P.PlayerType, \
-               P.[Level], P.Exp, P.Hp, P.Mp, P.Gold, \
+               P.[Level], P.Exp, P.Hp, P.Gold, \
                ISNULL(E.EquipSlot, 0) AS EquipSlot, ISNULL(E.ItemId, 0) AS ItemId \
         FROM [User_Account] A \
         INNER JOIN [Player_Info] P ON A.AccountId = P.AccountId \
@@ -158,8 +157,8 @@ void DatabaseWorker::TrySignUP(shared_ptr<Session> session, string recvId, strin
         INSERT INTO [User_Account] (LoginId, LoginPassword) VALUES (?, ?); \
         SET @AccID = SCOPE_IDENTITY(); \
         INSERT INTO [User_Info] (AccountId) VALUES (@AccID); \
-        INSERT INTO [Player_Info] (AccountId, Name, PlayerType, [Level], Exp, Hp, Mp, Gold) \
-        VALUES (@AccID, ?, ?, 1, 0, 500, 100, 0); \
+        INSERT INTO [Player_Info] (AccountId, Name, PlayerType, [Level], Exp, Hp, Gold) \
+        VALUES (@AccID, ?, ?, 1, 0, 500, 0); \
         COMMIT TRAN;";
 
 	const bool success = dbConn->Execute(query);
