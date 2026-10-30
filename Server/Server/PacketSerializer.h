@@ -19,6 +19,8 @@ public:
 
 	static shared_ptr<SendBuffer> MAKE_SC_PONG(long long clientTime);
 
+	static shared_ptr<SendBuffer> MAKE_SC_CHAT(int senderId, const wstring& senderName, const wstring& message);
+
 public:
 	template<typename T>
 	static shared_ptr<SendBuffer> MakeSendBuffer(const T& pkt, uint16_t packetId)

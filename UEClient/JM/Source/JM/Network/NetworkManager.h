@@ -43,6 +43,7 @@ public:
 	void SendEnterRoom();
 	void SendMove(const Protocol::PositionInfo& PosInfo, bool bForce);
 	void SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY);
+	void SendChat(const FString& Message);   // 검증(길이·제어 문자·도배)은 서버가 한다
 
 public:
 	void EnterGame();

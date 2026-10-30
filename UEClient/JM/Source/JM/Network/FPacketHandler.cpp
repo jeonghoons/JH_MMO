@@ -4,6 +4,8 @@
 #include "Network/NetworkSession.h"
 #include "Game/JMObjectManager.h"
 #include "UI/JMUIManager.h"
+#include "UI/ChatWidget.h"
+#include "UI/WidgetNames.h"
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX + 1];
 
@@ -17,6 +19,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_ATTACK, &FPacketHandler::Handle_SC_ATTACK);
 	RegisterHandler(Protocol::SC_DAMAGE, &FPacketHandler::Handle_SC_DAMAGE);
 	RegisterHandler(Protocol::SC_DEAD, &FPacketHandler::Handle_SC_DEAD);
+	RegisterHandler(Protocol::SC_CHAT, &FPacketHandler::Handle_SC_CHAT);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -143,4 +146,15 @@ void FPacketHandler::Handle_SC_DEAD(TSharedPtr<NetworkSession>& session, Protoco
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandleDead(pkt.object_id());
+}
+
+void FPacketHandler::Handle_SC_CHAT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHAT_PACKET& pkt)
+{
+	UNetworkManager* NetManager = session ? session->OwnerNetwork.Get() : nullptr;
+	UGameInstance* GameInstance = NetManager ? NetManager->GetGameInstance() : nullptr;
+	UJMUIManager* UIManager = GameInstance ? GameInstance->GetSubsystem<UJMUIManager>() : nullptr;
+	if (UChatWidget* ChatWidget = UIManager ? Cast<UChatWidget>(UIManager->GetWidget(WidgetNames::Chatting)) : nullptr)
+	{
+		ChatWidget->AddChatMessage(UTF8_TO_TCHAR(pkt.sender_name().c_str()), UTF8_TO_TCHAR(pkt.message().c_str()));
+	}
 }

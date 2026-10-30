@@ -22,6 +22,7 @@ public:
 	}
 
 	static wstring UTF8ToWString(const string& utf8Str);
+	static string WStringToUTF8(const wstring& wideStr);
 };
 
 struct Cooldown

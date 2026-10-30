@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "pch.h"
 #include "Character.h"
 #include "Session.h"
@@ -27,8 +27,16 @@ public:
 	void SetPlayerType(Protocol::PlayerType type) { _objectInfo.set_player_type(type); }
 	bool isDummy = false;
 
+	// 캐릭터 이름(Player_Info.Name). 로그인 때 정해지고 바뀌지 않는다.
+	void SetName(const wstring& name) { _name = name; }
+	const wstring& GetName() const { return _name; }
+
+	// 채팅 도배 방지. Room 잡 안에서만 읽고 쓴다.
+	Cooldown chatCooldown;
+
 private:
 	weak_ptr<Session> _ownerSession;
+	wstring _name;
 	
 	DB_PlayerInfo _dbPlayerInfo;
 	DB_PlayerData _dbPlayerData;

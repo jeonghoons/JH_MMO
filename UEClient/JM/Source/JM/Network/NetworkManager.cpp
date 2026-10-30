@@ -166,6 +166,13 @@ void UNetworkManager::SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, 
 	SendProtocol(*this, pkt, Protocol::CS_ATTACK);
 }
 
+void UNetworkManager::SendChat(const FString& Message)
+{
+	Protocol::CS_CHAT_PACKET pkt;
+	pkt.set_message(TCHAR_TO_UTF8(*Message));
+	SendProtocol(*this, pkt, Protocol::CS_CHAT);
+}
+
 void UNetworkManager::EnterGame()
 {
 	SwitchGameMapLevel(FName("ParagonSample"));

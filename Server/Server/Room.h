@@ -6,7 +6,8 @@
 #include "GameMap.h"
 
 constexpr int MAX_ROOM_CAPACITY = 100;
-constexpr int MAX_CHAT_LEN = 100;
+constexpr int MAX_CHAT_LEN = 100;               // 채팅 한 줄 최대 글자 수(UTF-16 문자 기준)
+constexpr long long CHAT_MIN_INTERVAL_MS = 500;  // 같은 플레이어의 채팅 최소 간격(도배 방지)
 
 class Session;
 class SendBuffer;

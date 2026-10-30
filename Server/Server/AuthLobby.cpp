@@ -26,6 +26,7 @@ void AuthLobby::OnLoginSuccess(shared_ptr<Session> session, DB_PlayerInfo info, 
     player->SetId(objectId);
 
     wstring playerName(info.playerName);
+    player->SetName(playerName);
     if (playerName == L"dummy")
         player->isDummy = true;
 

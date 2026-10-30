@@ -222,15 +222,15 @@ void Room::BroadcastAOI(shared_ptr<Character> viewableObj, shared_ptr<SendBuffer
 
 void Room::PlayerChat(shared_ptr<Player> player, wstring msg)
 {
-	int chatLen = msg.length();
-	if (chatLen >= MAX_CHAT_LEN) chatLen = MAX_CHAT_LEN - 1;
-	unsigned short packetSize = sizeof(PacketHeader) + sizeof(int) + ((chatLen + 1) * sizeof(wchar_t));
-	
-	Protocol::SC_CHAT_PACKET packet;
+	if (player == nullptr) return;
+	if (GetGameObject(player->GetId()) == nullptr) return;   // 이미 방을 나간 플레이어
 
-	shared_ptr<SendBuffer> chatBuffer = make_shared<SendBuffer>(packetSize);
-	
-	// Broadcast(chatBuffer);
+	// 도배 방지: 간격 안에 다시 보낸 채팅은 버린다.
+	if (!player->chatCooldown.IsReady()) return;
+	player->chatCooldown.Reset(CHAT_MIN_INTERVAL_MS);
+
+	// 내용은 PacketHandler::SanitizeChat에서 검증됐다. 방 전체(보낸 사람 포함)에 방송한다.
+	Broadcast(PacketSerializer::MAKE_SC_CHAT(player->GetId(), player->GetName(), msg));
 }
 
 void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY)

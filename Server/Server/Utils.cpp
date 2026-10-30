@@ -11,3 +11,14 @@ wstring Utils::UTF8ToWString(const string& utf8Str)
 
     return wstrTo;
 }
+
+string Utils::WStringToUTF8(const wstring& wideStr)
+{
+    if (wideStr.empty()) return string();
+
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wideStr[0], (int)wideStr.size(), NULL, 0, NULL, NULL);
+    string strTo(size_needed, 0);
+    WideCharToMultiByte(CP_UTF8, 0, &wideStr[0], (int)wideStr.size(), &strTo[0], size_needed, NULL, NULL);
+
+    return strTo;
+}

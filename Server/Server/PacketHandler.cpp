@@ -117,21 +117,34 @@ void PacketHandler::Handle_CS_CHAT(shared_ptr<Session> session, Protocol::CS_CHA
     shared_ptr<Room> room = player->GetCurrentRoom();
     if (room == nullptr) return;
 
-    string utf8Msg = pkt.message();
-    
-    if (utf8Msg.length() > MAX_CHAT_LEN)
-    {
-        utf8Msg = utf8Msg.substr(0, MAX_CHAT_LEN);
-    }
+    wstring chatMsg = SanitizeChat(pkt.message());
+    if (chatMsg.empty()) return;
 
-    // UTF-8(string) -> UTF-16(wstring) 변환
-    wstring chatMsg = Utils::UTF8ToWString(utf8Msg);
-
-    // 5. JobQueue에 밀어넣기
+    // 도배 검사와 방송은 Room 잡에서 한다(플레이어 상태는 Room 스레드에서만 바꾼다).
     room->PushJob(&Room::PlayerChat, player, chatMsg);
+}
 
-    // 6. 콘솔 출력 (기존의 지저분한 이터레이터 캐스팅 제거)
-    cout << "Client [" << session->GetId() << "] : " << utf8Msg << endl;
+wstring PacketHandler::SanitizeChat(const string& utf8Msg)
+{
+    // 잘못된 UTF-8은 변환에서 U+FFFD로 바뀐다.
+    wstring msg = Utils::UTF8ToWString(utf8Msg);
+
+    // 제어 문자(줄바꿈·탭 포함)는 지운다. 채팅은 한 줄이다.
+    msg.erase(remove_if(msg.begin(), msg.end(), [](wchar_t c) { return c < 0x20 || c == 0x7F; }), msg.end());
+
+    // 앞뒤 공백 제거
+    const size_t first = msg.find_first_not_of(L' ');
+    if (first == wstring::npos) return wstring();
+    msg = msg.substr(first, msg.find_last_not_of(L' ') - first + 1);
+
+    // 최대 길이로 자른다. 서로게이트 쌍(이모지 등)의 앞쪽만 남지 않게 한다.
+    if (msg.length() > MAX_CHAT_LEN)
+    {
+        size_t len = MAX_CHAT_LEN;
+        if (IS_HIGH_SURROGATE(msg[len - 1])) --len;
+        msg.resize(len);
+    }
+    return msg;
 }
 
 void PacketHandler::Handle_CS_ENTER_ROOM(shared_ptr<Session> session, Protocol::CS_ENTER_ROOM_PACKET& pkt)

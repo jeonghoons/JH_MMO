@@ -58,6 +58,16 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PONG(long long clientTime)
 	return MakeSendBuffer(packet, Protocol::SC_PONG);
 }
 
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHAT(int senderId, const wstring& senderName, const wstring& message)
+{
+	Protocol::SC_CHAT_PACKET packet;
+	packet.set_sender_id(senderId);
+	packet.set_sender_name(Utils::WStringToUTF8(senderName));
+	packet.set_message(Utils::WStringToUTF8(message));
+
+	return MakeSendBuffer(packet, Protocol::SC_CHAT);
+}
+
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_DEAD(int objectId)
 {
 	Protocol::SC_DEAD_PACKET packet;

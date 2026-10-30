@@ -3,6 +3,8 @@
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Fonts/SlateFontInfo.h"
+#include "Network/NetworkManager.h"
+#include "UI/JMUIManager.h"
 
 void UChatWidget::FocusChatInput(APlayerController* PC)
 {
@@ -19,11 +21,17 @@ void UChatWidget::FocusChatInput(APlayerController* PC)
 	}
 }
 
-void UChatWidget::AddChatMessage(int32 SenderId, const FString& Message)
+void UChatWidget::AddChatMessage(const FString& SenderName, const FString& Message)
 {
 	if (!ChatHistoryBox) return;
 
-	FString FormattedString = FString::Printf(TEXT("Player[%d]: %s"), SenderId, *Message);
+	// 오래된 줄부터 지워 기록이 끝없이 쌓이지 않게 한다.
+	while (MaxHistoryLines > 0 && ChatHistoryBox->GetChildrenCount() >= MaxHistoryLines)
+	{
+		ChatHistoryBox->RemoveChildAt(0);
+	}
+
+	FString FormattedString = FString::Printf(TEXT("%s: %s"), *SenderName, *Message);
 
 	UTextBlock* NewChatBlock = NewObject<UTextBlock>(ChatHistoryBox);
 	if (NewChatBlock)
@@ -70,26 +78,31 @@ void UChatWidget::OnChatTextCommitted(const FText& Text, ETextCommit::Type Commi
 	// 1. 엔터키를 쳤을 때만 전송 로직 수행
 	if (CommitMethod == ETextCommit::OnEnter)
 	{
-		FString ChatString = Text.ToString();
+		const FString ChatString = Text.ToString().TrimStartAndEnd();
 
+		// 내가 보낸 채팅도 서버가 방송한 SC_CHAT으로 기록에 표시된다.
 		if (!ChatString.IsEmpty())
 		{
-			// TODO: 채팅 프로토콜 확정 후 UNetworkManager::SendChat으로 전송한다.
-			ChatInput->SetText(FText::GetEmpty());
+			if (UNetworkManager* NetManager = UNetworkManager::Get(this))
+			{
+				NetManager->SendChat(ChatString);
+			}
 		}
+		ChatInput->SetText(FText::GetEmpty());
 	}
 
-	// 2. 입력이 어떤 식으로든 종료되었다면 게임 모드로 완벽히 복귀 (if문 밖으로 분리)
+	// 2. 입력이 어떤 식으로든 종료되었다면 게임 입력으로 복귀 (if문 밖으로 분리)
 	if (CommitMethod == ETextCommit::OnEnter ||
 		CommitMethod == ETextCommit::OnUserMovedFocus ||
 		CommitMethod == ETextCommit::OnCleared)
 	{
-		if (APlayerController* PC = GetOwningPlayer())
+		FSlateApplication::Get().SetAllUserFocusToGameViewport();
+
+		// 시스템 메시지 창 등이 떠 있으면 커서를 유지하도록 입력 모드는 UIManager가 정한다.
+		UGameInstance* GameInstance = GetGameInstance();
+		if (UJMUIManager* UIManager = GameInstance ? GameInstance->GetSubsystem<UJMUIManager>() : nullptr)
 		{
-			FInputModeGameOnly InputMode;
-			PC->SetInputMode(InputMode);
-			PC->bShowMouseCursor = false;
-			FSlateApplication::Get().SetAllUserFocusToGameViewport();
+			UIManager->UpdateInputMode();
 		}
 	}
 }

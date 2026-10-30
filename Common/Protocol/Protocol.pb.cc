@@ -205,6 +205,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 PROTOBUF_CONSTEXPR SC_CHAT_PACKET::SC_CHAT_PACKET(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.message_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.sender_name_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.sender_id_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct SC_CHAT_PACKETDefaultTypeInternal {
@@ -423,6 +424,7 @@ const uint32_t TableStruct_Protocol_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::Protocol::SC_CHAT_PACKET, _impl_.sender_id_),
   PROTOBUF_FIELD_OFFSET(::Protocol::SC_CHAT_PACKET, _impl_.message_),
+  PROTOBUF_FIELD_OFFSET(::Protocol::SC_CHAT_PACKET, _impl_.sender_name_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Protocol::SC_MOVE_PACKET, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -493,12 +495,12 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 89, -1, -1, sizeof(::Protocol::SC_ADD_OBJECT_PACKET)},
   { 96, -1, -1, sizeof(::Protocol::SC_REMOVE_OBJECT_PACKET)},
   { 103, -1, -1, sizeof(::Protocol::SC_CHAT_PACKET)},
-  { 111, -1, -1, sizeof(::Protocol::SC_MOVE_PACKET)},
-  { 119, -1, -1, sizeof(::Protocol::SC_ATTACK_PACKET)},
-  { 132, -1, -1, sizeof(::Protocol::SC_DAMAGE_PACKET)},
-  { 142, -1, -1, sizeof(::Protocol::SC_DEAD_PACKET)},
-  { 149, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_PACKET)},
-  { 158, -1, -1, sizeof(::Protocol::SC_PONG_PACKET)},
+  { 112, -1, -1, sizeof(::Protocol::SC_MOVE_PACKET)},
+  { 120, -1, -1, sizeof(::Protocol::SC_ATTACK_PACKET)},
+  { 133, -1, -1, sizeof(::Protocol::SC_DAMAGE_PACKET)},
+  { 143, -1, -1, sizeof(::Protocol::SC_DEAD_PACKET)},
+  { 150, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_PACKET)},
+  { 159, -1, -1, sizeof(::Protocol::SC_PONG_PACKET)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -547,21 +549,22 @@ const char descriptor_table_protodef_Protocol_2eproto[] PROTOBUF_SECTION_VARIABL
   "sult\"\"\n\020SC_SIGNUP_PACKET\022\016\n\006result\030\001 \001(\010"
   "\"A\n\024SC_ADD_OBJECT_PACKET\022)\n\013object_info\030"
   "\001 \001(\0132\024.Protocol.ObjectInfo\",\n\027SC_REMOVE"
-  "_OBJECT_PACKET\022\021\n\tobject_id\030\001 \001(\005\"4\n\016SC_"
+  "_OBJECT_PACKET\022\021\n\tobject_id\030\001 \001(\005\"I\n\016SC_"
   "CHAT_PACKET\022\021\n\tsender_id\030\001 \001(\005\022\017\n\007messag"
-  "e\030\002 \001(\t\"N\n\016SC_MOVE_PACKET\022)\n\013object_info"
-  "\030\001 \001(\0132\024.Protocol.ObjectInfo\022\021\n\tmove_tim"
-  "e\030\002 \001(\r\"\220\001\n\020SC_ATTACK_PACKET\022\023\n\013attacker"
-  "_id\030\001 \001(\005\022\020\n\010skill_id\030\002 \001(\005\022\021\n\ttarget_id"
-  "\030\003 \001(\005\022\017\n\007aim_yaw\030\004 \001(\002\022\r\n\005aim_x\030\005 \001(\002\022\r"
-  "\n\005aim_y\030\006 \001(\002\022\023\n\013cooldown_ms\030\007 \001(\005\"]\n\020SC"
-  "_DAMAGE_PACKET\022\023\n\013attacker_id\030\001 \001(\005\022\021\n\tt"
-  "arget_id\030\002 \001(\005\022\016\n\006damage\030\003 \001(\005\022\021\n\tremain"
-  "_hp\030\004 \001(\005\"#\n\016SC_DEAD_PACKET\022\021\n\tobject_id"
-  "\030\001 \001(\005\"_\n\026SC_CHANGE_EQUIP_PACKET\022\021\n\tobje"
-  "ct_id\030\001 \001(\005\022!\n\004part\030\002 \001(\0162\023.Protocol.Equ"
-  "ipPart\022\017\n\007item_id\030\003 \001(\005\"%\n\016SC_PONG_PACKE"
-  "T\022\023\n\013client_time\030\001 \001(\003b\006proto3"
+  "e\030\002 \001(\t\022\023\n\013sender_name\030\003 \001(\t\"N\n\016SC_MOVE_"
+  "PACKET\022)\n\013object_info\030\001 \001(\0132\024.Protocol.O"
+  "bjectInfo\022\021\n\tmove_time\030\002 \001(\r\"\220\001\n\020SC_ATTA"
+  "CK_PACKET\022\023\n\013attacker_id\030\001 \001(\005\022\020\n\010skill_"
+  "id\030\002 \001(\005\022\021\n\ttarget_id\030\003 \001(\005\022\017\n\007aim_yaw\030\004"
+  " \001(\002\022\r\n\005aim_x\030\005 \001(\002\022\r\n\005aim_y\030\006 \001(\002\022\023\n\013co"
+  "oldown_ms\030\007 \001(\005\"]\n\020SC_DAMAGE_PACKET\022\023\n\013a"
+  "ttacker_id\030\001 \001(\005\022\021\n\ttarget_id\030\002 \001(\005\022\016\n\006d"
+  "amage\030\003 \001(\005\022\021\n\tremain_hp\030\004 \001(\005\"#\n\016SC_DEA"
+  "D_PACKET\022\021\n\tobject_id\030\001 \001(\005\"_\n\026SC_CHANGE"
+  "_EQUIP_PACKET\022\021\n\tobject_id\030\001 \001(\005\022!\n\004part"
+  "\030\002 \001(\0162\023.Protocol.EquipPart\022\017\n\007item_id\030\003"
+  " \001(\005\"%\n\016SC_PONG_PACKET\022\023\n\013client_time\030\001 "
+  "\001(\003b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_Protocol_2eproto_deps[2] = {
   &::descriptor_table_Enum_2eproto,
@@ -569,7 +572,7 @@ static const ::_pbi::DescriptorTable* const descriptor_table_Protocol_2eproto_de
 };
 static ::_pbi::once_flag descriptor_table_Protocol_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Protocol_2eproto = {
-    false, false, 1470, descriptor_table_protodef_Protocol_2eproto,
+    false, false, 1491, descriptor_table_protodef_Protocol_2eproto,
     "Protocol.proto",
     &descriptor_table_Protocol_2eproto_once, descriptor_table_Protocol_2eproto_deps, 2, 20,
     schemas, file_default_instances, TableStruct_Protocol_2eproto::offsets,
@@ -3509,6 +3512,7 @@ SC_CHAT_PACKET::SC_CHAT_PACKET(const SC_CHAT_PACKET& from)
   SC_CHAT_PACKET* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.message_){}
+    , decltype(_impl_.sender_name_){}
     , decltype(_impl_.sender_id_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
@@ -3521,6 +3525,14 @@ SC_CHAT_PACKET::SC_CHAT_PACKET(const SC_CHAT_PACKET& from)
     _this->_impl_.message_.Set(from._internal_message(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.sender_name_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.sender_name_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_sender_name().empty()) {
+    _this->_impl_.sender_name_.Set(from._internal_sender_name(), 
+      _this->GetArenaForAllocation());
+  }
   _this->_impl_.sender_id_ = from._impl_.sender_id_;
   // @@protoc_insertion_point(copy_constructor:Protocol.SC_CHAT_PACKET)
 }
@@ -3531,12 +3543,17 @@ inline void SC_CHAT_PACKET::SharedCtor(
   (void)is_message_owned;
   new (&_impl_) Impl_{
       decltype(_impl_.message_){}
+    , decltype(_impl_.sender_name_){}
     , decltype(_impl_.sender_id_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.message_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.message_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.sender_name_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.sender_name_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
@@ -3552,6 +3569,7 @@ SC_CHAT_PACKET::~SC_CHAT_PACKET() {
 inline void SC_CHAT_PACKET::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.message_.Destroy();
+  _impl_.sender_name_.Destroy();
 }
 
 void SC_CHAT_PACKET::SetCachedSize(int size) const {
@@ -3565,6 +3583,7 @@ void SC_CHAT_PACKET::Clear() {
   (void) cached_has_bits;
 
   _impl_.message_.ClearToEmpty();
+  _impl_.sender_name_.ClearToEmpty();
   _impl_.sender_id_ = 0;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
@@ -3590,6 +3609,16 @@ const char* SC_CHAT_PACKET::_InternalParse(const char* ptr, ::_pbi::ParseContext
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "Protocol.SC_CHAT_PACKET.message"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string sender_name = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_sender_name();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "Protocol.SC_CHAT_PACKET.sender_name"));
         } else
           goto handle_unusual;
         continue;
@@ -3638,6 +3667,16 @@ uint8_t* SC_CHAT_PACKET::_InternalSerialize(
         2, this->_internal_message(), target);
   }
 
+  // string sender_name = 3;
+  if (!this->_internal_sender_name().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_sender_name().data(), static_cast<int>(this->_internal_sender_name().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "Protocol.SC_CHAT_PACKET.sender_name");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_sender_name(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -3659,6 +3698,13 @@ size_t SC_CHAT_PACKET::ByteSizeLong() const {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_message());
+  }
+
+  // string sender_name = 3;
+  if (!this->_internal_sender_name().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_sender_name());
   }
 
   // int32 sender_id = 1;
@@ -3687,6 +3733,9 @@ void SC_CHAT_PACKET::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const :
   if (!from._internal_message().empty()) {
     _this->_internal_set_message(from._internal_message());
   }
+  if (!from._internal_sender_name().empty()) {
+    _this->_internal_set_sender_name(from._internal_sender_name());
+  }
   if (from._internal_sender_id() != 0) {
     _this->_internal_set_sender_id(from._internal_sender_id());
   }
@@ -3712,6 +3761,10 @@ void SC_CHAT_PACKET::InternalSwap(SC_CHAT_PACKET* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.message_, lhs_arena,
       &other->_impl_.message_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.sender_name_, lhs_arena,
+      &other->_impl_.sender_name_, rhs_arena
   );
   swap(_impl_.sender_id_, other->_impl_.sender_id_);
 }
