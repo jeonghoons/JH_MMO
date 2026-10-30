@@ -1,7 +1,6 @@
 #include "UI/LoginWidget.h"
 #include "Components/EditableText.h"
 #include "Components/Button.h"
-#include "Components/TextBlock.h"
 #include "Components/ComboBoxString.h"
 #include "Network/NetworkManager.h"
 #include "Protocol/Enum.pb.h"
@@ -34,8 +33,6 @@ void ULoginWidget::NativeConstruct()
 		ComboHero->SetSelectedIndex(0);
 	}
 
-	ShowResult(FText::GetEmpty());
-
 	if (BtnLogin)
 	{
 		BtnLogin->OnClicked.AddDynamic(this, &ULoginWidget::OnLoginButtonClicked);
@@ -52,7 +49,8 @@ void ULoginWidget::OnLoginButtonClicked()
 	FString AccountId = EditAccountId ? EditAccountId->GetText().ToString() : TEXT("");
 	FString AccountPw = EditAccountPassword ? EditAccountPassword->GetText().ToString() : TEXT("");
 
-	if (UNetworkManager* NetManager = UNetworkManager::Get(this))
+	UNetworkManager* NetManager = UNetworkManager::Get(this);
+	if (EnsureConnected(NetManager))
 	{
 		NetManager->SendLogin(AccountId, AccountPw);
 	}
@@ -63,22 +61,22 @@ void ULoginWidget::OnSignUpButtonClicked()
 	FString AccountId = EditAccountId ? EditAccountId->GetText().ToString() : TEXT("");
 	FString AccountPw = EditAccountPassword ? EditAccountPassword->GetText().ToString() : TEXT("");
 
-	if (UNetworkManager* NetManager = UNetworkManager::Get(this))
+	UNetworkManager* NetManager = UNetworkManager::Get(this);
+	if (EnsureConnected(NetManager))
 	{
 		NetManager->SendSignUp(AccountId, AccountPw, GetSelectedHeroType());
 	}
 }
 
-void ULoginWidget::ShowResult(const FText& Message)
+bool ULoginWidget::EnsureConnected(UNetworkManager* NetManager) const
 {
-	if (TxtResult)
+	if (NetManager == nullptr) return false;
+
+	if (!NetManager->IsConnected())
 	{
-		TxtResult->SetText(Message);
+		NetManager->ConnectToServer();
 	}
-	if (!Message.IsEmpty())
-	{
-		UE_LOG(LogTemp, Log, TEXT("Login screen: %s"), *Message.ToString());
-	}
+	return NetManager->IsConnected();
 }
 
 int32 ULoginWidget::GetSelectedHeroType() const

@@ -58,7 +58,7 @@ void UNetworkManager::ConnectToServer()
 	bool Connected = socket->Connect(*internetAddr);
 	if (Connected)
 	{
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Connection Success")));
+		UE_LOG(LogTemp, Log, TEXT("Connection Success"));
 
 		Packet_Session = MakeShared<NetworkSession>(socket, this);
 		FPacketHandler::Init();
@@ -66,12 +66,20 @@ void UNetworkManager::ConnectToServer()
 	}
 	else
 	{
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Connection Failed")));
-
 		// 연결에 실패한 소켓은 세션이 소유하지 않으므로 여기서 해제한다.
 		socket->Close();
 		ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(socket);
+
+		if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+		{
+			UIManager->ShowSystemMessage(FText::FromString(TEXT("서버에 연결할 수 없습니다. 서버를 켠 뒤 다시 시도해 주세요.")));
+		}
 	}
+}
+
+bool UNetworkManager::IsConnected() const
+{
+	return Packet_Session != nullptr && Packet_Session->IsConnectionLost() == false;
 }
 
 void UNetworkManager::DisconnectFromServer()

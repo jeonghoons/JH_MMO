@@ -4,8 +4,6 @@
 #include "Network/NetworkSession.h"
 #include "Game/JMObjectManager.h"
 #include "UI/JMUIManager.h"
-#include "UI/LoginWidget.h"
-#include "UI/WidgetNames.h"
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX + 1];
 
@@ -63,15 +61,14 @@ void FPacketHandler::ProcessPacket(const TSharedPtr<NetworkSession>& session, BY
 
 namespace
 {
-	// 로그인 화면에 서버 응답을 띄운다. 로그인 화면이 아니면(위젯이 없으면) 아무것도 하지 않는다.
-	void ShowOnLoginScreen(const TSharedPtr<NetworkSession>& session, const FText& Message)
+	// 서버 응답(로그인 실패, 가입 결과)을 시스템 메시지 창으로 띄운다.
+	void ShowSystemMessage(const TSharedPtr<NetworkSession>& session, const FText& Message)
 	{
 		UNetworkManager* NetManager = session ? session->OwnerNetwork.Get() : nullptr;
 		UGameInstance* GameInstance = NetManager ? NetManager->GetGameInstance() : nullptr;
-		UJMUIManager* UIManager = GameInstance ? GameInstance->GetSubsystem<UJMUIManager>() : nullptr;
-		if (ULoginWidget* LoginWidget = UIManager ? Cast<ULoginWidget>(UIManager->GetWidget(WidgetNames::Login)) : nullptr)
+		if (UJMUIManager* UIManager = GameInstance ? GameInstance->GetSubsystem<UJMUIManager>() : nullptr)
 		{
-			LoginWidget->ShowResult(Message);
+			UIManager->ShowSystemMessage(Message);
 		}
 	}
 
@@ -93,7 +90,7 @@ void FPacketHandler::Handle_SC_LOGIN(TSharedPtr<NetworkSession>& session, Protoc
 	// 실패도 SC_LOGIN으로 온다. 성공일 때만 게임에 들어간다.
 	if (pkt.result() != Protocol::LOGIN_RESULT_SUCCESS)
 	{
-		ShowOnLoginScreen(session, LoginResultText(pkt.result()));
+		ShowSystemMessage(session, LoginResultText(pkt.result()));
 		return;
 	}
 
@@ -107,7 +104,7 @@ void FPacketHandler::Handle_SC_LOGIN(TSharedPtr<NetworkSession>& session, Protoc
 void FPacketHandler::Handle_SC_SIGNUP(TSharedPtr<NetworkSession>& session, Protocol::SC_SIGNUP_PACKET& pkt)
 {
 	UE_LOG(LogTemp, Log, TEXT("SignUp Result: %d"), pkt.result());
-	ShowOnLoginScreen(session, pkt.result()
+	ShowSystemMessage(session, pkt.result()
 		? FText::FromString(TEXT("가입되었습니다. 로그인해 주세요."))
 		: FText::FromString(TEXT("가입하지 못했습니다. 이미 있는 ID인지 확인해 주세요.")));
 }

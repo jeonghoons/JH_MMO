@@ -80,6 +80,12 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 				Hud->SetHero(static_cast<int32>(ObjInfo.player_type()));
 				Hud->SetHp(ObjInfo.stat().hp(), ObjInfo.stat().max_hp());
 			}
+
+			// 입장 완료. AJMPlayerController::BeginPlay가 띄운 "방에 입장하는 중..."을 닫는다.
+			if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+			{
+				UIManager->CloseWaitingMessage();
+			}
 		}
 	}
 }

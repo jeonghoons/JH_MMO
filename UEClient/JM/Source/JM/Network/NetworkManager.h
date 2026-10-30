@@ -31,6 +31,9 @@ public:
 
 	void SendPacket(TSharedPtr<class SendBuffer> sendBuffer);
 
+	// 세션이 있고 끊김이 감지되지 않았으면 true
+	bool IsConnected() const;
+
 	// 월드 컨텍스트 오브젝트(액터, 위젯 등)로 NetworkManager를 얻는다. GameInstance가 없으면 nullptr.
 	static UNetworkManager* Get(const UObject* WorldContext);
 

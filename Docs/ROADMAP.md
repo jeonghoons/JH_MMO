@@ -9,12 +9,12 @@
 
 현재 위치: **R. ③ 저장소 정리 (C-4 채팅 복구 차례)**
 
-**실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-3 → **① 정리 마무리** C-4 채팅 복구(A2.6 완료 처리) → C-5 소스 폴더 구조화 → C-6 DummyClient → **② 서버 기반** S1 서버 권위 이동 → A1.1 설정 → A1.2 로거 → A1.3 메트릭 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
+**실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-3, U1 → **① 정리 마무리** C-4 채팅 복구(A2.6 완료 처리) → C-5 소스 폴더 구조화 → C-6 DummyClient → **② 서버 기반** S1 서버 권위 이동 → A1.1 설정 → A1.2 로거 → A1.3 메트릭 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
 **검증 게이트 (모든 콘텐츠 단계 공통):** 체크박스는 해당 기능의 **오류 테스트**(비정상 입력, 중간 접속 해제, 중복·상태 불일치 요청)와 **부하 테스트**(단계 목표 CCU까지 램프, 200 → 1,000 → 5,000)를 통과하고 결과를 `Docs/TESTING.md`에 기록한 뒤에만 `[x]`로 표시합니다.
 
 ## ▶ 중단점 (2026-10-30) — "이어서 진행"이라고 하면 여기서 재개 (다음: C-4 채팅 복구)
-**상태:** C-3 미사용 에셋 삭제 완료(2026-10-30, 참조 검사 + PIE). 작업 순서를 다시 계획함(위 실행 순서). 지난 진행 기록은 커밋 기록과 `TESTING.md`에 있습니다.
+**상태:** C-3 미사용 에셋 삭제 완료(2026-10-30, 참조 검사 + PIE). 작업 순서를 다시 계획함(위 실행 순서). U1 시스템 메시지 창 + 방 입장 대기 완료(2026-10-30, PIE). 로딩 화면 이미지는 사용자가 2026-11-06 무렵 구해 오면 `WBP_SystemMessage` 대기 배경에 넣는다. 지난 진행 기록은 커밋 기록과 `TESTING.md`에 있습니다.
 **다음 작업:** C-4 채팅 복구 — 코드를 읽고 계획을 먼저 제시합니다.
 **Claude가 못 보는 것:** 에디터의 애니메이션·이펙트 모양. 스크린샷이나 블루프린트 노드 복사 텍스트(Ctrl+C)를 붙여넣어 확인합니다.
 **주의:**
@@ -53,6 +53,7 @@
 - [x] C-1 안 쓰는 코드·패킷 삭제 (2026-10-28 완료: 서버·클라이언트 빌드, 회귀 스크립트(A0.7·가입/로그인 결과·행동 잠금)·LoadTest 이동 1,000/hunt/chaos 통과, PIE는 C-3 뒤에 함께): `CS/SC_LOGOUT`, `CS_CMOVE`/`SC_CMOVE_OBJECT`, `CS_LEAVE_ROOM`, `ObjectInfo.appearance_items`(번호는 `reserved`), 서버 옛 주석 코드·깨진 `SavePlayerData`(없는 `Player_Data` 테이블)·미사용 함수, 클라이언트 인벤토리 키·`SendBuffer::CopyData`·주석 코드
 - [x] C-2 DB 정리 (2026-10-29 완료: 백업 `GameServer_2026-10-28_preC2.bak` 후 마이그레이션 실행, `Mp`·`Status` 열도 삭제, `LastLoginAt`은 유지, 회귀·LoadTest 통과): 미사용 테이블 `Item_Meta`/`Player_Inventory`/`Trade_Log` 삭제(백업 + 마이그레이션 스크립트 + `schema.sql` 재생성), 미사용 열은 목록 확인 후
 - [x] C-3 미사용 에셋 삭제 (2026-10-30 완료: uemcp 참조 검사 0건·리디렉터 없음, PIE(C-1 몫 포함) 로그인·이동·전사/궁수 공격·스킬·HUD·몬스터 공격/사망/리스폰 확인): `WBP_Info`(+`InfoWidgetClass`·`WidgetNames::MainInfo`), `WBP_Inventory`, `AM_Greystone_Skill1`, `IA_Jump`, `IMC_MouseLook` 삭제. Rampage 일반공격 몽타주를 SkillTable 301 `Montage`(`AM_Rampage_Attack`)로 지정
+- [x] U1 시스템 메시지 창 + 방 입장 대기 (2026-10-30 추가·완료, `DECISIONS.md`. PIE 확인): 공용 모달 `WBP_SystemMessage`(`USystemMessageWidget`, `UJMUIManager::ShowSystemMessage` — Notice는 확인 버튼·반투명 배경, Waiting은 버튼 없음·불투명 검정 배경, FIFO 큐). 로그인 실패·가입 결과(`TxtResult` 대체)·서버 연결 실패(로그인/가입 버튼에서 재연결). 로그인 성공 → "방에 입장하는 중..." 동안 `UDataManager::PreloadGameAssets`(영웅·스킬 에셋)로 투명 캐릭터와 스킬 첫 사용 끊김 해결 → 내 캐릭터 스폰 시 닫힘. 이후: 로딩 이미지, 연결 끊김, 거래 결과에 사용
 - [ ] C-4 채팅 복구(A2.6 완료 처리): `CS_CHAT` → 서버 검증·방 방송 `SC_CHAT` → 클라이언트 `SendChat`·`Handle_SC_CHAT`·`ChatWidget`
 - [ ] C-5 소스 폴더 구조화: `Server/Server`를 Network/Packet/Job/DB/Data/Game(Object·Room·NavMesh)/Utils로(`git mv`, include 경로는 vcxproj), 클라이언트 `JMGameInstance` → `Game/`
 - [ ] C-6 DummyClient = LoadTest 시각화: LoadTest를 `BotEngine` + 콘솔 main으로 분리, DummyClient는 같은 엔진 + OpenGL 탑다운 화면(봇·몬스터·통계), UTF-8
@@ -147,6 +148,8 @@
 - [x] Greystone, Sparrow: 몽타주 Duplicate(`AM_`), AnimBP·피격·사망 Rename, `DT_CharacterAsset` 경로 갱신 (2026-10-19 완료)
 - [x] Rampage: `BP_Npc`가 `Character/Rampage/`의 `AM_Rampage_Attack`·`AM_Rampage_Hit`·`AM_Rampage_Death`·`ABP_Rampage`를 사용, SkillTable 301 `Montage` = `AM_Rampage_Attack` (2026-10-30 확인. 메시는 아직 팩 원본 → 최종 Move 대상)
 - [ ] Paragon 에셋 최종 Move: 캐릭터 작업 종료 시 (아래 "Paragon 에셋 최종 Move" 참고)
+- [x] U1: `WBP_SystemMessage` 생성(부모 `USystemMessageWidget`, `Dim`→`PanelSize`→`Panel`→`TxtMessage`/`BtnOk`), `WBP_Login`의 `TxtResult` 삭제, `BP_JMGameInstance.SystemMessageWidgetClass` 지정 (2026-10-30, 도구로 처리)
+- [ ] 로딩 화면 이미지: 사용자가 이미지를 구해 오면(2026-11-06 무렵) `WBP_SystemMessage` 대기(Waiting) 배경에 적용
 - [x] A2.2f: `WBP_SkillSlot`·`WBP_CombatHud` 생성, `BP_GameMode` 부모 → `AIngameGameModeBase` + `HUDWidgetClass = WBP_CombatHud` (2026-10-28, 도구로 처리)
 - [x] A2.2f: 스킬1 아이콘 2개(배경 투명 처리) → `Character/<영웅>/Icons` 가져오기, SkillTable `Icon` 경로 + `DT_SkillTable` Reimport, `WBP_CombatHud`에서 `SlotAttack` 제거 (2026-10-28, 도구로 처리)
 - [x] A2.2g: SkillTable `AnimMs` 열 + 501 `Montage`(`AM_Sparrow_Attack`), `ExportSkillTiming.bat`으로 `DT_SkillTable` Reimport (2026-10-28)

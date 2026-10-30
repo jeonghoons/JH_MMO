@@ -24,6 +24,9 @@ void ALoginGameMode::BeginPlay()
 		if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
 		{
 			UIManager->RegisterWidget(PC, WidgetNames::Login, LoginWidgetClass, false, 0, true);
+
+			// No gameplay input on the login screen: closing a system message keeps the cursor visible.
+			UIManager->SetGameplayInput(false);
 		}
 
 		UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>();

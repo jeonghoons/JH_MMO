@@ -5,16 +5,12 @@
 #include "Blueprint/UserWidget.h"
 #include "Player/GameplayInputMode.h"
 #include "UI/ChatWidget.h"
+#include "Game/DataManager.h"
 
 void AJMPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	ApplyCombatInputMode(this);
-
-	if (UNetworkManager* NetManager = UNetworkManager::Get(this))
-	{
-		NetManager->SendEnterRoom();
-	}
 
 	UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
 	if (UIManager)
@@ -23,6 +19,29 @@ void AJMPlayerController::BeginPlay()
 		// 크로스헤어는 화면 중앙 조준 기준이라 다른 UI보다 위(Z-Order 100)에 둡니다.
 		UIManager->RegisterWidget(this, WidgetNames::Crosshair, CrosshairWidgetClass, false, 100, true);
 		UIManager->RegisterWidget(this, WidgetNames::Chatting, ChatWidgetClass, false, 0, true);
+
+		// 내 캐릭터가 스폰되면 UJMObjectManager::HandleSpawn이 닫는다.
+		UIManager->SetGameplayInput(true);
+		UIManager->ShowSystemMessage(FText::FromString(TEXT("방에 입장하는 중...")), ESystemMessageType::Waiting);
+	}
+
+	// 영웅·스킬 에셋을 먼저 로드한 뒤 입장한다. 스폰된 캐릭터가 메시 없이(투명하게) 보이지 않게 하기 위함이다.
+	TWeakObjectPtr<AJMPlayerController> WeakThis(this);
+	auto SendEnterRoom = [WeakThis]()
+	{
+		if (UNetworkManager* NetManager = WeakThis.IsValid() ? UNetworkManager::Get(WeakThis.Get()) : nullptr)
+		{
+			NetManager->SendEnterRoom();
+		}
+	};
+
+	if (UDataManager* DataManager = GetGameInstance()->GetSubsystem<UDataManager>())
+	{
+		DataManager->PreloadGameAssets(FSimpleDelegate::CreateLambda(SendEnterRoom));
+	}
+	else
+	{
+		SendEnterRoom();
 	}
 }
 

@@ -1,6 +1,9 @@
 ﻿#include "Game/DataManager.h"
 #include "Data/JMDataSettings.h"
 #include "Engine/DataTable.h"
+#include "Engine/StreamableManager.h"
+#include "Data/CharacterAssetData.h"
+#include "JMGameInstance.h"
 
 const FMovementTableRow* UDataManager::FindMovementRow(int32 Id) const
 {
@@ -54,4 +57,53 @@ const FSkillTableRow* UDataManager::FindSkillBySlot(int32 PlayerType, int32 Slot
 			return Row;
 	}
 	return nullptr;
+}
+
+void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
+{
+	TArray<FSoftObjectPath> AssetsToLoad;
+	auto AddPath = [&AssetsToLoad](const FSoftObjectPath& Path)
+	{
+		if (!Path.IsNull()) AssetsToLoad.AddUnique(Path);
+	};
+
+	UJMGameInstance* GameInst = Cast<UJMGameInstance>(GetGameInstance());
+	if (GameInst && GameInst->CharacterAssetTable)
+	{
+		for (const TPair<FName, uint8*>& Pair : GameInst->CharacterAssetTable->GetRowMap())
+		{
+			const FCharacterAssetData* Row = reinterpret_cast<const FCharacterAssetData*>(Pair.Value);
+			if (Row == nullptr) continue;
+			AddPath(Row->CharacterMesh.ToSoftObjectPath());
+			AddPath(Row->AnimClass.ToSoftObjectPath());
+			AddPath(Row->AttackMontage.ToSoftObjectPath());
+			AddPath(Row->HitMontage.ToSoftObjectPath());
+			AddPath(Row->DeadMontage.ToSoftObjectPath());
+		}
+	}
+
+	if (UDataTable* SkillTable = GetSkillTable())
+	{
+		for (const TPair<FName, uint8*>& Pair : SkillTable->GetRowMap())
+		{
+			const FSkillTableRow* Row = reinterpret_cast<const FSkillTableRow*>(Pair.Value);
+			if (Row == nullptr) continue;
+			AddPath(Row->Montage.ToSoftObjectPath());
+			AddPath(Row->Fx.ToSoftObjectPath());
+			AddPath(Row->Icon.ToSoftObjectPath());
+		}
+	}
+
+	if (GameInst == nullptr || AssetsToLoad.Num() == 0)
+	{
+		OnDone.ExecuteIfBound();
+		return;
+	}
+
+	// 이미 로드된 에셋이면 RequestAsyncLoad가 완료 콜백을 곧바로 부른다.
+	PreloadHandle = GameInst->AssetLoader.RequestAsyncLoad(AssetsToLoad, OnDone);
+	if (!PreloadHandle.IsValid())
+	{
+		OnDone.ExecuteIfBound();
+	}
 }

@@ -28,4 +28,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|Classes")
 	TSubclassOf<class ANpcCharacter> NpcCharacterClass;
+
+	// System message popup (login failure, entering room, ...). Set to WBP_SystemMessage in BP_JMGameInstance.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|UI")
+	TSubclassOf<class USystemMessageWidget> SystemMessageWidgetClass;
 };

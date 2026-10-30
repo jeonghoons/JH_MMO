@@ -21,6 +21,13 @@ struct FWidgetInfo
     FWidgetInfo(UUserWidget* InWidget, bool InIsWindow) : WidgetInstance(InWidget), bIsWindow(InIsWindow) {}
 };
 
+// Notice = 확인 버튼으로 닫음, Waiting = 버튼 없이 코드가 CloseSystemMessage로 닫음
+enum class ESystemMessageType : uint8
+{
+    Notice,
+    Waiting,
+};
+
 class APlayerController;
 
 UCLASS()
@@ -43,6 +50,28 @@ public:
     // 마우스 커서 등 입력을 제어하는 내부 함수
     void UpdateInputMode();
 
+    // 창이 없을 때의 입력 모드. true = 전투 입력(인게임), false = UI 전용 + 커서(로그인 화면). 각 GameMode가 정한다.
+    void SetGameplayInput(bool bEnable);
+
+    // 시스템 메시지 창. 한 번에 하나만 보이고 나머지는 차례를 기다린다(Waiting은 맨 앞에 끼운다).
+    // 위젯 클래스는 UJMGameInstance::SystemMessageWidgetClass. 레벨 전환 뒤에도 남은 메시지는 새 레벨에서 띄운다.
+    void ShowSystemMessage(const FText& Message, ESystemMessageType Type = ESystemMessageType::Notice);
+
+    // 지금 보이는 시스템 메시지를 닫고 다음 메시지를 띄운다.
+    void CloseSystemMessage();
+
+    // 대기(Waiting) 메시지만 닫는다. 떠 있는 것이 확인 메시지면 그대로 둔다.
+    void CloseWaitingMessage();
+
+private:
+    struct FPendingSystemMessage
+    {
+        FText Message;
+        ESystemMessageType Type;
+    };
+
+    void ShowNextSystemMessage();
+
 private:
     // 모든 위젯을 이름으로 보관하는 사전(Dictionary)
     UPROPERTY()
@@ -55,5 +84,10 @@ private:
     UPROPERTY()
     TObjectPtr<APlayerController> Controller;
 
-    
+    bool bGameplayInput = false;
+
+    // 아직 띄우지 못한 시스템 메시지와, 지금 화면에 떠 있는지 여부
+    TArray<FPendingSystemMessage> PendingSystemMessages;
+    bool bSystemMessageShown = false;
+
 };
