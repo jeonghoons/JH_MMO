@@ -5,6 +5,7 @@
 #include "Editor.h"
 #include "FileHelpers.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Interfaces/Interface_CollisionDataProvider.h"
 #include "Misc/FileHelper.h"
@@ -95,10 +96,30 @@ int32 UMapExportCommandlet::Main(const FString& Params)
 
 bool UMapExportCommandlet::ExportGeometry(UWorld* World, const FString& OutBinPath) const
 {
-	static const FName NavExportProfile(TEXT("NavExport"));
-
 	TArray<FVector> Vertices;
 	TArray<int32> Indices;
+	int32 ExportedComps = 0, SkippedComps = 0;
+
+	// 메시 하나를 변환해 누적한다.
+	auto AppendMesh = [&Vertices, &Indices](const FTriMeshCollisionData& TriData, const FTransform& TM)
+	{
+		const int32 BaseIndex = Vertices.Num();
+
+		Vertices.Reserve(Vertices.Num() + TriData.Vertices.Num());
+		for (const FVector3f& LocalVertex : TriData.Vertices)
+		{
+			Vertices.Add(TM.TransformPosition(FVector(LocalVertex)));
+		}
+
+		Indices.Reserve(Indices.Num() + TriData.Indices.Num() * 3);
+		for (const FTriIndices& Tri : TriData.Indices)
+		{
+			// UE(왼손) -> Detour(오른손)로 축을 바꾸면 앞뒤가 뒤집히므로 정점 순서를 바꿔 위를 향하는 면이 걷기 가능하게 한다.
+			Indices.Add(BaseIndex + Tri.v0);
+			Indices.Add(BaseIndex + Tri.v2);
+			Indices.Add(BaseIndex + Tri.v1);
+		}
+	};
 
 	for (TActorIterator<AActor> It(World); It; ++It)
 	{
@@ -109,8 +130,16 @@ bool UMapExportCommandlet::ExportGeometry(UWorld* World, const FString& OutBinPa
 
 		for (UStaticMeshComponent* Comp : Comps)
 		{
-			if (!Comp || Comp->GetCollisionProfileName() != NavExportProfile)
+			if (!Comp)
 			{
+				continue;
+			}
+
+			// 서버 내비메시 = UE에서 캐릭터가 실제로 부딪히는 것. 충돌이 꺼졌거나(풀 등 NoCollision) Pawn을 막지 않는 메시는 내보내지 않는다.
+			// (2026-10-30 S1: 예전 내보내기는 풀까지 장애물로 넣어 서버가 지나갈 수 있는 곳의 이동을 거부했다)
+			if (!Comp->IsCollisionEnabled() || Comp->GetCollisionResponseToChannel(ECC_Pawn) != ECR_Block)
+			{
+				++SkippedComps;
 				continue;
 			}
 
@@ -126,28 +155,32 @@ bool UMapExportCommandlet::ExportGeometry(UWorld* World, const FString& OutBinPa
 				continue;
 			}
 
-			const FTransform& CompTM = Comp->GetComponentTransform();
-			const int32 BaseIndex = Vertices.Num();
-
-			Vertices.Reserve(Vertices.Num() + TriData.Vertices.Num());
-			for (const FVector3f& LocalVertex : TriData.Vertices)
+			// 인스턴스 메시(폴리지 등)는 인스턴스마다 변환을 적용한다.
+			if (const UInstancedStaticMeshComponent* ISM = Cast<UInstancedStaticMeshComponent>(Comp))
 			{
-				Vertices.Add(CompTM.TransformPosition(FVector(LocalVertex)));
+				for (int32 i = 0; i < ISM->GetInstanceCount(); ++i)
+				{
+					FTransform InstanceTM;
+					if (ISM->GetInstanceTransform(i, InstanceTM, /*bWorldSpace*/ true))
+					{
+						AppendMesh(TriData, InstanceTM);
+					}
+				}
 			}
-
-			Indices.Reserve(Indices.Num() + TriData.Indices.Num() * 3);
-			for (const FTriIndices& Tri : TriData.Indices)
+			else
 			{
-				Indices.Add(BaseIndex + Tri.v0);
-				Indices.Add(BaseIndex + Tri.v1);
-				Indices.Add(BaseIndex + Tri.v2);
+				AppendMesh(TriData, Comp->GetComponentTransform());
 			}
+			++ExportedComps;
 		}
 	}
 
+	UE_LOG(LogTemp, Display, TEXT("[MapExport] 지오메트리: 내보낸 컴포넌트 %d개, 제외(충돌 없음·Pawn 비차단) %d개, 정점 %d, 삼각형 %d"),
+		ExportedComps, SkippedComps, Vertices.Num(), Indices.Num() / 3);
+
 	if (Vertices.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[MapExport] '%s' 콜리전 프로파일이 지정된 스태틱메시를 찾지 못했습니다."), *NavExportProfile.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("[MapExport] Pawn을 막는 충돌을 가진 스태틱메시를 찾지 못했습니다."));
 	}
 
 	IFileManager::Get().MakeDirectory(*FPaths::GetPath(OutBinPath), true);
@@ -160,13 +193,15 @@ bool UMapExportCommandlet::ExportGeometry(UWorld* World, const FString& OutBinPa
 
 	// Server/NavGenerator/RecastNavMesh.cpp의 LoadBinFile이 기대하는 포맷과 정확히 일치해야 한다:
 	// int32 vCount + vCount*(float x,y,z) + int32 iCount + iCount*int32
+	// NavGenerator는 좌표를 변환하지 않고 Detour 좌표(Y-up)로 그대로 쓰므로 여기서 바꿔 저장한다.
+	// UE(x, y, z) -> Detour(y, z, -x) = 서버 NavmeshManager::UeToDetour와 같은 변환. (2026-10-30 S1: 예전 .nav와 같은 형식)
 	int32 VCount = Vertices.Num();
 	*Writer << VCount;
 	for (const FVector& V : Vertices)
 	{
-		float X = static_cast<float>(V.X);
-		float Y = static_cast<float>(V.Y);
-		float Z = static_cast<float>(V.Z);
+		float X = static_cast<float>(V.Y);
+		float Y = static_cast<float>(V.Z);
+		float Z = static_cast<float>(-V.X);
 		*Writer << X << Y << Z;
 	}
 
@@ -219,6 +254,13 @@ bool UMapExportCommandlet::ExportLogic(UWorld* World, const FString& MapName, co
 		}
 
 		MarkerArray.Add(MakeShared<FJsonValueObject>(MarkerJson));
+	}
+
+	// 맵에 마커 액터가 없으면 손으로 관리하는 기존 Logic JSON을 빈 내용으로 덮어쓰지 않는다. (2026-10-30: ParagonSample에는 ALevelMarker가 없음)
+	if (MarkerArray.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[MapExport] 맵에 ALevelMarker가 없어 Logic JSON을 그대로 둡니다: %s"), *OutJsonPath);
+		return true;
 	}
 
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
