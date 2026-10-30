@@ -4,26 +4,24 @@
 **한 번에 하나의 체크박스만 진행하고, 완료하면 즉시 `[x]`로 갱신합니다.**
 
 두 트랙을 병행합니다.
-- **트랙 A — 서버/포트폴리오** (아래, 우선): 안정화 → 몬스터·전투 → 아이템 → 거래/경매장 → 부하 테스트 → 산출물
-- **트랙 B — 콘텐츠/클라이언트** (그 아래 Phase M0~M4, 기존 Test 병합 작업): 영웅·무기·애니메이션·데이터 파이프라인
+- **트랙 A — 서버/포트폴리오** (아래, 우선): 안정화 → 몬스터·전투 → 정리 → 서버 기반 → 성장·저장 → 아이템 → 거래/경매장 → 부하 테스트 → 산출물
+- **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
-현재 위치: **Phase M0.5 클라이언트 정리 (2026-10-21 우선순위 변경: 폴더 정리 → 캐릭터 전투 보완 → A2.3)** / 트랙 B는 Phase M0 – 에셋 정리 중
+현재 위치: **R. ③ 저장소 정리 (C-4 채팅 복구 차례)**
 
-**실행 순서:** A0(치명 오류 + 최소 검증 하니스) → **A1.4 서버 CSV 로더(2026-10-20 앞당김)** → **A2′ 몬스터·전투(서버+클라이언트, 최우선)** → A1 나머지 → A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 나머지 UI → A7 산출물
+**실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-3 → **① 정리 마무리** C-4 채팅 복구(A2.6 완료 처리) → C-5 소스 폴더 구조화 → C-6 DummyClient → **② 서버 기반** S1 서버 권위 이동 → A1.1 설정 → A1.2 로거 → A1.3 메트릭 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
 **검증 게이트 (모든 콘텐츠 단계 공통):** 체크박스는 해당 기능의 **오류 테스트**(비정상 입력, 중간 접속 해제, 중복·상태 불일치 요청)와 **부하 테스트**(단계 목표 CCU까지 램프, 200 → 1,000 → 5,000)를 통과하고 결과를 `Docs/TESTING.md`에 기록한 뒤에만 `[x]`로 표시합니다.
 
-## ▶ 중단점 (2026-10-27) — "이어서 진행"이라고 하면 여기서 재개 (다음: A2.3)
-**상태:** A2.2 서브 단계(a~d) 완료, M0.5 전체 완료, 캐릭터 전투 보완 완료 (2026-10-27). 2026-10-21 사용자 확정 순서: **M0.5 항목 4(완료) → 3(완료) → 2(완료) → 1 → 5** (Content 정리 → 명명/배치 → `JMPlayer.cpp` 버그 → 네트워크 안정화 → 레이어 분리). 그다음 캐릭터 전투 보완(서 있을 때 상체 블렌드, 장판 이펙트 에셋), 그다음 **A2.3 경험치/레벨/골드**(보상 패킷, HUD, 스탯 반영 대미지).
-**다음 작업 (2026-10-27 우선순위 변경, `DECISIONS.md`):** ① A2.2e 전사 스킬 모션·이펙트 → ② A2.2f 전투 HUD(HP·쿨타임) → ③ 폴더·파일 정리 → ④ 아이템(A3) → ⑤ 서버 권위 이동 → ⑥ 서버 설정(A1.1). A2.3은 그 이후. ③~⑥은 차례가 되면 코드를 읽고 따로 계획합니다. 현재: A2.2e 완료 (2026-10-28, 1a 모션 + 1b 이펙트·타격 시점 도구, Play 확인). 전사 판정 형태 조정 완료(2026-10-28). 2026-10-28 QA(`TESTING.md`) 결과로 **A0.7 QA 버그 수정을 A2.2f보다 먼저** 진행 → 완료(2026-10-28, 서버 재현 테스트·회귀 + PIE 로그인 실패·가입·궁수 로그인 확인). A2.2g 행동 잠금·공격 속도 구조 + A2.2f 전투 HUD 완료(2026-10-28, PIE 확인). 다음: ③ 폴더·파일 정리(차례가 되면 코드를 읽고 따로 계획). 아래는 M0.5 항목 5 진행 기록입니다.
-- 5a 송신 파사드: 완료 (2026-10-27, 빌드 + Play 확인). `UNetworkManager::Get(WorldContext)`와 `SendLogin/SendSignUp/SendEnterRoom/SendMove/SendAttack` 추가, `LoginWidget`·`JMPlayerController`·`JMMyPlayer`가 파사드 사용, `ChatWidget`의 죽은 주석 삭제.
-- 5b 핸들러 보일러플레이트(`RegisterHandler<PacketT>` 템플릿, `GetObjectManager(session)` 헬퍼, 미사용 `SendAttackPacket` 삭제): 완료 (2026-10-27, 빌드 + Play 확인).
-- 5c UIManager 일원화: 완료 (2026-10-27, 빌드 + Play 확인. 인벤토리 키 미연결·채팅 미구현은 기존 상태로 `TODO.md` 백로그). 로그인 위젯·HUD·크로스헤어를 `UJMUIManager::RegisterWidget`(Z-Order, 시작 표시 인자 추가)으로 생성, 위젯 이름 상수 `UI/WidgetNames.h`, 레벨 전환 시 `ClearWidgets()`. `LoginWidgetClass`·`HUDWidgetClass`·`CrosshairWidgetClass` UPROPERTY는 유지하므로 에디터 작업 없음.
-- M0.5 항목 1 Play 확인 완료 (2026-10-27).
-- M0.5 완료. 캐릭터 전투 보완 완료 (2026-10-27): 서 있을 때 상체 블렌드는 하지 않기로 함, 궁수 장판은 `P_Sparrow_RainofArrows` 이펙트로 교체(`SkillTable`의 클라이언트 전용 `ZoneFx`·`ZoneFxBaseRadius`, 배율 = `Radius / ZoneFxBaseRadius`), 502 `Radius` 250 → 400으로 이펙트 원본 크기에 맞춤(`DECISIONS.md` 2026-10-27). PIE 확인: 조준 원과 이펙트가 대략 일치, 이펙트가 약간 더 큼(필요하면 500으로 재조정). **다음 작업: A2.3 경험치/레벨/골드.**
+## ▶ 중단점 (2026-10-30) — "이어서 진행"이라고 하면 여기서 재개 (다음: C-4 채팅 복구)
+**상태:** C-3 미사용 에셋 삭제 완료(2026-10-30, 참조 검사 + PIE). 작업 순서를 다시 계획함(위 실행 순서). 지난 진행 기록은 커밋 기록과 `TESTING.md`에 있습니다.
+**다음 작업:** C-4 채팅 복구 — 코드를 읽고 계획을 먼저 제시합니다.
 **Claude가 못 보는 것:** 에디터의 애니메이션·이펙트 모양. 스크린샷이나 블루프린트 노드 복사 텍스트(Ctrl+C)를 붙여넣어 확인합니다.
-**주의:** UE 빌드는 에디터가 켜져 있으면 Live Coding 때문에 막히니, C++를 고칠 일이 생기면 에디터를 닫아야 합니다. 서버는 `Server/x64/Debug/GameServer.exe`(SQL Server Express 필요). 궁수 계정은 `LoadTest --hero archer`의 `arc_*` 계정이나 UE 로그인 화면에서 궁수 타입으로 가입하면 됩니다.
-**참고:** M0.5 항목 4·3·2·1은 커밋 완료(`b352400`, `2b66c6c`, `7c4d65a`). 5a `a95d3e8`, 5b `1fa1780`, 5c `클라이언트: UIManager 일원화 (M0.5-5c)` 커밋.
+**주의:**
+- UE 빌드는 에디터가 켜져 있으면 Live Coding 때문에 막히니, C++를 고칠 일이 생기면 에디터를 닫아야 합니다.
+- 에디터 작업은 uemcp(`.mcp.json`, 에디터를 켠 채로)로 처리합니다. 네트워크 PIE 확인은 사용자가 Play를 누릅니다(uemcp의 `ue_play`는 Simulate 모드).
+- 서버는 `Server/Server` 폴더에서 `..\x64\Debug\GameServer.exe`로 실행합니다(DataTable·맵 상대 경로, SQL Server Express 필요). PIE 전에 Debug 빌드가 최신인지 확인하고, 서버가 실행 중이면 VS 빌드가 exe를 덮어쓰지 못합니다.
+- 궁수 계정은 `LoadTest --hero archer`의 `arc_*` 계정이나 UE 로그인 화면에서 궁수 타입으로 가입하면 됩니다.
 
 ## 트랙 A — 서버/포트폴리오
 
@@ -49,15 +47,18 @@
 - [ ] A2.3 서버+클라이언트: 경험치/레벨/골드 보상 패킷과 HUD(내 HP·EXP·레벨)
 - [ ] A2.4 서버+클라이언트: 플레이어 사망/부활
 - [ ] A2.5 서버: DB 저장 연결(`InitFromDb`, 접속 해제·주기 저장, `SavePlayerData` SQL 수정). 완료: 재접속 시 레벨·HP·골드 유지
-- [ ] A2.6 미사용 패킷 정리(`CS_LOGOUT`/`CS_CMOVE`/`CS_LEAVE_ROOM`/`SC_CHAT`): 구현 또는 제거
+- [ ] A2.6 미사용 패킷 정리(`CS_LOGOUT`/`CS_CMOVE`/`CS_LEAVE_ROOM`/`SC_CHAT`): 구현 또는 제거 — LOGOUT/CMOVE/LEAVE_ROOM은 C-1에서 삭제, 채팅은 **C-4에서 처리**(C-4 완료 시 함께 `[x]`)
 
 ### R. ③ 저장소 정리 (2026-10-28 계획, `DECISIONS.md`) — 지우는 일 먼저, 옮기는 일은 나중에
 - [x] C-1 안 쓰는 코드·패킷 삭제 (2026-10-28 완료: 서버·클라이언트 빌드, 회귀 스크립트(A0.7·가입/로그인 결과·행동 잠금)·LoadTest 이동 1,000/hunt/chaos 통과, PIE는 C-3 뒤에 함께): `CS/SC_LOGOUT`, `CS_CMOVE`/`SC_CMOVE_OBJECT`, `CS_LEAVE_ROOM`, `ObjectInfo.appearance_items`(번호는 `reserved`), 서버 옛 주석 코드·깨진 `SavePlayerData`(없는 `Player_Data` 테이블)·미사용 함수, 클라이언트 인벤토리 키·`SendBuffer::CopyData`·주석 코드
 - [x] C-2 DB 정리 (2026-10-29 완료: 백업 `GameServer_2026-10-28_preC2.bak` 후 마이그레이션 실행, `Mp`·`Status` 열도 삭제, `LastLoginAt`은 유지, 회귀·LoadTest 통과): 미사용 테이블 `Item_Meta`/`Player_Inventory`/`Trade_Log` 삭제(백업 + 마이그레이션 스크립트 + `schema.sql` 재생성), 미사용 열은 목록 확인 후
-- [ ] C-3 미사용 에셋 삭제: 참조 검사 보고 → 승인 목록만 삭제 (`WBP_Info`, `AM_Greystone_Skill1`, `WBP_Inventory` 등)
+- [x] C-3 미사용 에셋 삭제 (2026-10-30 완료: uemcp 참조 검사 0건·리디렉터 없음, PIE(C-1 몫 포함) 로그인·이동·전사/궁수 공격·스킬·HUD·몬스터 공격/사망/리스폰 확인): `WBP_Info`(+`InfoWidgetClass`·`WidgetNames::MainInfo`), `WBP_Inventory`, `AM_Greystone_Skill1`, `IA_Jump`, `IMC_MouseLook` 삭제. Rampage 일반공격 몽타주를 SkillTable 301 `Montage`(`AM_Rampage_Attack`)로 지정
 - [ ] C-4 채팅 복구(A2.6 완료 처리): `CS_CHAT` → 서버 검증·방 방송 `SC_CHAT` → 클라이언트 `SendChat`·`Handle_SC_CHAT`·`ChatWidget`
 - [ ] C-5 소스 폴더 구조화: `Server/Server`를 Network/Packet/Job/DB/Data/Game(Object·Room·NavMesh)/Utils로(`git mv`, include 경로는 vcxproj), 클라이언트 `JMGameInstance` → `Game/`
 - [ ] C-6 DummyClient = LoadTest 시각화: LoadTest를 `BotEngine` + 콘솔 main으로 분리, DummyClient는 같은 엔진 + OpenGL 탑다운 화면(봇·몬스터·통계), UTF-8
+
+### S. 서버 권위 이동 (2026-10-30 `TODO.md` 백로그에서 승격, 정리 다음·A1 앞)
+- [ ] S1 서버 권위 이동: 내 캐릭터 위치를 서버가 검증·보정하고 클라이언트가 보정을 적용(현재 `JMObjectManager.cpp`가 내 캐릭터 보정 패킷을 무시), 원격 데드레커닝 시간 상한, `SyncTransformToInfo`의 매 프레임 덮어쓰기 정리, 정지 중 이동 패킷 초당 5회 전송 중단. 설계는 [DESIGN_CONTROL_CAMERA.md](DESIGN_CONTROL_CAMERA.md). 시작할 때 코드를 읽고 하위 단계로 계획
 
 ### A1. 관측성·설정
 - [ ] A1.1 설정 파일 외부화(포트, DB 연결 문자열, 로그 레벨)
@@ -100,13 +101,13 @@
 ---
 
 ## 트랙 B — 콘텐츠/클라이언트 (기존 Test 병합 작업, 병행)
-트랙 B의 M2 "서버 CSV 로더"는 A1.4와 같은 작업이므로 중복 진행하지 않습니다. M3/M4의 테이블은 A3의 ItemTable/DropTable, A2′의 전투와 `DESIGN_DATA.md` ID 규약을 공유합니다.
+2026-10-30 정리: M0/M2/M4의 남은 항목은 트랙 A에서 이미 끝난 작업(A1.4, A2.2)이라 완료 처리했습니다. 남은 것은 M3(영웅·무기 테이블)과 Paragon 에셋 최종 Move입니다. M3의 테이블은 A3의 ItemTable/DropTable과 `DESIGN_DATA.md` ID 규약을 공유합니다.
 
 ## Phase M0 – 병합 준비
 - [x] Test의 서버 자리(Seam) 동작을 서버 권위 동작으로 전환한다는 방침을 `DESIGN_COMBAT_SKILL.md`에 기록
 - [x] Test의 작업 절차 규칙·문서 구조·데이터 규약(`Common/DataTable`)을 이 저장소에 이식
 - [x] **원본 에셋 팩 재다운로드** (사용자 작업) — 완료 후 `ExternalAssets.md` 표 채움
-- [ ] 이식된 `MovementTable.csv`를 UE DataTable로 임포트할 구조(Row 구조체, `UDataManager`) 설계
+- [x] 이식된 `MovementTable.csv`를 UE DataTable로 임포트할 구조(Row 구조체, `UDataManager`) 설계 — A2.2b에서 완료(`Data/MovementTableRow.h`, `Game/DataManager`, `DT_MovementTable`)
 
 ## Phase M0.5 – 클라이언트 정리 (2026-10-20 검토 결과, 상세 항목은 아래 체크박스 단위로 진행)
 - [x] 0. `.gitignore`: `Content/Paragon*/`, `StarterContent/` 추가 완료 (2026-10-20). 추적 중이던 437개(Paragon* 435 + StarterContent 2, 720MB)는 `git rm -r --cached`로 인덱스에서만 제거, 디스크 파일 유지 확인 (2026-10-21, 커밋 대기). 과거 커밋에는 남아 있어 저장소 크기는 줄지 않음
@@ -124,28 +125,28 @@
 - [x] **캐릭터 베이스 결정: Paragon 영웅 + 고유 무기** (`DECISIONS.md` 2026-10-17)
 
 ## Phase M2 – 데이터 파이프라인
-- [ ] Row 구조체 + `UDataManager` 이식, `MovementTable` 임포트/조회
-- [ ] 서버 CSV 로더 (`Common/DataTable/*.csv`를 읽어 `ServerData.h` 하드코딩 대체), 이동 수치 연동
-- [ ] `UJMAssetDataManager`의 Mock DB 교체 여부 결정
+- [x] Row 구조체 + `UDataManager` 이식, `MovementTable` 임포트/조회 — A2.2b에서 완료
+- [x] 서버 CSV 로더 (`Common/DataTable/*.csv`를 읽어 `ServerData.h` 하드코딩 대체) — A1.4에서 완료. 서버 이동 수치 연동은 S1에서
+- [x] `UJMAssetDataManager`의 Mock DB 교체 여부 결정 — 폐기(클래스가 이미 삭제됨, 2026-10-30 확인)
 
 ## Phase M3 – 캐릭터/무기/애니메이션
 - [ ] HeroTable (Greystone, Sparrow): 영웅 → 메시/AnimBP/스탯, 영웅 선택 흐름
-- [ ] 영웅별 AnimBP 연결 ([DESIGN_ANIMATION.md](DESIGN_ANIMATION.md), AnimLayer/무기 교체 없음)
+- [x] 영웅별 AnimBP 연결 ([DESIGN_ANIMATION.md](DESIGN_ANIMATION.md), AnimLayer/무기 교체 없음) — `ABP_Greystone`/`ABP_Sparrow`(`DT_CharacterAsset`), 상체 레이어·`DefaultSlot`은 A2.2d·A2.2e에서 완료
 - [ ] WeaponItemTable + 무기 머티리얼 교체 + 장착 CS_/SC_ 패킷, 서버 스탯 계산 ([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md))
-- [x] 모듈러 코드/에셋 삭제 (클라이언트 코드, CoreC, DT_Appearance/DT_Equip). 남은 일: 에디터 컴파일 확인, `BP_Player`/`BP_MyPlayer`/`ABP_Base` 정리, `appearance_items` proto 제거
-- [ ] 사용 중인 Paragon 에셋을 새 폴더로 정리해 커밋 (재다운로드 파일은 커밋하지 않음)
+- [x] 모듈러 코드/에셋 삭제 (클라이언트 코드, CoreC, DT_Appearance/DT_Equip). 남은 일(에디터 컴파일 확인, `BP_Player`/`BP_MyPlayer`/`ABP_Base` 정리, `appearance_items` 제거)은 M0.5-4·C-1에서 완료
+- [ ] 사용 중인 Paragon 에셋을 새 폴더로 정리해 커밋 (재다운로드 파일은 커밋하지 않음) — 절차는 아래 "Paragon 에셋 최종 Move"
 
 ## Phase M4 – 전투/스킬 (서버 권위)
-- [ ] SkillTable(영웅 종속, `HeroId`) + 스킬 시전 CS_/SC_ 패킷 ([DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md))
-- [ ] AnimNotify는 시전·연출 타이밍만, 판정은 서버
+- [x] SkillTable(영웅 종속 — `PlayerType` 열) + 스킬 시전 CS_/SC_ 패킷 ([DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md)) — A2.2a~g에서 완료
+- [x] AnimNotify는 시전·연출 타이밍만, 판정은 서버 — A2.2e(`AnimNotify_SkillHit` + `ExportSkillTiming.bat`)에서 완료
 
 ## 수동 작업 기록 (에디터에서 사용자가 직접)
 상세 절차는 기록하지 않고 대화창으로 안내합니다. 여기에는 항목별 한 줄 요약과 상태만 남깁니다.
 
 - [x] 검증 1: 기본 무기 본 스케일 0 숨김 (통과, 현재는 사용하지 않음)
 - [x] Greystone, Sparrow: 몽타주 Duplicate(`AM_`), AnimBP·피격·사망 Rename, `DT_CharacterAsset` 경로 갱신 (2026-10-19 완료)
-- [ ] Rampage: 사용 에셋 확인(`BP_Npc`) 후 같은 방식으로 처리 — 몽타주 Rename은 완료, `BP_Npc`의 `CurrentAttackMontage`는 아직 팩 원본(`Attack_Biped_Melee_A_Montage`)을 참조하고 사망/피격 몽타주는 미지정 (A2.1에서 지정)
-- [ ] Paragon 에셋 최종 Move: 캐릭터 작업 종료 시 (아래 중단점 4번 참고)
+- [x] Rampage: `BP_Npc`가 `Character/Rampage/`의 `AM_Rampage_Attack`·`AM_Rampage_Hit`·`AM_Rampage_Death`·`ABP_Rampage`를 사용, SkillTable 301 `Montage` = `AM_Rampage_Attack` (2026-10-30 확인. 메시는 아직 팩 원본 → 최종 Move 대상)
+- [ ] Paragon 에셋 최종 Move: 캐릭터 작업 종료 시 (아래 "Paragon 에셋 최종 Move" 참고)
 - [x] A2.2f: `WBP_SkillSlot`·`WBP_CombatHud` 생성, `BP_GameMode` 부모 → `AIngameGameModeBase` + `HUDWidgetClass = WBP_CombatHud` (2026-10-28, 도구로 처리)
 - [x] A2.2f: 스킬1 아이콘 2개(배경 투명 처리) → `Character/<영웅>/Icons` 가져오기, SkillTable `Icon` 경로 + `DT_SkillTable` Reimport, `WBP_CombatHud`에서 `SlotAttack` 제거 (2026-10-28, 도구로 처리)
 - [x] A2.2g: SkillTable `AnimMs` 열 + 501 `Montage`(`AM_Sparrow_Attack`), `ExportSkillTiming.bat`으로 `DT_SkillTable` Reimport (2026-10-28)
@@ -156,25 +157,8 @@
 - [x] 장판 이펙트: `P_RainofArrows` → `Character/Sparrow/P_Sparrow_RainofArrows` Copy, `DT_SkillTable` Reimport (2026-10-27 완료)
 - [x] M0.5-4 Content 정리 (2026-10-21): `Input/Touch` 삭제, `BP_JMGameInstance`의 깨진 변수 `DT_Appearance/Equip` 제거, `BP_Player`/`BP_MyPlayer`의 `ABP_Base`·Mannequin 참조 해제 후 `ABP_Base`·`NewInterchange…` 삭제, `BP_MyPlayer/Player/Npc` → `_Core/Blueprints/Character/`, `DT_CharacterAsset` → `Data/` 이동(커맨드렛 Python, 리디렉터 없음), `DefaultInput.ini` 레거시 Action/Axis Mappings 삭제, `Characters/`·`FirstPerson/`·`LevelPrototyping/` 삭제
 
-## ▶ 중단점 (2026-10-17 종료 시점) — "에셋 정리 이어서 진행"이라고 하면 여기서 재개
-**목표:** 재다운로드한 Paragon 전체 팩은 커밋하지 않고(`.gitignore`, 완성 후 제거), 실제 쓰는 에셋과 의존 에셋만 `Content/Character/<영웅이름>/`(Greystone, Sparrow, Rampage)로 **Move**해 커밋한다. 원본은 복원·백업하지 않으며 Move 후 Fix Up Redirectors를 실행한다 (`DECISIONS.md` 2026-10-17).
-
-**확인된 기준 에셋 (`DT_CharacterAsset`)**
-- Greystone: 메시 `/Game/ParagonGreystone/Characters/Heroes/Greystone/Meshes/Greystone`, 공격 몽타주 `.../Greystone/Animations/Attack_PrimaryA_Montage`, AnimBP·피격·사망은 이미 `Content/Character/Greystone/`
-- Sparrow: 메시 `/Game/ParagonSparrow/Characters/Heroes/Sparrow/Meshes/Sparrow`, 공격 몽타주 `.../Sparrow/Animations/Primary_Fire_Med_Montage`, AnimBP·피격·사망은 이미 `Content/Character/Sparrow/`
-- Rampage(몬스터): 사용 에셋 미확인 (`Content/Character/BP_Npc` 확인 필요)
-
-**재개 시 순서 (한 단계씩 사용자에게 묻고 진행)**
-> 2026-10-19 방침 변경 (`DECISIONS.md`): 팩은 캐릭터 작업 종료까지 유지. 고칠 에셋(몽타주·AnimBP·피격·사망)은 `Content/Character/<영웅>/`에 **Duplicate**, 무거운 에셋(메시·스켈레톤·머티리얼·텍스처·시퀀스)은 캐릭터 작업 종료 시 한 번에 **Move**.
-
-1. Step 2 — Greystone: 공격 몽타주 등 고칠 에셋을 `Content/Character/Greystone/`에 Duplicate(네이밍 규칙 적용), `DT_CharacterAsset` 경로를 복사본으로 변경. 네이밍 규칙(SK_/ABP_/AM_/M_/T_)을 먼저 `DECISIONS.md`에 확정 (사용자 결과 대기 중)
-2. (완료 2026-10-19: Greystone·Sparrow Step 2) 활/화살 `FX/Meshes/Heroes/Sparrow/Abilities/SM_Sparrow_Arrow`, 검 `FX/Meshes/Heroes/Greystone/SM_Greystone_Blade_01` 사용 여부는 **미정** — 스킬 작업(M4) 때 결정, 쓰기로 하면 최종 Move 대상에 포함
-3. Rampage 사용 에셋 확인 후 처리
-4. 캐릭터 작업 종료 시: 영웅 폴더와 `Characters/Global`을 Move → Fix Up Redirectors → `DT_CharacterAsset` 확인 → Save All → `Paragon*` 삭제 → PIE 확인 (Reference Viewer로 의존 확인)
-5. 영웅 하나가 끝날 때마다 `Content/Character/**`와 소스·문서만 체크포인트 커밋
-6. 정리 후 `git status`로 남은 변경(재다운로드 파일)을 확인하고, 커밋 범위를 사용자와 정해 `Content/Character/**`와 소스/문서만 커밋. 원본 `Paragon*` 폴더의 재다운로드 변경분은 커밋하지 않음(복원 또는 제외 방식은 그때 결정)
-
-**그 외 남은 일**
-- 에디터 컴파일 확인(모듈러 코드 삭제 후), `BP_Player`/`BP_MyPlayer`/`ABP_Base`가 쓰이는지 확인 후 정리
-- ~~`appearance_items` proto 제거~~ (2026-10-28 C-1에서 완료)
-- 이후 M2: Row 구조체/`UDataManager` 이식, 서버 CSV 로더
+## Paragon 에셋 최종 Move (캐릭터 작업 종료 시, 2026-10-17·10-19 방침)
+재다운로드한 Paragon 전체 팩은 커밋하지 않고(`.gitignore`), 실제 쓰는 에셋과 의존 에셋만 `Content/Character/<영웅>/`(Greystone, Sparrow, Rampage)로 **Move**해 커밋합니다. 고칠 에셋(몽타주·AnimBP·피격·사망)은 이미 Duplicate 완료, 무거운 에셋(메시·스켈레톤·머티리얼·텍스처·시퀀스)이 남아 있습니다. 한 단계씩 사용자에게 묻고 진행합니다.
+1. 영웅 폴더와 `Characters/Global`을 Move → Fix Up Redirectors → `DT_CharacterAsset`·`BP_Npc` 확인 → Save All → `Paragon*` 삭제 → PIE 확인 (Reference Viewer로 의존 확인)
+2. 활/화살 `SM_Sparrow_Arrow`, 검 `SM_Greystone_Blade_01`을 쓰기로 하면 Move 대상에 포함
+3. 영웅 하나가 끝날 때마다 `Content/Character/**`와 소스·문서만 체크포인트 커밋. 원본 `Paragon*` 폴더의 재다운로드 변경분은 커밋하지 않음(복원 또는 제외 방식은 그때 결정)

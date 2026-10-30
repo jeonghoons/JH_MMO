@@ -23,7 +23,6 @@ void AJMPlayerController::BeginPlay()
 		// 크로스헤어는 화면 중앙 조준 기준이라 다른 UI보다 위(Z-Order 100)에 둡니다.
 		UIManager->RegisterWidget(this, WidgetNames::Crosshair, CrosshairWidgetClass, false, 100, true);
 		UIManager->RegisterWidget(this, WidgetNames::Chatting, ChatWidgetClass, false, 0, true);
-		UIManager->RegisterWidget(this, WidgetNames::MainInfo, InfoWidgetClass, false, 0, true);
 	}
 }
 

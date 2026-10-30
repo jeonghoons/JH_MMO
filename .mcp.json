@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "unreal": {
+      "command": "uvx",
+      "args": ["--from", "uemcp==0.1.0", "--with", "mcp<2", "uemcp", "--project", "JM"]
+    }
+  }
+}

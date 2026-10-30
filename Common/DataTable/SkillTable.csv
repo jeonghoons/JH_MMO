@@ -1,5 +1,5 @@
 Name,PlayerType,Slot,TargetingType,HitShape,HitDelayMs,CooldownMs,AnimMs,CastRange,Radius,Angle,Range,Width,BaseDamage,ProjSpeed,DurationMs,TickMs,Fx,FxBaseRadius,Montage,Icon
-301,3,0,NonTargeted,Sector,400,0,1000,0,170,150,0,0,60,0,0,0,,0,,
+301,3,0,NonTargeted,Sector,400,0,1000,0,170,150,0,0,60,0,0,0,,0,/Game/Character/Rampage/AM_Rampage_Attack.AM_Rampage_Attack,
 401,4,0,NonTargeted,Sector,416,0,1667,0,190,180,0,0,50,0,0,0,,0,/Game/Character/Greystone/AM_Greystone_Attack.AM_Greystone_Attack,
 402,4,1,NonTargeted,Sector,926,5000,1867,0,300,360,0,0,120,0,0,0,/Game/Character/Greystone/P_Greystone_GroundSmash.P_Greystone_GroundSmash,300,/Game/Character/Greystone/AM_Greystone_Skill2.AM_Greystone_Skill2,/Game/Character/Greystone/Icons/T_Greystone_Icon_Skill1.T_Greystone_Icon_Skill1
 501,5,0,Targeted,Projectile,200,0,1000,1800,0,0,1800,80,35,3000,0,0,,0,/Game/Character/Sparrow/AM_Sparrow_Attack.AM_Sparrow_Attack,

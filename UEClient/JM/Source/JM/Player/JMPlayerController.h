@@ -30,9 +30,6 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<class UUserWidget> ChatWidgetClass;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
-    TSubclassOf<class UUserWidget> InfoWidgetClass;
-
     // Crosshair shown at the screen center. Set this in BP_PControler (e.g. WBP_Crosshair).
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<class UUserWidget> CrosshairWidgetClass;
