@@ -1,17 +1,16 @@
 # 수동 테스트 절차
 
-서버에는 자동화된 테스트 스위트가 없습니다. 아래는 `DummyClient`로 서버 로직을 수동 검증하는 절차입니다. 아키텍처/빌드 전반은 [Server/CLAUDE.md](../Server/CLAUDE.md)를 참고하세요.
+서버에는 자동화된 테스트 스위트가 없습니다. 아래는 봇(`LoadTest` 콘솔, `DummyClient` 시각화 — 둘 다 같은 `BotEngine`)으로 서버 로직을 수동 검증하는 절차입니다. 아키텍처/빌드 전반은 [Server/CLAUDE.md](../Server/CLAUDE.md)를 참고하세요.
 
 ## 기본 절차
 
 1. `GameServer`를 빌드하고 실행합니다: `msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:GameServer`
-2. `DummyClient`를 빌드하고 실행합니다 (같은 명령의 `/t:DummyClient`).
-3. 봇 개수를 바꾸고 싶다면 `Server/DummyClient/pch.h`의 `MAX_TEST`(현재 50000) / `MAX_CLIENTS`(= `MAX_TEST * 2`) 상수를 수정한 뒤 재빌드합니다 — 런타임 인자로는 조절되지 않습니다.
-4. 서버 콘솔/로그에서 접속·이동·전투 등 확인하려는 패킷 흐름을 관찰합니다.
+2. 수치 검증은 `LoadTest`(아래), 눈으로 보는 확인·시연은 `DummyClient`를 빌드해 `Server/Server` 폴더에서 실행합니다: `..\x64\Release\DummyClient.exe --bots 100 --ramp-rate 20 --profile hunt [--hero archer] [--chaos]`. 인자는 LoadTest와 같고(`--duration`·`--out`은 무시, 창을 닫을 때까지 실행), 창에 봇(초록)·시야 안 몬스터(빨강, 죽으면 회색)·몬스터 스폰(주황 +)·통계(접속/로그인 실패, 핑 p50/p95/p99, 패킷/초, 서버 CPU·메모리, 처치 수)가 보입니다. 휠 = 확대/축소, 드래그 = 이동, F = 전체 맞춤, Esc = 종료. 종료 시 콘솔에 실패 집계가 찍힙니다.
+3. 서버 콘솔/로그에서 접속·이동·전투 등 확인하려는 패킷 흐름을 관찰합니다.
 
 ## 부하 테스트 하니스 (LoadTest)
 
-`Server/LoadTest` — 헤드리스 콘솔 봇 클라이언트(`DummyClient`는 OpenGL 시각화용으로 그대로 둠). 서버의 `metrics.csv`/콘솔 `[metrics]` 줄과 함께 본다.
+`Server/LoadTest` — 헤드리스 콘솔 봇 클라이언트(봇 동작은 `Server/BotEngine`, `DummyClient`가 같은 엔진의 시각화 화면). 서버의 `metrics.csv`/콘솔 `[metrics]` 줄과 함께 본다.
 
 ```
 msbuild Server.sln /p:Configuration=Release /p:Platform=x64 /t:GameServer
@@ -75,10 +74,11 @@ cd Server\Server && ..\x64\Release\GameServer.exe          # 서버 (SQL Server 
 | 2026-10-30 | U1 시스템 메시지 창 + 방 입장 대기(에셋 미리 로드) | PIE: 없는 ID·틀린 비밀번호·가입 신규·중복 가입 → 각각 창이 뜨고 확인으로 닫힘, 닫은 뒤 로그인 화면 커서 유지. 로그인 성공 → 불투명 검정 배경의 "방에 입장하는 중..." → 내 캐릭터 스폰 시 닫히고 전투 입력 모드 | 클라이언트만 변경, 서버 회귀 생략. 봇 6명(LoadTest 전사 3·궁수 3)이 있는 방에 PIE 입장 → 다른 플레이어가 처음부터 메시와 함께 보임(투명 캐릭터 해결), 전사·궁수 스킬1 첫 사용 끊김 없음 | 통과. 처음엔 대기 창 배경이 반투명이라 입장 중 맵이 보여 Waiting만 불투명으로 수정. 미확인: 서버를 끈 상태의 "서버에 연결할 수 없습니다" 창과 로그인 버튼 재연결(코드만 작성) |
 | 2026-10-30 | C-4 채팅 복구(`SC_CHAT.sender_name`, 서버 검증·도배 방지, 방 방송) | Python 원시 소켓 11항목 통과: 정상 채팅이 보낸 사람·다른 사람 모두에게 이름과 함께 도착, 공백·제어 문자만 → 무시, 제어 문자 제거, 긴 메시지 100자(이모지 경계에서 99자), 5연속 → 첫 1개만, 8,000바이트 → 100자, 로그인 전 채팅 무시, 보낸 직후 접속 종료 후 서버 생존. 잘못된 UTF-8(protobuf 파싱 실패)·8KB 초과 패킷 → 방송 없이 보낸 쪽 연결 종료(A0.2 정책) | Release, 한 방 100명이 0.8초마다 채팅 20초: 2,414개 × 100명 **100% 전달**, 서버 out/s 약 15,000, tickLate avg/max 약 20/106ms(평소 6/9ms — 방송을 Room 잡에서 직접 Send, A1.3·A5에서 재확인). 0.5초 간격 시도는 약 80%만 전달 — 전송 간격 흔들림이 도배 제한에 걸린 것(받은 수가 모든 클라이언트에서 같아 전달 손실 아님). 회귀: LoadTest 이동 1,000봇 40초 접속·로그인 실패 0, 핑 p50/p99 1.0/4.1ms | 통과. PIE: J → 입력 → Enter로 전송, "이름: 내용" 표시, 채팅 봇 메시지 수신, PIE 채팅이 봇에 도착, 빈 채팅·연속 전송 확인 |
 | 2026-10-30 | C-5 ServerCore 분리(C-5a 의존 끊기, C-5b 프로젝트·폴더, C-5c 클라이언트 `JMGameInstance` 이동) | 각 단계 후: 악성 헤더(size 0·2·9000, id 65535) → 연결 종료·서버 생존, 접속 직후 종료 50회, 채팅 11항목 통과. ServerCore 소스에 Protocol·게임 참조 0(grep, 주석 제외) | Release, 단계마다 LoadTest 이동 1,000봇 30초(핑 p50/p99 C-5a 0.9/4.6ms, C-5b 0.9/3.1ms), hunt 전사·궁수 20봇(사망·제거·피해 패킷 발생), chaos 100봇 — 모두 접속·로그인 실패 0, 비정상 종료 0. metrics의 sessions/in/out이 NetStats로 정상 집계 | 통과. 서버 Debug/Release 빌드 경고는 기존 C4267·C4244만(ServerService C4819는 BOM 추가로 해소). UE 빌드 성공, PIE(로그인·입장·이동·공격·채팅) 정상 |
+| 2026-10-30 | C-6 BotEngine 분리 + DummyClient 재작성(C-6a 엔진 분리, C-6b 시각화) | C-6a 후 hunt chaos 100봇(요청 40% 비정상 값) 30초 — 서버 생존, 접속·로그인 실패 0. DummyClient 창 닫기(봇 접속 중 종료) 2회 — 서버 생존, 봇 쪽 비정상 종료·프로토콜 오류 0 | Release, C-6a(동작 변경 없음) 후: LoadTest 이동 1,000봇 30초 핑 p50/p99 0.9/3.0ms, hunt 전사 20봇(사망 13·제거 17·피해 86)·궁수 20봇(가입→로그인, 사망 6) — 모두 접속·로그인 실패 0, 비정상 종료 0. C-6b 후: 이동 1,000봇 30초 핑 p50/p99 0.9/4.2ms 실패 0. DummyClient hunt 전사 40봇·궁수 300봇(여러 방) — 로그인 300/300, 처치 31, 서버 CPU 33%, 화면에 봇·몬스터(사망 회색)·스폰·통계 표시(스크린샷 확인) | 통과. 발견: `SC_LOGIN`의 위치가 0이라 봇이 (0,0)에서 이동을 시작한다(실제 시작 위치는 내 `SC_ADD_OBJECT`). DummyClient(trackWorld)만 이를 반영하고, LoadTest는 기존 수치와 비교할 수 있도록 그대로 둠 — S1 서버 권위 이동에서 함께 정리 |
 
 ## 새 패킷/기능을 추가했을 때 체크리스트
 
 - [ ] `GanPackets.bat`을 실행해 `Server`/`UEClient` 양쪽에 최신 프로토콜이 복사됐는지 확인
 - [ ] `GameServer`가 경고 없이 빌드되는지 확인
-- [ ] `DummyClient`로 봇을 붙여 새 패킷이 의도한 `Handle_CS_*`/클라이언트 핸들러로 도달하는지 확인
+- [ ] `LoadTest`/`DummyClient`로 봇을 붙여 새 패킷이 의도한 `Handle_CS_*`/클라이언트 핸들러로 도달하는지 확인
 - [ ] 여러 봇을 동시에 붙였을 때 `Room`의 `PushJob`/`ReserveJob` 경로 밖에서 상태가 바뀌지 않는지 확인 (동시성 이슈)

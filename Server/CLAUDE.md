@@ -4,7 +4,7 @@
 
 ## 빌드 & 실행
 
-Visual Studio 2022에서 `Server/Server.sln`을 열거나 `msbuild`를 사용해 다음 3개 프로젝트 중 하나를 빌드합니다. 솔루션 구성은 `Debug|x64`, `Debug|x86`, `Release|x64`, `Release|x86` 4가지입니다.
+Visual Studio 2022에서 `Server/Server.sln`을 열거나 `msbuild`를 사용해 다음 실행 프로젝트 중 하나를 빌드합니다(정적 라이브러리 `ServerCore`·`BotEngine`은 참조로 함께 빌드됨). 솔루션 구성은 `Debug|x64`, `Debug|x86`, `Release|x64`, `Release|x86` 4가지입니다.
 
 ```
 msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:GameServer
@@ -15,11 +15,12 @@ msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:NavGenerator
 
 - `ServerCore` (`Server/ServerCore/ServerCore.vcxproj`) — 게임과 무관한 서버 기반을 담은 **정적 라이브러리**(Network/Job/DB/Utils). `GameServer`가 ProjectReference로 링크하므로 따로 빌드할 필요는 없습니다.
 - `GameServer` (`Server/Server/Server.vcxproj`) — 실제 게임 서버, 진입점은 `gameserver.cpp`. 실행은 작업 폴더를 `Server/Server`로 두고 합니다(`Resource/`·DataTable 상대 경로). MSBuild로 프로젝트만 빌드할 때는 `/p:SolutionDir=<Server 폴더>\`를 넘깁니다.
-- `LoadTest` (`Server/LoadTest/`) — 헤드리스 콘솔 부하 테스트 봇. `--bots --ramp-rate --duration` 등 런타임 인자로 동작하고 지연(RTT)·처리량·서버 CPU를 CSV로 기록합니다. 사용법은 [Docs/TESTING.md](../Docs/TESTING.md) 참고.
-- `DummyClient` (`Server/DummyClient/`) — OpenGL 시각화가 붙은 구형 봇 클라이언트(소스가 CP949라 수정이 어렵고, `Protocol/` 복사본은 `GanPackets.bat`이 갱신하지 않음). UE 클라이언트 없이 서버 로직을 눈으로 확인할 때만 사용. 봇 개수는 런타임 인자가 아니라 `pch.h`의 `MAX_TEST`(현재 50000)/`MAX_CLIENTS`(=`MAX_TEST * 2`) 상수로 컴파일타임에 정해지므로, 바꾸려면 값을 고치고 재빌드해야 합니다. 수동 검증 절차는 [Docs/TESTING.md](../Docs/TESTING.md) 참고.
+- `BotEngine` (`Server/BotEngine/`, 정적 라이브러리) — LoadTest와 DummyClient가 공유하는 봇 엔진. 논블로킹 소켓 + WSAPoll 워커 스레드로 봇 N명을 램프업 접속시켜 가입/로그인 → 입장 → 이동·사냥(hunt)·핑을 돌리고 지연·처리량을 집계합니다(`GConfig`/`GStat`, `BotEngine::Start/UpdateRamp/TakeSamples/GetSnapshot/Stop`, `ServerProcSampler`). 봇은 클라이언트 측이라 ServerCore를 쓰지 않습니다(DECISIONS 2026-10-30). 프로토콜은 `Server/Server/Protocol/`의 생성 코드를 직접 컴파일하므로 `GanPackets.bat` 뒤에 따로 복사할 것이 없습니다. 새 패킷을 봇이 보내거나 받아야 하면 `BotEngine.cpp`의 `HandlePacket`/`WorkerMain`에 추가합니다.
+- `LoadTest` (`Server/LoadTest/`) — BotEngine의 헤드리스 콘솔 프런트엔드. `--bots --ramp-rate --duration` 등 런타임 인자로 동작하고 지연(RTT)·처리량·서버 CPU를 CSV로 기록합니다. 수치 검증용. 사용법은 [Docs/TESTING.md](../Docs/TESTING.md) 참고.
+- `DummyClient` (`Server/DummyClient/`) — BotEngine의 OpenGL 시각화 프런트엔드(시연용). LoadTest와 같은 인자로 봇을 돌리고 탑다운 화면에 봇·몬스터·스폰·통계를 그립니다(`GConfig.trackWorld`로 엔진이 몬스터 이동·사망과 스냅숏을 추가로 추적). 창을 닫을 때까지 실행. 사용법은 [Docs/TESTING.md](../Docs/TESTING.md) 참고.
 - `NavGenerator` (`Server/NavGenerator/`) — Recast/Detour 내비메시 데이터를 오프라인으로 생성하는 도구. 사용법: `NavGenerator.exe <GeoBinPath> <NavOutputPath>` (인자를 생략하면 기본 맵 `ParagonSample`을 사용해 `../MapResource/Export/<맵>/Geometry/<맵>_Geo.bin`을 읽어 `../Server/Resource/Map/<맵>_Geo.nav`로 출력). **UE에서 맵 지오메트리를 다시 export할 때마다 재실행해야 합니다.** 런타임에는 `NavmeshManager`가 이 출력을 사용합니다.
 
-서드파티 라이브러리(Recast/Detour, Protobuf, ODBC용 `sql.h`/`sqlext.h`)는 `Server/ThirdParty/`에 있습니다. 서버에는 자동화된 테스트 스위트가 없습니다 — 검증은 `GameServer`를 빌드해서 `DummyClient`나 UE 클라이언트로 붙여보는 방식으로 합니다.
+서드파티 라이브러리(Recast/Detour, Protobuf, ODBC용 `sql.h`/`sqlext.h`)는 `Server/ThirdParty/`에 있습니다. 서버에는 자동화된 테스트 스위트가 없습니다 — 검증은 `GameServer`를 빌드해서 `LoadTest`/`DummyClient`나 UE 클라이언트로 붙여보는 방식으로 합니다.
 
 프로토콜(생성된 `.pb.h`/`.pb.cc`)은 `Server/Server/Protocol/`에 복사되어 들어옵니다. 이 파일들은 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md)에서 관리하며, 절대 손으로 수정하지 마세요.
 

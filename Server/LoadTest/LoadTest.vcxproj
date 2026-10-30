@@ -74,9 +74,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="LoadTest.cpp" />
-    <ClCompile Include="..\Server\Protocol\Enum.pb.cc" />
-    <ClCompile Include="..\Server\Protocol\Protocol.pb.cc" />
-    <ClCompile Include="..\Server\Protocol\Struct.pb.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BotEngine\BotEngine.vcxproj">
+      <Project>{b07e0a1c-6c2d-4e8f-a3b5-1d9f2c7e4b60}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
