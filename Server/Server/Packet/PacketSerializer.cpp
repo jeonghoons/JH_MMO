@@ -16,11 +16,12 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_REMOVE_OBJECT(int objectId)
 	return MakeSendBuffer(packet, Protocol::SC_REMOVE_OBJECT);
 }
 
-shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_ptr<GameObject> object)
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_ptr<GameObject> object, uint32_t correctionSeq)
 {
 	Protocol::SC_MOVE_PACKET packet;
 	packet.mutable_object_info()->CopyFrom(object->GetInfo());
 	packet.set_move_time(object->GetLastMoveTime());
+	packet.set_correction_seq(correctionSeq);
 
 	return MakeSendBuffer(packet, Protocol::SC_MOVE_OBJECT);
 }

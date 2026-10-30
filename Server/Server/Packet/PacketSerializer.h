@@ -9,7 +9,8 @@ public:
 
 	static shared_ptr<SendBuffer> MAKE_SC_REMOVE_OBJECT(int objectId);
 
-	static shared_ptr<SendBuffer> MAKE_SC_MOVE_OBJECT(shared_ptr<GameObject> object);
+	// correctionSeq: 내 캐릭터 보정일 때 서버의 보정 순번(그 외에는 0)
+	static shared_ptr<SendBuffer> MAKE_SC_MOVE_OBJECT(shared_ptr<GameObject> object, uint32_t correctionSeq = 0);
 
 	static shared_ptr<SendBuffer> MAKE_SC_ATTACK(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY, int cooldownMs);
 	

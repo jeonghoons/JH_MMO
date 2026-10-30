@@ -153,7 +153,7 @@ bool NavmeshManager::IsOutOfBounds(const Protocol::PositionInfo& pos)
 	return (nearestRef == 0); 
 }
 
-bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos)
+bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos, float edgeToleranceCm)
 {
 	if (!_navQuery) return false;
 
@@ -184,9 +184,10 @@ bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Proto
 		float hitPos[3];
 		dtVlerp(hitPos, nearestStart, dDest, t);
 
-		const float tolerance = 100.0f;
-
-		if (dtVdistSqr(hitPos, dDest) < (tolerance * tolerance)) {
+		// 수평 거리로 잰다(Detour는 [1]이 높이). 플레이어 z는 캡슐 중심이라 내비메시 표면보다 약 1m 높아서,
+		// 3D 거리로 재면 높이 차이만으로 여유를 다 써 버려 경계에 붙은 이동까지 거부된다(S1에서 발견).
+		const float dx = hitPos[0] - dDest[0], dz = hitPos[2] - dDest[2];
+		if (dx * dx + dz * dz < edgeToleranceCm * edgeToleranceCm) {
 			return true;
 		}
 	}

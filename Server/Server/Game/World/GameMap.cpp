@@ -223,9 +223,9 @@ bool GameMap::LoadMapData(const string& fileName)
     return isSuccess;
 }
 
-bool GameMap::CanMove(const Protocol::PositionInfo& from, const Protocol::PositionInfo& to) const
+bool GameMap::CanMove(const Protocol::PositionInfo& from, const Protocol::PositionInfo& to, float edgeToleranceCm) const
 {
-    return _navManager->CanMove(from, to);
+    return _navManager->CanMove(from, to, edgeToleranceCm);
 }
 
 bool GameMap::IsOutOfBounds(const Protocol::PositionInfo& pos) const

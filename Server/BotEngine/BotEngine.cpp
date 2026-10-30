@@ -98,8 +98,52 @@ struct Bot
 	long long nextAttackUs = 0;
 	int castCount = 0;
 	int moveFailures = 0;   // 서버가 내 이동을 거부(보정)한 횟수. hunt 봇이 막혔는지 판단한다
+	int spawnTarget = -1;   // hunt 봇이 찾아가는 몬스터 스폰(GMonsterSpawns 인덱스). 처음엔 가장 가까운 곳
+	int blockedCount = 0;   // 지금 목표로 가다가 막힌 횟수. 많이 막히면 다른 스폰으로 바꾼다
 	long long loginDueUs = 0;   // 가입 후 로그인을 보낼 시각(archer)
+	bool spawnKnown = false;    // 입장 후 내 SC_ADD_OBJECT로 실제 시작 위치를 받았는지(로그인 응답의 위치는 0)
+	float moveSpeed = 0.f;      // 서버 스탯 move_speed. 서버가 이 속도로 이동을 검증한다
+	long long lastMoveSentUs = 0;
+	uint32_t correctionSeq = 0; // 서버가 보낸 마지막 보정 순번. CS_MOVE에 실어 보낸다
 };
+
+static void SendPacket(Bot& b, uint16_t id, const google::protobuf::Message& msg);
+
+// 서버의 속도 검증(MovementTable 허용치)에 걸리지 않도록, 마지막 이동 이후 경과 시간만큼만 움직인다(최대 1초 분량, 여유 10%).
+static float MaxStep(const Bot& b, long long now)
+{
+	const double elapsedSec = min(1.0, (now - b.lastMoveSentUs) / 1e6);
+	return static_cast<float>(b.moveSpeed * 0.9 * elapsedSec);
+}
+
+static void SendMove(Bot& b, long long now, float nx, float ny, float yaw, Protocol::MoveState state)
+{
+	Protocol::CS_MOVE_PACKET mv;
+	Protocol::PositionInfo* p = mv.mutable_pos_info();
+	p->set_x(nx); p->set_y(ny); p->set_z(b.z); p->set_yaw(yaw);
+	p->set_state(state);
+	mv.set_force(false);
+	mv.set_correction_seq(b.correctionSeq);
+
+	// 오류 테스트: 일부 이동을 잘못된 값으로 바꾼다. 서버는 거부하고 보정(SC_MOVE)을 보내야 한다. 내 위치는 바꾸지 않는다.
+	if (GConfig.chaos && rand() % 100 < 10)
+	{
+		switch (rand() % 4)
+		{
+		case 0: p->set_x(b.x + 5000.f); break;                                       // 순간이동
+		case 1: p->set_x(std::numeric_limits<float>::quiet_NaN()); break;             // NaN
+		case 2: p->set_y(b.y + 3.f * b.moveSpeed); break;                             // 3배 속도
+		default: mv.set_correction_seq(b.correctionSeq + 7); break;                   // 맞지 않는 보정 순번(무시돼야 함)
+		}
+		SendPacket(b, Protocol::CS_MOVE, mv);
+		b.lastMoveSentUs = now;
+		return;
+	}
+
+	SendPacket(b, Protocol::CS_MOVE, mv);
+	b.lastMoveSentUs = now;
+	b.x = nx; b.y = ny;   // 서버가 거부하면 보정 패킷(SC_MOVE_OBJECT)으로 되돌려진다.
+}
 
 #pragma pack(push, 1)
 struct Header { uint16_t size; uint16_t id; };
@@ -240,6 +284,7 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		b.x = pkt.object_info().position().x();
 		b.y = pkt.object_info().position().y();
 		b.z = pkt.object_info().position().z();
+		b.moveSpeed = pkt.object_info().stat().move_speed();
 		GStat.loginOk.fetch_add(1);
 		if (b.index == 0)
 		{
@@ -298,14 +343,22 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		{
 			b.x = pkt.object_info().position().x();
 			b.y = pkt.object_info().position().y();
+			b.correctionSeq = pkt.correction_seq();
 			GStat.moveCorrected.fetch_add(1);
 			b.moveFailures = min(b.moveFailures + 3, 8);
+			// 서버가 벽 통과를 막으므로 직선으로 못 가는 스폰이 있다. 같은 목표로 여러 번 막히면 다른 스폰을 고른다.
+			if (++b.blockedCount >= 6 && !GMonsterSpawns.empty())
+			{
+				b.spawnTarget = rand() % static_cast<int>(GMonsterSpawns.size());
+				b.blockedCount = 0;
+			}
 		}
 		break;
 	}
 	case Protocol::SC_ADD_OBJECT:
 	{
-		if (!GConfig.hunt && !GConfig.trackWorld) return;   // 몬스터 목록은 hunt 프로필과 시각화에서만 추적한다.
+		// 몬스터 목록은 hunt 프로필과 시각화에서만 추적한다. 그 외에는 내 시작 위치를 받을 때까지만 본다.
+		if (!GConfig.hunt && !GConfig.trackWorld && b.spawnKnown) return;
 		Protocol::SC_ADD_OBJECT_PACKET pkt;
 		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
 		GStat.objectAdded.fetch_add(1);
@@ -313,9 +366,11 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 			printf("[bot] bot0 sees object id=%d type=%d playerType=%d pos=(%.0f,%.0f)\n", pkt.object_info().id(),
 				static_cast<int>(pkt.object_info().object_type()), static_cast<int>(pkt.object_info().player_type()),
 				pkt.object_info().position().x(), pkt.object_info().position().y());
-		// 로그인 응답의 위치는 0이고 실제 시작 위치는 입장 후 내 SC_ADD_OBJECT로 온다. 시각화 중에는 이것으로 맞춘다.
-		if (GConfig.trackWorld && pkt.object_info().id() == b.objectId)
+		// 로그인 응답의 위치는 0이고 실제 시작 위치는 입장 후 내 SC_ADD_OBJECT로 온다.
+		if (pkt.object_info().id() == b.objectId && !b.spawnKnown)
 		{
+			b.spawnKnown = true;
+			b.lastMoveSentUs = NowUs();
 			b.x = pkt.object_info().position().x();
 			b.y = pkt.object_info().position().y();
 			b.z = pkt.object_info().position().z();
@@ -438,23 +493,30 @@ static void WorkerMain(int workerIndex, int workerCount)
 				SendPacket(b, Protocol::CS_LOGIN, login);
 			}
 
-			if (b.state == BotState::InGame)
+			if (b.state == BotState::InGame && b.spawnKnown)
 			{
 				// hunt 프로필은 주변에 알려진 몬스터가 없을 때만 무작위로 돌아다니며 몬스터를 찾는다.
 				if (GConfig.move && now >= b.nextMoveUs && (!GConfig.hunt || b.monsters.empty()))
 				{
 					b.nextMoveUs = now + GConfig.moveIntervalMs * 1000LL;
-					Protocol::CS_MOVE_PACKET mv;
-					Protocol::PositionInfo* p = mv.mutable_pos_info();
-					const float step = 300.f;
+					const float step = min(300.f, MaxStep(b, now));
 					float nx = b.x, ny = b.y, yaw = 0.f;
 					if (GConfig.hunt && !GMonsterSpawns.empty() && b.moveFailures < 3)
 					{
-						// 맵 정보가 있으면 봇마다 정해진 몬스터 스폰 쪽으로 한 걸음씩 다가간다. 막혀서 보정되면 잠시 무작위로 돌아다닌다.
-						const auto& spawn = GMonsterSpawns[b.index % GMonsterSpawns.size()];
+						// 맵 정보가 있으면 가장 가까운 몬스터 스폰 쪽으로 한 걸음씩 다가간다. 막혀서 보정되면 잠시 무작위로 돌아다니고, 계속 막히면 목표를 바꾼다.
+						if (b.spawnTarget < 0)
+						{
+							float best = 1e30f;
+							for (int i = 0; i < static_cast<int>(GMonsterSpawns.size()); ++i)
+							{
+								const float sx = GMonsterSpawns[i].first - b.x, sy = GMonsterSpawns[i].second - b.y;
+								if (sx * sx + sy * sy < best) { best = sx * sx + sy * sy; b.spawnTarget = i; }
+							}
+						}
+						const auto& spawn = GMonsterSpawns[b.spawnTarget];
 						const float dx = spawn.first - b.x, dy = spawn.second - b.y;
 						const float dist = sqrtf(dx * dx + dy * dy);
-						const float stride = min(500.f, dist);
+						const float stride = min({ 500.f, dist, MaxStep(b, now) });
 						if (dist > 1.f) { nx = b.x + dx / dist * stride; ny = b.y + dy / dist * stride; }
 						yaw = atan2f(dy, dx) * 180.f / 3.14159265f;
 					}
@@ -469,17 +531,13 @@ static void WorkerMain(int workerIndex, int workerCount)
 						}
 						if (b.moveFailures > 0) --b.moveFailures;   // 무작위 이동을 몇 번 하면 다시 스폰 쪽으로 향한다
 					}
-					p->set_x(nx); p->set_y(ny); p->set_z(b.z); p->set_yaw(yaw);
-					p->set_state(Protocol::MOVE_STATE_RUN);
-					mv.set_force(false);
-					SendPacket(b, Protocol::CS_MOVE, mv);
-					b.x = nx; b.y = ny;   // 서버가 거부하면 보정 패킷(SC_MOVE_OBJECT)으로 되돌려진다.
+					SendMove(b, now, nx, ny, yaw, Protocol::MOVE_STATE_RUN);
 				}
 				if (GConfig.hunt && now >= b.nextAttackUs && !b.monsters.empty())
 				{
 					b.nextAttackUs = now + 700 * 1000LL;
 
-					// 시야 안에서 가장 가까운 몬스터를 고른다. 이동은 클라이언트 권위이므로 몬스터 바로 앞으로 이동한 뒤 그 방향을 보고 공격한다.
+					// 시야 안에서 가장 가까운 몬스터를 고른다. 서버가 허용하는 속도만큼 몬스터 앞으로 다가간 뒤 그 방향을 보고 공격한다.
 					int targetId = -1; float tx = 0, ty = 0, best = 1e30f;
 					for (const auto& [id, pos] : b.monsters)
 					{
@@ -491,16 +549,12 @@ static void WorkerMain(int workerIndex, int workerCount)
 					const float dx = tx - b.x, dy = ty - b.y;
 					const float dist = sqrtf(dx * dx + dy * dy);
 					float yaw = atan2f(dy, dx) * 180.f / 3.14159265f;
-					float nx = b.x, ny = b.y;
-					if (dist > 120.f) { nx = tx - dx / dist * 100.f; ny = ty - dy / dist * 100.f; }
-
-					Protocol::CS_MOVE_PACKET mv;
-					Protocol::PositionInfo* p = mv.mutable_pos_info();
-					p->set_x(nx); p->set_y(ny); p->set_z(b.z); p->set_yaw(yaw);
-					p->set_state(Protocol::MOVE_STATE_IDLE);   // hunt 중에는 몬스터 바로 앞으로 이동
-					mv.set_force(false);
-					SendPacket(b, Protocol::CS_MOVE, mv);
-					b.x = nx; b.y = ny;
+					if (dist > 120.f)
+					{
+						const float stride = min(dist - 100.f, MaxStep(b, now));
+						SendMove(b, now, b.x + dx / dist * stride, b.y + dy / dist * stride, yaw,
+							stride < dist - 100.f ? Protocol::MOVE_STATE_RUN : Protocol::MOVE_STATE_IDLE);
+					}
 
 					// 일반공격(슬롯 0)을 보내고, 3번에 한 번은 1번 스킬(슬롯 1)을 쓴다.
 					// warrior: 논타겟 -> 몬스터 방향(aim_yaw). archer: 일반공격은 target_id, 1번 스킬은 몬스터 위치(aim_x/y)에 장판.

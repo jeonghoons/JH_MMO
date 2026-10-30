@@ -55,7 +55,8 @@ public:
 	// Player
 	void PlayerEnterRoom(shared_ptr<Player> player);	
 	void PlayerLeaveRoom(shared_ptr<Player> player);
-	void PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, bool force);
+	// 클라이언트가 예측한 위치를 검증한다(서버 권위 이동, S1). 통과하면 저장·방송, 아니면 본인에게 보정 위치를 보낸다.
+	void PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, uint32_t correctionSeq);
 	void Broadcast(shared_ptr<SendBuffer> sendBuffer);
 	void BroadcastAOI(shared_ptr<class Character> viewableObj, shared_ptr<SendBuffer> sendBuffer, bool sendToSelf = false);
 

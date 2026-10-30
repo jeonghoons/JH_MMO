@@ -77,7 +77,7 @@ public:
     const vector<MonsterSpawnPoint>& GetMonsterSpawns() const { return _monsterSpawns; }
     const vector<NpcSpawnPoint>& GetNpcSpawns() const { return _npcSpawns; }
     const vector<PortalTriggerPoint>& GetPortalTriggers() const { return _portalTriggers; }
-    bool CanMove(const Protocol::PositionInfo& from, const Protocol::PositionInfo& to) const;
+    bool CanMove(const Protocol::PositionInfo& from, const Protocol::PositionInfo& to, float edgeToleranceCm = 100.f) const;
     bool IsOutOfBounds(const Protocol::PositionInfo& pos) const;
 
     NavmeshManager* GetNavManager() { return _navManager.get(); }

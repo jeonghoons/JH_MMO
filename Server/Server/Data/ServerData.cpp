@@ -51,6 +51,7 @@ bool DataManager::Init()
 	_skillTable.clear();
 	_characterTable.clear();
 	_monsterTable.clear();
+	_movementTable.clear();
 	_skillBySlot.clear();
 
 	fs::path dir;
@@ -200,7 +201,41 @@ bool DataManager::Init()
 		_monsterTable[d.templateId] = d;
 	}
 
+	// MovementTable: Name(=movementId), ServerSpeedTolerance, ServerMoveBudgetMs, ServerMoveSlackCm, ServerMinMoveIntervalMs, ServerNavToleranceCm
+	// (나머지 열은 클라이언트 전용이라 읽지 않는다)
+	CsvFile movement;
+	if (!movement.Load((dir / "MovementTable.csv").string(), err)) { std::cout << "[Data] " << err << std::endl; return false; }
+
+	for (const CsvRow& row : movement.Rows())
+	{
+		MovementData d{};
+		if (!row.GetInt("Name", d.id, err) || !row.GetFloat("ServerSpeedTolerance", d.speedTolerance, err) ||
+			!row.GetInt("ServerMoveBudgetMs", d.moveBudgetMs, err) || !row.GetFloat("ServerMoveSlackCm", d.moveSlackCm, err) ||
+			!row.GetInt("ServerMinMoveIntervalMs", d.minMoveIntervalMs, err) || !row.GetFloat("ServerNavToleranceCm", d.navToleranceCm, err))
+		{
+			std::cout << "[Data] " << err << std::endl;
+			return false;
+		}
+		if (d.speedTolerance < 1.f || d.speedTolerance > 3.f || d.moveBudgetMs <= 0 || d.moveBudgetMs > 10000 ||
+			d.moveSlackCm < 0.f || d.minMoveIntervalMs < 0 || d.minMoveIntervalMs > 1000 || d.navToleranceCm < 0.f || d.navToleranceCm > 100.f)
+		{
+			std::cout << "[Data] " << movement.Path() << " line " << row.Line() << ": 값이 허용 범위를 벗어났습니다 (1 <= ServerSpeedTolerance <= 3, 0 < ServerMoveBudgetMs <= 10000, ServerMoveSlackCm >= 0, 0 <= ServerMinMoveIntervalMs <= 1000, 0 <= ServerNavToleranceCm <= 100)" << std::endl;
+			return false;
+		}
+		if (_movementTable.count(d.id))
+		{
+			std::cout << "[Data] " << movement.Path() << " line " << row.Line() << ": movementId " << d.id << " 가 중복되었습니다" << std::endl;
+			return false;
+		}
+		_movementTable[d.id] = d;
+	}
+	if (_movementTable.count(PLAYER_MOVEMENT_ID) == 0)
+	{
+		std::cout << "[Data] " << movement.Path() << ": 플레이어 기본 행 " << PLAYER_MOVEMENT_ID << " 이 없습니다" << std::endl;
+		return false;
+	}
+
 	std::cout << "[Data] 로드 완료 (StatTable " << _characterTable.size() << "행, SkillTable " << _skillTable.size()
-		<< "행, MonsterTable " << _monsterTable.size() << "행)" << std::endl;
+		<< "행, MonsterTable " << _monsterTable.size() << "행, MovementTable " << _movementTable.size() << "행)" << std::endl;
 	return true;
 }

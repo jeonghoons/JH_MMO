@@ -111,6 +111,10 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	}
 
 	_players.emplace(player->GetId(), player);
+
+	// 이동 검증 상태: 예산 0에서 시작해 시간이 지나면 모인다.
+	player->moveGuard = {};
+	player->moveGuard.lastAccrueMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 	
 	cout << "Client[" << player->GetId() << "] Enter Room" << endl;
 
@@ -151,25 +155,83 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 
 }
 
-void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, bool force)
+void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, uint32_t correctionSeq)
 {
 	if (nullptr == Id2Player(player->GetId()))
 		return;
 
-	Protocol::PositionInfo currentPos = player->GetPosition();
+	Player::MoveGuard& guard = player->moveGuard;
 
-	if (player->isDummy) {
-		
-		player->Move({ currentPos.x(), currentPos.y(), currentPos.z()});
+	// 1) 마지막 보정을 받기 전에 보낸 이동이다. 이미 보정 위치로 되돌렸으니 조용히 버린다(보정이 연쇄되지 않게).
+	if (correctionSeq != guard.correctionSeq)
+	{
+		Metrics::MoveDroppedStale.fetch_add(1);
+		return;
 	}
 
-	if (!_gameMap.CanMove(currentPos, position))
+	const MovementData* rule = DataManager::GetMovementData(PLAYER_MOVEMENT_ID);   // 서버 시작 때 존재를 확인했다
+	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+
+	// 2) 너무 잦은 이동 패킷은 처리하지 않는다(내비메시 검사 비용 보호). 다음 패킷이 그만큼의 거리를 함께 가져온다.
+	if (nowMs - guard.lastRecvMs < rule->minMoveIntervalMs)
 	{
-		if (shared_ptr<Session> session = player->GetSession()) {
-			shared_ptr<SendBuffer> correctionBuffer = PacketSerializer::MAKE_SC_MOVE_OBJECT(player);
-			session->Send(correctionBuffer);
-		}
+		Metrics::MoveDroppedRate.fetch_add(1);
 		return;
+	}
+	guard.lastRecvMs = nowMs;
+
+	const Protocol::PositionInfo currentPos = player->GetPosition();
+
+	// 이동을 거부하고 본인에게 서버 위치를 보낸다. 클라이언트는 그 위치로 돌아가고 이후 이동에 새 순번을 싣는다.
+	auto reject = [&]() {
+		++guard.correctionSeq;
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_MOVE_OBJECT(player, guard.correctionSeq));
+	};
+
+	// 3) 숫자가 아닌 값
+	if (!std::isfinite(position.x()) || !std::isfinite(position.y()) || !std::isfinite(position.z()) || !std::isfinite(position.yaw()) ||
+		!std::isfinite(position.v_x()) || !std::isfinite(position.v_y()) || !std::isfinite(position.v_z()))
+	{
+		Metrics::MoveRejectInvalid.fetch_add(1);
+		reject();
+		return;
+	}
+
+	// 4) 속도: 경과 시간 × 이동 속도 × 허용 배율만큼 예산이 모이고(상한 = BudgetMs 분량), 이동 거리만큼 쓴다.
+	//    지연으로 패킷이 몰려 와도 평균 속도가 맞으면 통과한다.
+	const float maxSpeed = player->GetInfo().stat().move_speed() * rule->speedTolerance;
+	const float budgetCap = maxSpeed * rule->moveBudgetMs / 1000.f;
+	guard.budgetCm = min(budgetCap, guard.budgetCm + maxSpeed * (nowMs - guard.lastAccrueMs) / 1000.f);
+	guard.lastAccrueMs = nowMs;
+
+	const float dx = position.x() - currentPos.x(), dy = position.y() - currentPos.y();
+	const float dist = sqrtf(dx * dx + dy * dy);
+	if (dist > guard.budgetCm + rule->moveSlackCm)
+	{
+		Metrics::MoveRejectSpeed.fetch_add(1);
+		reject();
+		return;
+	}
+
+	// 5) 지형: 현재 위치에서 목표까지 내비메시 위로 막힘 없이 갈 수 있어야 한다(경계 밖 ServerNavToleranceCm까지 허용).
+	if (dist > 0.f && !_gameMap.CanMove(currentPos, position, rule->navToleranceCm))
+	{
+		Metrics::MoveRejectNav.fetch_add(1);
+		reject();
+		return;
+	}
+
+	guard.budgetCm = max(0.f, guard.budgetCm - dist);
+	Metrics::MoveAccepted.fetch_add(1);
+
+	// 다른 클라이언트의 외삽에 쓰이는 속도는 허용 속도로 자른다.
+	const float speed2D = sqrtf(position.v_x() * position.v_x() + position.v_y() * position.v_y());
+	if (speed2D > maxSpeed)
+	{
+		const float s = maxSpeed / speed2D;
+		position.set_v_x(position.v_x() * s);
+		position.set_v_y(position.v_y() * s);
 	}
 
 	player->SetPosition(position);

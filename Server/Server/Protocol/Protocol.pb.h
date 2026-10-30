@@ -918,6 +918,7 @@ class CS_MOVE_PACKET final :
   enum : int {
     kPosInfoFieldNumber = 1,
     kForceFieldNumber = 2,
+    kCorrectionSeqFieldNumber = 3,
   };
   // .Protocol.PositionInfo pos_info = 1;
   bool has_pos_info() const;
@@ -946,6 +947,15 @@ class CS_MOVE_PACKET final :
   void _internal_set_force(bool value);
   public:
 
+  // uint32 correction_seq = 3;
+  void clear_correction_seq();
+  uint32_t correction_seq() const;
+  void set_correction_seq(uint32_t value);
+  private:
+  uint32_t _internal_correction_seq() const;
+  void _internal_set_correction_seq(uint32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.CS_MOVE_PACKET)
  private:
   class _Internal;
@@ -956,6 +966,7 @@ class CS_MOVE_PACKET final :
   struct Impl_ {
     ::Protocol::PositionInfo* pos_info_;
     bool force_;
+    uint32_t correction_seq_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -2545,6 +2556,7 @@ class SC_MOVE_PACKET final :
   enum : int {
     kObjectInfoFieldNumber = 1,
     kMoveTimeFieldNumber = 2,
+    kCorrectionSeqFieldNumber = 3,
   };
   // .Protocol.ObjectInfo object_info = 1;
   bool has_object_info() const;
@@ -2573,6 +2585,15 @@ class SC_MOVE_PACKET final :
   void _internal_set_move_time(uint32_t value);
   public:
 
+  // uint32 correction_seq = 3;
+  void clear_correction_seq();
+  uint32_t correction_seq() const;
+  void set_correction_seq(uint32_t value);
+  private:
+  uint32_t _internal_correction_seq() const;
+  void _internal_set_correction_seq(uint32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.SC_MOVE_PACKET)
  private:
   class _Internal;
@@ -2583,6 +2604,7 @@ class SC_MOVE_PACKET final :
   struct Impl_ {
     ::Protocol::ObjectInfo* object_info_;
     uint32_t move_time_;
+    uint32_t correction_seq_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -3891,6 +3913,26 @@ inline void CS_MOVE_PACKET::set_force(bool value) {
   // @@protoc_insertion_point(field_set:Protocol.CS_MOVE_PACKET.force)
 }
 
+// uint32 correction_seq = 3;
+inline void CS_MOVE_PACKET::clear_correction_seq() {
+  _impl_.correction_seq_ = 0u;
+}
+inline uint32_t CS_MOVE_PACKET::_internal_correction_seq() const {
+  return _impl_.correction_seq_;
+}
+inline uint32_t CS_MOVE_PACKET::correction_seq() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_MOVE_PACKET.correction_seq)
+  return _internal_correction_seq();
+}
+inline void CS_MOVE_PACKET::_internal_set_correction_seq(uint32_t value) {
+  
+  _impl_.correction_seq_ = value;
+}
+inline void CS_MOVE_PACKET::set_correction_seq(uint32_t value) {
+  _internal_set_correction_seq(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_MOVE_PACKET.correction_seq)
+}
+
 // -------------------------------------------------------------------
 
 // CS_DMOVE_PACKET
@@ -4584,6 +4626,26 @@ inline void SC_MOVE_PACKET::_internal_set_move_time(uint32_t value) {
 inline void SC_MOVE_PACKET::set_move_time(uint32_t value) {
   _internal_set_move_time(value);
   // @@protoc_insertion_point(field_set:Protocol.SC_MOVE_PACKET.move_time)
+}
+
+// uint32 correction_seq = 3;
+inline void SC_MOVE_PACKET::clear_correction_seq() {
+  _impl_.correction_seq_ = 0u;
+}
+inline uint32_t SC_MOVE_PACKET::_internal_correction_seq() const {
+  return _impl_.correction_seq_;
+}
+inline uint32_t SC_MOVE_PACKET::correction_seq() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_MOVE_PACKET.correction_seq)
+  return _internal_correction_seq();
+}
+inline void SC_MOVE_PACKET::_internal_set_correction_seq(uint32_t value) {
+  
+  _impl_.correction_seq_ = value;
+}
+inline void SC_MOVE_PACKET::set_correction_seq(uint32_t value) {
+  _internal_set_correction_seq(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_MOVE_PACKET.correction_seq)
 }
 
 // -------------------------------------------------------------------

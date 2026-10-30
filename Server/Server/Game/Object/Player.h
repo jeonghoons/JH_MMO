@@ -34,6 +34,16 @@ public:
 	// 채팅 도배 방지. Room 잡 안에서만 읽고 쓴다.
 	Cooldown chatCooldown;
 
+	// 이동 검증 상태(S1, Room::PlayerMove). Room 잡 안에서만 읽고 쓴다. 방에 들어갈 때 초기화한다.
+	struct MoveGuard
+	{
+		float budgetCm = 0.f;        // 지금까지 모인 이동 가능 거리(토큰 버킷)
+		long long lastAccrueMs = 0;  // 예산을 마지막으로 채운 시각
+		long long lastRecvMs = 0;    // 마지막으로 처리한 이동 패킷 시각(전송 빈도 제한)
+		uint32_t correctionSeq = 0;  // 서버가 이 플레이어의 이동을 거부(보정)한 횟수
+	};
+	MoveGuard moveGuard;
+
 private:
 	weak_ptr<GameSession> _ownerSession;
 	wstring _name;

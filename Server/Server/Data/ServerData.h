@@ -71,10 +71,24 @@ struct MonsterData
 	int hitStunMs;            // 피격 후 행동(공격)이 막히는 시간. 피격 모션 길이에 맞춘다
 };
 
+// MovementTable 중 서버가 쓰는 열. 이동 속도 자체는 StatTable.MoveSpeed(영웅별)를 쓰고, 여기는 검증 허용치만 둔다.
+struct MovementData
+{
+	int id;
+	float speedTolerance;      // 허용 속도 배율 (MoveSpeed × 배율까지 인정)
+	int moveBudgetMs;          // 이동 거리 예산을 최대 몇 ms 분량까지 모아 둘지 (지연으로 몰려 온 패킷 흡수)
+	float moveSlackCm;         // 예산과 별도로 항상 인정하는 여유 거리
+	int minMoveIntervalMs;     // 이보다 잦은 이동 패킷은 무시한다
+	float navToleranceCm;      // 목표가 내비메시 경계 밖으로 이만큼(수평)까지는 허용. 벽 두께 + 양쪽 침식(34cm×2)보다 작아야 벽을 못 뚫는다
+};
+
+// MovementTable에서 플레이어 기본값을 담은 행 (클라이언트 UDataManager도 같은 행을 쓴다)
+constexpr int PLAYER_MOVEMENT_ID = 1001;
+
 class DataManager
 {
 public:
-	// Common/DataTable/StatTable.csv, SkillTable.csv, MonsterTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
+	// Common/DataTable/StatTable.csv, SkillTable.csv, MonsterTable.csv, MovementTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
 	static bool Init();
 
 	static const SkillData* GetSkillData(int skillId)
@@ -99,6 +113,13 @@ public:
 		return nullptr;
 	}
 
+	static const MovementData* GetMovementData(int id)
+	{
+		auto it = _movementTable.find(id);
+		if (it != _movementTable.end()) return &it->second;
+		return nullptr;
+	}
+
 	static const CharacterData* GetCharacterData(int typeId)
 	{
 		auto it = _characterTable.find(typeId);
@@ -110,5 +131,6 @@ private:
 	static inline std::unordered_map<int, SkillData> _skillTable;
 	static inline std::unordered_map<int, CharacterData> _characterTable;
 	static inline std::unordered_map<int, MonsterData> _monsterTable;
+	static inline std::unordered_map<int, MovementData> _movementTable;
 	static inline std::unordered_map<int, int> _skillBySlot; // key = ownerType*100 + slot -> skillId
 };

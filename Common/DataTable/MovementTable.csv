@@ -1,2 +1,2 @@
-Name,MaxSpeedCmSec,AccelCmSec2,BrakeDecelCmSec2,RotationRateYawDegSec,CameraArmLengthCm,CameraDefaultPitchDeg,CameraPivotHeightCm,CameraShoulderOffsetCm,CameraMinPitchDeg,CameraMaxPitchDeg,LookSensitivityYaw,LookSensitivityPitch
-1001,600,2048,2048,500,450,-15,150,0,-60,30,1,1
+Name,AccelCmSec2,BrakeDecelCmSec2,RotationRateYawDegSec,CameraArmLengthCm,CameraDefaultPitchDeg,CameraPivotHeightCm,CameraShoulderOffsetCm,CameraMinPitchDeg,CameraMaxPitchDeg,LookSensitivityYaw,LookSensitivityPitch,MoveSendIntervalMs,RemoteInterpSpeed,RemoteSnapDistCm,RemoteExtrapolateMaxMs,ServerSpeedTolerance,ServerMoveBudgetMs,ServerMoveSlackCm,ServerMinMoveIntervalMs,ServerNavToleranceCm
+1001,2048,2048,500,450,-15,150,0,-60,30,1,1,200,10,500,300,1.2,1000,50,50,50

@@ -26,7 +26,8 @@ public:
 
 	bool IsOutOfBounds(const Protocol::PositionInfo& pos);
 
-	bool CanMove(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos);
+	// 시작점에서 목표까지 내비메시 위로 막힘 없이 갈 수 있는가. 목표가 내비메시 경계 밖 edgeToleranceCm(수평 거리) 이내면 허용한다.
+	bool CanMove(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos, float edgeToleranceCm = 100.f);
 
 	bool FindPath(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos, std::vector<Protocol::PositionInfo>& outPath);
 	

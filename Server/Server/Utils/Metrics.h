@@ -26,6 +26,14 @@ namespace Metrics
 	inline std::atomic<long long> ZonesCreated{ 0 };   // 생성된 지면 장판 수(누적)
 	inline std::atomic<long long> ZoneHits{ 0 };       // 장판이 입힌 피해 횟수(누적)
 
+	// 플레이어 이동 검증 결과(누적, Room::PlayerMove). 보정을 보낸 경우 = Speed + Nav + Invalid
+	inline std::atomic<long long> MoveAccepted{ 0 };
+	inline std::atomic<long long> MoveRejectSpeed{ 0 };    // 속도 예산 초과
+	inline std::atomic<long long> MoveRejectNav{ 0 };      // 내비메시로 갈 수 없는 위치
+	inline std::atomic<long long> MoveRejectInvalid{ 0 };  // NaN/Inf
+	inline std::atomic<long long> MoveDroppedStale{ 0 };   // 보정 전에 보낸 이동(옛 순번)
+	inline std::atomic<long long> MoveDroppedRate{ 0 };    // 너무 잦은 이동
+
 	inline Stat TickLate;   // Room 틱이 예정보다 늦어진 시간 (Timer/JobQueue/IOCP 대기 지연)
 	inline Stat TickBody;   // Room::Update 본문 처리 시간
 

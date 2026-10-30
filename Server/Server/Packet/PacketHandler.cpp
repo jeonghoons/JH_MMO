@@ -165,7 +165,7 @@ void PacketHandler::Handle_CS_MOVE(shared_ptr<GameSession> session, Protocol::CS
     shared_ptr<Room> room = player->GetCurrentRoom();
     if (room == nullptr) return;
     
-    room->PushJob(&Room::PlayerMove, player, pkt.pos_info(), pkt.force());
+    room->PushJob(&Room::PlayerMove, player, pkt.pos_info(), pkt.correction_seq());
 }
 
 void PacketHandler::Handle_CS_PING(shared_ptr<GameSession> session, Protocol::CS_PING_PACKET& pkt)

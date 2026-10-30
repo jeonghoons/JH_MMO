@@ -31,6 +31,7 @@ message CS_ENTER_ROOM_PACKET {
 message CS_MOVE_PACKET {
 	PositionInfo pos_info = 1;
 	bool force = 2;
+	uint32 correction_seq = 3; // 마지막으로 받은 내 위치 보정(SC_MOVE)의 순번. 서버는 이보다 오래된 이동을 버린다
 }
 
 message CS_DMOVE_PACKET {
@@ -86,6 +87,7 @@ message SC_CHAT_PACKET {
 message SC_MOVE_PACKET {
 	ObjectInfo object_info = 1;
 	uint32 move_time = 2; 
+	uint32 correction_seq = 3; // 내 캐릭터 보정일 때만 의미 있음(서버가 이동을 거부할 때마다 +1)
 }
 
 message SC_ATTACK_PACKET {
