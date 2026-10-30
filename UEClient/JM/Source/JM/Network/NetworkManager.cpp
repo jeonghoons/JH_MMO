@@ -147,11 +147,12 @@ void UNetworkManager::SendEnterRoom()
 	SendProtocol(*this, pkt, Protocol::CS_ENTER_ROOM);
 }
 
-void UNetworkManager::SendMove(const Protocol::PositionInfo& PosInfo, bool bForce)
+void UNetworkManager::SendMove(const Protocol::PositionInfo& PosInfo, bool bForce, uint32 CorrectionSeq)
 {
 	Protocol::CS_MOVE_PACKET pkt;
 	pkt.mutable_pos_info()->CopyFrom(PosInfo);
 	pkt.set_force(bForce);
+	pkt.set_correction_seq(CorrectionSeq);
 	SendProtocol(*this, pkt, Protocol::CS_MOVE);
 }
 

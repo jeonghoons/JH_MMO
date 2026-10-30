@@ -36,6 +36,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	void RequestAttack();
 
+	// 서버가 내 이동을 거부했을 때(SC_MOVE 보정) 서버 위치로 돌아가고, 이후 이동 패킷에 그 순번을 싣는다. (서버 권위 이동, S1)
+	void ApplyServerCorrection(const Protocol::PositionInfo& ServerPos, uint32 Seq);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* DefaultMappingContext;
@@ -62,8 +65,15 @@ protected:
 	UCameraComponent* FollowCamera;
 
 protected:
-	const float MOVE_PACKET_SEND_DELAY = 0.2f;
-	float MovePacketSendTimer = MOVE_PACKET_SEND_DELAY;
+	// 이동 패킷 전송(S1): 움직이는 동안만 MoveSendInterval마다 보내고, 입력이 바뀌거나 멈추면 한 번 더 보낸다.
+	// 서버가 MoveMinInterval보다 잦은 패킷을 버리므로 그 안에 생긴 전송은 미뤘다가 보낸다. 수치는 MovementTable(PossessedBy)
+	float MoveSendInterval = 0.2f;
+	float MoveMinInterval = 0.05f;
+	float MovePacketSendTimer = 0.f;
+	float TimeSinceMoveSend = 1.f;
+	bool bMoveSendPending = false;
+	bool bWasMoving = false;
+	uint32 CorrectionSeq = 0;
 
 	FVector2D	DesiredInput;
 	FVector		DesiredMovementDir;

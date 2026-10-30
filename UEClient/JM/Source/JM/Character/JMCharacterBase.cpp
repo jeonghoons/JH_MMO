@@ -4,6 +4,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
 #include "Data/SkillTableRow.h"
+#include "Data/MovementTableRow.h"
+#include "Game/DataManager.h"
 
 AJMCharacterBase::AJMCharacterBase()
 {
@@ -22,13 +24,23 @@ AJMCharacterBase::AJMCharacterBase()
 void AJMCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	if (const FMovementTableRow* Row = DataManager ? DataManager->FindMovementRow(1001) : nullptr)
+	{
+		RemoteInterpSpeed = Row->RemoteInterpSpeed;
+		RemoteSnapDistCm = Row->RemoteSnapDistCm;
+		RemoteExtrapolateMaxSec = Row->RemoteExtrapolateMaxMs / 1000.f;
+	}
 }
 
 void AJMCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	SyncTransformToInfo();
+	// 내 캐릭터만 자기 위치를 ObjectInfo에 담아 서버로 보낸다. 원격 캐릭터의 ObjectInfo는 서버 값을 그대로 둔다.
+	if (IsMyPlayer)
+		SyncTransformToInfo();
 
 	if (false == IsMyPlayer && false == bIsDead)
 	{
@@ -44,11 +56,20 @@ void AJMCharacterBase::ApplyNetworkMovement(float DeltaTime)
 	FRotator TargetRot(0, DestPosition.yaw(), 0);
 	SetActorRotation(FMath::RInterpTo(CurrentRot, TargetRot, DeltaTime, 10.0f));
 
+	// 원격 플레이어는 이동 중 주기적으로 위치를 보내므로, 다음 패킷이 늦으면 외삽을 멈춘다(속도 0).
+	// 몬스터는 서버가 방향이 바뀔 때·멈출 때만 보내고 그 사이는 속도로 외삽하는 방식이라 상한을 두지 않는다.
+	if (ObjectInfo.object_type() == Protocol::OBJECT_TYPE_PLAYER &&
+		GetWorld() && GetWorld()->GetTimeSeconds() - LastNetUpdateTime > RemoteExtrapolateMaxSec)
+	{
+		DestPosition.set_v_x(0.f);
+		DestPosition.set_v_y(0.f);
+		DestPosition.set_v_z(0.f);
+	}
+
 	FVector DestPos(DestPosition.x(), DestPosition.y(), DestPosition.z());
 	FVector DestVel(DestPosition.v_x(), DestPosition.v_y(), DestPosition.v_z());
 
-	
-	if (FVector::Dist(CurrentLoc, DestPos) > 500.0f)
+	if (FVector::Dist(CurrentLoc, DestPos) > RemoteSnapDistCm)
 	{
 		SetActorLocation(DestPos);
 	}
@@ -58,7 +79,7 @@ void AJMCharacterBase::ApplyNetworkMovement(float DeltaTime)
 		DestPosition.set_x(DestPos.X);
 		DestPosition.set_y(DestPos.Y);
 		DestPosition.set_z(DestPos.Z);
-		SetActorLocation(FMath::VInterpTo(CurrentLoc, DestPos, DeltaTime, 10.0f), false);
+		SetActorLocation(FMath::VInterpTo(CurrentLoc, DestPos, DeltaTime, RemoteInterpSpeed), false);
 	}
 
 	if (GetCharacterMovement())
@@ -88,13 +109,18 @@ void AJMCharacterBase::SetDestInfo(const Protocol::PositionInfo& PosInfo)
 {
 	DestPosition.CopyFrom(PosInfo);
 	ObjectInfo.mutable_position()->CopyFrom(PosInfo);
+	if (GetWorld()) LastNetUpdateTime = GetWorld()->GetTimeSeconds();
 }
 
 void AJMCharacterBase::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
 {
 	ObjectInfo = ObjInfo;
 	DestPosition.CopyFrom(ObjectInfo.position());
+	if (GetWorld()) LastNetUpdateTime = GetWorld()->GetTimeSeconds();
 
+	// 이동 속도의 기준은 서버 스탯이다. 서버도 같은 값으로 내 이동을 검증한다.
+	if (ObjectInfo.stat().move_speed() > 0.f && GetCharacterMovement())
+		GetCharacterMovement()->MaxWalkSpeed = ObjectInfo.stat().move_speed();
 }
 
 void AJMCharacterBase::OnDamaged(int32_t Damage, int32_t RemainHP)

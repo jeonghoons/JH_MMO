@@ -11,7 +11,7 @@ struct FMovementTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly) float MaxSpeedCmSec = 600.f;
+	// 최고 이동 속도는 여기 두지 않는다. 서버 스탯(StatTable.MoveSpeed, ObjectInfo.stat.move_speed)을 쓴다. (DECISIONS 2026-10-30 S1)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float AccelCmSec2 = 2048.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float BrakeDecelCmSec2 = 2048.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float RotationRateYawDegSec = 500.f;
@@ -28,4 +28,17 @@ struct FMovementTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float CameraMaxPitchDeg = 30.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float LookSensitivityYaw = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float LookSensitivityPitch = 1.f;
+
+	// 이동 동기화(S1): 이동 중 위치 전송 주기, 원격 캐릭터 보간 속도·순간이동 거리·외삽 시간 상한
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 MoveSendIntervalMs = 200;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float RemoteInterpSpeed = 10.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float RemoteSnapDistCm = 500.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 RemoteExtrapolateMaxMs = 300;
+
+	// 서버 이동 검증 허용치(서버 전용). 클라이언트는 ServerMinMoveIntervalMs만 전송 간격 하한으로 쓴다(이보다 잦으면 서버가 버림).
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ServerSpeedTolerance = 1.2f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerMoveBudgetMs = 1000;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ServerMoveSlackCm = 50.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerMinMoveIntervalMs = 50;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ServerNavToleranceCm = 50.f;
 };

@@ -127,7 +127,7 @@ void FPacketHandler::Handle_SC_REMOVE_OBJECT(TSharedPtr<NetworkSession>& session
 void FPacketHandler::Handle_SC_MOVE_OBJECT(TSharedPtr<NetworkSession>& session, Protocol::SC_MOVE_PACKET& pkt)
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
-		ObjectManager->HandleMove(pkt.object_info());
+		ObjectManager->HandleMove(pkt.object_info(), pkt.correction_seq());
 }
 
 void FPacketHandler::Handle_SC_ATTACK(TSharedPtr<NetworkSession>& session, Protocol::SC_ATTACK_PACKET& pkt)

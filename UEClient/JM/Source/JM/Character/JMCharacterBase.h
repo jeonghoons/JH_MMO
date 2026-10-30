@@ -16,6 +16,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
+	// 원격 캐릭터: 서버 위치(DestPosition)로 보간하고 속도로 앞질러 간다. 원격 플레이어는 마지막 패킷 이후 RemoteExtrapolateMaxMs까지만.
 	void ApplyNetworkMovement(float DeltaTime);
 
 	void SyncTransformToInfo();
@@ -78,6 +79,12 @@ protected:
 protected:
 	Protocol::ObjectInfo				ObjectInfo;
 	Protocol::PositionInfo				DestPosition;
+
+	// 원격 캐릭터 이동 동기화 수치(MovementTable 1001, BeginPlay에서 읽음). 여기 값은 테이블이 없을 때의 대비용이다.
+	float RemoteInterpSpeed = 10.f;
+	float RemoteSnapDistCm = 500.f;
+	float RemoteExtrapolateMaxSec = 0.3f;
+	double LastNetUpdateTime = 0.0;   // 마지막으로 서버 위치를 받은 시각(월드 시간)
 
 public:
 	bool IsMyPlayer = false;

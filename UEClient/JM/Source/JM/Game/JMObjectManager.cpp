@@ -39,11 +39,16 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 
 	AJMCharacterBase* SpawnedActor = nullptr;
 
+	// 서버가 있다고 한 오브젝트는 반드시 만든다. 서버 z는 바닥 높이라 캡슐이 지형과 겹쳐 기본 설정(충돌 시 생성 취소)이면
+	// 몬스터·다른 플레이어가 보이지 않는다(2026-10-30 S1 PIE에서 발견). 겹치면 밀어 올리고, 그래도 안 되면 그 자리에 만든다.
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
 	if (ObjectId == NetManager->NetworkId)
 	{
 		if (GameInst->MyPlayerClass)
 		{
-			AJMMyPlayer* MyCharacter = World->SpawnActor<AJMMyPlayer>(GameInst->MyPlayerClass, SpawnLoc, SpawnRot);
+			AJMMyPlayer* MyCharacter = World->SpawnActor<AJMMyPlayer>(GameInst->MyPlayerClass, SpawnLoc, SpawnRot, SpawnParams);
 			MyPlayer = MyCharacter;
 			SpawnedActor = MyCharacter;
 
@@ -57,14 +62,14 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	{
 		if (GameInst->NpcCharacterClass)
 		{
-			SpawnedActor = World->SpawnActor<ANpcCharacter>(GameInst->NpcCharacterClass, SpawnLoc, SpawnRot);
+			SpawnedActor = World->SpawnActor<ANpcCharacter>(GameInst->NpcCharacterClass, SpawnLoc, SpawnRot, SpawnParams);
 		}
 	}
 	else
 	{
 		if (GameInst->PlayerClass)
 		{
-			SpawnedActor = World->SpawnActor<AJMPlayer>(GameInst->PlayerClass, SpawnLoc, SpawnRot);
+			SpawnedActor = World->SpawnActor<AJMPlayer>(GameInst->PlayerClass, SpawnLoc, SpawnRot, SpawnParams);
 		}
 	}
 
@@ -108,13 +113,18 @@ void UJMObjectManager::HandleDespawn(int32 ObjectId)
 	}
 }
 
-void UJMObjectManager::HandleMove(const Protocol::ObjectInfo& ObjInfo)
+void UJMObjectManager::HandleMove(const Protocol::ObjectInfo& ObjInfo, uint32 CorrectionSeq)
 {
 	int ObjectId = ObjInfo.id();
 	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(ObjectId))
 	{
 		if (*FoundActor == nullptr) return;
-		if (*FoundActor == MyPlayer) return; 
+		if (*FoundActor == MyPlayer)
+		{
+			// 서버가 내 이동을 거부했다. 서버 위치로 돌아가고 이후 이동에 새 순번을 싣는다. (서버 권위 이동, S1)
+			MyPlayer->ApplyServerCorrection(ObjInfo.position(), CorrectionSeq);
+			return;
+		}
 
 		(*FoundActor)->SetDestInfo(ObjInfo.position());
 	}

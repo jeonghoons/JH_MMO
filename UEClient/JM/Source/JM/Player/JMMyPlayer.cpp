@@ -64,6 +64,9 @@ void AJMMyPlayer::PossessedBy(AController* NewController)
 	GetCharacterMovement()->MaxAcceleration = Row->AccelCmSec2;
 	GetCharacterMovement()->BrakingDecelerationWalking = Row->BrakeDecelCmSec2;
 
+	MoveSendInterval = Row->MoveSendIntervalMs / 1000.f;
+	MoveMinInterval = Row->ServerMinMoveIntervalMs / 1000.f;
+
 	// 카메라 피치 제한과 시작 각도 (음수 피치 = 아래로 내려다봄)
 	if (APlayerController* PC = Cast<APlayerController>(NewController))
 	{
@@ -134,27 +137,34 @@ void AJMMyPlayer::Tick(float DeltaTime)
 	UNetworkManager* NetManager = UNetworkManager::Get(this);
 	if (NetManager == nullptr) return;
 
-	bool forceSendPacket = false;
-
-	if (LastDesiredInput != DesiredInput) {
-		forceSendPacket = true;
+	// 입력이 바뀌면(멈춤 포함) 바로 보낸다.
+	if (LastDesiredInput != DesiredInput)
+	{
+		bMoveSendPending = true;
 		LastDesiredInput = DesiredInput;
 	}
-
-	FVector currentVelocity = GetVelocity();
 
 	if (DesiredInput == FVector2D::Zero())
 		ObjectInfo.mutable_position()->set_state(Protocol::MOVE_STATE_IDLE);
 	else
 		ObjectInfo.mutable_position()->set_state(Protocol::MOVE_STATE_RUN);
 
+	// 입력을 놓아도 감속하며 조금 더 미끄러진다. 완전히 멈춘 순간의 위치를 한 번 더 보내 서버 위치를 맞춘다.
+	const bool bMoving = DesiredInput != FVector2D::Zero() || GetVelocity().SizeSquared2D() > 1.f;
+	if (bWasMoving && !bMoving) bMoveSendPending = true;
+	bWasMoving = bMoving;
+
 	MovePacketSendTimer -= DeltaTime;
+	TimeSinceMoveSend += DeltaTime;
 
-	if (MovePacketSendTimer <= 0 || forceSendPacket)
+	// 정지 중에는 보내지 않는다. 서버가 버리지 않도록 MoveMinInterval 안의 전송은 다음 틱으로 미룬다.
+	const bool bPeriodic = bMoving && MovePacketSendTimer <= 0.f;
+	if ((bMoveSendPending || bPeriodic) && TimeSinceMoveSend >= MoveMinInterval)
 	{
-		MovePacketSendTimer = MOVE_PACKET_SEND_DELAY;
-
-		NetManager->SendMove(ObjectInfo.position(), forceSendPacket);
+		NetManager->SendMove(ObjectInfo.position(), bMoveSendPending, CorrectionSeq);
+		MovePacketSendTimer = MoveSendInterval;
+		TimeSinceMoveSend = 0.f;
+		bMoveSendPending = false;
 	}
 
 }
@@ -189,6 +199,22 @@ void AJMMyPlayer::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y * LookSensitivityPitch);
 		DesiredYaw = GetActorRotation().Yaw;
 	}
+}
+
+void AJMMyPlayer::ApplyServerCorrection(const Protocol::PositionInfo& ServerPos, uint32 Seq)
+{
+	const FVector Target(ServerPos.x(), ServerPos.y(), ServerPos.z());
+	UE_LOG(LogTemp, Log, TEXT("Move corrected by server: seq=%u, %.0f cm back to (%.0f, %.0f, %.0f)"),
+		Seq, FVector::Dist(GetActorLocation(), Target), Target.X, Target.Y, Target.Z);
+
+	CorrectionSeq = Seq;
+	SetActorLocation(Target, false, nullptr, ETeleportType::TeleportPhysics);
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		MoveComp->StopMovementImmediately();
+
+	// 보정 위치에서 다시 시작한다는 것을 새 순번과 함께 알린다.
+	SyncTransformToInfo();
+	bMoveSendPending = true;
 }
 
 void AJMMyPlayer::RequestAttack()

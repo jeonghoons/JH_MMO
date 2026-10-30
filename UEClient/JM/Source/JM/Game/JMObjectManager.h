@@ -17,7 +17,8 @@ public:
 
 	void HandleSpawn(const Protocol::ObjectInfo& ObjInfo);
 	void HandleDespawn(int32 ObjectId);
-	void HandleMove(const Protocol::ObjectInfo& ObjInfo);
+	// 내 캐릭터에 대한 SC_MOVE는 서버가 내 이동을 거부했다는 보정이다(CorrectionSeq와 함께 적용).
+	void HandleMove(const Protocol::ObjectInfo& ObjInfo, uint32 CorrectionSeq);
 	// CooldownMs: 서버가 적용한 쿨타임(SC_ATTACK.cooldown_ms). 내 시전이면 HUD 슬롯에 표시한다.
 	void HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY, int32 CooldownMs);
 	void HandleDamage(int32 AttackerId, int32 TargetId, int32 Damage, int32 RemainHp);
