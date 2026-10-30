@@ -88,7 +88,7 @@ void Listener::ProcessAccept(AcceptEvent* acceptEvent)
 	session->SetNetAddress(NetAddress(sockAddress));
 	int newId = IdGenerate();
 	session->SetId(newId);
-	session->OnConnected();
+	session->Connected();
 
 	
 

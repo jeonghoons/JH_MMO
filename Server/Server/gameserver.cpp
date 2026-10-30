@@ -1,10 +1,11 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "thread"
 #include "ServerService.h"
 #include "IocpCore.h"
 #include "Room.h"
 #include "PacketHandler.h"
 #include "Metrics.h"
+#include "GameSession.h"
 
 shared_ptr<Timer> GTimer = nullptr;
 shared_ptr<DatabaseWorker> GDBWorker = nullptr;
@@ -23,9 +24,15 @@ void worker_thread(shared_ptr<ServerService> service)
 
 int main()
 {
+	if (DataManager::Init() == false) {
+		printf("DataTable 로드에 실패해 서버를 시작할 수 없습니다.\n");
+		exit(-1);
+	}
+
 	shared_ptr<ServerService> service = make_shared<ServerService>(
 		NetAddress(L"127.0.0.1", PORT_NUM),
-		make_shared<IocpCore>()
+		make_shared<IocpCore>(),
+		[]() { return make_shared<GameSession>(); }
 	);
 
 	if (service->Start() == false) {

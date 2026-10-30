@@ -1,9 +1,8 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ServerService.h"
-#include "ServerData.h"
 
-ServerService::ServerService(NetAddress address, shared_ptr<IocpCore> iocpCore)
-	: _netAddress(address), _iocpCore(iocpCore)
+ServerService::ServerService(NetAddress address, shared_ptr<IocpCore> iocpCore, SessionFactory factory)
+	: _netAddress(address), _iocpCore(iocpCore), _sessionFactory(std::move(factory))
 {
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -11,10 +10,6 @@ ServerService::ServerService(NetAddress address, shared_ptr<IocpCore> iocpCore)
 		exit(-1);
 	}
 
-	if (DataManager::Init() == false) {
-		printf("DataTable 로드에 실패해 서버를 시작할 수 없습니다.\n");
-		exit(-1);
-	}
 }
 
 ServerService::~ServerService()
@@ -37,7 +32,9 @@ bool ServerService::Start()
 shared_ptr<Session> ServerService::CreateSession()
 {
 	
-	shared_ptr<Session> session = make_shared<Session>();
+	shared_ptr<Session> session = _sessionFactory();
+	if (session == nullptr)
+		return nullptr;
 	session->SetService(shared_from_this());
 
 	if (_iocpCore->Register(session) == false)

@@ -15,9 +15,9 @@ public:
 	}
 
 public:
-	void OnLoginSuccess(shared_ptr<Session> session, DB_PlayerInfo info, DB_PlayerData data);
-	void OnLoginFailed(shared_ptr<Session> session, Protocol::LoginResult result);
-	void OnSignUpResult(shared_ptr<Session> session, bool success);
+	void OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo info, DB_PlayerData data);
+	void OnLoginFailed(shared_ptr<GameSession> session, Protocol::LoginResult result);
+	void OnSignUpResult(shared_ptr<GameSession> session, bool success);
 
 private:
 	shared_ptr<JobQueue> _jobQueue;

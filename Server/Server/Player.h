@@ -1,21 +1,21 @@
 ﻿#pragma once
 #include "pch.h"
 #include "Character.h"
-#include "Session.h"
+#include "GameSession.h"
 #include "Room.h"
 
 class Player : public Character
 {
 public:
 	// Player();
-	Player(shared_ptr<Session> ownerSession, Protocol::PlayerType type);
+	Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type);
 	virtual ~Player();
 
 public:
 	virtual void Update(float deltaTime) override;
 
-	void SetOwnerSession(shared_ptr<Session> session) { _ownerSession = session; }
-	shared_ptr<Session> GetSession() {return _ownerSession.lock();	}
+	void SetOwnerSession(shared_ptr<GameSession> session) { _ownerSession = session; }
+	shared_ptr<GameSession> GetSession() {return _ownerSession.lock();	}
 	
 	virtual void OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker) override;
 	virtual void OnDead(std::shared_ptr<Character> attacker) override;
@@ -35,7 +35,7 @@ public:
 	Cooldown chatCooldown;
 
 private:
-	weak_ptr<Session> _ownerSession;
+	weak_ptr<GameSession> _ownerSession;
 	wstring _name;
 	
 	DB_PlayerInfo _dbPlayerInfo;

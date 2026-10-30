@@ -2,7 +2,7 @@
 #include "Player.h"
 #include "ServerData.h"
 
-Player::Player(shared_ptr<Session> ownerSession, Protocol::PlayerType type) 
+Player::Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type) 
 	: Character(Protocol::ObjectType::OBJECT_TYPE_PLAYER), _ownerSession(ownerSession)
 {
 	_objectInfo.set_player_type(type);

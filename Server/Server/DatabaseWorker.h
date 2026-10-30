@@ -28,8 +28,8 @@ public:
 		_dbJobQueue.Push(job);
 	}
 
-	void TryLogin(shared_ptr<Session> session, string recvId, string recvPw);
-	void TrySignUP(shared_ptr<Session> session, string recvId, string recvPw, int playerType);
+	void TryLogin(shared_ptr<GameSession> session, string recvId, string recvPw);
+	void TrySignUP(shared_ptr<GameSession> session, string recvId, string recvPw, int playerType);
 
 
 	void UpdateEquipData(int64_t playerUID, int32_t equipSlot, int64_t itemDbId, int32_t itemId);

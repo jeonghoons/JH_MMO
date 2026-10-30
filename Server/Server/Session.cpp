@@ -1,10 +1,7 @@
 ﻿#include "pch.h"
 #include "Session.h"
 #include "ServerService.h"
-#include "PacketHandler.h"
-#include "Room.h"
-#include "Player.h"
-#include "Metrics.h"
+#include "NetStats.h"
 
 Session::Session() : _recvBuffer(65536)
 {
@@ -43,13 +40,14 @@ void Session::Dispatch(IocpEvent* iocpEvent, int numBytes)
 	}
 }
 
-void Session::OnConnected()
+void Session::Connected()
 {
 	_connected.store(true);
-	Metrics::Sessions.fetch_add(1);
+	NetStats::Sessions.fetch_add(1);
 
 	GetService()->AddSession(static_pointer_cast<Session>(shared_from_this()));
-	
+
+	OnConnected();
 	RegisterRecv();
 }
 
@@ -58,14 +56,9 @@ void Session::Disconnect(const WCHAR* cause)
 	if (_connected.exchange(false) == false)
 		return;
 
-	Metrics::Sessions.fetch_sub(1);
+	NetStats::Sessions.fetch_sub(1);
 
-	// 로그인 전에 끊기면 _currPlayer가 아직 없다.
-	if (_currPlayer != nullptr) {
-		if (shared_ptr<Room> room = _currPlayer->GetCurrentRoom()) {
-			room->PushJob(&Room::PlayerLeaveRoom, _currPlayer);
-		}
-	}
+	OnDisconnected();
 	GetService()->ReleaseSession(static_pointer_cast<Session>(shared_from_this()));
 	
 	wcout << "DisConnect :" << cause << endl;
@@ -77,7 +70,7 @@ void Session::Send(shared_ptr<SendBuffer> sendBuffer, bool pushOnly)
 	if (false == IsConnected())
 		return;
 
-	Metrics::MessagesOut.fetch_add(1);
+	NetStats::MessagesOut.fetch_add(1);
 	_sendQueue.Push(sendBuffer);
 
 	if (pushOnly) return;
@@ -105,20 +98,13 @@ int Session::ProcessData(BYTE* buffer, int len)
 		if (dataSize < header.size)
 			break;
 
-		ProcessPacket(&buffer[processLen], header.size);
+		NetStats::PacketsIn.fetch_add(1);
+		OnRecvPacket(&buffer[processLen], header.size);
 
 		processLen += header.size;
 
 	}
 	return processLen;
-}
-
-void Session::ProcessPacket(BYTE* buffer, int len)
-{
-	shared_ptr<Session> session = static_pointer_cast<Session>(shared_from_this());
-
-	Metrics::PacketsIn.fetch_add(1);
-	PacketHandler::ProcessPacket(session, buffer, len);
 }
 
 void Session::RegisterRecv()

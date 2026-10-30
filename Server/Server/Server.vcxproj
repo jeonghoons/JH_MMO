@@ -182,9 +182,12 @@
     <ClInclude Include="SendBuffer.h" />
     <ClInclude Include="ServerService.h" />
     <ClInclude Include="Session.h" />
+    <ClInclude Include="GameSession.h" />
+    <ClInclude Include="NetStats.h" />
+    <ClInclude Include="MathUtils.h" />
     <ClInclude Include="StatComponent.h" />
     <ClInclude Include="Timer.h" />
-    <ClInclude Include="Utils.h" />
+    <ClInclude Include="CoreUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\ThirdParty\Detour\Source\DetourAlloc.cpp">
@@ -263,8 +266,9 @@
     <ClCompile Include="SendBuffer.cpp" />
     <ClCompile Include="ServerService.cpp" />
     <ClCompile Include="Session.cpp" />
+    <ClCompile Include="GameSession.cpp" />
     <ClCompile Include="Timer.cpp" />
-    <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="CoreUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Common\Protocol\Enum.proto" />

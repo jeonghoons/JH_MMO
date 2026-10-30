@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Utils.h"
+#include "CoreUtils.h"
 
 wstring Utils::UTF8ToWString(const string& utf8Str)
 {

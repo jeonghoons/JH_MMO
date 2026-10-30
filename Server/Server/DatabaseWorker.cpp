@@ -41,7 +41,7 @@ void DatabaseWorker::Run()
 }
 
 
-void DatabaseWorker::TryLogin(shared_ptr<Session> session, string recvId, string recvPw)
+void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, string recvPw)
 {
 	DBConnection* dbConn = _dbConnectionPool->Pop();
 	dbConn->Unbind();
@@ -129,7 +129,7 @@ void DatabaseWorker::TryLogin(shared_ptr<Session> session, string recvId, string
 	_dbConnectionPool->Push(dbConn);
 }
 
-void DatabaseWorker::TrySignUP(shared_ptr<Session> session, string recvId, string recvPw, int playerType)
+void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, string recvPw, int playerType)
 {
 	DBConnection* dbConn = _dbConnectionPool->Pop();
 	dbConn->Unbind();

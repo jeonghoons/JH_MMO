@@ -9,7 +9,7 @@ AuthLobby::AuthLobby(HANDLE iocpHandle) : _jobQueue(make_shared<JobQueue>(iocpHa
 
 AuthLobby::~AuthLobby() = default;
 
-void AuthLobby::OnLoginSuccess(shared_ptr<Session> session, DB_PlayerInfo info, DB_PlayerData data)
+void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo info, DB_PlayerData data)
 {
     if (session->IsConnected() == false) return;
 
@@ -52,7 +52,7 @@ void AuthLobby::OnLoginSuccess(shared_ptr<Session> session, DB_PlayerInfo info, 
     wcout << L"[" << playerName << L"] - 로그인 성공 및 객체 생성 완료" << std::endl;
 }
 
-void AuthLobby::OnLoginFailed(shared_ptr<Session> session, Protocol::LoginResult result)
+void AuthLobby::OnLoginFailed(shared_ptr<GameSession> session, Protocol::LoginResult result)
 {
 	if (session->IsConnected() == false) return;
 
@@ -65,7 +65,7 @@ void AuthLobby::OnLoginFailed(shared_ptr<Session> session, Protocol::LoginResult
 	session->Send(PacketSerializer::MakeSendBuffer(pkt, Protocol::SC_LOGIN));
 }
 
-void AuthLobby::OnSignUpResult(shared_ptr<Session> session, bool success)
+void AuthLobby::OnSignUpResult(shared_ptr<GameSession> session, bool success)
 {
 	if (session->IsConnected() == false) return;
 

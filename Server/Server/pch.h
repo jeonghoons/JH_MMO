@@ -51,12 +51,14 @@ extern thread_local unsigned int Lthreadid;
 #pragma warning(pop)
 
 #include "RWLock.h"
+#include "GameSession.h"
 #include "Room.h"
 #include "Timer.h"
 #include "DatabaseWorker.h"
 #include "PacketSerializer.h"
 #include "AuthLobby.h"
-#include "Utils.h"
+#include "CoreUtils.h"
+#include "MathUtils.h"
 #include "ServerData.h"
 
 

@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "Metrics.h"
+#include "NetStats.h"
 #include "Room.h"
 #include <fstream>
 #include <thread>
@@ -34,8 +35,8 @@ namespace
 		if (csv.tellp() == 0)
 			csv << "time,sessions,rooms,players,packets_in_ps,messages_out_ps,tick_late_avg_ms,tick_late_max_ms,tick_body_avg_ms,tick_body_max_ms\n";
 
-		long long prevIn = Metrics::PacketsIn.load();
-		long long prevOut = Metrics::MessagesOut.load();
+		long long prevIn = NetStats::PacketsIn.load();
+		long long prevOut = NetStats::MessagesOut.load();
 		long long prevAtkReq = Metrics::AttackRequests.load();
 		long long prevAtkOk = Metrics::AttackAccepted.load();
 
@@ -43,8 +44,8 @@ namespace
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(REPORT_INTERVAL_SEC));
 
-			long long nowIn = Metrics::PacketsIn.load();
-			long long nowOut = Metrics::MessagesOut.load();
+			long long nowIn = NetStats::PacketsIn.load();
+			long long nowOut = NetStats::MessagesOut.load();
 			double inPs = (nowIn - prevIn) / static_cast<double>(REPORT_INTERVAL_SEC);
 			double outPs = (nowOut - prevOut) / static_cast<double>(REPORT_INTERVAL_SEC);
 			prevIn = nowIn;
@@ -72,11 +73,11 @@ namespace
 			char line[384];
 			snprintf(line, sizeof(line),
 				"[metrics] sessions=%d rooms=%d players=%d monsters=%d in/s=%.0f out/s=%.0f atk(req/ok per s)=%.1f/%.1f zones(total created/hits)=%lld/%lld tickLate(avg/max ms)=%.1f/%.1f tickBody(avg/max ms)=%.2f/%.2f",
-				Metrics::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(), late.avgMs, late.maxMs, body.avgMs, body.maxMs);
+				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(), late.avgMs, late.maxMs, body.avgMs, body.maxMs);
 			cout << line << endl;
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-			csv << now << "," << Metrics::Sessions.load() << "," << rooms << "," << players << ","
+			csv << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","
 				<< inPs << "," << outPs << "," << late.avgMs << "," << late.maxMs << ","
 				<< body.avgMs << "," << body.maxMs << "\n";
 			csv.flush();

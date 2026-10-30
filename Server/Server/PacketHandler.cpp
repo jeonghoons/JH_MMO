@@ -13,36 +13,36 @@ PacketHandlerFunc GPacketHandler[UINT16_MAX + 1];
 void PacketHandler::Init()
 {
     
-    GPacketHandler[Protocol::CS_LOGIN] = [](shared_ptr<Session> session, BYTE* buffer, int len) {
+    GPacketHandler[Protocol::CS_LOGIN] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_LOGIN_PACKET>(&PacketHandler::Handle_CS_LOGIN, session, buffer, len);
         };
 
-    GPacketHandler[Protocol::CS_SIGNUP] = [](shared_ptr<Session> session, BYTE* buffer, int len) {
+    GPacketHandler[Protocol::CS_SIGNUP] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_SIGNUP_PACKET>(&PacketHandler::Handle_CS_SIGNUP, session, buffer, len);
         };
 
-    GPacketHandler[Protocol::CS_CHAT] = [](shared_ptr<Session> session, BYTE* buffer, int len) {
+    GPacketHandler[Protocol::CS_CHAT] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_CHAT_PACKET>(&PacketHandler::Handle_CS_CHAT, session, buffer, len);
         };
 
-    GPacketHandler[Protocol::CS_ENTER_ROOM] = [](shared_ptr<Session> session, BYTE* buffer, int len) {
+    GPacketHandler[Protocol::CS_ENTER_ROOM] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_ENTER_ROOM_PACKET>(&PacketHandler::Handle_CS_ENTER_ROOM, session, buffer, len);
         };
 
-    GPacketHandler[Protocol::CS_MOVE] = [](shared_ptr<Session> session, BYTE* buffer, int len) {
+    GPacketHandler[Protocol::CS_MOVE] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_MOVE_PACKET>(&PacketHandler::Handle_CS_MOVE, session, buffer, len);
         };
 
-    GPacketHandler[Protocol::CS_ATTACK] = [](shared_ptr<Session> session, BYTE* buffer, int len) {
+    GPacketHandler[Protocol::CS_ATTACK] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_ATTACK_PACKET>(&PacketHandler::Handle_CS_ATTACK, session, buffer, len);
         };
 
-    GPacketHandler[Protocol::CS_PING] = [](shared_ptr<Session> session, BYTE* buffer, int len) {
+    GPacketHandler[Protocol::CS_PING] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_PING_PACKET>(&PacketHandler::Handle_CS_PING, session, buffer, len);
         };
 }
 
-void PacketHandler::ProcessPacket(shared_ptr<Session> session, BYTE* buffer, int len)
+void PacketHandler::ProcessPacket(shared_ptr<GameSession> session, BYTE* buffer, int len)
 {
     PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
     BYTE* payloadBuffer = buffer + sizeof(PacketHeader);
@@ -65,7 +65,7 @@ void PacketHandler::ProcessPacket(shared_ptr<Session> session, BYTE* buffer, int
 
 
 
-void PacketHandler::Handle_CS_LOGIN(shared_ptr<Session> session, Protocol::CS_LOGIN_PACKET& pkt)
+void PacketHandler::Handle_CS_LOGIN(shared_ptr<GameSession> session, Protocol::CS_LOGIN_PACKET& pkt)
 {
     // C++ string 매핑 활용
     string id = pkt.account_id();
@@ -86,7 +86,7 @@ void PacketHandler::Handle_CS_LOGIN(shared_ptr<Session> session, Protocol::CS_LO
     GDBWorker->PushDBJob(&DatabaseWorker::TryLogin, session, id, pw);
 }
 
-void PacketHandler::Handle_CS_SIGNUP(shared_ptr<Session> session, Protocol::CS_SIGNUP_PACKET& pkt)
+void PacketHandler::Handle_CS_SIGNUP(shared_ptr<GameSession> session, Protocol::CS_SIGNUP_PACKET& pkt)
 {
     string id = pkt.account_id();
     string pw = pkt.account_pw();
@@ -109,7 +109,7 @@ void PacketHandler::Handle_CS_SIGNUP(shared_ptr<Session> session, Protocol::CS_S
     GDBWorker->PushDBJob(&DatabaseWorker::TrySignUP, session, id, pw, type);
 }
 
-void PacketHandler::Handle_CS_CHAT(shared_ptr<Session> session, Protocol::CS_CHAT_PACKET& pkt)
+void PacketHandler::Handle_CS_CHAT(shared_ptr<GameSession> session, Protocol::CS_CHAT_PACKET& pkt)
 {
     shared_ptr<Player> player = session->_currPlayer;
     if (player == nullptr) return;
@@ -147,7 +147,7 @@ wstring PacketHandler::SanitizeChat(const string& utf8Msg)
     return msg;
 }
 
-void PacketHandler::Handle_CS_ENTER_ROOM(shared_ptr<Session> session, Protocol::CS_ENTER_ROOM_PACKET& pkt)
+void PacketHandler::Handle_CS_ENTER_ROOM(shared_ptr<GameSession> session, Protocol::CS_ENTER_ROOM_PACKET& pkt)
 {
     // 로그인 전(DB 응답 전 포함)이거나 이미 방에 배정된 플레이어의 입장 요청은 무시한다.
     // 방 배정(SetOwnerRoom)은 EnterPlayer 안에서 바로 되므로 연달아 온 두 번째 요청도 여기서 걸러진다.
@@ -157,7 +157,7 @@ void PacketHandler::Handle_CS_ENTER_ROOM(shared_ptr<Session> session, Protocol::
     GRoomManager->EnterPlayer(player);
 }
 
-void PacketHandler::Handle_CS_MOVE(shared_ptr<Session> session, Protocol::CS_MOVE_PACKET& pkt)
+void PacketHandler::Handle_CS_MOVE(shared_ptr<GameSession> session, Protocol::CS_MOVE_PACKET& pkt)
 {
     shared_ptr<Player> player = session->_currPlayer;
     if (player == nullptr) return;
@@ -168,7 +168,7 @@ void PacketHandler::Handle_CS_MOVE(shared_ptr<Session> session, Protocol::CS_MOV
     room->PushJob(&Room::PlayerMove, player, pkt.pos_info(), pkt.force());
 }
 
-void PacketHandler::Handle_CS_PING(shared_ptr<Session> session, Protocol::CS_PING_PACKET& pkt)
+void PacketHandler::Handle_CS_PING(shared_ptr<GameSession> session, Protocol::CS_PING_PACKET& pkt)
 {
     shared_ptr<Player> player = session->_currPlayer;
     if (player == nullptr) return;
@@ -180,7 +180,7 @@ void PacketHandler::Handle_CS_PING(shared_ptr<Session> session, Protocol::CS_PIN
     room->PushJob(&Room::PlayerPing, player, pkt.client_time());
 }
 
-void PacketHandler::Handle_CS_ATTACK(shared_ptr<Session> session, Protocol::CS_ATTACK_PACKET& pkt)
+void PacketHandler::Handle_CS_ATTACK(shared_ptr<GameSession> session, Protocol::CS_ATTACK_PACKET& pkt)
 {
     Metrics::AttackRequests.fetch_add(1);
     shared_ptr<Player> player = session->_currPlayer;

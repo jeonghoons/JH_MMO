@@ -6,7 +6,6 @@
 #include "SendBuffer.h"
 
 class ServerService;
-class Player;
 
 class Session : public IocpObject
 {
@@ -29,13 +28,18 @@ public:
 	int		GetId() { return _cid; }
 
 public:
-	void			OnConnected();
+	void			Connected();				// Listener가 accept 완료 후 호출
 	void			Disconnect(const WCHAR* cause);
 
 	void			Send(shared_ptr<SendBuffer> sendBuffer, bool pushOnly = false);
 
 	int			ProcessData(BYTE* buffer, int len);
-	void			ProcessPacket(BYTE* buffer, int len);
+
+protected:
+	// 콘텐츠 쪽(GameSession)이 구현하는 훅. 네트워크 계층은 게임 코드를 모른다.
+	virtual void	OnConnected() {}
+	virtual void	OnDisconnected() {}
+	virtual void	OnRecvPacket(BYTE* buffer, int len) = 0;	// 헤더 포함 패킷 하나
 
 private:
 	void			RegisterRecv();
@@ -54,8 +58,6 @@ public:
 	// queue<shared_ptr<SendBuffer>> _sendQueue;
 	SendBufferQueue		_sendQueue;
 	atomic<bool>			_sendRegistered = false;
-
-	shared_ptr<Player>	_currPlayer;
 
 private:
 	weak_ptr<ServerService> _service;
