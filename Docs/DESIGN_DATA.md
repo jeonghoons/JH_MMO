@@ -67,17 +67,26 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 - Test의 `UDataManager`/`UDataTableSettings` 구현을 이식하되 `JM` 접두사 규칙(UE와 충돌할 때만)을 따릅니다.
 
 ## MovementTable 컬럼
-ID `1001` = 플레이어 기본값.
+ID `1001` = 플레이어 기본값. 클라이언트(`DT_MovementTable`)와 서버(`DataManager`, `Server`로 시작하는 열만)가 함께 읽습니다. 최고 이동 속도는 이 테이블에 두지 않고 **서버 스탯 `StatTable.MoveSpeed`**(영웅별, `ObjectInfo.stat.move_speed`)를 씁니다 — 클라이언트 `MaxWalkSpeed`와 서버 검증이 같은 값을 봅니다(2026-10-30 S1, `MaxSpeedCmSec` 열 삭제).
 
-| 컬럼 | 기본값 | 설명 |
-|---|---|---|
-| `MaxSpeedCmSec` | 600 | 자동 달리기 최고 속도(cm/s) |
-| `AccelCmSec2` | 2048 | 이동 입력 시 가속도 |
-| `BrakeDecelCmSec2` | 2048 | 입력 없을 때 감속도 |
-| `RotationRateYawDegSec` | 500 | 이동 방향으로 도는 속도(deg/s) |
-| `CameraArmLengthCm` | 450 | 카메라 붐 길이 (3인칭 마우스 회전) |
-| `CameraDefaultPitchDeg` | -15 | 시작 카메라 피치 (음수 = 아래로 내려다봄) |
-| `CameraMinPitchDeg` / `CameraMaxPitchDeg` | -60 / 30 | 카메라 피치 제한 |
-| `LookSensitivityYaw` / `LookSensitivityPitch` | 1 / 1 | 마우스 감도 배율 |
+| 컬럼 | 기본값 | 읽는 쪽 | 설명 |
+|---|---|---|---|
+| `AccelCmSec2` | 2048 | 클라 | 이동 입력 시 가속도 |
+| `BrakeDecelCmSec2` | 2048 | 클라 | 입력 없을 때 감속도 |
+| `RotationRateYawDegSec` | 500 | 클라 | 이동 방향으로 도는 속도(deg/s) |
+| `CameraArmLengthCm` | 450 | 클라 | 카메라 붐 길이 (3인칭 마우스 회전) |
+| `CameraDefaultPitchDeg` | -15 | 클라 | 시작 카메라 피치 (음수 = 아래로 내려다봄) |
+| `CameraPivotHeightCm` / `CameraShoulderOffsetCm` | 150 / 0 | 클라 | 카메라 피벗 높이 / 어깨 오프셋 |
+| `CameraMinPitchDeg` / `CameraMaxPitchDeg` | -60 / 30 | 클라 | 카메라 피치 제한 |
+| `LookSensitivityYaw` / `LookSensitivityPitch` | 1 / 1 | 클라 | 마우스 감도 배율 |
+| `MoveSendIntervalMs` | 200 | 클라 | 움직이는 동안 내 위치를 보내는 주기(정지 중에는 보내지 않음) |
+| `RemoteInterpSpeed` | 10 | 클라 | 원격 캐릭터를 서버 위치로 보간하는 속도 |
+| `RemoteSnapDistCm` | 500 | 클라 | 이보다 멀면 보간 없이 순간이동 |
+| `RemoteExtrapolateMaxMs` | 300 | 클라 | 원격 **플레이어**를 마지막 패킷 이후 속도로 앞질러 보내는 최대 시간(몬스터는 상한 없음 — 서버가 방향이 바뀔 때만 보냄) |
+| `ServerSpeedTolerance` | 1.2 | 서버 | 허용 속도 배율(MoveSpeed × 배율), 1~3 |
+| `ServerMoveBudgetMs` | 1000 | 서버 | 이동 거리 예산(토큰 버킷)을 몇 ms 분량까지 모으는가. 지연으로 몰려 온 패킷을 흡수 |
+| `ServerMoveSlackCm` | 50 | 서버 | 예산과 별도로 항상 인정하는 여유 거리 |
+| `ServerMinMoveIntervalMs` | 50 | 서버·클라 | 이보다 잦은 이동 패킷은 서버가 처리하지 않음. 클라이언트는 이 간격 안의 전송을 미룬다 |
+| `ServerNavToleranceCm` | 50 | 서버 | 목표가 내비메시 경계 밖으로 이만큼(수평)까지는 허용. 내비메시는 벽에서 34cm 안쪽까지 깔리므로 68cm + 벽 두께보다 작아야 벽을 뚫지 못함, 0~100 |
 
-> 주의: 이동 속도는 **서버가 위치를 계산**하므로 `MaxSpeedCmSec`의 권위는 서버입니다. 서버 이동 코드가 이 값을 읽도록 맞추는 작업이 필요합니다(병합 ROADMAP 참고).
+서버는 값이 범위를 벗어나거나 1001 행·열이 없으면 시작을 중단합니다.

@@ -18,7 +18,7 @@ msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:NavGenerator
 - `BotEngine` (`Server/BotEngine/`, 정적 라이브러리) — LoadTest와 DummyClient가 공유하는 봇 엔진. 논블로킹 소켓 + WSAPoll 워커 스레드로 봇 N명을 램프업 접속시켜 가입/로그인 → 입장 → 이동·사냥(hunt)·핑을 돌리고 지연·처리량을 집계합니다(`GConfig`/`GStat`, `BotEngine::Start/UpdateRamp/TakeSamples/GetSnapshot/Stop`, `ServerProcSampler`). 봇은 클라이언트 측이라 ServerCore를 쓰지 않습니다(DECISIONS 2026-10-30). 프로토콜은 `Server/Server/Protocol/`의 생성 코드를 직접 컴파일하므로 `GanPackets.bat` 뒤에 따로 복사할 것이 없습니다. 새 패킷을 봇이 보내거나 받아야 하면 `BotEngine.cpp`의 `HandlePacket`/`WorkerMain`에 추가합니다.
 - `LoadTest` (`Server/LoadTest/`) — BotEngine의 헤드리스 콘솔 프런트엔드. `--bots --ramp-rate --duration` 등 런타임 인자로 동작하고 지연(RTT)·처리량·서버 CPU를 CSV로 기록합니다. 수치 검증용. 사용법은 [Docs/TESTING.md](../Docs/TESTING.md) 참고.
 - `DummyClient` (`Server/DummyClient/`) — BotEngine의 OpenGL 시각화 프런트엔드(시연용). LoadTest와 같은 인자로 봇을 돌리고 탑다운 화면에 봇·몬스터·스폰·통계를 그립니다(`GConfig.trackWorld`로 엔진이 몬스터 이동·사망과 스냅숏을 추가로 추적). 창을 닫을 때까지 실행. 사용법은 [Docs/TESTING.md](../Docs/TESTING.md) 참고.
-- `NavGenerator` (`Server/NavGenerator/`) — Recast/Detour 내비메시 데이터를 오프라인으로 생성하는 도구. 사용법: `NavGenerator.exe <GeoBinPath> <NavOutputPath>` (인자를 생략하면 기본 맵 `ParagonSample`을 사용해 `../MapResource/Export/<맵>/Geometry/<맵>_Geo.bin`을 읽어 `../Server/Resource/Map/<맵>_Geo.nav`로 출력). **UE에서 맵 지오메트리를 다시 export할 때마다 재실행해야 합니다.** 런타임에는 `NavmeshManager`가 이 출력을 사용합니다.
+- `NavGenerator` (`Server/NavGenerator/`) — Recast/Detour 내비메시 데이터를 오프라인으로 생성하는 도구. 사용법: `NavGenerator.exe <GeoBinPath> <NavOutputPath>` (인자를 생략하면 기본 맵 `ParagonSample`을 사용해 `../MapResource/Export/<맵>/Geometry/<맵>_Geo.bin`을 읽어 `../Server/Resource/Map/<맵>_Geo.nav`로 출력). **UE에서 맵 지오메트리를 다시 export할 때마다 재실행해야 합니다.** 런타임에는 `NavmeshManager`가 이 출력을 사용합니다. 지오메트리는 `Server/MapResource/MapExport.bat <맵>`(UE 커맨드렛 `MapExportCommandlet` → NavGenerator)으로 만들며, **UE에서 캐릭터가 부딪히는 메시(충돌 켜짐 + Pawn Block)만** Detour 좌표(UE (x,y,z) → (y,z,-x), 정점 순서 반대)로 내보냅니다 — 서버 이동 검증이 이 내비메시를 쓰므로 기준이 어긋나면 지나갈 수 있는 곳에서 플레이어가 끌려갑니다(2026-10-30 S1). 이 환경에서는 bat을 전체 경로로 실행합니다.
 
 서드파티 라이브러리(Recast/Detour, Protobuf, ODBC용 `sql.h`/`sqlext.h`)는 `Server/ThirdParty/`에 있습니다. 서버에는 자동화된 테스트 스위트가 없습니다 — 검증은 `GameServer`를 빌드해서 `LoadTest`/`DummyClient`나 UE 클라이언트로 붙여보는 방식으로 합니다.
 
@@ -51,10 +51,11 @@ Server 코드는 별도 접두사 규칙 없이 기능 위주로 클래스/함�
 세션 중 발견한, 놓치기 쉬운 규칙을 여기에 누적합니다.
 
 - `Room`의 내부 상태는 절대 `PushJob`/`ReserveJob` 밖에서 직접 변경하지 마세요 — 여러 IOCP 워커 스레드가 동시에 접근하는 객체이므로 레이스 컨디션이 발생합니다.
+- 플레이어 이동은 `Room::PlayerMove`가 검증합니다(서버 권위 이동, S1 — [Docs/DESIGN_CONTROL_CAMERA.md](../Docs/DESIGN_CONTROL_CAMERA.md)). 보정은 `Player::moveGuard.correctionSeq`를 올리고 본인에게만 `SC_MOVE_OBJECT`를 보내며, 순번이 다른 이동은 버립니다. 검증 허용치는 `MovementTable`의 `Server*` 열, 속도는 `StatTable.MoveSpeed`입니다. 결과는 `[metrics]`의 `move(total ok/speed/nav/bad/stale/rate)`로 봅니다.
 
 ## 데이터 테이블 (CSV 로더)
 
-서버는 시작할 때 `Common/DataTable/*.csv`를 읽어 스탯/스킬 수치를 로드합니다(규약·컬럼: [Docs/DESIGN_DATA.md](../Docs/DESIGN_DATA.md)). 애셋 참조 컬럼은 서버가 무시합니다. CSV 형식 오류·중복 키·없는 참조가 있으면 서버가 시작을 중단하며, 폴더는 환경변수 `JH_DATA_DIR` 또는 `../../Common/DataTable`에서 찾습니다. 새 테이블은 `DataManager::Init()`에 같은 방식으로 추가합니다.
+서버는 시작할 때 `Common/DataTable/*.csv`를 읽어 스탯/스킬/몬스터/이동 검증 수치를 로드합니다(규약·컬럼: [Docs/DESIGN_DATA.md](../Docs/DESIGN_DATA.md)). 애셋 참조 컬럼은 서버가 무시합니다. CSV 형식 오류·중복 키·없는 참조가 있으면 서버가 시작을 중단하며, 폴더는 환경변수 `JH_DATA_DIR` 또는 `../../Common/DataTable`에서 찾습니다. 새 테이블은 `DataManager::Init()`에 같은 방식으로 추가합니다.
 
 ## 설계 문서
 
