@@ -1,0 +1,67 @@
+﻿#include "pch.h"
+#include "Game/Object/Player.h"
+#include "Data/ServerData.h"
+
+Player::Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type) 
+	: Character(Protocol::ObjectType::OBJECT_TYPE_PLAYER), _ownerSession(ownerSession)
+{
+	_objectInfo.set_player_type(type);
+	const CharacterData* statData = DataManager::GetCharacterData((int)_objectInfo.player_type());
+	if (statData) {
+		Protocol::StatInfo* stat = _objectInfo.mutable_stat();
+		stat->set_max_hp(statData->maxHp);
+		stat->set_hp(statData->hp);
+		stat->set_attack_damage(statData->attackDamage);
+		stat->set_attack_speed(statData->attackSpeed);
+		stat->set_move_speed(statData->moveSpeed);
+		_statInfo.Init(stat);
+	}
+	
+	_maxSpeed = _statInfo.GetMoveSpeed();
+}
+
+Player::~Player()
+{
+	cout << "~Player[" << _objectInfo.id() << "]" << endl;
+	_ownerSession.reset();
+}
+
+void Player::Update(float deltaTime)
+{
+	Character::Update(deltaTime);
+}
+
+void Player::OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker)
+{
+	Character::OnDamaged(damage, attackerId, attacker);	
+}
+
+void Player::OnDead(std::shared_ptr<Character> attacker)
+{
+	Character::OnDead(attacker);
+}
+
+void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
+{
+	_dbPlayerInfo = info;
+	_dbPlayerData = data;
+
+	
+	const CharacterData* statData = DataManager::GetCharacterData(info.playerType);
+	if (statData) {
+		Protocol::StatInfo* stat = _objectInfo.mutable_stat();
+		stat->set_max_hp(statData->maxHp);
+		stat->set_hp(statData->hp);
+		stat->set_attack_damage(statData->attackDamage);
+		stat->set_attack_speed(statData->attackSpeed);
+		stat->set_move_speed(statData->moveSpeed);
+		_statInfo.Init(stat);
+	}
+
+	_objectInfo.clear_equip_items();
+	for (int32_t itemId : data.equipItemIds)
+	{
+		_objectInfo.add_equip_items(itemId);
+	}
+}
+

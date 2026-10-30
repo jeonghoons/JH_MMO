@@ -1,151 +1,186 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Main">
-      <UniqueIdentifier>{058adad0-8405-4ed8-84af-ab18ef014626}</UniqueIdentifier>
+    <Filter Include="..">
+      <UniqueIdentifier>{5495BF1B-B470-57A0-A00A-C68873BDD872}</UniqueIdentifier>
     </Filter>
-    <Filter Include="NetWork">
-      <UniqueIdentifier>{2c7c41e5-53e4-4c8e-a0a2-395ff8d88ede}</UniqueIdentifier>
+    <Filter Include="..\ThirdParty">
+      <UniqueIdentifier>{E1E039A5-04EC-5430-974B-009A81E25AF0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utils">
-      <UniqueIdentifier>{d6629dd8-7332-46f2-9d5e-f0a27a7dc4cb}</UniqueIdentifier>
+    <Filter Include="..\ThirdParty\Detour">
+      <UniqueIdentifier>{3370C51B-EBDC-5BDC-AFBF-E9DB5D69B6F2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Protocol">
-      <UniqueIdentifier>{e5844e9b-d64a-48d1-86ff-2d303e6653ef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Contents">
-      <UniqueIdentifier>{3e81e933-df1e-4e82-bad6-758204284830}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Job">
-      <UniqueIdentifier>{db8f291c-1af4-4e0f-a604-f52dbfd43685}</UniqueIdentifier>
+    <Filter Include="..\ThirdParty\Detour\Source">
+      <UniqueIdentifier>{7445610F-BA59-52CD-8CA4-D164DB479ACD}</UniqueIdentifier>
     </Filter>
     <Filter Include="DB">
-      <UniqueIdentifier>{949598d9-aa8a-43af-bfc2-793efadb5f53}</UniqueIdentifier>
+      <UniqueIdentifier>{CD98E1BC-F5EC-5F7C-9CAC-6725FAD993C9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Contents\Object">
-      <UniqueIdentifier>{8c405df8-df17-40f0-9711-17b90f051d62}</UniqueIdentifier>
+    <Filter Include="Data">
+      <UniqueIdentifier>{A6DEDF7A-62EC-5D8B-9CA5-AA4719297CF0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Contents\NavMesh">
-      <UniqueIdentifier>{30bcd13b-1d13-49a7-9da8-c47220cb164d}</UniqueIdentifier>
+    <Filter Include="Game">
+      <UniqueIdentifier>{6A43D4FE-574F-5572-89BE-9093AF987C50}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Contents\NavMesh\Detour">
-      <UniqueIdentifier>{a47e2002-c3b8-4402-a797-8e59d069791f}</UniqueIdentifier>
+    <Filter Include="Game\Combat">
+      <UniqueIdentifier>{9D5BFADA-BF3F-5A2F-8491-72DE6036E9A6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Contents\GameRoom">
-      <UniqueIdentifier>{827cae39-ed73-4845-97b7-93a9fac3dbae}</UniqueIdentifier>
+    <Filter Include="Game\Lobby">
+      <UniqueIdentifier>{54D25503-1BD6-58B5-9B3B-6050D2AB05D8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Contents\Data">
-      <UniqueIdentifier>{bc0c4a54-8717-4971-82fb-ce50086550e5}</UniqueIdentifier>
+    <Filter Include="Game\Object">
+      <UniqueIdentifier>{9391CCB4-857F-58B4-917C-BC3E29F4E394}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Room">
+      <UniqueIdentifier>{BC504196-3AE1-5DB2-8C9E-E72788AAF7DD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\World">
+      <UniqueIdentifier>{4F051033-E514-5616-A3F8-2D7A80C3FFDD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Packet">
+      <UniqueIdentifier>{35CB78E5-4A67-5AF4-BD26-F4ADCD701D2B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocol">
+      <UniqueIdentifier>{AB6DA5A3-FEB0-5787-A40A-83F05006092D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Session">
+      <UniqueIdentifier>{B43C9730-72AD-5DB8-B4DD-60C841A16582}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{F9B02EE3-8157-562F-AB3D-FF73E896A210}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="gameserver.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="ServerService.cpp">
-      <Filter>NetWork</Filter>
-    </ClCompile>
-    <ClCompile Include="Listener.cpp">
-      <Filter>NetWork</Filter>
-    </ClCompile>
-    <ClCompile Include="Session.cpp">
-      <Filter>NetWork</Filter>
-    </ClCompile>
-    <ClCompile Include="IocpCore.cpp">
-      <Filter>NetWork</Filter>
-    </ClCompile>
-    <ClCompile Include="IocpEvent.h.cpp">
-      <Filter>NetWork</Filter>
-    </ClCompile>
-    <ClCompile Include="RecvBuffer.cpp">
-      <Filter>NetWork</Filter>
-    </ClCompile>
-    <ClCompile Include="NetAddress.cpp">
-      <Filter>NetWork</Filter>
-    </ClCompile>
-    <ClCompile Include="SendBuffer.cpp">
-      <Filter>NetWork</Filter>
-    </ClCompile>
-    <ClCompile Include="PacketHandler.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="RWLock.cpp">
+    <ClInclude Include="DB\DatabaseWorker.h">
+      <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="Data\ServerData.h">
+      <Filter>Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Combat\CombatProcessor.h">
+      <Filter>Game\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Lobby\AuthLobby.h">
+      <Filter>Game\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Object\Character.h">
+      <Filter>Game\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Object\GameObject.h">
+      <Filter>Game\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Object\Monster.h">
+      <Filter>Game\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Object\Player.h">
+      <Filter>Game\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Object\StatComponent.h">
+      <Filter>Game\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Room\Room.h">
+      <Filter>Game\Room</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\World\GameMap.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\World\NavmeshManager.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\PacketHandler.h">
+      <Filter>Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\PacketSerializer.h">
+      <Filter>Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="Session\GameSession.h">
+      <Filter>Session</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\MathUtils.h">
       <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Job.cpp">
-      <Filter>Job</Filter>
-    </ClCompile>
-    <ClCompile Include="JobQueue.cpp">
-      <Filter>Job</Filter>
-    </ClCompile>
-    <ClCompile Include="ConcurrentQueue.cpp">
+    </ClInclude>
+    <ClInclude Include="Utils\Metrics.h">
       <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Job</Filter>
-    </ClCompile>
-    <ClCompile Include="PacketSerializer.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="DBConnection.cpp">
+    </ClInclude>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Protocol\Enum.pb.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\Protocol.pb.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\Struct.pb.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DB\DatabaseWorker.cpp">
       <Filter>DB</Filter>
     </ClCompile>
-    <ClCompile Include="DBConnectionPool.cpp">
-      <Filter>DB</Filter>
+    <ClCompile Include="Data\ServerData.cpp">
+      <Filter>Data</Filter>
     </ClCompile>
-    <ClCompile Include="CoreUtils.cpp">
+    <ClCompile Include="Game\Combat\CombatProcessor.cpp">
+      <Filter>Game\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Lobby\AuthLobby.cpp">
+      <Filter>Game\Lobby</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Object\Character.cpp">
+      <Filter>Game\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Object\GameObject.cpp">
+      <Filter>Game\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Object\Monster.cpp">
+      <Filter>Game\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Object\Player.cpp">
+      <Filter>Game\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Room\Room.cpp">
+      <Filter>Game\Room</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\World\GameMap.cpp">
+      <Filter>Game\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\World\NavmeshManager.cpp">
+      <Filter>Game\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet\PacketHandler.cpp">
+      <Filter>Packet</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet\PacketSerializer.cpp">
+      <Filter>Packet</Filter>
+    </ClCompile>
+    <ClCompile Include="Session\GameSession.cpp">
+      <Filter>Session</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Metrics.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="DatabaseWorker.cpp">
-      <Filter>DB</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>Contents\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Monster.cpp">
-      <Filter>Contents\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Contents\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Character.cpp">
-      <Filter>Contents\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="NavmeshManager.cpp">
-      <Filter>Contents\NavMesh</Filter>
-    </ClCompile>
+    <ClCompile Include="gameserver.cpp" />
+    <ClCompile Include="pch.cpp" />
     <ClCompile Include="..\ThirdParty\Detour\Source\DetourAlloc.cpp">
-      <Filter>Contents\NavMesh\Detour</Filter>
+      <Filter>ThirdParty\Detour</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\Detour\Source\DetourAssert.cpp">
-      <Filter>Contents\NavMesh\Detour</Filter>
+      <Filter>ThirdParty\Detour</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\Detour\Source\DetourCommon.cpp">
-      <Filter>Contents\NavMesh\Detour</Filter>
+      <Filter>ThirdParty\Detour</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\Detour\Source\DetourNavMesh.cpp">
-      <Filter>Contents\NavMesh\Detour</Filter>
+      <Filter>ThirdParty\Detour</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\Detour\Source\DetourNavMeshBuilder.cpp">
-      <Filter>Contents\NavMesh\Detour</Filter>
+      <Filter>ThirdParty\Detour</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\Detour\Source\DetourNavMeshQuery.cpp">
-      <Filter>Contents\NavMesh\Detour</Filter>
+      <Filter>ThirdParty\Detour</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\Detour\Source\DetourNode.cpp">
-      <Filter>Contents\NavMesh\Detour</Filter>
-    </ClCompile>
-    <ClCompile Include="GameMap.cpp">
-      <Filter>Contents\GameRoom</Filter>
-    </ClCompile>
-    <ClCompile Include="Room.cpp">
-      <Filter>Contents\GameRoom</Filter>
-    </ClCompile>
-    <ClCompile Include="CombatProcessor.cpp">
-      <Filter>Contents\GameRoom</Filter>
-    </ClCompile>
-    <ClCompile Include="AuthLobby.cpp">
-      <Filter>Contents</Filter>
+      <Filter>ThirdParty\Detour</Filter>
     </ClCompile>
     <ClCompile Include="Protocol\Enum.pb.cc">
       <Filter>Protocol</Filter>
@@ -156,123 +191,5 @@
     <ClCompile Include="Protocol\Struct.pb.cc">
       <Filter>Protocol</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ServerService.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="Listener.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="Session.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="IocpCore.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="IocpEvent.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="RecvBuffer.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="NetAddress.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="SendBuffer.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketHandler.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="RWLock.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Job.h">
-      <Filter>Job</Filter>
-    </ClInclude>
-    <ClInclude Include="JobQueue.h">
-      <Filter>Job</Filter>
-    </ClInclude>
-    <ClInclude Include="ConcurrentQueue.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Timer.h">
-      <Filter>Job</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketSerializer.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="DBConnection.h">
-      <Filter>DB</Filter>
-    </ClInclude>
-    <ClInclude Include="DBConnectionPool.h">
-      <Filter>DB</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreUtils.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="DatabaseWorker.h">
-      <Filter>DB</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>Contents\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Monster.h">
-      <Filter>Contents\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>Contents\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Character.h">
-      <Filter>Contents\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="NavmeshManager.h">
-      <Filter>Contents\NavMesh</Filter>
-    </ClInclude>
-    <ClInclude Include="GameMap.h">
-      <Filter>Contents\GameRoom</Filter>
-    </ClInclude>
-    <ClInclude Include="Room.h">
-      <Filter>Contents\GameRoom</Filter>
-    </ClInclude>
-    <ClInclude Include="StatComponent.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="CombatProcessor.h">
-      <Filter>Contents\GameRoom</Filter>
-    </ClInclude>
-    <ClInclude Include="ServerData.h">
-      <Filter>DB</Filter>
-    </ClInclude>
-    <ClInclude Include="AuthLobby.h">
-      <Filter>Contents</Filter>
-    </ClInclude>
-    <ClInclude Include="Protocol\Enum.pb.h">
-      <Filter>Protocol</Filter>
-    </ClInclude>
-    <ClInclude Include="Protocol\Protocol.pb.h">
-      <Filter>Protocol</Filter>
-    </ClInclude>
-    <ClInclude Include="Protocol\Struct.pb.h">
-      <Filter>Protocol</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\Common\Protocol\Enum.proto">
-      <Filter>Protocol</Filter>
-    </None>
-    <None Include="..\..\Common\Protocol\Protocol.proto">
-      <Filter>Protocol</Filter>
-    </None>
-    <None Include="..\..\Common\Protocol\Struct.proto">
-      <Filter>Protocol</Filter>
-    </None>
   </ItemGroup>
 </Project>

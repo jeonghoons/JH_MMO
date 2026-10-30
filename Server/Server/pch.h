@@ -1,46 +1,17 @@
 ﻿#pragma once
+// GameServer 미리 컴파일된 헤더. 코어(CorePch: 표준·Winsock·ODBC·코어 유틸) 위에 Protocol과 게임 공용 헤더를 얹는다.
 
-#define WIN32_LEAN_AND_MEAN // 거의 사용되지 않는 내용을 Windows 헤더에서 제외합니다.
-#define NOMINMAX
-
-#include <iostream> 
-#include <WS2tcpip.h>
-#include <MSWSock.h>
-#include <Windows.h>
+#include "CorePch.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "libprotobufd.lib")
-#else 
+#else
 #pragma comment(lib, "libprotobuf.lib")
-#endif 
-
-#pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "MSWSock.lib")
-
-using namespace std;
-
-#include <memory>
-#include <vector>
-#include <set>
-#include <unordered_set>
-#include <queue>
-#include <chrono>
-#include <unordered_map>
-#include <thread>
-#include <mutex>
-#include <map>
-
-#include <random>
-#include <algorithm>
-
-#include <sql.h>
-#include <sqlext.h>
+#endif
 
 #include <DirectXMath.h>
 
 using namespace DirectX;
-
-extern thread_local unsigned int Lthreadid;
 
 #pragma warning(push)
 #pragma warning(disable: 26495) // 초기화 안 됨(C26495) 경고 끄기
@@ -50,16 +21,14 @@ extern thread_local unsigned int Lthreadid;
 #include "Protocol/Protocol.pb.h"
 #pragma warning(pop)
 
-#include "RWLock.h"
-#include "GameSession.h"
-#include "Room.h"
-#include "Timer.h"
-#include "DatabaseWorker.h"
-#include "PacketSerializer.h"
-#include "AuthLobby.h"
-#include "CoreUtils.h"
-#include "MathUtils.h"
-#include "ServerData.h"
+#include "Session/GameSession.h"
+#include "Game/Room/Room.h"
+#include "Job/Timer.h"
+#include "DB/DatabaseWorker.h"
+#include "Packet/PacketSerializer.h"
+#include "Game/Lobby/AuthLobby.h"
+#include "Utils/MathUtils.h"
+#include "Data/ServerData.h"
 
 
 constexpr uint16_t PORT_NUM = 8888;
@@ -69,6 +38,3 @@ extern unique_ptr<RoomManager> GRoomManager;
 extern shared_ptr<Timer> GTimer;
 extern shared_ptr<DatabaseWorker> GDBWorker;
 extern shared_ptr<AuthLobby> GLobby;
-
-
-

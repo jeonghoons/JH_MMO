@@ -1,11 +1,11 @@
 ﻿#include "pch.h"
 #include "thread"
-#include "ServerService.h"
-#include "IocpCore.h"
-#include "Room.h"
-#include "PacketHandler.h"
-#include "Metrics.h"
-#include "GameSession.h"
+#include "Network/ServerService.h"
+#include "Network/IocpCore.h"
+#include "Game/Room/Room.h"
+#include "Packet/PacketHandler.h"
+#include "Utils/Metrics.h"
+#include "Session/GameSession.h"
 
 shared_ptr<Timer> GTimer = nullptr;
 shared_ptr<DatabaseWorker> GDBWorker = nullptr;

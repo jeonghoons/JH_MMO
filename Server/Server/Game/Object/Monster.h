@@ -1,0 +1,93 @@
+﻿#pragma once
+#include "pch.h"
+#include "Game/Object/Character.h"
+
+class Player;
+
+enum class MonsterState
+{
+	NONE,   
+	PATROL,
+	TRACE,  
+	ATTACK ,
+	HIT
+};
+ostream& operator<<(ostream& os, MonsterState state);
+class Monster : public Character
+{
+public:
+	Monster();
+	explicit Monster(Protocol::PlayerType type);
+	virtual ~Monster();
+
+	friend ostream& operator<<(ostream& os, MonsterState state)
+	{
+		switch (state)
+		{
+		case MonsterState::NONE:   return os << "NONE";
+		case MonsterState::PATROL: return os << "PATROL";
+		case MonsterState::TRACE:  return os << "TRACE";
+		case MonsterState::ATTACK: return os << "ATTACK";
+		case MonsterState::HIT:    return os << "HIT";
+		default: return os << "UNKNOWN";
+		}
+	}
+
+public:
+	virtual void Update(float deltaTime) override;
+	virtual void StopMove() override;
+	virtual void OnDead(std::shared_ptr<Character> attacker) override;
+	virtual int GetHitStunMs() const override;
+	virtual void OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker) override;
+
+
+
+public:
+	
+	void WakeUpByPlayer(std::shared_ptr<Player> player);
+	void SleepIfNoPlayer();
+
+	// FSM
+	void UpdateAI();
+	void ChangeState(MonsterState newState);
+
+	void UpdateNone();
+	void UpdatePatrol();
+	void UpdateTrace();
+	void UpdateAttack();
+	void UpdateHit();
+	
+	void SetPath(const std::vector<Protocol::PositionInfo>& path);
+
+	// 이 몬스터를 만든 스폰 마커(GameMap::GetMonsterSpawns 인덱스). 리스폰 시 같은 마커에서 다시 만든다.
+	int GetSpawnIndex() const { return _spawnIndex; }
+	void SetSpawnIndex(int index) { _spawnIndex = index; }
+
+private:
+	// A* 경로를 따라 걷는 물리 시뮬레이션
+	void FollowPath(float deltaTime);
+
+
+public:
+	MonsterState _monsterState = MonsterState::NONE;
+	bool _wakeUp = false;
+
+	std::chrono::steady_clock::time_point _nextDecisionTick;
+	std::weak_ptr<Player> _targetPlayer;
+
+private:
+	Cooldown _aiDecisionTimer;
+	Cooldown _patrolTimer;
+	Cooldown _pathSearchTimer;
+
+	std::vector<Protocol::PositionInfo> _path;
+	int _pathIndex = 0;
+	bool _hasPath = false;
+	Protocol::PositionInfo _lastTargetPos;
+
+	int _spawnIndex = -1;
+
+	float _traceRange = 800.f;
+	float _attackRange;
+};
+
