@@ -7,15 +7,15 @@
 - **트랙 A — 서버/포트폴리오** (아래, 우선): 안정화 → 몬스터·전투 → 정리 → 서버 기반 → 성장·저장 → 아이템 → 거래/경매장 → 부하 테스트 → 산출물
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
-현재 위치: **R. ③ 저장소 정리 (C-5 소스 폴더 구조화 차례)**
+현재 위치: **R. ③ 저장소 정리 (C-6 DummyClient 차례)**
 
-**실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-4, U1, A2.6 → **① 정리 마무리** C-5 소스 폴더 구조화 → C-6 DummyClient → **② 서버 기반** S1 서버 권위 이동 → A1.1 설정 → A1.2 로거 → A1.3 메트릭 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
+**실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-5, U1, A2.6 → **① 정리 마무리** C-6 DummyClient(ServerCore 재사용) → **② 서버 기반** S1 서버 권위 이동 → A1.1 설정 → A1.2 로거 → A1.3 메트릭 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
 **검증 게이트 (모든 콘텐츠 단계 공통):** 체크박스는 해당 기능의 **오류 테스트**(비정상 입력, 중간 접속 해제, 중복·상태 불일치 요청)와 **부하 테스트**(단계 목표 CCU까지 램프, 200 → 1,000 → 5,000)를 통과하고 결과를 `Docs/TESTING.md`에 기록한 뒤에만 `[x]`로 표시합니다.
 
-## ▶ 중단점 (2026-10-30) — "이어서 진행"이라고 하면 여기서 재개 (다음: C-5 소스 폴더 구조화)
+## ▶ 중단점 (2026-10-30) — "이어서 진행"이라고 하면 여기서 재개 (다음: C-6 DummyClient)
 **상태:** C-3 미사용 에셋 삭제 완료(2026-10-30, 참조 검사 + PIE). 작업 순서를 다시 계획함(위 실행 순서). U1 시스템 메시지 창 + 방 입장 대기 완료(2026-10-30, PIE). 로딩 화면 이미지는 사용자가 2026-11-06 무렵 구해 오면 `WBP_SystemMessage` 대기 배경에 넣는다. 지난 진행 기록은 커밋 기록과 `TESTING.md`에 있습니다.
-**다음 작업:** C-5 소스 폴더 구조화 — 코드를 읽고 계획을 먼저 제시합니다. (C-4 채팅 복구 완료 2026-10-30)
+**다음 작업:** C-6 DummyClient = LoadTest 시각화 — 코드를 읽고 계획을 먼저 제시합니다. (C-5 ServerCore 분리 완료 2026-10-30, 서버 구조는 `Server/CLAUDE.md`)
 **Claude가 못 보는 것:** 에디터의 애니메이션·이펙트 모양. 스크린샷이나 블루프린트 노드 복사 텍스트(Ctrl+C)를 붙여넣어 확인합니다.
 **주의:**
 - UE 빌드는 에디터가 켜져 있으면 Live Coding 때문에 막히니, C++를 고칠 일이 생기면 에디터를 닫아야 합니다.
@@ -55,7 +55,7 @@
 - [x] C-3 미사용 에셋 삭제 (2026-10-30 완료: uemcp 참조 검사 0건·리디렉터 없음, PIE(C-1 몫 포함) 로그인·이동·전사/궁수 공격·스킬·HUD·몬스터 공격/사망/리스폰 확인): `WBP_Info`(+`InfoWidgetClass`·`WidgetNames::MainInfo`), `WBP_Inventory`, `AM_Greystone_Skill1`, `IA_Jump`, `IMC_MouseLook` 삭제. Rampage 일반공격 몽타주를 SkillTable 301 `Montage`(`AM_Rampage_Attack`)로 지정
 - [x] U1 시스템 메시지 창 + 방 입장 대기 (2026-10-30 추가·완료, `DECISIONS.md`. PIE 확인): 공용 모달 `WBP_SystemMessage`(`USystemMessageWidget`, `UJMUIManager::ShowSystemMessage` — Notice는 확인 버튼·반투명 배경, Waiting은 버튼 없음·불투명 검정 배경, FIFO 큐). 로그인 실패·가입 결과(`TxtResult` 대체)·서버 연결 실패(로그인/가입 버튼에서 재연결). 로그인 성공 → "방에 입장하는 중..." 동안 `UDataManager::PreloadGameAssets`(영웅·스킬 에셋)로 투명 캐릭터와 스킬 첫 사용 끊김 해결 → 내 캐릭터 스폰 시 닫힘. 이후: 로딩 이미지, 연결 끊김, 거래 결과에 사용
 - [x] C-4 채팅 복구(A2.6 완료 처리) (2026-10-30 완료, `DECISIONS.md`·`TESTING.md`): `CS_CHAT` → 서버 검증(`PacketHandler::SanitizeChat`: 제어 문자·앞뒤 공백 제거, 빈 채팅 무시, 100자 자르기) + 도배 방지(0.5초, Room 잡) → 같은 방 전체에 `SC_CHAT`(`sender_name` 추가, 로그인 때 `Player`에 이름 보관) → 클라이언트 `SendChat`·`Handle_SC_CHAT`·`ChatWidget`("이름: 내용", 기록 최대 100줄). 채팅 키는 J 유지
-- [ ] C-5 소스 폴더 구조화: `Server/Server`를 Network/Packet/Job/DB/Data/Game(Object·Room·NavMesh)/Utils로(`git mv`, include 경로는 vcxproj), 클라이언트 `JMGameInstance` → `Game/`
+- [x] C-5 소스 폴더 구조화 (2026-10-30 완료, 사용자 결정으로 범위 확대: **ServerCore 정적 라이브러리 분리**, `DECISIONS.md`): C-5a 의존 끊기(`Session` 가상 훅 + `GameSession`, `NetStats`, `SessionFactory`, `CoreUtils`/`MathUtils`) → C-5b `Server/ServerCore`(Network/Job/DB/Utils, `CorePch.h`) + GameServer 도메인 폴더(Session/Packet/DB/Data/Game(Object·Combat·Room·World·Lobby)/Utils), include는 루트 기준 경로 → C-5c 클라이언트 `JMGameInstance` → `Game/`. 동작 변경 없음, 단계마다 회귀
 - [ ] C-6 DummyClient = LoadTest 시각화: LoadTest를 `BotEngine` + 콘솔 main으로 분리, DummyClient는 같은 엔진 + OpenGL 탑다운 화면(봇·몬스터·통계), UTF-8
 
 ### S. 서버 권위 이동 (2026-10-30 `TODO.md` 백로그에서 승격, 정리 다음·A1 앞)

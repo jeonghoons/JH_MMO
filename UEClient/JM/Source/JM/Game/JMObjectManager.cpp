@@ -1,5 +1,5 @@
 #include "Game/JMObjectManager.h"
-#include "JMGameInstance.h"
+#include "Game/JMGameInstance.h"
 #include "Network/NetworkManager.h"
 #include "Player/JMMyPlayer.h"
 #include "Player/JMPlayer.h"

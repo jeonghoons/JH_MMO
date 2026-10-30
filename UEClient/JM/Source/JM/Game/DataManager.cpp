@@ -3,7 +3,7 @@
 #include "Engine/DataTable.h"
 #include "Engine/StreamableManager.h"
 #include "Data/CharacterAssetData.h"
-#include "JMGameInstance.h"
+#include "Game/JMGameInstance.h"
 
 const FMovementTableRow* UDataManager::FindMovementRow(int32 Id) const
 {

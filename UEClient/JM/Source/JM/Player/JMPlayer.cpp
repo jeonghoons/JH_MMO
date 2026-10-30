@@ -1,5 +1,5 @@
 ﻿#include "Player/JMPlayer.h"
-#include "JMGameInstance.h"
+#include "Game/JMGameInstance.h"
 #include "Data/CharacterAssetData.h"
 
 AJMPlayer::AJMPlayer()

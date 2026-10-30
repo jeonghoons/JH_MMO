@@ -1,5 +1,5 @@
 ﻿#include "Character/JMCharacterBase.h"
-#include "JMGameInstance.h"
+#include "Game/JMGameInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"

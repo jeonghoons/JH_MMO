@@ -13,7 +13,8 @@ msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:DummyClient
 msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:NavGenerator
 ```
 
-- `GameServer` (`Server/Server/Server.vcxproj`) — 실제 게임 서버, 진입점은 `gameserver.cpp`.
+- `ServerCore` (`Server/ServerCore/ServerCore.vcxproj`) — 게임과 무관한 서버 기반을 담은 **정적 라이브러리**(Network/Job/DB/Utils). `GameServer`가 ProjectReference로 링크하므로 따로 빌드할 필요는 없습니다.
+- `GameServer` (`Server/Server/Server.vcxproj`) — 실제 게임 서버, 진입점은 `gameserver.cpp`. 실행은 작업 폴더를 `Server/Server`로 두고 합니다(`Resource/`·DataTable 상대 경로). MSBuild로 프로젝트만 빌드할 때는 `/p:SolutionDir=<Server 폴더>\`를 넘깁니다.
 - `LoadTest` (`Server/LoadTest/`) — 헤드리스 콘솔 부하 테스트 봇. `--bots --ramp-rate --duration` 등 런타임 인자로 동작하고 지연(RTT)·처리량·서버 CPU를 CSV로 기록합니다. 사용법은 [Docs/TESTING.md](../Docs/TESTING.md) 참고.
 - `DummyClient` (`Server/DummyClient/`) — OpenGL 시각화가 붙은 구형 봇 클라이언트(소스가 CP949라 수정이 어렵고, `Protocol/` 복사본은 `GanPackets.bat`이 갱신하지 않음). UE 클라이언트 없이 서버 로직을 눈으로 확인할 때만 사용. 봇 개수는 런타임 인자가 아니라 `pch.h`의 `MAX_TEST`(현재 50000)/`MAX_CLIENTS`(=`MAX_TEST * 2`) 상수로 컴파일타임에 정해지므로, 바꾸려면 값을 고치고 재빌드해야 합니다. 수동 검증 절차는 [Docs/TESTING.md](../Docs/TESTING.md) 참고.
 - `NavGenerator` (`Server/NavGenerator/`) — Recast/Detour 내비메시 데이터를 오프라인으로 생성하는 도구. 사용법: `NavGenerator.exe <GeoBinPath> <NavOutputPath>` (인자를 생략하면 기본 맵 `ParagonSample`을 사용해 `../MapResource/Export/<맵>/Geometry/<맵>_Geo.bin`을 읽어 `../Server/Resource/Map/<맵>_Geo.nav`로 출력). **UE에서 맵 지오메트리를 다시 export할 때마다 재실행해야 합니다.** 런타임에는 `NavmeshManager`가 이 출력을 사용합니다.
@@ -24,16 +25,21 @@ msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:NavGenerator
 
 ## 서버 아키텍처
 
-서버는 단일 프로세스 · 멀티스레드 IOCP 서버이며, 다음 흐름으로 구성됩니다: 네트워크 I/O → 커넥션별 `Session` → `PacketHandler` → 게임 로직이 오너별 `JobQueue` 위의 `Job`으로 디스패치됨.
+서버는 단일 프로세스 · 멀티스레드 IOCP 서버이며, 다음 흐름으로 구성됩니다: 네트워크 I/O → 커넥션별 `Session`(게임 쪽은 `GameSession`) → `PacketHandler` → 게임 로직이 오너별 `JobQueue` 위의 `Job`으로 디스패치됨.
+
+**계층과 폴더 (2026-10-30 C-5)** — 의존은 GameServer → ServerCore 한 방향입니다.
+- `ServerCore/` (정적 라이브러리, 미리 컴파일 헤더 `CorePch.h`): `Network/`(IocpCore, IocpEvent, Listener, NetAddress, ServerService, Session, SendBuffer, RecvBuffer, NetStats) · `Job/`(Job, JobQueue, Timer) · `DB/`(DBConnection, DBConnectionPool) · `Utils/`(RWLock, ConcurrentQueue, CsvFile, CoreUtils). **ServerCore는 Protocol·게임 헤더를 include하지 않습니다.** 게임이 필요하면 가상 훅(`Session::OnConnected/OnDisconnected/OnRecvPacket`)이나 주입(`ServerService`의 `SessionFactory`)으로 연결합니다.
+- `Server/` (GameServer, `pch.h` = `CorePch.h` + Protocol + 게임 공용 헤더): `Session/`(GameSession) · `Packet/`(PacketHandler, PacketSerializer) · `DB/`(DatabaseWorker) · `Data/`(ServerData) · `Game/Object/`(GameObject, Character, Player, Monster, StatComponent) · `Game/Combat/`(CombatProcessor) · `Game/Room/`(Room, RoomManager) · `Game/World/`(GameMap, NavmeshManager) · `Game/Lobby/`(AuthLobby) · `Utils/`(MathUtils, Metrics) · `Protocol/`(생성 코드) · `Resource/`.
+- `#include`는 프로젝트 루트 기준 경로로 씁니다(`"Network/Session.h"`, `"Game/Room/Room.h"`). GameServer의 include 경로는 `$(ProjectDir)`와 `$(SolutionDir)ServerCore`이므로 **두 프로젝트에 같은 파일 이름을 만들지 않습니다.** 새 파일은 vcxproj와 `.filters`에 같은 폴더로 추가합니다.
 
 - **IOCP 코어** (`IocpCore`, `IocpEvent`, `Listener`, `ServerService`): accept/recv/send 완료 루프를 직접 처리합니다. `gameserver.cpp`의 `worker_thread`는 `IocpCore::Dispatch()`를 반복 호출할 뿐이며, 네트워크 스레드 자체에는 로직이 없습니다.
 - **Job/JobQueue 패턴** (`Job.h`, `JobQueue.h`): 서버의 동시성 모델입니다. 여러 IOCP 워커 스레드에서 안전하게 접근해야 하는 객체(실제로는 `Room`)는 `JobQueue`를 소유하고, 그 큐에서 실행되는 `Job` 안에서만 자기 상태를 변경합니다(`Room::PushJob` / `Room::ReserveJob`). `JobQueue` 자체도 `IocpObject`라서, Job을 push하면 완료 이벤트가 포스트되어 IOCP 워커 스레드가 이를 집어서 처리합니다(`ExecuteJobs`). **`Room`의 내부 상태는 절대 Job 밖에서 직접 건드리지 말고 반드시 `PushJob`/`ReserveJob`을 통해야 합니다.**
-- **세션 & 패킷**: `Session`이 `RecvBuffer`/`SendBuffer`를 소유합니다. `PacketHandler::ProcessPacket`이 원시 바이트를 `PacketId`(`Common/Protocol/Enum.proto` 참고)로 구분되는 Protobuf 메시지로 파싱하고, `GPacketHandler` 테이블을 통해 `Handle_CS_*` 함수로 디스패치합니다.
+- **세션 & 패킷**: `Session`(코어)이 `RecvBuffer`/`SendBuffer`와 패킷 경계(`PacketHeader`, `MAX_PACKET_SIZE`)를 처리하고, 패킷 하나마다 `OnRecvPacket`을 부릅니다. `GameSession`이 `_currPlayer`를 갖고 `PacketHandler::ProcessPacket`으로 넘기며, 접속이 끊기면 `OnDisconnected`에서 방 퇴장 Job을 넣습니다. `PacketHandler::ProcessPacket`이 원시 바이트를 `PacketId`(`Common/Protocol/Enum.proto` 참고)로 구분되는 Protobuf 메시지로 파싱하고, `GPacketHandler` 테이블을 통해 `Handle_CS_*` 함수로 디스패치합니다.
 - **월드 모델**: `RoomManager`가 하나 이상의 `Room`을 소유합니다(현재는 시작 시 단일 룸만 생성). 각 `Room`은 자신의 `GameMap`(영역 관심(AOI)/시야 컬링용 균일 격자 `Cell` — `ViewUpdate`, `Room::UpdateView`, `BroadcastAOI` 참고)과 자신의 `NavmeshManager`(이동 검증 및 몬스터 경로탐색용 Recast/Detour 내비메시, `NavGenerator`로 오프라인 생성)를 각각 소유합니다.
 - **엔티티**: `GameObject` → `Character` → `Player` / `Monster`. 전투 판정은 `CombatProcessor`와 `Room::CharacterAttack` / `ExecuteSkillHit` / `ApplyDelayedDamage`를 거치며, 스킬/캐릭터 밸런스 데이터는 `DataManager`(`ServerData.h`/`.cpp`)가 `Common/DataTable/StatTable.csv`, `SkillTable.csv`를 읽어 제공합니다(`CsvFile`이 파서).
 - **영속성(Persistence)**: `DBConnection`/`DBConnectionPool`/`DatabaseWorker`가 raw ODBC(`sql.h`/`sqlext.h`) 호출로 SQL Server를 래핑합니다. `DatabaseWorker`는 IOCP 스레드를 막지 않도록 전용 큐에서 DB 작업을 비동기로 처리합니다. 연결 문자열은 `DatabaseWorker.cpp`에 하드코딩돼 있습니다 (`Driver={ODBC Driver 17 for SQL Server};Server=.\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;`) — Windows 통합 인증이라 비밀번호는 없습니다. 로컬에서 서버를 실행하려면 SQL Server Express(기본 인스턴스명 `SQLEXPRESS`)와 ODBC Driver 17이 설치돼 있고 `GameServer` DB가 있어야 합니다. DB 스키마는 `Server/Resource/DB/schema.sql`(새 DB 생성용)에 있고, 기존 DB를 바꾸는 변경은 `Server/Resource/DB/migrations/<날짜>_<내용>.sql`로 남긴 뒤 실행하고 `schema.sql`도 함께 갱신합니다(실행 전 `BACKUP DATABASE`). 테이블: `User_Account`, `User_Info`, `Player_Info`, `Player_Equipped`(2026-10-28 미사용 테이블·열 정리).
 - **인증/로비**: `AuthLobby`가 `Player`가 `Room`에 들어가기 전 로그인/회원가입을 처리합니다.
-- **`pch.h`**: 프로젝트 전역 미리 컴파일된 헤더입니다 — Windows/Winsock/ODBC/DirectXMath 헤더, 생성된 `Protocol.pb.h`, 그리고 전역 싱글턴(`GRoomManager`, `GTimer`, `GDBWorker`, `GLobby` — `pch.h`에 `extern`으로 선언, `gameserver.cpp`에 정의)을 여기서 끌어옵니다.
+- **`pch.h`**: GameServer 미리 컴파일된 헤더입니다 — `CorePch.h`(Windows/Winsock/ODBC·코어 유틸) 위에 DirectXMath, 생성된 `Protocol.pb.h`, 그리고 전역 싱글턴(`GRoomManager`, `GTimer`, `GDBWorker`, `GLobby` — `pch.h`에 `extern`으로 선언, `gameserver.cpp`에 정의)을 여기서 끌어옵니다.
 
 ## 네이밍 컨벤션
 

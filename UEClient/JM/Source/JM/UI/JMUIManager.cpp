@@ -4,7 +4,7 @@
 #include "Player/GameplayInputMode.h"
 #include "UI/SystemMessageWidget.h"
 #include "UI/WidgetNames.h"
-#include "JMGameInstance.h"
+#include "Game/JMGameInstance.h"
 
 UUserWidget* UJMUIManager::RegisterWidget(APlayerController* PC, FName WidgetName, TSubclassOf<UUserWidget> WidgetClass, bool bIsWindow, int32 ZOrder, bool bStartVisible)
 {
