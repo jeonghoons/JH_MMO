@@ -106,6 +106,10 @@ struct Bot
 	long long lastMoveSentUs = 0;
 	uint32_t correctionSeq = 0; // 서버가 보낸 마지막 보정 순번. CS_MOVE에 실어 보낸다
 	long long windowBytes = 0;  // 이번 리포트 구간에 받은 바이트(봇 1명당 최대 수신량 지표)
+	// 무작위 이동: 목표 지점을 정해 몇 초씩 그쪽으로 걷는다(매번 방향을 바꾸면 클라이언트에서 제자리 미끄러짐으로 보인다)
+	bool hasGoal = false;
+	float goalX = 0, goalY = 0;
+	long long goalUntilUs = 0;
 	int windowEpoch = -1;
 };
 
@@ -348,6 +352,7 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 			b.correctionSeq = pkt.correction_seq();
 			GStat.moveCorrected.fetch_add(1);
 			b.moveFailures = min(b.moveFailures + 3, 8);
+			b.hasGoal = false;   // 막혔으면 무작위 이동 목표를 새로 고른다
 			// 서버가 벽 통과를 막으므로 직선으로 못 가는 스폰이 있다. 같은 목표로 여러 번 막히면 다른 스폰을 고른다.
 			if (++b.blockedCount >= 6 && !GMonsterSpawns.empty())
 			{
@@ -533,21 +538,35 @@ static void WorkerMain(int workerIndex, int workerCount)
 					}
 					else
 					{
-						switch (rand() % 4)
+						// 목표 지점으로 걷는다. 도착·시간 초과(10초)·막힘(보정)이면 새 목표: 10~30m 떨어진 임의 지점,
+						// 핫존 안이면 존 반경 안의 임의 지점(길 찾기는 없다 — 막히면 다른 목표로 바꿀 뿐).
+						float gdx = b.goalX - b.x, gdy = b.goalY - b.y;
+						float goalDist = sqrtf(gdx * gdx + gdy * gdy);
+						if (!b.hasGoal || goalDist < 100.f || now >= b.goalUntilUs)
 						{
-						case 0: nx -= step; yaw = 180.f; break;
-						case 1: nx += step; yaw = 0.f; break;
-						case 2: ny -= step; yaw = -90.f; break;
-						default: ny += step; yaw = 90.f; break;
-						}
-						// 핫존 안에서는 반경을 벗어나는 걸음을 반대로 돌린다.
-						if (GConfig.zone && zoneDist <= GConfig.zoneR)
-						{
-							const float ex = nx - GConfig.zoneX, ey = ny - GConfig.zoneY;
-							if (ex * ex + ey * ey > GConfig.zoneR * GConfig.zoneR)
+							const float angle = (rand() % 3600) * 0.1f * 3.14159265f / 180.f;
+							if (GConfig.zone && zoneDist <= GConfig.zoneR)
 							{
-								nx = b.x - (nx - b.x); ny = b.y - (ny - b.y); yaw += 180.f;
+								const float d = GConfig.zoneR * sqrtf((rand() % 1000) / 1000.f);
+								b.goalX = GConfig.zoneX + cosf(angle) * d;
+								b.goalY = GConfig.zoneY + sinf(angle) * d;
 							}
+							else
+							{
+								const float d = 1000.f + (rand() % 2000);
+								b.goalX = b.x + cosf(angle) * d;
+								b.goalY = b.y + sinf(angle) * d;
+							}
+							b.hasGoal = true;
+							b.goalUntilUs = now + 10'000'000LL;
+							gdx = b.goalX - b.x; gdy = b.goalY - b.y;
+							goalDist = sqrtf(gdx * gdx + gdy * gdy);
+						}
+						if (goalDist > 1.f)
+						{
+							const float stride = min(goalDist, step);
+							nx = b.x + gdx / goalDist * stride; ny = b.y + gdy / goalDist * stride;
+							yaw = atan2f(gdy, gdx) * 180.f / 3.14159265f;
 						}
 						if (b.moveFailures > 0) --b.moveFailures;   // 무작위 이동을 몇 번 하면 다시 스폰(또는 핫존) 쪽으로 향한다
 					}
