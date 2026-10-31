@@ -145,6 +145,7 @@
     <ClInclude Include="Network\ServerService.h" />
     <ClInclude Include="Network\Session.h" />
     <ClInclude Include="Utils\ConcurrentQueue.h" />
+    <ClInclude Include="Utils\ConfigFile.h" />
     <ClInclude Include="Utils\CoreUtils.h" />
     <ClInclude Include="Utils\CsvFile.h" />
     <ClInclude Include="Utils\RWLock.h" />
@@ -170,6 +171,7 @@
     <ClCompile Include="Network\ServerService.cpp" />
     <ClCompile Include="Network\Session.cpp" />
     <ClCompile Include="Utils\ConcurrentQueue.cpp" />
+    <ClCompile Include="Utils\ConfigFile.cpp" />
     <ClCompile Include="Utils\CoreUtils.cpp" />
     <ClCompile Include="Utils\CsvFile.cpp" />
     <ClCompile Include="Utils\RWLock.cpp" />

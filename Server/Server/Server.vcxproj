@@ -157,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DB\DatabaseWorker.h" />
+    <ClInclude Include="Data\ServerConfig.h" />
     <ClInclude Include="Data\ServerData.h" />
     <ClInclude Include="Game\Combat\CombatProcessor.h" />
     <ClInclude Include="Game\Lobby\AuthLobby.h" />
@@ -177,6 +178,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DB\DatabaseWorker.cpp" />
+    <ClCompile Include="Data\ServerConfig.cpp" />
     <ClCompile Include="Data\ServerData.cpp" />
     <ClCompile Include="Game\Combat\CombatProcessor.cpp" />
     <ClCompile Include="Game\Lobby\AuthLobby.cpp" />
@@ -247,6 +249,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="ServerConfig.ini" />
     <None Include="..\..\Common\Protocol\Enum.proto" />
     <None Include="..\..\Common\Protocol\Protocol.proto" />
     <None Include="..\..\Common\Protocol\Struct.proto" />

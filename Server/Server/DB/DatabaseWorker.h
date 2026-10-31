@@ -15,7 +15,7 @@ struct UserAccount
 class DatabaseWorker : public enable_shared_from_this<DatabaseWorker>
 {
 public:
-	DatabaseWorker(HANDLE iocpHandle, int num_connections);
+	DatabaseWorker(HANDLE iocpHandle, int num_connections, const wstring& connectionString);
 	~DatabaseWorker();
 	
 public:

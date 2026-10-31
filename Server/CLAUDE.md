@@ -38,7 +38,7 @@ msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:NavGenerator
 - **세션 & 패킷**: `Session`(코어)이 `RecvBuffer`/`SendBuffer`와 패킷 경계(`PacketHeader`, `MAX_PACKET_SIZE`)를 처리하고, 패킷 하나마다 `OnRecvPacket`을 부릅니다. `GameSession`이 `_currPlayer`를 갖고 `PacketHandler::ProcessPacket`으로 넘기며, 접속이 끊기면 `OnDisconnected`에서 방 퇴장 Job을 넣습니다. `PacketHandler::ProcessPacket`이 원시 바이트를 `PacketId`(`Common/Protocol/Enum.proto` 참고)로 구분되는 Protobuf 메시지로 파싱하고, `GPacketHandler` 테이블을 통해 `Handle_CS_*` 함수로 디스패치합니다.
 - **월드 모델**: `RoomManager`가 하나 이상의 `Room`을 소유합니다(현재는 시작 시 단일 룸만 생성). 각 `Room`은 자신의 `GameMap`(영역 관심(AOI)/시야 컬링용 균일 격자 `Cell` — `ViewUpdate`, `Room::UpdateView`, `BroadcastAOI` 참고)과 자신의 `NavmeshManager`(이동 검증 및 몬스터 경로탐색용 Recast/Detour 내비메시, `NavGenerator`로 오프라인 생성)를 각각 소유합니다.
 - **엔티티**: `GameObject` → `Character` → `Player` / `Monster`. 전투 판정은 `CombatProcessor`와 `Room::CharacterAttack` / `ExecuteSkillHit` / `ApplyDelayedDamage`를 거치며, 스킬/캐릭터 밸런스 데이터는 `DataManager`(`ServerData.h`/`.cpp`)가 `Common/DataTable/StatTable.csv`, `SkillTable.csv`를 읽어 제공합니다(`CsvFile`이 파서).
-- **영속성(Persistence)**: `DBConnection`/`DBConnectionPool`/`DatabaseWorker`가 raw ODBC(`sql.h`/`sqlext.h`) 호출로 SQL Server를 래핑합니다. `DatabaseWorker`는 IOCP 스레드를 막지 않도록 전용 큐에서 DB 작업을 비동기로 처리합니다. 연결 문자열은 `DatabaseWorker.cpp`에 하드코딩돼 있습니다 (`Driver={ODBC Driver 17 for SQL Server};Server=.\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;`) — Windows 통합 인증이라 비밀번호는 없습니다. 로컬에서 서버를 실행하려면 SQL Server Express(기본 인스턴스명 `SQLEXPRESS`)와 ODBC Driver 17이 설치돼 있고 `GameServer` DB가 있어야 합니다. DB 스키마는 `Server/Resource/DB/schema.sql`(새 DB 생성용)에 있고, 기존 DB를 바꾸는 변경은 `Server/Resource/DB/migrations/<날짜>_<내용>.sql`로 남긴 뒤 실행하고 `schema.sql`도 함께 갱신합니다(실행 전 `BACKUP DATABASE`). 테이블: `User_Account`, `User_Info`, `Player_Info`, `Player_Equipped`(2026-10-28 미사용 테이블·열 정리).
+- **영속성(Persistence)**: `DBConnection`/`DBConnectionPool`/`DatabaseWorker`가 raw ODBC(`sql.h`/`sqlext.h`) 호출로 SQL Server를 래핑합니다. `DatabaseWorker`는 IOCP 스레드를 막지 않도록 전용 큐에서 DB 작업을 비동기로 처리합니다. 연결 문자열은 `ServerConfig.ini`의 `[Database] ConnectionString`(기본 `Driver={ODBC Driver 17 for SQL Server};Server=.\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;`)에서 읽습니다 — Windows 통합 인증이라 비밀번호는 없고, 비밀번호가 필요한 DB는 파일 대신 환경변수 `JH_DB_CONNECTION`으로 줍니다(아래 "서버 설정"). 로컬에서 서버를 실행하려면 SQL Server Express(기본 인스턴스명 `SQLEXPRESS`)와 ODBC Driver 17이 설치돼 있고 `GameServer` DB가 있어야 합니다. DB 스키마는 `Server/Resource/DB/schema.sql`(새 DB 생성용)에 있고, 기존 DB를 바꾸는 변경은 `Server/Resource/DB/migrations/<날짜>_<내용>.sql`로 남긴 뒤 실행하고 `schema.sql`도 함께 갱신합니다(실행 전 `BACKUP DATABASE`). 테이블: `User_Account`, `User_Info`, `Player_Info`, `Player_Equipped`(2026-10-28 미사용 테이블·열 정리).
 - **인증/로비**: `AuthLobby`가 `Player`가 `Room`에 들어가기 전 로그인/회원가입을 처리합니다.
 - **`pch.h`**: GameServer 미리 컴파일된 헤더입니다 — `CorePch.h`(Windows/Winsock/ODBC·코어 유틸) 위에 DirectXMath, 생성된 `Protocol.pb.h`, 그리고 전역 싱글턴(`GRoomManager`, `GTimer`, `GDBWorker`, `GLobby` — `pch.h`에 `extern`으로 선언, `gameserver.cpp`에 정의)을 여기서 끌어옵니다.
 
@@ -52,6 +52,12 @@ Server 코드는 별도 접두사 규칙 없이 기능 위주로 클래스/함�
 
 - `Room`의 내부 상태는 절대 `PushJob`/`ReserveJob` 밖에서 직접 변경하지 마세요 — 여러 IOCP 워커 스레드가 동시에 접근하는 객체이므로 레이스 컨디션이 발생합니다.
 - 플레이어 이동은 `Room::PlayerMove`가 검증합니다(서버 권위 이동, S1 — [Docs/DESIGN_CONTROL_CAMERA.md](../Docs/DESIGN_CONTROL_CAMERA.md)). 보정은 `Player::moveGuard.correctionSeq`를 올리고 본인에게만 `SC_MOVE_OBJECT`를 보내며, 순번이 다른 이동은 버립니다. 검증 허용치는 `MovementTable`의 `Server*` 열, 속도는 `StatTable.MoveSpeed`입니다. 결과는 `[metrics]`의 `move(total ok/speed/nav/bad/stale/rate)`로 봅니다.
+
+## 서버 설정 (ServerConfig.ini)
+
+운영 값(포트, 바인드 IP, IOCP 워커 수, DB 연결 문자열·연결 수, 로그 레벨)은 `Data/ServerConfig`(`GServerConfig`)가 시작할 때 읽습니다. 게임 수치는 여기 두지 않고 DataTable에 둡니다. 우선순위(뒤가 앞을 덮어씀): 코드 기본값 → `Server/Server/ServerConfig.ini`(커밋) → 같은 폴더의 `ServerConfig.local.ini`(있으면, 커밋하지 않음) → 환경변수 `JH_DB_CONNECTION` → 명령줄 `--config <경로>`·`--port <n>`. 설정 파일이 없거나 모르는 키·잘못된 값이 있으면 줄 번호와 이유를 출력하고 시작을 중단합니다. 시작 로그의 `[config]` 줄에 적용된 값과 출처가 찍힙니다(`PWD`는 가림). 다른 PC에서 봇을 붙이려면 `BindIp=0.0.0.0`. 새 키는 `ServerConfig.cpp`의 `ApplyFile`과 `Print`에 추가하고 `ServerConfig.ini`에도 적습니다. INI 파서는 ServerCore `Utils/ConfigFile`(값 뒤 주석은 지원하지 않음).
+
+시작 순서 주의: 시작 실패 시 `exit()`가 전역 소멸자에서 끝나지 않는 스레드(`GTimer`, DB 작업 스레드)를 join하며 멈추므로, 실패할 수 있는 단계(설정 → DataTable → 포트 → DB 연결)를 스레드를 만드는 단계보다 먼저 둡니다.
 
 ## 데이터 테이블 (CSV 로더)
 

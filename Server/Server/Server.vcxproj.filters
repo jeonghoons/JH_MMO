@@ -54,6 +54,9 @@
     <ClInclude Include="DB\DatabaseWorker.h">
       <Filter>DB</Filter>
     </ClInclude>
+    <ClInclude Include="Data\ServerConfig.h">
+      <Filter>Data</Filter>
+    </ClInclude>
     <ClInclude Include="Data\ServerData.h">
       <Filter>Data</Filter>
     </ClInclude>
@@ -116,6 +119,9 @@
   <ItemGroup>
     <ClCompile Include="DB\DatabaseWorker.cpp">
       <Filter>DB</Filter>
+    </ClCompile>
+    <ClCompile Include="Data\ServerConfig.cpp">
+      <Filter>Data</Filter>
     </ClCompile>
     <ClCompile Include="Data\ServerData.cpp">
       <Filter>Data</Filter>

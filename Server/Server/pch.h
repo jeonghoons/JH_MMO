@@ -29,9 +29,7 @@ using namespace DirectX;
 #include "Game/Lobby/AuthLobby.h"
 #include "Utils/MathUtils.h"
 #include "Data/ServerData.h"
-
-
-constexpr uint16_t PORT_NUM = 8888;
+#include "Data/ServerConfig.h"
 
 
 extern unique_ptr<RoomManager> GRoomManager;

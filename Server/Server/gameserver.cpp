@@ -22,15 +22,22 @@ void worker_thread(shared_ptr<ServerService> service)
 	}
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+	string configErr;
+	if (GServerConfig.Load(argc, argv, configErr) == false) {
+		printf("[config] %s\n설정 오류로 서버를 시작할 수 없습니다.\n", configErr.c_str());
+		exit(-1);
+	}
+	GServerConfig.Print();
+
 	if (DataManager::Init() == false) {
 		printf("DataTable 로드에 실패해 서버를 시작할 수 없습니다.\n");
 		exit(-1);
 	}
 
 	shared_ptr<ServerService> service = make_shared<ServerService>(
-		NetAddress(L"127.0.0.1", PORT_NUM),
+		NetAddress(Utils::UTF8ToWString(GServerConfig.bindIp), (USHORT)GServerConfig.port),
 		make_shared<IocpCore>(),
 		[]() { return make_shared<GameSession>(); }
 	);
@@ -42,16 +49,20 @@ int main()
 	else
 		cout << "Service Start" << endl;
 
+	// 시작 실패 시 exit()가 전역 소멸자에서 끝나지 않는 스레드(GTimer, DB 작업 스레드)를 join하며 멈추지 않도록,
+	// 실패할 수 있는 단계(포트 → DB 연결)를 스레드를 만드는 단계보다 먼저 한다.
+	GDBWorker = make_shared<DatabaseWorker>(service->GetIocpInstance()->GetHandle(), GServerConfig.dbConnections,
+		Utils::UTF8ToWString(GServerConfig.dbConnectionString));
+
 	PacketHandler::Init();
 	GTimer = make_shared<Timer>();
-	GDBWorker = make_shared<DatabaseWorker>(service->GetIocpInstance()->GetHandle(), 4);
 	GRoomManager = make_unique<RoomManager>(service->GetIocpInstance()->GetHandle());
 	GRoomManager->CreateRoom();
 	GLobby = make_shared<AuthLobby>(service->GetIocpInstance()->GetHandle());
 	Metrics::StartReporter();
 	
 	vector<thread> threads;
-	int num_threads = thread::hardware_concurrency() / 2;
+	int num_threads = GServerConfig.ResolvedWorkerThreads();
 	for (int i = 0; i < num_threads; ++i) {
 		threads.emplace_back(worker_thread, service);
 	}

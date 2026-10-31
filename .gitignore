@@ -44,6 +44,9 @@ Server/**/*.map
 Server/**/*.db
 Server/**/*.opendb
 
+# 서버 설정: 개인 PC용 덮어쓰기 파일 (ServerConfig.ini는 커밋)
+Server/**/ServerConfig.local.ini
+
 # 서버 빌드 출력 디렉토리 전체 차단 (JMServer 내부 포함)
 Server/**/[Xx]64/
 Server/**/[Xx]86/

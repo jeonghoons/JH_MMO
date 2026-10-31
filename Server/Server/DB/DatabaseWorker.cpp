@@ -2,12 +2,11 @@
 #include "DB/DatabaseWorker.h"
 #include "Game/Object/Player.h"
 
-DatabaseWorker::DatabaseWorker(HANDLE iocpHandle, int num_connections) : _iocpHandle(iocpHandle)
+// 연결 문자열은 ServerConfig([Database] ConnectionString 또는 환경변수 JH_DB_CONNECTION)에서 받는다.
+DatabaseWorker::DatabaseWorker(HANDLE iocpHandle, int num_connections, const wstring& connectionString) : _iocpHandle(iocpHandle)
 {
-	// const WCHAR* connectionPath = L"Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-0I9E8CG\\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;";
-	const WCHAR* connectionPath = L"Driver={ODBC Driver 17 for SQL Server};Server=.\\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;";
 	_dbConnectionPool = make_unique<DBConnectionPool>();
-	if (false == _dbConnectionPool->Connect(num_connections, connectionPath))
+	if (false == _dbConnectionPool->Connect(num_connections, connectionString.c_str()))
 	{
 		std::cout << "DB Connect 오류 !" << std::endl;
 		exit(-1);
