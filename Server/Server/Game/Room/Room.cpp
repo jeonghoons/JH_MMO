@@ -17,14 +17,14 @@ void Room::InitRoom()
 {
 	if (!_gameMap.LoadMapData("ParagonSample"))
 	{
-		cout << "[Room] 맵 초기화(LoadMapData) 중 일부 문제가 발생했습니다." << endl;
+		LOG_ERROR("Room", "맵 초기화(LoadMapData) 중 일부 문제가 발생했습니다.");
 	}
 	_gameMap.Init(weak_from_this());
 
 	const auto& monsterSpawns = _gameMap.GetMonsterSpawns();
 	if (monsterSpawns.empty())
 	{
-		cout << "[Room] 스폰 포인트가 없어 몬스터를 생성할 수 없습니다!" << endl;
+		LOG_ERROR("Room", "스폰 포인트가 없어 몬스터를 생성할 수 없습니다!");
 	}
 	else
 	{
@@ -65,7 +65,7 @@ bool Room::AddObject(shared_ptr<GameObject> object)
 
 	auto [it, success] = _objects.emplace(objectId, object);
 	if (!success) {
-		cout << "Error" << endl;
+		LOG_ERROR("Room", "AddObject: 이미 있는 오브젝트 id {}", objectId);
 		return false;
 	}
 	object->SetOwnerRoom(shared_from_this());
@@ -88,9 +88,8 @@ bool Room::AddObject(shared_ptr<GameObject> object)
 
 	if (_gameMap.IsOutOfBounds(currentPos))
 	{
-		cout << "[경고] 오브젝트 스폰 위치가 맵(NavMesh) 바깥이거나 바닥이 없습니다! ID: " << objectId;
-		cout << ", " << currentPos.x() << ", " << currentPos.y() << ", " << currentPos.z() << endl;
-		
+		LOG_WARN("Room", "오브젝트 스폰 위치가 맵(NavMesh) 바깥이거나 바닥이 없습니다! ID: {}, {}, {}, {}",
+			objectId, currentPos.x(), currentPos.y(), currentPos.z());
 	}
 
 	object->SetPosition(currentPos);
@@ -116,7 +115,7 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	player->moveGuard = {};
 	player->moveGuard.lastAccrueMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 	
-	cout << "Client[" << player->GetId() << "] Enter Room" << endl;
+	LOG_DEBUG("Room", "Client[{}] Enter Room", player->GetId());
 
 	shared_ptr<SendBuffer> objectAddBuffer = PacketSerializer::MAKE_SC_ADD_OBJECT(player);
 	if (auto session = player->GetSession()) {
@@ -136,7 +135,7 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 
 void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 {
-	cout << "Player[" << player->GetId() << "] Leave" << endl;
+	LOG_DEBUG("Room", "Player[{}] Leave", player->GetId());
 
 	int playerId = player->GetId();
 
@@ -147,7 +146,7 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 
 
 	if (false == RemoveObject(playerId)) {
-		cout << "Error" << endl;
+		LOG_ERROR("Room", "LeaveRoom: 방에 없는 플레이어 id {}", playerId);
 	}
 
 	if (_players.erase(playerId) > 0)
@@ -446,7 +445,7 @@ void Room::ApplyDelayedDamage(int targetId, int attackerId, int damage)
 
 	if (!targetChar->GetStat().IsDead())
 	{
-		std::cout << "[Room] Target[" << targetId << "] Dmg: " << damage <<  std::endl;
+		LOG_DEBUG("Room", "Target[{}] Dmg: {}", targetId, damage);
 		targetChar->OnDamaged(damage, attackerId, static_pointer_cast<Character>(attackerObj));
 	}
 }

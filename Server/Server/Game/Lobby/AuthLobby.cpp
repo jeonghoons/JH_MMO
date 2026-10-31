@@ -49,7 +49,7 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
 
     session->Send(sendBuffer);
 
-    wcout << L"[" << playerName << L"] - 로그인 성공 및 객체 생성 완료" << std::endl;
+    LOG_DEBUG("Lobby", "[{}] - 로그인 성공 및 객체 생성 완료", Utils::WStringToUTF8(playerName));
 }
 
 void AuthLobby::OnLoginFailed(shared_ptr<GameSession> session, Protocol::LoginResult result)
@@ -57,7 +57,7 @@ void AuthLobby::OnLoginFailed(shared_ptr<GameSession> session, Protocol::LoginRe
 	if (session->IsConnected() == false) return;
 
 	
-	cout << "Login Failed: " << Protocol::LoginResult_Name(result) << endl;
+	LOG_DEBUG("Lobby", "Login Failed: {}", Protocol::LoginResult_Name(result));
 
 	// 실패도 응답해야 클라이언트가 로그인 화면에서 결과를 보여줄 수 있다.
 	Protocol::SC_LOGIN_INFO_PACKET pkt;

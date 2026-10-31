@@ -6,7 +6,7 @@ ServerService::ServerService(NetAddress address, shared_ptr<IocpCore> iocpCore, 
 {
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		printf("WSAStartup failed with error: %d\n", WSAGetLastError());
+		LOG_ERROR("Network", "WSAStartup failed with error: {}", WSAGetLastError());
 		exit(-1);
 	}
 
@@ -48,7 +48,7 @@ void ServerService::AddSession(shared_ptr<Session> session)
 	RWLock::WriteGuard lock(_lock);
 	auto [it, success] = _sessions.emplace(session->GetId(), session);
 	if (!success) {
-		cout << "Error" << endl;
+		LOG_ERROR("Network", "AddSession: 이미 있는 세션 id {}", session->GetId());
 	}
 }
 
@@ -60,7 +60,7 @@ void ServerService::ReleaseSession(shared_ptr<Session> session)
 
 	auto it = _sessions.find(sessionId);
 	if (it == _sessions.end()) {
-		cout << "Error" << endl;
+		LOG_ERROR("Network", "ReleaseSession: 없는 세션 id {}", sessionId);
 	}
 	else {
 		_sessions.erase(it);

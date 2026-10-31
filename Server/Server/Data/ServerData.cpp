@@ -57,16 +57,16 @@ bool DataManager::Init()
 	fs::path dir;
 	if (!FindDataDir(dir))
 	{
-		std::cout << "[Data] Common/DataTable 폴더를 찾을 수 없습니다. 환경변수 JH_DATA_DIR로 경로를 지정하세요." << std::endl;
+		LOG_ERROR("Data", "Common/DataTable 폴더를 찾을 수 없습니다. 환경변수 JH_DATA_DIR로 경로를 지정하세요.");
 		return false;
 	}
-	std::cout << "[Data] DataTable 경로: " << dir.string() << std::endl;
+	LOG_INFO("Data", "DataTable 경로: {}", dir.string());
 
 	std::string err;
 
 	// StatTable: Name, PlayerType, MaxHp, AttackDamage, AttackSpeed, MoveSpeed
 	CsvFile stat;
-	if (!stat.Load((dir / "StatTable.csv").string(), err)) { std::cout << "[Data] " << err << std::endl; return false; }
+	if (!stat.Load((dir / "StatTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
 	for (const CsvRow& row : stat.Rows())
 	{
@@ -76,17 +76,17 @@ bool DataManager::Init()
 			!row.GetInt("MaxHp", maxHp, err) || !row.GetInt("AttackDamage", attackDamage, err) ||
 			!row.GetFloat("AttackSpeed", attackSpeed, err) || !row.GetFloat("MoveSpeed", moveSpeed, err))
 		{
-			std::cout << "[Data] " << err << std::endl;
+			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
 		if (maxHp <= 0 || attackDamage < 0 || attackSpeed <= 0.f || moveSpeed < 0.f)
 		{
-			std::cout << "[Data] " << stat.Path() << " line " << row.Line() << ": 값이 허용 범위를 벗어났습니다 (MaxHp>0, AttackDamage>=0, AttackSpeed>0, MoveSpeed>=0)" << std::endl;
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (MaxHp>0, AttackDamage>=0, AttackSpeed>0, MoveSpeed>=0)", stat.Path(), row.Line());
 			return false;
 		}
 		if (_characterTable.count(playerType))
 		{
-			std::cout << "[Data] " << stat.Path() << " line " << row.Line() << ": PlayerType " << playerType << " 가 중복되었습니다" << std::endl;
+			LOG_ERROR("Data", "{} line {}: PlayerType {} 가 중복되었습니다", stat.Path(), row.Line(), playerType);
 			return false;
 		}
 		_characterTable[playerType] = { playerType, maxHp, maxHp, attackDamage, attackSpeed, moveSpeed };
@@ -95,7 +95,7 @@ bool DataManager::Init()
 	// SkillTable: Name(=skillId), PlayerType, Slot, TargetingType, HitShape, HitDelayMs, CooldownMs, AnimMs, CastRange,
 	//             Radius, Angle, Range, Width, BaseDamage, ProjSpeed, DurationMs, TickMs
 	CsvFile skill;
-	if (!skill.Load((dir / "SkillTable.csv").string(), err)) { std::cout << "[Data] " << err << std::endl; return false; }
+	if (!skill.Load((dir / "SkillTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
 	for (const CsvRow& row : skill.Rows())
 	{
@@ -111,7 +111,7 @@ bool DataManager::Init()
 			!row.GetInt("BaseDamage", d.baseDamage, err) || !row.GetFloat("ProjSpeed", d.projSpeed, err) ||
 			!row.GetInt("DurationMs", d.durationMs, err) || !row.GetInt("TickMs", d.tickMs, err))
 		{
-			std::cout << "[Data] " << err << std::endl;
+			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
 
@@ -119,14 +119,14 @@ bool DataManager::Init()
 
 		if (!ParseHitShape(shape, d.hitShape))
 		{
-			std::cout << "[Data] " << where << "HitShape '" << shape << "' 는 Sector/Line/Projectile/Zone 중 하나여야 합니다" << std::endl;
+			LOG_ERROR("Data", "{}HitShape '{}' 는 Sector/Line/Projectile/Zone 중 하나여야 합니다", where, shape);
 			return false;
 		}
 		if (targeting == "Targeted") d.targeting = SkillTargeting::Targeted;
 		else if (targeting == "NonTargeted") d.targeting = SkillTargeting::NonTargeted;
 		else
 		{
-			std::cout << "[Data] " << where << "TargetingType '" << targeting << "' 는 Targeted/NonTargeted 중 하나여야 합니다" << std::endl;
+			LOG_ERROR("Data", "{}TargetingType '{}' 는 Targeted/NonTargeted 중 하나여야 합니다", where, targeting);
 			return false;
 		}
 
@@ -134,33 +134,33 @@ bool DataManager::Init()
 			d.castRange < 0.f || d.radius < 0.f || d.angle < 0.f || d.range < 0.f || d.width < 0.f || d.projSpeed < 0.f ||
 			d.durationMs < 0 || d.tickMs < 0)
 		{
-			std::cout << "[Data] " << where << "값이 허용 범위를 벗어났습니다 (Slot 0~5, 나머지 음수 불가, AnimMs>0, 스킬(Slot 1~5)은 CooldownMs>0)" << std::endl;
+			LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (Slot 0~5, 나머지 음수 불가, AnimMs>0, 스킬(Slot 1~5)은 CooldownMs>0)", where);
 			return false;
 		}
 		if (d.targeting == SkillTargeting::Targeted && d.castRange <= 0.f)
 		{
-			std::cout << "[Data] " << where << "Targeted 스킬은 CastRange > 0 이어야 합니다" << std::endl;
+			LOG_ERROR("Data", "{}Targeted 스킬은 CastRange > 0 이어야 합니다", where);
 			return false;
 		}
 		if (d.hitShape == HitShape::Zone && (d.castRange <= 0.f || d.radius <= 0.f || d.durationMs <= 0 || d.tickMs <= 0))
 		{
-			std::cout << "[Data] " << where << "Zone 스킬은 CastRange, Radius, DurationMs, TickMs 가 모두 0보다 커야 합니다" << std::endl;
+			LOG_ERROR("Data", "{}Zone 스킬은 CastRange, Radius, DurationMs, TickMs 가 모두 0보다 커야 합니다", where);
 			return false;
 		}
 		if (_skillTable.count(d.skillId))
 		{
-			std::cout << "[Data] " << where << "skillId " << d.skillId << " 가 중복되었습니다" << std::endl;
+			LOG_ERROR("Data", "{}skillId {} 가 중복되었습니다", where, d.skillId);
 			return false;
 		}
 		if (_characterTable.count(d.ownerType) == 0)
 		{
-			std::cout << "[Data] " << where << "PlayerType " << d.ownerType << " 가 StatTable에 없습니다" << std::endl;
+			LOG_ERROR("Data", "{}PlayerType {} 가 StatTable에 없습니다", where, d.ownerType);
 			return false;
 		}
 		const int slotKey = d.ownerType * 100 + d.slot;
 		if (_skillBySlot.count(slotKey))
 		{
-			std::cout << "[Data] " << where << "PlayerType " << d.ownerType << " 의 Slot " << d.slot << " 이 중복되었습니다" << std::endl;
+			LOG_ERROR("Data", "{}PlayerType {} 의 Slot {} 이 중복되었습니다", where, d.ownerType, d.slot);
 			return false;
 		}
 		_skillTable[d.skillId] = d;
@@ -168,7 +168,7 @@ bool DataManager::Init()
 	}
 	// MonsterTable: Name(=monsterTemplateId), RespawnSec, DeathRemoveDelaySec, HitStunMs
 	CsvFile monster;
-	if (!monster.Load((dir / "MonsterTable.csv").string(), err)) { std::cout << "[Data] " << err << std::endl; return false; }
+	if (!monster.Load((dir / "MonsterTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
 	for (const CsvRow& row : monster.Rows())
 	{
@@ -177,22 +177,22 @@ bool DataManager::Init()
 		if (!row.GetInt("Name", d.templateId, err) || !row.GetInt("RespawnSec", respawnSec, err) ||
 			!row.GetInt("DeathRemoveDelaySec", removeDelaySec, err) || !row.GetInt("HitStunMs", hitStunMs, err))
 		{
-			std::cout << "[Data] " << err << std::endl;
+			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
 		if (respawnSec < 0 || removeDelaySec < 0 || removeDelaySec > respawnSec || hitStunMs < 0 || hitStunMs > 10000)
 		{
-			std::cout << "[Data] " << monster.Path() << " line " << row.Line() << ": 값이 허용 범위를 벗어났습니다 (0 <= DeathRemoveDelaySec <= RespawnSec, 0 <= HitStunMs <= 10000)" << std::endl;
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (0 <= DeathRemoveDelaySec <= RespawnSec, 0 <= HitStunMs <= 10000)", monster.Path(), row.Line());
 			return false;
 		}
 		if (_monsterTable.count(d.templateId))
 		{
-			std::cout << "[Data] " << monster.Path() << " line " << row.Line() << ": monsterTemplateId " << d.templateId << " 가 중복되었습니다" << std::endl;
+			LOG_ERROR("Data", "{} line {}: monsterTemplateId {} 가 중복되었습니다", monster.Path(), row.Line(), d.templateId);
 			return false;
 		}
 		if (_characterTable.count(d.templateId) == 0)
 		{
-			std::cout << "[Data] " << monster.Path() << " line " << row.Line() << ": 템플릿 " << d.templateId << " 의 스탯이 StatTable(PlayerType)에 없습니다" << std::endl;
+			LOG_ERROR("Data", "{} line {}: 템플릿 {} 의 스탯이 StatTable(PlayerType)에 없습니다", monster.Path(), row.Line(), d.templateId);
 			return false;
 		}
 		d.respawnMs = respawnSec * 1000;
@@ -204,7 +204,7 @@ bool DataManager::Init()
 	// MovementTable: Name(=movementId), ServerSpeedTolerance, ServerMoveBudgetMs, ServerMoveSlackCm, ServerMinMoveIntervalMs, ServerNavToleranceCm
 	// (나머지 열은 클라이언트 전용이라 읽지 않는다)
 	CsvFile movement;
-	if (!movement.Load((dir / "MovementTable.csv").string(), err)) { std::cout << "[Data] " << err << std::endl; return false; }
+	if (!movement.Load((dir / "MovementTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
 	for (const CsvRow& row : movement.Rows())
 	{
@@ -213,29 +213,29 @@ bool DataManager::Init()
 			!row.GetInt("ServerMoveBudgetMs", d.moveBudgetMs, err) || !row.GetFloat("ServerMoveSlackCm", d.moveSlackCm, err) ||
 			!row.GetInt("ServerMinMoveIntervalMs", d.minMoveIntervalMs, err) || !row.GetFloat("ServerNavToleranceCm", d.navToleranceCm, err))
 		{
-			std::cout << "[Data] " << err << std::endl;
+			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
 		if (d.speedTolerance < 1.f || d.speedTolerance > 3.f || d.moveBudgetMs <= 0 || d.moveBudgetMs > 10000 ||
 			d.moveSlackCm < 0.f || d.minMoveIntervalMs < 0 || d.minMoveIntervalMs > 1000 || d.navToleranceCm < 0.f || d.navToleranceCm > 100.f)
 		{
-			std::cout << "[Data] " << movement.Path() << " line " << row.Line() << ": 값이 허용 범위를 벗어났습니다 (1 <= ServerSpeedTolerance <= 3, 0 < ServerMoveBudgetMs <= 10000, ServerMoveSlackCm >= 0, 0 <= ServerMinMoveIntervalMs <= 1000, 0 <= ServerNavToleranceCm <= 100)" << std::endl;
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (1 <= ServerSpeedTolerance <= 3, 0 < ServerMoveBudgetMs <= 10000, ServerMoveSlackCm >= 0, 0 <= ServerMinMoveIntervalMs <= 1000, 0 <= ServerNavToleranceCm <= 100)", movement.Path(), row.Line());
 			return false;
 		}
 		if (_movementTable.count(d.id))
 		{
-			std::cout << "[Data] " << movement.Path() << " line " << row.Line() << ": movementId " << d.id << " 가 중복되었습니다" << std::endl;
+			LOG_ERROR("Data", "{} line {}: movementId {} 가 중복되었습니다", movement.Path(), row.Line(), d.id);
 			return false;
 		}
 		_movementTable[d.id] = d;
 	}
 	if (_movementTable.count(PLAYER_MOVEMENT_ID) == 0)
 	{
-		std::cout << "[Data] " << movement.Path() << ": 플레이어 기본 행 " << PLAYER_MOVEMENT_ID << " 이 없습니다" << std::endl;
+		LOG_ERROR("Data", "{}: 플레이어 기본 행 {} 이 없습니다", movement.Path(), PLAYER_MOVEMENT_ID);
 		return false;
 	}
 
-	std::cout << "[Data] 로드 완료 (StatTable " << _characterTable.size() << "행, SkillTable " << _skillTable.size()
-		<< "행, MonsterTable " << _monsterTable.size() << "행, MovementTable " << _movementTable.size() << "행)" << std::endl;
+	LOG_INFO("Data", "로드 완료 (StatTable {}행, SkillTable {}행, MonsterTable {}행, MovementTable {}행)",
+		_characterTable.size(), _skillTable.size(), _monsterTable.size(), _movementTable.size());
 	return true;
 }

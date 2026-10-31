@@ -73,6 +73,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -86,6 +87,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -101,6 +103,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -115,6 +118,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -146,6 +150,7 @@
     <ClInclude Include="Network\Session.h" />
     <ClInclude Include="Utils\ConcurrentQueue.h" />
     <ClInclude Include="Utils\ConfigFile.h" />
+    <ClInclude Include="Utils\Logger.h" />
     <ClInclude Include="Utils\CoreUtils.h" />
     <ClInclude Include="Utils\CsvFile.h" />
     <ClInclude Include="Utils\RWLock.h" />
@@ -172,6 +177,7 @@
     <ClCompile Include="Network\Session.cpp" />
     <ClCompile Include="Utils\ConcurrentQueue.cpp" />
     <ClCompile Include="Utils\ConfigFile.cpp" />
+    <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\CoreUtils.cpp" />
     <ClCompile Include="Utils\CsvFile.cpp" />
     <ClCompile Include="Utils\RWLock.cpp" />

@@ -55,9 +55,15 @@ Server 코드는 별도 접두사 규칙 없이 기능 위주로 클래스/함�
 
 ## 서버 설정 (ServerConfig.ini)
 
-운영 값(포트, 바인드 IP, IOCP 워커 수, DB 연결 문자열·연결 수, 로그 레벨)은 `Data/ServerConfig`(`GServerConfig`)가 시작할 때 읽습니다. 게임 수치는 여기 두지 않고 DataTable에 둡니다. 우선순위(뒤가 앞을 덮어씀): 코드 기본값 → `Server/Server/ServerConfig.ini`(커밋) → 같은 폴더의 `ServerConfig.local.ini`(있으면, 커밋하지 않음) → 환경변수 `JH_DB_CONNECTION` → 명령줄 `--config <경로>`·`--port <n>`. 설정 파일이 없거나 모르는 키·잘못된 값이 있으면 줄 번호와 이유를 출력하고 시작을 중단합니다. 시작 로그의 `[config]` 줄에 적용된 값과 출처가 찍힙니다(`PWD`는 가림). 다른 PC에서 봇을 붙이려면 `BindIp=0.0.0.0`. 새 키는 `ServerConfig.cpp`의 `ApplyFile`과 `Print`에 추가하고 `ServerConfig.ini`에도 적습니다. INI 파서는 ServerCore `Utils/ConfigFile`(값 뒤 주석은 지원하지 않음).
+운영 값(포트, 바인드 IP, IOCP 워커 수, DB 연결 문자열·연결 수, 로그 레벨·폴더)은 `Data/ServerConfig`(`GServerConfig`)가 시작할 때 읽습니다. 게임 수치는 여기 두지 않고 DataTable에 둡니다. 우선순위(뒤가 앞을 덮어씀): 코드 기본값 → `Server/Server/ServerConfig.ini`(커밋) → 같은 폴더의 `ServerConfig.local.ini`(있으면, 커밋하지 않음) → 환경변수 `JH_DB_CONNECTION` → 명령줄 `--config <경로>`·`--port <n>`. 설정 파일이 없거나 모르는 키·잘못된 값이 있으면 줄 번호와 이유를 출력하고 시작을 중단합니다. 시작 로그의 `[Config]` 줄에 적용된 값과 출처가 찍힙니다(`PWD`는 가림). 다른 PC에서 봇을 붙이려면 `BindIp=0.0.0.0`. 새 키는 `ServerConfig.cpp`의 `ApplyFile`과 `Print`에 추가하고 `ServerConfig.ini`에도 적습니다. INI 파서는 ServerCore `Utils/ConfigFile`(값 뒤 주석은 지원하지 않음).
 
 시작 순서 주의: 시작 실패 시 `exit()`가 전역 소멸자에서 끝나지 않는 스레드(`GTimer`, DB 작업 스레드)를 join하며 멈추므로, 실패할 수 있는 단계(설정 → DataTable → 포트 → DB 연결)를 스레드를 만드는 단계보다 먼저 둡니다.
+
+## 로그 (Logger)
+
+서버 출력은 `cout`/`printf` 대신 ServerCore `Utils/Logger`의 `LOG_DEBUG/INFO/WARN/ERROR("카테고리", "형식 {}", 값)`(std::format 문법)을 씁니다. `CorePch.h`에 들어 있어 어디서나 쓸 수 있습니다. 게임 스레드는 레벨 확인 → 포맷 → 큐에 넣기만 하고 전용 스레드가 콘솔과 `Log.Dir`(기본 `Server/Server/Logs/GameServer_<시작시각>.log`, 커밋 안 됨)에 씁니다. 큐가 가득 차면(65,536줄) 버리고 개수를 세며(`[metrics]`의 `logDrop`, `[Logger]` 경고 줄), 종료(`exit`·Ctrl+C·창 닫기) 시 남은 로그를 씁니다. 레벨 기준: 플레이어·연결·패킷마다 남는 로그는 **Debug**(기본 Info에서는 출력 안 됨), 시작·로드·메트릭은 Info, 비정상 입력은 Warn, 실패는 Error. 와이드 문자열은 `Utils::WStringToUTF8`로 바꿔 넘깁니다.
+
+**인코딩:** 서버 프로젝트(GameServer·ServerCore·NavGenerator·봇)는 모두 `/utf-8`로 컴파일하고 소스는 UTF-8입니다. 문자열 리터럴·로그 파일·콘솔·클라이언트 문자열(Protobuf)이 모두 UTF-8이므로, 클라이언트 문자열을 `WCHAR`로 바꿀 때는 `CP_UTF8`(또는 `Utils::UTF8ToWString`)을 씁니다(`CP_ACP` 금지).
 
 ## 데이터 테이블 (CSV 로더)
 

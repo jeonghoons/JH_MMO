@@ -63,14 +63,14 @@ bool NavmeshManager::LoadNavMeshFile(const std::string& path, shared_ptr<dtNavMe
 	errno_t err = fopen_s(&fp, path.c_str(), "rb");
 
 	if (err != 0 || !fp) {
-		std::cerr << "[Navmesh] 파일을 찾을 수 없습니다: " << path << std::endl;
+		LOG_ERROR("Navmesh", "파일을 찾을 수 없습니다: {}", path);
 		return false;
 	}
 
 	NavMeshSetHeader header;
 	size_t readLen = fread(&header, sizeof(NavMeshSetHeader), 1, fp);
 	if (readLen != 1 || header.magic != NAVMESHSET_MAGIC || header.version != NAVMESHSET_VERSION) {
-		std::cerr << "[Navmesh] 손상된 파일입니다." << std::endl;
+		LOG_ERROR("Navmesh", "손상된 파일입니다.");
 		fclose(fp);
 		return false;
 	}
@@ -118,7 +118,7 @@ bool NavmeshManager::LoadNavMeshFile(const std::string& path, shared_ptr<dtNavMe
 	outMinX = -dMaxZ;
 	outMaxX = -dMinZ;
 
-	std::cout << "[Navmesh] 로드 성공. " << std::endl;
+	LOG_INFO("Navmesh", "로드 성공.");
 	return true;
 }
 
@@ -167,7 +167,6 @@ bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Proto
 
 	_navQuery->findNearestPoly(dStart, extents, &_filter, &startRef, nearestStart);
 	if (!startRef) {
-		// cout << "오브젝트 근처에 폴리곤이 없습니다. " << endl;
 		return false;
 	}
 

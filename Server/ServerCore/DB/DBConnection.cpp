@@ -202,9 +202,7 @@ void DBConnection::HandleError(SQLRETURN ret)
 		if (errorRet != SQL_SUCCESS && errorRet != SQL_SUCCESS_WITH_INFO)
 			break;
 
-		
-		std::wcout.imbue(std::locale("kor"));
-		std::wcout << errMsg << std::endl;
+		LOG_WARN("DB", "ODBC {}", Utils::WStringToUTF8(errMsg));
 
 		index++;
 	}

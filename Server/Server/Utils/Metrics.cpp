@@ -72,13 +72,13 @@ namespace
 
 			char line[512];
 			snprintf(line, sizeof(line),
-				"[metrics] sessions=%d rooms=%d players=%d monsters=%d in/s=%.0f out/s=%.0f atk(req/ok per s)=%.1f/%.1f zones(total created/hits)=%lld/%lld "
-				"move(total ok/speed/nav/bad/stale/rate)=%lld/%lld/%lld/%lld/%lld/%lld tickLate(avg/max ms)=%.1f/%.1f tickBody(avg/max ms)=%.2f/%.2f",
+				"sessions=%d rooms=%d players=%d monsters=%d in/s=%.0f out/s=%.0f atk(req/ok per s)=%.1f/%.1f zones(total created/hits)=%lld/%lld "
+				"move(total ok/speed/nav/bad/stale/rate)=%lld/%lld/%lld/%lld/%lld/%lld tickLate(avg/max ms)=%.1f/%.1f tickBody(avg/max ms)=%.2f/%.2f logDrop=%lld",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
-				late.avgMs, late.maxMs, body.avgMs, body.maxMs);
-			cout << line << endl;
+				late.avgMs, late.maxMs, body.avgMs, body.maxMs, Logger::Dropped());
+			LOG_INFO("metrics", "{}", line);
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","

@@ -8,8 +8,6 @@
 //   명령줄:   --port <n>
 // 값이 틀리거나 모르는 키가 있으면 Load가 false를 돌려주고 서버는 시작하지 않는다.
 
-enum class LogLevel { Debug, Info, Warn, Error };
-
 struct ServerConfig
 {
 	// [Network]
@@ -21,12 +19,13 @@ struct ServerConfig
 	std::string dbConnectionString = "Driver={ODBC Driver 17 for SQL Server};Server=.\\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;";
 	int dbConnections = 4;
 
-	// [Log] — A1.2 로거가 사용한다
+	// [Log] — Logger(ServerCore Utils/Logger)에 넘긴다
 	LogLevel logLevel = LogLevel::Info;
+	std::string logDir = "Logs";    // 비우면 파일에 쓰지 않는다(콘솔만)
 
 	// 값마다 어디서 왔는지(default / 파일 경로 / env / cli). 시작 로그에 함께 출력한다.
 	std::string bindIpFrom = "default", portFrom = "default", workerThreadsFrom = "default";
-	std::string dbConnectionStringFrom = "default", dbConnectionsFrom = "default", logLevelFrom = "default";
+	std::string dbConnectionStringFrom = "default", dbConnectionsFrom = "default", logLevelFrom = "default", logDirFrom = "default";
 
 	// 실제로 쓸 워커 스레드 수 (0이면 CPU 코어 수 / 2, 최소 1)
 	int ResolvedWorkerThreads() const;

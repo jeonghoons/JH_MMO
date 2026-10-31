@@ -36,3 +36,4 @@ extern thread_local unsigned int Lthreadid;
 
 #include "Utils/RWLock.h"
 #include "Utils/CoreUtils.h"
+#include "Utils/Logger.h"

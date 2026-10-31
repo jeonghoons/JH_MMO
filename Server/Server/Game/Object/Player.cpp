@@ -22,7 +22,7 @@ Player::Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type)
 
 Player::~Player()
 {
-	cout << "~Player[" << _objectInfo.id() << "]" << endl;
+	LOG_DEBUG("Object", "~Player[{}]", _objectInfo.id());
 	_ownerSession.reset();
 }
 

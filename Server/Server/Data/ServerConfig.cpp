@@ -114,6 +114,10 @@ namespace
 				if (!ParseLogLevel(e.value, cfg.logLevel)) { err = where + "Level must be Debug/Info/Warn/Error: '" + e.value + "'"; return false; }
 				cfg.logLevelFrom = from;
 			}
+			else if (name == "Log.Dir")
+			{
+				cfg.logDir = e.value; cfg.logDirFrom = from;
+			}
 			else
 			{
 				err = where + "unknown key '" + name + "'";
@@ -195,10 +199,11 @@ bool ServerConfig::Load(int argc, char* argv[], std::string& err)
 
 void ServerConfig::Print() const
 {
-	printf("[config] Network.BindIp            = %s  (%s)\n", bindIp.c_str(), bindIpFrom.c_str());
-	printf("[config] Network.Port              = %d  (%s)\n", port, portFrom.c_str());
-	printf("[config] Network.WorkerThreads     = %d -> %d  (%s)\n", workerThreads, ResolvedWorkerThreads(), workerThreadsFrom.c_str());
-	printf("[config] Database.ConnectionString = %s  (%s)\n", MaskSecrets(dbConnectionString).c_str(), dbConnectionStringFrom.c_str());
-	printf("[config] Database.Connections      = %d  (%s)\n", dbConnections, dbConnectionsFrom.c_str());
-	printf("[config] Log.Level                 = %s  (%s)\n", LogLevelName(logLevel), logLevelFrom.c_str());
+	LOG_INFO("Config", "Network.BindIp            = {}  ({})", bindIp, bindIpFrom);
+	LOG_INFO("Config", "Network.Port              = {}  ({})", port, portFrom);
+	LOG_INFO("Config", "Network.WorkerThreads     = {} -> {}  ({})", workerThreads, ResolvedWorkerThreads(), workerThreadsFrom);
+	LOG_INFO("Config", "Database.ConnectionString = {}  ({})", MaskSecrets(dbConnectionString), dbConnectionStringFrom);
+	LOG_INFO("Config", "Database.Connections      = {}  ({})", dbConnections, dbConnectionsFrom);
+	LOG_INFO("Config", "Log.Level                 = {}  ({})", LogLevelName(logLevel), logLevelFrom);
+	LOG_INFO("Config", "Log.Dir                   = {}  ({})", logDir.empty() ? "(파일 출력 안 함)" : logDir, logDirFrom);
 }

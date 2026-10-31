@@ -1,4 +1,4 @@
-#include "RecastNavMesh.h"
+ï»¿#include "RecastNavMesh.h"
 
 RecastNavMesh::RecastNavMesh()
 {
@@ -15,24 +15,24 @@ RecastNavMesh::~RecastNavMesh()
 bool RecastNavMesh::Build(const std::string& filePath)
 {
     RawMapData mapData;
-    std::cout << "[Step 0] ÆÄÀÏ ·Îµå ½ÃÀÛ..." << std::endl;
+    std::cout << "[Step 0] íŒŒì¼ ë¡œë“œ ì‹œì‘..." << std::endl;
     if (!LoadBinFile(filePath, mapData)) {
-        std::cerr << "ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù: " << filePath << std::endl;
+        std::cerr << "íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: " << filePath << std::endl;
         return false;
     }
-    std::cout << "[Step 0] ÆÄÀÏ ·Îµå ¿Ï·á! (Á¤Á¡: " << mapData.vertices.size() / 3 << "°³)" << std::endl;
+    std::cout << "[Step 0] íŒŒì¼ ë¡œë“œ ì™„ë£Œ! (ì •ì : " << mapData.vertices.size() / 3 << "ê°œ)" << std::endl;
 
-    // --- ÆÄ¶ó¹ÌÅÍ ¼ÂÆÃ (¾ğ¸®¾ó ±âº» ThirdPersonCharacter ±âÁØ) ---
+    // --- íŒŒë¼ë¯¸í„° ì…‹íŒ… (ì–¸ë¦¬ì–¼ ê¸°ë³¸ ThirdPersonCharacter ê¸°ì¤€) ---
     rcConfig cfg;
     memset(&cfg, 0, sizeof(cfg));
 
-    cfg.cs = 20.0f; // °İÀÚ Å©±â
-    cfg.ch = 10.0f; // ³ôÀÌ ÇØ»óµµ
+    cfg.cs = 20.0f; // ê²©ì í¬ê¸°
+    cfg.ch = 10.0f; // ë†’ì´ í•´ìƒë„
 
-    cfg.walkableHeight = (int)ceilf(176.0f / cfg.ch); // Å° 176cm
-    cfg.walkableRadius = (int)floorf(34.0f / cfg.cs);  // ¹İÁö¸§ 34cm
-    cfg.walkableClimb = (int)floorf(50.0f / cfg.ch);  // °è´Ü ¿À¸£±â 45cm
-    cfg.walkableSlopeAngle = 50.0f;                   // µî¹İ °¢µµ 45µµ
+    cfg.walkableHeight = (int)ceilf(176.0f / cfg.ch); // í‚¤ 176cm
+    cfg.walkableRadius = (int)floorf(34.0f / cfg.cs);  // ë°˜ì§€ë¦„ 34cm
+    cfg.walkableClimb = (int)floorf(50.0f / cfg.ch);  // ê³„ë‹¨ ì˜¤ë¥´ê¸° 45cm
+    cfg.walkableSlopeAngle = 50.0f;                   // ë“±ë°˜ ê°ë„ 45ë„
 
     cfg.maxEdgeLen = (int)(1200.0f / cfg.cs);
     cfg.maxSimplificationError = 1.3f;
@@ -91,10 +91,10 @@ bool RecastNavMesh::Build(const std::string& filePath)
     rcPolyMeshDetail* dmesh = rcAllocPolyMeshDetail();
     rcBuildPolyMeshDetail(&ctx, *pmesh, *chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *dmesh);
 
-    std::cout << "[Step 9] ¿Ï·á! »ı¼ºµÈ Æú¸®°ï ¼ö: " << pmesh->npolys << "°³" << std::endl;
+    std::cout << "[Step 9] ì™„ë£Œ! ìƒì„±ëœ í´ë¦¬ê³¤ ìˆ˜: " << pmesh->npolys << "ê°œ" << std::endl;
 
     if (pmesh->npolys == 0) {
-        std::cerr << ">>> ¿¡·¯: »ì¾Æ³²Àº Æú¸®°ïÀÌ 0°³ÀÔ´Ï´Ù! <<<" << std::endl;
+        std::cerr << ">>> ì—ëŸ¬: ì‚´ì•„ë‚¨ì€ í´ë¦¬ê³¤ì´ 0ê°œì…ë‹ˆë‹¤! <<<" << std::endl;
         return false;
     }
 
@@ -136,7 +136,7 @@ bool RecastNavMesh::Build(const std::string& filePath)
     m_navQuery = dtAllocNavMeshQuery();
     m_navQuery->init(m_navMesh, 2048);
 
-    std::cout << "[Step 11] OBJ °ËÁõ¿ë µ¥ÀÌÅÍ ÀúÀå..." << std::endl;
+    std::cout << "[Step 11] OBJ ê²€ì¦ìš© ë°ì´í„° ì €ì¥..." << std::endl;
     SaveToObj("NavMesh_Output.obj", *pmesh);
 
     rcFreeHeightField(hf);
@@ -154,7 +154,7 @@ bool RecastNavMesh::SaveNavMeshBinary(const std::string& path)
 
     FILE* fp = fopen(path.c_str(), "wb");
     if (!fp) {
-        std::cerr << "ÆÄÀÏÀ» »ı¼ºÇÒ ¼ö ¾ø½À´Ï´Ù: " << path << std::endl;
+        std::cerr << "íŒŒì¼ì„ ìƒì„±í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤: " << path << std::endl;
         return false;
     }
 
@@ -165,18 +165,18 @@ bool RecastNavMesh::SaveNavMeshBinary(const std::string& path)
 
     const dtNavMesh* constNavMesh = m_navMesh;
 
-    // Å¸ÀÏ °³¼ö ÆÄ¾Ç
+    // íƒ€ì¼ ê°œìˆ˜ íŒŒì•…
     for (int i = 0; i < constNavMesh->getMaxTiles(); ++i) {
         const dtMeshTile* tile = constNavMesh->getTile(i);
         if (!tile || !tile->header || !tile->dataSize) continue;
         header.numTiles++;
     }
 
-    // Çì´õ ÀúÀå
+    // í—¤ë” ì €ì¥
     memcpy(&header.params, m_navMesh->getParams(), sizeof(dtNavMeshParams));
     fwrite(&header, sizeof(NavMeshSetHeader), 1, fp);
 
-    // °¢ Å¸ÀÏ µ¥ÀÌÅÍ ÀúÀå
+    // ê° íƒ€ì¼ ë°ì´í„° ì €ì¥
     for (int i = 0; i < constNavMesh->getMaxTiles(); ++i) {
         const dtMeshTile* tile = constNavMesh->getTile(i);
         if (!tile || !tile->header || !tile->dataSize) continue;
@@ -190,7 +190,7 @@ bool RecastNavMesh::SaveNavMeshBinary(const std::string& path)
     }
 
     fclose(fp);
-    std::cout << "\n[¿Ï·á] NavMesh ¹ÙÀÌ³Ê¸®°¡ ÀúÀåµÇ¾ú½À´Ï´Ù: " << path << std::endl;
+    std::cout << "\n[ì™„ë£Œ] NavMesh ë°”ì´ë„ˆë¦¬ê°€ ì €ì¥ë˜ì—ˆìŠµë‹ˆë‹¤: " << path << std::endl;
     return true;
 }
 

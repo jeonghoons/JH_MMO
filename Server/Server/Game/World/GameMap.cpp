@@ -124,7 +124,7 @@ bool GameMap::LoadMapData(const string& fileName)
     string navPath = "Resource/Map/" + fileName + "_Geo.nav";
 
     if (!_navManager->LoadNavMesh(navPath, _minX, _maxX, _minY, _maxY)) {
-        cout << "[GameMap] NavMesh 로드 실패: " << navPath << endl;
+        LOG_ERROR("GameMap", "NavMesh 로드 실패: {}", navPath);
         isSuccess = false;
     }
     else {
@@ -146,7 +146,7 @@ bool GameMap::LoadMapData(const string& fileName)
     std::ifstream file(logicPath);
     if (!file.is_open())
     {
-        cout << "[GameMap] 로직 데이터를 찾을 수 없습니다: " << logicPath << endl;
+        LOG_ERROR("GameMap", "로직 데이터를 찾을 수 없습니다: {}", logicPath);
         isSuccess = false;
     }
     else
@@ -204,18 +204,16 @@ bool GameMap::LoadMapData(const string& fileName)
                 }
                 else
                 {
-                    cout << "[GameMap] 알 수 없는 마커 타입: " << type << endl;
+                    LOG_WARN("GameMap", "알 수 없는 마커 타입: {}", type);
                 }
             }
 
-            cout << "[GameMap] 로직 데이터 로드 완료! (PlayerStart " << _playerStarts.size()
-                 << ", MonsterSpawn " << _monsterSpawns.size()
-                 << ", Npc " << _npcSpawns.size()
-                 << ", PortalTrigger " << _portalTriggers.size() << ")" << endl;
+            LOG_INFO("GameMap", "로직 데이터 로드 완료! (PlayerStart {}, MonsterSpawn {}, Npc {}, PortalTrigger {})",
+                _playerStarts.size(), _monsterSpawns.size(), _npcSpawns.size(), _portalTriggers.size());
         }
         catch (const nlohmann::json::exception& e)
         {
-            cout << "[GameMap] 로직 데이터(JSON) 파싱 실패: " << logicPath << " - " << e.what() << endl;
+            LOG_ERROR("GameMap", "로직 데이터(JSON) 파싱 실패: {} - {}", logicPath, e.what());
             isSuccess = false;
         }
     }

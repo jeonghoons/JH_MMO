@@ -13,7 +13,7 @@ Session::~Session()
 	if (_socket != INVALID_SOCKET)
 		::closesocket(_socket);
 
-	cout << "~Session[" << _cid << "]" << endl;
+	LOG_DEBUG("Session", "~Session[{}]", _cid);
 
 	_socket = INVALID_SOCKET;
 }
@@ -35,7 +35,7 @@ void Session::Dispatch(IocpEvent* iocpEvent, int numBytes)
 		break;
 
 	default:
-		cout << "Undefined Event" << endl;
+		LOG_ERROR("Session", "Undefined Event");
 		break;
 	}
 }
@@ -61,7 +61,7 @@ void Session::Disconnect(const WCHAR* cause)
 	OnDisconnected();
 	GetService()->ReleaseSession(static_pointer_cast<Session>(shared_from_this()));
 	
-	wcout << "DisConnect :" << cause << endl;
+	LOG_DEBUG("Session", "DisConnect :{}", Utils::WStringToUTF8(cause));
 }
 
 

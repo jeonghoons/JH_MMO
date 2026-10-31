@@ -56,7 +56,6 @@ void Character::OnDamaged(int damage, int attackerId, shared_ptr<Character> atta
 	if (_statInfo.IsDead()) return;
 
 	int actualDamage = _statInfo.OnDamaged(damage);
-	// cout << "Object[" << GetId() << "] Hp - " << GetStat().GetHp() << " / " << GetStat().GetMaxHp() << endl;
 
 	_hitTimer.Reset(GetHitStunMs());
 
@@ -88,6 +87,5 @@ void Character::RemoveView(int objectId)
 	if (it != _viewList.end()) {
 		*it = _viewList.back();
 		_viewList.pop_back();
-		// cout << "Object[" << GetId() << "]에서 " << objectId << "제거" << endl;
 	}
 }

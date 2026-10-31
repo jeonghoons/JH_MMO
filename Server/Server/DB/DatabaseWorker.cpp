@@ -8,10 +8,10 @@ DatabaseWorker::DatabaseWorker(HANDLE iocpHandle, int num_connections, const wst
 	_dbConnectionPool = make_unique<DBConnectionPool>();
 	if (false == _dbConnectionPool->Connect(num_connections, connectionString.c_str()))
 	{
-		std::cout << "DB Connect 오류 !" << std::endl;
+		LOG_ERROR("DB", "DB Connect 오류 !");
 		exit(-1);
 	}
-	std::cout << "DB 서버 Connected" << std::endl;
+	LOG_INFO("DB", "DB 서버 Connected");
 
 	for (int i = 0; i < num_connections; ++i) {
 		_threads.emplace_back(&DatabaseWorker::Run, this);
@@ -46,7 +46,7 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 	dbConn->Unbind();
 
 	WCHAR loginId[50] = {};
-	MultiByteToWideChar(CP_ACP, 0, recvId.c_str(), -1, loginId, _countof(loginId));
+	MultiByteToWideChar(CP_UTF8, 0, recvId.c_str(), -1, loginId, _countof(loginId));
 	SQLLEN loginIdLen = 0;
 	dbConn->BindParam(1, loginId, &loginIdLen);
 
@@ -90,7 +90,7 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 			if (isFirstRow)
 			{
 				WCHAR clpassword[50] = {};
-				MultiByteToWideChar(CP_ACP, 0, recvPw.c_str(), -1, clpassword, _countof(clpassword));
+				MultiByteToWideChar(CP_UTF8, 0, recvPw.c_str(), -1, clpassword, _countof(clpassword));
 				
 				if (lstrcmpW(clpassword, outPassword) == 0)
 				{
@@ -134,12 +134,12 @@ void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, s
 	dbConn->Unbind();
 
 	WCHAR loginId[50] = {};
-	MultiByteToWideChar(CP_ACP, 0, recvId.c_str(), -1, loginId, _countof(loginId));
+	MultiByteToWideChar(CP_UTF8, 0, recvId.c_str(), -1, loginId, _countof(loginId));
 	SQLLEN idLen = 0;
 	dbConn->BindParam(1, loginId, &idLen);
 
 	WCHAR password[256] = {};
-	MultiByteToWideChar(CP_ACP, 0, recvPw.c_str(), -1, password, _countof(password));
+	MultiByteToWideChar(CP_UTF8, 0, recvPw.c_str(), -1, password, _countof(password));
 	SQLLEN pwLen = 0;
 	dbConn->BindParam(2, password, &pwLen);
 
@@ -163,11 +163,11 @@ void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, s
 	const bool success = dbConn->Execute(query);
 	if (success)
 	{
-		cout << "[DB] 회원가입 및 캐릭터 자동생성 성공 - ID : " << recvId << endl;
+		LOG_DEBUG("DB", "회원가입 및 캐릭터 자동생성 성공 - ID : {}", recvId);
 	}
 	else
 	{
-		cout << "[DB] 중복 아이디 또는 가입 오류" << endl;
+		LOG_DEBUG("DB", "중복 아이디 또는 가입 오류");
 	}
 	GLobby->PushJob(&AuthLobby::OnSignUpResult, session, success);
 

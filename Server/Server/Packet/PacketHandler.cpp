@@ -58,7 +58,7 @@ void PacketHandler::ProcessPacket(shared_ptr<GameSession> session, BYTE* buffer,
     }
     else
     {
-        cout << "Invalid Packet Id : " << header->id << endl;
+        LOG_WARN("Packet", "Invalid Packet Id : {}", header->id);
     }
 }
 
@@ -95,7 +95,7 @@ void PacketHandler::Handle_CS_SIGNUP(shared_ptr<GameSession> session, Protocol::
     // 스탯 데이터가 없는 타입(예: MALE/FEMALE)으로 가입하면 스탯이 없는 캐릭터가 만들어지므로 거부한다.
     if (DataManager::GetCharacterData(type) == nullptr)
     {
-        cout << "Invalid PlayerType on signup : " << type << endl;
+        LOG_WARN("Packet", "Invalid PlayerType on signup : {}", type);
         GLobby->PushJob(&AuthLobby::OnSignUpResult, session, false);
         return;
     }
