@@ -171,6 +171,7 @@
     <ClInclude Include="Game\Object\Player.h" />
     <ClInclude Include="Game\Object\StatComponent.h" />
     <ClInclude Include="Game\Room\Room.h" />
+    <ClInclude Include="Game\World\AoiIndex.h" />
     <ClInclude Include="Game\World\GameMap.h" />
     <ClInclude Include="Game\World\NavmeshManager.h" />
     <ClInclude Include="Packet\PacketHandler.h" />
@@ -191,6 +192,7 @@
     <ClCompile Include="Game\Object\Monster.cpp" />
     <ClCompile Include="Game\Object\Player.cpp" />
     <ClCompile Include="Game\Room\Room.cpp" />
+    <ClCompile Include="Game\World\AoiIndex.cpp" />
     <ClCompile Include="Game\World\GameMap.cpp" />
     <ClCompile Include="Game\World\NavmeshManager.cpp" />
     <ClCompile Include="Packet\PacketHandler.cpp" />

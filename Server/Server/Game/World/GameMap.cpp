@@ -3,116 +3,50 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
-CellPos GameMap::ToCellPos(const Protocol::PositionInfo& pos) const
-{
-    int x_index = static_cast<int>((pos.x() - _minX) / _cellSize);
-    int y_index = static_cast<int>((pos.y() - _minY) / _cellSize);
-
-    // 맵 밖 좌표가 들어와도 _grid 인덱스가 범위를 벗어나지 않게 가장자리 셀로 고정한다.
-    x_index = std::clamp(x_index, 0, std::max(_gridWidth - 1, 0));
-    y_index = std::clamp(y_index, 0, std::max(_gridHeight - 1, 0));
-
-    return { x_index, y_index };
-}
-
 ViewUpdate GameMap::EnterMap(int objectId, const Protocol::PositionInfo& pos)
 {
-    CellPos cellPos = ToCellPos(pos);
-    _grid[cellPos.y][cellPos.x].objectIds.push_back(objectId);
-    _id2CellPos[objectId] = cellPos;
+    _aoi.Insert(objectId, pos.x(), pos.y());
 
-    // 처음 들어왔을 때는 주변 모든 객체가 '추가' 대상임
+    // 처음 들어왔을 때는 반경 R 안의 모든 객체가 '추가' 대상
     ViewUpdate result;
-    vector<CellPos> neighbors = GetNeighborCells(cellPos);
-    for (const auto& pos : neighbors) {
-        CollectObject(pos, result.entered);
+    _aoi.QueryCircle(pos.x(), pos.y(), _viewRadius, result.entered);
+    std::erase(result.entered, objectId);
+    return result;
+}
+
+ViewUpdate GameMap::UpdateMap(int objectId, const Protocol::PositionInfo& pos, const vector<int>& currentView)
+{
+    _aoi.Move(objectId, pos.x(), pos.y());
+
+    ViewUpdate result;
+    const unordered_set<int> inView(currentView.begin(), currentView.end());
+
+    // 들어옴: 반경 R 안인데 아직 시야에 없는 것
+    vector<int> nearby;
+    _aoi.QueryCircle(pos.x(), pos.y(), _viewRadius, nearby);
+    for (int id : nearby)
+        if (id != objectId && !inView.count(id)) result.entered.push_back(id);
+
+    // 나감: 시야에 있는데 R+H 밖으로 멀어진 것 (R ~ R+H 사이는 그대로 둔다 — 경계 깜빡임 방지)
+    const float rOut = _viewRadius + _viewHysteresis;
+    for (int id : currentView)
+    {
+        float x, y;
+        if (!_aoi.TryGetPos(id, x, y)) continue;   // 이미 맵을 떠난 대상(LeaveMap에서 정리됨)
+        const float dx = x - pos.x(), dy = y - pos.y();
+        if (dx * dx + dy * dy > rOut * rOut) result.leaved.push_back(id);
     }
     return result;
 }
 
-ViewUpdate GameMap::UpdateMap(int objectId, const Protocol::PositionInfo& pos)
+ViewUpdate GameMap::LeaveMap(int objectId, const vector<int>& currentView)
 {
-    CellPos newPos = ToCellPos(pos);
-    CellPos oldPos = _id2CellPos[objectId];
+    _aoi.Remove(objectId);
 
-    if (newPos == oldPos) return {}; // 같은 셀이면 시야 변화 없음
-
-    auto& oldVec = _grid[oldPos.y][oldPos.x].objectIds;
-    auto it = find(oldVec.begin(), oldVec.end(), objectId);
-    if (it != oldVec.end()) {
-        *it = oldVec.back();
-        oldVec.pop_back();
-    }
-    _grid[newPos.y][newPos.x].objectIds.push_back(objectId);
-    _id2CellPos[objectId] = newPos;
-
+    // 나갈 때는 시야에 있던 모든 것이 '삭제' 대상 (시야는 대칭이라 나를 보던 쪽 = 내가 보던 쪽)
     ViewUpdate result;
-    vector<CellPos> old_view = GetNeighborCells(oldPos);
-    vector<CellPos> new_view = GetNeighborCells(newPos);
-
-    for (const auto& cell : new_view) {
-        if (find(old_view.begin(), old_view.end(), cell) == old_view.end()) {
-            CollectObject(cell, result.entered);
-        }
-    }
-
-    for (const auto& cell : old_view) {
-        if (find(new_view.begin(), new_view.end(), cell) == new_view.end()) {
-            CollectObject(cell, result.leaved);
-        }
-    }
-
+    result.leaved = currentView;
     return result;
-}
-
-ViewUpdate GameMap::LeaveMap(int objectId)
-{
-    auto itLoc = _id2CellPos.find(objectId);
-    if (itLoc == _id2CellPos.end()) return {};
-
-    CellPos lastPos = itLoc->second;
-
-    // 그리드에서 제거
-    auto& vec = _grid[lastPos.y][lastPos.x].objectIds;
-    auto it = find(vec.begin(), vec.end(), objectId);
-    if (it != vec.end()) {
-        *it = vec.back();
-        vec.pop_back();
-    }
-
-    // 나갈 때는 시야에 있던 모든 것이 '삭제' 대상
-    ViewUpdate result;
-    vector<CellPos> surrounding = GetNeighborCells(lastPos);
-    for (const auto& cp : surrounding) {
-        CollectObject(cp, result.leaved);
-    }
-
-    _id2CellPos.erase(itLoc);
-    return result;
-}
-
-
-
-void GameMap::CollectObject(CellPos pos, vector<int>& outList) const
-{
-    const vector<int>& ids = _grid[pos.y][pos.x].objectIds;
-    outList.insert(outList.end(), ids.begin(), ids.end());
-}
-
-vector<CellPos> GameMap::GetNeighborCells(CellPos pos) const
-{
-    vector<CellPos> cells;
-    int cellCount = _viewRangeCells * 2 + 1;
-    cells.reserve(cellCount * cellCount);
-
-    for (int y = pos.y - _viewRangeCells; y <= pos.y + _viewRangeCells; ++y) {
-        for (int x = pos.x - _viewRangeCells; x <= pos.x + _viewRangeCells; ++x) {
-            if (x >= 0 && x < _gridWidth && y >= 0 && y < _gridHeight) {
-                cells.push_back({ x, y });
-            }
-        }
-    }
-    return cells;
 }
 
 bool GameMap::LoadMapData(const string& fileName)
@@ -122,7 +56,8 @@ bool GameMap::LoadMapData(const string& fileName)
     // 0. 시야(AOI) 수치
     if (const WorldData* world = DataManager::GetWorldData(fileName)) {
         _cellSize = static_cast<float>(world->cellSizeCm);
-        _viewRangeCells = world->viewRangeCells;
+        _quadSplitCount = world->quadSplitCount;
+        _quadMinSize = static_cast<float>(world->quadMinSizeCm);
         _viewRadius = static_cast<float>(world->viewRadiusCm);
         _viewHysteresis = static_cast<float>(world->viewHysteresisCm);
     }
@@ -145,12 +80,7 @@ bool GameMap::LoadMapData(const string& fileName)
         _minY -= _cellSize;
         _maxY += _cellSize;
 
-        _gridWidth = static_cast<int>((_maxX - _minX) / _cellSize) + 1;
-        _gridHeight = static_cast<int>((_maxY - _minY) / _cellSize) + 1;
-
-        
-        _grid.assign(_gridHeight, vector<Cell>(_gridWidth));
-
+        _aoi.Init(_minX, _minY, _maxX, _maxY, _cellSize, _quadSplitCount, _quadMinSize);
     }
 
     
@@ -243,23 +173,16 @@ bool GameMap::IsOutOfBounds(const Protocol::PositionInfo& pos) const
     return _navManager->IsOutOfBounds(pos);
 }
 
-Protocol::PositionInfo GameMap::GetRandomPosInCell(const Protocol::PositionInfo& pos) const
+Protocol::PositionInfo GameMap::GetRandomPosNear(const Protocol::PositionInfo& pos, float radius) const
 {
-    CellPos cellPos = ToCellPos(pos);
-
-    float cellMinX = _minX + (cellPos.x * _cellSize);
-    float cellMinY = _minY + (cellPos.y * _cellSize);
-
-    float margin = 50.0f;
-
     for (int i = 0; i < 10; ++i)
     {
-        float randX = Utils::GetRandom<float>(cellMinX + margin, cellMinX + _cellSize - margin);
-        float randY = Utils::GetRandom<float>(cellMinY + margin, cellMinY + _cellSize - margin);
+        const float angle = Utils::GetRandom<float>(0.f, 6.2831853f);
+        const float dist = radius * sqrtf(Utils::GetRandom<float>(0.f, 1.f));
 
         Protocol::PositionInfo randomDest;
-        randomDest.set_x(randX);
-        randomDest.set_y(randY);
+        randomDest.set_x(pos.x() + cosf(angle) * dist);
+        randomDest.set_y(pos.y() + sinf(angle) * dist);
         randomDest.set_z(pos.z());
 
         if (CanMove(pos, randomDest))
@@ -271,6 +194,3 @@ Protocol::PositionInfo GameMap::GetRandomPosInCell(const Protocol::PositionInfo&
 
     return pos;
 }
-
-
-

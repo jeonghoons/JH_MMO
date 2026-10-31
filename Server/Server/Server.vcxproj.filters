@@ -84,6 +84,9 @@
     <ClInclude Include="Game\Room\Room.h">
       <Filter>Game\Room</Filter>
     </ClInclude>
+    <ClInclude Include="Game\World\AoiIndex.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
     <ClInclude Include="Game\World\GameMap.h">
       <Filter>Game\World</Filter>
     </ClInclude>
@@ -146,6 +149,9 @@
     </ClCompile>
     <ClCompile Include="Game\Room\Room.cpp">
       <Filter>Game\Room</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\World\AoiIndex.cpp">
+      <Filter>Game\World</Filter>
     </ClCompile>
     <ClCompile Include="Game\World\GameMap.cpp">
       <Filter>Game\World</Filter>

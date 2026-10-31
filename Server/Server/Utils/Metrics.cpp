@@ -68,7 +68,7 @@ namespace
 				"move(total ok/speed/nav/bad/stale/rate)={}/{}/{}/{}/{}/{} "
 				"tickLate(avg/p50/p95/p99/max ms)={:.1f}/{:.1f}/{:.1f}/{:.1f}/{:.1f} tickBody(avg/p50/p95/p99/max ms)={:.2f}/{:.2f}/{:.2f}/{:.2f}/{:.2f} "
 				"viewPlayers(avg/p99/max)={:.1f}/{:.0f}/{:.0f} viewObjects(avg/p99/max)={:.1f}/{:.0f}/{:.0f} sendQ(total/sessionMax)={}/{} logDrop={} "
-				"viewAudit(must/missing mustNot/extra)={}/{} {}/{}",
+				"viewAudit(must/missing mustNot/extra)={}/{} {}/{} aoi(nodes/depth)={}/{}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
@@ -76,7 +76,8 @@ namespace
 				body.avg / 1000.0, body.p50 / 1000.0, body.p95 / 1000.0, body.p99 / 1000.0, body.max / 1000.0,
 				viewP.avg, viewP.p99, viewP.max, viewO.avg, viewO.p99, viewO.max,
 				NetStats::SendQueued.load(), sendQueueMax, Logger::Dropped(),
-				Metrics::ViewAuditMust.load(), Metrics::ViewAuditMissing.load(), Metrics::ViewAuditMustNot.load(), Metrics::ViewAuditExtra.load());
+				Metrics::ViewAuditMust.load(), Metrics::ViewAuditMissing.load(), Metrics::ViewAuditMustNot.load(), Metrics::ViewAuditExtra.load(),
+				Metrics::AoiNodes.exchange(0), Metrics::AoiDepth.exchange(0));
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","

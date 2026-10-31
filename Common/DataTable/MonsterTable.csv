@@ -1,2 +1,2 @@
-Name,RespawnSec,DeathRemoveDelaySec,HitStunMs
-3,10,3,800
+Name,RespawnSec,DeathRemoveDelaySec,HitStunMs,WanderRadiusCm
+3,10,3,800,500

@@ -50,18 +50,22 @@ void Monster::Update(float deltaTime)
 		UpdateAI();
 	}
 
+	const float prevX = _objectInfo.position().x(), prevY = _objectInfo.position().y();
 	if (_hasPath) {
 		FollowPath(deltaTime);
 	}
 
-	if (_objectInfo.position().state() == Protocol::MoveState::MOVE_STATE_RUN)
+	// 실제 위치 이동은 여기(MovableObject::ApplyMovement)에서 일어난다. FollowPath는 방향만 정한다.
+	Character::Update(deltaTime);
+
+	// 이번 틱에 위치가 바뀌었으면 이동이 끝난 뒤의 위치로 시야(AOI)를 갱신한다.
+	// (이동 전에 갱신하면 AOI가 한 틱 늦은 위치를 갖고, 마지막 걸음은 상태가 IDLE로 바뀌어 빠진다 — A1.3c 시야 감사로 발견)
+	if (_objectInfo.position().x() != prevX || _objectInfo.position().y() != prevY)
 	{
 		if (auto room = GetCurrentRoom()) {
 			room->NPCMove(std::static_pointer_cast<Monster>(shared_from_this()));
 		}
 	}
-
-	Character::Update(deltaTime);
 }
 
 void Monster::OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker)
@@ -165,7 +169,10 @@ void Monster::UpdatePatrol()
 
 	if (!_hasPath && _patrolTimer.IsReady())
 	{
-		Protocol::PositionInfo randomDest = room->GetGameMap().GetRandomPosInCell(_objectInfo.position());
+		// 배회 범위는 MonsterTable.WanderRadiusCm (임시 — 행동트리 개선 때 재검토)
+		const MonsterData* data = DataManager::GetMonsterData((int)_objectInfo.player_type());
+		const float wanderRadius = data ? static_cast<float>(data->wanderRadiusCm) : 500.f;
+		Protocol::PositionInfo randomDest = room->GetGameMap().GetRandomPosNear(_objectInfo.position(), wanderRadius);
 
 		std::vector<Protocol::PositionInfo> newPath;
 		if (room->GetNavManager()->FindPath(_objectInfo.position(), randomDest, newPath))

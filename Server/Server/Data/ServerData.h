@@ -69,6 +69,7 @@ struct MonsterData
 	int respawnMs;            // 사망 후 리스폰까지의 시간
 	int deathRemoveDelayMs;   // 사망 연출을 위해 시체를 남겨 두는 시간
 	int hitStunMs;            // 피격 후 행동(공격)이 막히는 시간. 피격 모션 길이에 맞춘다
+	int wanderRadiusCm;       // 대기 중 배회: 현재 위치에서 이 반경 안 임의 지점 (임시 — 행동트리 개선 때 재검토)
 };
 
 // MovementTable 중 서버가 쓰는 열. 이동 속도 자체는 StatTable.MoveSpeed(영웅별)를 쓰고, 여기는 검증 허용치만 둔다.
@@ -90,8 +91,9 @@ struct WorldData
 {
 	int id;
 	std::string mapName;   // 맵 파일 이름(GameMap::LoadMapData 인자)과 같아야 한다
-	int cellSizeCm;        // AOI 격자 셀 한 변 길이
-	int viewRangeCells;    // 시야 = 내 셀 기준 주변 몇 칸까지 (정사각형)
+	int cellSizeCm;        // AOI 큰 셀 한 변 길이(셀마다 쿼드트리)
+	int quadSplitCount;    // 쿼드트리 노드가 이 수를 넘으면 4분할
+	int quadMinSizeCm;     // 이 크기보다 작은 노드로는 나누지 않는다
 	int viewRadiusCm;      // 목표 시야 반경 R: 이 거리 안의 캐릭터는 반드시 보여야 한다
 	int viewHysteresisCm;  // 히스테리시스 H: 나갈 때는 R+H를 넘어야 사라진다(경계 깜빡임 방지)
 };

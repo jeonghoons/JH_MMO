@@ -128,6 +128,12 @@ void Room::Update(long long elapsedTime)
 	{
 		if (GServerConfig.viewAudit) AuditViews();
 
+		const int nodes = _gameMap.GetAoi().NodeCount(), depth = _gameMap.GetAoi().MaxDepth();
+		int prev = Metrics::AoiNodes.load();
+		while (nodes > prev && !Metrics::AoiNodes.compare_exchange_weak(prev, nodes)) {}
+		prev = Metrics::AoiDepth.load();
+		while (depth > prev && !Metrics::AoiDepth.compare_exchange_weak(prev, depth)) {}
+
 		for (const auto& [id, player] : _players)
 		{
 			long long viewPlayers = 0;
@@ -222,7 +228,7 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 
 	int playerId = player->GetId();
 
-	ViewUpdate result = _gameMap.LeaveMap(playerId);
+	ViewUpdate result = _gameMap.LeaveMap(playerId, player->_viewList);
 	if (!result.leaved.empty()) {
 		UpdateView(player, result);
 	}
@@ -321,7 +327,7 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 	shared_ptr<SendBuffer> playerMoveBuffer = PacketSerializer::MAKE_SC_MOVE_OBJECT(player);
 	BroadcastAOI(static_pointer_cast<Character>(player), playerMoveBuffer);
 
-	ViewUpdate result = _gameMap.UpdateMap(player->GetId(), player->GetPosition());
+	ViewUpdate result = _gameMap.UpdateMap(player->GetId(), player->GetPosition(), player->_viewList);
 
 	if (!result.entered.empty() || !result.leaved.empty()) {
 		UpdateView(player, result);
@@ -594,7 +600,7 @@ void Room::RemoveMonster(int monsterId)
 	const int templateId = (int)monster->GetInfo().player_type();
 
 	// 시야에 있던 플레이어들에게 SC_REMOVE_OBJECT가 전달된다.
-	ViewUpdate result = _gameMap.LeaveMap(monsterId);
+	ViewUpdate result = _gameMap.LeaveMap(monsterId, monster->_viewList);
 	if (!result.leaved.empty()) {
 		UpdateView(monster, result);
 	}
@@ -614,7 +620,7 @@ void Room::NPCMove(shared_ptr<Monster> monster)
 	if (GetGameObject(monster->GetId()) == nullptr)
 		return;
 
-	ViewUpdate result = _gameMap.UpdateMap(monster->GetId(), monster->GetPosition());
+	ViewUpdate result = _gameMap.UpdateMap(monster->GetId(), monster->GetPosition(), monster->_viewList);
 	if (!result.entered.empty() || !result.leaved.empty()) {
 		UpdateView(monster, result);
 	}

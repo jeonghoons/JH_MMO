@@ -61,10 +61,10 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 - 현재 행: 301(몬스터), 401/402(전사 기본·광역 강타), 501/502(궁수 기본 타겟팅 투사체·지면 장판). skillId 규칙은 `PlayerType*100+Slot+1`(기존 기본 공격 id 유지)이며, `HeroId` 기반 ID 체계(1001~)로의 재편은 M4에서 합니다.
 
 ### MonsterTable (서버 구현됨)
-`Name`(=스폰 마커의 `monsterTemplateId`, StatTable.PlayerType과 동일해야 함), `RespawnSec`(사망 후 리스폰까지), `DeathRemoveDelaySec`(시체를 남기는 시간, `<= RespawnSec`), `HitStunMs`(피격 후 행동이 막히는 시간, 0~10000 — 피격 모션 길이에 맞춘다). 사망 연출 길이에 맞춰 `DeathRemoveDelaySec`를 조절합니다. 스폰 위치/수는 맵 JSON의 `spawnRadius`/`maxCount`를 따릅니다. 보상(경험치/골드) 컬럼은 A2.3에서 추가합니다.
+`Name`(=스폰 마커의 `monsterTemplateId`, StatTable.PlayerType과 동일해야 함), `RespawnSec`(사망 후 리스폰까지), `DeathRemoveDelaySec`(시체를 남기는 시간, `<= RespawnSec`), `HitStunMs`(피격 후 행동이 막히는 시간, 0~10000 — 피격 모션 길이에 맞춘다), `WanderRadiusCm`(대기 중 배회: 현재 위치에서 이 반경 안 임의 지점, 0~10000 — 2026-10-31 A1.3c에서 AOI 셀과 분리한 임시값, 행동트리 개선 때 재검토). 사망 연출 길이에 맞춰 `DeathRemoveDelaySec`를 조절합니다. 스폰 위치/수는 맵 JSON의 `spawnRadius`/`maxCount`를 따릅니다. 보상(경험치/골드) 컬럼은 A2.3에서 추가합니다.
 
-### WorldTable (서버 전용, 2026-10-31 A1.3a)
-`Name`(worldId, 1001~), `MapName`(맵 리소스 파일 이름 = `GameMap::LoadMapData` 인자, 중복 불가), `CellSizeCm`(AOI 격자 셀 한 변, 100~100000), `ViewRangeCells`(시야 = 내 셀 기준 주변 몇 칸, 1~10, 정사각형), `ViewRadiusCm`(목표 시야 반경 R — 이 안의 캐릭터는 반드시 보임, 100~100000), `ViewHysteresisCm`(H — 나갈 때는 R+H를 넘어야 사라짐, 0~R). 서버가 쓰는 맵(`Room.h` `ROOM_MAP_NAME`) 행이 없으면 시작을 중단합니다. 현재 행: 1001 ParagonSample(1000cm, 1칸 = 보장 시야 10m, R 5000, H 500 — R·H는 A1.3b에서 결정, 현재 격자는 아직 R·H를 쓰지 않고 시야 감사만 씀). A1.3c에서 격자 열이 쿼드트리 열로 바뀝니다. UE는 이 테이블을 임포트하지 않습니다.
+### WorldTable (서버 전용, 2026-10-31 A1.3)
+`Name`(worldId, 1001~), `MapName`(맵 리소스 파일 이름 = `GameMap::LoadMapData` 인자, 중복 불가), `CellSizeCm`(AOI 큰 셀 한 변 — 셀마다 쿼드트리, 100~100000), `QuadSplitCount`(쿼드트리 노드가 이 수를 넘으면 4분할, 1~1000), `QuadMinSizeCm`(이보다 작은 노드로는 나누지 않음, 100~CellSizeCm), `ViewRadiusCm`(목표 시야 반경 R — 이 안의 캐릭터는 반드시 보임, 100~100000), `ViewHysteresisCm`(H — 나갈 때는 R+H를 넘어야 사라짐, 0~R). 서버가 쓰는 맵(`Room.h` `ROOM_MAP_NAME`) 행이 없으면 시작을 중단합니다. 현재 행: 1001 ParagonSample(셀 5000, 분할 8, 최소 노드 500, R 5000, H 500 — R·H는 A1.3b 스크린샷으로 결정). UE는 이 테이블을 임포트하지 않습니다.
 
 ## 조회
 - UE 쪽 조회는 `UDataManager`(GameInstanceSubsystem)를 통해서만 합니다. DataTable 애셋 경로는 코드에 쓰지 않고 `UDeveloperSettings`(`DefaultGame.ini`)에서 지정합니다. 테이블별 `Find<Table>Row(int32 Id)`가 행 포인터 또는 nullptr를 반환합니다.

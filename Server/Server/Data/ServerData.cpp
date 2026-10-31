@@ -166,23 +166,24 @@ bool DataManager::Init()
 		_skillTable[d.skillId] = d;
 		_skillBySlot[slotKey] = d.skillId;
 	}
-	// MonsterTable: Name(=monsterTemplateId), RespawnSec, DeathRemoveDelaySec, HitStunMs
+	// MonsterTable: Name(=monsterTemplateId), RespawnSec, DeathRemoveDelaySec, HitStunMs, WanderRadiusCm
 	CsvFile monster;
 	if (!monster.Load((dir / "MonsterTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
 	for (const CsvRow& row : monster.Rows())
 	{
 		MonsterData d{};
-		int respawnSec = 0, removeDelaySec = 0, hitStunMs = 0;
+		int respawnSec = 0, removeDelaySec = 0, hitStunMs = 0, wanderRadiusCm = 0;
 		if (!row.GetInt("Name", d.templateId, err) || !row.GetInt("RespawnSec", respawnSec, err) ||
-			!row.GetInt("DeathRemoveDelaySec", removeDelaySec, err) || !row.GetInt("HitStunMs", hitStunMs, err))
+			!row.GetInt("DeathRemoveDelaySec", removeDelaySec, err) || !row.GetInt("HitStunMs", hitStunMs, err) ||
+			!row.GetInt("WanderRadiusCm", wanderRadiusCm, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
-		if (respawnSec < 0 || removeDelaySec < 0 || removeDelaySec > respawnSec || hitStunMs < 0 || hitStunMs > 10000)
+		if (respawnSec < 0 || removeDelaySec < 0 || removeDelaySec > respawnSec || hitStunMs < 0 || hitStunMs > 10000 || wanderRadiusCm < 0 || wanderRadiusCm > 10000)
 		{
-			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (0 <= DeathRemoveDelaySec <= RespawnSec, 0 <= HitStunMs <= 10000)", monster.Path(), row.Line());
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (0 <= DeathRemoveDelaySec <= RespawnSec, 0 <= HitStunMs <= 10000, 0 <= WanderRadiusCm <= 10000)", monster.Path(), row.Line());
 			return false;
 		}
 		if (_monsterTable.count(d.templateId))
@@ -198,6 +199,7 @@ bool DataManager::Init()
 		d.respawnMs = respawnSec * 1000;
 		d.deathRemoveDelayMs = removeDelaySec * 1000;
 		d.hitStunMs = hitStunMs;
+		d.wanderRadiusCm = wanderRadiusCm;
 		_monsterTable[d.templateId] = d;
 	}
 
@@ -235,7 +237,7 @@ bool DataManager::Init()
 		return false;
 	}
 
-	// WorldTable: Name(=worldId), MapName, CellSizeCm, ViewRangeCells, ViewRadiusCm, ViewHysteresisCm
+	// WorldTable: Name(=worldId), MapName, CellSizeCm, QuadSplitCount, QuadMinSizeCm, ViewRadiusCm, ViewHysteresisCm
 	CsvFile world;
 	if (!world.Load((dir / "WorldTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
@@ -244,16 +246,17 @@ bool DataManager::Init()
 	{
 		WorldData d{};
 		if (!row.GetInt("Name", d.id, err) || !row.GetString("MapName", d.mapName, err) ||
-			!row.GetInt("CellSizeCm", d.cellSizeCm, err) || !row.GetInt("ViewRangeCells", d.viewRangeCells, err) ||
+			!row.GetInt("CellSizeCm", d.cellSizeCm, err) || !row.GetInt("QuadSplitCount", d.quadSplitCount, err) ||
+			!row.GetInt("QuadMinSizeCm", d.quadMinSizeCm, err) ||
 			!row.GetInt("ViewRadiusCm", d.viewRadiusCm, err) || !row.GetInt("ViewHysteresisCm", d.viewHysteresisCm, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
-		if (d.mapName.empty() || d.cellSizeCm < 100 || d.cellSizeCm > 100000 || d.viewRangeCells < 1 || d.viewRangeCells > 10 ||
+		if (d.mapName.empty() || d.cellSizeCm < 100 || d.cellSizeCm > 100000 || d.quadSplitCount < 1 || d.quadSplitCount > 1000 || d.quadMinSizeCm < 100 || d.quadMinSizeCm > d.cellSizeCm ||
 			d.viewRadiusCm < 100 || d.viewRadiusCm > 100000 || d.viewHysteresisCm < 0 || d.viewHysteresisCm > d.viewRadiusCm)
 		{
-			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (MapName 필수, 100 <= CellSizeCm <= 100000, 1 <= ViewRangeCells <= 10, 100 <= ViewRadiusCm <= 100000, 0 <= ViewHysteresisCm <= ViewRadiusCm)", world.Path(), row.Line());
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (MapName 필수, 100 <= CellSizeCm <= 100000, 1 <= QuadSplitCount <= 1000, 100 <= QuadMinSizeCm <= CellSizeCm, 100 <= ViewRadiusCm <= 100000, 0 <= ViewHysteresisCm <= ViewRadiusCm)", world.Path(), row.Line());
 			return false;
 		}
 		if (!worldIds.insert(d.id).second || _worldTable.count(d.mapName))

@@ -49,6 +49,10 @@ namespace Metrics
 	inline SampleStat ViewPlayers;  // 플레이어 한 명의 시야 안 다른 플레이어 수 (1초마다 플레이어별 표본)
 	inline SampleStat ViewObjects;  // 플레이어 한 명의 시야 안 전체 오브젝트 수(플레이어 + 몬스터)
 
+	// AOI 쿼드트리 상태(구간 최대, 방마다 1초에 한 번 Room 잡 안에서 기록, 리포터가 읽으며 0으로)
+	inline std::atomic<int> AoiNodes{ 0 };
+	inline std::atomic<int> AoiDepth{ 0 };
+
 	// 시야 감사([Debug] ViewAudit, 누적). 플레이어(보는 쪽)와 다른 캐릭터 한 쌍마다 실제 거리로 판정한다.
 	inline std::atomic<long long> ViewAuditMust{ 0 };      // 거리 <= R 인 쌍(반드시 보여야 함)
 	inline std::atomic<long long> ViewAuditMissing{ 0 };   // 그중 시야 목록에 없는 쌍(누락)
