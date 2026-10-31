@@ -57,6 +57,7 @@ public:
 
 	// queue<shared_ptr<SendBuffer>> _sendQueue;
 	SendBufferQueue		_sendQueue;
+	atomic<int>			_sendQueued = 0;	// _sendQueue에 쌓인 패킷 수(NetStats 송신 큐 지표용)
 	atomic<bool>			_sendRegistered = false;
 
 private:

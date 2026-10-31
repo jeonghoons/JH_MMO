@@ -10,11 +10,33 @@
 #include <thread>
 #include <vector>
 
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+
 #include "../BotEngine/BotEngine.h"
 
 using namespace std;
 using BotEngine::NowUs;
 using BotEngine::Percentile;
+
+// 이 프로세스(봇)의 CPU 사용률(코어 1개 = 100%). 봇 쪽이 한계에 닿았는지 서버 병목과 구분하는 데 쓴다.
+static double SelfCpuPct()
+{
+	static unsigned long long lastCpu = 0;
+	static long long lastWallUs = 0;
+	FILETIME c, e, k, u;
+	if (!GetProcessTimes(GetCurrentProcess(), &c, &e, &k, &u)) return 0.0;
+	const unsigned long long cpu100ns = ((unsigned long long)k.dwHighDateTime << 32 | k.dwLowDateTime) +
+		((unsigned long long)u.dwHighDateTime << 32 | u.dwLowDateTime);
+	const long long wallUs = NowUs();
+	double pct = 0.0;
+	if (lastWallUs != 0 && wallUs > lastWallUs)
+		pct = (cpu100ns - lastCpu) / 10.0 / (wallUs - lastWallUs) * 100.0;
+	lastCpu = cpu100ns;
+	lastWallUs = wallUs;
+	return pct;
+}
 
 int main(int argc, char** argv)
 {
@@ -38,9 +60,10 @@ int main(int argc, char** argv)
 
 	ofstream csv(GConfig.outFile);
 	csv << "t_sec,connected,in_game,connect_fail,unexpected_close,login_p50_ms,login_p95_ms,ping_p50_ms,ping_p95_ms,ping_p99_ms,ping_max_ms,"
-		"sent_ps,recv_ps,recv_kbps,move_corrected,server_cpu_pct,server_mem_mb\n";
+		"sent_ps,recv_ps,recv_kbps,move_corrected,server_cpu_pct,server_mem_mb,max_bot_recv_KBps,bot_cpu_pct\n";
 
 	vector<uint32_t> allPing, allLogin;
+	double peakBotKBps = 0.0;   // 구간별 봇 1명 최대 수신량 중 가장 큰 값
 	const long long startUs = NowUs();
 	long long lastReportUs = startUs;
 	long long lastSent = 0, lastRecv = 0, lastBytes = 0, lastCorrected = 0;
@@ -70,23 +93,28 @@ int main(int argc, char** argv)
 		long long sent = GStat.pktSent.load(), recv = GStat.pktRecv.load(), bytes = GStat.bytesRecv.load(), corrected = GStat.moveCorrected.load();
 		double cpu, mem;
 		proc.Sample(cpu, mem);
+		const double botCpu = SelfCpuPct();
+		// 이번 구간에 가장 많이 받은 봇 한 명의 수신량(KB/s). 읽고 나서 구간을 넘긴다.
+		const double maxBotKBps = GStat.maxBotBytesWindow.exchange(0) / dt / 1024.0;
+		GStat.windowEpoch.fetch_add(1);
+		peakBotKBps = max(peakBotKBps, maxBotKBps);
 
 		char line[512];
 		snprintf(line, sizeof(line),
-			"%.0f,%d,%d,%lld,%lld,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.0f,%.0f,%.0f,%lld,%.0f,%.0f",
+			"%.0f,%d,%d,%lld,%lld,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.0f,%.0f,%.0f,%lld,%.0f,%.0f,%.1f,%.0f",
 			elapsed, GStat.connected.load(), GStat.inGame.load(), GStat.connectFail.load(), GStat.unexpectedClose.load(),
 			Percentile(login, 0.50) / 1000.0, Percentile(login, 0.95) / 1000.0,
 			Percentile(ping, 0.50) / 1000.0, Percentile(ping, 0.95) / 1000.0, Percentile(ping, 0.99) / 1000.0,
 			(ping.empty() ? 0.0 : ping.back() / 1000.0),
 			(sent - lastSent) / dt, (recv - lastRecv) / dt, (bytes - lastBytes) / dt / 1024.0 * 8.0,
-			corrected - lastCorrected, cpu, mem);
+			corrected - lastCorrected, cpu, mem, maxBotKBps, botCpu);
 		csv << line << "\n";
 		csv.flush();
 
-		printf("[t=%3.0fs] connected=%d inGame=%d connFail=%lld closed=%lld | ping p50/p95/p99/max=%.1f/%.1f/%.1f/%.1f ms | sent/s=%.0f recv/s=%.0f | server cpu=%.0f%% mem=%.0fMB\n",
+		printf("[t=%3.0fs] connected=%d inGame=%d connFail=%lld closed=%lld | ping p50/p95/p99/max=%.1f/%.1f/%.1f/%.1f ms | sent/s=%.0f recv/s=%.0f | server cpu=%.0f%% mem=%.0fMB | maxBot=%.1fKB/s botCpu=%.0f%%\n",
 			elapsed, GStat.connected.load(), GStat.inGame.load(), GStat.connectFail.load(), GStat.unexpectedClose.load(),
 			Percentile(ping, 0.50) / 1000.0, Percentile(ping, 0.95) / 1000.0, Percentile(ping, 0.99) / 1000.0,
-			(ping.empty() ? 0.0 : ping.back() / 1000.0), (sent - lastSent) / dt, (recv - lastRecv) / dt, cpu, mem);
+			(ping.empty() ? 0.0 : ping.back() / 1000.0), (sent - lastSent) / dt, (recv - lastRecv) / dt, cpu, mem, maxBotKBps, botCpu);
 
 		lastReportUs = now; lastSent = sent; lastRecv = recv; lastBytes = bytes; lastCorrected = corrected;
 		nextReportUs = now + REPORT_SEC * 1000000LL;
@@ -107,8 +135,8 @@ int main(int argc, char** argv)
 	printf("[summary] ping    p50/p95/p99/max = %.1f/%.1f/%.1f/%.1f ms (n=%zu)\n",
 		Percentile(allPing, 0.50) / 1000.0, Percentile(allPing, 0.95) / 1000.0, Percentile(allPing, 0.99) / 1000.0,
 		(allPing.empty() ? 0.0 : allPing.back() / 1000.0), allPing.size());
-	printf("[summary] moveCorrected=%lld pongs=%lld totalRecvBytes=%lld\n",
-		GStat.moveCorrected.load(), GStat.pongRecv.load(), GStat.bytesRecv.load());
+	printf("[summary] moveCorrected=%lld pongs=%lld totalRecvBytes=%lld peakBotRecv=%.1fKB/s\n",
+		GStat.moveCorrected.load(), GStat.pongRecv.load(), GStat.bytesRecv.load(), peakBotKBps);
 	if (GConfig.hunt)
 		printf("[summary] hunt: monsterAdded=%lld monsterDead(SC_DEAD)=%lld monsterRemoved(SC_REMOVE_OBJECT)=%lld damagePackets=%lld\n",
 			GStat.monsterAdded.load(), GStat.monsterDead.load(), GStat.monsterRemoved.load(), GStat.damageRecv.load());

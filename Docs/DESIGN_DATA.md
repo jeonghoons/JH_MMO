@@ -42,6 +42,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 | WeaponItemTable | 무기 아이템: ItemId, 장착 가능 HeroId, 스탯 보너스, 슬롯별 머티리얼 경로(클라 전용) |
 | SkillTable | `HeroId`, 쿨타임, 시전시간, 판정 Shape, 타겟팅 타입, 범위, 데미지 계수, 몽타주 경로(클라 전용) |
 | MonsterTable / ItemTable / UITable | 해당 기능 작업 시 |
+| WorldTable | 맵별 시야(AOI) 수치 — 서버 전용(2026-10-31 A1.3) |
 
 기존 `DT_Appearance`/`DT_Equip`/`DT_CharacterAsset`과 `UJMAssetDataManager`의 Mock DB는 `HeroTable`/`WeaponItemTable`로 대체합니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)). 대체 시점은 ROADMAP M2/M3.
 
@@ -61,6 +62,9 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 
 ### MonsterTable (서버 구현됨)
 `Name`(=스폰 마커의 `monsterTemplateId`, StatTable.PlayerType과 동일해야 함), `RespawnSec`(사망 후 리스폰까지), `DeathRemoveDelaySec`(시체를 남기는 시간, `<= RespawnSec`), `HitStunMs`(피격 후 행동이 막히는 시간, 0~10000 — 피격 모션 길이에 맞춘다). 사망 연출 길이에 맞춰 `DeathRemoveDelaySec`를 조절합니다. 스폰 위치/수는 맵 JSON의 `spawnRadius`/`maxCount`를 따릅니다. 보상(경험치/골드) 컬럼은 A2.3에서 추가합니다.
+
+### WorldTable (서버 전용, 2026-10-31 A1.3a)
+`Name`(worldId, 1001~), `MapName`(맵 리소스 파일 이름 = `GameMap::LoadMapData` 인자, 중복 불가), `CellSizeCm`(AOI 격자 셀 한 변, 100~100000), `ViewRangeCells`(시야 = 내 셀 기준 주변 몇 칸, 1~10, 정사각형), `ViewRadiusCm`(목표 시야 반경 R — 이 안의 캐릭터는 반드시 보임, 100~100000), `ViewHysteresisCm`(H — 나갈 때는 R+H를 넘어야 사라짐, 0~R). 서버가 쓰는 맵(`Room.h` `ROOM_MAP_NAME`) 행이 없으면 시작을 중단합니다. 현재 행: 1001 ParagonSample(1000cm, 1칸 = 보장 시야 10m, R 5000, H 500 — R·H는 A1.3b에서 결정, 현재 격자는 아직 R·H를 쓰지 않고 시야 감사만 씀). A1.3c에서 격자 열이 쿼드트리 열로 바뀝니다. UE는 이 테이블을 임포트하지 않습니다.
 
 ## 조회
 - UE 쪽 조회는 `UDataManager`(GameInstanceSubsystem)를 통해서만 합니다. DataTable 애셋 경로는 코드에 쓰지 않고 `UDeveloperSettings`(`DefaultGame.ini`)에서 지정합니다. 테이블별 `Find<Table>Row(int32 Id)`가 행 포인터 또는 nullptr를 반환합니다.

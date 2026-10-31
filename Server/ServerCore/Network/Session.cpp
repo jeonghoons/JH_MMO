@@ -15,6 +15,9 @@ Session::~Session()
 
 	LOG_DEBUG("Session", "~Session[{}]", _cid);
 
+	// 보내지 못하고 남은 패킷은 큐와 함께 사라지므로 전체 합에서 뺀다.
+	NetStats::SendQueued.fetch_sub(_sendQueued.load());
+
 	_socket = INVALID_SOCKET;
 }
 
@@ -72,6 +75,10 @@ void Session::Send(shared_ptr<SendBuffer> sendBuffer, bool pushOnly)
 
 	NetStats::MessagesOut.fetch_add(1);
 	_sendQueue.Push(sendBuffer);
+	NetStats::SendQueued.fetch_add(1);
+	const int depth = _sendQueued.fetch_add(1) + 1;
+	int prevMax = NetStats::SendQueueMax.load();
+	while (depth > prevMax && !NetStats::SendQueueMax.compare_exchange_weak(prevMax, depth)) {}
 
 	if (pushOnly) return;
 
@@ -179,6 +186,9 @@ void Session::RegisterSend()
 	while (_sendQueue.Try_pop(buffer)) {
 		_sendEvent.sendBuffers.push_back(buffer);
 	}
+	const int popped = static_cast<int>(_sendEvent.sendBuffers.size());
+	_sendQueued.fetch_sub(popped);
+	NetStats::SendQueued.fetch_sub(popped);
 
 	vector<WSABUF> wsaBufs;
 	wsaBufs.reserve(_sendEvent.sendBuffers.size());

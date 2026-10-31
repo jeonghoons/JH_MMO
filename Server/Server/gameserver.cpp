@@ -54,6 +54,10 @@ int main(int argc, char* argv[])
 		LOG_ERROR("Data", "DataTable 로드에 실패해 서버를 시작할 수 없습니다.");
 		exit(-1);
 	}
+	if (DataManager::GetWorldData(ROOM_MAP_NAME) == nullptr) {
+		LOG_ERROR("Data", "WorldTable에 맵 '{}' 행이 없어 서버를 시작할 수 없습니다.", ROOM_MAP_NAME);
+		exit(-1);
+	}
 
 	shared_ptr<ServerService> service = make_shared<ServerService>(
 		NetAddress(Utils::UTF8ToWString(GServerConfig.bindIp), (USHORT)GServerConfig.port),

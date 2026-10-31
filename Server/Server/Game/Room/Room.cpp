@@ -15,7 +15,7 @@ Room::~Room() = default;
 
 void Room::InitRoom()
 {
-	if (!_gameMap.LoadMapData("ParagonSample"))
+	if (!_gameMap.LoadMapData(ROOM_MAP_NAME))
 	{
 		LOG_ERROR("Room", "맵 초기화(LoadMapData) 중 일부 문제가 발생했습니다.");
 	}
@@ -38,6 +38,71 @@ void Room::InitRoom()
 	Update(currentTick);
 }
 
+// [Debug] DummySpawnZone 원 안에서 내비메시 위의 점을 고른다(핫존·시야 경계 시험). 구역이 없거나 다 찼거나 못 찾으면 false
+bool Room::PickDummyZonePosition(Protocol::PositionInfo& out)
+{
+	// 서버 전체에서 들어온 순서대로 앞 구역부터 n명씩 채운다(방이 여러 개여도 순서는 하나).
+	static atomic<int> dummyIndex = 0;
+	int index = dummyIndex.fetch_add(1);
+	const ServerConfig::DummyZone* zone = nullptr;
+	for (const ServerConfig::DummyZone& z : GServerConfig.dummyZones)
+	{
+		if (z.count == 0 || index < z.count) { zone = &z; break; }
+		index -= z.count;
+	}
+	if (zone == nullptr) return false;
+
+	const float cx = zone->x, cy = zone->y, r = zone->r;
+	const float zGuess = _gameMap.GetPlayerStarts().empty() ? 0.f : _gameMap.GetPlayerStarts()[0].Pos.Z;
+	for (int i = 0; i < 30; ++i)
+	{
+		const float angle = Utils::GetRandom<float>(0.f, 6.2831853f);
+		const float dist = r * sqrtf(Utils::GetRandom<float>(0.f, 1.f));
+		out.set_x(cx + cosf(angle) * dist);
+		out.set_y(cy + sinf(angle) * dist);
+		out.set_z(zGuess);
+		if (!_gameMap.GetNavManager()->AdjustPositionToNavMesh(out)) continue;
+		const float dx = out.x() - cx, dy = out.y() - cy;
+		if (dx * dx + dy * dy <= r * r) return true;
+	}
+	LOG_WARN("Room", "DummySpawnZone({},{},{}) 안에서 내비메시 위치를 찾지 못해 무작위 위치에 배치합니다", cx, cy, r);
+	return false;
+}
+
+// [Debug] ViewAudit: 플레이어마다 방 안의 모든 캐릭터와의 실제 수평 거리를 직접 계산해(전수 검사 = 정답) 시야 목록과 비교한다.
+// 거리 <= R 인데 시야에 없으면 누락, 거리 > R+H 인데 시야에 있으면 초과. R < 거리 <= R+H 는 어느 쪽이어도 정상(히스테리시스).
+void Room::AuditViews()
+{
+	static atomic<int> warned = 0;   // 처음 몇 건만 로그로 남긴다
+	const float r = _gameMap.GetViewRadius();
+	const float rOut = r + _gameMap.GetViewHysteresis();
+
+	long long must = 0, missing = 0, mustNot = 0, extra = 0;
+	for (const auto& [viewerId, viewer] : _players)
+	{
+		const Protocol::PositionInfo& vp = viewer->GetPosition();
+		const vector<int>& viewList = viewer->_viewList;
+		for (const auto& [targetId, target] : _objects)
+		{
+			if (targetId == viewerId) continue;
+			const Protocol::PositionInfo& tp = target->GetPosition();
+			const float dist = sqrtf((tp.x() - vp.x()) * (tp.x() - vp.x()) + (tp.y() - vp.y()) * (tp.y() - vp.y()));
+			const bool inView = find(viewList.begin(), viewList.end(), targetId) != viewList.end();
+
+			const char* kind = nullptr;
+			if (dist <= r) { ++must; if (!inView) { ++missing; kind = "누락"; } }
+			else if (dist > rOut) { ++mustNot; if (inView) { ++extra; kind = "초과"; } }
+
+			if (kind && warned.fetch_add(1) < 10)
+				LOG_WARN("ViewAudit", "{}: 플레이어 {} → 대상 {} 거리 {:.0f}cm (R {:.0f}, R+H {:.0f})", kind, viewerId, targetId, dist, r, rOut);
+		}
+	}
+	Metrics::ViewAuditMust.fetch_add(must);
+	Metrics::ViewAuditMissing.fetch_add(missing);
+	Metrics::ViewAuditMustNot.fetch_add(mustNot);
+	Metrics::ViewAuditExtra.fetch_add(extra);
+}
+
 void Room::Update(long long elapsedTime)
 {
 	long long currentTick = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
@@ -57,6 +122,21 @@ void Room::Update(long long elapsedTime)
 	}
 	UpdateZones();
 	Metrics::TickBody.Add(chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - bodyStart).count());
+
+	// 1초(10틱)마다 플레이어별 시야 인원을 표본으로 남긴다(지표용, 틱 본문 시간에는 넣지 않음).
+	if (++_tickCount % 10 == 0)
+	{
+		if (GServerConfig.viewAudit) AuditViews();
+
+		for (const auto& [id, player] : _players)
+		{
+			long long viewPlayers = 0;
+			for (int viewId : player->_viewList)
+				if (_players.count(viewId)) ++viewPlayers;
+			Metrics::ViewPlayers.Add(viewPlayers);
+			Metrics::ViewObjects.Add(static_cast<long long>(player->_viewList.size()));
+		}
+	}
 }
 
 bool Room::AddObject(shared_ptr<GameObject> object)
@@ -80,7 +160,10 @@ bool Room::AddObject(shared_ptr<GameObject> object)
 				
 		shared_ptr<Player> dummyPlayer = static_pointer_cast<Player>(object);
 		if (dummyPlayer->isDummy) {
-			dummyPlayer->SetPosition(_gameMap.GetNavManager()->GetRandomPosition());
+			Protocol::PositionInfo dummyPos;
+			if (!PickDummyZonePosition(dummyPos))
+				dummyPos = _gameMap.GetNavManager()->GetRandomPosition();
+			dummyPlayer->SetPosition(dummyPos);
 		}
 	}
 

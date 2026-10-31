@@ -118,6 +118,36 @@ namespace
 			{
 				cfg.logDir = e.value; cfg.logDirFrom = from;
 			}
+			else if (name == "Debug.DummySpawnZone")
+			{
+				cfg.dummyZones.clear();
+				size_t begin = 0;
+				while (begin < e.value.size())
+				{
+					size_t end = e.value.find(';', begin);
+					if (end == std::string::npos) end = e.value.size();
+					const std::string item = e.value.substr(begin, end - begin);
+					begin = end + 1;
+
+					ServerConfig::DummyZone z;
+					char extra = 0;
+					const int n = sscanf_s(item.c_str(), "%f,%f,%f,%d%c", &z.x, &z.y, &z.r, &z.count, &extra, 1);
+					if ((n != 3 && n != 4) || !(z.r > 0.f) || z.count < 0)
+					{
+						err = where + "DummySpawnZone must be empty or x,y,r[,n];... (cm, r > 0, n >= 0): '" + item + "'";
+						return false;
+					}
+					cfg.dummyZones.push_back(z);
+				}
+				cfg.dummySpawnZoneFrom = from;
+			}
+			else if (name == "Debug.ViewAudit")
+			{
+				if (e.value == "true" || e.value == "1") cfg.viewAudit = true;
+				else if (e.value == "false" || e.value == "0" || e.value.empty()) cfg.viewAudit = false;
+				else { err = where + "ViewAudit must be true/false: '" + e.value + "'"; return false; }
+				cfg.viewAuditFrom = from;
+			}
 			else
 			{
 				err = where + "unknown key '" + name + "'";
@@ -206,4 +236,9 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "Database.Connections      = {}  ({})", dbConnections, dbConnectionsFrom);
 	LOG_INFO("Config", "Log.Level                 = {}  ({})", LogLevelName(logLevel), logLevelFrom);
 	LOG_INFO("Config", "Log.Dir                   = {}  ({})", logDir.empty() ? "(파일 출력 안 함)" : logDir, logDirFrom);
+	if (dummyZones.empty())
+		LOG_INFO("Config", "Debug.DummySpawnZone      = (끔: 맵 전체 무작위)  ({})", dummySpawnZoneFrom);
+	for (const DummyZone& z : dummyZones)
+		LOG_INFO("Config", "Debug.DummySpawnZone      = {},{},{} x {}  ({})", z.x, z.y, z.r, z.count == 0 ? std::string("나머지") : std::to_string(z.count), dummySpawnZoneFrom);
+	LOG_INFO("Config", "Debug.ViewAudit           = {}  ({})", viewAudit, viewAuditFrom);
 }

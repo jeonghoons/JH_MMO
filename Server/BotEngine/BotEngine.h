@@ -26,6 +26,8 @@ struct BotConfig
 	std::string serverProc = "GameServer.exe";
 	std::string mapLogic;          // 맵 로직 JSON(몬스터 스폰 위치). hunt 프로필의 봇이 가까운 스폰으로 이동하는 데 쓴다
 	bool trackWorld = false;   // 시각화(DummyClient)용: 몬스터 위치·사망을 추적하고 스냅숏을 공개한다
+	bool zone = false;         // 핫존: 봇이 (zoneX, zoneY)로 걸어가 반경 zoneR 안에서만 움직인다 (--zone x,y,r)
+	float zoneX = 0, zoneY = 0, zoneR = 0;
 };
 
 // ---------------------------------------------------------------- 집계
@@ -36,6 +38,9 @@ struct BotCounters
 	std::atomic<long long> pktSent{ 0 }, pktRecv{ 0 }, bytesRecv{ 0 }, pongRecv{ 0 }, moveCorrected{ 0 };
 	std::atomic<long long> monsterDead{ 0 }, monsterRemoved{ 0 }, monsterAdded{ 0 }, damageRecv{ 0 }, objectAdded{ 0 };
 	std::atomic<int> connected{ 0 }, inGame{ 0 };
+	// 구간(리포트 간격) 동안 봇 한 명이 받은 최대 바이트. 리포터가 읽으며 0으로 되돌리고 windowEpoch를 올린다.
+	std::atomic<long long> maxBotBytesWindow{ 0 };
+	std::atomic<int> windowEpoch{ 0 };
 };
 
 // ---------------------------------------------------------------- 시각화 스냅숏 (trackWorld일 때만 채워진다)

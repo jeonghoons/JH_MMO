@@ -85,10 +85,21 @@ struct MovementData
 // MovementTable에서 플레이어 기본값을 담은 행 (클라이언트 UDataManager도 같은 행을 쓴다)
 constexpr int PLAYER_MOVEMENT_ID = 1001;
 
+// WorldTable: 맵별 시야(AOI) 수치. 서버 전용(클라이언트는 읽지 않는다).
+struct WorldData
+{
+	int id;
+	std::string mapName;   // 맵 파일 이름(GameMap::LoadMapData 인자)과 같아야 한다
+	int cellSizeCm;        // AOI 격자 셀 한 변 길이
+	int viewRangeCells;    // 시야 = 내 셀 기준 주변 몇 칸까지 (정사각형)
+	int viewRadiusCm;      // 목표 시야 반경 R: 이 거리 안의 캐릭터는 반드시 보여야 한다
+	int viewHysteresisCm;  // 히스테리시스 H: 나갈 때는 R+H를 넘어야 사라진다(경계 깜빡임 방지)
+};
+
 class DataManager
 {
 public:
-	// Common/DataTable/StatTable.csv, SkillTable.csv, MonsterTable.csv, MovementTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
+	// Common/DataTable/StatTable.csv, SkillTable.csv, MonsterTable.csv, MovementTable.csv, WorldTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
 	static bool Init();
 
 	static const SkillData* GetSkillData(int skillId)
@@ -127,10 +138,18 @@ public:
 		return nullptr;
 	}
 
+	static const WorldData* GetWorldData(const std::string& mapName)
+	{
+		auto it = _worldTable.find(mapName);
+		if (it != _worldTable.end()) return &it->second;
+		return nullptr;
+	}
+
 private:
 	static inline std::unordered_map<int, SkillData> _skillTable;
 	static inline std::unordered_map<int, CharacterData> _characterTable;
 	static inline std::unordered_map<int, MonsterData> _monsterTable;
 	static inline std::unordered_map<int, MovementData> _movementTable;
+	static inline std::unordered_map<std::string, WorldData> _worldTable; // key = mapName
 	static inline std::unordered_map<int, int> _skillBySlot; // key = ownerType*100 + slot -> skillId
 };

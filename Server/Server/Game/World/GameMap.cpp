@@ -5,8 +5,8 @@
 
 CellPos GameMap::ToCellPos(const Protocol::PositionInfo& pos) const
 {
-    int x_index = static_cast<int>((pos.x() - _minX) / CELL_SIZE);
-    int y_index = static_cast<int>((pos.y() - _minY) / CELL_SIZE);
+    int x_index = static_cast<int>((pos.x() - _minX) / _cellSize);
+    int y_index = static_cast<int>((pos.y() - _minY) / _cellSize);
 
     // 맵 밖 좌표가 들어와도 _grid 인덱스가 범위를 벗어나지 않게 가장자리 셀로 고정한다.
     x_index = std::clamp(x_index, 0, std::max(_gridWidth - 1, 0));
@@ -102,11 +102,11 @@ void GameMap::CollectObject(CellPos pos, vector<int>& outList) const
 vector<CellPos> GameMap::GetNeighborCells(CellPos pos) const
 {
     vector<CellPos> cells;
-    int cellCount = VIEW_RANGE_CELLS * 2 + 1;
+    int cellCount = _viewRangeCells * 2 + 1;
     cells.reserve(cellCount * cellCount);
 
-    for (int y = pos.y - VIEW_RANGE_CELLS; y <= pos.y + VIEW_RANGE_CELLS; ++y) {
-        for (int x = pos.x - VIEW_RANGE_CELLS; x <= pos.x + VIEW_RANGE_CELLS; ++x) {
+    for (int y = pos.y - _viewRangeCells; y <= pos.y + _viewRangeCells; ++y) {
+        for (int x = pos.x - _viewRangeCells; x <= pos.x + _viewRangeCells; ++x) {
             if (x >= 0 && x < _gridWidth && y >= 0 && y < _gridHeight) {
                 cells.push_back({ x, y });
             }
@@ -119,6 +119,18 @@ bool GameMap::LoadMapData(const string& fileName)
 {
     bool isSuccess = true;
 
+    // 0. 시야(AOI) 수치
+    if (const WorldData* world = DataManager::GetWorldData(fileName)) {
+        _cellSize = static_cast<float>(world->cellSizeCm);
+        _viewRangeCells = world->viewRangeCells;
+        _viewRadius = static_cast<float>(world->viewRadiusCm);
+        _viewHysteresis = static_cast<float>(world->viewHysteresisCm);
+    }
+    else {
+        LOG_ERROR("GameMap", "WorldTable에 맵 '{}' 행이 없습니다", fileName);
+        return false;
+    }
+
     // 1. 지형 데이터 (NavMesh) 로드 및 Bounds 동적 추출
     _navManager = std::make_unique<NavmeshManager>();
     string navPath = "Resource/Map/" + fileName + "_Geo.nav";
@@ -128,13 +140,13 @@ bool GameMap::LoadMapData(const string& fileName)
         isSuccess = false;
     }
     else {
-        _minX -= CELL_SIZE;
-        _maxX += CELL_SIZE;
-        _minY -= CELL_SIZE;
-        _maxY += CELL_SIZE;
+        _minX -= _cellSize;
+        _maxX += _cellSize;
+        _minY -= _cellSize;
+        _maxY += _cellSize;
 
-        _gridWidth = static_cast<int>((_maxX - _minX) / CELL_SIZE) + 1;
-        _gridHeight = static_cast<int>((_maxY - _minY) / CELL_SIZE) + 1;
+        _gridWidth = static_cast<int>((_maxX - _minX) / _cellSize) + 1;
+        _gridHeight = static_cast<int>((_maxY - _minY) / _cellSize) + 1;
 
         
         _grid.assign(_gridHeight, vector<Cell>(_gridWidth));
@@ -235,15 +247,15 @@ Protocol::PositionInfo GameMap::GetRandomPosInCell(const Protocol::PositionInfo&
 {
     CellPos cellPos = ToCellPos(pos);
 
-    float cellMinX = _minX + (cellPos.x * CELL_SIZE);
-    float cellMinY = _minY + (cellPos.y * CELL_SIZE);
+    float cellMinX = _minX + (cellPos.x * _cellSize);
+    float cellMinY = _minY + (cellPos.y * _cellSize);
 
     float margin = 50.0f;
 
     for (int i = 0; i < 10; ++i)
     {
-        float randX = Utils::GetRandom<float>(cellMinX + margin, cellMinX + CELL_SIZE - margin);
-        float randY = Utils::GetRandom<float>(cellMinY + margin, cellMinY + CELL_SIZE - margin);
+        float randX = Utils::GetRandom<float>(cellMinX + margin, cellMinX + _cellSize - margin);
+        float randY = Utils::GetRandom<float>(cellMinY + margin, cellMinY + _cellSize - margin);
 
         Protocol::PositionInfo randomDest;
         randomDest.set_x(randX);

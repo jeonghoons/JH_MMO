@@ -105,6 +105,8 @@ struct Bot
 	float moveSpeed = 0.f;      // 서버 스탯 move_speed. 서버가 이 속도로 이동을 검증한다
 	long long lastMoveSentUs = 0;
 	uint32_t correctionSeq = 0; // 서버가 보낸 마지막 보정 순번. CS_MOVE에 실어 보낸다
+	long long windowBytes = 0;  // 이번 리포트 구간에 받은 바이트(봇 1명당 최대 수신량 지표)
+	int windowEpoch = -1;
 };
 
 static void SendPacket(Bot& b, uint16_t id, const google::protobuf::Message& msg);
@@ -501,7 +503,16 @@ static void WorkerMain(int workerIndex, int workerCount)
 					b.nextMoveUs = now + GConfig.moveIntervalMs * 1000LL;
 					const float step = min(300.f, MaxStep(b, now));
 					float nx = b.x, ny = b.y, yaw = 0.f;
-					if (GConfig.hunt && !GMonsterSpawns.empty() && b.moveFailures < 3)
+					const float zdx = GConfig.zoneX - b.x, zdy = GConfig.zoneY - b.y;
+					const float zoneDist = sqrtf(zdx * zdx + zdy * zdy);
+					if (GConfig.zone && zoneDist > GConfig.zoneR && b.moveFailures < 3)
+					{
+						// 핫존 밖이면 중심 쪽으로 걸어간다(길 찾기 없음 — 막히면 아래 무작위 이동으로 잠시 비킨다).
+						const float stride = min({ 500.f, zoneDist, MaxStep(b, now) });
+						nx = b.x + zdx / zoneDist * stride; ny = b.y + zdy / zoneDist * stride;
+						yaw = atan2f(zdy, zdx) * 180.f / 3.14159265f;
+					}
+					else if (!GConfig.zone && GConfig.hunt && !GMonsterSpawns.empty() && b.moveFailures < 3)
 					{
 						// 맵 정보가 있으면 가장 가까운 몬스터 스폰 쪽으로 한 걸음씩 다가간다. 막혀서 보정되면 잠시 무작위로 돌아다니고, 계속 막히면 목표를 바꾼다.
 						if (b.spawnTarget < 0)
@@ -529,7 +540,16 @@ static void WorkerMain(int workerIndex, int workerCount)
 						case 2: ny -= step; yaw = -90.f; break;
 						default: ny += step; yaw = 90.f; break;
 						}
-						if (b.moveFailures > 0) --b.moveFailures;   // 무작위 이동을 몇 번 하면 다시 스폰 쪽으로 향한다
+						// 핫존 안에서는 반경을 벗어나는 걸음을 반대로 돌린다.
+						if (GConfig.zone && zoneDist <= GConfig.zoneR)
+						{
+							const float ex = nx - GConfig.zoneX, ey = ny - GConfig.zoneY;
+							if (ex * ex + ey * ey > GConfig.zoneR * GConfig.zoneR)
+							{
+								nx = b.x - (nx - b.x); ny = b.y - (ny - b.y); yaw += 180.f;
+							}
+						}
+						if (b.moveFailures > 0) --b.moveFailures;   // 무작위 이동을 몇 번 하면 다시 스폰(또는 핫존) 쪽으로 향한다
 					}
 					SendMove(b, now, nx, ny, yaw, Protocol::MOVE_STATE_RUN);
 				}
@@ -643,6 +663,11 @@ static void WorkerMain(int workerIndex, int workerCount)
 					if (n > 0)
 					{
 						GStat.bytesRecv.fetch_add(n);
+						const int epoch = GStat.windowEpoch.load(std::memory_order_relaxed);
+						if (b.windowEpoch != epoch) { b.windowEpoch = epoch; b.windowBytes = 0; }
+						b.windowBytes += n;
+						long long prevMax = GStat.maxBotBytesWindow.load(std::memory_order_relaxed);
+						while (b.windowBytes > prevMax && !GStat.maxBotBytesWindow.compare_exchange_weak(prevMax, b.windowBytes)) {}
 						b.rbuf.insert(b.rbuf.end(), tmp.begin(), tmp.begin() + n);
 						if (n < static_cast<int>(tmp.size())) break;
 					}
@@ -670,7 +695,8 @@ static void WorkerMain(int workerIndex, int workerCount)
 void BotEngine::Usage(const char* program)
 {
 	printf("%s --bots N --ramp-rate R --duration S [--host H] [--port P] [--threads T]\n"
-		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--hero warrior|archer] [--chaos] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n",
+		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--hero warrior|archer] [--chaos] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
+		"         [--zone x,y,r]   (hotspot: bots walk to (x,y) and stay within radius r cm)\n",
 		program);
 }
 
@@ -699,6 +725,16 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--map") { if (!(v = next("--map"))) return false; GConfig.mapLogic = v; }
 		else if (a == "--out") { if (!(v = next("--out"))) return false; GConfig.outFile = v; }
 		else if (a == "--server-proc") { if (!(v = next("--server-proc"))) return false; GConfig.serverProc = v; }
+		else if (a == "--zone")
+		{
+			if (!(v = next("--zone"))) return false;
+			if (sscanf_s(v, "%f,%f,%f", &GConfig.zoneX, &GConfig.zoneY, &GConfig.zoneR) != 3 || GConfig.zoneR <= 0.f)
+			{
+				printf("--zone must be x,y,r (cm, r > 0)\n");
+				return false;
+			}
+			GConfig.zone = true;
+		}
 		else { printf("unknown option: %s\n", a.c_str()); Usage(argv[0]); return false; }
 	}
 	if (GConfig.bots < 1 || GConfig.rampRate < 1 || GConfig.durationSec < 1 || GConfig.threads < 1 ||

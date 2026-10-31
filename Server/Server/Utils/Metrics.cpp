@@ -9,24 +9,13 @@ namespace
 {
 	constexpr int REPORT_INTERVAL_SEC = 5;
 
-	struct Snapshot
+	// 정렬된 표본에서 p(0~1) 분위수 (nearest-rank)
+	double Rank(const std::vector<long long>& sorted, double p)
 	{
-		double avgMs = 0.0;
-		double maxMs = 0.0;
-	};
-
-	// 구간 통계를 읽으면서 0으로 되돌린다.
-	Snapshot TakeAndReset(Metrics::Stat& stat)
-	{
-		long long sum = stat.sumUs.exchange(0);
-		long long count = stat.count.exchange(0);
-		long long max = stat.maxUs.exchange(0);
-
-		Snapshot s;
-		if (count > 0)
-			s.avgMs = (sum / static_cast<double>(count)) / 1000.0;
-		s.maxMs = max / 1000.0;
-		return s;
+		if (sorted.empty()) return 0.0;
+		size_t idx = static_cast<size_t>(std::ceil(p * sorted.size()));
+		idx = std::clamp<size_t>(idx, 1, sorted.size()) - 1;
+		return static_cast<double>(sorted[idx]);
 	}
 
 	void ReportLoop()
@@ -67,26 +56,57 @@ namespace
 					players += room->NumPlayers();
 			}
 
-			Snapshot late = TakeAndReset(Metrics::TickLate);
-			Snapshot body = TakeAndReset(Metrics::TickBody);
+			// 틱 표본은 us 단위 → ms로 출력
+			const Metrics::Percentiles late = Metrics::TickLate.TakeAndReset();
+			const Metrics::Percentiles body = Metrics::TickBody.TakeAndReset();
+			const Metrics::Percentiles viewP = Metrics::ViewPlayers.TakeAndReset();
+			const Metrics::Percentiles viewO = Metrics::ViewObjects.TakeAndReset();
+			const int sendQueueMax = NetStats::SendQueueMax.exchange(0);
 
-			char line[512];
-			snprintf(line, sizeof(line),
-				"sessions=%d rooms=%d players=%d monsters=%d in/s=%.0f out/s=%.0f atk(req/ok per s)=%.1f/%.1f zones(total created/hits)=%lld/%lld "
-				"move(total ok/speed/nav/bad/stale/rate)=%lld/%lld/%lld/%lld/%lld/%lld tickLate(avg/max ms)=%.1f/%.1f tickBody(avg/max ms)=%.2f/%.2f logDrop=%lld",
+			LOG_INFO("metrics",
+				"sessions={} rooms={} players={} monsters={} in/s={:.0f} out/s={:.0f} atk(req/ok per s)={:.1f}/{:.1f} zones(total created/hits)={}/{} "
+				"move(total ok/speed/nav/bad/stale/rate)={}/{}/{}/{}/{}/{} "
+				"tickLate(avg/p50/p95/p99/max ms)={:.1f}/{:.1f}/{:.1f}/{:.1f}/{:.1f} tickBody(avg/p50/p95/p99/max ms)={:.2f}/{:.2f}/{:.2f}/{:.2f}/{:.2f} "
+				"viewPlayers(avg/p99/max)={:.1f}/{:.0f}/{:.0f} viewObjects(avg/p99/max)={:.1f}/{:.0f}/{:.0f} sendQ(total/sessionMax)={}/{} logDrop={} "
+				"viewAudit(must/missing mustNot/extra)={}/{} {}/{}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
-				late.avgMs, late.maxMs, body.avgMs, body.maxMs, Logger::Dropped());
-			LOG_INFO("metrics", "{}", line);
+				late.avg / 1000.0, late.p50 / 1000.0, late.p95 / 1000.0, late.p99 / 1000.0, late.max / 1000.0,
+				body.avg / 1000.0, body.p50 / 1000.0, body.p95 / 1000.0, body.p99 / 1000.0, body.max / 1000.0,
+				viewP.avg, viewP.p99, viewP.max, viewO.avg, viewO.p99, viewO.max,
+				NetStats::SendQueued.load(), sendQueueMax, Logger::Dropped(),
+				Metrics::ViewAuditMust.load(), Metrics::ViewAuditMissing.load(), Metrics::ViewAuditMustNot.load(), Metrics::ViewAuditExtra.load());
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","
-				<< inPs << "," << outPs << "," << late.avgMs << "," << late.maxMs << ","
-				<< body.avgMs << "," << body.maxMs << "\n";
+				<< inPs << "," << outPs << "," << late.avg / 1000.0 << "," << late.max / 1000.0 << ","
+				<< body.avg / 1000.0 << "," << body.max / 1000.0 << "\n";
 			csv.flush();
 		}
 	}
+}
+
+Metrics::Percentiles Metrics::SampleStat::TakeAndReset()
+{
+	std::vector<long long> samples;
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		samples.swap(_samples);
+	}
+
+	Percentiles r;
+	if (samples.empty()) return r;
+	std::sort(samples.begin(), samples.end());
+	long long sum = 0;
+	for (long long v : samples) sum += v;
+	r.count = static_cast<long long>(samples.size());
+	r.avg = sum / static_cast<double>(samples.size());
+	r.p50 = Rank(samples, 0.50);
+	r.p95 = Rank(samples, 0.95);
+	r.p99 = Rank(samples, 0.99);
+	r.max = static_cast<double>(samples.back());
+	return r;
 }
 
 void Metrics::StartReporter()

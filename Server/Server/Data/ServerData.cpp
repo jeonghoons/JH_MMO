@@ -235,7 +235,36 @@ bool DataManager::Init()
 		return false;
 	}
 
-	LOG_INFO("Data", "로드 완료 (StatTable {}행, SkillTable {}행, MonsterTable {}행, MovementTable {}행)",
-		_characterTable.size(), _skillTable.size(), _monsterTable.size(), _movementTable.size());
+	// WorldTable: Name(=worldId), MapName, CellSizeCm, ViewRangeCells, ViewRadiusCm, ViewHysteresisCm
+	CsvFile world;
+	if (!world.Load((dir / "WorldTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
+
+	std::unordered_set<int> worldIds;
+	for (const CsvRow& row : world.Rows())
+	{
+		WorldData d{};
+		if (!row.GetInt("Name", d.id, err) || !row.GetString("MapName", d.mapName, err) ||
+			!row.GetInt("CellSizeCm", d.cellSizeCm, err) || !row.GetInt("ViewRangeCells", d.viewRangeCells, err) ||
+			!row.GetInt("ViewRadiusCm", d.viewRadiusCm, err) || !row.GetInt("ViewHysteresisCm", d.viewHysteresisCm, err))
+		{
+			LOG_ERROR("Data", "{}", err);
+			return false;
+		}
+		if (d.mapName.empty() || d.cellSizeCm < 100 || d.cellSizeCm > 100000 || d.viewRangeCells < 1 || d.viewRangeCells > 10 ||
+			d.viewRadiusCm < 100 || d.viewRadiusCm > 100000 || d.viewHysteresisCm < 0 || d.viewHysteresisCm > d.viewRadiusCm)
+		{
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (MapName 필수, 100 <= CellSizeCm <= 100000, 1 <= ViewRangeCells <= 10, 100 <= ViewRadiusCm <= 100000, 0 <= ViewHysteresisCm <= ViewRadiusCm)", world.Path(), row.Line());
+			return false;
+		}
+		if (!worldIds.insert(d.id).second || _worldTable.count(d.mapName))
+		{
+			LOG_ERROR("Data", "{} line {}: worldId {} 또는 MapName '{}' 가 중복되었습니다", world.Path(), row.Line(), d.id, d.mapName);
+			return false;
+		}
+		_worldTable[d.mapName] = d;
+	}
+
+	LOG_INFO("Data", "로드 완료 (StatTable {}행, SkillTable {}행, MonsterTable {}행, MovementTable {}행, WorldTable {}행)",
+		_characterTable.size(), _skillTable.size(), _monsterTable.size(), _movementTable.size(), _worldTable.size());
 	return true;
 }

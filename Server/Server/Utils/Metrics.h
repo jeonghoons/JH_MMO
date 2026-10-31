@@ -1,23 +1,33 @@
 ﻿#pragma once
 #include <atomic>
+#include <mutex>
+#include <vector>
 
 // 부하 테스트용 서버 지표(게임 쪽). 세션·패킷 수는 네트워크 계층의 NetStats에 있다. 핫패스에서는 atomic 증가만 하고, 집계/출력은 Metrics::StartReporter 스레드가 한다.
 namespace Metrics
 {
-	struct Stat
+	// 구간 분위수용 표본 모음. 표본이 적은 지표(Room 틱: 방마다 초당 10개, 시야 인원: 플레이어마다 초당 1개)에만 쓴다.
+	// 잠금 한 번 + push_back이라 핫패스(패킷마다)에는 쓰지 않는다.
+	struct Percentiles
 	{
-		std::atomic<long long> sumUs{ 0 };
-		std::atomic<long long> count{ 0 };
-		std::atomic<long long> maxUs{ 0 };
+		long long count = 0;
+		double avg = 0, p50 = 0, p95 = 0, p99 = 0, max = 0;
+	};
 
-		void Add(long long us)
+	class SampleStat
+	{
+	public:
+		void Add(long long v)
 		{
-			sumUs.fetch_add(us);
-			count.fetch_add(1);
-
-			long long prev = maxUs.load();
-			while (us > prev && !maxUs.compare_exchange_weak(prev, us)) {}
+			std::lock_guard<std::mutex> lock(_mutex);
+			_samples.push_back(v);
 		}
+		// 지금까지 모은 표본으로 분위수를 계산하고 비운다(리포터가 5초마다 호출).
+		Percentiles TakeAndReset();
+
+	private:
+		std::mutex _mutex;
+		std::vector<long long> _samples;
 	};
 
 	inline std::atomic<int>       Monsters{ 0 };      // 현재 월드에 살아 있거나 시체로 남아 있는 몬스터 수
@@ -34,8 +44,16 @@ namespace Metrics
 	inline std::atomic<long long> MoveDroppedStale{ 0 };   // 보정 전에 보낸 이동(옛 순번)
 	inline std::atomic<long long> MoveDroppedRate{ 0 };    // 너무 잦은 이동
 
-	inline Stat TickLate;   // Room 틱이 예정보다 늦어진 시간 (Timer/JobQueue/IOCP 대기 지연)
-	inline Stat TickBody;   // Room::Update 본문 처리 시간
+	inline SampleStat TickLate;     // Room 틱이 예정보다 늦어진 시간(us) (Timer/JobQueue/IOCP 대기 지연)
+	inline SampleStat TickBody;     // Room::Update 본문 처리 시간(us)
+	inline SampleStat ViewPlayers;  // 플레이어 한 명의 시야 안 다른 플레이어 수 (1초마다 플레이어별 표본)
+	inline SampleStat ViewObjects;  // 플레이어 한 명의 시야 안 전체 오브젝트 수(플레이어 + 몬스터)
+
+	// 시야 감사([Debug] ViewAudit, 누적). 플레이어(보는 쪽)와 다른 캐릭터 한 쌍마다 실제 거리로 판정한다.
+	inline std::atomic<long long> ViewAuditMust{ 0 };      // 거리 <= R 인 쌍(반드시 보여야 함)
+	inline std::atomic<long long> ViewAuditMissing{ 0 };   // 그중 시야 목록에 없는 쌍(누락)
+	inline std::atomic<long long> ViewAuditMustNot{ 0 };   // 거리 > R+H 인 쌍(보이면 안 됨)
+	inline std::atomic<long long> ViewAuditExtra{ 0 };     // 그중 시야 목록에 있는 쌍(초과)
 
 	// 5초마다 한 줄을 콘솔과 metrics.csv에 기록하는 스레드를 시작한다.
 	void StartReporter();

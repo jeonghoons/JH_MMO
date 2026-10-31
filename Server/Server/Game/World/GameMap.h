@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "Game/World/NavmeshManager.h"
-constexpr int CELL_SIZE = 1000;
-const int VIEW_RANGE_CELLS = 1;
+// 셀 크기·시야 칸 수는 WorldTable.csv(맵별 행)에서 읽는다.
 
 struct ViewUpdate {
     vector<int> entered;   // 새로 시야에 들어온 객체들
@@ -81,6 +80,8 @@ public:
     bool IsOutOfBounds(const Protocol::PositionInfo& pos) const;
 
     NavmeshManager* GetNavManager() { return _navManager.get(); }
+    float GetViewRadius() const { return _viewRadius; }
+    float GetViewHysteresis() const { return _viewHysteresis; }
     Protocol::PositionInfo GetRandomPosInCell(const Protocol::PositionInfo& pos) const;
 private:
     CellPos ToCellPos(const Protocol::PositionInfo& pos) const;
@@ -98,6 +99,10 @@ private:
     float _maxY = 0.f;
     int _gridWidth = 0;
     int _gridHeight = 0;
+    float _cellSize = 1000.f;   // WorldTable.CellSizeCm
+    int _viewRangeCells = 1;    // WorldTable.ViewRangeCells
+    float _viewRadius = 5000.f;      // WorldTable.ViewRadiusCm
+    float _viewHysteresis = 500.f;   // WorldTable.ViewHysteresisCm
 
     vector<PlayerStartPoint> _playerStarts;
     vector<MonsterSpawnPoint> _monsterSpawns;

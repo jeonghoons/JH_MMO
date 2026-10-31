@@ -6,6 +6,7 @@
 #include "Game/World/GameMap.h"
 
 constexpr int MAX_ROOM_CAPACITY = 100;
+constexpr const char* ROOM_MAP_NAME = "ParagonSample"; // 모든 방이 쓰는 맵(맵 리소스 파일 이름 = WorldTable.MapName)
 constexpr int MAX_CHAT_LEN = 100;               // 채팅 한 줄 최대 글자 수(UTF-16 문자 기준)
 constexpr long long CHAT_MIN_INTERVAL_MS = 500;  // 같은 플레이어의 채팅 최소 간격(도배 방지)
 
@@ -115,6 +116,11 @@ private:
 	void UpdateZones();
 
 	atomic<int> _playerCount = 0;
+	int _tickCount = 0;   // Update 횟수. 1초(10틱)마다 시야 인원 지표·시야 감사를 하는 데 쓴다
+
+	// [Debug] 부하·검증 시험용
+	bool PickDummyZonePosition(Protocol::PositionInfo& out);   // DummySpawnZone 안의 내비메시 위치
+	void AuditViews();                                         // ViewAudit: 시야 목록을 실제 거리와 비교
 
 	unordered_map<int, shared_ptr<GameObject>> _objects;
 	unordered_map<int, shared_ptr<Player>> _players;
