@@ -66,7 +66,17 @@ def import_fbx(fbx_path, dest_dir, replace=True):
     return meshes[0]
 
 
+def _not_playing():
+    """Simulate/PIE 중에는 이름 변경·저장이 실패하고, 빌드 안 된 메시 복사로 에디터가 죽을 수 있다(MC2.2 크래시)."""
+    if unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_game_world() is not None:
+        raise RuntimeError("Simulate/PIE 중 — stop_simulate() 후 다음 호출에서 실행")
+
+
 def _dm_static(path):
+    st = unreal.load_asset(path)
+    if st is None or st.get_num_triangles(0) <= 0:
+        # 렌더 데이터가 없는 메시를 복사하면 CopyMeshFromStaticMesh가 어서트로 에디터를 종료시킨다
+        raise RuntimeError(f"정적 메시가 비었거나 아직 빌드 전: {path}")
     dm = unreal.DynamicMesh()
     dm, _ = A.copy_mesh_from_static_mesh(unreal.load_asset(path), dm, unreal.GeometryScriptCopyMeshFromAssetOptions(), unreal.GeometryScriptMeshReadLOD())
     return dm
@@ -138,6 +148,197 @@ def _push_out(dm, body_dm, bvh, max_depth, margin):
         dm, _ok = ED.set_vertex_position(dm, v, unreal.Vector(p.x + (q.x - p.x) * k, p.y + (q.y - p.y) * k, p.z + (q.z - p.z) * k), True)
         moved += 1
     return dm, moved
+
+
+# ---------------------------------------------------------------- 팔·다리 중심 맞추기
+# 정면 이미지 한 장으로 만든 3D는 팔·다리 통의 앞뒤 위치를 모른다 → 상자 맞춤만으로는 소매가 팔에서 수 cm 어긋난다
+# (MC2.2 천 상의: 손목 단면 중심이 키트 의상보다 뒤 4.5·아래 4.7cm). 팔다리 축을 따라 단면 중심을 키트 의상에 맞춘다.
+LIMBS = {
+    "top": [("upperarm_l", "lowerarm_l", "hand_l"), ("upperarm_r", "lowerarm_r", "hand_r")],
+    "bottom": [("thigh_l", "calf_l", "foot_l"), ("thigh_r", "calf_r", "foot_r")],
+}
+LIMB_BIN_CM = 2.0      # 단면 간격
+LIMB_RADIUS_CM = 13.0  # 축에서 이 거리 안의 정점만 팔·다리 통으로 본다
+LIMB_START = 0.5       # 첫 마디 길이의 이 비율부터 보정 측정(어깨·사타구니 쪽은 몸통 정점이 섞임)
+LIMB_RAMP0 = 0.2       # 이 비율까지는 보정 0 → LIMB_START에서 100% (몸통과 이어지는 부분이 찢어지지 않게)
+LIMB_TOL_CM = 1.0      # 끝 단면(손목·발목) 중심 차이 허용치
+
+
+def _v(a):
+    return (a.x, a.y, a.z)
+
+
+def _sub(a, b):
+    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
+
+
+def _dot(a, b):
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+
+
+def _norm(a):
+    n = math.sqrt(_dot(a, a))
+    return (a[0] / n, a[1] / n, a[2] / n), n
+
+
+def _cross(a, b):
+    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
+
+
+def _chain(bones_pos, names):
+    """마디 [(시작점, 방향, 길이, 누적 시작 t, u, v)] — u·v는 단면 평면 축."""
+    segs, acc = [], 0.0
+    pts = [_v(bones_pos[n]) for n in names]
+    for a, b in zip(pts, pts[1:]):
+        d, n = _norm(_sub(b, a))
+        ref = (0.0, 0.0, 1.0) if abs(d[2]) < 0.9 else (1.0, 0.0, 0.0)
+        u, _ = _norm(_cross(d, ref))
+        v = _cross(d, u)
+        segs.append((a, d, n, acc, u, v))
+        acc += n
+    return segs, acc
+
+
+def _on_chain(p, segs, total, extend=4.0):
+    """점 p의 (t, 마디 번호, 단면 좌표 (pu, pv), 축 거리). 마지막 마디는 끝에서 extend cm까지 허용."""
+    best = None
+    for i, (a, d, n, t0, u, v) in enumerate(segs):
+        w = _sub(p, a)
+        s = _dot(w, d)
+        hi = n + (extend if i == len(segs) - 1 else 0.0)
+        if s < (0.0 if i else -extend) or s > hi:
+            continue
+        perp = (w[0] - s * d[0], w[1] - s * d[1], w[2] - s * d[2])
+        r = math.sqrt(_dot(perp, perp))
+        if best is None or r < best[3]:
+            best = (t0 + s, i, (_dot(perp, u), _dot(perp, v)), r)
+    return best
+
+
+def _bin_centers(points, segs, total, first_len):
+    """정점 목록 → {bin: (cu, cv)} (단면 5~95% 범위의 가운데 — 장식 쏠림에 덜 민감)."""
+    bins = {}
+    for p in points:
+        h = _on_chain(p, segs, total)
+        if not h or h[3] > LIMB_RADIUS_CM or h[0] < LIMB_START * first_len:
+            continue
+        bins.setdefault(int(h[0] // LIMB_BIN_CM), []).append(h[2])
+    out = {}
+    for k, uv in bins.items():
+        if len(uv) < 6:
+            continue
+        us, vs = sorted(x[0] for x in uv), sorted(x[1] for x in uv)
+        lo, hi = int(len(us) * 0.05), int(len(us) * 0.95) - 1
+        out[k] = ((us[lo] + us[hi]) / 2, (vs[lo] + vs[hi]) / 2)
+    return out
+
+
+def _verts(dm):
+    dm, vids, _ = Q.get_all_vertex_i_ds(dm)
+    ids = list(L.convert_index_list_to_array(vids))
+    return ids, [_v(Q.get_vertex_position(dm, v)[0]) for v in ids]
+
+
+def _fit_lines(centers, segs):
+    """마디별로 단면 중심 c(t) = a + b·t 직선 맞춤(최소제곱). 키트 의상은 저폴리라 단면 중심이 단면마다 2~4cm 튀므로
+    단면별로 맞추면 그 잡음이 옮겨진다(MC2.2 측정) → 마디 전체의 추세만 맞춘다. 반환: [((au, bu), (av, bv)) | None]."""
+    out = []
+    for a, d, n, t0, u, v in segs:
+        pts = [((k + 0.5) * LIMB_BIN_CM, c) for k, c in centers.items() if t0 <= (k + 0.5) * LIMB_BIN_CM < t0 + n]
+        if len(pts) < 2:
+            out.append(None)
+            continue
+        ts = [t for t, _ in pts]
+        mt = sum(ts) / len(ts)
+        var = sum((t - mt) ** 2 for t in ts) or 1.0
+        line = []
+        for axis in (0, 1):
+            ys = [c[axis] for _, c in pts]
+            my = sum(ys) / len(ys)
+            b = sum((t - mt) * (y - my) for t, (y) in zip(ts, ys)) / var
+            line.append((my - b * mt, b))
+        out.append(tuple(line))
+    return out
+
+
+def _eval(lines, i, t):
+    ln = lines[i] if i < len(lines) else None
+    if ln is None:   # 이 마디에 측정이 없으면 이웃 마디 직선 사용
+        ln = next((x for x in lines if x is not None), None)
+        if ln is None:
+            return (0.0, 0.0)
+    return (ln[0][0] + ln[0][1] * t, ln[1][0] + ln[1][1] * t)
+
+
+def end_offset(points, segs, total, ref_points=None, length=6.0):
+    """끝(손목·발목) 앞 length cm 단면의 평균 중심. ref_points를 주면 두 중심의 차이(cm)."""
+    def center(pts):
+        acc = []
+        for p in pts:
+            h = _on_chain(p, segs, total, extend=1.0)
+            if h and h[3] <= LIMB_RADIUS_CM and h[0] >= total - length:
+                acc.append(h[2])
+        if not acc:
+            return None
+        return (sum(a[0] for a in acc) / len(acc), sum(a[1] for a in acc) / len(acc))
+    c = center(points)
+    if ref_points is None or c is None:
+        return c
+    r = center(ref_points)
+    return None if r is None else math.dist(c, r)
+
+
+def _recenter_limbs(dm, body, slot):
+    """팔·다리 통의 단면 중심을 키트 의상에 맞춘다. 반환: (dm, {팔다리: {"before_cm", "after_cm", "moved"}})."""
+    chains = LIMBS.get(slot)
+    if not chains:
+        return dm, {}
+    tpl_dm = _dm_skel(template_path(body, slot))
+    tpl_dm, infos = BW.get_all_bones_info(tpl_dm)
+    pos = {str(i.name): i.world_transform.translation for i in infos}
+    _tids, tpts = _verts(tpl_dm)
+    report = {}
+    for names in chains:
+        segs, total = _chain(pos, names)
+        first_len = segs[0][2]
+        t_c = _bin_centers(tpts, segs, total, first_len)
+        ids, gpts = _verts(dm)
+        g_c = _bin_centers(gpts, segs, total, first_len)
+        before = end_offset(gpts, segs, total, tpts)
+        t_l, g_l = _fit_lines(t_c, segs), _fit_lines(g_c, segs)
+        if all(x is None for x in g_l):
+            report[names[0]] = {"before_cm": before, "after_cm": before, "moved": 0}
+            continue
+        moved = 0
+        for vid, p in zip(ids, gpts):
+            h = _on_chain(p, segs, total)
+            if not h or h[3] > LIMB_RADIUS_CM or h[0] < LIMB_RAMP0 * first_len:
+                continue
+            tc, gc = _eval(t_l, h[1], h[0]), _eval(g_l, h[1], h[0])
+            cu, cv = tc[0] - gc[0], tc[1] - gc[1]
+            w = min(1.0, (h[0] - LIMB_RAMP0 * first_len) / ((LIMB_START - LIMB_RAMP0) * first_len))
+            u, v = segs[h[1]][4], segs[h[1]][5]
+            delta = tuple(w * (cu * u[i] + cv * v[i]) for i in range(3))
+            dm, _ok = ED.set_vertex_position(dm, vid, unreal.Vector(p[0] + delta[0], p[1] + delta[1], p[2] + delta[2]), True)
+            moved += 1
+        # 남은 끝 단면 차이(직선으로 못 잡은 굽은 부분)를 마지막 마디에 0 → 1로 퍼뜨려 없앤다
+        ids, gpts = _verts(dm)
+        gc_end, tc_end = end_offset(gpts, segs, total), end_offset(tpts, segs, total)
+        if gc_end and tc_end:
+            ru, rv = tc_end[0] - gc_end[0], tc_end[1] - gc_end[1]
+            a, d, n, t0, u, v = segs[-1]
+            for vid, p in zip(ids, gpts):
+                h = _on_chain(p, segs, total)
+                if not h or h[3] > LIMB_RADIUS_CM or h[1] != len(segs) - 1:
+                    continue
+                w = min(1.0, max(0.0, (h[0] - t0) / n))
+                delta = tuple(w * (ru * u[i] + rv * v[i]) for i in range(3))
+                dm, _ok = ED.set_vertex_position(dm, vid, unreal.Vector(p[0] + delta[0], p[1] + delta[1], p[2] + delta[2]), True)
+        _ids2, gpts2 = _verts(dm)
+        after = end_offset(gpts2, segs, total, tpts)
+        report[names[0]] = {"before_cm": round(before, 1) if before is not None else None,
+                            "after_cm": round(after, 1) if after is not None else None, "moved": moved}
+    return dm, report
 
 
 # ---------------------------------------------------------------- 가중치
@@ -228,6 +429,7 @@ def build(src_static, body, slot, out_path, ratio=(1.0, 1.0, 1.0), rel_off=(0.0,
           target_tris=None, push=(4.0, 0.3), tpl_max_cm=6.0, overwrite=False):
     """src_static(정적 메시)을 체형 body의 슬롯 틀에 맞춰 out_path에 스켈레탈 메시로 만든다. 반환: 보고서 dict.
     target_tris: None = 슬롯 예산, 0 = 단순화 안 함."""
+    _not_playing()
     rule = SLOT_RULES[slot]
     tpl = template_path(body, slot)
     if not tpl:
@@ -243,6 +445,9 @@ def build(src_static, body, slot, out_path, ratio=(1.0, 1.0, 1.0), rel_off=(0.0,
     dm = _simplify(dm, rule["tris"] if target_tris is None else target_tris)
     dm, rep["scale"], rep["center"] = _place(dm, body, slot, ratio, rel_off, yaw)
     rep["tris"] = _tris(dm)
+    # 2-1 팔·다리 통 중심을 키트 의상에 맞춤(끝 단면 차이 LIMB_TOL_CM 이하여야 limbs_ok)
+    dm, rep["limbs"] = _recenter_limbs(dm, body, slot)
+    rep["limbs_ok"] = all(r["after_cm"] is not None and r["after_cm"] <= LIMB_TOL_CM for r in rep["limbs"].values())
 
     # 3 관통 보정
     body_dm = _dm_skel(leader)
@@ -271,6 +476,8 @@ def build(src_static, body, slot, out_path, ratio=(1.0, 1.0, 1.0), rel_off=(0.0,
         raise RuntimeError(f"틀 복제 실패: {tpl} → {out_path}")
     st = unreal.load_asset(src_static)
     mats = [s.material_interface for s in st.static_materials]
+    if any(m is None for m in mats):
+        raise RuntimeError(f"원본 메시 머티리얼 슬롯이 비어 있음(assign_source_material 필요): {src_static}")
     names = [s.material_slot_name for s in st.static_materials]
     rep["two_sided"] = [m.get_name() for m in mats if _two_sided(m)]
     copt = unreal.GeometryScriptCopyMeshToAssetOptions()
@@ -290,6 +497,68 @@ def build(src_static, body, slot, out_path, ratio=(1.0, 1.0, 1.0), rel_off=(0.0,
     rep["skeleton_ok"], rep["skeleton_errors"] = chk["ok"], chk["errors"]
     rep["physics_asset"] = sk.physics_asset.get_name() if sk.physics_asset else None
     return rep
+
+
+def load_items():
+    import json, os
+    with open(os.path.join(os.path.dirname(__file__), "items.json"), encoding="utf-8") as f:
+        return {k: v for k, v in json.load(f).items() if not k.startswith("_")}
+
+
+def build_item(key, bodies=("M", "F"), overwrite=True):
+    """items.json의 아이템 key를 체형별로 만든다. 반환: {체형: 보고서}."""
+    it = load_items()[key]
+    fit = it.get("fit", {})
+    out = {}
+    for b in bodies:
+        out[b] = build(it["source"], b, it["slot"], it["out"].format(body=b),
+                       ratio=fit.get("ratio", (1.0, 1.0, 1.0)), rel_off=fit.get("rel_off", (0.0, 0.0, 0.0)),
+                       yaw=fit.get("yaw", 0.0), target_tris=fit.get("target_tris"), overwrite=overwrite)
+    return out
+
+
+def import_source(fbx_path, item_key):
+    """VARCO FBX를 items.json의 source 위치로 가져오고 이름을 규칙대로 바꾼다
+    (SM_<Item>_Src, M_<Item>, T_<Item>_BaseColor/Normal/ORM). 반환: 정적 메시 경로."""
+    _not_playing()
+    it = load_items()[item_key]
+    dest_dir, sm_name = it["source"].rsplit("/", 1)
+    src = import_fbx(fbx_path, dest_dir)
+    renames = {src: f"{dest_dir}/{sm_name}"}
+    for a in EAL.list_assets(dest_dir, recursive=False):
+        p = a.split(".")[0]
+        n = p.rsplit("/", 1)[1]
+        new = {"material_0": f"M_{item_key}", "base_color": f"T_{item_key}_BaseColor",
+               "normal": f"T_{item_key}_Normal", "orm": f"T_{item_key}_ORM"}.get(n)
+        if new:
+            renames[p] = f"{dest_dir}/{new}"
+    for old, new in renames.items():
+        if old != new and not EAL.does_asset_exist(new):
+            EAL.rename_asset(old, new)
+    # 이름 변경으로 남은 리디렉터 정리(머티리얼 → 텍스처 참조)
+    reds = [a for a in EAL.list_assets(dest_dir, recursive=False)
+            if str(EAL.find_asset_data(a).asset_class_path.asset_name) == "ObjectRedirector"]
+    if reds:
+        unreal.AssetToolsHelpers.get_asset_tools().fixup_referencers([unreal.load_object(None, a) for a in reds])
+    assign_source_material(item_key)
+    return it["source"]
+
+
+def assign_source_material(item_key):
+    """원본 정적 메시의 머티리얼 슬롯을 M_<Item>으로 다시 지정하고 저장한다.
+    (이름 변경 뒤 정적 메시의 슬롯이 비는 경우가 있었다 — MC2.2 천 상의, 결과 의상이 회색 기본 머티리얼로 나옴)"""
+    it = load_items()[item_key]
+    dest_dir = it["source"].rsplit("/", 1)[0]
+    mat = unreal.load_asset(f"{dest_dir}/M_{item_key}")
+    st = unreal.load_asset(it["source"])
+    if mat is None or st is None:
+        raise RuntimeError(f"원본 메시·머티리얼 없음: {it['source']}, M_{item_key}")
+    for i in range(len(st.static_materials)):
+        st.set_material(i, mat)
+    EAL.save_loaded_asset(st)
+    if any(s.material_interface is None for s in st.static_materials):
+        raise RuntimeError(f"머티리얼 지정 실패: {it['source']}")
+    return mat
 
 
 def measure(item_path, body, visible_parts=("head", "hands", "legs", "feet"), float_cm=3.0, step=3):

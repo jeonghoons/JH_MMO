@@ -13,7 +13,7 @@
 """
 import unreal
 
-from . import profiles
+from . import body_mask, profiles
 
 EAS = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 UES = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem)
@@ -78,10 +78,11 @@ def _follower(prefix, label, mesh, lead, loc):
     return a
 
 
-def spawn(prefix, body, loc, outfit="kit", extra_hidden=(), anim=None):
+def spawn(prefix, body, loc, outfit="kit", extra_hidden=(), anim=None, mask_override=None):
     """리더 + 키트 몸 부위 + 의상 조립.
-    outfit: "kit"(키트 기본 의상 전부), None(맨몸), 또는 {슬롯: 메시 경로}. 입은 슬롯의 몸 부위는 kit_profiles의 hide 규칙대로 숨긴다.
-    extra_hidden: 추가로 숨길 몸 부위. anim: 반복 재생할 애니메이션 경로(ANIM 참고). 반환: 리더 액터."""
+    outfit: "kit"(키트 기본 의상 전부), None(맨몸), 또는 {슬롯: 메시 경로}.
+    입은 슬롯이 덮는 몸 영역은 몸 마스크(M_Body_Masked MID)로 지운다(profiles.mask_params). mask_override: 파라미터 dict로 직접 지정({}면 마스크 머티리얼 없이 키트 원본).
+    extra_hidden: 통째로 숨길 몸 부위. anim: 반복 재생할 애니메이션 경로(ANIM 참고). 반환: 리더 액터."""
     bp = profiles.body(body)
     items = dict(bp["outfit"]) if outfit == "kit" else dict(outfit or {})
     hidden = profiles.hidden_parts(items.keys()) | set(extra_hidden)
@@ -98,10 +99,14 @@ def spawn(prefix, body, loc, outfit="kit", extra_hidden=(), anim=None):
         d.set_editor_property("saved_looping", True)
         d.set_editor_property("saved_playing", True)
         lc.set_editor_property("animation_data", d)
+    mask = profiles.mask_params(items) if mask_override is None else mask_override
+    masked = set(profiles.load().get("masked_parts", ())) if mask else set()
     for part, mesh in bp["parts"].items():
         a = _follower(prefix, part, mesh, lead, loc)
         if part in hidden:
             a.skeletal_mesh_component.set_visibility(False)
+        elif part in masked:
+            body_mask.apply(a.skeletal_mesh_component, body, mask)   # 장비가 덮는 영역만 지움(2026-11-05 몸 마스킹)
     for slot, mesh in items.items():
         _follower(prefix, f"item_{slot}", mesh, lead, loc)
     return lead
