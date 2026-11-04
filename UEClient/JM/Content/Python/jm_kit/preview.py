@@ -1,7 +1,8 @@
 """키트 구성 캐릭터를 테스트 레벨에 조립하고 SceneCapture로 확인한다 (MC1.2).
 
 - 테스트 레벨 /Game/Dev/MC/L_KitTest (Content/Dev는 git 제외)
-- 캐릭터 = 리더(키트 몸 전체 메시, 숨김, 애니메이션 재생) + 키트 몸 부위 + 의상. 키트 BP_TPCharacter_CoreC_<M|F>와 같은 구성.
+- 캐릭터 = 리더(키트 몸 전체 메시 Body_Combined — 애니메이션 재생, 그대로 보이는 몸, 몸 섹션은 마스크 MID) + 눈·이·헤어 + 의상
+  (2026-11-05: 키트 부위 5개 대신 몸 하나 — DECISIONS)
 - 애니메이션은 에디터 월드에서 틱하지 않으므로 Simulate(editor_play_simulate) 중에 shot_game()으로 찍는다.
   shot_game용 캡처 액터 "T_CapG"는 Simulate 시작 전에 레벨에 있어야 한다(setup_level이 만든다).
 - 캐릭터 정면은 +Y(매니퀸 규약). 정면 사진은 +Y 쪽에서 -Y를 보고 찍는다.
@@ -79,10 +80,10 @@ def _follower(prefix, label, mesh, lead, loc):
 
 
 def spawn(prefix, body, loc, outfit="kit", extra_hidden=(), anim=None, mask_override=None):
-    """리더 + 키트 몸 부위 + 의상 조립.
+    """리더(= 보이는 몸, 키트 Body_Combined) + 눈·이·헤어 + 의상 조립(2026-11-05 몸 하나로).
     outfit: "kit"(키트 기본 의상 전부), None(맨몸), 또는 {슬롯: 메시 경로}.
-    입은 슬롯이 덮는 몸 영역은 몸 마스크(M_Body_Masked MID)로 지운다(profiles.mask_params). mask_override: 파라미터 dict로 직접 지정({}면 마스크 머티리얼 없이 키트 원본).
-    extra_hidden: 통째로 숨길 몸 부위. anim: 반복 재생할 애니메이션 경로(ANIM 참고). 반환: 리더 액터."""
+    입은 슬롯이 덮는 몸 영역은 몸 섹션 마스크(M_Body_Masked MID)로 지운다(profiles.mask_params). mask_override: 파라미터 dict로 직접 지정({}면 키트 원본 머티리얼).
+    extra_hidden: 통째로 숨길 부위(parts 키, 예 "hair"). anim: 반복 재생할 애니메이션 경로(ANIM 참고). 반환: 리더 액터."""
     bp = profiles.body(body)
     items = dict(bp["outfit"]) if outfit == "kit" else dict(outfit or {})
     hidden = profiles.hidden_parts(items.keys()) | set(extra_hidden)
@@ -90,7 +91,6 @@ def spawn(prefix, body, loc, outfit="kit", extra_hidden=(), anim=None, mask_over
     lead.set_actor_label(f"{prefix}_Leader")
     lc = lead.skeletal_mesh_component
     lc.set_skeletal_mesh_asset(unreal.load_asset(bp["leader"]))
-    lc.set_visibility(False)
     lc.set_editor_property("visibility_based_anim_tick_option", unreal.VisibilityBasedAnimTickOption.ALWAYS_TICK_POSE_AND_REFRESH_BONES)
     if anim:
         lc.set_editor_property("animation_mode", unreal.AnimationMode.ANIMATION_SINGLE_NODE)
@@ -100,13 +100,12 @@ def spawn(prefix, body, loc, outfit="kit", extra_hidden=(), anim=None, mask_over
         d.set_editor_property("saved_playing", True)
         lc.set_editor_property("animation_data", d)
     mask = profiles.mask_params(items) if mask_override is None else mask_override
-    masked = set(profiles.load().get("masked_parts", ())) if mask else set()
+    if mask:
+        body_mask.apply(lc, body, mask)   # 몸 섹션만 MID — 장비가 덮는 영역만 지움(얼굴 섹션은 키트 원본)
     for part, mesh in bp["parts"].items():
         a = _follower(prefix, part, mesh, lead, loc)
         if part in hidden:
             a.skeletal_mesh_component.set_visibility(False)
-        elif part in masked:
-            body_mask.apply(a.skeletal_mesh_component, body, mask)   # 장비가 덮는 영역만 지움(2026-11-05 몸 마스킹)
     for slot, mesh in items.items():
         _follower(prefix, f"item_{slot}", mesh, lead, loc)
     return lead

@@ -561,14 +561,12 @@ def assign_source_material(item_key):
     return mat
 
 
-def measure(item_path, body, visible_parts=("head", "hands", "legs", "feet"), float_cm=3.0, step=3):
-    """수치 검사: 보이는 몸 부위 안으로 들어간 정점 %, 몸에서 float_cm 넘게 뜬 정점 %, 거리 p50/p95."""
+def measure(item_path, body, float_cm=3.0, step=3):
+    """수치 검사: 몸(키트 Body_Combined) 안으로 들어간 정점 %, 몸에서 float_cm 넘게 뜬 정점 %, 거리 p50/p95.
+    (2026-11-05 몸 하나 + 마스킹 — 마스크로 남기는 손목·발목 근처도 보이므로 몸 전체를 기준으로 센다)"""
     bp = profiles.body(body)
-    ref = unreal.DynamicMesh()
-    for part in visible_parts:
-        ref = ED.append_mesh(ref, _dm_skel(bp["parts"][part]), unreal.Transform())
-    ref, bvh = SP.build_bvh_for_mesh(ref)
     full, fbvh = SP.build_bvh_for_mesh(_dm_skel(bp["leader"]))
+    ref, bvh = full, fbvh
     dm = _dm_skel(item_path)
     opt = unreal.GeometryScriptSpatialQueryOptions()
     dm, vids, _ = Q.get_all_vertex_i_ds(dm)
@@ -586,6 +584,6 @@ def measure(item_path, body, visible_parts=("head", "hands", "legs", "feet"), fl
         floating += 1 if (not fin and d > float_cm) else 0
     dists.sort()
     n = len(vids)
-    return {"verts_sampled": n, "tris": _tris(dm), "inside_visible%": round(100.0 * inside / n, 1),
+    return {"verts_sampled": n, "tris": _tris(dm), "inside_body%": round(100.0 * inside / n, 1),
             f"float>{float_cm:g}cm%": round(100.0 * floating / n, 1),
             "dist_p50": round(dists[n // 2], 2), "dist_p95": round(dists[int(n * 0.95)], 2)}

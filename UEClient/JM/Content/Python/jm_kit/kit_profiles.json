@@ -1,18 +1,13 @@
 {
-  "_comment": "MC1.2 기준 캐릭터 = Fab CoreCharacters 키트 조립 그대로(키트 BP_TPCharacter_CoreC_<M|F>와 같은 구성). leader = 애니메이션을 돌리는 몸 전체 메시(숨김), parts = 키트가 나눠 둔 몸 부위, outfit = 키트 기본 의상(MC2.1 의상 틀). 몸 부위 메시는 직접 만들지 않는다(DECISIONS 2026-11-04 재작업). mask = 슬롯을 입었을 때 몸 머티리얼(M_Body_Masked)에 넣는 마스크 파라미터(2026-11-05 몸 마스킹 — 부위 통째 숨김 대체, KeepCm = 손목·발목에서 남기는 길이). hide = 통째로 숨기는 부위(지금은 없음).",
+  "_comment": "기준 캐릭터 = Fab CoreCharacters 키트(DECISIONS 2026-11-04 재작업, 2026-11-05 몸 하나로). leader = 키트 몸 전체 메시 SKM_CoreC_<M|F>_Base_Body_Combined — 애니메이션을 돌리고 그대로 보이는 몸(얼굴 섹션 + 몸 섹션). parts = 몸과 따로인 키트 메시(눈·이·헤어). outfit = 키트 기본 의상(MC2.1 의상 틀). mask = 슬롯을 입었을 때 몸 섹션 머티리얼(M_Body_Masked)에 넣는 파라미터(KeepCm = 손목·발목에서 남기는 길이). hide = 통째로 숨기는 부위(없음).",
   "hide": {},
   "bodies": {
     "M": {
       "leader": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Body_Combined",
       "parts": {
-        "head": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Face",
         "eyes": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Eyes",
         "teeth": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Teeth",
-        "hair": "/Game/CoreC/04Hairstyle/Male/SKM_CoreC_Male_HairA05",
-        "torso": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Torso",
-        "hands": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Hands",
-        "legs": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Legs",
-        "feet": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Feet"
+        "hair": "/Game/CoreC/04Hairstyle/Male/SKM_CoreC_Male_HairA05"
       },
       "outfit": {
         "top": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_M_Techwear01_Upper",
@@ -23,14 +18,9 @@
     "F": {
       "leader": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Body_Combined",
       "parts": {
-        "head": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Face",
         "eyes": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Eyes",
         "teeth": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Teeth",
-        "hair": "/Game/CoreC/04Hairstyle/Female/SKM_CoreC_Female_HairA05",
-        "torso": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Torso",
-        "hands": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Hands",
-        "legs": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Legs",
-        "feet": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Feet"
+        "hair": "/Game/CoreC/04Hairstyle/Female/SKM_CoreC_Female_HairA05"
       },
       "outfit": {
         "top": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_F_Techwear01_Upper",
@@ -51,11 +41,9 @@
     },
     "boots": {
       "HideFeet": 1
+    },
+    "gloves": {
+      "HideHands": 1
     }
-  },
-  "masked_parts": [
-    "torso",
-    "legs",
-    "feet"
-  ]
+  }
 }

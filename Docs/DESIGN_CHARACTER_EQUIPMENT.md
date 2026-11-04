@@ -27,8 +27,8 @@
 - 베이스 바디는 **Fab CoreCharacters 키트의 남/여 몸**(`Content/CoreC` — git 제외 외부 팩)이고, **키트가 나눠 둔 부위 메시를 그대로** 씁니다(2026-11-04 재작업 — 직접 분할하지 않음): Face·Eyes·Teeth·Hair·Torso(팔 포함)·Hands·Legs·Feet. 머티리얼은 키트 원본. 체형별 부위 메시 경로·숨김 규칙은 데이터(`Content/Python/jm_kit/kit_profiles.json` → MC4.1에서 테이블로)로 지정해 몸을 바꿔도 코드를 고치지 않습니다.
 - **장비 메시는 키트 의상과 같은 뼈대**(본 89개·이름·순서·바인드 포즈)여야 합니다. 다르면 Leader Pose에서 팔·소매가 벌어집니다(MC2.2 첫 시도 실패 원인). 검사는 `jm_kit.skeleton_check`(MC1.3). 남녀 키트 스켈레톤은 본 순서도 달라서 장비 메시는 체형별로 따로 만듭니다.
 - 캐릭터 구성(클라이언트):
-  - **Leader**: 기본 `Mesh` = 전체 몸 메시, 애니메이션 재생, 화면에는 숨김(`AlwaysTickPoseAndRefreshBones` 필수).
-  - 키트 몸 부위 8개(Face·Eyes·Teeth·Hair·Torso·Hands·Legs·Feet) + 스켈레탈 슬롯 4개: Leader Pose로 Leader를 따라갑니다. 몸 부위는 숨기지 않고 **몸 마스킹**으로 장비가 덮는 영역만 지웁니다(2026-11-05): 몸 머티리얼 `MI_Body_<M|F>`(마스크 사본)의 MID에 슬롯별 파라미터(상의 `HideTorso`·`HideArms`·`ArmKeepCm`, 하의 `HideLegs`·`LegKeepCm`, 신발 `HideFeet`)를 넣고, 아이템 데이터가 덮어쓸 수 있습니다. 손목·발목 근처는 남겨 옷 끝과 손·발 사이에 틈이 보이지 않게 합니다. MC4.1 장비 컴포넌트는 같은 규칙으로 MID를 갱신합니다.
+  - **Leader = 보이는 몸**: 기본 `Mesh` = 키트 `Body_Combined`(얼굴 + 몸 섹션), 애니메이션 재생, 몸 섹션에 마스크 MID(2026-11-05 — 이전의 "숨긴 리더 + 몸 부위" 대체).
+  - 눈·이·헤어 + 스켈레탈 슬롯 4개: Leader Pose로 Leader를 따라갑니다. 몸 부위는 숨기지 않고 **몸 마스킹**으로 장비가 덮는 영역만 지웁니다(2026-11-05): 몸 머티리얼 `MI_Body_<M|F>`(마스크 사본)의 MID에 슬롯별 파라미터(상의 `HideTorso`·`HideArms`·`ArmKeepCm`, 하의 `HideLegs`·`LegKeepCm`, 신발 `HideFeet`)를 넣고, 아이템 데이터가 덮어쓸 수 있습니다. 손목·발목 근처는 남겨 옷 끝과 손·발 사이에 틈이 보이지 않게 합니다. MC4.1 장비 컴포넌트는 같은 규칙으로 MID를 갱신합니다.
   - 정적 슬롯 2개(머리·무기): 본/소켓에 부착, 상대 변환은 데이터.
 - 부위 컴포넌트는 리더 기준 bounds를 씁니다(`bUseBoundsFromLeaderPoseComponent`). 부위 메시 자체 bounds는 기준 자세라, 팔을 뻗는 모션에서 잘못 컬링될 수 있습니다(MC1.3 확인 사항).
 - 장착 목록이 바뀌면 **몸 부위 가시성을 다시 계산**합니다: 장착 아이템들의 `HidesBodyParts` 합집합을 숨기고 나머지는 보입니다. 아무것도 안 입은 슬롯은 맨몸 부위가 보입니다.
