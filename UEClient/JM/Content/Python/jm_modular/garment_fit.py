@@ -299,7 +299,7 @@ def build(key, body, out_path=None, allow_refs=(), prof=None):
     copt.set_editor_property("materials", mats)
     body_parts._check_overwrite(out_path, allow_refs)
     EAL.make_directory(out_path.rsplit("/", 1)[0])
-    sk, outcome = NA.create_new_skeletal_mesh_asset_from_mesh(dm, body_sm.skeleton, out_path, copt)
+    sk, outcome = NA.create_new_skeletal_mesh_asset_from_mesh(dm, body_parts._skeleton(_bp, body_sm), out_path, copt)
     if outcome != unreal.GeometryScriptOutcomePins.SUCCESS or sk is None:
         raise RuntimeError(f"에셋 생성 실패: {out_path}")
     sk.set_editor_property("physics_asset", None)
@@ -350,4 +350,4 @@ def measure(item_path, body, slot, visible_parts=None, float_cm=3.0, step=1):
             "dist_p50": round(dists[n // 2], 2), "dist_p95": round(dists[int(n * 0.95)], 2),
             "foreign_bone_verts": foreign,
             "sections": [sub.get_lod_material_slot(sk, 0, i) for i in range(sub.get_num_sections(sk, 0))],
-            "skeleton_ok": sk.skeleton == unreal.load_asset(bp["source_mesh"]).skeleton}
+            "skeleton_ok": sk.skeleton == body_parts._skeleton(bp, unreal.load_asset(bp["source_mesh"]))}

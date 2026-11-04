@@ -1,10 +1,99 @@
 {
-  "_comment": "몸 부위 분할 프로파일. 길이 단위 cm. 값은 베이스 바디를 바꾸면(MC2.1b) 다시 맞춘다.",
+  "_comment": "몸 부위 분할 프로파일. 길이 단위 cm. M/F = 최종 베이스 바디(MC2.1b: Fab CoreCharacters 키트, Content/CoreC — git 제외), Manny/Quinn = 템플릿 매니퀸(MC1.3 임시 바디, 비교용).",
   "M": {
-    "source_mesh": "/Game/Character/Mannequin/Meshes/SKM_Manny_Simple",
+    "source_mesh": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Body_Combined",
     "out_dir": "/Game/Character/Mannequin/Body",
     "asset_prefix": "SK_Body_M",
-    "neck_bones": ["neck_01", "neck_02"],
+    "neck_bones": [
+      "neck_01",
+      "neck_02"
+    ],
+    "neck_min_weight": 0.1,
+    "neck_radius_cm": 10.0,
+    "neck_below_cm": 6.0,
+    "ankle_above_foot_cm": 24.0,
+    "wrist_radius_cm": 11.0,
+    "hair_material_slots": [],
+    "skeleton": "/Game/Character/Mannequin/Meshes/SK_Mannequin",
+    "lod_ratios": [
+      1.0,
+      0.5,
+      0.25
+    ],
+    "extras": [
+      {
+        "name": "Eyes",
+        "mesh": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Eyes",
+        "part": "head"
+      },
+      {
+        "name": "Teeth",
+        "mesh": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Teeth",
+        "part": "head"
+      },
+      {
+        "name": "Hair",
+        "mesh": "/Game/CoreC/04Hairstyle/Male/SKM_CoreC_Male_HairA05",
+        "part": "hair",
+        "keep_skeleton": true
+      }
+    ],
+    "material_overrides": {
+      "MI_CoreC_Base_M_Body": "/Game/Character/Mannequin/Materials/Body/MI_Skin_M_Body",
+      "MI_CoreC_Base_M_Face": "/Game/Character/Mannequin/Materials/Body/MI_Skin_M_Face"
+    }
+  },
+  "F": {
+    "source_mesh": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Body_Combined",
+    "out_dir": "/Game/Character/Mannequin/Body",
+    "asset_prefix": "SK_Body_F",
+    "neck_bones": [
+      "neck_01",
+      "neck_02"
+    ],
+    "neck_min_weight": 0.1,
+    "neck_radius_cm": 10.0,
+    "neck_below_cm": 6.0,
+    "ankle_above_foot_cm": 24.0,
+    "wrist_radius_cm": 11.0,
+    "hair_material_slots": [],
+    "skeleton": "/Game/Character/Mannequin/Meshes/SK_Mannequin",
+    "lod_ratios": [
+      1.0,
+      0.5,
+      0.25
+    ],
+    "extras": [
+      {
+        "name": "Eyes",
+        "mesh": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Eyes",
+        "part": "head"
+      },
+      {
+        "name": "Teeth",
+        "mesh": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Teeth",
+        "part": "head"
+      },
+      {
+        "name": "Hair",
+        "mesh": "/Game/CoreC/04Hairstyle/Female/SKM_CoreC_Female_HairA05",
+        "part": "hair",
+        "keep_skeleton": true
+      }
+    ],
+    "material_overrides": {
+      "MI_CoreC_Base_F_Body": "/Game/Character/Mannequin/Materials/Body/MI_Skin_F_Body",
+      "MI_CoreC_Base_F_Face": "/Game/Character/Mannequin/Materials/Body/MI_Skin_F_Face"
+    }
+  },
+  "Manny": {
+    "source_mesh": "/Game/Character/Mannequin/Meshes/SKM_Manny_Simple",
+    "out_dir": "/Game/Dev/MC/MannyBody",
+    "asset_prefix": "SK_Body_Manny",
+    "neck_bones": [
+      "neck_01",
+      "neck_02"
+    ],
     "neck_min_weight": 0.1,
     "neck_radius_cm": 10.0,
     "neck_below_cm": 6.0,
@@ -12,11 +101,14 @@
     "wrist_radius_cm": 11.0,
     "hair_material_slots": []
   },
-  "F": {
+  "Quinn": {
     "source_mesh": "/Game/Character/Mannequin/Meshes/SKM_Quinn_Simple",
-    "out_dir": "/Game/Character/Mannequin/Body",
-    "asset_prefix": "SK_Body_F",
-    "neck_bones": ["neck_01", "neck_02"],
+    "out_dir": "/Game/Dev/MC/MannyBody",
+    "asset_prefix": "SK_Body_Quinn",
+    "neck_bones": [
+      "neck_01",
+      "neck_02"
+    ],
     "neck_min_weight": 0.1,
     "neck_radius_cm": 10.0,
     "neck_below_cm": 6.0,

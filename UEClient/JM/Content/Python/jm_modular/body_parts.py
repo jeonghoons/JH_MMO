@@ -10,6 +10,9 @@
 - 머티리얼 슬롯을 생성 옵션으로 넘기고, LOD마다 섹션 슬롯이 원본 머티리얼 ID와 같은지 검사한다.
   (프로토타입은 생성 뒤 슬롯을 덮어써서 섹션이 슬롯 0 하나로 합쳐졌다 — 손이 몸통 머티리얼로 그려짐)
 - 같은 이름 에셋이 다른 곳에서 참조 중이면 덮어쓰지 않고 중단한다.
+- (MC2.1b) 원본 LOD가 lod_ratios보다 적으면 LOD0을 단순화해 LOD를 만든다. 원본 메시 하나를 단순화한 뒤
+  부위로 나누므로 부위 경계가 LOD마다 맞는다. skeleton을 지정하면 그 스켈레톤으로 만든다(본 이름이 같은 사본 → 프로젝트 매니퀸).
+- (MC2.1b) extras: 몸에 붙는 별도 메시(눈·이·헤어)를 같은 LOD 규칙으로 복사한다(부위 = head/hair, 숨김 규칙을 따름).
 """
 import json
 import os
@@ -31,6 +34,25 @@ PROFILE_PATH = os.path.join(os.path.dirname(__file__), "body_profiles.json")
 def load_profile(key):
     with open(PROFILE_PATH, encoding="utf-8") as f:
         return json.load(f)[key]
+
+
+def _skeleton(prof, sm):
+    return unreal.load_asset(prof["skeleton"]) if prof.get("skeleton") else sm.skeleton
+
+
+def lod_count(sm, prof):
+    return max(len(sm.get_editor_property("lod_info")), len(prof.get("lod_ratios", [])))
+
+
+def source_lod(sm, lod, prof):
+    """원본 LOD를 복사한다. 원본에 없는 LOD는 LOD0을 lod_ratios[lod] 비율로 단순화(결정적이라 다시 불러도 같다)."""
+    native = len(sm.get_editor_property("lod_info"))
+    if lod < native:
+        return _copy_lod(sm, lod)
+    dm = _copy_lod(sm, 0)
+    target = max(100, int(len(_valid_tris(dm)) * prof["lod_ratios"][lod]))
+    opt = unreal.GeometryScriptSimplifyMeshOptions()
+    return unreal.GeometryScript_MeshSimplification.apply_simplify_to_triangle_count(dm, target, opt)
 
 
 def base_part(bone):
@@ -122,14 +144,18 @@ def classify(dm, prof, slot_names):
     return tpart, stats
 
 
-def _create_options(sm):
+def _create_options(sm, overrides=None):
     """머티리얼 슬롯을 생성 옵션으로 넘긴다.
     (프로토타입처럼 생성 뒤 materials를 덮어쓰면 섹션이 슬롯 0 하나로 합쳐져,
      예: 매니퀸 손(슬롯 1)이 몸통 머티리얼(슬롯 0)로 그려진다)"""
     opt = unreal.GeometryScriptCreateNewSkeletalMeshAssetOptions()
     mats = unreal.Map(unreal.Name, unreal.MaterialInterface)
+    overrides = overrides or {}
     for slot in sm.materials:
-        mats[slot.material_slot_name] = slot.material_interface
+        mi = slot.material_interface
+        if mi is not None and mi.get_name() in overrides:
+            mi = unreal.load_asset(overrides[mi.get_name()])   # 예: 키트 만화 셰이더 → 우리 MI_Skin_*(UseComic 끔)
+        mats[slot.material_slot_name] = mi
     opt.set_editor_property("materials", mats)
     return opt
 
@@ -159,10 +185,11 @@ def verify(key, out_dir=None, prefix=None):
     sub = unreal.get_editor_subsystem(unreal.SkeletalMeshEditorSubsystem)
     sm = unreal.load_asset(prof["source_mesh"])
     result, total = {}, 0
+    extra_names = {ex["name"] for ex in prof.get("extras", [])}
     for part in PARTS:
         path = f"{out_dir}/{prefix}_{part.capitalize()}"
-        if not EAL.does_asset_exist(path):
-            continue
+        if not EAL.does_asset_exist(path) or part.capitalize() in extra_names:
+            continue   # extras(예: Hair)는 원본 몸 메시에 속하지 않으므로 합계에서 뺀다
         sk = unreal.load_asset(path)
         result[part] = []
         for lod in range(len(sk.get_editor_property("lod_info"))):
@@ -201,15 +228,15 @@ def build(key, out_dir=None, prefix=None, allow_refs=(), dry_run=False):
     if sm is None:
         raise RuntimeError(f"원본 메시 없음: {prof['source_mesh']}")
     slot_names = [str(s.material_slot_name) for s in sm.materials]
-    lod_count = len(sm.get_editor_property("lod_info"))
+    nlod = lod_count(sm, prof)
 
     lods = []   # LOD마다 (tpart, stats, total)
-    for lod in range(lod_count):
-        dm = _copy_lod(sm, lod)
+    for lod in range(nlod):
+        dm = source_lod(sm, lod, prof)
         tpart, stats = classify(dm, prof, slot_names)
-        lods.append((tpart, stats, Q.get_num_triangle_i_ds(dm)))
+        lods.append((tpart, stats, len(_valid_tris(dm))))
 
-    report = {"source": prof["source_mesh"], "lods": lod_count, "parts": {}, "lod_stats": [], "skipped": []}
+    report = {"source": prof["source_mesh"], "lods": nlod, "parts": {}, "lod_stats": [], "skipped": [], "extras": {}}
     for tpart, stats, total in lods:
         counts = {p: 0 for p in PARTS}
         for p in tpart.values():
@@ -228,7 +255,7 @@ def build(key, out_dir=None, prefix=None, allow_refs=(), dry_run=False):
             continue
         meshes = []
         for lod, (tpart, _s, _t) in enumerate(lods):
-            dm = _copy_lod(sm, lod)
+            dm = source_lod(sm, lod, prof)
             kill = [t for t, p in tpart.items() if p != part]
             dm, _n = ED.delete_triangles_from_mesh(dm, L.convert_array_to_index_list(kill, unreal.GeometryScriptIndexType.TRIANGLE), False)
             if not _valid_tris(dm):
@@ -236,10 +263,41 @@ def build(key, out_dir=None, prefix=None, allow_refs=(), dry_run=False):
             meshes.append(dm)
         path = f"{out_dir}/{prefix}_{part.capitalize()}"
         _check_overwrite(path, allow_refs)
-        sk, outcome = NA.create_new_skeletal_mesh_asset_from_mesh_lods(meshes, sm.skeleton, path, _create_options(sm))
+        sk, outcome = NA.create_new_skeletal_mesh_asset_from_mesh_lods(meshes, _skeleton(prof, sm), path, _create_options(sm, prof.get("material_overrides")))
         if outcome != unreal.GeometryScriptOutcomePins.SUCCESS or sk is None:
             raise RuntimeError(f"에셋 생성 실패: {path}")
         sk.set_editor_property("physics_asset", None)
         EAL.save_loaded_asset(sk)
         report["parts"][part] = {"path": path, "lods": len(meshes), "tris_lod0": sum(1 for p in lods[0][0].values() if p == part)}
+
+    for ex in prof.get("extras", []):
+        esm = unreal.load_asset(ex["mesh"])
+        if esm is None:
+            raise RuntimeError(f"extras 메시 없음: {ex['mesh']}")
+        meshes = [source_lod(esm, lod, prof) for lod in range(max(len(esm.get_editor_property("lod_info")), len(prof.get("lod_ratios", []))))]
+        path = f"{out_dir}/{prefix}_{ex['name']}"
+        _check_overwrite(path, allow_refs)
+        skel = esm.skeleton if ex.get("keep_skeleton") else _skeleton(prof, esm)
+        sk, outcome = NA.create_new_skeletal_mesh_asset_from_mesh_lods(meshes, skel, path, _create_options(esm, prof.get("material_overrides")))
+        if outcome != unreal.GeometryScriptOutcomePins.SUCCESS or sk is None:
+            raise RuntimeError(f"에셋 생성 실패: {path}")
+        sk.set_editor_property("physics_asset", None)
+        EAL.save_loaded_asset(sk)
+        report["extras"][ex["name"]] = {"path": path, "part": ex["part"], "lods": len(meshes), "tris_lod0": len(_valid_tris(meshes[0]))}
     return report
+
+
+def part_meshes(key):
+    """런타임·미리보기용: 부위 → 메시 경로 목록(부위 메시 + extras)."""
+    prof = load_profile(key)
+    out = {}
+    extra_names = {ex["name"] for ex in prof.get("extras", [])}
+    for part in PARTS:
+        path = f"{prof['out_dir']}/{prof['asset_prefix']}_{part.capitalize()}"
+        if EAL.does_asset_exist(path) and part.capitalize() not in extra_names:
+            out.setdefault(part, []).append(path)
+    for ex in prof.get("extras", []):
+        path = f"{prof['out_dir']}/{prof['asset_prefix']}_{ex['name']}"
+        if EAL.does_asset_exist(path):
+            out.setdefault(ex["part"], []).append(path)
+    return out

@@ -111,3 +111,6 @@ __pycache__/
 # Phase MC: 도구로 다시 만드는 임시 바디(MC2.1b에서 최종 바디로 교체), 개발용 테스트 레벨
 UEClient/JM/Content/Character/Mannequin/Body/
 UEClient/JM/Content/Dev/
+
+# Fab: Stylized Handpainted Modular Character Starter Kit (CoreCharacters) — MC2.1b 후보 검증용, 외부 팩
+UEClient/JM/Content/CoreC/

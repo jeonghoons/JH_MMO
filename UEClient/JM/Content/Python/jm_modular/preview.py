@@ -106,19 +106,17 @@ def spawn(prefix, body, loc, items=(), hidden=(), colored=False, anim=None):
         d.set_editor_property("saved_looping", True)
         d.set_editor_property("saved_playing", True)
         lc.set_editor_property("animation_data", d)
-    for part in body_parts.PARTS:
-        path = f"{bp['out_dir']}/{bp['asset_prefix']}_{part.capitalize()}"
-        if not EAL.does_asset_exist(path):
-            continue
-        a = _follower(prefix, part, path, lead, loc)
-        c = a.skeletal_mesh_component
-        c.set_editor_property("use_bounds_from_leader_pose_component", True)
-        if colored:
-            mi = debug_material(part)
-            for i in range(c.get_num_materials()):
-                c.set_material(i, mi)
-        if part in hidden:
-            c.set_visibility(False)
+    for part, paths in body_parts.part_meshes(body).items():
+        for j, path in enumerate(paths):
+            a = _follower(prefix, f"{part}{j}", path, lead, loc)
+            c = a.skeletal_mesh_component
+            c.set_editor_property("use_bounds_from_leader_pose_component", True)
+            if colored and j == 0:
+                mi = debug_material(part)
+                for i in range(c.get_num_materials()):
+                    c.set_material(i, mi)
+            if part in hidden:
+                c.set_visibility(False)
     for i, path in enumerate(items):
         _follower(prefix, f"item{i}", path, lead, loc).skeletal_mesh_component.set_editor_property("use_bounds_from_leader_pose_component", True)
     return lead
