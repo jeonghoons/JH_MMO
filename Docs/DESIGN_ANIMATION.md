@@ -1,14 +1,30 @@
-# 애니메이션 구조 (영웅별 AnimBP)
+# 애니메이션 구조 (공용 ABP + 무기 타입별 레이어)
 
-목표 구조만 기록합니다. 마이그레이션 순서/시점은 정하지 않습니다.
-(2026-10-17 변경: 무기별 Animation Layer Interface 설계는 폐기됨. 이유: 영웅마다 스켈레톤이 다르고 무기가 영웅에 고정되어 무기 교체용 애니메이션 공유가 필요 없음. [DECISIONS.md](DECISIONS.md) 참고)
+목표 구조만 기록합니다. 구현 순서는 ROADMAP Phase MC(MC4.2·MC4.3)를 따릅니다.
+(2026-11-04 개정: 2026-10-17 "영웅별 AnimBP, 무기별 AnimLayer 폐기"를 번복하고 2026-10-03 AnimLayer 방침을 부활. [DECISIONS.md](DECISIONS.md) 참고)
 
 ## 구조
-- 영웅 하나당 AnimBP 하나(예: Greystone → ABP_Greystone, Sparrow → ABP_Sparrow). `HeroTable`이 영웅 → AnimBP를 연결합니다.
-- 이동 애니메이션은 AnimBP 안의 상태머신/블렌드스페이스가 맡습니다.
-- 공격/스킬 애니메이션은 몽타주로 재생합니다. 어떤 몽타주를 쓰는지는 SkillTable(또는 HeroTable)이 가리킵니다.
-- **공격 타이밍은 C++ 타이머가 아니라 AnimNotify**입니다. 단, 클라이언트 AnimNotify는 시전·연출 타이밍에만 쓰고, 대상 산출과 데미지는 서버가 결정합니다([DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md)).
-- 맨손/무기 교체에 따른 AnimInstance 교체(`AJMCharacterBase::UpdateWeaponAnimation`, `WeaponAnimClass`)와 `LinkAnimClassLayers`는 사용하지 않습니다. 무기 아이템은 머티리얼만 바꾸므로 애니메이션이 변하지 않습니다.
+- 플레이어는 체형과 상관없이 **공용 AnimBP `ABP_Mannequin`** 하나를 씁니다(Manny/Quinn 같은 스켈레톤).
+- 무기 타입마다 달라지는 부분은 **Animation Layer Interface `ALI_Weapon`**으로 분리하고, 무기 타입별 레이어 AnimBP `ABP_Layer_Unarmed` / `ABP_Layer_Sword` / `ABP_Layer_Bow`가 구현합니다.
+  - 레이어 범위: 대기·이동 블렌드스페이스(무기 쥔 자세), 상체 포즈. 공통 상태머신(이동/점프/사망)은 `ABP_Mannequin`에 둡니다.
+  - 무기 타입이 바뀌면(`SC_CHANGE_EQUIP` 반영 시) `LinkAnimClassLayers`로 해당 레이어를 연결합니다. 어떤 레이어를 쓰는지는 데이터(무기 타입 → 레이어 클래스)로 정합니다.
+- 공격·스킬은 몽타주입니다. 이름은 `AM_<WeaponType>_<Action>`(예: `AM_Sword_Attack`, `AM_Bow_Skill1`), 위치는 `Content/Character/Mannequin/Anim/<WeaponType>/`. 어떤 몽타주를 쓰는지는 SkillTable의 클라 전용 `Montage` 열이 가리킵니다. 상체 슬롯 `UpperBody`(이동 중 시전)와 전신 `DefaultSlot`을 기존처럼 씁니다.
+- 피격·사망 몽타주는 무기와 상관없는 공용 1벌로 시작합니다.
+- 몬스터 Rampage는 기존 `ABP_Rampage`와 몽타주를 그대로 씁니다.
 
-## 영웅 추가 시 해야 할 일
-메시 + AnimBP + 공격/피격/사망 몽타주를 준비하고 `HeroTable`, `SkillTable` 행을 추가합니다. 코드 수정은 필요 없어야 합니다.
+## 공격 타이밍
+- **공격 타이밍은 C++ 타이머가 아니라 AnimNotify**입니다. 몽타주의 `AnimNotify_SkillHit` 위치를 `ExportSkillTiming.bat`이 SkillTable `HitDelayMs`·`AnimMs`로 내보냅니다(기존 도구 그대로).
+- 클라이언트 AnimNotify는 시전·연출 타이밍에만 쓰고, 대상 산출과 데미지는 서버가 결정합니다([DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md)).
+
+## 무기 등에 메기 (클라이언트 연출 전용)
+- 비전투 시 무기는 **등 소켓**에 붙어 있습니다. 처음 보이는 캐릭터도 등에 멘 상태로 나타납니다.
+- `SC_ATTACK`을 받으면 **즉시** 손 소켓으로 옮깁니다(꺼내는 모션 때문에 서버 `HitDelayMs`를 늦추지 않음).
+- 마지막 공격·피격 후 `SheatheDelaySec`(5초, `MovementTable` 클라 전용 열 예정)이 지나면 넣는 모션 → 등 소켓.
+- 프로토콜 변경이 없고 서버는 이 상태를 모릅니다.
+
+## 모션 출처
+- 매니퀸 템플릿 모션(이동·점프·맨손) + VARCO(`Rig` → `Animate`) 또는 Mixamo(사용자가 FBX 다운로드) → IK Retargeter로 매니퀸에 맞춥니다. 외부 DCC는 쓰지 않습니다.
+- 한손검·활 모션은 템플릿에 없으므로 MC4.2에서 확보합니다. 출처는 `ExternalAssets.md`에 기록합니다.
+
+## 무기 타입 추가 시 해야 할 일
+레이어 AnimBP + 공격·스킬 몽타주(Skill Hit 노티파이 포함)를 만들고, 무기 타입 → 레이어 데이터와 SkillTable 행, ItemTable 무기 행을 추가합니다. 코드 수정은 필요 없어야 합니다(무기 타입 enum 추가는 예외).

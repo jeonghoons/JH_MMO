@@ -8,7 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P1 송신 묶기 차례, A1.3 AOI 재설계·병목 탐색 완료)**
-`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — 다음 MC0.3** (트랙 A는 `Jeonghoon`에서 P1)
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — 다음 MC1.1** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** P1 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -160,7 +160,7 @@
 **MC0 문서**
 - [x] MC0.1 결정 기록(`DECISIONS.md`)과 프로토타입 인수인계서 (2026-11-04)
 - [x] MC0.2 아트·장비 컨셉 `DESIGN_ART_CONCEPT.md` (2026-11-04, 고사실 판타지·검은사막 계열 참고)
-- [ ] MC0.3 `DESIGN_CHARACTER_EQUIPMENT`·`DESIGN_ANIMATION`·`DESIGN_COMBAT_SKILL`·`DESIGN_DATA`를 새 방향으로 개정
+- [x] MC0.3 `DESIGN_CHARACTER_EQUIPMENT`·`DESIGN_ANIMATION`·`DESIGN_COMBAT_SKILL`·`DESIGN_DATA`를 새 방향으로 개정 (2026-11-04)
 
 **MC1 베이스**
 - [ ] MC1.1 매니퀸(Manny/Quinn, 템플릿 모션)을 `Content/Character/Mannequin/`으로 이식

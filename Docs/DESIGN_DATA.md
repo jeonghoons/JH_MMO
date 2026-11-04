@@ -37,14 +37,13 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 | 테이블 | 용도 |
 |---|---|
 | MovementTable | 이동 속도, 카메라 관련 수치 (Test에서 이식됨: `MovementTable.csv`) |
-| StatTable | 캐릭터/몬스터 기본 스탯 |
-| HeroTable | 영웅 선택 한 행 = 영웅 ID, 메시, AnimBP, 기본 스탯 ID (Greystone, Sparrow로 시작) |
-| WeaponItemTable | 무기 아이템: ItemId, 장착 가능 HeroId, 스탯 보너스, 슬롯별 머티리얼 경로(클라 전용) |
-| SkillTable | `HeroId`, 쿨타임, 시전시간, 판정 Shape, 타겟팅 타입, 범위, 데미지 계수, 몽타주 경로(클라 전용) |
-| MonsterTable / ItemTable / UITable | 해당 기능 작업 시 |
+| StatTable | 체형(MALE/FEMALE)·몬스터 기본 스탯 |
+| ItemTable | 장비 아이템(슬롯, 등급, 티어, 스탯 보너스, 무기 타입, 외형 경로는 클라 전용) — Phase MC3.1, A3에서 확장 |
+| SkillTable | `WeaponType`(무기 타입 종속), 슬롯, 쿨타임, 판정 Shape, 타겟팅 타입, 범위, 데미지, 몽타주 경로(클라 전용) |
+| MonsterTable / UITable | 해당 기능 작업 시 |
 | WorldTable | 맵별 시야(AOI) 수치 — 서버 전용(2026-10-31 A1.3) |
 
-기존 `DT_Appearance`/`DT_Equip`/`DT_CharacterAsset`과 `UJMAssetDataManager`의 Mock DB는 `HeroTable`/`WeaponItemTable`로 대체합니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)). 대체 시점은 ROADMAP M2/M3.
+2026-11-04 Phase MC: 계획했던 `HeroTable`/`WeaponItemTable`은 만들지 않고 **ItemTable**로 대체합니다. 플레이어 메시·AnimBP는 매니퀸 공용이라 테이블이 필요 없고, `DT_CharacterAsset`은 MC4에서 플레이어 참조를 끊은 뒤 정리합니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
 
 ## 서버 로더 (구현됨, 2026-10-20)
 - `Server/Server/CsvFile.h/.cpp`가 CSV를 파싱하고(UTF-8·BOM·따옴표 지원, 컬럼 수/숫자 형식 검증), `DataManager::Init()`(`ServerData.cpp`)가 테이블을 읽어 `GetCharacterData`/`GetSkillData`로 제공합니다.
@@ -54,14 +53,22 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 
 ### StatTable (서버 구현됨)
 `Name`(ID, 1001~), `PlayerType`(`Enum.proto`의 PlayerType 값, 서버 조회 키·중복 불가), `MaxHp`, `AttackDamage`, `AttackSpeed`, `MoveSpeed`. 생성 시 HP는 `MaxHp`입니다. 현재 행: 몬스터(3), 전사(4), 궁수(5).
+- **Phase MC 목표(MC3.1)**: 행을 MALE(1)·FEMALE(2)·몬스터(3)로 바꾸고, MALE·FEMALE은 같은 값(MaxHp 500, AttackDamage 0, AttackSpeed 1.0, MoveSpeed 500). 최종 스탯 = 기본 + 장비 보너스(무기 `AttackDamage`, 방어구 `MaxHp`)이며 서버가 계산합니다. `AttackDamage`는 피해 공식(`BaseDamage` + 공격력)에 쓰입니다.
 
 ### SkillTable (서버 구현됨)
 `Name`(skillId), `PlayerType`(영웅 종속), `Slot`(0 = 기본 공격, 1~5 = 숫자키), `TargetingType`(`Targeted`/`NonTargeted`), `HitShape`(`Sector`/`Line`/`Projectile`/`Zone`), `HitDelayMs`, `CooldownMs`, `CastRange`(Targeted는 대상까지, Zone은 지점까지 최대 거리), `Radius`, `Angle`, `Range`, `Width`, `BaseDamage`, `ProjSpeed`, `DurationMs`/`TickMs`(Zone: 지속 시간 / 한 대상에게 피해를 주는 최소 간격 — 진입 즉시 피해 후 `TickMs`마다 반복). 클라이언트 전용 열(서버 로더는 무시): `Fx`/`FxBaseRadius`(이펙트), `Montage`(시전 몽타주), `Icon`(전투 HUD 슬롯 아이콘 텍스처).
 - 클라이언트는 skillId가 아니라 **슬롯**을 보내고, 서버가 영웅의 SkillTable로 해석합니다(다른 영웅의 스킬 사용 불가). 쿨타임은 스킬별이며 기본 공격(슬롯 0)만 공격 속도 배율을 반영합니다.
-- 현재 행: 301(몬스터), 401/402(전사 기본·광역 강타), 501/502(궁수 기본 타겟팅 투사체·지면 장판). skillId 규칙은 `PlayerType*100+Slot+1`(기존 기본 공격 id 유지)이며, `HeroId` 기반 ID 체계(1001~)로의 재편은 M4에서 합니다.
+- 현재 행: 301(몬스터), 401/402(전사 기본·광역 강타), 501/502(궁수 기본 타겟팅 투사체·지면 장판). skillId 규칙은 `PlayerType*100+Slot+1`(기존 기본 공격 id 유지)입니다.
+- **Phase MC 목표(MC3.1)**: `PlayerType` 열 → `WeaponType` 열(`Unarmed`/`Sword`/`Bow`/`Monster`, `.proto` enum과 같은 이름). 서버 조회 키 = (WeaponType, Slot), 중복 불가. ID 앞자리 = 무기 종류(맨손 1xxx, 검 2xxx, 활 3xxx, 몬스터 9xxx): 1001 맨손 기본 공격(신규), 2001/2002 = 401/402, 3001/3002 = 501/502, 9001 = 301. 몽타주는 `AM_<WeaponType>_<Action>`으로 바뀝니다. 상세 [DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md).
 
 ### MonsterTable (서버 구현됨)
 `Name`(=스폰 마커의 `monsterTemplateId`, StatTable.PlayerType과 동일해야 함), `RespawnSec`(사망 후 리스폰까지), `DeathRemoveDelaySec`(시체를 남기는 시간, `<= RespawnSec`), `HitStunMs`(피격 후 행동이 막히는 시간, 0~10000 — 피격 모션 길이에 맞춘다), `WanderRadiusCm`(대기 중 배회: 현재 위치에서 이 반경 안 임의 지점, 0~10000 — 2026-10-31 A1.3c에서 AOI 셀과 분리한 임시값, 행동트리 개선 때 재검토). 사망 연출 길이에 맞춰 `DeathRemoveDelaySec`를 조절합니다. 스폰 위치/수는 맵 JSON의 `spawnRadius`/`maxCount`를 따릅니다. 보상(경험치/골드) 컬럼은 A2.3에서 추가합니다.
+- **Phase MC 목표(MC3.1)**: `SkillId`(필수, SkillTable 참조 — 없으면 서버 시작 중단) 열 추가. 몬스터 스킬은 `PlayerType`이 아니라 이 열로 찾습니다.
+
+### ItemTable (Phase MC3.1 목표, 컬럼은 그때 확정)
+- 서버가 읽는 열(초안): `Name`(itemId, 앞자리로 종류 구분 — 규칙은 MC3.1에서 확정), `Slot`(`EquipPart` 이름), `Grade`(`Common`/`Uncommon`/`Rare`), `Tier`(`Cloth`/`Leather`/`Plate`), `WeaponType`(무기만, 나머지 `None`), `BonusAttackDamage`, `BonusMaxHp`.
+- 클라 전용 열(초안): `MeshM`/`MeshF`(스켈레탈 의상, 체형별 소프트 경로), `StaticMesh`(머리·무기), `AttachSocket`·상대 변환(정적 메시), `HidesBodyParts`(예: `torso|arms`), `Icon`, `DisplayName`.
+- 맨손은 행이 없습니다(무기 슬롯 비어 있음 = Unarmed). 1차 행: 천·판금 × (5부위 + 한손검 + 활) = 14개([DESIGN_ART_CONCEPT.md](DESIGN_ART_CONCEPT.md)).
 
 ### WorldTable (서버 전용, 2026-10-31 A1.3)
 `Name`(worldId, 1001~), `MapName`(맵 리소스 파일 이름 = `GameMap::LoadMapData` 인자, 중복 불가), `CellSizeCm`(AOI 큰 셀 한 변 — 셀마다 쿼드트리, 100~100000), `QuadSplitCount`(쿼드트리 노드가 이 수를 넘으면 4분할, 1~1000), `QuadMinSizeCm`(이보다 작은 노드로는 나누지 않음, 100~CellSizeCm), `ViewRadiusCm`(목표 시야 반경 R — 이 안의 캐릭터는 반드시 보임, 100~100000), `ViewHysteresisCm`(H — 나갈 때는 R+H를 넘어야 사라짐, 0~R). 서버가 쓰는 맵(`Room.h` `ROOM_MAP_NAME`) 행이 없으면 시작을 중단합니다. 현재 행: 1001 ParagonSample(셀 5000, 분할 8, 최소 노드 500, R 5000, H 500 — R·H는 A1.3b 스크린샷으로 결정). UE는 이 테이블을 임포트하지 않습니다.
@@ -94,3 +101,5 @@ ID `1001` = 플레이어 기본값. 클라이언트(`DT_MovementTable`)와 서�
 | `ServerNavToleranceCm` | 50 | 서버 | 목표가 내비메시 경계 밖으로 이만큼(수평)까지는 허용. 내비메시는 벽에서 34cm 안쪽까지 깔리므로 68cm + 벽 두께보다 작아야 벽을 뚫지 못함, 0~100 |
 
 서버는 값이 범위를 벗어나거나 1001 행·열이 없으면 시작을 중단합니다.
+
+**Phase MC 목표 열**: `WeaponSwapLockMs`(1000, 서버 — 무기 교체 후 행동 잠금), `SheatheDelaySec`(5, 클라 — 마지막 공격·피격 후 무기를 등에 메기까지).

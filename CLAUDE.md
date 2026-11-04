@@ -42,10 +42,10 @@ JH_MMO는 자체 제작 MMORPG 게임 프로젝트이며, 서로 동기화 상�
 
 진행 중인 기능 설계는 `Docs/`에 별도로 기록합니다 — 완료된 구현이 아니라 목표 아키텍처이며, 마이그레이션 순서는 문서에 명시된 범위 내에서만 정해져 있습니다.
 
-- [Docs/DESIGN_CHARACTER_EQUIPMENT.md](Docs/DESIGN_CHARACTER_EQUIPMENT.md) — Paragon 영웅 고정(Greystone, Sparrow로 시작), 무기 아이템 = 스탯 + 머티리얼 교체, 기존 모듈러 코드의 처리. (2026-11-04 매니퀸 모듈형으로 대체 결정, MC0.3에서 개정 예정)
+- [Docs/DESIGN_CHARACTER_EQUIPMENT.md](Docs/DESIGN_CHARACTER_EQUIPMENT.md) — 매니퀸 공용 스켈레톤 모듈형 플레이어(체형 MALE/FEMALE, 직업 없음), 슬롯 6개·몸 부위 숨김, ItemTable, 서버 권위 장착 흐름(`CS_/SC_CHANGE_EQUIP`), 기존 Paragon 플레이어 자산의 처리.
 - [Docs/DESIGN_ART_CONCEPT.md](Docs/DESIGN_ART_CONCEPT.md) — 고사실 중세 판타지(검은사막 계열 참고, 디자인은 자체 제작), 천/가죽/판금 티어, 슬롯 예산, 아이콘·VARCO 제작 기준 (Phase MC).
-- [Docs/DESIGN_ANIMATION.md](Docs/DESIGN_ANIMATION.md) — 영웅별 AnimBP 구조, 공격 타이밍은 AnimNotify(연출 전용).
-- [Docs/DESIGN_COMBAT_SKILL.md](Docs/DESIGN_COMBAT_SKILL.md) — 스킬을 영웅에 종속시키고 타겟팅 타입(Targeted/NonTargeted)을 추가하는 목표 구조, 쿼터뷰 조준 입력 설계.
+- [Docs/DESIGN_ANIMATION.md](Docs/DESIGN_ANIMATION.md) — 공용 `ABP_Mannequin` + 무기 타입별 Animation Layer(`ALI_Weapon`), 공격 타이밍은 AnimNotify(연출 전용), 비전투 시 무기 등에 메기.
+- [Docs/DESIGN_COMBAT_SKILL.md](Docs/DESIGN_COMBAT_SKILL.md) — 스킬을 무기 타입(Unarmed/Sword/Bow)에 종속, 피해 공식, 타겟팅 타입(Targeted/NonTargeted), 크로스헤어 조준 입력 설계.
 
 ## 언어 관련 참고사항
 
