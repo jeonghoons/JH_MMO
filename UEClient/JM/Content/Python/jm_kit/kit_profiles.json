@@ -1,0 +1,46 @@
+{
+  "_comment": "MC1.2 기준 캐릭터 = Fab CoreCharacters 키트 조립 그대로(키트 BP_TPCharacter_CoreC_<M|F>와 같은 구성). leader = 애니메이션을 돌리는 몸 전체 메시(숨김), parts = 키트가 나눠 둔 몸 부위, outfit = 키트 기본 의상(MC2.1 의상 틀), hide = 슬롯을 입었을 때 숨기는 몸 부위(키트 BP 기본값과 같음). 몸 부위 메시는 직접 만들지 않는다(DECISIONS 2026-11-04 재작업).",
+  "hide": {
+    "top": ["torso"],
+    "bottom": ["legs"],
+    "boots": ["feet"]
+  },
+  "bodies": {
+    "M": {
+      "leader": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Body_Combined",
+      "parts": {
+        "head": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Face",
+        "eyes": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Eyes",
+        "teeth": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Teeth",
+        "hair": "/Game/CoreC/04Hairstyle/Male/SKM_CoreC_Male_HairA05",
+        "torso": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Torso",
+        "hands": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Hands",
+        "legs": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Legs",
+        "feet": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_M_Base_Feet"
+      },
+      "outfit": {
+        "top": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_M_Techwear01_Upper",
+        "bottom": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_M_Techwear01_Lower",
+        "boots": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_M_Techwear01_Shoes"
+      }
+    },
+    "F": {
+      "leader": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Body_Combined",
+      "parts": {
+        "head": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Face",
+        "eyes": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Eyes",
+        "teeth": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Teeth",
+        "hair": "/Game/CoreC/04Hairstyle/Female/SKM_CoreC_Female_HairA05",
+        "torso": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Torso",
+        "hands": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Hands",
+        "legs": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Legs",
+        "feet": "/Game/CoreC/02BaseBody/SKM/SKM_CoreC_F_Base_Feet"
+      },
+      "outfit": {
+        "top": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_F_Techwear01_Upper",
+        "bottom": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_F_Techwear01_Lower",
+        "boots": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_F_Techwear01_Shoes"
+      }
+    }
+  }
+}

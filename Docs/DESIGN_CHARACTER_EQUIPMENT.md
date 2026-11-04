@@ -24,11 +24,11 @@
 - 겹쳐 입기(상의 위 흉갑), 어깨·망토 슬롯은 후속입니다.
 
 ## 몸 = 부위 분할 + 장비가 덮는 부위 숨김
-- 베이스 바디는 **Fab CoreCharacters 키트의 남/여 몸**(MC2.1b, `Content/CoreC` — git 제외 외부 팩)입니다. 스켈레톤이 매니퀸과 같아 프로젝트 `SK_Mannequin`으로 다시 만들고, 눈·이(머리 부위)·헤어(hair 부위)를 함께 붙입니다. 피부는 키트 만화 셰이더를 부모로 `UseComic?`만 끈 `MI_Skin_<M|F>_<Body|Face>`, 헤어는 키트 머티리얼 그대로. 체형별 몸 부위 메시·머티리얼은 데이터(`body_profiles.json` → MC4.1에서 테이블로)로 지정해 몸을 바꿔도 코드를 고치지 않습니다.
-- 베이스 바디를 head/hair/torso/arms/hands/legs/feet 7부위의 스켈레탈 메시(`SK_Body_<M|F>_<Part>`)로 나눕니다(MC1.3 도구).
+- 베이스 바디는 **Fab CoreCharacters 키트의 남/여 몸**(`Content/CoreC` — git 제외 외부 팩)이고, **키트가 나눠 둔 부위 메시를 그대로** 씁니다(2026-11-04 재작업 — 직접 분할하지 않음): Face·Eyes·Teeth·Hair·Torso(팔 포함)·Hands·Legs·Feet. 머티리얼은 키트 원본. 체형별 부위 메시 경로·숨김 규칙은 데이터(`Content/Python/jm_kit/kit_profiles.json` → MC4.1에서 테이블로)로 지정해 몸을 바꿔도 코드를 고치지 않습니다.
+- **장비 메시는 키트 의상과 같은 뼈대**(본 89개·이름·순서·바인드 포즈)여야 합니다. 다르면 Leader Pose에서 팔·소매가 벌어집니다(MC2.2 첫 시도 실패 원인). 검사는 MC1.3 도구.
 - 캐릭터 구성(클라이언트):
   - **Leader**: 기본 `Mesh` = 전체 몸 메시, 애니메이션 재생, 화면에는 숨김(`AlwaysTickPoseAndRefreshBones` 필수).
-  - 몸 부위 7개 + 스켈레탈 슬롯 4개: Leader Pose로 Leader를 따라갑니다.
+  - 키트 몸 부위 8개(Face·Eyes·Teeth·Hair·Torso·Hands·Legs·Feet) + 스켈레탈 슬롯 4개: Leader Pose로 Leader를 따라갑니다. 숨김 기본값은 키트와 같음(상의 → Torso, 하의 → Legs, 신발 → Feet).
   - 정적 슬롯 2개(머리·무기): 본/소켓에 부착, 상대 변환은 데이터.
 - 부위 컴포넌트는 리더 기준 bounds를 씁니다(`bUseBoundsFromLeaderPoseComponent`). 부위 메시 자체 bounds는 기준 자세라, 팔을 뻗는 모션에서 잘못 컬링될 수 있습니다(MC1.3 확인 사항).
 - 장착 목록이 바뀌면 **몸 부위 가시성을 다시 계산**합니다: 장착 아이템들의 `HidesBodyParts` 합집합을 숨기고 나머지는 보입니다. 아무것도 안 입은 슬롯은 맨몸 부위가 보입니다.

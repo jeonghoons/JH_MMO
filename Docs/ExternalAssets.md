@@ -12,7 +12,7 @@
 | `Content/ParagonProps` | Paragon: Props | (Fab 링크 기입) | 환경 소품(미사용 확인 필요) | 위와 동일 |
 | `Content/KiteDemo` | Kite Demo | (Fab 링크 기입) | 데모 에셋(미사용 확인 필요) | 위와 동일 |
 | `Content/LevelPrototyping`, `Content/StarterContent` | UE 템플릿 기본 에셋 | - | 프로토타이핑용 | 새 프로젝트 템플릿에서 가져오기 |
-| `Content/CoreC` | Stylized Handpainted Modular Character Starter Kit: Male & Female + Outfit (CoreCharacters, 무료) | https://fab.com/s/485d4e7206ec | **플레이어 베이스 바디(남/여)**, 2026-11-04 MC2.1b | Fab 내 라이브러리 → Add to Project → `JM`. 설치 후 `jm_modular.body_parts.build("M")`, `build("F")`로 몸 부위 생성 |
+| `Content/CoreC` | Stylized Handpainted Modular Character Starter Kit: Male & Female + Outfit (CoreCharacters, 무료) | https://fab.com/s/485d4e7206ec | **플레이어 베이스 바디(남/여)**, 2026-11-04 MC2.1b | Fab 내 라이브러리 → Add to Project → `JM`. 몸 부위는 키트 메시를 그대로 사용(`jm_kit/kit_profiles.json`) |
 | (Test) `Content/Polyphoria` | (에셋 이름 기입) | (Fab 링크 기입) | 모듈러 검토용, 병합 여부 미정 | 위와 동일 |
 | (Test) `Content/Pirate`, `Adventures_woman` | (에셋 이름 기입) | (Fab 링크 기입) | 모듈러 캐릭터 검토용, 캐릭터 베이스 결정 후 폐기 여부 확정 | 위와 동일 |
 
@@ -30,4 +30,4 @@
 | 에셋 | 원본 | 출처 | 비고 |
 |---|---|---|---|
 | `Content/Character/Mannequin/` (Meshes, Materials, Textures, Rigs, Anims/Unarmed, Anims/Death — 60개, 약 100MB) | `UE_5.6/Templates/TemplateResources/High/Characters/Content/Mannequins` | Epic UE 5.6.1 템플릿 매니퀸(Manny/Quinn, `SK_Mannequin`), 사용 가능 여부는 사용자 확인(DECISIONS 2026-11-04) | 2026-11-04 MC1.1. 원본과 바이트 동일 확인 후 에디터에서 Move. `Anims/Pistol`·`Anims/Rifle`(68개)은 무기 타입과 무관해 가져오지 않음(git 제외 경로 `Content/Characters/Mannequins/`에 남음). 몇몇 공격 모션에 템플릿 원본부터 있던 없는 경로 참조(`EditableAnimations/LS_*`, `SKM_Manny`)가 있으나 재생에는 영향 없음 |
-| `Content/Character/Mannequin/Body/SK_Body_<M\|F>_<Part>` (부위 6 + Eyes·Teeth·Hair, 남녀) | `Content/CoreC` 키트 합본 몸(MC2.1b부터, MC1.3에서는 템플릿 매니퀸) | 위 Fab 키트 | 2026-11-04 MC1.3·MC2.1b. `Content/Python/jm_modular/body_parts.py`로 생성. **git 제외** — clone 후 에디터에서 `bp.build("M")`, `bp.build("F")`, `bp.verify(...)`로 만든다 |
+| ~~`Content/Character/Mannequin/Body/SK_Body_<M\|F>_<Part>`~~ | — | — | 2026-11-04 삭제(MC1 재작업 — 키트 부위 메시를 그대로 사용) |
