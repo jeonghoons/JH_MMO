@@ -8,6 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P1 송신 묶기 차례, A1.3 AOI 재설계·병목 탐색 완료)**
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — 다음 MC0.3** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** P1 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -114,6 +115,7 @@
 
 ## 트랙 B — 콘텐츠/클라이언트 (기존 Test 병합 작업, 병행)
 2026-10-30 정리: M0/M2/M4의 남은 항목은 트랙 A에서 이미 끝난 작업(A1.4, A2.2)이라 완료 처리했습니다. 남은 것은 M3(영웅·무기 테이블)과 Paragon 에셋 최종 Move입니다. M3의 테이블은 A3의 ItemTable/DropTable과 `DESIGN_DATA.md` ID 규약을 공유합니다.
+2026-11-04: 플레이어를 매니퀸 모듈형으로 바꾸기로 해서(`DECISIONS.md`) M3의 HeroTable·WeaponItemTable은 **Phase MC**(아래)로 대체합니다.
 
 ## Phase M0 – 병합 준비
 - [x] Test의 서버 자리(Seam) 동작을 서버 권위 동작으로 전환한다는 방침을 `DESIGN_COMBAT_SKILL.md`에 기록
@@ -142,15 +144,48 @@
 - [x] `UJMAssetDataManager`의 Mock DB 교체 여부 결정 — 폐기(클래스가 이미 삭제됨, 2026-10-30 확인)
 
 ## Phase M3 – 캐릭터/무기/애니메이션
-- [ ] HeroTable (Greystone, Sparrow): 영웅 → 메시/AnimBP/스탯, 영웅 선택 흐름
+- [ ] HeroTable (Greystone, Sparrow): 영웅 → 메시/AnimBP/스탯, 영웅 선택 흐름 → Phase MC로 대체(2026-11-04)
 - [x] 영웅별 AnimBP 연결 ([DESIGN_ANIMATION.md](DESIGN_ANIMATION.md), AnimLayer/무기 교체 없음) — `ABP_Greystone`/`ABP_Sparrow`(`DT_CharacterAsset`), 상체 레이어·`DefaultSlot`은 A2.2d·A2.2e에서 완료
-- [ ] WeaponItemTable + 무기 머티리얼 교체 + 장착 CS_/SC_ 패킷, 서버 스탯 계산 ([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md))
+- [ ] WeaponItemTable + 무기 머티리얼 교체 + 장착 CS_/SC_ 패킷, 서버 스탯 계산 ([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)) → Phase MC로 대체(2026-11-04)
 - [x] 모듈러 코드/에셋 삭제 (클라이언트 코드, CoreC, DT_Appearance/DT_Equip). 남은 일(에디터 컴파일 확인, `BP_Player`/`BP_MyPlayer`/`ABP_Base` 정리, `appearance_items` 제거)은 M0.5-4·C-1에서 완료
 - [ ] 사용 중인 Paragon 에셋을 새 폴더로 정리해 커밋 (재다운로드 파일은 커밋하지 않음) — 절차는 아래 "Paragon 에셋 최종 Move"
 
 ## Phase M4 – 전투/스킬 (서버 권위)
 - [x] SkillTable(영웅 종속 — `PlayerType` 열) + 스킬 시전 CS_/SC_ 패킷 ([DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md)) — A2.2a~g에서 완료
 - [x] AnimNotify는 시전·연출 타이밍만, 판정은 서버 — A2.2e(`AnimNotify_SkillHit` + `ExportSkillTiming.bat`)에서 완료
+
+## Phase MC – 모듈러 캐릭터 전환 (`content/dev`, 2026-11-04)
+플레이어 = 매니퀸 공용 스켈레톤 + 슬롯별 장비 교체 + 몸 부위 숨김, 스킬은 무기 타입 종속(`DECISIONS.md` 2026-11-04). 각 단계 시작 시 `Jeonghoon`을 merge하고, 콘텐츠 단계는 위 검증 게이트(오류·부하 테스트)를 따릅니다. 아트 기준은 [DESIGN_ART_CONCEPT.md](DESIGN_ART_CONCEPT.md), 프로토타입 근거는 [HANDOFF_MODULAR_EQUIPMENT_VARCO.md](HANDOFF_MODULAR_EQUIPMENT_VARCO.md).
+
+**MC0 문서**
+- [x] MC0.1 결정 기록(`DECISIONS.md`)과 프로토타입 인수인계서 (2026-11-04)
+- [x] MC0.2 아트·장비 컨셉 `DESIGN_ART_CONCEPT.md` (2026-11-04, 고사실 판타지·검은사막 계열 참고)
+- [ ] MC0.3 `DESIGN_CHARACTER_EQUIPMENT`·`DESIGN_ANIMATION`·`DESIGN_COMBAT_SKILL`·`DESIGN_DATA`를 새 방향으로 개정
+
+**MC1 베이스**
+- [ ] MC1.1 매니퀸(Manny/Quinn, 템플릿 모션)을 `Content/Character/Mannequin/`으로 이식
+- [ ] MC1.2 베이스 바디 선택(사용자: VARCO 생성 vs Fab 매니퀸 호환 캐릭터)
+- [ ] MC1.3 몸 부위 분할 도구를 `UEClient/JM/Tools/Modular/`로 이식 + `SK_Body_<M|F>_<Part>` 생성
+
+**MC2 장비 에셋**
+- [ ] MC2.1 맞춤·스키닝 도구 이식(프로토타입 부록 C·D)
+- [ ] MC2.2 천 세트 7개(VARCO, 포인트 사전 승인, 첫 아이템에서 Remesh 품질 확인)
+- [ ] MC2.3 판금 세트 7개
+- [ ] MC2.4 아이콘 SceneCapture 촬영 → `T_Icon_<Item>`
+
+**MC3 데이터·서버**
+- [ ] MC3.1 `ItemTable` + SkillTable 무기 ID 재번호(1xxx/2xxx/3xxx/9xxx), StatTable MALE/FEMALE, `MonsterTable.SkillId`
+- [ ] MC3.2 `CS_/SC_CHANGE_EQUIP`(`.proto` → `GanPackets.bat`) + 서버 검증·스탯 계산·무기 스왑 잠금
+- [ ] MC3.3 `Player_Equipped` 저장, 가입 시 기본 장비, 기존 `PlayerType`·장비 행 마이그레이션
+
+**MC4 클라이언트**
+- [ ] MC4.1 장비 컴포넌트(Leader Pose, 몸 숨김 데이터 구동)
+- [ ] MC4.2 `ABP_Mannequin` + `ALI_Weapon` + 무기 타입별 레이어·몽타주, `ExportSkillTiming.bat`
+- [ ] MC4.3 비전투 시 무기 등에 메기
+- [ ] MC4.4 개발용 장비창 `WBP_Equipment`, 스킬 슬롯 배열 HUD
+
+**MC5 검증·병합**
+- [ ] MC5.1 오류·부하 테스트, 클라이언트 성능 측정, SceneCapture 시트 승인(`TESTING.md`), `Jeonghoon` 병합(사용자 승인)
 
 ## 수동 작업 기록 (에디터에서 사용자가 직접)
 상세 절차는 기록하지 않고 대화창으로 안내합니다. 여기에는 항목별 한 줄 요약과 상태만 남깁니다.
