@@ -48,4 +48,5 @@
 에셋 제작 도구는 `Content/Python/<패키지>/`에 둡니다(에디터 Python 경로에 자동 포함, 게임 빌드 제외). 에디터를 켠 뒤 폴더를 처음 만들었다면 재시작 전까지 `sys.path`에 직접 추가해야 합니다.
 - `jm_kit` — 키트 구성 캐릭터 도구(MC1 재작업). `kit_profiles.json`(체형별 리더·키트 부위·기본 의상, 슬롯별 숨김 부위), `preview`(테스트 레벨 `Dev/MC/L_KitTest`에 조립 `spawn`, SceneCapture `shot`/Simulate 중 `shot_game`, `look_at`). 예: `import importlib, jm_kit.preview as pv; importlib.reload(pv); pv.setup_level(); pv.spawn("KM", "M", (0, 0, 0), outfit="kit", anim=pv.ANIM["jog"])`
 - `jm_kit.skeleton_check` — 장비 메시 뼈대 검사(MC1.3): `check(메시, "M", slot="top")`(기준 = 키트 의상 또는 리더, 다르면 `ok: False`와 이유), `self_test()`. 장비를 만들면 반드시 통과시킵니다.
+- `jm_kit.garment` — 의상 맞춤(MC2.1): `import_fbx`(짧은 경로에서), `build(정적 메시, "M", "top", 출력 경로)` = 키트 의상 복제 후 형상·가중치·머티리얼만 교체(뼈대·바인드·PA 상속, 결과에 `skeleton_ok`), `measure`.
 - 이전 도구 `jm_modular`(`body_parts`·`garment_fit`·`preview`)는 2026-11-04 MC1 재작업으로 삭제했습니다(`Docs/DECISIONS.md`).

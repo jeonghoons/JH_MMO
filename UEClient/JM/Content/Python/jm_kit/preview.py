@@ -35,26 +35,35 @@ def setup_level():
         LES.load_level(LEVEL)
     else:
         LES.new_level(LEVEL)
-        sun = EAS.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 500), unreal.Rotator(0, -35, -60))
-        sun.set_actor_label("T_Sun")
+    have = {a.get_actor_label() for a in EAS.get_all_level_actors()}
+    if "T_Sun" not in have:
+        EAS.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 500), unreal.Rotator(0, -35, -60)).set_actor_label("T_Sun")
+    if "T_Sky" not in have:
         EAS.spawn_actor_from_class(unreal.SkyLight, unreal.Vector(0, 0, 300)).set_actor_label("T_Sky")
+    if "T_Floor" not in have:
         floor = EAS.spawn_actor_from_class(unreal.StaticMeshActor, unreal.Vector(0, 0, 0))
         floor.static_mesh_component.set_static_mesh(unreal.load_asset("/Engine/BasicShapes/Plane"))
         floor.set_actor_scale3d(unreal.Vector(40, 40, 1))
         floor.set_actor_label("T_Floor")
+    if "T_Fill" not in have:
         fill = EAS.spawn_actor_from_class(unreal.PointLight, unreal.Vector(0, 350, 250))
         fill.point_light_component.set_intensity(80)
         fill.point_light_component.set_attenuation_radius(2000)
         fill.set_actor_label("T_Fill")
-    if not any(a.get_actor_label() == "T_CapG" for a in EAS.get_all_level_actors()):
+    if "T_CapG" not in have:
         EAS.spawn_actor_from_class(unreal.SceneCapture2D, unreal.Vector(0, 600, 120), unreal.Rotator(0, 0, -90)).set_actor_label("T_CapG")
     LES.save_current_level()
     return LEVEL
 
 
+FIXTURES = ("T_Sun", "T_Sky", "T_Floor", "T_Fill", "T_CapG")   # 레벨 고정 액터 — clear()가 지우지 않음
+
+
 def clear(prefix):
+    """라벨이 prefix로 시작하는 캐릭터 액터를 지운다(레벨 고정 액터 FIXTURES는 제외)."""
     for a in EAS.get_all_level_actors():
-        if a.get_actor_label().startswith(prefix):
+        label = a.get_actor_label()
+        if label.startswith(prefix) and label not in FIXTURES:
             EAS.destroy_actor(a)
 
 
