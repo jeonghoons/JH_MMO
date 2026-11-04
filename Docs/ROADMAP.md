@@ -8,7 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P1 송신 묶기 차례, A1.3 AOI 재설계·병목 탐색 완료)**
-`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — 다음 MC1.2** (트랙 A는 `Jeonghoon`에서 P1)
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — 다음 MC1.3** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** P1 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -164,11 +164,12 @@
 
 **MC1 베이스**
 - [x] MC1.1 매니퀸(Manny/Quinn, 템플릿 모션)을 `Content/Character/Mannequin/`으로 이식 (2026-11-04, 60개 — Pistol·Rifle 제외, `ExternalAssets.md`)
-- [ ] MC1.2 베이스 바디 선택(사용자: VARCO 생성 vs Fab 매니퀸 호환 캐릭터)
+- [x] MC1.2 베이스 바디: 임시 = 매니퀸, 최종은 MC2.1b에서 (2026-11-04)
 - [ ] MC1.3 몸 부위 분할 도구를 `UEClient/JM/Tools/Modular/`로 이식 + `SK_Body_<M|F>_<Part>` 생성
 
 **MC2 장비 에셋**
 - [ ] MC2.1 맞춤·스키닝 도구 이식(프로토타입 부록 C·D)
+- [ ] MC2.1b 최종 베이스 바디 결정(**MC2.2 전 필수**): MetaHuman 남자 1명 측정(LOD별 삼각형, 매니퀸 모션, SceneCapture) → 확정 시 외부 도구 범위 DECISIONS 추가, 몸 분할·맞춤 도구 재실행. 미달 시 VARCO
 - [ ] MC2.2 천 세트 7개(VARCO, 포인트 사전 승인, 첫 아이템에서 Remesh 품질 확인)
 - [ ] MC2.3 판금 세트 7개
 - [ ] MC2.4 아이콘 SceneCapture 촬영 → `T_Icon_<Item>`
