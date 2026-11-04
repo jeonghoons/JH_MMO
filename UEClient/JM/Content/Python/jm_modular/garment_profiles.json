@@ -1,0 +1,24 @@
+{
+  "_comment": "의상 맞춤 프로파일. fit.ratio/rel_off는 몸 부위 상자 대비 비율(체형 독립, garment_fit.calibrate로 생성). proto_* 는 MC2.1 검증용(프로토타입 FBX, 원본 에셋은 Content/Dev/ — git 제외). 실제 아이템은 MC2.2부터 추가.",
+  "proto_top": {
+    "source": "/Game/Dev/MC/Garments/top/top", "slot": "top", "out": "/Game/Dev/MC/Fit/SK_Fit_top_{body}",
+    "fit": {"parts": ["torso", "arms"], "z_clip": null, "ratio": [1.2748793419020206, 1.4376033697734727, 1.2833090272399585], "rel_off": [0.0, 0.06481216971658652, -0.24795899052751502]}
+  },
+  "proto_plate": {
+    "source": "/Game/Dev/MC/Garments/armor/armor", "slot": "top", "out": "/Game/Dev/MC/Fit/SK_Fit_plate_{body}",
+    "allowed_bones": ["pelvis", "spine", "clavicle", "neck", "upperarm"],
+    "fit": {"parts": ["torso"], "z_clip": null, "ratio": [2.021793626021196, 1.4242752811675181, 0.9787521393546413], "rel_off": [0.0, 0.06481216971658652, -0.10926042448870102]}
+  },
+  "proto_pants": {
+    "source": "/Game/Dev/MC/Garments/pants/pants", "slot": "bottom", "out": "/Game/Dev/MC/Fit/SK_Fit_pants_{body}",
+    "fit": {"parts": ["legs", "feet"], "z_clip": null, "ratio": [1.360069035749105, 1.15446325489417, 0.8337268467239181], "rel_off": [0.0, -0.09662005797894596, 0.00504569403178508]}
+  },
+  "proto_boots": {
+    "source": "/Game/Dev/MC/Garments/boots/boots", "slot": "boots", "out": "/Game/Dev/MC/Fit/SK_Fit_boots_{body}",
+    "fit": {"parts": ["feet"], "z_clip": [0.0, 55.0], "ratio": [1.0, 1.15, 1.0], "rel_off": [0.0, 0.0, 0.0]}
+  },
+  "proto_gloves": {
+    "source": "/Game/Dev/MC/Garments/gloves/gloves", "slot": "gloves", "out": "/Game/Dev/MC/Fit/SK_Fit_gloves_{body}",
+    "pair": {"pitch": 160.0, "scale": 0.2, "reach": 8.0, "y_off": 4.0, "z_off": 0.0}
+  }
+}

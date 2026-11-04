@@ -46,3 +46,6 @@
 ## 에디터 Python 도구 (`Content/Python/`)
 
 에셋 제작 도구는 `Content/Python/jm_modular/`에 둡니다(에디터 Python 경로에 자동 포함, 게임 빌드 제외). 예: `import importlib, jm_modular.body_parts as bp; importlib.reload(bp); bp.build("M"); bp.verify("M")`. 에디터를 켠 뒤 폴더를 처음 만들었다면 재시작 전까지 `sys.path`에 직접 추가해야 합니다.
+- `body_parts` — 베이스 바디 → 몸 부위(`build`, `verify`), `body_profiles.json`
+- `garment_fit` — 의상 맞춤·스키닝(`calibrate`, `build`, `measure`), `garment_profiles.json`
+- `preview` — 테스트 레벨 `Dev/MC/L_BodyTest`에 조립(`spawn`)하고 SceneCapture로 PNG 저장(`shot`, Simulate 중에는 `shot_game`)

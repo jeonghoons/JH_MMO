@@ -8,7 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P1 송신 묶기 차례, A1.3 AOI 재설계·병목 탐색 완료)**
-`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — 다음 MC2.1** (트랙 A는 `Jeonghoon`에서 P1)
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — 다음 MC2.1b** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** P1 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -168,7 +168,7 @@
 - [x] MC1.3 몸 부위 분할 도구(`Content/Python/jm_modular/body_parts.py`, 프로토타입 검증 후 보완) + `SK_Body_<M|F>_<Part>` 12개(LOD 3, hair 없음, 임시 바디라 git 제외 — 도구로 생성) (2026-11-04, `TESTING.md`)
 
 **MC2 장비 에셋**
-- [ ] MC2.1 맞춤·스키닝 도구 이식(프로토타입 부록 C·D)
+- [x] MC2.1 맞춤·스키닝 도구(`jm_modular/garment_fit.py` + `preview.py`, 프로토타입 검증 후 보완) (2026-11-04, `TESTING.md`)
 - [ ] MC2.1b 최종 베이스 바디 결정(**MC2.2 전 필수**): MetaHuman 남자 1명 측정(LOD별 삼각형, 매니퀸 모션, SceneCapture) → 확정 시 외부 도구 범위 DECISIONS 추가, 몸 분할·맞춤 도구 재실행. 미달 시 VARCO
 - [ ] MC2.2 천 세트 7개(VARCO, 포인트 사전 승인, 첫 아이템에서 Remesh 품질 확인)
 - [ ] MC2.3 판금 세트 7개
@@ -198,6 +198,7 @@
 - [x] U1: `WBP_SystemMessage` 생성(부모 `USystemMessageWidget`, `Dim`→`PanelSize`→`Panel`→`TxtMessage`/`BtnOk`), `WBP_Login`의 `TxtResult` 삭제, `BP_JMGameInstance.SystemMessageWidgetClass` 지정 (2026-10-30, 도구로 처리)
 - [x] MC1.1: 템플릿 매니퀸 60개를 `/Game/Characters/Mannequins` → `/Game/Character/Mannequin` Move, 참조 확인·저장 (2026-11-04, 도구로 처리)
 - [x] MC1.3: `jm_modular.body_parts.build("M"/"F")` → `Character/Mannequin/Body/SK_Body_*` 12개, `verify()` 통과, 테스트 레벨 `Dev/MC/L_BodyTest`(git 제외, 디버그 머티리얼과 함께 보관)에서 SceneCapture 확인, 중간 결과물 삭제 (2026-11-04, 도구로 처리)
+- [x] MC2.1: 프로토타입 FBX 5개(`Saved/VDL`) → `Dev/MC/Garments` 임포트, 프로토타입·보완판 결과 `Dev/MC/ProtoFit`·`Dev/MC/Fit`(git 제외), 의상 머티리얼 양면 (2026-11-04, 도구로 처리)
 - [ ] 로딩 화면 이미지: 사용자가 이미지를 구해 오면(2026-11-06 무렵) `WBP_SystemMessage` 대기(Waiting) 배경에 적용
 - [x] A2.2f: `WBP_SkillSlot`·`WBP_CombatHud` 생성, `BP_GameMode` 부모 → `AIngameGameModeBase` + `HUDWidgetClass = WBP_CombatHud` (2026-10-28, 도구로 처리)
 - [x] A2.2f: 스킬1 아이콘 2개(배경 투명 처리) → `Character/<영웅>/Icons` 가져오기, SkillTable `Icon` 경로 + `DT_SkillTable` Reimport, `WBP_CombatHud`에서 `SlotAttack` 제거 (2026-10-28, 도구로 처리)
