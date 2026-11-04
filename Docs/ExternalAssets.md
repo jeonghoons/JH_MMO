@@ -23,3 +23,9 @@
 |---|---|---|---|
 | `Content/Character/Greystone/Icons/T_Greystone_Icon_Skill1` | `UEClient/JM/SourceArt/Icons/Original/SwordSkill.png` | 사용자 제공 임시 아이콘(출처 미기재) | 2026-10-28. 그려진 체크무늬 배경을 투명 처리·256px 축소한 `SourceArt/Icons/T_Greystone_Icon_Skill1.png`를 가져옴. 정식 아이콘으로 교체 예정 |
 | `Content/Character/Sparrow/Icons/T_Sparrow_Icon_Skill1` | `UEClient/JM/SourceArt/Icons/Original/ArrowSkill.png` | 위와 같음 | 위와 같음 |
+
+## 엔진 템플릿에서 가져온 에셋 (git 포함)
+
+| 에셋 | 원본 | 출처 | 비고 |
+|---|---|---|---|
+| `Content/Character/Mannequin/` (Meshes, Materials, Textures, Rigs, Anims/Unarmed, Anims/Death — 60개, 약 100MB) | `UE_5.6/Templates/TemplateResources/High/Characters/Content/Mannequins` | Epic UE 5.6.1 템플릿 매니퀸(Manny/Quinn, `SK_Mannequin`), 사용 가능 여부는 사용자 확인(DECISIONS 2026-11-04) | 2026-11-04 MC1.1. 원본과 바이트 동일 확인 후 에디터에서 Move. `Anims/Pistol`·`Anims/Rifle`(68개)은 무기 타입과 무관해 가져오지 않음(git 제외 경로 `Content/Characters/Mannequins/`에 남음). 몇몇 공격 모션에 템플릿 원본부터 있던 없는 경로 참조(`EditableAnimations/LS_*`, `SKM_Manny`)가 있으나 재생에는 영향 없음 |
