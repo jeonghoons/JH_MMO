@@ -41,6 +41,20 @@
     "material_overrides": {
       "MI_CoreC_Base_M_Body": "/Game/Character/Mannequin/Materials/Body/MI_Skin_M_Body",
       "MI_CoreC_Base_M_Face": "/Game/Character/Mannequin/Materials/Body/MI_Skin_M_Face"
+    },
+    "templates": {
+      "top": {
+        "mesh": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_M_Techwear01_Upper",
+        "physics_asset": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/PA_CoreC_M_Techwear01_Upper"
+      },
+      "bottom": {
+        "mesh": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_M_Techwear01_Lower",
+        "physics_asset": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/PA_CoreC_M_Techwear01_Lower"
+      },
+      "boots": {
+        "mesh": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_M_Techwear01_Shoes",
+        "physics_asset": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/PA_CoreC_M_Techwear01_Shoes"
+      }
     }
   },
   "F": {
@@ -84,6 +98,20 @@
     "material_overrides": {
       "MI_CoreC_Base_F_Body": "/Game/Character/Mannequin/Materials/Body/MI_Skin_F_Body",
       "MI_CoreC_Base_F_Face": "/Game/Character/Mannequin/Materials/Body/MI_Skin_F_Face"
+    },
+    "templates": {
+      "top": {
+        "mesh": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_F_Techwear01_Upper",
+        "physics_asset": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/PA_CoreC_F_Techwear01_Upper"
+      },
+      "bottom": {
+        "mesh": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_F_Techwear01_Lower",
+        "physics_asset": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/PA_CoreC_F_Techwear01_Lower"
+      },
+      "boots": {
+        "mesh": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/SKM_CoreC_F_Techwear01_Shoes",
+        "physics_asset": "/Game/CoreC/03Outfit/000_TechwearRunnerCourier01/SKM/PA_CoreC_F_Techwear01_Shoes"
+      }
     }
   },
   "Manny": {

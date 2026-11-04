@@ -56,7 +56,7 @@
 1. 컨셉 이미지: VARCO `GenerateImage`. 원본은 `SourceArt/Concept/`에 보관.
 2. 3D: `Generate3D`. 폴리 감소는 맞춤 도구가 UE `apply_simplify_to_triangle_count`로 슬롯 예산까지 줄인다(MC2.1 검증, 노멀 맵으로 겉모습 유지). VARCO `Remesh`는 첫 아이템에서 품질만 비교.
 3. 임포트: FBX를 짧은 경로로 복사해 가져오고, 크기 정규화·정면 방향을 아이템마다 확인.
-4. 맞춤·스키닝: `Content/Python/jm_modular/garment_fit.py`(MC2.1) — 슬롯별 허용 본, 관통 보정, 양면 머티리얼. 큰 어깨 보호대는 몸통과 한 메시로 만들면 팔을 들 때 늘어나므로 작게 디자인한다.
+4. 맞춤·스키닝: `Content/Python/jm_modular/garment_fit.py`(MC2.1) — 슬롯별 허용 본, 관통 보정, 양면 머티리얼. 상의·하의·신발은 키트 기본 의상을 체형별 틀로 맞춤 상자·가중치·PA를 가져온다(MC2.1c). 생성 이미지는 틀과 비슷한 실루엣(몸에 붙는 상의, 발목까지 오는 하의)으로 만들면 남녀 맞춤이 좋아진다. 큰 어깨 보호대는 몸통과 한 메시로 만들면 팔을 들 때 늘어나므로 작게 디자인한다.
 5. 시각 검증: SceneCapture 시트(정면/측면/후면 × Idle·Walk·Attack)를 사용자가 승인하고 `TESTING.md`에 기록.
 
 **프롬프트 공통 규칙** (프로토타입 부록 G에서 효과가 확인된 표현 + 스타일):

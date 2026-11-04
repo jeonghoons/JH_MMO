@@ -9,6 +9,8 @@
      어깨 보호대가 팔뚝 본을 받아 움직일 때 찢어졌다
   6. 머티리얼 슬롯은 생성 옵션으로 전달(MC1.3 섹션 버그), 의상 머티리얼은 양면(안쪽 면이 검은 구멍으로 보임)
   7. 참조 중 에셋은 덮어쓰지 않음, verify()로 섹션·허용 본·관통·뜸 측정
+  8. (MC2.2) 체형별 **의상 틀**(body_profiles의 templates — 키트 기본 의상): 맞춤 상자를 틀 기준으로(fit.basis="template"),
+     틀 표면 가까운 정점은 틀의 스킨 가중치를, 먼 정점은 몸 가중치를 쓴다. 틀의 물리 에셋(PA)을 연결한다.
 """
 import json
 import math
@@ -80,6 +82,40 @@ def region_box(body, parts, z_clip=None):
     return lo, hi
 
 
+def template(body, slot):
+    """체형 body의 슬롯 틀 정보(dict: mesh, physics_asset) 또는 None."""
+    return body_parts.load_profile(body).get("templates", {}).get(slot)
+
+
+def template_box(body, slot):
+    bb = unreal.load_asset(template(body, slot)["mesh"]).get_bounds()
+    o, e = bb.origin, bb.box_extent
+    return [o.x - e.x, o.y - e.y, o.z - e.z], [o.x + e.x, o.y + e.y, o.z + e.z]
+
+
+def _fit_box(body, fit, slot):
+    if fit.get("basis") == "template":
+        return template_box(body, slot)
+    return region_box(body, fit["parts"], fit.get("z_clip"))
+
+
+def to_template_fit(key, body="M", save=True):
+    """몸 부위 상자 기준 fit을 같은 결과가 나오는 '틀 상자 기준' fit으로 바꾼다(기준 체형 body에서 계산)."""
+    prof = load_profiles()[key]
+    scale, center = fit_transform(prof["source"], body, prof["fit"], prof["slot"])
+    lo, hi = template_box(body, prof["slot"])
+    size = [h - l for l, h in zip(lo, hi)]
+    ctr = [(h + l) / 2 for l, h in zip(lo, hi)]
+    raw = _raw_size(prof["source"])
+    fit = {"basis": "template", "calibrated_on": body,
+           "ratio": [raw[i] * scale[i] / size[i] for i in range(3)],
+           "rel_off": [(center[i] - ctr[i]) / size[i] for i in range(3)]}
+    if save:
+        prof["fit"] = fit
+        save_profile(key, prof)
+    return fit
+
+
 def _raw_size(static_path):
     bb = unreal.load_asset(static_path).get_bounds()
     return [bb.box_extent.x * 2, bb.box_extent.y * 2, bb.box_extent.z * 2]
@@ -96,8 +132,8 @@ def calibrate(source, body, parts, scale, center, z_clip=None):
             "rel_off": [(center[i] - ctr[i]) / size[i] for i in range(3)]}
 
 
-def fit_transform(source, body, fit):
-    lo, hi = region_box(body, fit["parts"], fit.get("z_clip"))
+def fit_transform(source, body, fit, slot=None):
+    lo, hi = _fit_box(body, fit, slot)
     size = [h - l for l, h in zip(lo, hi)]
     ctr = [(h + l) / 2 for l, h in zip(lo, hi)]
     raw = _raw_size(source)
@@ -268,7 +304,7 @@ def build(key, body, out_path=None, allow_refs=(), prof=None):
     if prof.get("pair"):
         dm = _place_pair(src_dm, bones, prof["pair"])
     else:
-        scale, center = fit_transform(source, body, prof["fit"])
+        scale, center = fit_transform(source, body, prof["fit"], slot)
         dm = _place_fit(src_dm(), scale, center, prof.get("yaw", 0.0))
         report["scale"], report["center"] = [round(s, 3) for s in scale], [round(c, 1) for c in center]
     report["tris"] = _tri_count(dm)
@@ -285,7 +321,15 @@ def build(key, body, out_path=None, allow_refs=(), prof=None):
     if method == "inpaint":
         wopt.num_smoothing_iterations = prof["weights"].get("smooth_iters", 0)
         wopt.smoothing_strength = prof["weights"].get("smooth_strength", 0.0)
+    tpl = template(body, slot) if prof.get("use_template", True) else None
+    tdm = ED.append_mesh(unreal.DynamicMesh(), dm, unreal.Transform()) if tpl else None   # 가중치 없는 복사본(정점 ID 동일)
     dm = BW.transfer_bone_weights_from_mesh(body_dm, dm, wopt)
+    if tpl:
+        tsk = unreal.load_asset(tpl["mesh"])
+        tmesh = body_parts._copy_lod(tsk, 0)
+        tdm = BW.transfer_bone_weights_from_mesh(tmesh, tdm, wopt)
+        tmesh, tbvh = SP.build_bvh_for_mesh(tmesh)
+        dm, report["template_weight_verts"] = _blend_template(dm, tdm, tmesh, tbvh, prof.get("template_max_cm", 6.0))
     allowed = tuple(prof.get("allowed_bones", rule["bones"]))
     dm, report["restricted_verts"] = _restrict_bones(dm, infos, allowed)
 
@@ -302,9 +346,28 @@ def build(key, body, out_path=None, allow_refs=(), prof=None):
     sk, outcome = NA.create_new_skeletal_mesh_asset_from_mesh(dm, body_parts._skeleton(_bp, body_sm), out_path, copt)
     if outcome != unreal.GeometryScriptOutcomePins.SUCCESS or sk is None:
         raise RuntimeError(f"에셋 생성 실패: {out_path}")
-    sk.set_editor_property("physics_asset", None)
+    pa = tpl.get("physics_asset") if tpl else None
+    sk.set_editor_property("physics_asset", unreal.load_asset(pa) if pa else None)
     EAL.save_loaded_asset(sk)
     return report
+
+
+def _blend_template(dm, tdm, tmesh, tbvh, max_cm):
+    """틀 표면에서 max_cm 안의 정점은 틀에서 옮긴 가중치(tdm)로 바꾼다. 반환: (dm, 바꾼 정점 수)"""
+    opt = unreal.GeometryScriptSpatialQueryOptions()
+    dm, vids, _ = Q.get_all_vertex_i_ds(dm)
+    n = 0
+    for v in L.convert_index_list_to_array(vids):
+        p, _ = Q.get_vertex_position(dm, v)
+        _m, hit, _o = SP.find_nearest_point_on_mesh(tmesh, tbvh, p, opt)
+        q = hit.position
+        if math.sqrt((q.x - p.x) ** 2 + (q.y - p.y) ** 2 + (q.z - p.z) ** 2) > max_cm:
+            continue
+        tdm, ws, ok = BW.get_vertex_bone_weights(tdm, v)
+        if ok:
+            dm, _ok = BW.set_vertex_bone_weights(dm, v, ws)
+            n += 1
+    return dm, n
 
 
 # ---------------------------------------------------------------- 검사

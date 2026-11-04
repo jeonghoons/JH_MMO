@@ -170,6 +170,7 @@
 **MC2 장비 에셋**
 - [x] MC2.1 맞춤·스키닝 도구(`jm_modular/garment_fit.py` + `preview.py`, 프로토타입 검증 후 보완) (2026-11-04, `TESTING.md`)
 - [x] MC2.1b 최종 베이스 바디: Fab CoreCharacters 키트 남/여(검증 후 채택), 아트 스타일 반실사로 수정, 몸 LOD 3단계·`MI_Skin_*` (2026-11-04, `TESTING.md`)
+- [x] MC2.1c 의상 틀 기준 맞춤: 키트 기본 의상을 체형별 틀로(맞춤 상자·스킨 가중치·PA), `garment_fit` 보완 (2026-11-04, `TESTING.md`)
 - [ ] MC2.2 천 세트 7개(VARCO, 포인트 사전 승인, 첫 아이템에서 Remesh 품질 확인)
 - [ ] MC2.3 판금 세트 7개
 - [ ] MC2.4 아이콘 SceneCapture 촬영 → `T_Icon_<Item>`
