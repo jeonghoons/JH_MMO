@@ -107,3 +107,7 @@ Server/**/loadtest_*.csv
 # Python 캐시 (Content/Python 에디터 도구)
 __pycache__/
 *.pyc
+
+# Phase MC: 도구로 다시 만드는 임시 바디(MC2.1b에서 최종 바디로 교체), 개발용 테스트 레벨
+UEClient/JM/Content/Character/Mannequin/Body/
+UEClient/JM/Content/Dev/

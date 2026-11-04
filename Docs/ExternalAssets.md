@@ -29,4 +29,4 @@
 | 에셋 | 원본 | 출처 | 비고 |
 |---|---|---|---|
 | `Content/Character/Mannequin/` (Meshes, Materials, Textures, Rigs, Anims/Unarmed, Anims/Death — 60개, 약 100MB) | `UE_5.6/Templates/TemplateResources/High/Characters/Content/Mannequins` | Epic UE 5.6.1 템플릿 매니퀸(Manny/Quinn, `SK_Mannequin`), 사용 가능 여부는 사용자 확인(DECISIONS 2026-11-04) | 2026-11-04 MC1.1. 원본과 바이트 동일 확인 후 에디터에서 Move. `Anims/Pistol`·`Anims/Rifle`(68개)은 무기 타입과 무관해 가져오지 않음(git 제외 경로 `Content/Characters/Mannequins/`에 남음). 몇몇 공격 모션에 템플릿 원본부터 있던 없는 경로 참조(`EditableAnimations/LS_*`, `SKM_Manny`)가 있으나 재생에는 영향 없음 |
-| `Content/Character/Mannequin/Body/SK_Body_<M\|F>_<Part>` (12개) | 위 `SKM_Manny_Simple`/`SKM_Quinn_Simple` | 위와 같음 | 2026-11-04 MC1.3. `Content/Python/jm_modular/body_parts.py`로 생성(다시 만들 수 있음) |
+| `Content/Character/Mannequin/Body/SK_Body_<M\|F>_<Part>` (12개) | 위 `SKM_Manny_Simple`/`SKM_Quinn_Simple` | 위와 같음 | 2026-11-04 MC1.3. `Content/Python/jm_modular/body_parts.py`로 생성. **git 제외** — clone 후 에디터에서 `bp.build("M")`, `bp.build("F")`, `bp.verify(...)`로 만든다 |

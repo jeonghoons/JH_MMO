@@ -165,7 +165,7 @@
 **MC1 베이스**
 - [x] MC1.1 매니퀸(Manny/Quinn, 템플릿 모션)을 `Content/Character/Mannequin/`으로 이식 (2026-11-04, 60개 — Pistol·Rifle 제외, `ExternalAssets.md`)
 - [x] MC1.2 베이스 바디: 임시 = 매니퀸, 최종은 MC2.1b에서 (2026-11-04)
-- [x] MC1.3 몸 부위 분할 도구(`Content/Python/jm_modular/body_parts.py`, 프로토타입 검증 후 보완) + `SK_Body_<M|F>_<Part>` 12개(LOD 3, hair 없음) (2026-11-04, `TESTING.md`)
+- [x] MC1.3 몸 부위 분할 도구(`Content/Python/jm_modular/body_parts.py`, 프로토타입 검증 후 보완) + `SK_Body_<M|F>_<Part>` 12개(LOD 3, hair 없음, 임시 바디라 git 제외 — 도구로 생성) (2026-11-04, `TESTING.md`)
 
 **MC2 장비 에셋**
 - [ ] MC2.1 맞춤·스키닝 도구 이식(프로토타입 부록 C·D)
@@ -197,7 +197,7 @@
 - [ ] Paragon 에셋 최종 Move: 캐릭터 작업 종료 시 (아래 "Paragon 에셋 최종 Move" 참고)
 - [x] U1: `WBP_SystemMessage` 생성(부모 `USystemMessageWidget`, `Dim`→`PanelSize`→`Panel`→`TxtMessage`/`BtnOk`), `WBP_Login`의 `TxtResult` 삭제, `BP_JMGameInstance.SystemMessageWidgetClass` 지정 (2026-10-30, 도구로 처리)
 - [x] MC1.1: 템플릿 매니퀸 60개를 `/Game/Characters/Mannequins` → `/Game/Character/Mannequin` Move, 참조 확인·저장 (2026-11-04, 도구로 처리)
-- [x] MC1.3: `jm_modular.body_parts.build("M"/"F")` → `Character/Mannequin/Body/SK_Body_*` 12개, `verify()` 통과, 테스트 레벨 `Dev/MC/L_BodyTest`에서 SceneCapture 확인 (2026-11-04, 도구로 처리)
+- [x] MC1.3: `jm_modular.body_parts.build("M"/"F")` → `Character/Mannequin/Body/SK_Body_*` 12개, `verify()` 통과, 테스트 레벨 `Dev/MC/L_BodyTest`(git 제외, 디버그 머티리얼과 함께 보관)에서 SceneCapture 확인, 중간 결과물 삭제 (2026-11-04, 도구로 처리)
 - [ ] 로딩 화면 이미지: 사용자가 이미지를 구해 오면(2026-11-06 무렵) `WBP_SystemMessage` 대기(Waiting) 배경에 적용
 - [x] A2.2f: `WBP_SkillSlot`·`WBP_CombatHud` 생성, `BP_GameMode` 부모 → `AIngameGameModeBase` + `HUDWidgetClass = WBP_CombatHud` (2026-10-28, 도구로 처리)
 - [x] A2.2f: 스킬1 아이콘 2개(배경 투명 처리) → `Character/<영웅>/Icons` 가져오기, SkillTable `Icon` 경로 + `DT_SkillTable` Reimport, `WBP_CombatHud`에서 `SlotAttack` 제거 (2026-10-28, 도구로 처리)
