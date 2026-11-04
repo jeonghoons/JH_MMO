@@ -38,6 +38,11 @@
 
 ## 설계 문서
 
-- [Docs/DESIGN_CHARACTER_EQUIPMENT.md](../../Docs/DESIGN_CHARACTER_EQUIPMENT.md) — Paragon 영웅 고정(Greystone, Sparrow), 무기 아이템은 머티리얼 교체 + 스탯. `EquipAssetData`/`Modular*Component`는 사용 중단 예정.
-- [Docs/DESIGN_ANIMATION.md](../../Docs/DESIGN_ANIMATION.md) — 영웅별 AnimBP 구조(AnimLayer 방식은 폐기됨).
-- [Docs/DESIGN_COMBAT_SKILL.md](../../Docs/DESIGN_COMBAT_SKILL.md) — 쿼터뷰 조준 입력(1번 키 논타겟 스킬 조준, 좌클릭 시전) 및 스킬 캐스팅 패킷 설계.
+- [Docs/DESIGN_CHARACTER_EQUIPMENT.md](../../Docs/DESIGN_CHARACTER_EQUIPMENT.md) — 매니퀸 공용 스켈레톤 모듈형 플레이어(체형 MALE/FEMALE), 슬롯 6개·몸 부위 숨김(Leader Pose), 서버 권위 장착 흐름. 예전 `Modular*Component`는 되살리지 않고 새로 설계.
+- [Docs/DESIGN_ANIMATION.md](../../Docs/DESIGN_ANIMATION.md) — 공용 `ABP_Mannequin` + 무기 타입별 Animation Layer, 무기 등에 메기(클라 연출).
+- [Docs/DESIGN_COMBAT_SKILL.md](../../Docs/DESIGN_COMBAT_SKILL.md) — 스킬은 무기 타입 종속, 크로스헤어 조준 입력과 스킬 캐스팅 패킷 설계.
+- [Docs/DESIGN_ART_CONCEPT.md](../../Docs/DESIGN_ART_CONCEPT.md) — 아트·장비 제작 기준.
+
+## 에디터 Python 도구 (`Content/Python/`)
+
+에셋 제작 도구는 `Content/Python/jm_modular/`에 둡니다(에디터 Python 경로에 자동 포함, 게임 빌드 제외). 예: `import importlib, jm_modular.body_parts as bp; importlib.reload(bp); bp.build("M"); bp.verify("M")`. 에디터를 켠 뒤 폴더를 처음 만들었다면 재시작 전까지 `sys.path`에 직접 추가해야 합니다.

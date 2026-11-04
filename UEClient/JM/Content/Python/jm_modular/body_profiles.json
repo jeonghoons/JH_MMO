@@ -1,0 +1,27 @@
+{
+  "_comment": "몸 부위 분할 프로파일. 길이 단위 cm. 값은 베이스 바디를 바꾸면(MC2.1b) 다시 맞춘다.",
+  "M": {
+    "source_mesh": "/Game/Character/Mannequin/Meshes/SKM_Manny_Simple",
+    "out_dir": "/Game/Character/Mannequin/Body",
+    "asset_prefix": "SK_Body_M",
+    "neck_bones": ["neck_01", "neck_02"],
+    "neck_min_weight": 0.1,
+    "neck_radius_cm": 10.0,
+    "neck_below_cm": 6.0,
+    "ankle_above_foot_cm": 24.0,
+    "wrist_radius_cm": 11.0,
+    "hair_material_slots": []
+  },
+  "F": {
+    "source_mesh": "/Game/Character/Mannequin/Meshes/SKM_Quinn_Simple",
+    "out_dir": "/Game/Character/Mannequin/Body",
+    "asset_prefix": "SK_Body_F",
+    "neck_bones": ["neck_01", "neck_02"],
+    "neck_min_weight": 0.1,
+    "neck_radius_cm": 10.0,
+    "neck_below_cm": 6.0,
+    "ankle_above_foot_cm": 24.0,
+    "wrist_radius_cm": 11.0,
+    "hair_material_slots": []
+  }
+}
