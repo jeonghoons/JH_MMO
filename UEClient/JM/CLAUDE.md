@@ -4,9 +4,9 @@
 
 ## 빌드 & 실행
 
-언리얼 에디터 5.6에서 `UEClient/JM/JM.uproject`를 열거나(또는 UBT로 생성/빌드) 사용합니다. `JM` 모듈은 서버와 통신하기 위해 `ProtobufCore`(`UEClient/JM/Source/ProtobufCore/`에 벤더링된 `libprotobuf.lib`를 감싸는 얇은 모듈)에 의존하며, 그 외 표준 `Sockets`/`Networking`/`UMG`/`EnhancedInput`도 사용합니다.
+언리얼 에디터 5.8에서 `UEClient/JM/JM.uproject`를 열거나(또는 UBT로 생성/빌드) 사용합니다. `JM` 모듈은 서버와 통신하기 위해 `ProtobufCore`(`UEClient/JM/Source/ProtobufCore/`에 벤더링된 `libprotobuf.lib`를 감싸는 얇은 모듈)에 의존하며, 그 외 표준 `Sockets`/`Networking`/`UMG`/`EnhancedInput`도 사용합니다.
 
-에디터 없이 컴파일만 확인하려면 UBT를 커맨드라인으로 사용합니다 (`<UE_INSTALL_DIR>`은 로컬 언리얼 엔진 5.6 설치 경로로 바꿔서 사용하세요):
+에디터 없이 컴파일만 확인하려면 UBT를 커맨드라인으로 사용합니다 (`<UE_INSTALL_DIR>`은 로컬 언리얼 엔진 5.8 설치 경로로 바꿔서 사용하세요):
 
 ```
 "<UE_INSTALL_DIR>\Engine\Build\BatchFiles\Build.bat" JMEditor Win64 Development -Project="<repo>\UEClient\JM\JM.uproject" -WaitMutex
@@ -42,6 +42,13 @@
 - [Docs/DESIGN_ANIMATION.md](../../Docs/DESIGN_ANIMATION.md) — 공용 `ABP_Mannequin` + 무기 타입별 Animation Layer, 무기 등에 메기(클라 연출).
 - [Docs/DESIGN_COMBAT_SKILL.md](../../Docs/DESIGN_COMBAT_SKILL.md) — 스킬은 무기 타입 종속, 크로스헤어 조준 입력과 스킬 캐스팅 패킷 설계.
 - [Docs/DESIGN_ART_CONCEPT.md](../../Docs/DESIGN_ART_CONCEPT.md) — 아트·장비 제작 기준.
+
+## 에디터 MCP (Epic 공식 `ModelContextProtocol`)
+
+에디터가 켜지면 `http://127.0.0.1:8000/mcp`가 자동으로 시작되고(`Config/DefaultEditorPerProjectUserSettings.ini`), 저장소 루트 `.mcp.json`의 `unreal` 서버로 연결됩니다(Claude Code는 에디터가 켜진 뒤 시작하거나 `/mcp`로 재연결). 도구는 `list_toolsets` → `describe_toolset` → `call_tool` 순서로 찾아 부릅니다.
+- 공식 툴셋: Asset·Actor·Scene(`load_level` — 현재 레벨이 저장돼 있어야 함)·Blueprint(`write_graph_dsl`로 그래프 편집)·DataTable(행 읽기·쓰기)·Material·SkeletalMesh·UMG(위젯 트리)·EditorApp(`StartPIE`/`StopPIE` 실제 PIE, `CaptureViewport`·`CaptureEditorImage` 스크린샷, `CaptureViewport`는 `captureTransform`·`annotations`를 값으로 줘야 함)·Logs·AutomationTest.
+- 프로젝트 툴셋 `jm_mcp`(`Content/Python/jm_mcp/toolset.py`, `Content/Python/init_unreal.py`에서 등록): `KitTools`(jm_kit 함수 — 뼈대 검사, 테스트 레벨 조립·촬영, 의상 맞춤, 몸 마스크), `DataTableReimportTools.reimport_csv`(CSV 재임포트).
+- 서버에 인증이 없으므로 **임의 Python 실행 도구는 두지 않습니다**. 새 자동화가 필요하면 jm_kit 등에 함수를 만들고 `jm_mcp` 툴셋에 감싸 추가합니다. 툴셋 인자는 `X | None = None` 형식(`Optional[X]`는 등록 실패). 툴셋을 고친 뒤에는 에디터를 다시 시작해야 반영됩니다(`KitTools.reload_kit`는 jm_kit만 다시 불러옴).
 
 ## 에디터 Python 도구 (`Content/Python/`)
 

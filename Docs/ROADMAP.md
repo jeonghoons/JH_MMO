@@ -20,7 +20,7 @@
 **Claude가 못 보는 것:** 에디터의 애니메이션·이펙트 모양. 스크린샷이나 블루프린트 노드 복사 텍스트(Ctrl+C)를 붙여넣어 확인합니다.
 **주의:**
 - UE 빌드는 에디터가 켜져 있으면 Live Coding 때문에 막히니, C++를 고칠 일이 생기면 에디터를 닫아야 합니다.
-- 에디터 작업은 uemcp(`.mcp.json`, 에디터를 켠 채로)로 처리합니다. 네트워크 PIE 확인은 사용자가 Play를 누릅니다(uemcp의 `ue_play`는 Simulate 모드).
+- 에디터 작업은 Epic 공식 MCP(`.mcp.json`, 에디터를 켠 채로, 사용법은 `UEClient/JM/CLAUDE.md`)로 처리합니다. 실제 PIE도 `StartPIE`/`StopPIE`로 시작·종료할 수 있고, 로그인 입력은 사용자가 합니다(2026-11-05 uemcp 폐기).
 - 서버는 `Server/Server` 폴더에서 `..\x64\Debug\GameServer.exe`로 실행합니다(DataTable·맵 상대 경로, SQL Server Express 필요). PIE 전에 Debug 빌드가 최신인지 확인하고, 서버가 실행 중이면 VS 빌드가 exe를 덮어쓰지 못합니다.
 - 궁수 계정은 `LoadTest --hero archer`의 `arc_*` 계정이나 UE 로그인 화면에서 궁수 타입으로 가입하면 됩니다.
 
@@ -58,7 +58,7 @@
 - [x] C-4 채팅 복구(A2.6 완료 처리) (2026-10-30 완료, `DECISIONS.md`·`TESTING.md`): `CS_CHAT` → 서버 검증(`PacketHandler::SanitizeChat`: 제어 문자·앞뒤 공백 제거, 빈 채팅 무시, 100자 자르기) + 도배 방지(0.5초, Room 잡) → 같은 방 전체에 `SC_CHAT`(`sender_name` 추가, 로그인 때 `Player`에 이름 보관) → 클라이언트 `SendChat`·`Handle_SC_CHAT`·`ChatWidget`("이름: 내용", 기록 최대 100줄). 채팅 키는 J 유지
 - [x] C-5 소스 폴더 구조화 (2026-10-30 완료, 사용자 결정으로 범위 확대: **ServerCore 정적 라이브러리 분리**, `DECISIONS.md`): C-5a 의존 끊기(`Session` 가상 훅 + `GameSession`, `NetStats`, `SessionFactory`, `CoreUtils`/`MathUtils`) → C-5b `Server/ServerCore`(Network/Job/DB/Utils, `CorePch.h`) + GameServer 도메인 폴더(Session/Packet/DB/Data/Game(Object·Combat·Room·World·Lobby)/Utils), include는 루트 기준 경로 → C-5c 클라이언트 `JMGameInstance` → `Game/`. 동작 변경 없음, 단계마다 회귀
 - [x] C-6 DummyClient = LoadTest 시각화 (2026-10-30 완료, `DECISIONS.md`·`TESTING.md`): C-6a LoadTest를 `Server/BotEngine`(정적 라이브러리, WSAPoll 유지 — ServerCore 재사용 안 함) + 콘솔 main으로 분리(동작 변경 없음) → C-6b DummyClient 재작성(옛 CP949 소스·`Protocol/` 복사본 삭제, 같은 엔진 + Win32/OpenGL 탑다운 화면: 봇·몬스터(사망 회색)·스폰·통계, 휠 확대/드래그 이동/F 맞춤, LoadTest와 같은 인자, UTF-8) → C-6c 문서
-- [ ] C-7 에디터 MCP 도구를 바꿀지 결정 (2026-11-03 추가, **사용자가 검토 중**. 결정하면 `DECISIONS.md`에 기록): 지금 쓰는 uemcp 0.1.0은 GitHub 스타 0·기여자 1명·릴리스 1회로 검증이 거의 안 됐다(도입 때는 소스만 검토). 2026-11-03 조사 기준 활발히 관리되는 대안은 **ChiR24/Unreal_mcp(EngineWire)** 하나뿐이다: ★1,003·기여자 27·릴리스 30(v0.6.0)·MIT·UE 5.0~5.8, C++ 에디터 플러그인(Fab에서 엔진에 설치 가능)·127.0.0.1·토큰 인증, PIE 합성 입력·BP 그래프·UMG·애니메이션 지원. 위험은 에디터 안 C++ 실행, 빠른 변경(0.x, 호환 깨짐), 직접 검토할 수 없는 크기. 나머지 후보는 관리 중단(chongdashu ★2,111는 2025-04 이후 커밋 없음, kvick-games, runreal), 클라우드 API(flopperam 고급판), 1인 개발(GenOrca)이라 제외. 선택지: (a) uemcp 유지 후 UE 5.8에서 Epic 공식 MCP로 전환, (b) 별도 브랜치에서 EngineWire 0.6.0을 시험 — 네트워크 PIE 자동 실행, BP 그래프 수정, 위젯 배치 3가지로 판단 (2026-11-05 메모: UE 5.8 업그레이드는 Mutable 검토와 함께 나중에 — `DECISIONS.md`)
+- [x] C-7 에디터 MCP 도구를 바꿀지 결정 (2026-11-05 결정: Epic 공식 MCP, uemcp 폐기 — U5·U6, `DECISIONS.md`) (2026-11-03 추가, **사용자가 검토 중**. 결정하면 `DECISIONS.md`에 기록): 지금 쓰는 uemcp 0.1.0은 GitHub 스타 0·기여자 1명·릴리스 1회로 검증이 거의 안 됐다(도입 때는 소스만 검토). 2026-11-03 조사 기준 활발히 관리되는 대안은 **ChiR24/Unreal_mcp(EngineWire)** 하나뿐이다: ★1,003·기여자 27·릴리스 30(v0.6.0)·MIT·UE 5.0~5.8, C++ 에디터 플러그인(Fab에서 엔진에 설치 가능)·127.0.0.1·토큰 인증, PIE 합성 입력·BP 그래프·UMG·애니메이션 지원. 위험은 에디터 안 C++ 실행, 빠른 변경(0.x, 호환 깨짐), 직접 검토할 수 없는 크기. 나머지 후보는 관리 중단(chongdashu ★2,111는 2025-04 이후 커밋 없음, kvick-games, runreal), 클라우드 API(flopperam 고급판), 1인 개발(GenOrca)이라 제외. 선택지: (a) uemcp 유지 후 UE 5.8에서 Epic 공식 MCP로 전환, (b) 별도 브랜치에서 EngineWire 0.6.0을 시험 — 네트워크 PIE 자동 실행, BP 그래프 수정, 위젯 배치 3가지로 판단 (2026-11-05 메모: UE 5.8 업그레이드는 Mutable 검토와 함께 나중에 — `DECISIONS.md`)
 
 ### S. 서버 권위 이동 (2026-10-30 `TODO.md` 백로그에서 승격, 정리 다음·A1 앞)
 - [x] S1 서버 권위 이동 (2026-10-31 완료, `DECISIONS.md`·`TESTING.md`·[DESIGN_CONTROL_CAMERA.md](DESIGN_CONTROL_CAMERA.md)): S1a 서버 검증(`correction_seq` 순번, 토큰 버킷 속도 = `StatTable.MoveSpeed` × 허용 배율, NaN·전송 빈도·내비메시, 허용치는 `MovementTable`의 `Server*` 열) + 거부 시 본인에게 보정 + metrics `move(...)` + 봇(실제 시작 위치·속도 제한·순번·이동 chaos) → S1b 클라이언트(내 캐릭터 보정 적용, `MaxWalkSpeed` = 서버 스탯, `MaxSpeedCmSec` 삭제, 정지 중 전송 중단·전송 간격 하한, `SyncTransformToInfo` 내 캐릭터만, 원격 플레이어 외삽 300ms 상한) → PIE에서 발견·수정: 내비메시 경계 여유 2D, 맵 내보내기 기준(Pawn Block)·좌표 형식, 서버 오브젝트 항상 생성. 한계: 봇은 길 찾기 없음, z는 클라이언트 값
@@ -176,7 +176,7 @@
 **UE 5.8 업그레이드 (`upgrade/ue-5.8`, 워크트리 `JH_MMO_ue58`, 확정 업그레이드, MC2.3 전에 진행 — `DECISIONS.md` 2026-11-05)** — 트랙 A의 U1(시스템 메시지 창)과 다른 번호 체계
 - [x] U1~U4 엔진 전환: C++ 빌드, 설정 정리, `jm_kit`·uemcp 회귀, 네트워크 PIE 회귀 (2026-11-05, `TESTING.md`)
 - [x] U5 Epic 공식 MCP 전환·시험(= C-7): 플러그인·자동 시작 설정, `jm_mcp` 툴셋(`KitTools`·`DataTableReimportTools`, 임의 코드 실행 없음), `.mcp.json` HTTP. 통과 기준 = 연결·`jm_kit` 실행·스크린샷·실제 PIE 시작/종료(+ DT 재임포트·BP 그래프·위젯 배치 결과 기록), `TESTING.md` (2026-11-05 통과)
-- [ ] U6 uemcp 삭제: `.mcp.json` 항목, `bRemoteExecution`, 문서·CLAUDE.md(5.6 → 5.8, MCP 사용법)
+- [x] U6 uemcp 삭제: `.mcp.json` 항목, `bRemoteExecution`, 문서·CLAUDE.md(5.6 → 5.8, MCP 사용법) (2026-11-05)
 - [ ] U7 병합·새 출발: `main`·`Jeonghoon`·`content/dev` fast-forward + push, 원래 폴더 `JH_MMO`에서 빌드·PIE 확인, 워크트리 `JH_MMO_ue58` 제거
 - [ ] U8 Mutable 시험(남녀): 천 세트 7개로 Customizable Object, 지금 방식과 틈·관통, 드로우콜, 장비 교체 시간, 메모리를 측정 비교 → 채택 시 `DESIGN_CHARACTER_EQUIPMENT.md` 개정·`body_mask` 대체
 

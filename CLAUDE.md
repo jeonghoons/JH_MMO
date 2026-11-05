@@ -7,7 +7,7 @@
 JH_MMO는 자체 제작 MMORPG 게임 프로젝트이며, 서로 동기화 상태를 유지해야 하는 3개의 최상위 구성 요소로 이루어져 있습니다. (`Common/DataTable/`은 서버와 UE가 함께 읽는 데이터 테이블 위치입니다. 아래 "데이터 기반 규칙" 참고.)
 
 - `Server/` — IOCP 기반 네이티브 C++ 게임 서버 (Visual Studio, `Server.sln`, v143 툴셋, x64/x86, Debug/Release). 자세한 내용은 [Server/CLAUDE.md](Server/CLAUDE.md) 참고.
-- `UEClient/JM/` — 언리얼 엔진 5.6 클라이언트 프로젝트 (`JM.uproject`). 자세한 내용은 [UEClient/JM/CLAUDE.md](UEClient/JM/CLAUDE.md) 참고.
+- `UEClient/JM/` — 언리얼 엔진 5.8 클라이언트 프로젝트 (`JM.uproject`). 자세한 내용은 [UEClient/JM/CLAUDE.md](UEClient/JM/CLAUDE.md) 참고.
 - `Common/Protocol/` — 네트워크 프로토콜(Protobuf `.proto` 파일)의 단일 진실 공급원(source of truth)이며, 코드 생성 후 `Server`와 `UEClient` 양쪽에 복사됩니다. 자세한 내용은 [Common/Protocol/CLAUDE.md](Common/Protocol/CLAUDE.md) 참고.
 
 세 구성 요소는 공유 빌드 시스템이 없습니다 — 각각 독립적인 툴체인으로 빌드됩니다.
