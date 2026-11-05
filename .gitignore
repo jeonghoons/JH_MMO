@@ -58,6 +58,7 @@ Server/**/[Rr]elease/
 # ==========================================
 # 언리얼 자동 생성 프로젝트 파일 무시 (최상위나 Server의 .sln은 안전하게 보호됨)
 UEClient/**/*.sln
+UEClient/**/*.slnx
 UEClient/**/*.xcodeproj
 UEClient/**/*.xcworkspace
 UEClient/**/*.opensdf
