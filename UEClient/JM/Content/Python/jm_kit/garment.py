@@ -718,8 +718,60 @@ def import_source(fbx_path, item_key):
             if str(EAL.find_asset_data(a).asset_class_path.asset_name) == "ObjectRedirector"]
     if reds:
         unreal.AssetToolsHelpers.get_asset_tools().fixup_referencers([unreal.load_object(None, a) for a in reds])
+    assign_source_textures(item_key)
     assign_source_material(item_key)
     return it["source"]
+
+
+_TEX_PARAMS = {"DiffuseColorMap": "BaseColor", "NormalMap": "Normal"}   # FBX 가져오기 머티리얼의 텍스처 파라미터 → T_<Item>_<접미사>
+
+
+def _material_expressions(mat):
+    """머티리얼 출력 핀에 연결된 표현식 전부(입력을 따라 내려감). UE 5.6에는 get_material_expressions가 없어서 그래프를 걷는다."""
+    MEL = unreal.MaterialEditingLibrary
+    MP = unreal.MaterialProperty
+    props = [getattr(MP, n) for n in ("MP_BASE_COLOR", "MP_NORMAL", "MP_ROUGHNESS", "MP_METALLIC", "MP_SPECULAR",
+                                      "MP_AMBIENT_OCCLUSION", "MP_EMISSIVE_COLOR", "MP_OPACITY", "MP_OPACITY_MASK") if hasattr(MP, n)]
+    seen, stack = [], [MEL.get_material_property_input_node(mat, p) for p in props]
+    while stack:
+        e = stack.pop()
+        if e is None or e in seen:
+            continue
+        seen.append(e)
+        stack.extend(MEL.get_inputs_for_material_expression(mat, e))
+    return seen
+
+
+def assign_source_textures(item_key):
+    """M_<Item>의 텍스처 파라미터를 T_<Item>_BaseColor/Normal로 다시 지정하고 저장한다.
+    (리디렉터 정리 뒤 NormalMap이 지워진 옛 이름 "normal"을 가리킨 채 남는 경우가 있었다 — MC2.2 두건·검·활.
+    노멀 샘플러가 비면 머티리얼 컴파일이 실패해 회색 기본 머티리얼로 그려진다)"""
+    it = load_items()[item_key]
+    dest_dir = it["source"].rsplit("/", 1)[0]
+    mat = unreal.load_asset(f"{dest_dir}/M_{item_key}")
+    if mat is None:
+        raise RuntimeError(f"머티리얼 없음: {dest_dir}/M_{item_key}")
+    MEL = unreal.MaterialEditingLibrary
+    changed = []
+    for e in _material_expressions(mat):
+        if not isinstance(e, unreal.MaterialExpressionTextureSampleParameter):
+            continue
+        suffix = _TEX_PARAMS.get(str(e.get_editor_property("parameter_name")))
+        if not suffix:
+            continue
+        tex = unreal.load_asset(f"{dest_dir}/T_{item_key}_{suffix}")
+        if tex is None:
+            raise RuntimeError(f"텍스처 없음: {dest_dir}/T_{item_key}_{suffix}")
+        if e.get_editor_property("texture") != tex:
+            e.set_editor_property("texture", tex)
+            changed.append(suffix)
+    if changed:
+        MEL.recompile_material(mat)
+        EAL.save_loaded_asset(mat)
+    missing = [p for p in MEL.get_texture_parameter_names(mat) if MEL.get_material_default_texture_parameter_value(mat, p) is None]
+    if missing:
+        raise RuntimeError(f"텍스처 지정 실패: M_{item_key} {missing}")
+    return changed
 
 
 def assign_source_material(item_key):
