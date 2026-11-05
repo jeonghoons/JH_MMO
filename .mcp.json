@@ -1,6 +1,10 @@
 {
   "mcpServers": {
     "unreal": {
+      "type": "http",
+      "url": "http://127.0.0.1:8000/mcp"
+    },
+    "uemcp": {
       "command": "uvx",
       "args": ["--from", "uemcp==0.1.0", "--with", "mcp<2", "uemcp", "--project", "JM"]
     }

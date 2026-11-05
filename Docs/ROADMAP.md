@@ -175,7 +175,7 @@
 
 **UE 5.8 업그레이드 (`upgrade/ue-5.8`, 워크트리 `JH_MMO_ue58`, 확정 업그레이드, MC2.3 전에 진행 — `DECISIONS.md` 2026-11-05)** — 트랙 A의 U1(시스템 메시지 창)과 다른 번호 체계
 - [x] U1~U4 엔진 전환: C++ 빌드, 설정 정리, `jm_kit`·uemcp 회귀, 네트워크 PIE 회귀 (2026-11-05, `TESTING.md`)
-- [ ] U5 Epic 공식 MCP 전환·시험(= C-7): 플러그인·자동 시작 설정, `jm_mcp` 툴셋(`run_python`), `.mcp.json` HTTP. 통과 기준 = 연결·`jm_kit` 실행·스크린샷·실제 PIE 시작/종료(+ DT 재임포트·BP 그래프·위젯 배치 결과 기록), `TESTING.md`
+- [x] U5 Epic 공식 MCP 전환·시험(= C-7): 플러그인·자동 시작 설정, `jm_mcp` 툴셋(`KitTools`·`DataTableReimportTools`, 임의 코드 실행 없음), `.mcp.json` HTTP. 통과 기준 = 연결·`jm_kit` 실행·스크린샷·실제 PIE 시작/종료(+ DT 재임포트·BP 그래프·위젯 배치 결과 기록), `TESTING.md` (2026-11-05 통과)
 - [ ] U6 uemcp 삭제: `.mcp.json` 항목, `bRemoteExecution`, 문서·CLAUDE.md(5.6 → 5.8, MCP 사용법)
 - [ ] U7 병합·새 출발: `main`·`Jeonghoon`·`content/dev` fast-forward + push, 원래 폴더 `JH_MMO`에서 빌드·PIE 확인, 워크트리 `JH_MMO_ue58` 제거
 - [ ] U8 Mutable 시험(남녀): 천 세트 7개로 Customizable Object, 지금 방식과 틈·관통, 드로우콜, 장비 교체 시간, 메모리를 측정 비교 → 채택 시 `DESIGN_CHARACTER_EQUIPMENT.md` 개정·`body_mask` 대체
