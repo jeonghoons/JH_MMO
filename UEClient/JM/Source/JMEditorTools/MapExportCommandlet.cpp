@@ -249,7 +249,8 @@ bool UMapExportCommandlet::ExportLogic(UWorld* World, const FString& MapName, co
 
 			for (const auto& Pair : ParamsJson->Values)
 			{
-				MarkerJson->SetField(ToCamelCase(Pair.Key), Pair.Value);
+				// UE 5.8부터 Values의 키가 FString이 아니라 UE::FSharedString이라 TCHAR*로 꺼내서 변환한다(5.6에서도 동일하게 동작).
+				MarkerJson->SetField(ToCamelCase(FString(*Pair.Key)), Pair.Value);
 			}
 		}
 
