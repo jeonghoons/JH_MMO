@@ -1,5 +1,5 @@
 {
-  "_comment": "장비 아이템 제작 데이터(MC2.2). source = 가져온 원본 정적 메시(VARCO), out = 체형별 결과 스켈레탈 메시({body} = M/F). fit: ratio·rel_off는 키트 틀 상자 기준(EditImage로 틀 실루엣을 유지했으면 1/0), target_tris 0 = 단순화 안 함. varco = 재다운로드용 노드·작업 ID. mask = 이 아이템이 슬롯 기본 마스크 파라미터를 덮어쓰는 값(kit_profiles.json mask 참고).",
+  "_comment": "장비 아이템 제작 데이터(MC2.2). source = 가져온 원본 정적 메시(VARCO), out = 체형별 결과 스켈레탈 메시({body} = M/F). fit: ratio·rel_off는 키트 틀 상자 기준(EditImage로 틀 실루엣을 유지했으면 1/0), target_tris 0 = 단순화 안 함. varco = 재다운로드용 노드·작업 ID. mask = 이 아이템이 슬롯 기본 마스크 파라미터를 덮어쓰는 값(kit_profiles.json mask 참고). attach = 정적 부착 아이템(머리·무기): socket 본, fit \"head\"(머리+헤어 상자에 ratio·rel_off) 또는 \"length\"(가장 긴 축 = length_cm, grip_frac 지점을 소켓에, rot·offset), hide_parts = 통째로 숨길 부위.",
   "Cloth_Top": {
     "slot": "top",
     "source": "/Game/Equipment/Cloth/Top/Source/SM_Cloth_Top_Src",
@@ -24,5 +24,148 @@
       "polygon_count": 6000
     },
     "mask": {}
+  },
+  "Cloth_Bottom": {
+    "slot": "bottom",
+    "source": "/Game/Equipment/Cloth/Bottom/Source/SM_Cloth_Bottom_Src",
+    "out": "/Game/Equipment/Cloth/Bottom/SK_Cloth_Bottom_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": 0
+    },
+    "varco": {
+      "edit_image_node": "879198a1-d9be-4da4-a79b-b835a28848f8",
+      "generate3d_node": "29f623fd-2280-43cc-9f5d-51987463c054",
+      "polygon_count": 5000
+    },
+    "mask": {}
+  },
+  "Cloth_Boots": {
+    "slot": "boots",
+    "source": "/Game/Equipment/Cloth/Boots/Source/SM_Cloth_Boots_Src",
+    "out": "/Game/Equipment/Cloth/Boots/SK_Cloth_Boots_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.34
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.17
+      ],
+      "yaw": 0.0,
+      "target_tris": 0
+    },
+    "varco": {
+      "edit_image_node": "704390cb-dd6e-47f2-9fb1-5e0ca7e7644a",
+      "generate3d_node": "2640087c-b884-454f-b9b7-18865c597e37",
+      "polygon_count": 3000
+    },
+    "mask": {}
+  },
+  "Cloth_Gloves": {
+    "slot": "gloves",
+    "source": "/Game/Equipment/Cloth/Gloves/Source/SM_Cloth_Gloves_Src",
+    "out": "/Game/Equipment/Cloth/Gloves/SK_Cloth_Gloves_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": null
+    },
+    "varco": {
+      "edit_image_node": "74646725-bd20-4a40-9337-c94077ebb1cf",
+      "generate3d_node": "e7927822-5ff7-4702-bd4e-b30865c02fcf",
+      "polygon_count": 2000
+    },
+    "mask": {}
+  },
+  "Cloth_Hood": {
+    "slot": "head",
+    "source": "/Game/Equipment/Cloth/Hood/Source/SM_Cloth_Hood_Src",
+    "varco": {
+      "image_node": "ff92a578-96d9-4c2e-bfc0-9997dc8062de",
+      "generate3d_node": "64630d1e-5231-4bda-9a25-4ac57a810f3c",
+      "polygon_count": 4000
+    },
+    "attach": {
+      "socket": "head",
+      "fit": "head",
+      "ratio": [
+        1.12,
+        1.12,
+        1.08
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_parts": [
+        "hair"
+      ]
+    }
+  },
+  "Cloth_Sword": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/Cloth/Sword/Source/SM_Cloth_Sword_Src",
+    "varco": {
+      "image_node": "f199f005-472f-4163-9bf1-ac2a9ba89d0d",
+      "generate3d_node": "5eea6f37-efeb-4b16-ba57-2fa45142224e",
+      "polygon_count": 5000
+    },
+    "attach": {
+      "socket": "hand_r",
+      "fit": "length",
+      "length_cm": 95,
+      "grip_frac": 0.08,
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "align": "grip"
+    }
+  },
+  "Cloth_Bow": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/Cloth/Bow/Source/SM_Cloth_Bow_Src",
+    "varco": {
+      "image_node": "602d9ba9-dc43-4167-8851-57c9178aec39",
+      "generate3d_node": "93b0f42f-6c97-4bbc-a0da-d4e53ec7a9a1",
+      "polygon_count": 5000
+    },
+    "attach": {
+      "socket": "hand_l",
+      "fit": "length",
+      "length_cm": 125,
+      "grip_frac": 0.5,
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "align": "grip"
+    }
   }
 }

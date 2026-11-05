@@ -499,6 +499,178 @@ def build(src_static, body, slot, out_path, ratio=(1.0, 1.0, 1.0), rel_off=(0.0,
     return rep
 
 
+# ---------------------------------------------------------------- 틀 없는 슬롯 (장갑) — 몸 메시를 복제 바탕으로
+GLOVE_CUFF_CM = 6.0   # 장갑 맞춤 상자에 넣는 손목 위 팔 길이
+
+
+def _region_box(body, region, side, cuff_cm=0.0):
+    """키트 몸에서 영역(손 등) + 같은 쪽 팔의 끝 cuff_cm 구간 정점의 상자."""
+    from . import body_mask
+    chains = {f"arm_{s}": v for s, v in body_mask.ARM.items()}
+    dm, vdata = body_mask._vertex_data(profiles.body(body)["leader"], chains)
+    dm, ids, _ = Q.get_all_vertex_i_ds(dm)
+    pts = []
+    for v in L.convert_index_list_to_array(ids):
+        reg, dist = vdata[v]
+        p = Q.get_vertex_position(dm, v)[0]
+        if (p.x < 0) != (side == "r"):
+            continue
+        if reg == region or (cuff_cm and reg == "arm" and dist <= cuff_cm):
+            pts.append((p.x, p.y, p.z))
+    lo = [min(p[i] for p in pts) for i in range(3)]
+    hi = [max(p[i] for p in pts) for i in range(3)]
+    return lo, hi
+
+
+def _place_box(dm, lo, hi, ratio=(1.0, 1.0, 1.0), rel_off=(0.0, 0.0, 0.0)):
+    tsize = [h - l for l, h in zip(lo, hi)]
+    tctr = [(h + l) / 2 for l, h in zip(lo, hi)]
+    slo, shi = _bbox(dm)
+    raw = [h - l for l, h in zip(slo, shi)]
+    ctr = [(h + l) / 2 for l, h in zip(slo, shi)]
+    scale = [ratio[i] * tsize[i] / raw[i] for i in range(3)]
+    dm = T.translate_mesh(dm, unreal.Vector(-ctr[0], -ctr[1], -ctr[2]))
+    dm = T.scale_mesh(dm, unreal.Vector(*scale), unreal.Vector(0, 0, 0))
+    dm = T.translate_mesh(dm, unreal.Vector(*[tctr[i] + rel_off[i] * tsize[i] for i in range(3)]))
+    return dm
+
+
+def build_gloves(src_static, body, out_path, ratio=(1.0, 1.0, 1.0), rel_off=(0.0, 0.0, 0.0), target_tris=None, overwrite=False):
+    """오른손 장갑 메시 하나 → 오른손에 맞추고 좌우 반전해 왼손에도 → 몸 가중치 → 키트 몸 메시 복제에 형상 교체."""
+    _not_playing()
+    rule = SLOT_RULES["gloves"]
+    leader = profiles.body(body)["leader"]
+    if EAL.does_asset_exist(out_path) and not overwrite:
+        raise RuntimeError(f"이미 있음(overwrite=True로 덮어쓰기): {out_path}")
+    rep = {"body": body, "slot": "gloves", "out": out_path}
+    half = (target_tris if target_tris is not None else rule["tris"]) // 2
+    src = _simplify(_dm_static(src_static), half)
+    rep["src_tris"] = _tris(src)
+    right = _place_box(ED.append_mesh(unreal.DynamicMesh(), src, unreal.Transform()), *_region_box(body, "hand", "r", GLOVE_CUFF_CM), ratio, rel_off)
+    left = ED.append_mesh(unreal.DynamicMesh(), src, unreal.Transform())
+    left = T.scale_mesh(left, unreal.Vector(-1, 1, 1), unreal.Vector(0, 0, 0))
+    left = unreal.GeometryScript_Normals.flip_normals(left)   # 반전으로 뒤집힌 면 방향 되돌림
+    left = _place_box(left, *_region_box(body, "hand", "l", GLOVE_CUFF_CM), ratio, rel_off)
+    dm = ED.append_mesh(right, left, unreal.Transform())
+    rep["tris"] = _tris(dm)
+    body_dm, bvh = SP.build_bvh_for_mesh(_dm_skel(leader))
+    dm, rep["pushed_verts"] = _push_out(dm, body_dm, bvh, 4.0, 0.3)
+    dm = _transfer(body_dm, dm)
+    dm, rep["restricted_verts"] = _restrict(dm, rule["bones"])
+    _write_skeletal(dm, leader, src_static, out_path, rep, physics_asset=False)
+    chk = skeleton_check.check(out_path, body, "gloves")
+    rep["skeleton_ok"], rep["skeleton_errors"] = chk["ok"], chk["errors"]
+    return rep
+
+
+def _write_skeletal(dm, base_asset, src_static, out_path, rep, physics_asset=True):
+    """base_asset(키트 의상 또는 몸)을 out_path로 복제하고 LOD0 형상·가중치·머티리얼을 dm으로 교체."""
+    if EAL.does_asset_exist(out_path):
+        EAL.delete_asset(out_path)
+    EAL.make_directory(out_path.rsplit("/", 1)[0])
+    sk = EAL.duplicate_asset(base_asset, out_path)
+    if sk is None:
+        raise RuntimeError(f"복제 실패: {base_asset} → {out_path}")
+    st = unreal.load_asset(src_static)
+    mats = [s.material_interface for s in st.static_materials]
+    if any(m is None for m in mats):
+        raise RuntimeError(f"원본 메시 머티리얼 슬롯이 비어 있음(assign_source_material 필요): {src_static}")
+    rep["two_sided"] = [m.get_name() for m in mats if _two_sided(m)]
+    copt = unreal.GeometryScriptCopyMeshToAssetOptions()
+    copt.set_editor_property("replace_materials", True)
+    copt.set_editor_property("new_materials", mats)
+    copt.set_editor_property("new_material_slot_names", [s.material_slot_name for s in st.static_materials])
+    copt.set_editor_property("remap_bone_indices_to_match_asset", True)
+    lod = unreal.GeometryScriptMeshWriteLOD()
+    lod.lod_index = 0
+    _out, outcome = A.copy_mesh_to_skeletal_mesh(dm, sk, copt, lod)
+    if outcome != unreal.GeometryScriptOutcomePins.SUCCESS:
+        raise RuntimeError(f"형상 교체 실패: {out_path}")
+    if not physics_asset:
+        sk.set_editor_property("physics_asset", None)
+    EAL.save_loaded_asset(sk)
+    rep["physics_asset"] = sk.physics_asset.get_name() if sk.physics_asset else None
+
+
+# ---------------------------------------------------------------- 정적 부착 (머리·무기)
+def _bone_ref(body, bone):
+    return {n: t for n, _p, t in skeleton_check.bones(profiles.body(body)["leader"])}[bone]
+
+
+def _head_box(body):
+    lo, hi = _region_box_bones(body, ("head",))
+    hb = unreal.load_asset(profiles.body(body)["parts"]["hair"]).get_bounds()
+    hlo = [hb.origin.x - hb.box_extent.x, hb.origin.y - hb.box_extent.y, hb.origin.z - hb.box_extent.z]
+    hhi = [hb.origin.x + hb.box_extent.x, hb.origin.y + hb.box_extent.y, hb.origin.z + hb.box_extent.z]
+    return [min(a, b) for a, b in zip(lo, hlo)], [max(a, b) for a, b in zip(hi, hhi)]
+
+
+def _region_box_bones(body, prefixes):
+    dm = _dm_skel(profiles.body(body)["leader"])
+    dm, infos = BW.get_all_bones_info(dm)
+    names = {i.index: str(i.name) for i in infos}
+    dm, ids, _ = Q.get_all_vertex_i_ds(dm)
+    pts = []
+    for v in L.convert_index_list_to_array(ids):
+        dm, ws, _ = BW.get_vertex_bone_weights(dm, v)
+        top = max(ws, key=lambda w: w.weight) if ws else None
+        if top and names.get(top.bone_index, "").startswith(prefixes):
+            p = Q.get_vertex_position(dm, v)[0]
+            pts.append((p.x, p.y, p.z))
+    return [min(p[i] for p in pts) for i in range(3)], [max(p[i] for p in pts) for i in range(3)]
+
+
+def static_attachment(item_key, body):
+    """정적 아이템의 부착 정보 {"mesh", "socket", "transform"(소켓 기준 상대)}. items.json attach 값으로 계산.
+    attach.fit = "head"(머리+헤어 상자에 ratio·rel_off) 또는 "length"(가장 긴 축을 length_cm로, grip_frac 지점을 소켓에, rot 회전)."""
+    it = load_items()[item_key]
+    at = it["attach"]
+    st = unreal.load_asset(it["source"])
+    b = st.get_bounds()
+    raw_c = (b.origin.x, b.origin.y, b.origin.z)
+    raw_e = (b.box_extent.x * 2, b.box_extent.y * 2, b.box_extent.z * 2)
+    bone = _bone_ref(body, at["socket"])
+    if at["fit"] == "head":
+        lo, hi = _head_box(body)
+        ratio, rel = at.get("ratio", (1.0, 1.0, 1.0)), at.get("rel_off", (0.0, 0.0, 0.0))
+        size = [h - l for l, h in zip(lo, hi)]
+        ctr = [(h + l) / 2 + rel[i] * size[i] for i, (l, h) in enumerate(zip(lo, hi))]
+        scale = [ratio[i] * size[i] / raw_e[i] for i in range(3)]
+        world = unreal.Transform(location=unreal.Vector(*[ctr[i] - raw_c[i] * scale[i] for i in range(3)]),
+                                 rotation=unreal.Rotator(0, 0, 0), scale=unreal.Vector(*scale))
+        rel_tf = unreal.MathLibrary.compose_transforms(world, unreal.MathLibrary.invert_transform(bone))
+    else:   # length: 무기 — 메시 로컬에서 가장 긴 축의 grip_frac 지점이 소켓 원점, 그다음 rot 회전
+        axis = max(range(3), key=lambda i: raw_e[i])
+        s = at["length_cm"] / raw_e[axis]
+        grip = list(raw_c)
+        grip[axis] = raw_c[axis] - raw_e[axis] / 2 + at.get("grip_frac", 0.1) * raw_e[axis]
+        o = list(at.get("offset", (0.0, 0.0, 0.0)))
+        if at.get("align") == "grip":
+            # 손 본에서 계산: 긴 축 = 쥐는 축(엄지 방향에서 손가락 방향 성분을 뺀 것), 폭 축 = 손가락 방향, 쥐는 점 = 손바닥 가운데
+            side = at["socket"][-1]
+            bones = {n: t for n, _p, t in skeleton_check.bones(profiles.body(body)["leader"])}
+            hp, mp, tp = (bones[f"{n}_{side}"].translation for n in ("hand", "middle_01", "thumb_01"))
+            fing, _ = _norm(_sub(_v(mp), _v(hp)))
+            thumb = _sub(_v(tp), _v(hp))
+            t_perp = _sub(thumb, tuple(_dot(thumb, fing) * c for c in fing))
+            grip_dir, _ = _norm(t_perp)
+            if at.get("flip"):
+                grip_dir = tuple(-c for c in grip_dir)
+            to_local = lambda d: unreal.MathLibrary.inverse_transform_direction(bone, unreal.Vector(*d))
+            gl, fl = to_local(grip_dir), to_local(fing)
+            axes = {0: "x", 1: "y", 2: "z"}
+            # 메시의 긴 축(axis)을 쥐는 축으로: 긴 축이 Z면 X축=손가락, Z축=쥐는 축
+            rot = unreal.MathLibrary.make_rot_from_xz(fl, gl) if axes[axis] == "z" else unreal.MathLibrary.make_rot_from_zx(fl, gl)
+            palm = unreal.MathLibrary.inverse_transform_location(bone, unreal.Vector(*[(a + b) / 2 for a, b in zip(_v(hp), _v(mp))]))
+            o = [o[0] + palm.x, o[1] + palm.y, o[2] + palm.z]
+        else:
+            r = at.get("rot", (0.0, 0.0, 0.0))
+            rot = unreal.Rotator(r[0], r[1], r[2])
+        off = rot.quaternion().rotate_vector(unreal.Vector(-grip[0] * s, -grip[1] * s, -grip[2] * s))
+        rel_tf = unreal.Transform(location=unreal.Vector(off.x + o[0], off.y + o[1], off.z + o[2]), rotation=rot, scale=unreal.Vector(s, s, s))
+    return {"mesh": it["source"], "socket": at["socket"], "transform": rel_tf, "hide_parts": at.get("hide_parts", [])}
+
+
 def load_items():
     import json, os
     with open(os.path.join(os.path.dirname(__file__), "items.json"), encoding="utf-8") as f:
@@ -508,9 +680,15 @@ def load_items():
 def build_item(key, bodies=("M", "F"), overwrite=True):
     """items.json의 아이템 key를 체형별로 만든다. 반환: {체형: 보고서}."""
     it = load_items()[key]
+    if "attach" in it:   # 정적 부착 아이템은 만들 메시가 없다(부착값만 계산해 보고)
+        return {b: {"attach": str(static_attachment(key, b)["transform"])} for b in bodies}
     fit = it.get("fit", {})
     out = {}
     for b in bodies:
+        if it["slot"] == "gloves":
+            out[b] = build_gloves(it["source"], b, it["out"].format(body=b), ratio=fit.get("ratio", (1.0, 1.0, 1.0)),
+                                  rel_off=fit.get("rel_off", (0.0, 0.0, 0.0)), target_tris=fit.get("target_tris"), overwrite=overwrite)
+            continue
         out[b] = build(it["source"], b, it["slot"], it["out"].format(body=b),
                        ratio=fit.get("ratio", (1.0, 1.0, 1.0)), rel_off=fit.get("rel_off", (0.0, 0.0, 0.0)),
                        yaw=fit.get("yaw", 0.0), target_tris=fit.get("target_tris"), overwrite=overwrite)

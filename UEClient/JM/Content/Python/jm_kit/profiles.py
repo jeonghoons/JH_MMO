@@ -27,6 +27,8 @@ def _item_by_mesh():
         items = {k: v for k, v in json.load(f).items() if not k.startswith("_")}
     out = {}
     for it in items.values():
+        if "out" not in it:   # 정적 부착 아이템(머리·무기)은 체형별 메시가 없다
+            continue
         for b in ("M", "F"):
             out[it["out"].format(body=b)] = it
     return out
