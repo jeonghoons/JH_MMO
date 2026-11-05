@@ -12,12 +12,12 @@ import unreal
 import toolset_registry
 from toolset_registry.registration import Registration
 
-from jm_kit import body_mask, garment, preview, profiles, skeleton_check
+from jm_kit import body_mask, garment, glove_paint, preview, profiles, skeleton_check
 
 
 def _reload():
     """도구를 고친 뒤 에디터 재시작 없이 반영(의존 순서대로)."""
-    for m in (profiles, skeleton_check, body_mask, garment, preview):
+    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview):
         importlib.reload(m)
 
 

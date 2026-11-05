@@ -557,29 +557,324 @@ def build_gloves(src_static, body, out_path, ratio=(1.0, 1.0, 1.0), rel_off=(0.0
     dm, rep["pushed_verts"] = _push_out(dm, body_dm, bvh, 4.0, 0.3)
     dm = _transfer(body_dm, dm)
     dm, rep["restricted_verts"] = _restrict(dm, rule["bones"])
+    dm, rep["fingers"] = _finger_weights(dm, body)
     _write_skeletal(dm, leader, src_static, out_path, rep, physics_asset=False)
     chk = skeleton_check.check(out_path, body, "gloves")
     rep["skeleton_ok"], rep["skeleton_errors"] = chk["ok"], chk["errors"]
     return rep
 
 
-def _write_skeletal(dm, base_asset, src_static, out_path, rep, physics_asset=True):
-    """base_asset(키트 의상 또는 몸)을 out_path로 복제하고 LOD0 형상·가중치·머티리얼을 dm으로 교체."""
+# ---------------------------------------------------------------- 장갑 손가락 가중치 (2026-11-05)
+# 가장 가까운 몸 표면 가중치(_transfer)만 쓰면, 장갑 손가락이 실제 손가락 사이에 걸칠 때 한 손가락이 옆 손가락·손바닥 뼈를
+# 나눠 받아 손가락을 굽히면 구겨진다(MC2.2 천 장갑, 대기 동작). 그래서 손가락 영역을 연결된 덩어리(= 장갑 손가락 하나)로 나누고,
+# 덩어리 전체를 손가락 뼈 사슬 하나에 맡긴 뒤 사슬 위치(t)로 01·02·03 마디 가중치를 준다. 손바닥·손목은 몸 가중치 그대로.
+FINGERS = ("thumb", "index", "middle", "ring", "pinky")
+FINGER_RADIUS_CM = 4.0   # 손가락 축에서 이 거리 안의 정점만 손가락 영역
+FINGER_BLEND_CM = 1.0    # 마디 경계(손가락 시작 포함)에서 두 뼈를 섞는 반폭
+FINGER_TIP_RATIO = 0.9   # 끝마디 길이 ≈ 중간마디 × 이 값(03 뼈 뒤에 끝점이 없어서)
+FINGER_MIN_VERTS = 8     # 이보다 작은 덩어리는 정점별 투표로 처리
+
+
+def _finger_chain(pos, finger, side):
+    """손가락 하나의 (마디 목록, 길이, 뼈 이름 3개, 시작 쪽 부모 뼈). 엄지는 01이 손바닥 쪽 마디라 부모 = hand."""
+    joints = [f"{finger}_0{i}_{side}" for i in (1, 2, 3)]
+    a, b = _v(pos[joints[1]]), _v(pos[joints[2]])
+    d, n = _norm(_sub(b, a))
+    tip = unreal.Vector(b[0] + d[0] * n * FINGER_TIP_RATIO, b[1] + d[1] * n * FINGER_TIP_RATIO, b[2] + d[2] * n * FINGER_TIP_RATIO)
+    pts = {j: pos[j] for j in joints}
+    pts["tip"] = tip
+    segs, total = _chain(pts, joints + ["tip"])
+    parent = f"hand_{side}" if finger == "thumb" else f"{finger}_metacarpal_{side}"
+    return segs, total, joints, parent
+
+
+THUMB_RADIUS_CM = 6.0
+
+
+def _chain_dist(p, segs):
+    """p에서 사슬(마디 범위로 자름)까지 가장 가까운 거리."""
+    best = None
+    for a, d, n, _t0, _u, _v2 in segs:
+        w = _sub(p, a)
+        s = min(max(_dot(w, d), 0.0), n)
+        r = math.dist(p, (a[0] + d[0] * s, a[1] + d[1] * s, a[2] + d[2] * s))
+        best = r if best is None else min(best, r)
+    return best
+
+
+def _chain_t(p, segs):
+    """p의 사슬 위치 t(마디 범위로 자름, 가장 가까운 마디 기준)."""
+    best = None
+    for a, d, n, t0, _u, _v2 in segs:
+        w = _sub(p, a)
+        s = min(max(_dot(w, d), 0.0), n)
+        q = (a[0] + d[0] * s, a[1] + d[1] * s, a[2] + d[2] * s)
+        r = math.dist(p, q)
+        if best is None or r < best[0]:
+            best = (r, t0 + s)
+    return best[1]
+
+
+def _finger_bone_weights(t, segs, joints, parent):
+    """사슬 위치 t → [(뼈 이름, 가중치)]. 마디 경계 ±FINGER_BLEND_CM에서 두 뼈를 선형으로 섞는다."""
+    B = FINGER_BLEND_CM
+    bounds = [segs[1][3], segs[2][3]]          # 01|02, 02|03 경계
+    if t < B:                                   # 손가락 시작: 부모(손바닥 쪽) ↔ 01
+        a = min(max(0.5 + t / (2 * B), 0.0), 1.0)
+        return [(parent, 1.0 - a), (joints[0], a)]
+    for k, tb in enumerate(bounds):
+        if abs(t - tb) < B:
+            a = 0.5 + (t - tb) / (2 * B)
+            return [(joints[k], 1.0 - a), (joints[k + 1], a)]
+    k = 0 if t < bounds[0] else (1 if t < bounds[1] else 2)
+    return [(joints[k], 1.0)]
+
+
+def _components(vs, nb):
+    """정점 집합 vs 안에서 이웃(nb)으로 이어진 덩어리 목록."""
+    comps, seen = [], set()
+    for v in vs:
+        if v in seen:
+            continue
+        stack, comp = [v], []
+        seen.add(v)
+        while stack:
+            x = stack.pop()
+            comp.append(x)
+            for y in nb[x]:
+                if y in vs and y not in seen:
+                    seen.add(y)
+                    stack.append(y)
+        comps.append(comp)
+    return comps
+
+
+def _spread(seeds, region, nb):
+    """seeds {정점: 손가락}에서 region 안으로 이웃을 따라 가까운 표시를 퍼뜨린다(너비 우선). 반환: {정점: 손가락}."""
+    out, frontier = dict(seeds), list(seeds)
+    while frontier:
+        nxt = []
+        for x in frontier:
+            for y in nb[x]:
+                if y in region and y not in out:
+                    out[y] = out[x]
+                    nxt.append(y)
+        frontier = nxt
+    return out
+
+
+def _finger_weights(dm, body):
+    """장갑 손가락 영역의 가중치를 손가락 단위로 다시 준다. 반환: (dm, 보고서 {손: {...}})."""
+    leader = profiles.body(body)["leader"]
+    pos = {n: t.translation for n, _p, t in skeleton_check.bones(leader)}
+    dm, infos = BW.get_all_bones_info(dm)
+    bone_idx = {str(i.name): i.index for i in infos}
+    dm, vids, _ = Q.get_all_vertex_i_ds(dm)
+    verts = L.convert_index_list_to_array(vids)
+    P = {v: _v(Q.get_vertex_position(dm, v)[0]) for v in verts}
+    # VARCO 메시는 UV 경계마다 같은 위치 정점이 따로 있어 삼각형 연결만으로는 손가락이 조각난다 → 같은 위치(0.01cm)끼리도 이웃
+    weld = {}
+    for v in verts:
+        weld.setdefault(tuple(round(c, 2) for c in P[v]), []).append(v)
+    nb = {v: set() for v in verts}
+    for group in weld.values():
+        for v in group:
+            nb[v].update(x for x in group if x != v)
+    dm, tids, _ = Q.get_all_triangle_i_ds(dm)
+    for t in L.convert_index_list_to_array(tids):
+        idx, _ = Q.get_triangle_indices(dm, t)
+        a, b, c = idx.x, idx.y, idx.z
+        nb[a].update((b, c)); nb[b].update((a, c)); nb[c].update((a, b))
+
+    report, new_w = {}, {}
+    for side in ("l", "r"):
+        hand, other = _v(pos[f"hand_{side}"]), _v(pos[f"hand_{'r' if side == 'l' else 'l'}"])
+        chains = {f: _finger_chain(pos, f, side) for f in FINGERS}
+        vote = {}
+        for v in verts:
+            p = P[v]
+            if math.dist(p, hand) >= math.dist(p, other):
+                continue
+            best = None
+            for f, (segs, total, _j, _par) in chains.items():
+                o = _on_chain(p, segs, total, extend=2.0)
+                if o is None or o[0] < 0.0 or o[3] > FINGER_RADIUS_CM:
+                    continue   # 손가락 시작(01) 앞 = 손바닥
+                if best is None or o[3] < best[1]:
+                    best = (f, o[3])
+            if best:
+                vote[v] = best[0]
+        # 장갑 손가락은 뿌리(너클 쪽)가 서로 붙어 있고 실제 손보다 좁을 수 있어(MC2.2 천 장갑) 정점별 최근접 사슬은 믿을 수 없다.
+        # 너클 선(middle_01)에서 손끝 쪽으로 자르는 위치를 늘려 가며, 엄지를 뺀 덩어리가 정확히 4개가 되는 지점을 찾는다.
+        mid01 = _v(pos[f"middle_01_{side}"])
+        fwd, _ = _norm(_sub(mid01, hand))
+        lat, _ = _norm(_sub(_v(pos[f"pinky_01_{side}"]), _v(pos[f"index_01_{side}"])))
+        side_vs = [v for v in verts if math.dist(P[v], hand) < math.dist(P[v], other)]
+        # 엄지: 다섯 사슬 중 엄지 축이 가장 가깝고 THUMB_RADIUS_CM 안(장갑 엄지가 실제 엄지에서 4cm 넘게 떨어진 경우가 있음 — 남 천 장갑)
+        thumb_vs = set()
+        for v in side_vs:
+            d = {f: _chain_dist(P[v], chains[f][0]) for f in FINGERS}
+            if min(d, key=d.get) == "thumb" and d["thumb"] < THUMB_RADIUS_CM:
+                thumb_vs.add(v)
+        s_of = {v: _dot(_sub(P[v], mid01), fwd) for v in side_vs}
+        cand = {v for v in side_vs if v not in thumb_vs and s_of[v] > 0.0}
+        found, cut, comps = None, None, []
+        for i in range(1, 17):                       # 0.5 ~ 8cm
+            cut = 0.5 * i
+            comps = [c for c in _components({v for v in cand if s_of[v] > cut}, nb) if len(c) >= FINGER_MIN_VERTS]
+            if len(comps) == 4:
+                found = comps
+                break
+        label = {v: "thumb" for v in thumb_vs}
+        if found:
+            mode = "order"
+            # 손끝 덩어리 4개의 옆방향 위치 = 장갑 손가락 4개의 위치. 손가락은 거의 평행하므로, 뿌리 쪽 붙은 부분도
+            # 옆방향 좌표가 가장 가까운 손가락으로 나눈다(이웃 따라 퍼뜨리면 한 손가락이 붙은 부분을 다 가져감 — 검지 202 / 약지 16).
+            centers = sorted(sum(_dot(P[v], lat) for v in c) / len(c) for c in found)
+            for v in cand:
+                x = _dot(P[v], lat)
+                k = min(range(4), key=lambda i: abs(x - centers[i]))
+                label[v] = ("index", "middle", "ring", "pinky")[k]
+        else:
+            mode = "vote"                            # 끝까지 4개로 안 갈라짐 → 정점별 최근접 사슬
+            label.update({v: f for v, f in vote.items() if f != "thumb"})
+        for v, f in label.items():
+            segs, _total, joints, parent = chains[f]
+            new_w[v] = _finger_bone_weights(_chain_t(P[v], segs), segs, joints, parent)
+        report[side] = {"mode": mode, "cut_cm": cut if found else None, "pieces": [len(c) for c in comps],
+                        "per_finger": {f: sum(1 for x in label.values() if x == f) for f in FINGERS}}
+    for v, ws in new_w.items():
+        acc = {}
+        for name, wt in ws:
+            if wt > 0.0:
+                acc[bone_idx[name]] = acc.get(bone_idx[name], 0.0) + wt
+        tot = sum(acc.values()) or 1.0
+        out = []
+        for b, wt in acc.items():
+            bw = unreal.GeometryScriptBoneWeight()
+            bw.bone_index = b
+            bw.weight = wt / tot
+            out.append(bw)
+        dm = _set_weights(dm, v, out)
+    return dm, report
+
+
+# ---------------------------------------------------------------- 장갑 = 키트 손 (2026-11-05, 방법 B)
+# VARCO 장갑은 손가락 뿌리가 붙어 있고 실제 손보다 좁아, 가중치를 손가락별로 나눠도 굽힐 때 구겨졌다(MC2.2 천 장갑).
+# 그래서 형상은 키트 몸의 손(+손목 GLOVE_CUFF_CM)을 잘라 GLOVE_OFFSET_CM만큼 부풀려 쓰고(정점·가중치가 몸과 같아 구김 없음),
+# 무늬는 glove_paint가 영역별로 칠한다(텍스처 베이크는 VARCO 장갑과 모양이 달라 무늬가 옮겨지지 않았음). 소매 장식의 두께는 평평한 그림이 된다.
+GLOVE_OFFSET_CM = 0.3          # 손 표면에서 부풀리는 거리
+
+
+def _hand_triangles(dm, body_mid, vdata, cuff_cm):
+    """손 + 손목 위 cuff_cm 안의 몸 섹션 삼각형 (남길 목록, 지울 목록)."""
+    keep_v = {v for v, (reg, dist) in vdata.items() if reg == "hand" or (reg == "arm" and dist <= cuff_cm)}
+    dm, tids, _ = Q.get_all_triangle_i_ds(dm)
+    keep, drop = [], []
+    for t in L.convert_index_list_to_array(tids):
+        idx, _ = Q.get_triangle_indices(dm, t)
+        mid, _ok = unreal.GeometryScript_Materials.get_triangle_material_id(dm, t)
+        (keep if mid == body_mid and all(v in keep_v for v in (idx.x, idx.y, idx.z)) else drop).append(t)
+    return keep, drop
+
+
+def _kit_hand_mesh(body, cuff_cm=GLOVE_CUFF_CM, target_tris=None):
+    """키트 몸(리더)에서 손 + 손목 위 cuff_cm 삼각형만 남긴 DynamicMesh(가중치 포함, 머티리얼 ID 0). 반환: (dm, 원래 손 삼각형 수).
+    target_tris: 손 부분이 이 정도가 되도록 **몸 전체를 먼저 단순화**한 뒤 자른다. 잘라낸 뒤 단순화하면 열린 소매 가장자리가
+    안쪽으로 접혀 손목 위 띠가 사라졌다(2026-11-05 — 마스크로 지운 손목 피부와 함께 구멍이 보임)."""
+    from . import body_mask
+    leader = profiles.body(body)["leader"]
+    chains = {f"arm_{s}": v for s, v in body_mask.ARM.items()}
+    body_mid = body_mask._body_slot_index(unreal.load_asset(leader))
+    dm, vdata = body_mask._vertex_data(leader, chains)
+    keep, _drop = _hand_triangles(dm, body_mid, vdata, cuff_cm)
+    kit_tris = len(keep)
+    if target_tris and kit_tris > target_tris:
+        dm = _simplify(dm, int(_tris(dm) * target_tris / kit_tris))
+        dm, vdata = body_mask._vertex_data(leader, chains, dm=dm)
+    _keep, drop = _hand_triangles(dm, body_mid, vdata, cuff_cm)
+    lst = L.convert_array_to_index_list(drop, unreal.GeometryScriptIndexType.TRIANGLE)
+    r = ED.delete_triangles_from_mesh(dm, lst)
+    dm = r[0] if isinstance(r, tuple) else r
+    dm = unreal.GeometryScript_Materials.remap_material_i_ds(dm, body_mid, 0)
+    return dm, kit_tris
+
+
+def _glove_mi(src_static, path, base_color, normal):
+    """원본 장갑 머티리얼(M_<Item>)을 부모로 하는 MI — 베이크한 색·노멀로 바꾼다."""
+    parent = unreal.load_asset(src_static).static_materials[0].material_interface
+    if EAL.does_asset_exist(path):
+        EAL.delete_asset(path)
+    folder, name = path.rsplit("/", 1)
+    mi = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, folder, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+    MEL = unreal.MaterialEditingLibrary
+    MEL.set_material_instance_parent(mi, parent)
+    MEL.set_material_instance_texture_parameter_value(mi, "DiffuseColorMap", base_color)
+    MEL.set_material_instance_texture_parameter_value(mi, "NormalMap", normal)
+    EAL.save_loaded_asset(mi)
+    return mi
+
+
+def build_gloves_kit_hand(src_static, body, out_path, paint="Cloth", overwrite=False):
+    """장갑 = 키트 손을 부풀린 형상(방법 B) + glove_paint 무늬(paint = 스타일 이름). 텍스처·MI는 out_path와 같은 폴더."""
+    _not_playing()
+    if EAL.does_asset_exist(out_path) and not overwrite:
+        raise RuntimeError(f"이미 있음(overwrite=True로 덮어쓰기): {out_path}")
+    rule = SLOT_RULES["gloves"]
+    leader = profiles.body(body)["leader"]
+    folder, name = out_path.rsplit("/", 1)
+    stem = name[3:] if name.startswith("SK_") else name          # SK_Cloth_Gloves_M → Cloth_Gloves_M
+    rep = {"body": body, "slot": "gloves", "out": out_path, "method": "kit_hand", "paint": paint}
+    dm, rep["kit_tris"] = _kit_hand_mesh(body, target_tris=rule["tris"])   # 키트 손 약 5천 → 슬롯 예산
+    rep["tris"] = _tris(dm)
+    oo = unreal.GeometryScriptMeshOffsetOptions()
+    oo.offset_distance = GLOVE_OFFSET_CM
+    oo.solve_steps = 0      # 기본 스무딩(5단계)은 열린 소매 끝을 오그라뜨려 손목 위 부분이 피부 밑으로 숨었다(2026-11-05)
+    oo.smooth_alpha = 0.0
+    dm = unreal.GeometryScript_MeshModeling.apply_mesh_offset(dm, oo)
+    ro = unreal.GeometryScriptRepackUVsOptions()
+    ro.target_image_width = 1024
+    dm = unreal.GeometryScript_UVs.repack_mesh_u_vs(dm, 0, ro)   # 몸 아틀라스의 손 조각 → 0~1 전체로
+    dm, rep["restricted_verts"] = _restrict(dm, rule["bones"])
+    # 무늬: VARCO 장갑에서 자른 패턴을 영역별로 칠한다(베이크는 모양이 달라 무늬가 옮겨지지 않았음 — glove_paint 설명)
+    import importlib
+    from . import glove_paint
+    importlib.reload(glove_paint)   # 툴셋 reload_kit 목록에 없던 시절(에디터 재시작 전)에도 고친 내용이 반영되게
+    png, rep["paint_report"] = glove_paint.paint(dm, body, paint, f"T_{stem}_BaseColor")
+    t_bc = glove_paint.import_texture(png, folder)
+    t_nm = unreal.load_asset("/Engine/EngineMaterials/DefaultNormal")
+    mi = _glove_mi(src_static, f"{folder}/MI_{stem}", t_bc, t_nm)
+    old_nm = f"{folder}/T_{stem}_Normal"                          # 베이크 시절 노멀(더 안 씀)
+    if EAL.does_asset_exist(old_nm):
+        EAL.delete_asset(old_nm)
+    rep["textures"] = [t_bc.get_path_name()]
+    _write_skeletal(dm, leader, src_static, out_path, rep, physics_asset=False, materials=[(mi, "Gloves")])
+    chk = skeleton_check.check(out_path, body, "gloves")
+    rep["skeleton_ok"], rep["skeleton_errors"] = chk["ok"], chk["errors"]
+    return rep
+
+
+def _write_skeletal(dm, base_asset, src_static, out_path, rep, physics_asset=True, materials=None):
+    """base_asset(키트 의상 또는 몸)을 out_path로 복제하고 LOD0 형상·가중치·머티리얼을 dm으로 교체.
+    materials = [(머티리얼, 슬롯 이름)]를 주면 원본 정적 메시 대신 그것을 쓴다(키트 손 장갑)."""
     if EAL.does_asset_exist(out_path):
         EAL.delete_asset(out_path)
     EAL.make_directory(out_path.rsplit("/", 1)[0])
     sk = EAL.duplicate_asset(base_asset, out_path)
     if sk is None:
         raise RuntimeError(f"복제 실패: {base_asset} → {out_path}")
-    st = unreal.load_asset(src_static)
-    mats = [s.material_interface for s in st.static_materials]
+    if materials:
+        mats, slots = [m for m, _s in materials], [s for _m, s in materials]
+    else:
+        st = unreal.load_asset(src_static)
+        mats, slots = [s.material_interface for s in st.static_materials], [s.material_slot_name for s in st.static_materials]
     if any(m is None for m in mats):
         raise RuntimeError(f"원본 메시 머티리얼 슬롯이 비어 있음(assign_source_material 필요): {src_static}")
     rep["two_sided"] = [m.get_name() for m in mats if _two_sided(m)]
     copt = unreal.GeometryScriptCopyMeshToAssetOptions()
     copt.set_editor_property("replace_materials", True)
     copt.set_editor_property("new_materials", mats)
-    copt.set_editor_property("new_material_slot_names", [s.material_slot_name for s in st.static_materials])
+    copt.set_editor_property("new_material_slot_names", slots)
     copt.set_editor_property("remap_bone_indices_to_match_asset", True)
     lod = unreal.GeometryScriptMeshWriteLOD()
     lod.lod_index = 0
@@ -685,6 +980,9 @@ def build_item(key, bodies=("M", "F"), overwrite=True):
     fit = it.get("fit", {})
     out = {}
     for b in bodies:
+        if it["slot"] == "gloves" and fit.get("method") == "kit_hand":
+            out[b] = build_gloves_kit_hand(it["source"], b, it["out"].format(body=b), paint=fit.get("paint", "Cloth"), overwrite=overwrite)
+            continue
         if it["slot"] == "gloves":
             out[b] = build_gloves(it["source"], b, it["out"].format(body=b), ratio=fit.get("ratio", (1.0, 1.0, 1.0)),
                                   rel_off=fit.get("rel_off", (0.0, 0.0, 0.0)), target_tris=fit.get("target_tris"), overwrite=overwrite)

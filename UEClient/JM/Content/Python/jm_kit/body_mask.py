@@ -67,9 +67,10 @@ def _body_slot_index(sk):
     return 0
 
 
-def _vertex_data(mesh_path, chains):
-    """정점별 (영역, 끝에서 거리 cm). 거리 = 같은 쪽 팔·다리 축에서 total - t (몸통·발은 DIST_MAX_CM)."""
-    dm = skeleton_check._dm(mesh_path)
+def _vertex_data(mesh_path, chains, dm=None):
+    """정점별 (영역, 끝에서 거리 cm). 거리 = 같은 쪽 팔·다리 축에서 total - t (몸통·발은 DIST_MAX_CM).
+    dm을 주면 에셋 대신 그 메시를 쓴다(예: 단순화한 몸 — garment._kit_hand_mesh)."""
+    dm = dm if dm is not None else skeleton_check._dm(mesh_path)
     dm, infos = BW.get_all_bones_info(dm)
     names = {i.index: str(i.name) for i in infos}
     pos = {str(i.name): i.world_transform.translation for i in infos}

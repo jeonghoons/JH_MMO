@@ -169,7 +169,7 @@
 
 **MC2 장비 에셋**
 - [x] MC2.1 의상 맞춤 도구 재작성: 키트 의상(예: `Techwear01_Upper`)을 복제해 형상만 새 메시로 교체 — 뼈대·바인드 포즈·PA를 키트에서 상속, 가중치는 키트 의상에서 전이, MC1.3 검사 통과. (이전 MC2.1·2.1b·2.1c 결과물은 2026-11-04 삭제, 키트 채택은 유지) (2026-11-04, `jm_kit.garment`, `TESTING.md`)
-- [x] MC2.2 천 세트 7개(VARCO, 포인트 사전 승인, 첫 아이템에서 Remesh 품질 확인) (2026-11-05, `Content/Equipment/Cloth/*`, `jm_kit/items.json`, VARCO 2,300/2,500포인트, `TESTING.md` — 남은 것: 상의 가슴 얼룩, 무기 쥐는 자세는 MC4.2·4.3)
+- [x] MC2.2 천 세트 7개(VARCO, 포인트 사전 승인, 첫 아이템에서 Remesh 품질 확인) (2026-11-05, `Content/Equipment/Cloth/*`, `jm_kit/items.json`, VARCO 2,300/2,500포인트, `TESTING.md` — 남은 것: 무기 쥐는 자세는 MC4.2·4.3. 2026-11-05 보완: 상의 가슴 얼룩 `Texture3D`로 해결(100포인트), 장갑을 키트 손 형상 + 무늬 칠하기로 재작업(손가락 맞춤은 MC4.2와 함께) — `DECISIONS.md`)
 - [ ] MC2.3 판금 세트 7개
 - [ ] MC2.4 아이콘 SceneCapture 촬영 → `T_Icon_<Item>`
 
@@ -187,7 +187,7 @@
 
 **MC4 클라이언트**
 - [ ] MC4.1 장비 컴포넌트(Leader Pose, 몸 숨김 데이터 구동) (표시 방식 교체 가능 인터페이스 — `DECISIONS.md` 2026-11-05)
-- [ ] MC4.2 `ABP_Mannequin` + `ALI_Weapon` + 무기 타입별 레이어·몽타주, `ExportSkillTiming.bat`
+- [ ] MC4.2 `ABP_Mannequin` + `ALI_Weapon` + 무기 타입별 레이어·몽타주, `ExportSkillTiming.bat` (+ 장갑 손가락 맞춤 보완 — 무기 쥐기와 함께, `DECISIONS.md` 2026-11-05)
 - [ ] MC4.3 비전투 시 무기 등에 메기
 - [ ] MC4.4 개발용 장비창 `WBP_Equipment`, 스킬 슬롯 배열 HUD
 

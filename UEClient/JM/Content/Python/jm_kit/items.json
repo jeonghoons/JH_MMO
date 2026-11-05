@@ -1,5 +1,5 @@
 {
-  "_comment": "장비 아이템 제작 데이터(MC2.2). source = 가져온 원본 정적 메시(VARCO), out = 체형별 결과 스켈레탈 메시({body} = M/F). fit: ratio·rel_off는 키트 틀 상자 기준(EditImage로 틀 실루엣을 유지했으면 1/0), target_tris 0 = 단순화 안 함. varco = 재다운로드용 노드·작업 ID. mask = 이 아이템이 슬롯 기본 마스크 파라미터를 덮어쓰는 값(kit_profiles.json mask 참고). attach = 정적 부착 아이템(머리·무기): socket 본, fit \"head\"(머리+헤어 상자에 ratio·rel_off) 또는 \"length\"(가장 긴 축 = length_cm, grip_frac 지점을 소켓에, rot·offset), hide_parts = 통째로 숨길 부위.",
+  "_comment": "장비 아이템 제작 데이터(MC2.2). source = 가져온 원본 정적 메시(VARCO), out = 체형별 결과 스켈레탈 메시({body} = M/F). fit: ratio·rel_off는 키트 틀 상자 기준(EditImage로 틀 실루엣을 유지했으면 1/0), target_tris 0 = 단순화 안 함. varco = 재다운로드용 노드·작업 ID. mask = 이 아이템이 슬롯 기본 마스크 파라미터를 덮어쓰는 값(kit_profiles.json mask 참고). attach = 정적 부착 아이템(머리·무기): socket 본, fit \"head\"(머리+헤어 상자에 ratio·rel_off) 또는 \"length\"(가장 긴 축 = length_cm, grip_frac 지점을 소켓에, rot·offset), hide_parts = 통째로 숨길 부위. fit.method \"kit_hand\" = 장갑을 키트 손 형상으로 만들고 fit.paint 스타일(glove_paint, 기본 Cloth)로 칠한다(VARCO 장갑은 패턴 원본으로만). varco.texture3d_node = 텍스처만 다시 입힌 Texture3D 노드.",
   "Cloth_Top": {
     "slot": "top",
     "source": "/Game/Equipment/Cloth/Top/Source/SM_Cloth_Top_Src",
@@ -21,6 +21,7 @@
     "varco": {
       "edit_image_node": "d67d2b88-45bf-4f7e-a76c-94fe8bf0dddf",
       "generate3d_node": "f03af7b0-9e8d-4ecd-af67-920a2e2dc5d4",
+      "texture3d_node": "7acb2371-4694-45a6-89b2-260ce4c0ead6",
       "polygon_count": 6000
     },
     "mask": {}
@@ -80,6 +81,7 @@
     "source": "/Game/Equipment/Cloth/Gloves/Source/SM_Cloth_Gloves_Src",
     "out": "/Game/Equipment/Cloth/Gloves/SK_Cloth_Gloves_{body}",
     "fit": {
+      "method": "kit_hand",
       "ratio": [
         1.0,
         1.0,
