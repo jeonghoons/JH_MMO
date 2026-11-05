@@ -8,7 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P1 송신 묶기 차례, A1.3 AOI 재설계·병목 탐색 완료)**
-`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), 다음 U8 Mutable 시험(남녀) → MC2.3. 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), 다음 MC2.3 판금 세트(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** P1 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -178,7 +178,7 @@
 - [x] U5 Epic 공식 MCP 전환·시험(= C-7): 플러그인·자동 시작 설정, `jm_mcp` 툴셋(`KitTools`·`DataTableReimportTools`, 임의 코드 실행 없음), `.mcp.json` HTTP. 통과 기준 = 연결·`jm_kit` 실행·스크린샷·실제 PIE 시작/종료(+ DT 재임포트·BP 그래프·위젯 배치 결과 기록), `TESTING.md` (2026-11-05 통과)
 - [x] U6 uemcp 삭제: `.mcp.json` 항목, `bRemoteExecution`, 문서·CLAUDE.md(5.6 → 5.8, MCP 사용법) (2026-11-05)
 - [x] U7 병합·새 출발: `main`·`Jeonghoon`·`content/dev` fast-forward + push, 원래 폴더 `JH_MMO`에서 빌드·PIE 확인, 워크트리 `JH_MMO_ue58` 제거 (2026-11-05: 세 브랜치 `a4a748a`에서 출발, 워크트리·`upgrade/ue-5.8` 삭제, 원래 폴더 5.8 빌드·PIE 로그인 확인은 U5에서)
-- [ ] U8 Mutable 시험(남녀): 천 세트 7개로 Customizable Object, 지금 방식과 틈·관통, 드로우콜, 장비 교체 시간, 메모리를 측정 비교 → 채택 시 `DESIGN_CHARACTER_EQUIPMENT.md` 개정·`body_mask` 대체
+- [ ] U8 **보류(2026-11-05, `DECISIONS.md`) — 재검토: Mutable Beta 해제 또는 그래프 공개 API.** Mutable 시험(남녀): 천 세트 7개로 Customizable Object, 지금 방식과 틈·관통, 드로우콜, 장비 교체 시간, 메모리를 측정 비교 → 채택 시 `DESIGN_CHARACTER_EQUIPMENT.md` 개정·`body_mask` 대체
 
 **MC3 데이터·서버**
 - [ ] MC3.1 `ItemTable` + SkillTable 무기 ID 재번호(1xxx/2xxx/3xxx/9xxx), StatTable MALE/FEMALE, `MonsterTable.SkillId`
@@ -186,13 +186,13 @@
 - [ ] MC3.3 `Player_Equipped` 저장, 가입 시 기본 장비, 기존 `PlayerType`·장비 행 마이그레이션
 
 **MC4 클라이언트**
-- [ ] MC4.1 장비 컴포넌트(Leader Pose, 몸 숨김 데이터 구동)
+- [ ] MC4.1 장비 컴포넌트(Leader Pose, 몸 숨김 데이터 구동) (표시 방식 교체 가능 인터페이스 — `DECISIONS.md` 2026-11-05)
 - [ ] MC4.2 `ABP_Mannequin` + `ALI_Weapon` + 무기 타입별 레이어·몽타주, `ExportSkillTiming.bat`
 - [ ] MC4.3 비전투 시 무기 등에 메기
 - [ ] MC4.4 개발용 장비창 `WBP_Equipment`, 스킬 슬롯 배열 HUD
 
 **MC5 검증·병합**
-- [ ] MC5.1 오류·부하 테스트, 클라이언트 성능 측정, SceneCapture 시트 승인(`TESTING.md`), `Jeonghoon` 병합(사용자 승인)
+- [ ] MC5.1 오류·부하 테스트, 클라이언트 성능 측정, SceneCapture 시트 승인(`TESTING.md`), `Jeonghoon` 병합(사용자 승인). 클라이언트 성능은 20명(남녀 각 10) 측정 → 기준 초과 시 `FSkeletalMeshMerge` 시험(`DECISIONS.md` 2026-11-05)
 
 ## 수동 작업 기록 (에디터에서 사용자가 직접)
 상세 절차는 기록하지 않고 대화창으로 안내합니다. 여기에는 항목별 한 줄 요약과 상태만 남깁니다.
