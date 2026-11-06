@@ -129,22 +129,34 @@ def _dist(a, b):
     return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2 + (a.z - b.z) ** 2)
 
 
-def _push_out(dm, body_dm, bvh, max_depth, margin):
-    """몸 안쪽 max_depth 이내 정점을 몸 표면 밖 margin까지. 반환: (dm, 옮긴 수)"""
+def _push_out(dm, body_dm, bvh, max_depth, margin, clear_cm=0.0):
+    """몸 안쪽 max_depth 이내 정점을 몸 표면 밖 margin까지. 반환: (dm, 옮긴 수)
+    clear_cm > 0이면 몸 밖이지만 clear_cm보다 가까운 정점도 clear_cm까지 띄운다 — 삼각형이 큰 단단한 장비(판금 상의 6천)는
+    정점이 몸 밖이어도 정점 사이로 몸(등 윗부분)이 튀어나와 피부가 보였다(MC2.3, 바인드 자세에서도)."""
     opt = unreal.GeometryScriptSpatialQueryOptions()
     dm, vids, _ = Q.get_all_vertex_i_ds(dm)
     moved = 0
     for v in L.convert_index_list_to_array(vids):
         p, _ = Q.get_vertex_position(dm, v)
         _m, inside, _o = SP.is_point_inside_mesh(body_dm, bvh, p, opt)
-        if not inside:
+        if not inside and clear_cm <= 0:
             continue
         _m, hit, _o = SP.find_nearest_point_on_mesh(body_dm, bvh, p, opt)
         q = hit.position
         d = _dist(p, q)
-        if d < 1e-4 or d > max_depth:
+        if d < 1e-4:
             continue
-        k = (d + margin) / d
+        if inside:
+            if d > max_depth:
+                continue
+            k = (d + max(margin, clear_cm)) / d      # 몸 안 → 반대편(밖)으로 margin(또는 clear_cm)까지
+        else:
+            if d >= clear_cm:
+                continue
+            np_ =unreal.Vector(q.x + (p.x - q.x) * clear_cm / d, q.y + (p.y - q.y) * clear_cm / d, q.z + (p.z - q.z) * clear_cm / d)
+            dm, _ok = ED.set_vertex_position(dm, v, np_, True)
+            moved += 1
+            continue
         dm, _ok = ED.set_vertex_position(dm, v, unreal.Vector(p.x + (q.x - p.x) * k, p.y + (q.y - p.y) * k, p.z + (q.z - p.z) * k), True)
         moved += 1
     return dm, moved
@@ -426,9 +438,9 @@ def _two_sided(mat):
 
 # ---------------------------------------------------------------- 생성
 def build(src_static, body, slot, out_path, ratio=(1.0, 1.0, 1.0), rel_off=(0.0, 0.0, 0.0), yaw=0.0,
-          target_tris=None, push=(4.0, 0.3), tpl_max_cm=6.0, overwrite=False):
+          target_tris=None, push=(4.0, 0.3), tpl_max_cm=6.0, overwrite=False, clear_cm=0.0):
     """src_static(정적 메시)을 체형 body의 슬롯 틀에 맞춰 out_path에 스켈레탈 메시로 만든다. 반환: 보고서 dict.
-    target_tris: None = 슬롯 예산, 0 = 단순화 안 함."""
+    target_tris: None = 슬롯 예산, 0 = 단순화 안 함. clear_cm: 몸에서 최소 거리(0 = 관통 정점만 보정, _push_out 참고)."""
     _not_playing()
     rule = SLOT_RULES[slot]
     tpl = template_path(body, slot)
@@ -453,7 +465,7 @@ def build(src_static, body, slot, out_path, ratio=(1.0, 1.0, 1.0), rel_off=(0.0,
     body_dm = _dm_skel(leader)
     if push:
         body_dm, bvh = SP.build_bvh_for_mesh(body_dm)
-        dm, rep["pushed_verts"] = _push_out(dm, body_dm, bvh, push[0], push[1])
+        dm, rep["pushed_verts"] = _push_out(dm, body_dm, bvh, push[0], push[1], clear_cm)
 
     # 4 가중치(틀·몸 본 목록이 같은지 먼저 확인)
     tpl_dm = _dm_skel(tpl)
@@ -800,8 +812,9 @@ def _kit_hand_mesh(body, cuff_cm=GLOVE_CUFF_CM, target_tris=None):
     return dm, kit_tris
 
 
-def _glove_mi(src_static, path, base_color, normal):
-    """원본 장갑 머티리얼(M_<Item>)을 부모로 하는 MI — 베이크한 색·노멀로 바꾼다."""
+def _glove_mi(src_static, path, base_color, normal, orm=None):
+    """원본 장갑 머티리얼(M_<Item>)을 부모로 하는 MI — 칠한 색·노멀(·ORM)로 바꾼다.
+    부모가 M_Equip_PBR 계열(UE 5.8 가져오기, MC2.3 판금)이면 BaseColor/Normal/ORM, 옛 FBX 머티리얼이면 DiffuseColorMap/NormalMap."""
     parent = unreal.load_asset(src_static).static_materials[0].material_interface
     if EAL.does_asset_exist(path):
         EAL.delete_asset(path)
@@ -809,8 +822,16 @@ def _glove_mi(src_static, path, base_color, normal):
     mi = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, folder, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
     MEL = unreal.MaterialEditingLibrary
     MEL.set_material_instance_parent(mi, parent)
-    MEL.set_material_instance_texture_parameter_value(mi, "DiffuseColorMap", base_color)
-    MEL.set_material_instance_texture_parameter_value(mi, "NormalMap", normal)
+    pbr = "BaseColor" in [str(n) for n in MEL.get_texture_parameter_names(parent)] if hasattr(MEL, "get_texture_parameter_names") else False
+    if pbr:
+        MEL.set_material_instance_texture_parameter_value(mi, "BaseColor", base_color)
+        MEL.set_material_instance_texture_parameter_value(mi, "Normal", normal)
+        if orm is not None:
+            MEL.set_material_instance_texture_parameter_value(mi, "ORM", orm)
+    else:
+        MEL.set_material_instance_texture_parameter_value(mi, "DiffuseColorMap", base_color)
+        MEL.set_material_instance_texture_parameter_value(mi, "NormalMap", normal)
+    MEL.update_material_instance(mi)
     EAL.save_loaded_asset(mi)
     return mi
 
@@ -843,7 +864,10 @@ def build_gloves_kit_hand(src_static, body, out_path, paint="Cloth", overwrite=F
     png, rep["paint_report"] = glove_paint.paint(dm, body, paint, f"T_{stem}_BaseColor")
     t_bc = glove_paint.import_texture(png, folder)
     t_nm = unreal.load_asset("/Engine/EngineMaterials/DefaultNormal")
-    mi = _glove_mi(src_static, f"{folder}/MI_{stem}", t_bc, t_nm)
+    t_orm = None
+    if rep["paint_report"].get("orm_png"):   # 판금 등 금속 영역이 있는 스타일
+        t_orm = glove_paint.import_texture(rep["paint_report"]["orm_png"], folder, linear_mask=True)
+    mi = _glove_mi(src_static, f"{folder}/MI_{stem}", t_bc, t_nm, t_orm)
     old_nm = f"{folder}/T_{stem}_Normal"                          # 베이크 시절 노멀(더 안 씀)
     if EAL.does_asset_exist(old_nm):
         EAL.delete_asset(old_nm)
@@ -915,9 +939,26 @@ def _region_box_bones(body, prefixes):
     return [min(p[i] for p in pts) for i in range(3)], [max(p[i] for p in pts) for i in range(3)]
 
 
+def _helm_world(at, raw_c, raw_e, body):
+    """투구(MC2.3) 월드 배치 — 단단한 물건이라 축별로 늘리지 않고 균일 배율(두건 방식은 찌그러졌음).
+    yaw로 VARCO FBX의 정면을 캐릭터 정면(+Y)에 맞춘 뒤(생성마다 정면 축이 달랐음), 헤어를 뺀 머리 상자 기준
+    배율 = max(폭 × width_ratio, 깊이 × depth_ratio), 꼭대기 = 정수리 + top_cm, 앞뒤 = 머리 중심 + y_off_cm."""
+    rot = unreal.Rotator(roll=0.0, pitch=0.0, yaw=at.get("yaw", 0.0))
+    q = rot.quaternion()
+    rc, re = q.rotate_vector(unreal.Vector(*raw_c)), q.rotate_vector(unreal.Vector(*raw_e))
+    rc, re = (rc.x, rc.y, rc.z), (abs(re.x), abs(re.y), abs(re.z))
+    lo, hi = _region_box_bones(body, ("head",))
+    size = [h - l for l, h in zip(lo, hi)]
+    s = max(at.get("width_ratio", 1.25) * size[0] / re[0], at.get("depth_ratio", 1.15) * size[1] / re[1])
+    top = hi[2] + at.get("top_cm", 1.5)
+    ctr = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2 + at.get("y_off_cm", 0.0)]
+    loc = [ctr[0] - rc[0] * s, ctr[1] - rc[1] * s, top - (rc[2] + re[2] / 2) * s]
+    return unreal.Transform(location=unreal.Vector(*loc), rotation=rot, scale=unreal.Vector(s, s, s))
+
+
 def static_attachment(item_key, body):
     """정적 아이템의 부착 정보 {"mesh", "socket", "transform"(소켓 기준 상대)}. items.json attach 값으로 계산.
-    attach.fit = "head"(머리+헤어 상자에 ratio·rel_off) 또는 "length"(가장 긴 축을 length_cm로, grip_frac 지점을 소켓에, rot 회전)."""
+    attach.fit = "head"(머리+헤어 상자에 ratio·rel_off), "helm"(머리 상자에 균일 배율·yaw, 투구) 또는 "length"(가장 긴 축을 length_cm로, grip_frac 지점을 소켓에, rot 회전)."""
     it = load_items()[item_key]
     at = it["attach"]
     st = unreal.load_asset(it["source"])
@@ -934,6 +975,8 @@ def static_attachment(item_key, body):
         world = unreal.Transform(location=unreal.Vector(*[ctr[i] - raw_c[i] * scale[i] for i in range(3)]),
                                  rotation=unreal.Rotator(0, 0, 0), scale=unreal.Vector(*scale))
         rel_tf = unreal.MathLibrary.compose_transforms(world, unreal.MathLibrary.invert_transform(bone))
+    elif at["fit"] == "helm":
+        rel_tf = unreal.MathLibrary.compose_transforms(_helm_world(at, raw_c, raw_e, body), unreal.MathLibrary.invert_transform(bone))
     else:   # length: 무기 — 메시 로컬에서 가장 긴 축의 grip_frac 지점이 소켓 원점, 그다음 rot 회전
         axis = max(range(3), key=lambda i: raw_e[i])
         s = at["length_cm"] / raw_e[axis]
@@ -989,7 +1032,8 @@ def build_item(key, bodies=("M", "F"), overwrite=True):
             continue
         out[b] = build(it["source"], b, it["slot"], it["out"].format(body=b),
                        ratio=fit.get("ratio", (1.0, 1.0, 1.0)), rel_off=fit.get("rel_off", (0.0, 0.0, 0.0)),
-                       yaw=fit.get("yaw", 0.0), target_tris=fit.get("target_tris"), overwrite=overwrite)
+                       yaw=fit.get("yaw", 0.0), target_tris=fit.get("target_tris"), overwrite=overwrite,
+                       clear_cm=fit.get("clear_cm", 0.0))
     return out
 
 
@@ -1018,7 +1062,35 @@ def import_source(fbx_path, item_key):
         unreal.AssetToolsHelpers.get_asset_tools().fixup_referencers([unreal.load_object(None, a) for a in reds])
     assign_source_textures(item_key)
     assign_source_material(item_key)
+    if isinstance(unreal.load_asset(f"{dest_dir}/M_{item_key}"), unreal.MaterialInstanceConstant):
+        use_pbr_master(item_key)   # UE 5.8 가져오기(인스턴스) → 장비 공용 PBR로
+    target = it.get("attach", {}).get("target_tris")
+    if target:
+        reduce_static_lods(it["source"], target)
     return it["source"]
+
+
+def reduce_static_lods(sm_path, target_tris, lod_ratios=(1.0, 0.5, 0.25)):
+    """정적 메시를 엔진 메시 축소로 LOD0 = target_tris, LOD1·2 = lod_ratios 비율(설계: LOD 3단계 100·50·25%)로 만든다.
+    원본 지오메트리는 그대로 두고 축소 설정만 바꾸므로 UV·텍스처가 유지된다(VARCO Remesh는 텍스처가 깨졌음 — MC2.2).
+    고폴리로 생성해야 형상이 잡히는 투구(MC2.3, 3만 → 4천)용. 반환: {"source_tris", "lod_tris": [...]}."""
+    sm = unreal.load_asset(sm_path)
+    ses = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
+    # 이미 줄인 메시를 다시 줄이지 않도록 원본 삼각형 수는 축소를 끈 상태에서 잰다
+    off = unreal.StaticMeshReductionOptions()
+    off.auto_compute_lod_screen_size = False
+    off.reduction_settings = [unreal.StaticMeshReductionSettings(percent_triangles=1.0, screen_size=1.0)]
+    ses.set_lods(sm, off)
+    src = sm.get_num_triangles(0)
+    base = min(1.0, float(target_tris) / src)
+    opts = unreal.StaticMeshReductionOptions()
+    opts.auto_compute_lod_screen_size = True
+    # LOD0은 원본 기준, LOD1 이후는 엔진이 LOD0 결과 기준으로 비율을 적용한다(3만 → 4천에서 확인: base×0.5를 주면 266)
+    opts.reduction_settings = [unreal.StaticMeshReductionSettings(percent_triangles=base if i == 0 else r, screen_size=1.0)
+                               for i, r in enumerate(lod_ratios)]
+    ses.set_lods(sm, opts)
+    EAL.save_loaded_asset(sm)
+    return {"source_tris": src, "lod_tris": [sm.get_num_triangles(i) for i in range(sm.get_num_lods())]}
 
 
 _TEX_PARAMS = {"DiffuseColorMap": "BaseColor", "NormalMap": "Normal"}   # FBX 가져오기 머티리얼의 텍스처 파라미터 → T_<Item>_<접미사>
@@ -1051,6 +1123,19 @@ def assign_source_textures(item_key):
         raise RuntimeError(f"머티리얼 없음: {dest_dir}/M_{item_key}")
     MEL = unreal.MaterialEditingLibrary
     changed = []
+    if isinstance(mat, unreal.MaterialInstanceConstant):
+        # UE 5.8 FBX 가져오기(Interchange)는 FBXLegacyPhongSurfaceMaterial의 인스턴스를 만든다(MC2.3 판금 상의). 파라미터 이름은 같다.
+        for param, suffix in _TEX_PARAMS.items():
+            tex = unreal.load_asset(f"{dest_dir}/T_{item_key}_{suffix}")
+            if tex is None:
+                raise RuntimeError(f"텍스처 없음: {dest_dir}/T_{item_key}_{suffix}")
+            if MEL.get_material_instance_texture_parameter_value(mat, param) != tex:
+                MEL.set_material_instance_texture_parameter_value(mat, param, tex)
+                changed.append(suffix)
+        if changed:
+            MEL.update_material_instance(mat)
+            EAL.save_loaded_asset(mat)
+        return changed
     for e in _material_expressions(mat):
         if not isinstance(e, unreal.MaterialExpressionTextureSampleParameter):
             continue
@@ -1087,6 +1172,69 @@ def assign_source_material(item_key):
     if any(s.material_interface is None for s in st.static_materials):
         raise RuntimeError(f"머티리얼 지정 실패: {it['source']}")
     return mat
+
+
+PBR_MASTER = "/Game/Equipment/Common/M_Equip_PBR"
+
+
+def ensure_pbr_master(rebuild=False):
+    """장비 공용 PBR 머티리얼(BaseColor·Normal·ORM 파라미터, ORM = R AO / G 거칠기 / B 금속도 — VARCO 출력 규격)을 만든다.
+    UE 5.8 FBX 가져오기가 만드는 FBXLegacyPhongSurfaceMaterial 인스턴스는 ORM을 쓰지 않아 판금이 검은 무광으로 보였다(MC2.3)."""
+    if EAL.does_asset_exist(PBR_MASTER) and not rebuild:
+        return PBR_MASTER
+    MEL = unreal.MaterialEditingLibrary
+    folder, name = PBR_MASTER.rsplit("/", 1)
+    if EAL.does_asset_exist(PBR_MASTER):
+        EAL.delete_asset(PBR_MASTER)
+    mat = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    MP = unreal.MaterialProperty
+    ST = unreal.MaterialSamplerType
+
+    def tex_param(pname, default, sampler, y):
+        e = MEL.create_material_expression(mat, unreal.MaterialExpressionTextureSampleParameter2D, -600, y)
+        e.set_editor_property("parameter_name", pname)
+        e.set_editor_property("texture", unreal.load_asset(default))
+        e.set_editor_property("sampler_type", sampler)
+        return e
+
+    bc = tex_param("BaseColor", "/Engine/EngineMaterials/DefaultDiffuse", ST.SAMPLERTYPE_COLOR, -300)
+    nm = tex_param("Normal", "/Engine/EngineMaterials/DefaultNormal", ST.SAMPLERTYPE_NORMAL, 0)
+    orm = tex_param("ORM", "/Engine/EngineMaterials/DefaultDiffuse_TC_Masks", ST.SAMPLERTYPE_MASKS, 300)
+    MEL.connect_material_property(bc, "RGB", MP.MP_BASE_COLOR)
+    MEL.connect_material_property(nm, "RGB", MP.MP_NORMAL)
+    MEL.connect_material_property(orm, "R", MP.MP_AMBIENT_OCCLUSION)
+    MEL.connect_material_property(orm, "G", MP.MP_ROUGHNESS)
+    MEL.connect_material_property(orm, "B", MP.MP_METALLIC)
+    MEL.recompile_material(mat)
+    EAL.save_loaded_asset(mat)
+    return PBR_MASTER
+
+
+def use_pbr_master(item_key):
+    """M_<Item>(머티리얼 인스턴스)의 부모를 M_Equip_PBR로 바꾸고 BaseColor·Normal·ORM을 지정한다.
+    ORM 텍스처는 선형(sRGB 끔)·마스크 압축으로 바꾼다. 반환: 머티리얼 경로."""
+    it = load_items()[item_key]
+    dest_dir = it["source"].rsplit("/", 1)[0]
+    mi = unreal.load_asset(f"{dest_dir}/M_{item_key}")
+    if not isinstance(mi, unreal.MaterialInstanceConstant):
+        raise RuntimeError(f"머티리얼 인스턴스가 아님: M_{item_key}")
+    MEL = unreal.MaterialEditingLibrary
+    orm = unreal.load_asset(f"{dest_dir}/T_{item_key}_ORM")
+    if orm is None:
+        raise RuntimeError(f"텍스처 없음: T_{item_key}_ORM")
+    orm.set_editor_property("srgb", False)
+    orm.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_MASKS)
+    EAL.save_loaded_asset(orm)
+    MEL.set_material_instance_parent(mi, unreal.load_asset(ensure_pbr_master()))
+    MEL.clear_all_material_instance_parameters(mi)
+    for param, suffix in (("BaseColor", "BaseColor"), ("Normal", "Normal"), ("ORM", "ORM")):
+        tex = unreal.load_asset(f"{dest_dir}/T_{item_key}_{suffix}")
+        if tex is None:
+            raise RuntimeError(f"텍스처 없음: T_{item_key}_{suffix}")
+        MEL.set_material_instance_texture_parameter_value(mi, param, tex)
+    MEL.update_material_instance(mi)
+    EAL.save_loaded_asset(mi)
+    return mi.get_path_name().split(".")[0]
 
 
 def measure(item_path, body, float_cm=3.0, step=3):

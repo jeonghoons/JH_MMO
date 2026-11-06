@@ -1,5 +1,5 @@
 {
-  "_comment": "장비 아이템 제작 데이터(MC2.2). source = 가져온 원본 정적 메시(VARCO), out = 체형별 결과 스켈레탈 메시({body} = M/F). fit: ratio·rel_off는 키트 틀 상자 기준(EditImage로 틀 실루엣을 유지했으면 1/0), target_tris 0 = 단순화 안 함. varco = 재다운로드용 노드·작업 ID. mask = 이 아이템이 슬롯 기본 마스크 파라미터를 덮어쓰는 값(kit_profiles.json mask 참고). attach = 정적 부착 아이템(머리·무기): socket 본, fit \"head\"(머리+헤어 상자에 ratio·rel_off) 또는 \"length\"(가장 긴 축 = length_cm, grip_frac 지점을 소켓에, rot·offset), hide_parts = 통째로 숨길 부위. fit.method \"kit_hand\" = 장갑을 키트 손 형상으로 만들고 fit.paint 스타일(glove_paint, 기본 Cloth)로 칠한다(VARCO 장갑은 패턴 원본으로만). varco.texture3d_node = 텍스처만 다시 입힌 Texture3D 노드.",
+  "_comment": "장비 아이템 제작 데이터(MC2.2). source = 가져온 원본 정적 메시(VARCO), out = 체형별 결과 스켈레탈 메시({body} = M/F). fit: ratio·rel_off는 키트 틀 상자 기준(EditImage로 틀 실루엣을 유지했으면 1/0), target_tris 0 = 단순화 안 함. varco = 재다운로드용 노드·작업 ID. mask = 이 아이템이 슬롯 기본 마스크 파라미터를 덮어쓰는 값(kit_profiles.json mask 참고). attach = 정적 부착 아이템(머리·무기): socket 본, fit \"head\"(머리+헤어 상자에 ratio·rel_off) 또는 \"length\"(가장 긴 축 = length_cm, grip_frac 지점을 소켓에, rot·offset), hide_parts = 통째로 숨길 부위. fit.method \"kit_hand\" = 장갑을 키트 손 형상으로 만들고 fit.paint 스타일(glove_paint, 기본 Cloth)로 칠한다(VARCO 장갑은 패턴 원본으로만). varco.texture3d_node = 텍스처만 다시 입힌 Texture3D 노드. attach.fit \"helm\" = 투구: 헤어 뺀 머리 상자에 균일 배율(width_ratio·depth_ratio), yaw로 정면 맞춤, 꼭대기 = 정수리 + top_cm.",
   "Cloth_Top": {
     "slot": "top",
     "source": "/Game/Equipment/Cloth/Top/Source/SM_Cloth_Top_Src",
@@ -25,6 +25,177 @@
       "polygon_count": 6000
     },
     "mask": {}
+  },
+  "Plate_Top": {
+    "slot": "top",
+    "source": "/Game/Equipment/Plate/Top/Source/SM_Plate_Top_Src",
+    "out": "/Game/Equipment/Plate/Top/SK_Plate_Top_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": 0,
+      "clear_cm": 1.5
+    },
+    "varco": {
+      "edit_image_node": "cb90b725-30d1-41d6-945b-4291eb77b491",
+      "generate3d_node": "a8a6f54c-2d93-4bb1-b8b1-13e6055ad957",
+      "polygon_count": 6000
+    },
+    "mask": {}
+  },
+  "Plate_Bottom": {
+    "slot": "bottom",
+    "source": "/Game/Equipment/Plate/Bottom/Source/SM_Plate_Bottom_Src",
+    "out": "/Game/Equipment/Plate/Bottom/SK_Plate_Bottom_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": 0
+    },
+    "varco": {
+      "edit_image_node": "48483f47-ede9-48e1-979a-2a7449e572f8",
+      "generate3d_node": "74f6542b-f02d-4dbd-8376-1325b085e578",
+      "polygon_count": 5000
+    },
+    "mask": {}
+  },
+  "Plate_Boots": {
+    "slot": "boots",
+    "source": "/Game/Equipment/Plate/Boots/Source/SM_Plate_Boots_Src",
+    "out": "/Game/Equipment/Plate/Boots/SK_Plate_Boots_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.34
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.17
+      ],
+      "yaw": 0.0,
+      "target_tris": 0
+    },
+    "varco": {
+      "edit_image_node": "ae92c74b-9a93-4b54-9d17-291cf1773dc2",
+      "generate3d_node": "bf549d2a-3df3-45f1-af0c-a33a5285ea14",
+      "polygon_count": 3000
+    },
+    "mask": {}
+  },
+  "Plate_Gloves": {
+    "slot": "gloves",
+    "source": "/Game/Equipment/Plate/Gloves/Source/SM_Plate_Gloves_Src",
+    "out": "/Game/Equipment/Plate/Gloves/SK_Plate_Gloves_{body}",
+    "fit": {
+      "method": "kit_hand",
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": null,
+      "paint": "Plate"
+    },
+    "varco": {
+      "edit_image_node": "152a0d5c-18be-4944-9e2b-b701472df5e1",
+      "generate3d_node": "62e34492-4b7f-4ee6-9b6f-96009e691ace",
+      "polygon_count": 2000
+    },
+    "mask": {}
+  },
+  "Plate_Helm": {
+    "slot": "head",
+    "source": "/Game/Equipment/Plate/Helm/Source/SM_Plate_Helm_Src",
+    "varco": {
+      "image_node": "531e1ef7-6012-4b21-be5f-d3f283096725",
+      "view_34_node": "c1511cae-5204-4582-bf0e-7b9365e8e70f",
+      "green_bg_node": "aa21a66f-af4a-4fac-b512-2fcfa77ccdc2",
+      "no_mail_eye_level_node": "a0bb8331-511b-424f-8c2d-5ff01ded34a2",
+      "generate3d_node": "ad0e9513-5c4c-4e43-a405-2d891dce8955",
+      "output_index": 0,
+      "polygon_count": 30000
+    },
+    "attach": {
+      "socket": "head",
+      "fit": "helm",
+      "target_tris": 4000,
+      "yaw": 90.0,
+      "width_ratio": 1.25,
+      "depth_ratio": 1.15,
+      "top_cm": 1.5,
+      "y_off_cm": 0.0,
+      "hide_parts": [
+        "hair"
+      ]
+    }
+  },
+  "Plate_Sword": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/Plate/Sword/Source/SM_Plate_Sword_Src",
+    "varco": {
+      "image_node": "7ff8b009-45ef-40a9-b8ec-77e22e68243b",
+      "generate3d_node": "8c98a105-7307-41b6-b562-2984b9386233",
+      "polygon_count": 5000
+    },
+    "attach": {
+      "socket": "hand_r",
+      "fit": "length",
+      "length_cm": 95,
+      "grip_frac": 0.08,
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "align": "grip"
+    }
+  },
+  "Plate_Bow": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/Plate/Bow/Source/SM_Plate_Bow_Src",
+    "varco": {
+      "image_node": "fb7588af-ce4f-488e-ae28-eef77b04bb73",
+      "generate3d_node": "947117f6-6b2f-4ffd-8354-ef8d773225a6",
+      "polygon_count": 5000
+    },
+    "attach": {
+      "socket": "hand_l",
+      "fit": "length",
+      "length_cm": 125,
+      "grip_frac": 0.5,
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "align": "grip"
+    }
   },
   "Cloth_Bottom": {
     "slot": "bottom",
