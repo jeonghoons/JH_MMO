@@ -127,7 +127,11 @@
       "generate3d_node": "62e34492-4b7f-4ee6-9b6f-96009e691ace",
       "polygon_count": 2000
     },
-    "mask": {}
+    "mask": {},
+    "icon": {
+      "yaw": -90.0,
+      "pitch": 5.0
+    }
   },
   "Plate_Helm": {
     "slot": "head",
@@ -271,7 +275,11 @@
       "generate3d_node": "e7927822-5ff7-4702-bd4e-b30865c02fcf",
       "polygon_count": 2000
     },
-    "mask": {}
+    "mask": {},
+    "icon": {
+      "yaw": -90.0,
+      "pitch": 5.0
+    }
   },
   "Cloth_Hood": {
     "slot": "head",

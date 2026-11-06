@@ -12,12 +12,12 @@ import unreal
 import toolset_registry
 from toolset_registry.registration import Registration
 
-from jm_kit import body_mask, garment, glove_paint, preview, profiles, skeleton_check
+from jm_kit import body_mask, garment, glove_paint, icon, preview, profiles, skeleton_check
 
 
 def _reload():
     """도구를 고친 뒤 에디터 재시작 없이 반영(의존 순서대로)."""
-    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview):
+    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon):
         importlib.reload(m)
 
 
@@ -269,6 +269,22 @@ class KitTools(unreal.ToolsetDefinition):
             JSON 결과.
         """
         return _dump(body_mask.build_material())
+
+    # ── 아이콘 ────────────────────────────────────────────
+    @toolset_registry.tool_call
+    @staticmethod
+    def icon_shoot(item_keys: str | None = None, import_assets: bool | None = None) -> str:
+        """장비 아이콘을 찍는다(MC2.4): 512×512 투명 PNG → SourceArt/Icons, 아이템 폴더에 T_Icon_<Item>. 확인 시트는 Saved/MCShots/icons_sheet.png.
+
+        Args:
+            item_keys: items.json 키를 쉼표로 구분(예 "Plate_Top,Plate_Helm", 기본 전부). 선택 인자 list[str] | None은 변환 실패해서 문자열로 받는다.
+            import_assets: 텍스처 에셋으로 가져올지(기본 True).
+
+        Returns:
+            JSON {키: {png, asset, fill, crop_px}, _sheet}.
+        """
+        keys = [k.strip() for k in item_keys.split(",") if k.strip()] if item_keys else None
+        return _dump(icon.shoot(keys, import_assets=True if import_assets is None else import_assets))
 
 
 @unreal.uclass()

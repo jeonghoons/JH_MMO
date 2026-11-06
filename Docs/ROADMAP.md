@@ -8,7 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P0 유령 플레이어 수정 → P1 송신 묶기 차례, 2026-11-06 기준선·동시성 감사 완료). 2026-11-06 결정: 트랙 B를 MC4.2 무기 공격까지 먼저 진행한 뒤 트랙 A 재개 (`DECISIONS.md`)**
-`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), 다음 MC2.4 아이콘(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), 다음 MC3.1 ItemTable(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** (재개 시 기준선 재측정) P0 유령 플레이어 → P1a 송신 지표 → P1b 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -24,12 +24,13 @@
 - 서버는 `Server/Server` 폴더에서 `..\x64\Debug\GameServer.exe`로 실행합니다(DataTable·맵 상대 경로, SQL Server Express 필요). PIE 전에 Debug 빌드가 최신인지 확인하고, 서버가 실행 중이면 VS 빌드가 exe를 덮어쓰지 못합니다.
 - 궁수 계정은 `LoadTest --hero archer`의 `arc_*` 계정이나 UE 로그인 화면에서 궁수 타입으로 가입하면 됩니다.
 
-## ▶ 중단점 트랙 B (2026-11-06) — `content/dev`, MC2.3 완료(보완 포함) → 다음 MC2.4
+## ▶ 중단점 트랙 B (2026-11-07) — `content/dev`, MC2.4 아이콘 완료 → 다음 MC3.1
 **상태:** 판금 7개 모두 생성(상의·하의·장화·장갑·한손검·활·투구, 남녀, `Content/Equipment/Plate/*`, `jm_kit/items.json` `Plate_*`). VARCO 누적 3,250포인트. 투구는 **사슬을 뺀 눈높이 이미지 → 3만 폴리 생성 → UE 엔진 메시 축소로 LOD 4,000/2,000/1,000**(`garment.reduce_static_lods`, `attach.target_tris`), 정적 메시 + `head` 소켓 `fit: "helm"`, `yaw` 90. 상세는 `TESTING.md` 2026-11-06 "투구 4·5차".
 **다음 작업:**
 1. ~~투구 사용자 확인~~ 완료(2026-11-06, 시험 액터 `HM_*`·`HF_*` 삭제).
 2. ~~판금 상의 등 윗부분 피부 비침~~ 완료(2026-11-06, `clear_cm` 1.5 — `TESTING.md`).
-3. **다음: MC2.4 아이콘** SceneCapture 촬영 → `T_Icon_<Item>`.
+3. ~~MC2.4 아이콘~~ 완료(2026-11-07, 14개, `jm_kit.icon`, 사용자 확인 — `TESTING.md`).
+4. **다음: MC3.1** `ItemTable` + SkillTable 무기 ID 재번호, StatTable MALE/FEMALE, `MonsterTable.SkillId`.
 **VARCO 흐름 노드(JH_MMO 플로):** 투구 정면 컨셉 `531e1ef7…`, 3/4 시점 편집 `c1511cae…`, 3차 3D `8456f6d4…`(실패), 초록 배경 `aa21a66f…`, 4차 3D `4e325e94…`(실패), 사슬 뺀 눈높이 `a0bb8331…`, **5차 3D `ad0e9513…`(채택, 출력 0)**. 판금 상의 컨셉 `cb90b725…`가 세트 스타일 참고.
 
 ## 트랙 A — 서버/포트폴리오
@@ -182,7 +183,7 @@
 - [x] MC2.1 의상 맞춤 도구 재작성: 키트 의상(예: `Techwear01_Upper`)을 복제해 형상만 새 메시로 교체 — 뼈대·바인드 포즈·PA를 키트에서 상속, 가중치는 키트 의상에서 전이, MC1.3 검사 통과. (이전 MC2.1·2.1b·2.1c 결과물은 2026-11-04 삭제, 키트 채택은 유지) (2026-11-04, `jm_kit.garment`, `TESTING.md`)
 - [x] MC2.2 천 세트 7개(VARCO, 포인트 사전 승인, 첫 아이템에서 Remesh 품질 확인) (2026-11-05, `Content/Equipment/Cloth/*`, `jm_kit/items.json`, VARCO 2,300/2,500포인트, `TESTING.md` — 남은 것: 무기 쥐는 자세는 MC4.2·4.3. 2026-11-05 보완: 상의 가슴 얼룩 `Texture3D`로 해결(100포인트), 장갑을 키트 손 형상 + 무늬 칠하기로 재작업(손가락 맞춤은 MC4.2와 함께) — `DECISIONS.md`)
 - [x] MC2.3 판금 세트 7개 (2026-11-06 완료, 사용자 확인: 투구는 사슬 뺀 눈높이 이미지 → 3만 폴리 → UE 축소 LOD 4천/2천/1천, VARCO 누적 3,250포인트, `TESTING.md`. 판금 상의 등 피부 비침은 `clear_cm`으로 보완)
-- [ ] MC2.4 아이콘 SceneCapture 촬영 → `T_Icon_<Item>`
+- [x] MC2.4 아이콘 SceneCapture 촬영 → `T_Icon_<Item>` (2026-11-07, 천·판금 14개 512² 투명 PNG `SourceArt/Icons/` + 아이템 폴더 `T_Icon_<Item>`, `jm_kit.icon`·MCP `icon_shoot`, 사용자 확인 — `TESTING.md`)
 
 **UE 5.8 업그레이드 (`upgrade/ue-5.8`, 워크트리 `JH_MMO_ue58`, 확정 업그레이드, MC2.3 전에 진행 — `DECISIONS.md` 2026-11-05)** — 트랙 A의 U1(시스템 메시지 창)과 다른 번호 체계
 - [x] U1~U4 엔진 전환: C++ 빌드, 설정 정리, `jm_kit`·uemcp 회귀, 네트워크 PIE 회귀 (2026-11-05, `TESTING.md`)
