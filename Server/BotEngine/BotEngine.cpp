@@ -250,13 +250,13 @@ static void OnConnected(Bot& b)
 	GStat.connected.fetch_add(1);
 	b.state = BotState::LoggingIn;
 
-	if (GConfig.hero == "archer")
+	if (GConfig.body == "female")
 	{
-		// 궁수 계정은 먼저 가입(이미 있으면 서버가 무시)하고 잠시 뒤 일반 로그인한다.
+		// 여성 체형 계정은 먼저 가입(이미 있으면 서버가 무시)하고 잠시 뒤 일반 로그인한다. (dummy 계정은 MALE)
 		Protocol::CS_SIGNUP_PACKET signup;
-		signup.set_account_id("arc_" + to_string(b.index));
+		signup.set_account_id("fem_" + to_string(b.index));
 		signup.set_account_pw("1234");
-		signup.set_player_type(Protocol::PLAYER_TYPE_ARCHER);
+		signup.set_player_type(Protocol::PLAYER_TYPE_FEMALE);
 		SendPacket(b, Protocol::CS_SIGNUP, signup);
 		b.loginDueUs = NowUs() + 700 * 1000LL;
 		return;
@@ -596,11 +596,12 @@ static void WorkerMain(int workerIndex, int workerCount)
 					}
 
 					// 일반공격(슬롯 0)을 보내고, 3번에 한 번은 1번 스킬(슬롯 1)을 쓴다.
-					// warrior: 논타겟 -> 몬스터 방향(aim_yaw). archer: 일반공격은 target_id, 1번 스킬은 몬스터 위치(aim_x/y)에 장판.
+					// 몬스터 방향(aim_yaw)·위치(aim_x/y)와 대상(target_id)을 함께 보내고, 서버가 장착 무기의 스킬에 맞는 값만 쓴다.
+					// (MC3.1: 무기가 없어 맨손 기본 공격만 있고 1번 슬롯은 서버가 거부한다 — MC3.2 장착 후 검·활 스킬)
 					Protocol::CS_ATTACK_PACKET atk;
 					const int slot = (++b.castCount % 3 == 0) ? 1 : 0;
 					atk.set_skill_slot(slot);
-					atk.set_target_id(GConfig.hero == "archer" && slot == 0 ? targetId : 0);
+					atk.set_target_id(targetId);
 					atk.set_aim_yaw(yaw);
 					atk.set_aim_x(tx);
 					atk.set_aim_y(ty);
@@ -714,7 +715,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 void BotEngine::Usage(const char* program)
 {
 	printf("%s --bots N --ramp-rate R --duration S [--host H] [--port P] [--threads T]\n"
-		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--hero warrior|archer] [--chaos] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
+		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
 		"         [--zone x,y,r]   (hotspot: bots walk to (x,y) and stay within radius r cm)\n",
 		program);
 }
@@ -739,7 +740,7 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--move-interval") { if (!(v = next("--move-interval"))) return false; GConfig.moveIntervalMs = atoi(v); }
 		else if (a == "--ping-interval") { if (!(v = next("--ping-interval"))) return false; GConfig.pingIntervalMs = atoi(v); }
 		else if (a == "--profile") { if (!(v = next("--profile"))) return false; GConfig.hunt = (string(v) == "hunt"); GConfig.move = (string(v) == "move" || GConfig.hunt); }
-		else if (a == "--hero") { if (!(v = next("--hero"))) return false; GConfig.hero = v; if (GConfig.hero != "warrior" && GConfig.hero != "archer") { printf("--hero must be warrior or archer\n"); return false; } }
+		else if (a == "--body") { if (!(v = next("--body"))) return false; GConfig.body = v; if (GConfig.body != "male" && GConfig.body != "female") { printf("--body must be male or female\n"); return false; } }
 		else if (a == "--chaos") { GConfig.chaos = true; }
 		else if (a == "--map") { if (!(v = next("--map"))) return false; GConfig.mapLogic = v; }
 		else if (a == "--out") { if (!(v = next("--out"))) return false; GConfig.outFile = v; }

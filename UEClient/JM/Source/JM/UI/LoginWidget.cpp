@@ -7,15 +7,15 @@
 
 namespace
 {
-	// 가입 시 고를 수 있는 영웅. 콤보박스 표시 순서와 같다.
+	// 가입 시 고를 수 있는 체형(가입 후 바꿀 수 없음). 콤보박스 표시 순서와 같다. 서버는 MALE/FEMALE 외에는 거부한다.
 	struct FHeroOption
 	{
 		const TCHAR* Label;
 		Protocol::PlayerType Type;
 	};
 	const FHeroOption HeroOptions[] = {
-		{ TEXT("전사 (Greystone)"), Protocol::PLAYER_TYPE_WARRIOR },
-		{ TEXT("궁수 (Sparrow)"), Protocol::PLAYER_TYPE_ARCHER },
+		{ TEXT("남성"), Protocol::PLAYER_TYPE_MALE },
+		{ TEXT("여성"), Protocol::PLAYER_TYPE_FEMALE },
 	};
 }
 

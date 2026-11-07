@@ -49,9 +49,9 @@ int main(int argc, char** argv)
 		GConfig.outFile = name;
 	}
 
-	printf("[loadtest] host=%s:%d bots=%d ramp=%d/s duration=%ds threads=%d profile=%s hero=%s chaos=%d out=%s\n",
+	printf("[loadtest] host=%s:%d bots=%d ramp=%d/s duration=%ds threads=%d profile=%s body=%s chaos=%d out=%s\n",
 		GConfig.host.c_str(), GConfig.port, GConfig.bots, GConfig.rampRate, GConfig.durationSec,
-		GConfig.threads, GConfig.hunt ? "hunt" : (GConfig.move ? "move" : "idle"), GConfig.hero.c_str(), GConfig.chaos ? 1 : 0, GConfig.outFile.c_str());
+		GConfig.threads, GConfig.hunt ? "hunt" : (GConfig.move ? "move" : "idle"), GConfig.body.c_str(), GConfig.chaos ? 1 : 0, GConfig.outFile.c_str());
 
 	BotEngine::Start();
 

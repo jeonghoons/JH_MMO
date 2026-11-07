@@ -32,10 +32,59 @@ enum class SkillTargeting
 	Targeted      // 대상(액터)을 지정한다
 };
 
+// 스킬이 종속되는 무기 타입 (SkillTable.WeaponType, ItemTable.WeaponType). 플레이어는 장착 무기가 정하고(비면 Unarmed),
+// 몬스터 스킬은 Monster로 두되 MonsterTable.SkillId로 찾는다. (Docs/DESIGN_COMBAT_SKILL.md)
+enum class WeaponType
+{
+	None,      // ItemTable: 무기가 아닌 아이템
+	Unarmed,
+	Sword,
+	Bow,
+	Monster
+};
+
+// 장비 슬롯. 번호 = itemId 첫째 자리. (MC3.2에서 Protocol::EquipPart를 같은 번호로 다시 매긴다)
+enum class ItemSlot
+{
+	Head = 1,
+	Top = 2,
+	Bottom = 3,
+	Gloves = 4,
+	Boots = 5,
+	Weapon = 6
+};
+
+// 장비 티어. 번호 = itemId 둘째 자리.
+enum class ItemTier
+{
+	Cloth = 1,
+	Leather = 2,
+	Plate = 3
+};
+
+enum class ItemGrade
+{
+	Common,
+	Uncommon,
+	Rare
+};
+
+// ItemTable 중 서버가 읽는 열. 외형(메시·아이콘·이름)은 클라이언트 전용이라 읽지 않는다.
+struct ItemData
+{
+	int itemId;            // 슬롯(1자리) + 티어(1자리) + 일련번호(2자리). 예: 6101 = 천 한손검
+	ItemSlot slot;
+	ItemGrade grade;
+	ItemTier tier;
+	WeaponType weaponType; // 무기만 Sword/Bow, 나머지는 None
+	int bonusAttackDamage; // 무기만
+	int bonusMaxHp;        // 방어구만
+};
+
 struct SkillData
 {
 	int skillId;
-	int ownerType;        // 이 스킬을 쓰는 PlayerType (영웅 종속)
+	WeaponType weaponType; // 이 스킬을 쓰는 무기 타입 (무기 종속)
 	int slot;             // 0 = 기본 공격, 1~5 = 스킬 슬롯
 	SkillTargeting targeting;
 	float castRange;       // Targeted: 대상까지 최대 거리, Zone: 지점까지 최대 거리
@@ -66,6 +115,7 @@ struct CharacterData
 struct MonsterData
 {
 	int templateId;           // MonsterTable.Name = 스폰 마커의 monsterTemplateId (= StatTable.PlayerType)
+	int skillId;              // 기본 공격 스킬 (SkillTable, WeaponType = Monster)
 	int respawnMs;            // 사망 후 리스폰까지의 시간
 	int deathRemoveDelayMs;   // 사망 연출을 위해 시체를 남겨 두는 시간
 	int hitStunMs;            // 피격 후 행동(공격)이 막히는 시간. 피격 모션 길이에 맞춘다
@@ -101,8 +151,15 @@ struct WorldData
 class DataManager
 {
 public:
-	// Common/DataTable/StatTable.csv, SkillTable.csv, MonsterTable.csv, MovementTable.csv, WorldTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
+	// Common/DataTable/StatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
 	static bool Init();
+
+	static const ItemData* GetItemData(int itemId)
+	{
+		auto it = _itemTable.find(itemId);
+		if (it != _itemTable.end()) return &it->second;
+		return nullptr;
+	}
 
 	static const SkillData* GetSkillData(int skillId)
 	{
@@ -111,10 +168,10 @@ public:
 		return nullptr;
 	}
 
-	// 영웅(PlayerType)의 슬롯에 해당하는 스킬. 없으면 nullptr
-	static const SkillData* GetSkillBySlot(int ownerType, int slot)
+	// 무기 타입의 슬롯에 해당하는 플레이어 스킬. 없으면 nullptr (몬스터 스킬은 MonsterData.skillId로 찾는다)
+	static const SkillData* GetSkillBySlot(WeaponType weaponType, int slot)
 	{
-		auto it = _skillBySlot.find(ownerType * 100 + slot);
+		auto it = _skillBySlot.find(static_cast<int>(weaponType) * 100 + slot);
 		if (it == _skillBySlot.end()) return nullptr;
 		return GetSkillData(it->second);
 	}
@@ -153,5 +210,6 @@ private:
 	static inline std::unordered_map<int, MonsterData> _monsterTable;
 	static inline std::unordered_map<int, MovementData> _movementTable;
 	static inline std::unordered_map<std::string, WorldData> _worldTable; // key = mapName
-	static inline std::unordered_map<int, int> _skillBySlot; // key = ownerType*100 + slot -> skillId
+	static inline std::unordered_map<int, ItemData> _itemTable;
+	static inline std::unordered_map<int, int> _skillBySlot; // key = (int)WeaponType*100 + slot -> skillId (플레이어 무기 타입만)
 };

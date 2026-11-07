@@ -225,8 +225,8 @@ void Renderer::DrawHud(const vector<BotView>& bots, const vector<MonsterView>& m
 	float y = top - 22.f;
 	const float x = 20.f, line = 19.f;
 	glColor4f(1.f, 0.85f, 0.3f, 1.f);
-	PrintText(x, y, "JH_MMO DummyClient  %s:%d  profile=%s hero=%s%s", GConfig.host.c_str(), GConfig.port,
-		GConfig.hunt ? "hunt" : (GConfig.move ? "move" : "idle"), GConfig.hero.c_str(), GConfig.chaos ? " chaos" : "");
+	PrintText(x, y, "JH_MMO DummyClient  %s:%d  profile=%s body=%s%s", GConfig.host.c_str(), GConfig.port,
+		GConfig.hunt ? "hunt" : (GConfig.move ? "move" : "idle"), GConfig.body.c_str(), GConfig.chaos ? " chaos" : "");
 	y -= line;
 	glColor4f(0.9f, 0.9f, 0.9f, 1.f);
 	PrintText(x, y, "t=%.0fs  bots %d target | connecting %d  login %d  in-game %d", BotEngine::ElapsedSec(), GConfig.bots, connecting, loggingIn, inGame);

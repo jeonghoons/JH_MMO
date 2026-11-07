@@ -19,7 +19,7 @@ struct BotConfig
 	int moveIntervalMs = 1000;
 	int pingIntervalMs = 1000;
 	bool move = true;          // 무작위 이동
-	std::string hero = "warrior";   // warrior: 논타겟 일반공격, archer: 타겟팅 일반공격(가입 후 로그인)
+	std::string body = "male";     // 체형. male: dummy 계정 로그인, female: fem_* 계정 가입 후 로그인 (무기는 MC3.2 전까지 없음 = 맨손)
 	bool chaos = false;         // 일부 공격 요청을 일부러 잘못된 값으로 보낸다(오류 테스트)
 	bool hunt = false;         // 가장 가까운 몬스터에게 이동해 공격 (hunt 프로필)
 	std::string outFile;

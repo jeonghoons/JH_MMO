@@ -1,5 +1,5 @@
 ﻿// 부하 테스트 시각화 클라이언트. LoadTest와 같은 BotEngine으로 봇을 돌리고, 봇·몬스터·통계를 탑다운 화면으로 보여준다(시연용).
-// 사용법: DummyClient.exe --bots 100 --ramp-rate 20 [--profile hunt] [--hero warrior|archer] [--chaos] [--host 127.0.0.1] [--port 8888] ...
+// 사용법: DummyClient.exe --bots 100 --ramp-rate 20 [--profile hunt] [--body male|female] [--chaos] [--host 127.0.0.1] [--port 8888] ...
 //         인자는 LoadTest와 같다. --duration·--out은 쓰지 않고 창을 닫을 때까지 돈다.
 #include <algorithm>
 #include <cstdio>
@@ -68,9 +68,9 @@ int main(int argc, char** argv)
 	if (!BotEngine::ParseArgs(argc, argv)) return 1;
 	GConfig.trackWorld = true;
 
-	printf("[dummyclient] host=%s:%d bots=%d ramp=%d/s threads=%d profile=%s hero=%s chaos=%d\n",
+	printf("[dummyclient] host=%s:%d bots=%d ramp=%d/s threads=%d profile=%s body=%s chaos=%d\n",
 		GConfig.host.c_str(), GConfig.port, GConfig.bots, GConfig.rampRate, GConfig.threads,
-		GConfig.hunt ? "hunt" : (GConfig.move ? "move" : "idle"), GConfig.hero.c_str(), GConfig.chaos ? 1 : 0);
+		GConfig.hunt ? "hunt" : (GConfig.move ? "move" : "idle"), GConfig.body.c_str(), GConfig.chaos ? 1 : 0);
 
 	HINSTANCE inst = GetModuleHandleW(nullptr);
 	WNDCLASSW wc{};

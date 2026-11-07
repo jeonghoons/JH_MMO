@@ -18,7 +18,7 @@ const SkillData* Character::FindCastableSkill(int slot) const
 
 	if (IsHit()) return nullptr;
 
-	const SkillData* skill = DataManager::GetSkillBySlot((int)_objectInfo.player_type(), slot);
+	const SkillData* skill = GetSlotSkill(slot);
 	if (skill == nullptr) return nullptr;
 
 	// 이전 시전의 애니메이션이 끝나기 전에는 기본 공격도 스킬도 받지 않는다.

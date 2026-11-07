@@ -34,6 +34,9 @@ public:
 	bool IsHit() const { return !_hitTimer.IsReady(); }
 	bool IsActing() const { return !_actionTimer.IsReady(); }
 	virtual int GetHitStunMs() const { return 300; }   // 피격 후 행동이 막히는 시간
+protected:
+	// 슬롯에 해당하는 스킬(시전 가능 여부는 보지 않음). 플레이어는 무기 타입, 몬스터는 MonsterTable.SkillId로 찾는다.
+	virtual const SkillData* GetSlotSkill(int slot) const = 0;
 public:
 	StatComponent& GetStat() { return _statInfo; }
 	const StatComponent& GetStat() const { return _statInfo; }

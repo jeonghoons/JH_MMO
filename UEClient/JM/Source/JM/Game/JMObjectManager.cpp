@@ -82,7 +82,7 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 		{
 			if (UCombatHudWidget* Hud = GetCombatHud())
 			{
-				Hud->SetHero(static_cast<int32>(ObjInfo.player_type()));
+				Hud->SetWeaponType(MyPlayer->GetWeaponType());
 				Hud->SetHp(ObjInfo.stat().hp(), ObjInfo.stat().max_hp());
 			}
 

@@ -289,7 +289,7 @@ class KitTools(unreal.ToolsetDefinition):
 
 @unreal.uclass()
 class DataTableReimportTools(unreal.ToolsetDefinition):
-    """Common/DataTable CSV를 DataTable에 다시 가져온다(공식 DataTableTools에 Reimport가 없어서)."""
+    """Common/DataTable CSV를 DataTable에 다시 가져오거나(공식 DataTableTools에 Reimport가 없어서) 새로 임포트한다."""
 
     @toolset_registry.tool_call
     @staticmethod
@@ -315,6 +315,57 @@ class DataTableReimportTools(unreal.ToolsetDefinition):
         after = len(unreal.DataTableFunctionLibrary.get_data_table_row_names(dt))
         saved = unreal.EditorAssetLibrary.save_loaded_asset(dt, False) if save is not False else False
         return _dump({"csv": csv, "rows_before": before, "rows_after": after, "saved": saved})
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def create_from_csv(table_name: str, row_struct: str) -> str:
+        """Common/DataTable/<table_name>.csv 를 새 DataTable /Game/Data/DT_<table_name> 으로 임포트한다.
+
+        임포트 원본(asset_import_data)이 CSV로 기록되므로 이후 reimport_csv로 다시 채울 수 있다.
+        이미 있으면 덮어쓰지 않고 실패한다(기존 테이블은 reimport_csv 사용).
+
+        Args:
+            table_name: CSV 이름(확장자 없이, 예 ItemTable). 영문·숫자만.
+            row_struct: Row 구조체 경로(예 /Script/JM.ItemTableRow).
+
+        Returns:
+            JSON {csv, asset, row_struct, rows, saved}.
+        """
+        if not table_name.isalnum():
+            raise ValueError(f"table_name은 영문·숫자만: {table_name!r}")
+        if not row_struct.startswith("/Script/JM."):
+            raise ValueError(f"row_struct는 JM 모듈 구조체만: {row_struct!r}")
+        csv = unreal.Paths.convert_relative_path_to_full(
+            unreal.Paths.combine([unreal.Paths.project_dir(), "../../Common/DataTable", table_name + ".csv"]))
+        if not unreal.Paths.file_exists(csv):
+            raise FileNotFoundError(csv)
+        asset = f"/Game/Data/DT_{table_name}"
+        if unreal.EditorAssetLibrary.does_asset_exist(asset):
+            raise RuntimeError(f"이미 있음(reimport_csv 사용): {asset}")
+        struct = unreal.load_object(None, row_struct)
+        if struct is None:
+            raise ValueError(f"Row 구조체를 찾을 수 없음: {row_struct}")
+
+        settings = unreal.CSVImportSettings()
+        settings.set_editor_property("import_type", unreal.CSVImportType.ECSV_DATA_TABLE)
+        settings.set_editor_property("import_row_struct", struct)
+        factory = unreal.CSVImportFactory()
+        factory.set_editor_property("automated_import_settings", settings)
+        task = unreal.AssetImportTask()
+        task.set_editor_property("filename", csv)
+        task.set_editor_property("destination_path", "/Game/Data")
+        task.set_editor_property("destination_name", f"DT_{table_name}")
+        task.set_editor_property("automated", True)
+        task.set_editor_property("save", True)
+        task.set_editor_property("factory", factory)
+        unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+
+        dt = unreal.load_asset(asset)
+        if not isinstance(dt, unreal.DataTable):
+            raise RuntimeError(f"임포트 실패(Output Log 확인): {csv}")
+        rows = len(unreal.DataTableFunctionLibrary.get_data_table_row_names(dt))
+        saved = unreal.EditorAssetLibrary.save_loaded_asset(dt, False)
+        return _dump({"csv": csv, "asset": asset, "row_struct": row_struct, "rows": rows, "saved": saved})
 
 
 registration = Registration([KitTools, DataTableReimportTools])

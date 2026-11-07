@@ -44,6 +44,44 @@ namespace
 		if (text == "Zone") { out = HitShape::Zone; return true; }
 		return false;
 	}
+
+	// None은 ItemTable(무기가 아닌 아이템)에서만 쓴다.
+	bool ParseWeaponType(const std::string& text, WeaponType& out)
+	{
+		if (text == "None") { out = WeaponType::None; return true; }
+		if (text == "Unarmed") { out = WeaponType::Unarmed; return true; }
+		if (text == "Sword") { out = WeaponType::Sword; return true; }
+		if (text == "Bow") { out = WeaponType::Bow; return true; }
+		if (text == "Monster") { out = WeaponType::Monster; return true; }
+		return false;
+	}
+
+	bool ParseItemSlot(const std::string& text, ItemSlot& out)
+	{
+		if (text == "Head") { out = ItemSlot::Head; return true; }
+		if (text == "Top") { out = ItemSlot::Top; return true; }
+		if (text == "Bottom") { out = ItemSlot::Bottom; return true; }
+		if (text == "Gloves") { out = ItemSlot::Gloves; return true; }
+		if (text == "Boots") { out = ItemSlot::Boots; return true; }
+		if (text == "Weapon") { out = ItemSlot::Weapon; return true; }
+		return false;
+	}
+
+	bool ParseItemTier(const std::string& text, ItemTier& out)
+	{
+		if (text == "Cloth") { out = ItemTier::Cloth; return true; }
+		if (text == "Leather") { out = ItemTier::Leather; return true; }
+		if (text == "Plate") { out = ItemTier::Plate; return true; }
+		return false;
+	}
+
+	bool ParseItemGrade(const std::string& text, ItemGrade& out)
+	{
+		if (text == "Common") { out = ItemGrade::Common; return true; }
+		if (text == "Uncommon") { out = ItemGrade::Uncommon; return true; }
+		if (text == "Rare") { out = ItemGrade::Rare; return true; }
+		return false;
+	}
 }
 
 bool DataManager::Init()
@@ -52,6 +90,8 @@ bool DataManager::Init()
 	_characterTable.clear();
 	_monsterTable.clear();
 	_movementTable.clear();
+	_itemTable.clear();
+	_worldTable.clear();
 	_skillBySlot.clear();
 
 	fs::path dir;
@@ -91,8 +131,14 @@ bool DataManager::Init()
 		}
 		_characterTable[playerType] = { playerType, maxHp, maxHp, attackDamage, attackSpeed, moveSpeed };
 	}
+	// 플레이어 체형(가입 때 고르는 값) 두 행은 반드시 있어야 한다.
+	if (_characterTable.count(Protocol::PLAYER_TYPE_MALE) == 0 || _characterTable.count(Protocol::PLAYER_TYPE_FEMALE) == 0)
+	{
+		LOG_ERROR("Data", "{}: 체형 MALE({})·FEMALE({}) 행이 모두 있어야 합니다", stat.Path(), (int)Protocol::PLAYER_TYPE_MALE, (int)Protocol::PLAYER_TYPE_FEMALE);
+		return false;
+	}
 
-	// SkillTable: Name(=skillId), PlayerType, Slot, TargetingType, HitShape, HitDelayMs, CooldownMs, AnimMs, CastRange,
+	// SkillTable: Name(=skillId), WeaponType, Slot, TargetingType, HitShape, HitDelayMs, CooldownMs, AnimMs, CastRange,
 	//             Radius, Angle, Range, Width, BaseDamage, ProjSpeed, DurationMs, TickMs
 	CsvFile skill;
 	if (!skill.Load((dir / "SkillTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
@@ -100,8 +146,8 @@ bool DataManager::Init()
 	for (const CsvRow& row : skill.Rows())
 	{
 		SkillData d{};
-		std::string shape, targeting;
-		if (!row.GetInt("Name", d.skillId, err) || !row.GetInt("PlayerType", d.ownerType, err) ||
+		std::string shape, targeting, weapon;
+		if (!row.GetInt("Name", d.skillId, err) || !row.GetString("WeaponType", weapon, err) ||
 			!row.GetInt("Slot", d.slot, err) || !row.GetString("TargetingType", targeting, err) ||
 			!row.GetString("HitShape", shape, err) || !row.GetInt("HitDelayMs", d.hitDelayMs, err) ||
 			!row.GetInt("CooldownMs", d.cooldownMs, err) || !row.GetInt("AnimMs", d.animMs, err) ||
@@ -117,6 +163,19 @@ bool DataManager::Init()
 
 		const std::string where = skill.Path() + " line " + std::to_string(row.Line()) + ": ";
 
+		if (!ParseWeaponType(weapon, d.weaponType) || d.weaponType == WeaponType::None)
+		{
+			LOG_ERROR("Data", "{}WeaponType '{}' 는 Unarmed/Sword/Bow/Monster 중 하나여야 합니다", where, weapon);
+			return false;
+		}
+		// skillId 첫째 자리 = 무기 종류 (맨손 1xxx, 검 2xxx, 활 3xxx, 몬스터 9xxx)
+		static const std::unordered_map<WeaponType, int> kIdPrefix = {
+			{ WeaponType::Unarmed, 1 }, { WeaponType::Sword, 2 }, { WeaponType::Bow, 3 }, { WeaponType::Monster, 9 } };
+		if (d.skillId < 1000 || d.skillId > 9999 || d.skillId / 1000 != kIdPrefix.at(d.weaponType))
+		{
+			LOG_ERROR("Data", "{}skillId {} 는 4자리이고 첫째 자리가 무기 종류(Unarmed 1, Sword 2, Bow 3, Monster 9)여야 합니다", where, d.skillId);
+			return false;
+		}
 		if (!ParseHitShape(shape, d.hitShape))
 		{
 			LOG_ERROR("Data", "{}HitShape '{}' 는 Sector/Line/Projectile/Zone 중 하나여야 합니다", where, shape);
@@ -152,21 +211,26 @@ bool DataManager::Init()
 			LOG_ERROR("Data", "{}skillId {} 가 중복되었습니다", where, d.skillId);
 			return false;
 		}
-		if (_characterTable.count(d.ownerType) == 0)
-		{
-			LOG_ERROR("Data", "{}PlayerType {} 가 StatTable에 없습니다", where, d.ownerType);
-			return false;
-		}
-		const int slotKey = d.ownerType * 100 + d.slot;
+		_skillTable[d.skillId] = d;
+
+		// 몬스터 스킬은 MonsterTable.SkillId로 찾으므로 슬롯 색인에 넣지 않는다(몬스터 종류마다 슬롯 0이 따로 있을 수 있다).
+		if (d.weaponType == WeaponType::Monster) continue;
+
+		const int slotKey = static_cast<int>(d.weaponType) * 100 + d.slot;
 		if (_skillBySlot.count(slotKey))
 		{
-			LOG_ERROR("Data", "{}PlayerType {} 의 Slot {} 이 중복되었습니다", where, d.ownerType, d.slot);
+			LOG_ERROR("Data", "{}WeaponType {} 의 Slot {} 이 중복되었습니다", where, weapon, d.slot);
 			return false;
 		}
-		_skillTable[d.skillId] = d;
 		_skillBySlot[slotKey] = d.skillId;
 	}
-	// MonsterTable: Name(=monsterTemplateId), RespawnSec, DeathRemoveDelaySec, HitStunMs, WanderRadiusCm
+	// 무기가 없는 플레이어도 기본 공격은 할 수 있어야 한다.
+	if (GetSkillBySlot(WeaponType::Unarmed, 0) == nullptr)
+	{
+		LOG_ERROR("Data", "{}: 맨손(Unarmed) 기본 공격(Slot 0) 행이 없습니다", skill.Path());
+		return false;
+	}
+	// MonsterTable: Name(=monsterTemplateId), SkillId, RespawnSec, DeathRemoveDelaySec, HitStunMs, WanderRadiusCm
 	CsvFile monster;
 	if (!monster.Load((dir / "MonsterTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
@@ -174,7 +238,8 @@ bool DataManager::Init()
 	{
 		MonsterData d{};
 		int respawnSec = 0, removeDelaySec = 0, hitStunMs = 0, wanderRadiusCm = 0;
-		if (!row.GetInt("Name", d.templateId, err) || !row.GetInt("RespawnSec", respawnSec, err) ||
+		if (!row.GetInt("Name", d.templateId, err) || !row.GetInt("SkillId", d.skillId, err) ||
+			!row.GetInt("RespawnSec", respawnSec, err) ||
 			!row.GetInt("DeathRemoveDelaySec", removeDelaySec, err) || !row.GetInt("HitStunMs", hitStunMs, err) ||
 			!row.GetInt("WanderRadiusCm", wanderRadiusCm, err))
 		{
@@ -196,11 +261,90 @@ bool DataManager::Init()
 			LOG_ERROR("Data", "{} line {}: 템플릿 {} 의 스탯이 StatTable(PlayerType)에 없습니다", monster.Path(), row.Line(), d.templateId);
 			return false;
 		}
+		const SkillData* monsterSkill = GetSkillData(d.skillId);
+		if (monsterSkill == nullptr || monsterSkill->weaponType != WeaponType::Monster)
+		{
+			LOG_ERROR("Data", "{} line {}: SkillId {} 가 SkillTable에 없거나 WeaponType이 Monster가 아닙니다", monster.Path(), row.Line(), d.skillId);
+			return false;
+		}
 		d.respawnMs = respawnSec * 1000;
 		d.deathRemoveDelayMs = removeDelaySec * 1000;
 		d.hitStunMs = hitStunMs;
 		d.wanderRadiusCm = wanderRadiusCm;
 		_monsterTable[d.templateId] = d;
+	}
+
+	// ItemTable: Name(=itemId), Slot, Grade, Tier, WeaponType, BonusAttackDamage, BonusMaxHp
+	// (DisplayName, Icon, MeshM, MeshF, StaticMesh 는 클라이언트 전용이라 읽지 않는다)
+	CsvFile item;
+	if (!item.Load((dir / "ItemTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
+
+	for (const CsvRow& row : item.Rows())
+	{
+		ItemData d{};
+		std::string slot, grade, tier, weapon;
+		if (!row.GetInt("Name", d.itemId, err) || !row.GetString("Slot", slot, err) ||
+			!row.GetString("Grade", grade, err) || !row.GetString("Tier", tier, err) ||
+			!row.GetString("WeaponType", weapon, err) ||
+			!row.GetInt("BonusAttackDamage", d.bonusAttackDamage, err) || !row.GetInt("BonusMaxHp", d.bonusMaxHp, err))
+		{
+			LOG_ERROR("Data", "{}", err);
+			return false;
+		}
+
+		const std::string where = item.Path() + " line " + std::to_string(row.Line()) + ": ";
+
+		if (!ParseItemSlot(slot, d.slot))
+		{
+			LOG_ERROR("Data", "{}Slot '{}' 는 Head/Top/Bottom/Gloves/Boots/Weapon 중 하나여야 합니다", where, slot);
+			return false;
+		}
+		if (!ParseItemGrade(grade, d.grade))
+		{
+			LOG_ERROR("Data", "{}Grade '{}' 는 Common/Uncommon/Rare 중 하나여야 합니다", where, grade);
+			return false;
+		}
+		if (!ParseItemTier(tier, d.tier))
+		{
+			LOG_ERROR("Data", "{}Tier '{}' 는 Cloth/Leather/Plate 중 하나여야 합니다", where, tier);
+			return false;
+		}
+		if (!ParseWeaponType(weapon, d.weaponType))
+		{
+			LOG_ERROR("Data", "{}WeaponType '{}' 를 알 수 없습니다", where, weapon);
+			return false;
+		}
+		// itemId = 슬롯(1자리) + 티어(1자리) + 일련번호(01~99)
+		if (d.itemId < 1000 || d.itemId > 9999 || d.itemId / 1000 != static_cast<int>(d.slot) ||
+			(d.itemId / 100) % 10 != static_cast<int>(d.tier) || d.itemId % 100 == 0)
+		{
+			LOG_ERROR("Data", "{}itemId {} 는 4자리 [슬롯 번호][티어 번호][일련번호 01~99] 여야 합니다 (Slot {} = {}, Tier {} = {})",
+				where, d.itemId, slot, static_cast<int>(d.slot), tier, static_cast<int>(d.tier));
+			return false;
+		}
+		// 무기는 Sword/Bow + 공격력 보너스만, 방어구는 None + 최대 HP 보너스만 (Docs/DESIGN_CHARACTER_EQUIPMENT.md)
+		const bool isWeapon = d.slot == ItemSlot::Weapon;
+		if (isWeapon && d.weaponType != WeaponType::Sword && d.weaponType != WeaponType::Bow)
+		{
+			LOG_ERROR("Data", "{}무기의 WeaponType은 Sword/Bow 중 하나여야 합니다 ('{}')", where, weapon);
+			return false;
+		}
+		if (!isWeapon && d.weaponType != WeaponType::None)
+		{
+			LOG_ERROR("Data", "{}무기가 아닌 아이템의 WeaponType은 None이어야 합니다 ('{}')", where, weapon);
+			return false;
+		}
+		if (d.bonusAttackDamage < 0 || d.bonusMaxHp < 0 || (isWeapon && d.bonusMaxHp != 0) || (!isWeapon && d.bonusAttackDamage != 0))
+		{
+			LOG_ERROR("Data", "{}보너스가 허용 범위를 벗어났습니다 (음수 불가, 무기는 BonusAttackDamage만, 방어구는 BonusMaxHp만)", where);
+			return false;
+		}
+		if (_itemTable.count(d.itemId))
+		{
+			LOG_ERROR("Data", "{}itemId {} 가 중복되었습니다", where, d.itemId);
+			return false;
+		}
+		_itemTable[d.itemId] = d;
 	}
 
 	// MovementTable: Name(=movementId), ServerSpeedTolerance, ServerMoveBudgetMs, ServerMoveSlackCm, ServerMinMoveIntervalMs, ServerNavToleranceCm
@@ -267,7 +411,7 @@ bool DataManager::Init()
 		_worldTable[d.mapName] = d;
 	}
 
-	LOG_INFO("Data", "로드 완료 (StatTable {}행, SkillTable {}행, MonsterTable {}행, MovementTable {}행, WorldTable {}행)",
-		_characterTable.size(), _skillTable.size(), _monsterTable.size(), _movementTable.size(), _worldTable.size());
+	LOG_INFO("Data", "로드 완료 (StatTable {}행, SkillTable {}행, MonsterTable {}행, ItemTable {}행, MovementTable {}행, WorldTable {}행)",
+		_characterTable.size(), _skillTable.size(), _monsterTable.size(), _itemTable.size(), _movementTable.size(), _worldTable.size());
 	return true;
 }

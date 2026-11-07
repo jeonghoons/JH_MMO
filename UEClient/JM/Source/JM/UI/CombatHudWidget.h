@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Data/ItemTableRow.h"
 #include "CombatHudWidget.generated.h"
 
 class USkillSlotWidget;
@@ -15,8 +16,8 @@ class JM_API UCombatHudWidget : public UUserWidget
 public:
 	void SetHp(int32 Hp, int32 MaxHp);
 
-	// 영웅(Protocol::PlayerType)의 SkillTable 행으로 슬롯 아이콘을 채운다.
-	void SetHero(int32 PlayerType);
+	// 무기 타입의 SkillTable 행으로 슬롯 아이콘을 채운다. (무기를 바꾸면 다시 부른다 — MC3.2)
+	void SetWeaponType(EWeaponType WeaponType);
 
 	// 서버가 확정한 시전(SC_ATTACK)의 쿨타임을 해당 슬롯에 표시한다.
 	void StartCooldown(int32 SkillSlot, int32 CooldownMs);

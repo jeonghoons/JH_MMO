@@ -88,6 +88,11 @@ private:
 	int _spawnIndex = -1;
 
 	float _traceRange = 800.f;
-	float _attackRange;
+	float _attackRange = 0.f;
+	int _skillId = 0;          // 기본 공격 = MonsterTable.SkillId
+
+protected:
+	// 몬스터는 기본 공격(슬롯 0)만 있다.
+	virtual const SkillData* GetSlotSkill(int slot) const override { return slot == 0 ? DataManager::GetSkillData(_skillId) : nullptr; }
 };
 

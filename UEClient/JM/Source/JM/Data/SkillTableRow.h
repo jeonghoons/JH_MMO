@@ -5,6 +5,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Animation/AnimMontage.h"
 #include "Engine/Texture2D.h"
+#include "Data/ItemTableRow.h"
 #include "SkillTableRow.generated.h"
 
 // Common/DataTable/SkillTable.csv 의 enum 값과 이름이 같아야 한다. (서버 ServerData.h 의 HitShape / SkillTargeting)
@@ -31,7 +32,7 @@ struct FSkillTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 PlayerType = 0;   // 영웅(Protocol::PlayerType)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) EWeaponType WeaponType = EWeaponType::Unarmed;   // 이 스킬을 쓰는 무기 타입 (ID 첫째 자리: 맨손 1, 검 2, 활 3, 몬스터 9)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 Slot = 0;         // 0 = 기본 공격, 1~5 = 숫자키
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) ESkillTargetingType TargetingType = ESkillTargetingType::NonTargeted;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) ESkillHitShape HitShape = ESkillHitShape::Sector;

@@ -24,9 +24,12 @@ Monster::Monster(Protocol::PlayerType type) : Character(Protocol::ObjectType::OB
 		_statInfo.Init(stat);
 	}
 	
-	int myBasicAttackId = (int)_objectInfo.player_type() * 100 + 1;
-	if (const SkillData* skill = DataManager::GetSkillData(myBasicAttackId)) {
-		_attackRange = skill->radius;
+	// 템플릿(= PlayerType)의 MonsterTable 행이 기본 공격 스킬을 정한다. 로더가 SkillId의 존재를 보장한다.
+	if (const MonsterData* monsterData = DataManager::GetMonsterData((int)_objectInfo.player_type())) {
+		_skillId = monsterData->skillId;
+		if (const SkillData* skill = DataManager::GetSkillData(_skillId)) {
+			_attackRange = skill->radius;
+		}
 	}
 
 	_maxSpeed = _statInfo.GetMoveSpeed();

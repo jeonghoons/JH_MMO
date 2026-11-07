@@ -228,7 +228,7 @@ const FSkillTableRow* AJMMyPlayer::FindMySkill(int32 Slot) const
 	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
 	if (DataManager == nullptr) return nullptr;
 
-	return DataManager->FindSkillBySlot(static_cast<int32>(ObjectInfo.player_type()), Slot);
+	return DataManager->FindSkillBySlot(GetWeaponType(), Slot);
 }
 
 // 화면 중앙(크로스헤어)을 지나는 카메라 레이로 시전 방향/대상/지면 지점을 구한다.

@@ -44,6 +44,12 @@ public:
 	};
 	MoveGuard moveGuard;
 
+	// 장착 무기의 타입. 무기 슬롯이 비면 Unarmed. (MC3.1: 장착 시스템 전이라 항상 Unarmed — MC3.2에서 장착 무기로 계산)
+	WeaponType GetWeaponType() const { return WeaponType::Unarmed; }
+
+protected:
+	virtual const SkillData* GetSlotSkill(int slot) const override { return DataManager::GetSkillBySlot(GetWeaponType(), slot); }
+
 private:
 	weak_ptr<GameSession> _ownerSession;
 	wstring _name;

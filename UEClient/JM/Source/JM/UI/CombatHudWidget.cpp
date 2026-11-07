@@ -14,12 +14,12 @@ void UCombatHudWidget::NativeConstruct()
 	if (ObjectManager && ObjectManager->MyPlayer)
 	{
 		const Protocol::ObjectInfo& Info = ObjectManager->MyPlayer->GetObjectInfo();
-		SetHero(static_cast<int32>(Info.player_type()));
+		SetWeaponType(ObjectManager->MyPlayer->GetWeaponType());
 		SetHp(Info.stat().hp(), Info.stat().max_hp());
 	}
 	else
 	{
-		SetHero(0);
+		SetWeaponType(EWeaponType::None);
 		SetHp(0, 0);
 	}
 }
@@ -31,12 +31,12 @@ void UCombatHudWidget::SetHp(int32 Hp, int32 MaxHp)
 	if (TxtHp) TxtHp->SetText(FText::FromString(FString::Printf(TEXT("%d / %d"), Hp, MaxHp)));
 }
 
-void UCombatHudWidget::SetHero(int32 PlayerType)
+void UCombatHudWidget::SetWeaponType(EWeaponType WeaponType)
 {
 	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
 	for (USkillSlotWidget* SkillSlotWidget : GetSkillSlots())
 	{
-		SkillSlotWidget->SetSkill(DataManager ? DataManager->FindSkillBySlot(PlayerType, SkillSlotWidget->GetSkillSlot()) : nullptr);
+		SkillSlotWidget->SetSkill(DataManager ? DataManager->FindSkillBySlot(WeaponType, SkillSlotWidget->GetSkillSlot()) : nullptr);
 	}
 }
 

@@ -105,11 +105,11 @@ FName AJMPlayer::GetCharacterRowName(Protocol::PlayerType Type)
 	using namespace Protocol;
 	switch (Type)
 	{
-    case PLAYER_TYPE_WARRIOR:
+    // 체형 MALE/FEMALE의 매니퀸 외형은 MC4.1 장비 컴포넌트에서 만든다. 그 전까지 PIE에서 캐릭터가 보이도록 옛 영웅 외형을 임시로 쓴다.
+    case PLAYER_TYPE_MALE:
         return FName(TEXT("Greystone"));
-    case PLAYER_TYPE_ARCHER:
+    case PLAYER_TYPE_FEMALE:
         return FName(TEXT("Sparrow"));
-        break;
     default:
         UE_LOG(LogTemp, Warning, TEXT("Invalid PlayerType: %d"), Type);
         return NAME_None;

@@ -1,0 +1,15 @@
+Name,Slot,Grade,Tier,WeaponType,BonusAttackDamage,BonusMaxHp,DisplayName,Icon,MeshM,MeshF,StaticMesh
+1101,Head,Common,Cloth,None,0,30,천 두건,/Game/Equipment/Cloth/Hood/T_Icon_Cloth_Hood.T_Icon_Cloth_Hood,,,/Game/Equipment/Cloth/Hood/Source/SM_Cloth_Hood_Src.SM_Cloth_Hood_Src
+1301,Head,Uncommon,Plate,None,0,80,판금 투구,/Game/Equipment/Plate/Helm/T_Icon_Plate_Helm.T_Icon_Plate_Helm,,,/Game/Equipment/Plate/Helm/Source/SM_Plate_Helm_Src.SM_Plate_Helm_Src
+2101,Top,Common,Cloth,None,0,30,천 상의,/Game/Equipment/Cloth/Top/T_Icon_Cloth_Top.T_Icon_Cloth_Top,/Game/Equipment/Cloth/Top/SK_Cloth_Top_M.SK_Cloth_Top_M,/Game/Equipment/Cloth/Top/SK_Cloth_Top_F.SK_Cloth_Top_F,
+2301,Top,Uncommon,Plate,None,0,80,판금 상의,/Game/Equipment/Plate/Top/T_Icon_Plate_Top.T_Icon_Plate_Top,/Game/Equipment/Plate/Top/SK_Plate_Top_M.SK_Plate_Top_M,/Game/Equipment/Plate/Top/SK_Plate_Top_F.SK_Plate_Top_F,
+3101,Bottom,Common,Cloth,None,0,30,천 하의,/Game/Equipment/Cloth/Bottom/T_Icon_Cloth_Bottom.T_Icon_Cloth_Bottom,/Game/Equipment/Cloth/Bottom/SK_Cloth_Bottom_M.SK_Cloth_Bottom_M,/Game/Equipment/Cloth/Bottom/SK_Cloth_Bottom_F.SK_Cloth_Bottom_F,
+3301,Bottom,Uncommon,Plate,None,0,80,판금 하의,/Game/Equipment/Plate/Bottom/T_Icon_Plate_Bottom.T_Icon_Plate_Bottom,/Game/Equipment/Plate/Bottom/SK_Plate_Bottom_M.SK_Plate_Bottom_M,/Game/Equipment/Plate/Bottom/SK_Plate_Bottom_F.SK_Plate_Bottom_F,
+4101,Gloves,Common,Cloth,None,0,30,천 장갑,/Game/Equipment/Cloth/Gloves/T_Icon_Cloth_Gloves.T_Icon_Cloth_Gloves,/Game/Equipment/Cloth/Gloves/SK_Cloth_Gloves_M.SK_Cloth_Gloves_M,/Game/Equipment/Cloth/Gloves/SK_Cloth_Gloves_F.SK_Cloth_Gloves_F,
+4301,Gloves,Uncommon,Plate,None,0,80,판금 장갑,/Game/Equipment/Plate/Gloves/T_Icon_Plate_Gloves.T_Icon_Plate_Gloves,/Game/Equipment/Plate/Gloves/SK_Plate_Gloves_M.SK_Plate_Gloves_M,/Game/Equipment/Plate/Gloves/SK_Plate_Gloves_F.SK_Plate_Gloves_F,
+5101,Boots,Common,Cloth,None,0,30,천 장화,/Game/Equipment/Cloth/Boots/T_Icon_Cloth_Boots.T_Icon_Cloth_Boots,/Game/Equipment/Cloth/Boots/SK_Cloth_Boots_M.SK_Cloth_Boots_M,/Game/Equipment/Cloth/Boots/SK_Cloth_Boots_F.SK_Cloth_Boots_F,
+5301,Boots,Uncommon,Plate,None,0,80,판금 장화,/Game/Equipment/Plate/Boots/T_Icon_Plate_Boots.T_Icon_Plate_Boots,/Game/Equipment/Plate/Boots/SK_Plate_Boots_M.SK_Plate_Boots_M,/Game/Equipment/Plate/Boots/SK_Plate_Boots_F.SK_Plate_Boots_F,
+6101,Weapon,Common,Cloth,Sword,10,0,천 한손검,/Game/Equipment/Cloth/Sword/T_Icon_Cloth_Sword.T_Icon_Cloth_Sword,,,/Game/Equipment/Cloth/Sword/Source/SM_Cloth_Sword_Src.SM_Cloth_Sword_Src
+6102,Weapon,Common,Cloth,Bow,10,0,천 활,/Game/Equipment/Cloth/Bow/T_Icon_Cloth_Bow.T_Icon_Cloth_Bow,,,/Game/Equipment/Cloth/Bow/Source/SM_Cloth_Bow_Src.SM_Cloth_Bow_Src
+6301,Weapon,Uncommon,Plate,Sword,20,0,판금 한손검,/Game/Equipment/Plate/Sword/T_Icon_Plate_Sword.T_Icon_Plate_Sword,,,/Game/Equipment/Plate/Sword/Source/SM_Plate_Sword_Src.SM_Plate_Sword_Src
+6302,Weapon,Uncommon,Plate,Bow,20,0,판금 활,/Game/Equipment/Plate/Bow/T_Icon_Plate_Bow.T_Icon_Plate_Bow,,,/Game/Equipment/Plate/Bow/Source/SM_Plate_Bow_Src.SM_Plate_Bow_Src

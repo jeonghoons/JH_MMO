@@ -38,7 +38,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 |---|---|
 | MovementTable | 이동 속도, 카메라 관련 수치 (Test에서 이식됨: `MovementTable.csv`) |
 | StatTable | 체형(MALE/FEMALE)·몬스터 기본 스탯 |
-| ItemTable | 장비 아이템(슬롯, 등급, 티어, 스탯 보너스, 무기 타입, 외형 경로는 클라 전용) — Phase MC3.1, A3에서 확장 |
+| ItemTable | 장비 아이템(슬롯, 등급, 티어, 스탯 보너스, 무기 타입, 외형 경로는 클라 전용) — MC3.1 구현, A3에서 확장 |
 | SkillTable | `WeaponType`(무기 타입 종속), 슬롯, 쿨타임, 판정 Shape, 타겟팅 타입, 범위, 데미지, 몽타주 경로(클라 전용) |
 | MonsterTable / UITable | 해당 기능 작업 시 |
 | WorldTable | 맵별 시야(AOI) 수치 — 서버 전용(2026-10-31 A1.3) |
@@ -46,29 +46,35 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 2026-11-04 Phase MC: 계획했던 `HeroTable`/`WeaponItemTable`은 만들지 않고 **ItemTable**로 대체합니다. 플레이어 메시·AnimBP는 매니퀸 공용이라 테이블이 필요 없고, `DT_CharacterAsset`은 MC4에서 플레이어 참조를 끊은 뒤 정리합니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
 
 ## 서버 로더 (구현됨, 2026-10-20)
-- `Server/Server/CsvFile.h/.cpp`가 CSV를 파싱하고(UTF-8·BOM·따옴표 지원, 컬럼 수/숫자 형식 검증), `DataManager::Init()`(`ServerData.cpp`)가 테이블을 읽어 `GetCharacterData`/`GetSkillData`로 제공합니다.
+- `CsvFile`(ServerCore `Utils/`)이 CSV를 파싱하고(UTF-8·BOM·따옴표 지원, 컬럼 수/숫자 형식 검증), `DataManager::Init()`(`Server/Server/Data/ServerData.cpp`)가 테이블을 읽어 `GetCharacterData`/`GetSkillData`/`GetSkillBySlot`/`GetMonsterData`/`GetItemData` 등으로 제공합니다.
 - 데이터 폴더는 환경변수 `JH_DATA_DIR`, 없으면 `../../Common/DataTable` 등 서버 작업 디렉터리 기준 후보 경로에서 찾습니다.
 - **형식 오류·중복 키·존재하지 않는 참조는 서버 시작을 중단**합니다(줄 번호 포함 메시지). 데이터 버그를 조용히 넘기지 않기 위함입니다.
 - 수치 변경은 CSV 수정 후 **서버 재시작**으로 반영됩니다(핫 리로드 없음).
 
 ### StatTable (서버 구현됨)
-`Name`(ID, 1001~), `PlayerType`(`Enum.proto`의 PlayerType 값, 서버 조회 키·중복 불가), `MaxHp`, `AttackDamage`, `AttackSpeed`, `MoveSpeed`. 생성 시 HP는 `MaxHp`입니다. 현재 행: 몬스터(3), 전사(4), 궁수(5).
-- **Phase MC 목표(MC3.1)**: 행을 MALE(1)·FEMALE(2)·몬스터(3)로 바꾸고, MALE·FEMALE은 같은 값(MaxHp 500, AttackDamage 0, AttackSpeed 1.0, MoveSpeed 500). 최종 스탯 = 기본 + 장비 보너스(무기 `AttackDamage`, 방어구 `MaxHp`)이며 서버가 계산합니다. `AttackDamage`는 피해 공식(`BaseDamage` + 공격력)에 쓰입니다.
+`Name`(ID, 1001~), `PlayerType`(`Enum.proto`의 PlayerType 값, 서버 조회 키·중복 불가), `MaxHp`, `AttackDamage`, `AttackSpeed`, `MoveSpeed`. 생성 시 HP는 `MaxHp`입니다. 현재 행(2026-11-07 MC3.1): 1001 MALE(1)·1002 FEMALE(2) — 같은 값(MaxHp 500, AttackDamage 0, AttackSpeed 1.0, MoveSpeed 500), 1003 몬스터(3). MALE·FEMALE 행이 없으면 서버 시작을 중단합니다. 가입은 MALE/FEMALE만 받습니다.
+- 최종 스탯 = 기본 + 장비 보너스(무기 `AttackDamage`, 방어구 `MaxHp`)이며 서버가 계산합니다(MC3.2). `AttackDamage`는 피해 공식(`BaseDamage` + 공격력)에 쓰입니다(MC3.2부터 — 그 전까지 피해는 `BaseDamage`만).
+- 옛 전사(4)·궁수(5) 행은 삭제했습니다. DB에 남은 4·5 캐릭터(봇 `dummy` 계정 포함)는 로그인할 때 서버가 메모리에서 MALE로 바꾸고, DB 행은 MC3.3 마이그레이션에서 바꿉니다.
 
 ### SkillTable (서버 구현됨)
-`Name`(skillId), `PlayerType`(영웅 종속), `Slot`(0 = 기본 공격, 1~5 = 숫자키), `TargetingType`(`Targeted`/`NonTargeted`), `HitShape`(`Sector`/`Line`/`Projectile`/`Zone`), `HitDelayMs`, `CooldownMs`, `CastRange`(Targeted는 대상까지, Zone은 지점까지 최대 거리), `Radius`, `Angle`, `Range`, `Width`, `BaseDamage`, `ProjSpeed`, `DurationMs`/`TickMs`(Zone: 지속 시간 / 한 대상에게 피해를 주는 최소 간격 — 진입 즉시 피해 후 `TickMs`마다 반복). 클라이언트 전용 열(서버 로더는 무시): `Fx`/`FxBaseRadius`(이펙트), `Montage`(시전 몽타주), `Icon`(전투 HUD 슬롯 아이콘 텍스처).
-- 클라이언트는 skillId가 아니라 **슬롯**을 보내고, 서버가 영웅의 SkillTable로 해석합니다(다른 영웅의 스킬 사용 불가). 쿨타임은 스킬별이며 기본 공격(슬롯 0)만 공격 속도 배율을 반영합니다.
-- 현재 행: 301(몬스터), 401/402(전사 기본·광역 강타), 501/502(궁수 기본 타겟팅 투사체·지면 장판). skillId 규칙은 `PlayerType*100+Slot+1`(기존 기본 공격 id 유지)입니다.
-- **Phase MC 목표(MC3.1)**: `PlayerType` 열 → `WeaponType` 열(`Unarmed`/`Sword`/`Bow`/`Monster`, `.proto` enum과 같은 이름). 서버 조회 키 = (WeaponType, Slot), 중복 불가. ID 앞자리 = 무기 종류(맨손 1xxx, 검 2xxx, 활 3xxx, 몬스터 9xxx): 1001 맨손 기본 공격(신규), 2001/2002 = 401/402, 3001/3002 = 501/502, 9001 = 301. 몽타주는 `AM_<WeaponType>_<Action>`으로 바뀝니다. 상세 [DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md).
+`Name`(skillId), `WeaponType`(무기 종속 — `Unarmed`/`Sword`/`Bow`/`Monster`), `Slot`(0 = 기본 공격, 1~5 = 숫자키), `TargetingType`(`Targeted`/`NonTargeted`), `HitShape`(`Sector`/`Line`/`Projectile`/`Zone`), `HitDelayMs`, `CooldownMs`, `CastRange`(Targeted는 대상까지, Zone은 지점까지 최대 거리), `Radius`, `Angle`, `Range`, `Width`, `BaseDamage`, `ProjSpeed`, `DurationMs`/`TickMs`(Zone: 지속 시간 / 한 대상에게 피해를 주는 최소 간격 — 진입 즉시 피해 후 `TickMs`마다 반복). 클라이언트 전용 열(서버 로더는 무시): `Fx`/`FxBaseRadius`(이펙트), `Montage`(시전 몽타주), `Icon`(전투 HUD 슬롯 아이콘 텍스처).
+- 클라이언트는 skillId가 아니라 **슬롯**을 보내고, 서버가 캐릭터의 현재 무기 타입으로 SkillTable을 해석합니다(다른 무기의 스킬 사용 불가). 쿨타임은 스킬별이며 기본 공격(슬롯 0)만 공격 속도 배율을 반영합니다.
+- (2026-11-07 MC3.1) 서버 조회 키 = (WeaponType, Slot), 중복 불가. **ID는 4자리, 첫째 자리 = 무기 종류**(맨손 1xxx, 검 2xxx, 활 3xxx, 몬스터 9xxx — 어긋나면 서버 시작 중단). 현재 행: 1001 맨손 기본 공격(검 기본 공격의 60% 피해 30, 반경 150, 시간은 검과 같음 — MC4.2에서 맨손 몽타주로 다시 뽑음), 2001/2002 검(옛 401/402), 3001/3002 활(옛 501/502), 9001 몬스터(옛 301). 맨손 기본 공격(Unarmed, 0) 행이 없으면 시작을 중단합니다.
+- `Monster` 스킬은 슬롯 색인에 넣지 않고 `MonsterTable.SkillId`로만 찾습니다(몬스터 종류마다 슬롯 0이 따로 있을 수 있음).
+- 몽타주 열은 아직 옛 Greystone/Sparrow 몽타주를 가리키고, MC4.2에서 `AM_<WeaponType>_<Action>`으로 바뀝니다. 맨손 행은 몽타주가 비어 있어 클라이언트가 캐릭터 기본 공격 몽타주를 씁니다. 상세 [DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md).
+- 플레이어의 현재 무기 타입: MC3.1에서는 장착 시스템이 없어 항상 `Unarmed`(서버 `Player::GetWeaponType`, 클라 `AJMPlayer::GetWeaponType`) — MC3.2에서 장착 무기의 `ItemTable.WeaponType`으로 바꿉니다.
 
 ### MonsterTable (서버 구현됨)
 `Name`(=스폰 마커의 `monsterTemplateId`, StatTable.PlayerType과 동일해야 함), `RespawnSec`(사망 후 리스폰까지), `DeathRemoveDelaySec`(시체를 남기는 시간, `<= RespawnSec`), `HitStunMs`(피격 후 행동이 막히는 시간, 0~10000 — 피격 모션 길이에 맞춘다), `WanderRadiusCm`(대기 중 배회: 현재 위치에서 이 반경 안 임의 지점, 0~10000 — 2026-10-31 A1.3c에서 AOI 셀과 분리한 임시값, 행동트리 개선 때 재검토). 사망 연출 길이에 맞춰 `DeathRemoveDelaySec`를 조절합니다. 스폰 위치/수는 맵 JSON의 `spawnRadius`/`maxCount`를 따릅니다. 보상(경험치/골드) 컬럼은 A2.3에서 추가합니다.
-- **Phase MC 목표(MC3.1)**: `SkillId`(필수, SkillTable 참조 — 없으면 서버 시작 중단) 열 추가. 몬스터 스킬은 `PlayerType`이 아니라 이 열로 찾습니다.
+- `SkillId`(2026-11-07 MC3.1, 둘째 열, 필수): 기본 공격 스킬. SkillTable에 없거나 `WeaponType`이 `Monster`가 아니면 서버 시작을 중단합니다. 몬스터 스킬은 `PlayerType`이 아니라 이 열로 찾습니다. 현재 행: 3 → 9001.
 
-### ItemTable (Phase MC3.1 목표, 컬럼은 그때 확정)
-- 서버가 읽는 열(초안): `Name`(itemId, 앞자리로 종류 구분 — 규칙은 MC3.1에서 확정), `Slot`(`EquipPart` 이름), `Grade`(`Common`/`Uncommon`/`Rare`), `Tier`(`Cloth`/`Leather`/`Plate`), `WeaponType`(무기만, 나머지 `None`), `BonusAttackDamage`, `BonusMaxHp`.
-- 클라 전용 열(초안): `MeshM`/`MeshF`(스켈레탈 의상, 체형별 소프트 경로), `StaticMesh`(머리·무기), `AttachSocket`·상대 변환(정적 메시), `HidesBodyParts`(예: `torso|arms`), `Icon`, `DisplayName`.
-- 맨손은 행이 없습니다(무기 슬롯 비어 있음 = Unarmed). 1차 행: 천·판금 × (5부위 + 한손검 + 활) = 14개([DESIGN_ART_CONCEPT.md](DESIGN_ART_CONCEPT.md)).
+### ItemTable (2026-11-07 MC3.1 확정, 서버 구현됨)
+- 서버가 읽는 열: `Name`(itemId), `Slot`(`Head`/`Top`/`Bottom`/`Gloves`/`Boots`/`Weapon`), `Grade`(`Common`/`Uncommon`/`Rare`), `Tier`(`Cloth`/`Leather`/`Plate`), `WeaponType`(무기만 `Sword`/`Bow`, 나머지 `None`), `BonusAttackDamage`(무기만), `BonusMaxHp`(방어구만).
+- **itemId 규칙 = 4자리 [슬롯][티어][일련번호 01~99]**: 슬롯 번호 Head 1·Top 2·Bottom 3·Gloves 4·Boots 5·Weapon 6(MC3.2의 새 `EquipPart` 번호와 같음), 티어 번호 Cloth 1·Leather 2·Plate 3. 예: 1101 천 두건, 6101 천 한손검, 6102 천 활, 6301 판금 한손검. 규칙에 어긋나는 ID, 무기·방어구의 WeaponType/보너스 열 오용, 음수 보너스, 중복 ID는 서버 시작을 중단합니다.
+- 클라 전용 열: `DisplayName`(FText), `Icon`(`T_Icon_<Item>`), `MeshM`/`MeshF`(스켈레탈 슬롯의 체형별 메시), `StaticMesh`(머리·무기 — 지금은 `Source/SM_<Item>_Src`). 부착 소켓·상대 변환·몸 숨김 파라미터는 아직 `Content/Python/jm_kit/items.json`에 있고, 이를 실제로 쓰는 MC4.1 장비 컴포넌트 작업 때 열을 확정해 옮깁니다.
+- 초기 수치(2026-11-07): 방어구 부위당 천 +30 / 판금 +80 MaxHp(5부위 세트 650 / 900), 무기 천 +10 / 판금 +20 공격력. 등급 천 Common, 판금 Uncommon.
+- 맨손은 행이 없습니다(무기 슬롯 비어 있음 = Unarmed). 현재 14행: 천·판금 × (5부위 + 한손검 + 활)([DESIGN_ART_CONCEPT.md](DESIGN_ART_CONCEPT.md)).
+- UE: `FItemTableRow`(`Source/JM/Data/ItemTableRow.h`, enum `EWeaponType`·`EEquipSlot`·`EItemTier`·`EItemGrade`), `DT_ItemTable`, 조회 `UDataManager::FindItemById`.
 
 ### WorldTable (서버 전용, 2026-10-31 A1.3)
 `Name`(worldId, 1001~), `MapName`(맵 리소스 파일 이름 = `GameMap::LoadMapData` 인자, 중복 불가), `CellSizeCm`(AOI 큰 셀 한 변 — 셀마다 쿼드트리, 100~100000), `QuadSplitCount`(쿼드트리 노드가 이 수를 넘으면 4분할, 1~1000), `QuadMinSizeCm`(이보다 작은 노드로는 나누지 않음, 100~CellSizeCm), `ViewRadiusCm`(목표 시야 반경 R — 이 안의 캐릭터는 반드시 보임, 100~100000), `ViewHysteresisCm`(H — 나갈 때는 R+H를 넘어야 사라짐, 0~R). 서버가 쓰는 맵(`Room.h` `ROOM_MAP_NAME`) 행이 없으면 시작을 중단합니다. 현재 행: 1001 ParagonSample(셀 5000, 분할 8, 최소 노드 500, R 5000, H 500 — R·H는 A1.3b 스크린샷으로 결정). UE는 이 테이블을 임포트하지 않습니다.
