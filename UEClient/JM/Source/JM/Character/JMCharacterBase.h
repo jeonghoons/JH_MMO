@@ -55,6 +55,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	void PlayAttackAnim(float PlayRate = 1.f);
 
+	// 피격·사망 몽타주를 데이터(BodyTable)에서 넣는다(MC4.2, UEquipmentComponent가 로드 뒤 호출). nullptr면 그 몽타주를 재생하지 않는다.
+	void SetReactionMontages(UAnimMontage* Hit, UAnimMontage* Dead);
+
 	
 protected:
 	UPROPERTY(EditAnywhere) 

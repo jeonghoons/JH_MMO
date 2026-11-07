@@ -91,6 +91,11 @@ void ULeaderPoseAppearance::Apply(ACharacter* Owner, const FEquipmentLook& Look)
 	{
 		Leader->SetAnimInstanceClass(Look.AnimClass);
 	}
+	// 무기 타입 레이어(MC4.2): AnimClass를 새로 만들면 연결이 풀리므로 그 뒤에 잇는다. 이미 같은 레이어가 연결돼 있으면 건드리지 않는다.
+	if (Look.AnimLayer && Leader->GetAnimInstance() && Leader->GetLinkedAnimLayerInstanceByClass(Look.AnimLayer) == nullptr)
+	{
+		Leader->LinkAnimClassLayers(Look.AnimLayer);
+	}
 	ApplyBodyMask(Leader, Look);
 
 	EnsureFollower(Owner, EyesComp, TEXT("Body_Eyes"))->SetSkeletalMesh(Look.Eyes);

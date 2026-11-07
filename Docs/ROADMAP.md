@@ -36,7 +36,8 @@
 7. ~~MC3.3~~ 완료(2026-11-07, `ItemTable.Starter` 기본 장비, 로그인 장비 복원, 변경 즉시 저장(측정 후 결정), DB 마이그레이션 — `DECISIONS.md`·`TESTING.md`).
 8. ~~MC4.1~~ 완료(2026-11-07, `UEquipmentComponent` + 교체 가능한 표시 `ULeaderPoseAppearance`, `BodyTable`·ItemTable 외형 열은 `jm_kit.item_table` 생성, `ABP_PlayerBase`, Greystone/Sparrow 임시 외형 삭제 — `DECISIONS.md`·`TESTING.md`).
 9. ~~MC4.1b~~ 완료(2026-11-07, A 속도 방향 30° 변화 시 즉시 송신 + B 따라잡기 상한 1.3배, `NetMoveStats`·봇 `--profile turn` — 남은 다듬기는 P2·P3에서, `DECISIONS.md`·`TESTING.md`).
-10. **다음: MC4.2** `ABP_PlayerBase` + `ALI_Weapon` + 무기 타입별 레이어(`ABP_Layer_<Weapon>`)·몽타주(`AM_<WeaponType>_<Action>`), 피격·사망 몽타주, Main States 점프·착지 정리(Land→Locomotion 자동 전이 복구 또는 상태 삭제), `ExportSkillTiming.bat`, 장갑 손가락 맞춤. 정리 후보: 쓰지 않는 `CS_DMOVE_PACKET`(`Protocol.proto`), `DT_CharacterAsset`·`UJMGameInstance::CharacterAssetTable`(플레이어 참조 끊김 — 정리 여부는 사용자에게 묻기), `MovementTable.xlsx`(2026-10-20 이후 CSV와 어긋남 — 맞출지 사용자에게 묻기).
+10. ~~MC4.2a~~ 완료(2026-11-08, `ALI_Weapon`(`LocomotionLayer`·`UpperBodyLayer`)·`ABP_Layer_Unarmed`·`AM_Unarmed_Attack`·`AM_Common_Death`, `ABP_PlayerBase` 재배선(C++ `UAnimAssetBuilder`)·루트 모션 무시, `WeaponTypeTable`·BodyTable 몽타주 열, PIE 사용자 확인 — `DECISIONS.md`·`TESTING.md`). 남은 확인: 에디터를 닫을 때 `ExportSkillTiming.bat`을 돌려 1001이 "변경 없음"인지(이번에는 같은 규칙으로 CSV를 직접 씀).
+11. **다음: MC4.2b** Mixamo 시범 리타깃(1개 → 사용자 확인) + 일괄 리타깃 도구, 이어서 4.2c 검·4.2d 활·4.2e 장갑 손가락 맞춤. 정리 후보: 쓰지 않는 `CS_DMOVE_PACKET`(`Protocol.proto`), `DT_CharacterAsset`·`UJMGameInstance::CharacterAssetTable`(플레이어 참조 끊김 — 정리 여부는 사용자에게 묻기), `MovementTable.xlsx`(2026-10-20 이후 CSV와 어긋남 — 맞출지 사용자에게 묻기).
 **VARCO 흐름 노드(JH_MMO 플로):** 투구 정면 컨셉 `531e1ef7…`, 3/4 시점 편집 `c1511cae…`, 3차 3D `8456f6d4…`(실패), 초록 배경 `aa21a66f…`, 4차 3D `4e325e94…`(실패), 사슬 뺀 눈높이 `a0bb8331…`, **5차 3D `ad0e9513…`(채택, 출력 0)**. 판금 상의 컨셉 `cb90b725…`가 세트 스타일 참고.
 
 ## 트랙 A — 서버/포트폴리오
@@ -207,8 +208,13 @@
 **MC4 클라이언트**
 - [x] MC4.1 장비 컴포넌트(Leader Pose, 몸 숨김 데이터 구동) (표시 방식 교체 가능 인터페이스 — `DECISIONS.md` 2026-11-05) (2026-11-07: `UEquipmentComponent`·`ULeaderPoseAppearance`, `BodyTable` + ItemTable 외형 열(`jm_kit.item_table`), `ABP_PlayerBase`, PIE 남녀·장비 교체·원격 봇 3명·PIE 2인 사용자 확인 — `TESTING.md`)
 - [x] MC4.1b 원격 이동 방향 전환 튐(2026-11-07 MC4.1 확인 중 발견, S1 원격 보간): 측정 → 방향 변화·정지 시 즉시 송신 + 따라잡는 속도 상한(`MovementTable`) → 재측정, 봇 이동 속도 전송 보완 (2026-11-07: `MoveSendTurnDeg` 30 + `RemoteCatchUpSpeedMul` 1.3, turn 봇 최대 2.78→1.23배·오차 −82%·송신 +18%, PIE 2인 개선 확인 — 남은 다듬기는 P2·P3, `TESTING.md`)
-- [ ] MC4.2 `ABP_PlayerBase` + `ALI_Weapon` + 무기 타입별 레이어·몽타주, `ExportSkillTiming.bat` (+ 장갑 손가락 맞춤 보완 — 무기 쥐기와 함께, `DECISIONS.md` 2026-11-05)
-- [ ] MC4.3 비전투 시 무기 등에 메기
+- [ ] MC4.2 `ABP_PlayerBase` + `ALI_Weapon` + 무기 타입별 레이어·몽타주, `ExportSkillTiming.bat` (+ 장갑 손가락 맞춤 보완 — 무기 쥐기와 함께, `DECISIONS.md` 2026-11-05). 2026-11-08 하위 단계로 분할(모션 출처·스킬 조준 동기화 — `DECISIONS.md` 2026-11-08):
+  - [x] MC4.2a 구조 + 맨손 + 사망(템플릿만): `WeaponTypeTable`(Name 1·2·3) → `LinkAnimClassLayers`, BodyTable `HitMontage`·`DeathMontage`(생성기), `ALI_Weapon`·`ABP_Layer_Unarmed`·`AM_Unarmed_Attack`·`AM_Common_Death`, Main States 점프·착지 정리 (2026-11-08: 레이어 이름 `LocomotionLayer`·`UpperBodyLayer`, 상체 슬롯 `spine_01` 레이어 블렌드, 기본 구현 = 맨손 이동, `RootMotionMode = IgnoreRootMotion`, Land→Locomotion은 이미 자동 전이라 변경 없음, SkillTable 1001 몽타주 연결, PIE 사용자 확인 — `TESTING.md`)
+  - [ ] MC4.2b Mixamo 시범 리타깃(1개 → 사용자 확인) + 일괄 리타깃 도구(jm_kit·jm_mcp), (선택) GASP strafe·Lyra 피격 확인, `ExternalAssets.md`
+  - [ ] MC4.2c 한손검 + 공용 피격: `ABP_Layer_Sword`(왼팔 맨손 포즈 덮기), `AM_Sword_Attack`·`AM_Sword_Skill2`, `AM_Common_Hit`, SkillTable 2001·2002 교체·타이밍 재추출
+  - [ ] MC4.2d 활 + 스킬 조준 동기화: `CS_/SC_SKILL_AIM_PACKET`, SkillTable `AimMoveSpeedMul`·`AimMaxMs`, 서버 이동 예산 감속·자동 해제, `ABP_Layer_Bow`(조준 = 느린 strafe + 당김 상체), `AM_Bow_Attack`·`AM_Bow_Skill1`, 활 등 메기(MC4.3 장치 먼저 적용)
+  - [ ] MC4.2e 장갑 손가락 맞춤 + Paragon 애니메이션 참조 0 확인 + 문서 정리(정리 후보는 사용자에게 묻기)
+- [ ] MC4.3 비전투 시 무기 등에 메기 (활은 MC4.2d에서 먼저 적용 — 검에 같은 장치 확장)
 - [ ] MC4.4 개발용 장비창 `WBP_Equipment`, 스킬 슬롯 배열 HUD
 
 **MC5 검증·병합**
@@ -227,6 +233,7 @@
 - [ ] ~~MC2.1: 프로토타입 FBX 5개(`Saved/VDL`) → `Dev/MC/Garments` 임포트, 프로토타입·보완판 결과 `Dev/MC/ProtoFit`·`Dev/MC/Fit`(git 제외), 의상 머티리얼 양면 (2026-11-04, 도구로 처리)~~ 삭제됨
 - [x] MC2.1b: Fab 키트를 사용자가 Add to Project(`Content/CoreC`, git 제외), `body_parts.build("M"/"F")`로 몸 부위·눈·이·헤어(LOD 3) 재생성, `MI_Skin_<M|F>_<Body|Face>` 4개 생성(`UseComic?` 끔) (2026-11-04, 도구로 처리) — 키트 설치는 유지, 몸 부위·`MI_Skin_*`은 2026-11-04 삭제
 - [x] MC4.1: `ABP_PlayerBase`(템플릿 `ABP_Unarmed` 복제·부모 `JMAnimInstance`, 도구로 처리) 상태·전이 안 연결 5개(Walk/Run X·Y, Idle↔Walk/Run, Land→Locomotion) — 공식 MCP가 중첩 그래프에 노드를 못 만들어 사용자가 직접 (2026-11-07 완료)
+- [x] MC4.2a: `ALI_Weapon`·`ABP_Layer_Unarmed`·`AM_Unarmed_Attack`·`AM_Common_Death` 생성, `ABP_PlayerBase` 재배선·`RootMotionMode`, `DT_WeaponTypeTable` 생성, `DT_BodyTable`·`DT_SkillTable` Reimport (2026-11-08, 도구로 처리 — `AnimBuilderTools`)
 - [ ] 로딩 화면 이미지: 사용자가 이미지를 구해 오면(2026-11-06 무렵) `WBP_SystemMessage` 대기(Waiting) 배경에 적용
 - [x] A2.2f: `WBP_SkillSlot`·`WBP_CombatHud` 생성, `BP_GameMode` 부모 → `AIngameGameModeBase` + `HUDWidgetClass = WBP_CombatHud` (2026-10-28, 도구로 처리)
 - [x] A2.2f: 스킬1 아이콘 2개(배경 투명 처리) → `Character/<영웅>/Icons` 가져오기, SkillTable `Icon` 경로 + `DT_SkillTable` Reimport, `WBP_CombatHud`에서 `SlotAttack` 제거 (2026-10-28, 도구로 처리)

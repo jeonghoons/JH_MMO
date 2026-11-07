@@ -4,7 +4,8 @@
   AttachSocket·AttachM·AttachF = 머리·무기의 부착 본과 체형별 상대 변환(garment.static_attachment 계산 결과 — 투구 배율은 체형별 머리 상자 기준이라 런타임에 계산하지 않음),
   Mask = 몸 마스크 파라미터(kit_profiles.json 슬롯 기본값 + items.json 아이템 mask), HideHair = attach.hide_parts에 hair가 있으면 1.
   items.json 아이템 ↔ CSV 행은 메시 경로(MeshM = out{M}, StaticMesh = source)로 맞춘다. 맞는 아이템이 없는 행이 있으면 실패.
-- BodyTable: kit_profiles.json bodies → Name 1(M)·2(F), Leader·Eyes·Teeth·Hair·BodyMaterial(MI_Body_<M|F>)·AnimClass.
+- BodyTable: kit_profiles.json bodies → Name 1(M)·2(F), Leader·Eyes·Teeth·Hair·BodyMaterial(MI_Body_<M|F>)·AnimClass,
+  kit_profiles.json montages(hit·death, 공용 1벌) → HitMontage·DeathMontage(MC4.2, DECISIONS 2026-11-08). 비면 빈 칸.
 
 예)
   import importlib, jm_kit.item_table as it; importlib.reload(it)
@@ -21,7 +22,7 @@ from . import body_mask, garment, profiles
 
 CSV_DIR = os.path.normpath(os.path.join(unreal.Paths.project_dir(), "../../Common/DataTable"))
 ITEM_COLS = ["AttachSocket", "AttachM", "AttachF", "Mask", "HideHair"]
-BODY_COLS = ["Name", "Leader", "Eyes", "Teeth", "Hair", "BodyMaterial", "AnimClass"]
+BODY_COLS = ["Name", "Leader", "Eyes", "Teeth", "Hair", "BodyMaterial", "AnimClass", "HitMontage", "DeathMontage"]
 BODY_IDS = {"M": 1, "F": 2}   # = Protocol PlayerType MALE/FEMALE
 ANIM_CLASS = "/Game/Character/Mannequin/Anims/ABP_PlayerBase.ABP_PlayerBase_C"   # 플레이어 공용 AnimBP(DECISIONS 2026-11-07)
 
@@ -120,6 +121,11 @@ def export_items(write=True):
 
 def export_bodies(write=True):
     path = os.path.join(CSV_DIR, "BodyTable.csv")
+    montages = profiles.load().get("montages", {})
+    reaction = [montages.get("hit", ""), montages.get("death", "")]   # 공용 1벌 — 체형과 무관
+    for v in reaction:
+        if v and not unreal.EditorAssetLibrary.does_asset_exist(v):
+            raise RuntimeError(f"몽타주 없음: {v}")
     rows = []
     for b, bid in BODY_IDS.items():
         bp = profiles.body(b)
@@ -128,7 +134,7 @@ def export_bodies(write=True):
         for v in vals:
             if not unreal.EditorAssetLibrary.does_asset_exist(v):
                 raise RuntimeError(f"에셋 없음({b}): {v}")
-        rows.append([str(bid)] + [_obj(v) for v in vals] + [ANIM_CLASS])
+        rows.append([str(bid)] + [_obj(v) for v in vals] + [ANIM_CLASS] + [_obj(v) for v in reaction])
     old = None
     if os.path.exists(path):
         h, r, _bom, _eol = _read(path)

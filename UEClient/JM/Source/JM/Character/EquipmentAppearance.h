@@ -35,6 +35,8 @@ struct FEquipmentLook
 	USkeletalMesh* Hair = nullptr;
 	UMaterialInterface* BodyMaterial = nullptr;
 	TSubclassOf<UAnimInstance> AnimClass;
+	// 장착 무기 타입의 레이어 AnimBP(WeaponTypeTable.AnimLayer, ALI_Weapon 구현). AnimClass에 LinkAnimClassLayers로 연결한다. 비면 연결하지 않는다.
+	TSubclassOf<UAnimInstance> AnimLayer;
 
 	FEquipSlotLook Slots[EQUIP_SLOT_COUNT];
 	FBodyMaskParams Mask;      // 입은 아이템 마스크를 합친 값

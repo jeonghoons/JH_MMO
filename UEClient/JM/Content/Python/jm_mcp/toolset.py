@@ -384,4 +384,149 @@ class DataTableReimportTools(unreal.ToolsetDefinition):
         return _dump({"csv": csv, "asset": asset, "row_struct": row_struct, "rows": rows, "saved": saved})
 
 
-registration = Registration([KitTools, DataTableReimportTools])
+def _csv_list(text: str) -> list[str]:
+    return [t.strip() for t in text.split(",") if t.strip()]
+
+
+@unreal.uclass()
+class AnimBuilderTools(unreal.ToolsetDefinition):
+    """MC4.2 애니메이션 에셋 빌더(C++ UAnimAssetBuilder, JMEditorTools): ALI·레이어 AnimBP·몽타주 생성, AnimBP 덤프·재배선.
+
+    공식 MCP의 그래프 DSL이 AnimGraph를 다루지 못해 C++ 함수로 만들고 여기서 감싼다. 결과 문자열이 "ERROR:"로 시작하면 실패(저장 안 함).
+    """
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_dump(blueprint_path: str) -> str:
+        """AnimBP의 그래프 전체(AnimGraph·스테이트 머신·스테이트·전이·레이어)를 노드·핀·연결까지 텍스트로 덤프한다.
+
+        Args:
+            blueprint_path: AnimBP 경로(예 /Game/Character/Mannequin/Anims/ABP_PlayerBase).
+
+        Returns:
+            덤프 텍스트.
+        """
+        return unreal.AnimAssetBuilder.dump_anim_blueprint(blueprint_path)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_create_layer_interface(package_path: str, layer_names: str, layer_has_input_pose: str) -> str:
+        """Animation Layer Interface(ALI_*)를 만들고 레이어를 추가한다.
+
+        Args:
+            package_path: 예 /Game/Character/Mannequin/Anims/ALI_Weapon.
+            layer_names: 레이어 이름을 쉼표로(예 "LocomotionLayer,UpperBodyLayer"). 호스트 AnimBP의 스테이트·그래프 이름과 겹치면 컴파일이 실패한다.
+            layer_has_input_pose: 레이어별 입력 포즈 여부를 쉼표로(예 "0,1").
+
+        Returns:
+            결과 텍스트.
+        """
+        names = _csv_list(layer_names)
+        flags = [t in ("1", "true", "True") for t in _csv_list(layer_has_input_pose)]
+        return unreal.AnimAssetBuilder.create_layer_interface(package_path, names, flags)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_create_layer_blueprint(package_path: str, interface_path: str, skeleton_path: str, parent_class_path: str) -> str:
+        """인터페이스를 구현하는 레이어 AnimBP(ABP_Layer_*)를 만든다.
+
+        Args:
+            package_path: 예 /Game/Character/Mannequin/Anims/Unarmed/ABP_Layer_Unarmed.
+            interface_path: ALI 경로.
+            skeleton_path: 스켈레톤 경로.
+            parent_class_path: 부모 클래스(예 /Script/JM.JMAnimInstance).
+
+        Returns:
+            결과 텍스트.
+        """
+        return unreal.AnimAssetBuilder.create_layer_anim_blueprint(package_path, interface_path, skeleton_path, parent_class_path)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_set_layer_blendspace(blueprint_path: str, layer_name: str, blendspace_path: str,
+                                  x_variable: str | None = None, y_variable: str | None = None) -> str:
+        """레이어 그래프를 "블렌드스페이스 플레이어 → 결과"로 채운다. X/Y는 멤버 변수 Get 노드에 잇는다.
+
+        Args:
+            blueprint_path: 레이어 AnimBP 경로.
+            layer_name: 레이어(그래프) 이름.
+            blendspace_path: 블렌드스페이스 경로.
+            x_variable: X 핀에 이을 변수 이름(예 GroundSpeed). 비우면 연결 안 함.
+            y_variable: Y 핀에 이을 변수 이름(예 Direction). 비우면 연결 안 함.
+
+        Returns:
+            결과 텍스트.
+        """
+        return unreal.AnimAssetBuilder.set_layer_blend_space(blueprint_path, layer_name, blendspace_path, x_variable or "", y_variable or "")
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_set_layer_passthrough(blueprint_path: str, layer_name: str) -> str:
+        """레이어 그래프를 "입력 포즈 → 결과" 통과로 채운다.
+
+        Args:
+            blueprint_path: 레이어 AnimBP 경로.
+            layer_name: 레이어(그래프) 이름.
+
+        Returns:
+            결과 텍스트.
+        """
+        return unreal.AnimAssetBuilder.set_layer_pass_through(blueprint_path, layer_name)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_create_montage(sequence_path: str, package_path: str, slot_name: str,
+                            auto_blend_out: bool | None = None, skill_hit_time_sec: float | None = None) -> str:
+        """시퀀스로 몽타주를 만든다.
+
+        Args:
+            sequence_path: 애니메이션 시퀀스 경로.
+            package_path: 만들 몽타주 경로(예 /Game/Character/Mannequin/Anims/Unarmed/AM_Unarmed_Attack).
+            slot_name: 슬롯(UpperBody 또는 DefaultSlot).
+            auto_blend_out: Auto Blend Out(기본 True, 사망은 False).
+            skill_hit_time_sec: AnimNotify_SkillHit를 달 시각(초). 비우면 달지 않음.
+
+        Returns:
+            결과 텍스트.
+        """
+        hit = -1.0 if skill_hit_time_sec is None else float(skill_hit_time_sec)
+        return unreal.AnimAssetBuilder.create_montage(sequence_path, package_path, slot_name, auto_blend_out is not False, hit)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_measure_bone_reach(sequence_path: str, bone_name: str, samples: int | None = None) -> str:
+        """시퀀스를 샘플링해 본의 루트 기준 위치(옆 X·앞 Y·위 Z) 표를 돌려준다(타격 시점 고르기용).
+
+        Args:
+            sequence_path: 애니메이션 시퀀스 경로.
+            bone_name: 본 이름(예 hand_r).
+            samples: 샘플 수(기본 40).
+
+        Returns:
+            탭 구분 표.
+        """
+        return unreal.AnimAssetBuilder.measure_bone_reach(sequence_path, bone_name, int(samples or 40))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_rewire_player_base(blueprint_path: str, interface_path: str, locomotion_layer: str, upper_body_layer: str,
+                                locomotion_state: str, land_state: str | None = None, save: bool | None = None) -> str:
+        """ABP_PlayerBase 재배선: Locomotion 스테이트 = 레이어, 결과 앞에 UpperBody 레이어 + 슬롯 2개, Land→Locomotion 자동 전이.
+
+        Args:
+            blueprint_path: ABP_PlayerBase 경로.
+            interface_path: ALI 경로.
+            locomotion_layer: 이동 레이어 이름.
+            upper_body_layer: 상체 레이어 이름.
+            locomotion_state: 이동 스테이트 이름.
+            land_state: 착지 스테이트 이름(비우면 전이 수정 안 함).
+            save: 저장 여부(기본 False = 컴파일까지만 미리보기).
+
+        Returns:
+            결과 텍스트.
+        """
+        return unreal.AnimAssetBuilder.rewire_player_base(blueprint_path, interface_path, locomotion_layer, upper_body_layer,
+                                                           locomotion_state, land_state or "", save is True)
+
+
+registration = Registration([KitTools, DataTableReimportTools, AnimBuilderTools])

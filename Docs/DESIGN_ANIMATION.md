@@ -7,6 +7,9 @@
 - 플레이어는 체형과 상관없이 **공용 AnimBP `ABP_PlayerBase`** 하나를 씁니다(Manny/Quinn 같은 스켈레톤).
 - 무기 타입마다 달라지는 부분은 **Animation Layer Interface `ALI_Weapon`**으로 분리하고, 무기 타입별 레이어 AnimBP `ABP_Layer_Unarmed` / `ABP_Layer_Sword` / `ABP_Layer_Bow`가 구현합니다.
   - 레이어 범위: 대기·이동 블렌드스페이스(무기 쥔 자세), 상체 포즈. 공통 상태머신(이동/점프/사망)은 `ABP_PlayerBase`에 둡니다.
+  - 레이어 이름은 `LocomotionLayer`(입력 포즈 없음, Main States의 `Locomotion` 스테이트가 사용)와 `UpperBodyLayer`(입력 포즈 있음, 상태머신 출력 뒤). 스테이트·그래프 이름과 겹치면 안 됩니다.
+  - `ABP_PlayerBase` AnimGraph: Main States → `UpperBodyLayer` → 캐시 → [기본 | `Slot UpperBody`] `spine_01` 레이어 블렌드 → `Slot DefaultSlot` → Foot IK → 결과. `ABP_PlayerBase`의 레이어 기본 구현은 맨손(링크된 레이어가 없을 때).
+  - 루트 모션은 쓰지 않습니다(`RootMotionMode = IgnoreRootMotion`, 위치는 서버 권위).
   - 무기 타입이 바뀌면(`SC_CHANGE_EQUIP` 반영 시) `LinkAnimClassLayers`로 해당 레이어를 연결합니다. 어떤 레이어를 쓰는지는 데이터(무기 타입 → 레이어 클래스)로 정합니다.
 - 공격·스킬은 몽타주입니다. 이름은 `AM_<WeaponType>_<Action>`(예: `AM_Sword_Attack`, `AM_Bow_Skill1`), 위치는 `Content/Character/Mannequin/Anim/<WeaponType>/`. 어떤 몽타주를 쓰는지는 SkillTable의 클라 전용 `Montage` 열이 가리킵니다. 상체 슬롯 `UpperBody`(이동 중 시전)와 전신 `DefaultSlot`을 기존처럼 씁니다.
 - 피격·사망 몽타주는 무기와 상관없는 공용 1벌로 시작합니다.

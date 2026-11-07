@@ -43,7 +43,8 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 | MonsterTable | 몬스터 종류별 스탯·스킬·리스폰 (ID = `ObjectInfo.template_id`) |
 | UITable | 해당 기능 작업 시 |
 | WorldTable | 맵별 시야(AOI) 수치 — 서버 전용(2026-10-31 A1.3) |
-| BodyTable | 체형별 기준 캐릭터 구성(리더·눈·이·헤어·몸 머티리얼·AnimBP) — 클라 전용(2026-11-07 MC4.1) |
+| BodyTable | 체형별 기준 캐릭터 구성(리더·눈·이·헤어·몸 머티리얼·AnimBP, 공용 피격·사망 몽타주) — 클라 전용(2026-11-07 MC4.1, 2026-11-08 MC4.2) |
+| WeaponTypeTable | 무기 타입별 연출(레이어 AnimBP, 이후 등 소켓·넣기 지연) — 클라 전용(2026-11-08 MC4.2) |
 
 2026-11-04 Phase MC: 계획했던 `HeroTable`/`WeaponItemTable`은 만들지 않고 **ItemTable**로 대체합니다. 플레이어 메시·AnimBP는 매니퀸 공용이라 테이블이 필요 없고, `DT_CharacterAsset`은 MC4에서 플레이어 참조를 끊은 뒤 정리합니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
 
@@ -86,7 +87,10 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 - UE: `FItemTableRow`(`Source/JM/Data/ItemTableRow.h`, enum `EWeaponType`·`EEquipSlot`·`EItemTier`·`EItemGrade`), `DT_ItemTable`, 조회 `UDataManager::FindItemById`.
 
 ### BodyTable (클라이언트 전용, 2026-11-07 MC4.1)
-체형별 기준 캐릭터 구성. `Name` = PlayerType(1 MALE, 2 FEMALE), `Leader`(보이는 몸 = 키트 `Body_Combined`, 애니메이션 재생), `Eyes`·`Teeth`·`Hair`(Leader Pose로 따라가는 키트 부위), `BodyMaterial`(몸 섹션 마스크 머티리얼 `MI_Body_<M|F>`), `AnimClass`(Leader의 AnimBP). `jm_kit.item_table.export`가 `kit_profiles.json`에서 생성합니다. 서버는 읽지 않습니다. UE: `FBodyTableRow`(`Source/JM/Data/BodyTableRow.h`), `DT_BodyTable`, 조회 `UDataManager::FindBody`.
+체형별 기준 캐릭터 구성. `Name` = PlayerType(1 MALE, 2 FEMALE), `Leader`(보이는 몸 = 키트 `Body_Combined`, 애니메이션 재생), `Eyes`·`Teeth`·`Hair`(Leader Pose로 따라가는 키트 부위), `BodyMaterial`(몸 섹션 마스크 머티리얼 `MI_Body_<M|F>`), `AnimClass`(Leader의 AnimBP), `HitMontage`·`DeathMontage`(2026-11-08 MC4.2 — 무기와 상관없는 공용 1벌이라 남녀 같은 값, 비면 재생 안 함, `kit_profiles.json` `montages`). `jm_kit.item_table.export`가 `kit_profiles.json`에서 생성합니다. 서버는 읽지 않습니다. UE: `FBodyTableRow`(`Source/JM/Data/BodyTableRow.h`), `DT_BodyTable`, 조회 `UDataManager::FindBody`. `UEquipmentComponent`가 로드해 `AJMCharacterBase::SetReactionMontages`로 넣습니다.
+
+### WeaponTypeTable (클라이언트 전용, 2026-11-08 MC4.2)
+무기 "종류"마다 달라지는 연출 값. `Name` = `EWeaponType` 값(1 Unarmed, 2 Sword, 3 Bow — SkillTable ID 첫째 자리와 같음, 맨손도 행이 있음), `WeaponType`(enum 이름 — 로더가 `Name`과 어긋나면 경고하고 그 행을 쓰지 않음), `AnimLayer`(`ALI_Weapon`을 구현한 레이어 AnimBP `ABP_Layer_<WeaponType>` — `ABP_PlayerBase`에 `LinkAnimClassLayers`로 연결, 비면 연결 안 함). MC4.3의 등 소켓·넣기 지연 같은 무기 타입별 값은 이 표에 열을 추가합니다. 아이템별로 자세를 달리할 필요가 생기면 그때 ItemTable에 덮어쓰기 열을 더합니다. 서버는 읽지 않습니다. UE: `FWeaponTypeTableRow`(`Source/JM/Data/WeaponTypeTableRow.h`), `DT_WeaponTypeTable`, 조회 `UDataManager::FindWeaponType`; 장착 무기가 바뀌면(`SC_CHANGE_EQUIP`) `UEquipmentComponent`가 레이어 클래스를 로드해 `ULeaderPoseAppearance::Apply`에서 연결합니다.
 
 ### WorldTable (서버 전용, 2026-10-31 A1.3)
 `Name`(worldId, 1001~), `MapName`(맵 리소스 파일 이름 = `GameMap::LoadMapData` 인자, 중복 불가), `CellSizeCm`(AOI 큰 셀 한 변 — 셀마다 쿼드트리, 100~100000), `QuadSplitCount`(쿼드트리 노드가 이 수를 넘으면 4분할, 1~1000), `QuadMinSizeCm`(이보다 작은 노드로는 나누지 않음, 100~CellSizeCm), `ViewRadiusCm`(목표 시야 반경 R — 이 안의 캐릭터는 반드시 보임, 100~100000), `ViewHysteresisCm`(H — 나갈 때는 R+H를 넘어야 사라짐, 0~R). 서버가 쓰는 맵(`Room.h` `ROOM_MAP_NAME`) 행이 없으면 시작을 중단합니다. 현재 행: 1001 ParagonSample(셀 5000, 분할 8, 최소 노드 500, R 5000, H 500 — R·H는 A1.3b 스크린샷으로 결정). UE는 이 테이블을 임포트하지 않습니다.

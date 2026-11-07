@@ -5,6 +5,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Materials/MaterialInterface.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "BodyTableRow.generated.h"
 
 // Common/DataTable/BodyTable.csv 의 한 행(클라이언트 전용, 서버는 읽지 않는다). 컬럼명은 CSV 헤더와 1:1이다.
@@ -24,4 +25,7 @@ struct FBodyTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UMaterialInterface> BodyMaterial;
 	// Leader의 AnimBP(ABP_PlayerBase)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftClassPtr<UAnimInstance> AnimClass;
+	// 피격·사망 몽타주 — 무기와 상관없는 공용 1벌(남녀 같은 값, DECISIONS 2026-11-08). 비면 재생하지 않는다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UAnimMontage> HitMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UAnimMontage> DeathMontage;
 };

@@ -100,6 +100,38 @@ const FBodyTableRow* UDataManager::FindBody(int32 PlayerType) const
 	return CachedBodyTable->FindRow<FBodyTableRow>(FName(*FString::FromInt(PlayerType)), TEXT("FindBody"), false);
 }
 
+const FWeaponTypeTableRow* UDataManager::FindWeaponType(EWeaponType WeaponType) const
+{
+	if (WeaponType == EWeaponType::None || WeaponType == EWeaponType::Monster) return nullptr;
+
+	if (CachedWeaponTypeTable == nullptr)
+	{
+		const UJMDataSettings* Settings = GetDefault<UJMDataSettings>();
+		if (Settings == nullptr || Settings->WeaponTypeTable.IsNull())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DataManager: WeaponTypeTable is not set (Project Settings > Game > JM Data)"));
+			return nullptr;
+		}
+		CachedWeaponTypeTable = Settings->WeaponTypeTable.LoadSynchronous();
+	}
+	if (CachedWeaponTypeTable == nullptr) return nullptr;
+
+	const int32 Id = static_cast<int32>(WeaponType);
+	const FWeaponTypeTableRow* Row = CachedWeaponTypeTable->FindRow<FWeaponTypeTableRow>(FName(*FString::FromInt(Id)), TEXT("FindWeaponType"), false);
+	if (Row == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DataManager: WeaponTypeTable has no row %d"), Id);
+		return nullptr;
+	}
+	if (Row->WeaponType != WeaponType)
+	{
+		// RowName(숫자)과 WeaponType 열이 어긋난 CSV — 조용히 다른 무기 레이어를 쓰지 않도록 막는다.
+		UE_LOG(LogTemp, Warning, TEXT("DataManager: WeaponTypeTable row %d has WeaponType %d (expected %d)"), Id, static_cast<int32>(Row->WeaponType), Id);
+		return nullptr;
+	}
+	return Row;
+}
+
 void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
 {
 	TArray<FSoftObjectPath> AssetsToLoad;
@@ -121,7 +153,15 @@ void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
 			AddPath(Body->Hair.ToSoftObjectPath());
 			AddPath(Body->BodyMaterial.ToSoftObjectPath());
 			AddPath(Body->AnimClass.ToSoftObjectPath());
+			AddPath(Body->HitMontage.ToSoftObjectPath());
+			AddPath(Body->DeathMontage.ToSoftObjectPath());
 		}
+	}
+	// 무기 타입별 레이어 AnimBP(MC4.2): 무기 교체 순간 레이어를 바로 연결할 수 있게 미리 로드
+	for (EWeaponType WeaponType : { EWeaponType::Unarmed, EWeaponType::Sword, EWeaponType::Bow })
+	{
+		if (const FWeaponTypeTableRow* Row = FindWeaponType(WeaponType))
+			AddPath(Row->AnimLayer.ToSoftObjectPath());
 	}
 	if (UDataTable* ItemTable = GetItemTable())
 	{

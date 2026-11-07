@@ -2,6 +2,7 @@
 #include "Character/EquipmentAppearance.h"
 #include "Game/DataManager.h"
 #include "Game/JMGameInstance.h"
+#include "Character/JMCharacterBase.h"
 #include "GameFramework/Character.h"
 #include "Engine/StreamableManager.h"
 #include "Engine/SkeletalMesh.h"
@@ -10,6 +11,16 @@
 namespace
 {
 	constexpr int32 PLAYER_TYPE_FEMALE_ID = 2;   // = Protocol::PLAYER_TYPE_FEMALE (BodyTable RowName)
+	constexpr int32 WEAPON_SLOT_INDEX = static_cast<int32>(Protocol::EQUIP_PART_WEAPON) - 1;   // Items 인덱스 = EquipPart - 1
+
+	// 장착 목록의 무기 타입(AJMPlayer::GetWeaponType과 같은 규칙: 무기 슬롯이 비면 Unarmed)
+	EWeaponType WeaponTypeOf(const UDataManager& Data, const TArray<int32>& Items)
+	{
+		const int32 WeaponId = Items.IsValidIndex(WEAPON_SLOT_INDEX) ? Items[WEAPON_SLOT_INDEX] : 0;
+		if (WeaponId == 0) return EWeaponType::Unarmed;
+		const FItemTableRow* Item = Data.FindItemById(WeaponId);
+		return (Item && Item->WeaponType != EWeaponType::None) ? Item->WeaponType : EWeaponType::Unarmed;
+	}
 
 	// 여러 아이템의 마스크를 합친다: Hide*는 큰 값, KeepCm은 그 영역을 지운 아이템의 값
 	void MergeMask(FBodyMaskParams& Out, const FBodyMaskParams& In)
@@ -69,6 +80,10 @@ void UEquipmentComponent::Refresh()
 	Add(Body->Hair.ToSoftObjectPath());
 	Add(Body->BodyMaterial.ToSoftObjectPath());
 	Add(Body->AnimClass.ToSoftObjectPath());
+	Add(Body->HitMontage.ToSoftObjectPath());
+	Add(Body->DeathMontage.ToSoftObjectPath());
+	if (const FWeaponTypeTableRow* Weapon = Data->FindWeaponType(WeaponTypeOf(*Data, Items)))
+		Add(Weapon->AnimLayer.ToSoftObjectPath());
 	for (int32 ItemId : Items)
 	{
 		if (ItemId == 0) continue;
@@ -107,6 +122,12 @@ void UEquipmentComponent::OnAssetsLoaded(int32 Serial)
 	Look.Hair = Body->Hair.Get();
 	Look.BodyMaterial = Body->BodyMaterial.Get();
 	Look.AnimClass = Body->AnimClass.Get();
+	if (const FWeaponTypeTableRow* Weapon = Data->FindWeaponType(WeaponTypeOf(*Data, Items)))
+		Look.AnimLayer = Weapon->AnimLayer.Get();
+
+	// 피격·사망 몽타주는 외형이 아니라 캐릭터 행동이라 Appearance가 아닌 캐릭터에 넣는다
+	if (AJMCharacterBase* Character = Cast<AJMCharacterBase>(Owner))
+		Character->SetReactionMontages(Body->HitMontage.Get(), Body->DeathMontage.Get());
 
 	for (int32 i = 0; i < EQUIP_SLOT_COUNT; ++i)
 	{

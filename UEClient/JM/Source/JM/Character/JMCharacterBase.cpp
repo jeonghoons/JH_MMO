@@ -259,6 +259,12 @@ void AJMCharacterBase::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrup
 {
 }
 
+void AJMCharacterBase::SetReactionMontages(UAnimMontage* Hit, UAnimMontage* Dead)
+{
+	CurrentHitMontage = Hit;
+	CurrentDeadMontage = Dead;
+}
+
 void AJMCharacterBase::PlayAttackAnim(float PlayRate)
 {
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();

@@ -6,6 +6,7 @@
 #include "Data/SkillTableRow.h"
 #include "Data/ItemTableRow.h"
 #include "Data/BodyTableRow.h"
+#include "Data/WeaponTypeTableRow.h"
 #include "DataManager.generated.h"
 
 // DataTable 조회 창구. 애셋 경로는 UJMDataSettings(DefaultGame.ini)에서만 읽는다. (Docs/DESIGN_DATA.md)
@@ -27,6 +28,10 @@ public:
 	// 체형(PlayerType 숫자, BodyTable의 RowName)으로 찾는다. 없거나 테이블이 지정되지 않았으면 nullptr
 	const FBodyTableRow* FindBody(int32 PlayerType) const;
 
+	// 무기 타입(WeaponTypeTable의 RowName = enum 값)으로 찾는다. 행의 WeaponType 열이 RowName과 어긋나면 경고하고 nullptr.
+	// None·Monster는 플레이어 무기가 아니므로 nullptr.
+	const FWeaponTypeTableRow* FindWeaponType(EWeaponType WeaponType) const;
+
 	// 스킬 ID(SkillTable의 RowName, SC_ATTACK.skill_id)로 찾는다. 없으면 nullptr
 	const FSkillTableRow* FindSkillById(int32 SkillId) const;
 
@@ -46,4 +51,5 @@ private:
 	mutable TObjectPtr<UDataTable> CachedSkillTable;
 	mutable TObjectPtr<UDataTable> CachedItemTable;
 	mutable TObjectPtr<UDataTable> CachedBodyTable;
+	mutable TObjectPtr<UDataTable> CachedWeaponTypeTable;
 };
