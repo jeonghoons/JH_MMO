@@ -83,6 +83,9 @@ extern SC_ATTACK_PACKETDefaultTypeInternal _SC_ATTACK_PACKET_default_instance_;
 class SC_CHANGE_EQUIP_PACKET;
 struct SC_CHANGE_EQUIP_PACKETDefaultTypeInternal;
 extern SC_CHANGE_EQUIP_PACKETDefaultTypeInternal _SC_CHANGE_EQUIP_PACKET_default_instance_;
+class SC_CHANGE_EQUIP_RESULT_PACKET;
+struct SC_CHANGE_EQUIP_RESULT_PACKETDefaultTypeInternal;
+extern SC_CHANGE_EQUIP_RESULT_PACKETDefaultTypeInternal _SC_CHANGE_EQUIP_RESULT_PACKET_default_instance_;
 class SC_CHAT_PACKET;
 struct SC_CHAT_PACKETDefaultTypeInternal;
 extern SC_CHAT_PACKETDefaultTypeInternal _SC_CHAT_PACKET_default_instance_;
@@ -121,6 +124,7 @@ template<> ::Protocol::CS_SIGNUP_PACKET* Arena::CreateMaybeMessage<::Protocol::C
 template<> ::Protocol::SC_ADD_OBJECT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ADD_OBJECT_PACKET>(Arena*);
 template<> ::Protocol::SC_ATTACK_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ATTACK_PACKET>(Arena*);
 template<> ::Protocol::SC_CHANGE_EQUIP_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHANGE_EQUIP_PACKET>(Arena*);
+template<> ::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET>(Arena*);
 template<> ::Protocol::SC_CHAT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHAT_PACKET>(Arena*);
 template<> ::Protocol::SC_DAMAGE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_DAMAGE_PACKET>(Arena*);
 template<> ::Protocol::SC_DEAD_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_DEAD_PACKET>(Arena*);
@@ -3276,10 +3280,29 @@ class SC_CHANGE_EQUIP_PACKET final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kStatFieldNumber = 4,
     kObjectIdFieldNumber = 1,
     kPartFieldNumber = 2,
     kItemIdFieldNumber = 3,
   };
+  // .Protocol.StatInfo stat = 4;
+  bool has_stat() const;
+  private:
+  bool _internal_has_stat() const;
+  public:
+  void clear_stat();
+  const ::Protocol::StatInfo& stat() const;
+  PROTOBUF_NODISCARD ::Protocol::StatInfo* release_stat();
+  ::Protocol::StatInfo* mutable_stat();
+  void set_allocated_stat(::Protocol::StatInfo* stat);
+  private:
+  const ::Protocol::StatInfo& _internal_stat() const;
+  ::Protocol::StatInfo* _internal_mutable_stat();
+  public:
+  void unsafe_arena_set_allocated_stat(
+      ::Protocol::StatInfo* stat);
+  ::Protocol::StatInfo* unsafe_arena_release_stat();
+
   // int32 object_id = 1;
   void clear_object_id();
   int32_t object_id() const;
@@ -3315,7 +3338,178 @@ class SC_CHANGE_EQUIP_PACKET final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::Protocol::StatInfo* stat_;
     int32_t object_id_;
+    int part_;
+    int32_t item_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class SC_CHANGE_EQUIP_RESULT_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_CHANGE_EQUIP_RESULT_PACKET) */ {
+ public:
+  inline SC_CHANGE_EQUIP_RESULT_PACKET() : SC_CHANGE_EQUIP_RESULT_PACKET(nullptr) {}
+  ~SC_CHANGE_EQUIP_RESULT_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_CHANGE_EQUIP_RESULT_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_CHANGE_EQUIP_RESULT_PACKET(const SC_CHANGE_EQUIP_RESULT_PACKET& from);
+  SC_CHANGE_EQUIP_RESULT_PACKET(SC_CHANGE_EQUIP_RESULT_PACKET&& from) noexcept
+    : SC_CHANGE_EQUIP_RESULT_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_CHANGE_EQUIP_RESULT_PACKET& operator=(const SC_CHANGE_EQUIP_RESULT_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_CHANGE_EQUIP_RESULT_PACKET& operator=(SC_CHANGE_EQUIP_RESULT_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_CHANGE_EQUIP_RESULT_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_CHANGE_EQUIP_RESULT_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_CHANGE_EQUIP_RESULT_PACKET*>(
+               &_SC_CHANGE_EQUIP_RESULT_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    19;
+
+  friend void swap(SC_CHANGE_EQUIP_RESULT_PACKET& a, SC_CHANGE_EQUIP_RESULT_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_CHANGE_EQUIP_RESULT_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_CHANGE_EQUIP_RESULT_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_CHANGE_EQUIP_RESULT_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_CHANGE_EQUIP_RESULT_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_CHANGE_EQUIP_RESULT_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_CHANGE_EQUIP_RESULT_PACKET& from) {
+    SC_CHANGE_EQUIP_RESULT_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_CHANGE_EQUIP_RESULT_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_CHANGE_EQUIP_RESULT_PACKET";
+  }
+  protected:
+  explicit SC_CHANGE_EQUIP_RESULT_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kResultFieldNumber = 1,
+    kPartFieldNumber = 2,
+    kItemIdFieldNumber = 3,
+  };
+  // .Protocol.EquipResult result = 1;
+  void clear_result();
+  ::Protocol::EquipResult result() const;
+  void set_result(::Protocol::EquipResult value);
+  private:
+  ::Protocol::EquipResult _internal_result() const;
+  void _internal_set_result(::Protocol::EquipResult value);
+  public:
+
+  // .Protocol.EquipPart part = 2;
+  void clear_part();
+  ::Protocol::EquipPart part() const;
+  void set_part(::Protocol::EquipPart value);
+  private:
+  ::Protocol::EquipPart _internal_part() const;
+  void _internal_set_part(::Protocol::EquipPart value);
+  public:
+
+  // int32 item_id = 3;
+  void clear_item_id();
+  int32_t item_id() const;
+  void set_item_id(int32_t value);
+  private:
+  int32_t _internal_item_id() const;
+  void _internal_set_item_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_CHANGE_EQUIP_RESULT_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int result_;
     int part_;
     int32_t item_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -3373,7 +3567,7 @@ class SC_PONG_PACKET final :
                &_SC_PONG_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    20;
 
   friend void swap(SC_PONG_PACKET& a, SC_PONG_PACKET& b) {
     a.Swap(&b);
@@ -4964,6 +5158,155 @@ inline void SC_CHANGE_EQUIP_PACKET::set_item_id(int32_t value) {
   // @@protoc_insertion_point(field_set:Protocol.SC_CHANGE_EQUIP_PACKET.item_id)
 }
 
+// .Protocol.StatInfo stat = 4;
+inline bool SC_CHANGE_EQUIP_PACKET::_internal_has_stat() const {
+  return this != internal_default_instance() && _impl_.stat_ != nullptr;
+}
+inline bool SC_CHANGE_EQUIP_PACKET::has_stat() const {
+  return _internal_has_stat();
+}
+inline const ::Protocol::StatInfo& SC_CHANGE_EQUIP_PACKET::_internal_stat() const {
+  const ::Protocol::StatInfo* p = _impl_.stat_;
+  return p != nullptr ? *p : reinterpret_cast<const ::Protocol::StatInfo&>(
+      ::Protocol::_StatInfo_default_instance_);
+}
+inline const ::Protocol::StatInfo& SC_CHANGE_EQUIP_PACKET::stat() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_CHANGE_EQUIP_PACKET.stat)
+  return _internal_stat();
+}
+inline void SC_CHANGE_EQUIP_PACKET::unsafe_arena_set_allocated_stat(
+    ::Protocol::StatInfo* stat) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.stat_);
+  }
+  _impl_.stat_ = stat;
+  if (stat) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:Protocol.SC_CHANGE_EQUIP_PACKET.stat)
+}
+inline ::Protocol::StatInfo* SC_CHANGE_EQUIP_PACKET::release_stat() {
+  
+  ::Protocol::StatInfo* temp = _impl_.stat_;
+  _impl_.stat_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::Protocol::StatInfo* SC_CHANGE_EQUIP_PACKET::unsafe_arena_release_stat() {
+  // @@protoc_insertion_point(field_release:Protocol.SC_CHANGE_EQUIP_PACKET.stat)
+  
+  ::Protocol::StatInfo* temp = _impl_.stat_;
+  _impl_.stat_ = nullptr;
+  return temp;
+}
+inline ::Protocol::StatInfo* SC_CHANGE_EQUIP_PACKET::_internal_mutable_stat() {
+  
+  if (_impl_.stat_ == nullptr) {
+    auto* p = CreateMaybeMessage<::Protocol::StatInfo>(GetArenaForAllocation());
+    _impl_.stat_ = p;
+  }
+  return _impl_.stat_;
+}
+inline ::Protocol::StatInfo* SC_CHANGE_EQUIP_PACKET::mutable_stat() {
+  ::Protocol::StatInfo* _msg = _internal_mutable_stat();
+  // @@protoc_insertion_point(field_mutable:Protocol.SC_CHANGE_EQUIP_PACKET.stat)
+  return _msg;
+}
+inline void SC_CHANGE_EQUIP_PACKET::set_allocated_stat(::Protocol::StatInfo* stat) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.stat_);
+  }
+  if (stat) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(stat));
+    if (message_arena != submessage_arena) {
+      stat = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, stat, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.stat_ = stat;
+  // @@protoc_insertion_point(field_set_allocated:Protocol.SC_CHANGE_EQUIP_PACKET.stat)
+}
+
+// -------------------------------------------------------------------
+
+// SC_CHANGE_EQUIP_RESULT_PACKET
+
+// .Protocol.EquipResult result = 1;
+inline void SC_CHANGE_EQUIP_RESULT_PACKET::clear_result() {
+  _impl_.result_ = 0;
+}
+inline ::Protocol::EquipResult SC_CHANGE_EQUIP_RESULT_PACKET::_internal_result() const {
+  return static_cast< ::Protocol::EquipResult >(_impl_.result_);
+}
+inline ::Protocol::EquipResult SC_CHANGE_EQUIP_RESULT_PACKET::result() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_CHANGE_EQUIP_RESULT_PACKET.result)
+  return _internal_result();
+}
+inline void SC_CHANGE_EQUIP_RESULT_PACKET::_internal_set_result(::Protocol::EquipResult value) {
+  
+  _impl_.result_ = value;
+}
+inline void SC_CHANGE_EQUIP_RESULT_PACKET::set_result(::Protocol::EquipResult value) {
+  _internal_set_result(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_CHANGE_EQUIP_RESULT_PACKET.result)
+}
+
+// .Protocol.EquipPart part = 2;
+inline void SC_CHANGE_EQUIP_RESULT_PACKET::clear_part() {
+  _impl_.part_ = 0;
+}
+inline ::Protocol::EquipPart SC_CHANGE_EQUIP_RESULT_PACKET::_internal_part() const {
+  return static_cast< ::Protocol::EquipPart >(_impl_.part_);
+}
+inline ::Protocol::EquipPart SC_CHANGE_EQUIP_RESULT_PACKET::part() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_CHANGE_EQUIP_RESULT_PACKET.part)
+  return _internal_part();
+}
+inline void SC_CHANGE_EQUIP_RESULT_PACKET::_internal_set_part(::Protocol::EquipPart value) {
+  
+  _impl_.part_ = value;
+}
+inline void SC_CHANGE_EQUIP_RESULT_PACKET::set_part(::Protocol::EquipPart value) {
+  _internal_set_part(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_CHANGE_EQUIP_RESULT_PACKET.part)
+}
+
+// int32 item_id = 3;
+inline void SC_CHANGE_EQUIP_RESULT_PACKET::clear_item_id() {
+  _impl_.item_id_ = 0;
+}
+inline int32_t SC_CHANGE_EQUIP_RESULT_PACKET::_internal_item_id() const {
+  return _impl_.item_id_;
+}
+inline int32_t SC_CHANGE_EQUIP_RESULT_PACKET::item_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_CHANGE_EQUIP_RESULT_PACKET.item_id)
+  return _internal_item_id();
+}
+inline void SC_CHANGE_EQUIP_RESULT_PACKET::_internal_set_item_id(int32_t value) {
+  
+  _impl_.item_id_ = value;
+}
+inline void SC_CHANGE_EQUIP_RESULT_PACKET::set_item_id(int32_t value) {
+  _internal_set_item_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_CHANGE_EQUIP_RESULT_PACKET.item_id)
+}
+
 // -------------------------------------------------------------------
 
 // SC_PONG_PACKET
@@ -4991,6 +5334,8 @@ inline void SC_PONG_PACKET::set_client_time(int64_t value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

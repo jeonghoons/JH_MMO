@@ -23,6 +23,8 @@ public:
 	void HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY, int32 CooldownMs);
 	void HandleDamage(int32 AttackerId, int32 TargetId, int32 Damage, int32 RemainHp);
 	void HandleDead(int32 CharacterId);
+	// SC_CHANGE_EQUIP: 장착 목록·스탯 반영, 내 캐릭터면 HUD(HP·무기 타입별 스킬 슬롯) 갱신
+	void HandleChangeEquip(int32 ObjectId, Protocol::EquipPart Part, int32 ItemId, const Protocol::StatInfo& Stat);
 
 private:
 	// 전투 HUD(UIManager에 HUD 이름으로 등록된 위젯). 로그인 화면처럼 HUD가 없으면 nullptr

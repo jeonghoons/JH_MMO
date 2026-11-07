@@ -49,7 +49,7 @@ message CS_ATTACK_PACKET {
 
 message CS_CHANGE_EQUIP_PACKET {
 	EquipPart part = 1;
-	int32 item_id = 2;
+	int32 item_id = 2;   // 0 = 해제
 }
 
 // 서버 JobQueue 지연까지 포함한 왕복 시간 측정용. client_time은 서버가 그대로 돌려준다.
@@ -111,8 +111,17 @@ message SC_DEAD_PACKET {
 	int32 object_id = 1;
 }
 
+// 장착 성공을 AOI 전체에 방송한다. stat = 장비 반영 후 최종 스탯(서버 계산).
 message SC_CHANGE_EQUIP_PACKET {
 	int32 object_id = 1;
+	EquipPart part = 2;
+	int32 item_id = 3;        // 0 = 해제
+	StatInfo stat = 4;
+}
+
+// 장착 거부를 요청한 본인에게만 보낸다.
+message SC_CHANGE_EQUIP_RESULT_PACKET {
+	EquipResult result = 1;
 	EquipPart part = 2;
 	int32 item_id = 3;
 }

@@ -47,6 +47,7 @@ Character::CastTiming Character::BeginCast(const SkillData& skill)
 	timing.cooldownMs = skill.cooldownMs;
 
 	_actionTimer.Reset(timing.actionMs);
+	_actionIsSwapLock = false;
 	if (timing.cooldownMs > 0)
 		_skillCooldowns[skill.skillId].Reset(timing.cooldownMs);
 	return timing;

@@ -12,6 +12,56 @@ Player::Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type)
 	}
 
 	_maxSpeed = _statInfo.GetMoveSpeed();
+
+	// 장착 목록은 항상 슬롯 6칸(비면 0). 저장·기본 장비는 MC3.3.
+	_objectInfo.clear_equip_items();
+	for (int i = 0; i < EQUIP_SLOT_COUNT; ++i)
+		_objectInfo.add_equip_items(0);
+}
+
+WeaponType Player::GetWeaponType() const
+{
+	const int weaponId = GetEquippedItem(Protocol::EQUIP_PART_WEAPON);
+	if (weaponId == 0) return WeaponType::Unarmed;
+	const ItemData* item = DataManager::GetItemData(weaponId);
+	return item ? item->weaponType : WeaponType::Unarmed;
+}
+
+int Player::GetEquippedItem(Protocol::EquipPart part) const
+{
+	const int index = static_cast<int>(part) - 1;
+	if (index < 0 || index >= _objectInfo.equip_items_size()) return 0;
+	return _objectInfo.equip_items(index);
+}
+
+void Player::SetEquippedItem(Protocol::EquipPart part, int itemId)
+{
+	const int index = static_cast<int>(part) - 1;
+	if (index < 0 || index >= EQUIP_SLOT_COUNT) return;
+	while (_objectInfo.equip_items_size() < EQUIP_SLOT_COUNT)
+		_objectInfo.add_equip_items(0);
+	_objectInfo.set_equip_items(index, itemId);
+}
+
+void Player::RecalcStat()
+{
+	// 레벨 저장·성장은 A2.3·A2.5 — 그 전까지 시작 레벨. 로더가 시작 레벨 행을 보장한다.
+	const StatData* base = DataManager::GetPlayerStatData(PLAYER_START_LEVEL);
+	if (base == nullptr) return;
+
+	int bonusAttackDamage = 0;
+	int bonusMaxHp = 0;
+	for (int itemId : _objectInfo.equip_items())
+	{
+		if (itemId == 0) continue;
+		if (const ItemData* item = DataManager::GetItemData(itemId))
+		{
+			bonusAttackDamage += item->bonusAttackDamage;
+			bonusMaxHp += item->bonusMaxHp;
+		}
+	}
+	_statInfo.ApplyFinalStat(*base, bonusAttackDamage, bonusMaxHp);
+	_maxSpeed = _statInfo.GetMoveSpeed();
 }
 
 Player::~Player()

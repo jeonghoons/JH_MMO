@@ -22,14 +22,14 @@ namespace _pbi = _pb::internal;
 
 namespace Protocol {
 }  // namespace Protocol
-static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[6];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[7];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_Enum_2eproto = nullptr;
 const uint32_t TableStruct_Enum_2eproto::offsets[1] = {};
 static constexpr ::_pbi::MigrationSchema* schemas = nullptr;
 static constexpr ::_pb::Message* const* file_default_instances = nullptr;
 
 const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\nEnum.proto\022\010Protocol*\202\003\n\010PacketId\022\014\n\010P"
+  "\n\nEnum.proto\022\010Protocol*\237\003\n\010PacketId\022\014\n\010P"
   "KT_NONE\020\000\022\r\n\010CS_LOGIN\020\350\007\022\016\n\tCS_SIGNUP\020\351\007"
   "\022\014\n\007CS_CHAT\020\353\007\022\014\n\007CS_MOVE\020\354\007\022\022\n\rCS_ENTER"
   "_ROOM\020\356\007\022\016\n\tCS_ATTACK\020\360\007\022\024\n\017CS_CHANGE_EQ"
@@ -38,30 +38,37 @@ const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   "MOVE_OBJECT\020\324\017\022\014\n\007SC_CHAT\020\325\017\022\023\n\016SC_MOVE_"
   "OBJECT\020\326\017\022\016\n\tSC_ATTACK\020\330\017\022\016\n\tSC_DAMAGE\020\331"
   "\017\022\014\n\007SC_DEAD\020\332\017\022\024\n\017SC_CHANGE_EQUIP\020\333\017\022\014\n"
-  "\007SC_PONG\020\334\017\"\006\010\352\007\020\352\007\"\006\010\355\007\020\355\007\"\006\010\357\007\020\357\007\"\006\010\322\017"
-  "\020\322\017\"\006\010\327\017\020\327\017*u\n\tMoveState\022\023\n\017MOVE_STATE_N"
-  "ONE\020\000\022\023\n\017MOVE_STATE_IDLE\020\001\022\022\n\016MOVE_STATE"
-  "_RUN\020\002\022\023\n\017MOVE_STATE_JUMP\020\003\022\025\n\021MOVE_STAT"
-  "E_ATTACK\020\004*\233\001\n\nObjectType\022\024\n\020OBJECT_TYPE"
-  "_NONE\020\000\022\026\n\022OBJECT_TYPE_PLAYER\020\001\022\027\n\023OBJEC"
-  "T_TYPE_MONSTER\020\002\022\023\n\017OBJECT_TYPE_NPC\020\003\022\024\n"
-  "\020OBJECT_TYPE_ITEM\020\004\022\033\n\027OBJECT_TYPE_ENVIR"
-  "ONMENT\020\005*b\n\nPlayerType\022\024\n\020PLAYER_TYPE_NO"
-  "NE\020\000\022\024\n\020PLAYER_TYPE_MALE\020\001\022\026\n\022PLAYER_TYP"
-  "E_FEMALE\020\002\"\004\010\003\020\003\"\004\010\004\020\004\"\004\010\005\020\005*\200\001\n\tEquipPa"
-  "rt\022\023\n\017EQUIP_PART_NONE\020\000\022\024\n\020EQUIP_PART_UP"
-  "PER\020\001\022\024\n\020EQUIP_PART_LOWER\020\002\022\033\n\027EQUIP_PAR"
-  "T_OUTFIT_SHOES\020\003\022\025\n\021EQUIP_PART_WEAPON\020\005*"
-  "\277\001\n\013LoginResult\022\025\n\021LOGIN_RESULT_NONE\020\000\022\030"
-  "\n\024LOGIN_RESULT_SUCCESS\020\001\022\033\n\027LOGIN_RESULT"
-  "_NO_ACCOUNT\020\002\022\037\n\033LOGIN_RESULT_WRONG_PASS"
-  "WORD\020\003\022\"\n\036LOGIN_RESULT_ALREADY_LOGGED_IN"
-  "\020\004\022\035\n\031LOGIN_RESULT_SERVER_ERROR\020\005b\006proto"
-  "3"
+  "\007SC_PONG\020\334\017\022\033\n\026SC_CHANGE_EQUIP_RESULT\020\335\017"
+  "\"\006\010\352\007\020\352\007\"\006\010\355\007\020\355\007\"\006\010\357\007\020\357\007\"\006\010\322\017\020\322\017\"\006\010\327\017\020\327\017"
+  "*u\n\tMoveState\022\023\n\017MOVE_STATE_NONE\020\000\022\023\n\017MO"
+  "VE_STATE_IDLE\020\001\022\022\n\016MOVE_STATE_RUN\020\002\022\023\n\017M"
+  "OVE_STATE_JUMP\020\003\022\025\n\021MOVE_STATE_ATTACK\020\004*"
+  "\233\001\n\nObjectType\022\024\n\020OBJECT_TYPE_NONE\020\000\022\026\n\022"
+  "OBJECT_TYPE_PLAYER\020\001\022\027\n\023OBJECT_TYPE_MONS"
+  "TER\020\002\022\023\n\017OBJECT_TYPE_NPC\020\003\022\024\n\020OBJECT_TYP"
+  "E_ITEM\020\004\022\033\n\027OBJECT_TYPE_ENVIRONMENT\020\005*b\n"
+  "\nPlayerType\022\024\n\020PLAYER_TYPE_NONE\020\000\022\024\n\020PLA"
+  "YER_TYPE_MALE\020\001\022\026\n\022PLAYER_TYPE_FEMALE\020\002\""
+  "\004\010\003\020\003\"\004\010\004\020\004\"\004\010\005\020\005*\244\001\n\tEquipPart\022\023\n\017EQUIP"
+  "_PART_NONE\020\000\022\023\n\017EQUIP_PART_HEAD\020\001\022\022\n\016EQU"
+  "IP_PART_TOP\020\002\022\025\n\021EQUIP_PART_BOTTOM\020\003\022\025\n\021"
+  "EQUIP_PART_GLOVES\020\004\022\024\n\020EQUIP_PART_BOOTS\020"
+  "\005\022\025\n\021EQUIP_PART_WEAPON\020\006*\342\001\n\013EquipResult"
+  "\022\025\n\021EQUIP_RESULT_NONE\020\000\022\030\n\024EQUIP_RESULT_"
+  "SUCCESS\020\001\022\030\n\024EQUIP_RESULT_NO_ITEM\020\002\022\033\n\027E"
+  "QUIP_RESULT_WRONG_SLOT\020\003\022\027\n\023EQUIP_RESULT"
+  "_ACTING\020\004\022\025\n\021EQUIP_RESULT_DEAD\020\005\022\035\n\031EQUI"
+  "P_RESULT_TOO_FREQUENT\020\006\022\034\n\030EQUIP_RESULT_"
+  "NOT_IN_ROOM\020\007*\277\001\n\013LoginResult\022\025\n\021LOGIN_R"
+  "ESULT_NONE\020\000\022\030\n\024LOGIN_RESULT_SUCCESS\020\001\022\033"
+  "\n\027LOGIN_RESULT_NO_ACCOUNT\020\002\022\037\n\033LOGIN_RES"
+  "ULT_WRONG_PASSWORD\020\003\022\"\n\036LOGIN_RESULT_ALR"
+  "EADY_LOGGED_IN\020\004\022\035\n\031LOGIN_RESULT_SERVER_"
+  "ERROR\020\005b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_Enum_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Enum_2eproto = {
-    false, false, 1121, descriptor_table_protodef_Enum_2eproto,
+    false, false, 1415, descriptor_table_protodef_Enum_2eproto,
     "Enum.proto",
     &descriptor_table_Enum_2eproto_once, nullptr, 0, 0,
     schemas, file_default_instances, TableStruct_Enum_2eproto::offsets,
@@ -101,6 +108,7 @@ bool PacketId_IsValid(int value) {
     case 2010:
     case 2011:
     case 2012:
+    case 2013:
       return true;
     default:
       return false;
@@ -167,7 +175,29 @@ bool EquipPart_IsValid(int value) {
     case 1:
     case 2:
     case 3:
+    case 4:
     case 5:
+    case 6:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EquipResult_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
+  return file_level_enum_descriptors_Enum_2eproto[5];
+}
+bool EquipResult_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
       return true;
     default:
       return false;
@@ -176,7 +206,7 @@ bool EquipPart_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* LoginResult_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[5];
+  return file_level_enum_descriptors_Enum_2eproto[6];
 }
 bool LoginResult_IsValid(int value) {
   switch (value) {

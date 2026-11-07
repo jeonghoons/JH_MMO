@@ -45,6 +45,7 @@ public:
 	void SendMove(const Protocol::PositionInfo& PosInfo, bool bForce, uint32 CorrectionSeq);
 	void SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY);
 	void SendChat(const FString& Message);   // 검증(길이·제어 문자·도배)은 서버가 한다
+	void SendChangeEquip(int32 Part, int32 ItemId);   // Part = Protocol::EquipPart(1~6), ItemId 0 = 해제. 검증은 서버가 한다
 
 public:
 	void EnterGame();

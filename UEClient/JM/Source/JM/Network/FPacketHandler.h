@@ -49,5 +49,7 @@ private:
     static void Handle_SC_DAMAGE(TSharedPtr<NetworkSession>& session, Protocol::SC_DAMAGE_PACKET& pkt);
     static void Handle_SC_DEAD(TSharedPtr<NetworkSession>& session, Protocol::SC_DEAD_PACKET& pkt);
     static void Handle_SC_CHAT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHAT_PACKET& pkt);
+    static void Handle_SC_CHANGE_EQUIP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_PACKET& pkt);
+    static void Handle_SC_CHANGE_EQUIP_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_RESULT_PACKET& pkt);
 };
 

@@ -63,6 +63,8 @@ public:
 
 	void PlayerChat(shared_ptr<Player> player, wstring msg);
 	void PlayerPing(shared_ptr<Player> player, long long clientTime);
+	// 장착 요청(MC3.2)을 검증해 반영한다. 성공은 SC_CHANGE_EQUIP을 AOI 전체(본인 포함)에, 거부는 SC_CHANGE_EQUIP_RESULT를 본인에게만.
+	void PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part, int itemId);
 
 	// 슬롯(0 = 기본 공격)의 스킬을 시전한다. 사거리/대상/방향은 서버가 검증·보정하며, 실패하면 아무 일도 일어나지 않는다.
 	void CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY);

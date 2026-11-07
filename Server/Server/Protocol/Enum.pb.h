@@ -68,12 +68,13 @@ enum PacketId : int {
   SC_DEAD = 2010,
   SC_CHANGE_EQUIP = 2011,
   SC_PONG = 2012,
+  SC_CHANGE_EQUIP_RESULT = 2013,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_PONG;
+constexpr PacketId PacketId_MAX = SC_CHANGE_EQUIP_RESULT;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();
@@ -175,10 +176,12 @@ inline bool PlayerType_Parse(
 }
 enum EquipPart : int {
   EQUIP_PART_NONE = 0,
-  EQUIP_PART_UPPER = 1,
-  EQUIP_PART_LOWER = 2,
-  EQUIP_PART_OUTFIT_SHOES = 3,
-  EQUIP_PART_WEAPON = 5,
+  EQUIP_PART_HEAD = 1,
+  EQUIP_PART_TOP = 2,
+  EQUIP_PART_BOTTOM = 3,
+  EQUIP_PART_GLOVES = 4,
+  EQUIP_PART_BOOTS = 5,
+  EQUIP_PART_WEAPON = 6,
   EquipPart_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   EquipPart_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
@@ -200,6 +203,37 @@ inline bool EquipPart_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, EquipPart* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<EquipPart>(
     EquipPart_descriptor(), name, value);
+}
+enum EquipResult : int {
+  EQUIP_RESULT_NONE = 0,
+  EQUIP_RESULT_SUCCESS = 1,
+  EQUIP_RESULT_NO_ITEM = 2,
+  EQUIP_RESULT_WRONG_SLOT = 3,
+  EQUIP_RESULT_ACTING = 4,
+  EQUIP_RESULT_DEAD = 5,
+  EQUIP_RESULT_TOO_FREQUENT = 6,
+  EQUIP_RESULT_NOT_IN_ROOM = 7,
+  EquipResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  EquipResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool EquipResult_IsValid(int value);
+constexpr EquipResult EquipResult_MIN = EQUIP_RESULT_NONE;
+constexpr EquipResult EquipResult_MAX = EQUIP_RESULT_NOT_IN_ROOM;
+constexpr int EquipResult_ARRAYSIZE = EquipResult_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EquipResult_descriptor();
+template<typename T>
+inline const std::string& EquipResult_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, EquipResult>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function EquipResult_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    EquipResult_descriptor(), enum_t_value);
+}
+inline bool EquipResult_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, EquipResult* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<EquipResult>(
+    EquipResult_descriptor(), name, value);
 }
 enum LoginResult : int {
   LOGIN_RESULT_NONE = 0,
@@ -276,6 +310,11 @@ template <> struct is_proto_enum< ::Protocol::EquipPart> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::EquipPart>() {
   return ::Protocol::EquipPart_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::EquipResult> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::EquipResult>() {
+  return ::Protocol::EquipResult_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::LoginResult> : ::std::true_type {};
 template <>

@@ -20,6 +20,8 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_DAMAGE, &FPacketHandler::Handle_SC_DAMAGE);
 	RegisterHandler(Protocol::SC_DEAD, &FPacketHandler::Handle_SC_DEAD);
 	RegisterHandler(Protocol::SC_CHAT, &FPacketHandler::Handle_SC_CHAT);
+	RegisterHandler(Protocol::SC_CHANGE_EQUIP, &FPacketHandler::Handle_SC_CHANGE_EQUIP);
+	RegisterHandler(Protocol::SC_CHANGE_EQUIP_RESULT, &FPacketHandler::Handle_SC_CHANGE_EQUIP_RESULT);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -86,6 +88,21 @@ namespace
 		default:										return FText::FromString(TEXT("로그인에 실패했습니다."));
 		}
 	}
+
+	// 장착 거부 결과(SC_CHANGE_EQUIP_RESULT) 문구
+	FText EquipResultText(Protocol::EquipResult Result)
+	{
+		switch (Result)
+		{
+		case Protocol::EQUIP_RESULT_NO_ITEM:		return FText::FromString(TEXT("존재하지 않는 아이템입니다."));
+		case Protocol::EQUIP_RESULT_WRONG_SLOT:		return FText::FromString(TEXT("그 슬롯에는 장착할 수 없는 아이템입니다."));
+		case Protocol::EQUIP_RESULT_ACTING:			return FText::FromString(TEXT("공격 중에는 장비를 바꿀 수 없습니다."));
+		case Protocol::EQUIP_RESULT_DEAD:			return FText::FromString(TEXT("사망 중에는 장비를 바꿀 수 없습니다."));
+		case Protocol::EQUIP_RESULT_TOO_FREQUENT:	return FText::FromString(TEXT("장비를 너무 자주 바꾸고 있습니다. 잠시 후 다시 시도하세요."));
+		case Protocol::EQUIP_RESULT_NOT_IN_ROOM:	return FText::FromString(TEXT("게임에 들어간 뒤에 장비를 바꿀 수 있습니다."));
+		default:									return FText::FromString(TEXT("장비를 바꾸지 못했습니다."));
+		}
+	}
 }
 
 void FPacketHandler::Handle_SC_LOGIN(TSharedPtr<NetworkSession>& session, Protocol::SC_LOGIN_INFO_PACKET& pkt)
@@ -146,6 +163,19 @@ void FPacketHandler::Handle_SC_DEAD(TSharedPtr<NetworkSession>& session, Protoco
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandleDead(pkt.object_id());
+}
+
+void FPacketHandler::Handle_SC_CHANGE_EQUIP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleChangeEquip(pkt.object_id(), pkt.part(), pkt.item_id(), pkt.stat());
+}
+
+void FPacketHandler::Handle_SC_CHANGE_EQUIP_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_RESULT_PACKET& pkt)
+{
+	// 성공은 SC_CHANGE_EQUIP 방송으로 오므로 이 패킷은 거부일 때만 온다.
+	UE_LOG(LogTemp, Log, TEXT("ChangeEquip rejected: result=%d part=%d item=%d"), static_cast<int32>(pkt.result()), static_cast<int32>(pkt.part()), pkt.item_id());
+	ShowSystemMessage(session, EquipResultText(pkt.result()));
 }
 
 void FPacketHandler::Handle_SC_CHAT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHAT_PACKET& pkt)

@@ -26,6 +26,11 @@ public:
     UFUNCTION(BlueprintCallable, Category = "UI")
     void OnChatKeyPressed();
 
+    // Dev console command (MC3.2): "Equip <part 1~6> <itemId>" sends CS_CHANGE_EQUIP only (itemId 0 = unequip).
+    // The server validates and replies. Remove when WBP_Equipment exists (MC4.4).
+    UFUNCTION(Exec)
+    void Equip(int32 Part, int32 ItemId);
+
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<class UUserWidget> ChatWidgetClass;

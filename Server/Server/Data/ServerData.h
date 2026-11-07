@@ -43,7 +43,7 @@ enum class WeaponType
 	Monster
 };
 
-// 장비 슬롯. 번호 = itemId 첫째 자리. (MC3.2에서 Protocol::EquipPart를 같은 번호로 다시 매긴다)
+// 장비 슬롯. 번호 = itemId 첫째 자리 = Protocol::EquipPart (MC3.2)
 enum class ItemSlot
 {
 	Head = 1,
@@ -135,6 +135,8 @@ struct MovementData
 	float moveSlackCm;         // 예산과 별도로 항상 인정하는 여유 거리
 	int minMoveIntervalMs;     // 이보다 잦은 이동 패킷은 무시한다
 	float navToleranceCm;      // 목표가 내비메시 경계 밖으로 이만큼(수평)까지는 허용. 벽 두께 + 양쪽 침식(34cm×2)보다 작아야 벽을 못 뚫는다
+	int weaponSwapLockMs;      // 무기 슬롯이 바뀌면(착용·해제) 이 시간 동안 공용 행동 잠금 (MC3.2)
+	int equipMinIntervalMs;    // 같은 캐릭터의 장착 요청 최소 간격 (MC3.2)
 };
 
 // MovementTable에서 플레이어 기본값을 담은 행 (클라이언트 UDataManager도 같은 행을 쓴다)

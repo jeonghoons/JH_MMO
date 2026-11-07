@@ -28,6 +28,7 @@ enum PacketId {
     SC_DEAD = 2010;
     SC_CHANGE_EQUIP = 2011;
     SC_PONG = 2012;
+    SC_CHANGE_EQUIP_RESULT = 2013;   // 장착 거부 결과 (본인에게만)
 }
 
 enum MoveState {
@@ -56,12 +57,27 @@ enum PlayerType {
     PLAYER_TYPE_FEMALE = 2;
 }
 
+// 장비 슬롯. 번호 = ItemTable itemId 첫째 자리 (MC3.2 재번호, 옛 UPPER 1/LOWER 2/OUTFIT_SHOES 3/WEAPON 5 대체)
 enum EquipPart {
     EQUIP_PART_NONE = 0;
-    EQUIP_PART_UPPER = 1;
-    EQUIP_PART_LOWER = 2;
-    EQUIP_PART_OUTFIT_SHOES = 3;
-    EQUIP_PART_WEAPON = 5;
+    EQUIP_PART_HEAD = 1;
+    EQUIP_PART_TOP = 2;
+    EQUIP_PART_BOTTOM = 3;
+    EQUIP_PART_GLOVES = 4;
+    EQUIP_PART_BOOTS = 5;
+    EQUIP_PART_WEAPON = 6;
+}
+
+// SC_CHANGE_EQUIP_RESULT_PACKET.result. 성공은 SC_CHANGE_EQUIP 방송으로 알리므로 이 패킷은 거부일 때만 보낸다.
+enum EquipResult {
+    EQUIP_RESULT_NONE = 0;
+    EQUIP_RESULT_SUCCESS = 1;
+    EQUIP_RESULT_NO_ITEM = 2;       // ItemTable에 없는 아이템
+    EQUIP_RESULT_WRONG_SLOT = 3;    // 슬롯이 없거나 아이템 슬롯과 다름
+    EQUIP_RESULT_ACTING = 4;        // 시전 중(행동 잠금 중)
+    EQUIP_RESULT_DEAD = 5;          // 사망 중
+    EQUIP_RESULT_TOO_FREQUENT = 6;  // 교체 빈도 제한(MovementTable.EquipMinIntervalMs)
+    EQUIP_RESULT_NOT_IN_ROOM = 7;   // 방에 들어가기 전
 }
 
 // SC_LOGIN_INFO_PACKET.result. 성공일 때만 object_info가 채워진다.

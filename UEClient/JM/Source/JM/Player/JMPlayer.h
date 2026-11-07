@@ -28,9 +28,11 @@ protected:
 	void OnAssetLoadCompleted(TSoftObjectPtr<USkeletalMesh> MeshAsset, TSoftClassPtr<UAnimInstance> AnimAsset, TSoftObjectPtr<class UAnimMontage> AttackMontageAsset, TSoftObjectPtr<class UAnimMontage> HitMontageAsset, TSoftObjectPtr<class UAnimMontage> DeadMontageAsset);
 
 public:
-	// 장착 무기의 타입(스킬 조회 키). 무기 슬롯이 비면 Unarmed.
-	// MC3.1: 장착 시스템 전이라 항상 Unarmed — MC3.2에서 ObjectInfo.equip_items의 무기로 ItemTable을 조회해 정한다.
-	EWeaponType GetWeaponType() const { return EWeaponType::Unarmed; }
+	// 장착 무기의 타입(스킬 조회 키). 무기 슬롯이 비면 Unarmed. ObjectInfo.equip_items(서버 값)의 무기로 ItemTable을 조회한다.
+	EWeaponType GetWeaponType() const;
+
+	// SC_CHANGE_EQUIP 반영: 장착 목록과 서버가 계산한 최종 스탯을 그대로 넣는다. 외형 교체는 MC4.1.
+	void ApplyEquipChange(Protocol::EquipPart Part, int32 ItemId, const Protocol::StatInfo& Stat);
 
 	static FName GetCharacterRowName(Protocol::PlayerType Type);
 

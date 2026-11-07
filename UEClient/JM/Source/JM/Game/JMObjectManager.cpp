@@ -235,6 +235,26 @@ void UJMObjectManager::HandleDamage(int32 AttackerId, int32 TargetId, int32 Dama
 }
 
 
+void UJMObjectManager::HandleChangeEquip(int32 ObjectId, Protocol::EquipPart Part, int32 ItemId, const Protocol::StatInfo& Stat)
+{
+	TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(ObjectId);
+	if (FoundActor == nullptr || *FoundActor == nullptr) return;
+
+	AJMPlayer* Player = Cast<AJMPlayer>(*FoundActor);
+	if (Player == nullptr) return;   // 몬스터는 장비가 없다
+
+	Player->ApplyEquipChange(Part, ItemId, Stat);
+
+	if (*FoundActor == MyPlayer)
+	{
+		if (UCombatHudWidget* Hud = GetCombatHud())
+		{
+			Hud->SetWeaponType(MyPlayer->GetWeaponType());
+			Hud->SetHp(Stat.hp(), Stat.max_hp());
+		}
+	}
+}
+
 void UJMObjectManager::HandleDead(int32 CharacterId)
 {
 	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(CharacterId))

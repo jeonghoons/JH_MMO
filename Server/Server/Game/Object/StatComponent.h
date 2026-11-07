@@ -24,6 +24,18 @@ public:
 	float GetAttackSpeed() const { return _statInfo ? _statInfo->attack_speed() : 0.f; }
 	float GetMoveSpeed() const { return _statInfo ? _statInfo->move_speed() : 0.f; }
 
+	// 장비 반영 후 최종 스탯을 넣는다(플레이어, MC3.2). HP는 새 최대치로 자르기만 하고 회복하지 않는다.
+	void ApplyFinalStat(const StatData& base, int bonusAttackDamage, int bonusMaxHp)
+	{
+		if (_statInfo == nullptr) return;
+		const int maxHp = base.maxHp + bonusMaxHp;
+		_statInfo->set_max_hp(maxHp);
+		_statInfo->set_hp(std::min(_statInfo->hp(), maxHp));
+		_statInfo->set_attack_damage(base.attackDamage + bonusAttackDamage);
+		_statInfo->set_attack_speed(base.attackSpeed);
+		_statInfo->set_move_speed(base.moveSpeed);
+	}
+
 	bool IsDead() const { return _statInfo == nullptr || _statInfo->hp() <= 0; }
 
 	int OnDamaged(int damage)

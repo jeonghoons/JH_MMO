@@ -363,7 +363,8 @@ bool DataManager::Init()
 		_itemTable[d.itemId] = d;
 	}
 
-	// MovementTable: Name(=movementId), ServerSpeedTolerance, ServerMoveBudgetMs, ServerMoveSlackCm, ServerMinMoveIntervalMs, ServerNavToleranceCm
+	// MovementTable: Name(=movementId), ServerSpeedTolerance, ServerMoveBudgetMs, ServerMoveSlackCm, ServerMinMoveIntervalMs, ServerNavToleranceCm,
+	// ServerWeaponSwapLockMs, ServerEquipMinIntervalMs
 	// (나머지 열은 클라이언트 전용이라 읽지 않는다)
 	CsvFile movement;
 	if (!movement.Load((dir / "MovementTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
@@ -373,15 +374,17 @@ bool DataManager::Init()
 		MovementData d{};
 		if (!row.GetInt("Name", d.id, err) || !row.GetFloat("ServerSpeedTolerance", d.speedTolerance, err) ||
 			!row.GetInt("ServerMoveBudgetMs", d.moveBudgetMs, err) || !row.GetFloat("ServerMoveSlackCm", d.moveSlackCm, err) ||
-			!row.GetInt("ServerMinMoveIntervalMs", d.minMoveIntervalMs, err) || !row.GetFloat("ServerNavToleranceCm", d.navToleranceCm, err))
+			!row.GetInt("ServerMinMoveIntervalMs", d.minMoveIntervalMs, err) || !row.GetFloat("ServerNavToleranceCm", d.navToleranceCm, err) ||
+			!row.GetInt("ServerWeaponSwapLockMs", d.weaponSwapLockMs, err) || !row.GetInt("ServerEquipMinIntervalMs", d.equipMinIntervalMs, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
 		if (d.speedTolerance < 1.f || d.speedTolerance > 3.f || d.moveBudgetMs <= 0 || d.moveBudgetMs > 10000 ||
-			d.moveSlackCm < 0.f || d.minMoveIntervalMs < 0 || d.minMoveIntervalMs > 1000 || d.navToleranceCm < 0.f || d.navToleranceCm > 100.f)
+			d.moveSlackCm < 0.f || d.minMoveIntervalMs < 0 || d.minMoveIntervalMs > 1000 || d.navToleranceCm < 0.f || d.navToleranceCm > 100.f ||
+			d.weaponSwapLockMs < 0 || d.weaponSwapLockMs > 5000 || d.equipMinIntervalMs < 0 || d.equipMinIntervalMs > 5000)
 		{
-			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (1 <= ServerSpeedTolerance <= 3, 0 < ServerMoveBudgetMs <= 10000, ServerMoveSlackCm >= 0, 0 <= ServerMinMoveIntervalMs <= 1000, 0 <= ServerNavToleranceCm <= 100)", movement.Path(), row.Line());
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (1 <= ServerSpeedTolerance <= 3, 0 < ServerMoveBudgetMs <= 10000, ServerMoveSlackCm >= 0, 0 <= ServerMinMoveIntervalMs <= 1000, 0 <= ServerNavToleranceCm <= 100, 0 <= ServerWeaponSwapLockMs <= 5000, 0 <= ServerEquipMinIntervalMs <= 5000)", movement.Path(), row.Line());
 			return false;
 		}
 		if (_movementTable.count(d.id))

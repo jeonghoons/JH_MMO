@@ -174,6 +174,14 @@ void UNetworkManager::SendChat(const FString& Message)
 	SendProtocol(*this, pkt, Protocol::CS_CHAT);
 }
 
+void UNetworkManager::SendChangeEquip(int32 Part, int32 ItemId)
+{
+	Protocol::CS_CHANGE_EQUIP_PACKET pkt;
+	pkt.set_part(static_cast<Protocol::EquipPart>(Part));
+	pkt.set_item_id(ItemId);
+	SendProtocol(*this, pkt, Protocol::CS_CHANGE_EQUIP);
+}
+
 void UNetworkManager::EnterGame()
 {
 	SwitchGameMapLevel(FName("ParagonSample"));

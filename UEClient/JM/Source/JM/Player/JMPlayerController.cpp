@@ -45,6 +45,16 @@ void AJMPlayerController::BeginPlay()
 	}
 }
 
+void AJMPlayerController::Equip(int32 Part, int32 ItemId)
+{
+	// 요청만 보낸다. 슬롯·아이템 검증과 결과(성공 방송·거부 문구)는 서버가 정한다.
+	if (UNetworkManager* NetManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UNetworkManager>() : nullptr)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Equip: part=%d item=%d"), Part, ItemId);
+		NetManager->SendChangeEquip(Part, ItemId);
+	}
+}
+
 void AJMPlayerController::OnChatKeyPressed()
 {
 	UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();

@@ -20,7 +20,7 @@
   | 2001 / 2002 | 401 / 402 | 검 기본 공격(논타겟 부채꼴) / 광역 강타 |
   | 3001 / 3002 | 501 / 502 | 활 기본 공격(타겟팅 투사체) / 지면 장판 |
   | 9001 | 301 | 몬스터 공격 — `MonsterTable.SkillId`(필수)로 연결 |
-- 서버 조회: 캐릭터의 현재 무기 타입 + 요청 슬롯 → 스킬. 무기를 바꾸면 쓸 수 있는 스킬 목록이 바뀌고, `WeaponSwapLockMs` 동안 시전이 막힙니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
+- 서버 조회: 캐릭터의 현재 무기 타입 + 요청 슬롯 → 스킬. 무기를 바꾸면 쓸 수 있는 스킬 목록이 바뀌고, `MovementTable.ServerWeaponSwapLockMs` 동안 시전이 막힙니다(착용·해제 모두, MC3.2 구현)([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
 
 ### 피해 공식 (2026-11-04)
 - **피해 = 스킬 `BaseDamage` + 공격력(`AttackDamage` = 기본 0 + 무기 보너스)**. 시전 순간에 확정해 즉시 판정·투사체·장판에 모두 같은 값을 씁니다(시전 후 무기를 바꿔도 이미 나간 공격은 그대로).

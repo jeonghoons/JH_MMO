@@ -19,6 +19,8 @@ public:
 	static shared_ptr<SendBuffer> MAKE_SC_DEAD(int objectId);
 
 	static shared_ptr<SendBuffer> MAKE_SC_PONG(long long clientTime);
+	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_EQUIP(int objectId, Protocol::EquipPart part, int itemId, const Protocol::StatInfo& stat);
+	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_EQUIP_RESULT(Protocol::EquipResult result, Protocol::EquipPart part, int itemId);
 
 	static shared_ptr<SendBuffer> MAKE_SC_CHAT(int senderId, const wstring& senderName, const wstring& message);
 

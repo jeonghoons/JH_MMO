@@ -41,4 +41,8 @@ struct FMovementTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ServerMoveSlackCm = 50.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerMinMoveIntervalMs = 50;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ServerNavToleranceCm = 50.f;
+
+	// 장비 교체(MC3.2, 서버 전용): 무기 슬롯이 바뀌면 이 시간 동안 행동 잠금, 캐릭터당 장착 요청 최소 간격
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerWeaponSwapLockMs = 1000;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerEquipMinIntervalMs = 200;
 };

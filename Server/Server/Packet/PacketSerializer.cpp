@@ -59,6 +59,25 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PONG(long long clientTime)
 	return MakeSendBuffer(packet, Protocol::SC_PONG);
 }
 
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHANGE_EQUIP(int objectId, Protocol::EquipPart part, int itemId, const Protocol::StatInfo& stat)
+{
+	Protocol::SC_CHANGE_EQUIP_PACKET packet;
+	packet.set_object_id(objectId);
+	packet.set_part(part);
+	packet.set_item_id(itemId);
+	packet.mutable_stat()->CopyFrom(stat);
+	return MakeSendBuffer(packet, Protocol::SC_CHANGE_EQUIP);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHANGE_EQUIP_RESULT(Protocol::EquipResult result, Protocol::EquipPart part, int itemId)
+{
+	Protocol::SC_CHANGE_EQUIP_RESULT_PACKET packet;
+	packet.set_result(result);
+	packet.set_part(part);
+	packet.set_item_id(itemId);
+	return MakeSendBuffer(packet, Protocol::SC_CHANGE_EQUIP_RESULT);
+}
+
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHAT(int senderId, const wstring& senderName, const wstring& message)
 {
 	Protocol::SC_CHAT_PACKET packet;

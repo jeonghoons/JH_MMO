@@ -20,7 +20,7 @@ enum class EWeaponType : uint8
 	Monster
 };
 
-// 장비 슬롯. 번호 = itemId 첫째 자리. (MC3.2에서 Protocol::EquipPart를 같은 번호로 다시 매긴다)
+// 장비 슬롯. 번호 = itemId 첫째 자리 = Protocol::EquipPart (MC3.2)
 UENUM(BlueprintType)
 enum class EEquipSlot : uint8
 {

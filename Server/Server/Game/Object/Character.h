@@ -33,6 +33,10 @@ public:
 	CastTiming BeginCast(const SkillData& skill);
 	bool IsHit() const { return !_hitTimer.IsReady(); }
 	bool IsActing() const { return !_actionTimer.IsReady(); }
+	// 시전 애니메이션 중인가 (무기 스왑 잠금은 제외 — 스왑 잠금 중에도 방어구 교체는 받는다)
+	bool IsCasting() const { return IsActing() && !_actionIsSwapLock; }
+	// 시전 없이 공용 행동 잠금만 건다 (무기 스왑, DECISIONS 2026-11-04). 스킬 쿨타임은 건드리지 않는다.
+	void LockActionForSwap(long long ms) { _actionTimer.Reset(ms); _actionIsSwapLock = true; }
 	virtual int GetHitStunMs() const { return 300; }   // 피격 후 행동이 막히는 시간
 protected:
 	// 슬롯에 해당하는 스킬(시전 가능 여부는 보지 않음). 플레이어는 무기 타입, 몬스터는 MonsterTable.SkillId로 찾는다.
@@ -47,6 +51,7 @@ protected:
 	StatComponent _statInfo;
 	Cooldown _hitTimer;
 	Cooldown _actionTimer;                               // 공용 행동 잠금 (기본 공격·스킬 공통)
+	bool _actionIsSwapLock = false;                      // 지금 행동 잠금이 무기 스왑 때문인가 (BeginCast가 false로 되돌림)
 	std::unordered_map<int, Cooldown> _skillCooldowns;   // 스킬별 쿨타임 (CooldownMs > 0인 스킬만)
 };
 

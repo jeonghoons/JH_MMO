@@ -1,9 +1,34 @@
 ﻿#include "Player/JMPlayer.h"
 #include "Game/JMGameInstance.h"
 #include "Data/CharacterAssetData.h"
+#include "Game/DataManager.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AJMPlayer::AJMPlayer()
 {
+}
+
+EWeaponType AJMPlayer::GetWeaponType() const
+{
+	const int32 WeaponIndex = static_cast<int32>(Protocol::EQUIP_PART_WEAPON) - 1;   // equip_items는 슬롯 순서(EquipPart - 1)
+	const int32 WeaponId = WeaponIndex < ObjectInfo.equip_items_size() ? ObjectInfo.equip_items(WeaponIndex) : 0;
+	if (WeaponId == 0) return EWeaponType::Unarmed;
+
+	const UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const FItemTableRow* Item = DataManager ? DataManager->FindItemById(WeaponId) : nullptr;
+	return (Item && Item->WeaponType != EWeaponType::None) ? Item->WeaponType : EWeaponType::Unarmed;
+}
+
+void AJMPlayer::ApplyEquipChange(Protocol::EquipPart Part, int32 ItemId, const Protocol::StatInfo& Stat)
+{
+	const int32 Index = static_cast<int32>(Part) - 1;
+	if (Index < 0 || Index >= 6) return;
+	while (ObjectInfo.equip_items_size() < 6) ObjectInfo.add_equip_items(0);
+	ObjectInfo.set_equip_items(Index, ItemId);
+
+	ObjectInfo.mutable_stat()->CopyFrom(Stat);
+	if (Stat.move_speed() > 0.f && GetCharacterMovement())
+		GetCharacterMovement()->MaxWalkSpeed = Stat.move_speed();
 }
 
 void AJMPlayer::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)

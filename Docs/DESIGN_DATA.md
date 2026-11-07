@@ -113,7 +113,9 @@ ID `1001` = 플레이어 기본값. 클라이언트(`DT_MovementTable`)와 서�
 | `ServerMoveSlackCm` | 50 | 서버 | 예산과 별도로 항상 인정하는 여유 거리 |
 | `ServerMinMoveIntervalMs` | 50 | 서버·클라 | 이보다 잦은 이동 패킷은 서버가 처리하지 않음. 클라이언트는 이 간격 안의 전송을 미룬다 |
 | `ServerNavToleranceCm` | 50 | 서버 | 목표가 내비메시 경계 밖으로 이만큼(수평)까지는 허용. 내비메시는 벽에서 34cm 안쪽까지 깔리므로 68cm + 벽 두께보다 작아야 벽을 뚫지 못함, 0~100 |
+| `ServerWeaponSwapLockMs` | 1000 | 서버 | 무기 슬롯이 바뀌면(착용·해제 모두) 이 시간 동안 공용 행동 잠금 — 스왑으로 쿨타임 우회 방지(MC3.2), 0~5000 |
+| `ServerEquipMinIntervalMs` | 200 | 서버 | 같은 캐릭터의 장착 요청 최소 간격(슬롯 구분 없음). 더 잦으면 `EQUIP_RESULT_TOO_FREQUENT`(MC3.2), 0~5000 |
 
 서버는 값이 범위를 벗어나거나 1001 행·열이 없으면 시작을 중단합니다.
 
-**Phase MC 목표 열**: `WeaponSwapLockMs`(1000, 서버 — 무기 교체 후 행동 잠금), `SheatheDelaySec`(5, 클라 — 마지막 공격·피격 후 무기를 등에 메기까지).
+**Phase MC 목표 열**: `SheatheDelaySec`(5, 클라 — 마지막 공격·피격 후 무기를 등에 메기까지).

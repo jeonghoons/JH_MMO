@@ -341,6 +341,46 @@ void Room::PlayerPing(shared_ptr<Player> player, long long clientTime)
 		session->Send(PacketSerializer::MAKE_SC_PONG(clientTime));
 }
 
+void Room::PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part, int itemId)
+{
+	if (player == nullptr) return;
+
+	auto reject = [&](Protocol::EquipResult result) {
+		LOG_DEBUG("Equip", "거부 player={} part={} item={} result={}", player->GetId(), static_cast<int>(part), itemId, Protocol::EquipResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_CHANGE_EQUIP_RESULT(result, part, itemId));
+	};
+
+	if (GetGameObject(player->GetId()) == nullptr) { reject(Protocol::EQUIP_RESULT_NOT_IN_ROOM); return; }
+
+	// 검증 순서: 형식(슬롯·아이템) → 상태(사망·시전) → 빈도. 빈도 제한은 통과한 요청만 시간을 갱신한다.
+	if (part < Protocol::EQUIP_PART_HEAD || part > Protocol::EQUIP_PART_WEAPON) { reject(Protocol::EQUIP_RESULT_WRONG_SLOT); return; }
+	if (itemId != 0)
+	{
+		const ItemData* item = DataManager::GetItemData(itemId);
+		if (item == nullptr) { reject(Protocol::EQUIP_RESULT_NO_ITEM); return; }
+		if (static_cast<int>(item->slot) != static_cast<int>(part)) { reject(Protocol::EQUIP_RESULT_WRONG_SLOT); return; }
+	}
+	if (player->GetStat().IsDead()) { reject(Protocol::EQUIP_RESULT_DEAD); return; }
+	if (player->IsCasting()) { reject(Protocol::EQUIP_RESULT_ACTING); return; }
+
+	const MovementData* rule = DataManager::GetMovementData(PLAYER_MOVEMENT_ID);   // 서버 시작 때 존재를 확인했다
+	if (!player->equipCooldown.IsReady()) { reject(Protocol::EQUIP_RESULT_TOO_FREQUENT); return; }
+	player->equipCooldown.Reset(rule->equipMinIntervalMs);
+
+	// 같은 아이템이면 바뀌는 것이 없다 (잠금·방송 없이 끝낸다)
+	if (player->GetEquippedItem(part) == itemId) return;
+
+	player->SetEquippedItem(part, itemId);
+	player->RecalcStat();
+
+	// 무기 슬롯이 바뀌면 착용·해제 모두 행동 잠금 — 스왑으로 쿨타임을 우회하지 못하게 한다(DECISIONS 2026-11-04, 2026-11-07)
+	if (part == Protocol::EQUIP_PART_WEAPON)
+		player->LockActionForSwap(rule->weaponSwapLockMs);
+
+	BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_CHANGE_EQUIP(player->GetId(), part, itemId, player->GetInfo().stat()), true);
+}
+
 void Room::Broadcast(shared_ptr<SendBuffer> sendBuffer)
 {
 	for (const auto& p : _players)

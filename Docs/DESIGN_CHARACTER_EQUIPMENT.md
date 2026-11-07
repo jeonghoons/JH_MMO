@@ -20,7 +20,7 @@
 | 장화(Boots) | 스켈레탈 | Leader Pose | feet |
 | 무기(Weapon) | 정적 | 손 소켓(전투) / 등 소켓(비전투) | — |
 
-- `EquipPart` enum을 이 6개로 다시 번호를 매깁니다(HEAD=1 … WEAPON=6 순, MC3.2에서 확정). 옛 번호(UPPER 1/LOWER 2/OUTFIT_SHOES 3/WEAPON 5)로 저장된 `Player_Equipped` 행은 마이그레이션에서 지우고 기본 장비로 다시 지급합니다.
+- `EquipPart` enum = HEAD 1 · TOP 2 · BOTTOM 3 · GLOVES 4 · BOOTS 5 · WEAPON 6(= itemId 첫째 자리, MC3.2 확정). `ObjectInfo.equip_items`는 항상 6칸, 인덱스 = EquipPart − 1(빈 슬롯 0). 옛 번호(UPPER 1/LOWER 2/OUTFIT_SHOES 3/WEAPON 5)로 저장된 `Player_Equipped` 행은 마이그레이션에서 지우고 기본 장비로 다시 지급합니다.
 - 겹쳐 입기(상의 위 흉갑), 어깨·망토 슬롯은 후속입니다.
 
 ## 몸 = 부위 분할 + 장비가 덮는 부위 숨김
@@ -44,8 +44,8 @@
 ## 장착 흐름 (서버 권위)
 1. 클라이언트: 개발용 장비창 `WBP_Equipment`(ItemTable 전체 목록, A3 전 임시)에서 클릭 → `CS_CHANGE_EQUIP(slot, itemId)`(itemId 0 = 해제).
 2. 서버 검증: 존재하는 아이템인지, 슬롯이 맞는지, 시전 중·사망 중이 아닌지, 교체 빈도 제한. 보유 검사와 레벨/티어 제한은 A3에서 추가합니다.
-3. 서버 반영: 장착 목록·최종 스탯 재계산. **무기를 바꾸면 `MovementTable.WeaponSwapLockMs`(1000) 동안 행동 잠금**(공용 행동 잠금 재사용). 스킬 쿨타임은 스킬별로 유지됩니다. 최대 HP가 줄면 현재 HP를 새 최대치로 자르고, 늘어도 회복하지 않습니다.
-4. 서버 방송: `SC_CHANGE_EQUIP(objectId, slot, itemId, 최종 스탯)`을 AOI 전체에. 처음 보이는 캐릭터는 `ObjectInfo.equip_items`(슬롯 순서)로 받습니다.
+3. 서버 반영: 장착 목록·최종 스탯 재계산. **무기 슬롯이 바뀌면(착용·해제 모두) `MovementTable.ServerWeaponSwapLockMs`(1000) 동안 행동 잠금**(공용 행동 잠금 재사용). 스왑 잠금 중에도 방어구 교체는 받습니다(시전 중 거부는 시전 애니메이션만 해당). 요청 빈도는 캐릭터당 `ServerEquipMinIntervalMs`(200). 스킬 쿨타임은 스킬별로 유지됩니다. 최대 HP가 줄면 현재 HP를 새 최대치로 자르고, 늘어도 회복하지 않습니다.
+4. 서버 방송: `SC_CHANGE_EQUIP(objectId, slot, itemId, 최종 스탯)`을 AOI 전체(본인 포함)에. 거부는 본인에게만 `SC_CHANGE_EQUIP_RESULT(EquipResult, slot, itemId)`. 처음 보이는 캐릭터는 `ObjectInfo.equip_items`(슬롯 순서)로 받습니다.
 5. 클라이언트 반영: itemId로 ItemTable을 조회해 메시를 바꾸고 몸 가시성을 다시 계산합니다. 스탯은 받은 값을 그대로 씁니다.
 6. 저장: 장착 변경은 `Player_Equipped`(PlayerId, EquipSlot, ItemDbId, ItemId)에 저장합니다. `ItemDbId`는 A3 전까지 0. 로그인 때 장비·체형만 불러오고, 레벨·HP 저장은 A2.5입니다.
 - 가입 시 기본 장비: 천 5부위 + 천 한손검.
