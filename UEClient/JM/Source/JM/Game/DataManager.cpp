@@ -2,7 +2,6 @@
 #include "Data/JMDataSettings.h"
 #include "Engine/DataTable.h"
 #include "Engine/StreamableManager.h"
-#include "Data/CharacterAssetData.h"
 #include "Game/JMGameInstance.h"
 
 const FMovementTableRow* UDataManager::FindMovementRow(int32 Id) const
@@ -61,7 +60,7 @@ const FSkillTableRow* UDataManager::FindSkillBySlot(EWeaponType WeaponType, int3
 	return nullptr;
 }
 
-const FItemTableRow* UDataManager::FindItemById(int32 ItemId) const
+UDataTable* UDataManager::GetItemTable() const
 {
 	if (CachedItemTable == nullptr)
 	{
@@ -73,9 +72,32 @@ const FItemTableRow* UDataManager::FindItemById(int32 ItemId) const
 		}
 		CachedItemTable = Settings->ItemTable.LoadSynchronous();
 	}
-	if (CachedItemTable == nullptr) return nullptr;
+	return CachedItemTable;
+}
 
-	return CachedItemTable->FindRow<FItemTableRow>(FName(*FString::FromInt(ItemId)), TEXT("FindItemById"), false);
+const FItemTableRow* UDataManager::FindItemById(int32 ItemId) const
+{
+	UDataTable* Table = GetItemTable();
+	if (Table == nullptr) return nullptr;
+
+	return Table->FindRow<FItemTableRow>(FName(*FString::FromInt(ItemId)), TEXT("FindItemById"), false);
+}
+
+const FBodyTableRow* UDataManager::FindBody(int32 PlayerType) const
+{
+	if (CachedBodyTable == nullptr)
+	{
+		const UJMDataSettings* Settings = GetDefault<UJMDataSettings>();
+		if (Settings == nullptr || Settings->BodyTable.IsNull())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DataManager: BodyTable is not set (Project Settings > Game > JM Data)"));
+			return nullptr;
+		}
+		CachedBodyTable = Settings->BodyTable.LoadSynchronous();
+	}
+	if (CachedBodyTable == nullptr) return nullptr;
+
+	return CachedBodyTable->FindRow<FBodyTableRow>(FName(*FString::FromInt(PlayerType)), TEXT("FindBody"), false);
 }
 
 void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
@@ -87,17 +109,29 @@ void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
 	};
 
 	UJMGameInstance* GameInst = Cast<UJMGameInstance>(GetGameInstance());
-	if (GameInst && GameInst->CharacterAssetTable)
+
+	// 플레이어 외형(MC4.1): 체형 2개 + 장비 전체. 스폰 직후 맨몸·투명으로 보이는 것을 막는다(지금 14개 × 남녀라 전부 미리 로드).
+	for (int32 PlayerType : { 1, 2 })
 	{
-		for (const TPair<FName, uint8*>& Pair : GameInst->CharacterAssetTable->GetRowMap())
+		if (const FBodyTableRow* Body = FindBody(PlayerType))
 		{
-			const FCharacterAssetData* Row = reinterpret_cast<const FCharacterAssetData*>(Pair.Value);
+			AddPath(Body->Leader.ToSoftObjectPath());
+			AddPath(Body->Eyes.ToSoftObjectPath());
+			AddPath(Body->Teeth.ToSoftObjectPath());
+			AddPath(Body->Hair.ToSoftObjectPath());
+			AddPath(Body->BodyMaterial.ToSoftObjectPath());
+			AddPath(Body->AnimClass.ToSoftObjectPath());
+		}
+	}
+	if (UDataTable* ItemTable = GetItemTable())
+	{
+		for (const TPair<FName, uint8*>& Pair : ItemTable->GetRowMap())
+		{
+			const FItemTableRow* Row = reinterpret_cast<const FItemTableRow*>(Pair.Value);
 			if (Row == nullptr) continue;
-			AddPath(Row->CharacterMesh.ToSoftObjectPath());
-			AddPath(Row->AnimClass.ToSoftObjectPath());
-			AddPath(Row->AttackMontage.ToSoftObjectPath());
-			AddPath(Row->HitMontage.ToSoftObjectPath());
-			AddPath(Row->DeadMontage.ToSoftObjectPath());
+			AddPath(Row->MeshM.ToSoftObjectPath());
+			AddPath(Row->MeshF.ToSoftObjectPath());
+			AddPath(Row->StaticMesh.ToSoftObjectPath());
 		}
 	}
 

@@ -12,12 +12,12 @@ import unreal
 import toolset_registry
 from toolset_registry.registration import Registration
 
-from jm_kit import body_mask, garment, glove_paint, icon, preview, profiles, skeleton_check
+from jm_kit import body_mask, garment, glove_paint, icon, item_table, preview, profiles, skeleton_check
 
 
 def _reload():
     """도구를 고친 뒤 에디터 재시작 없이 반영(의존 순서대로)."""
-    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon):
+    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table):
         importlib.reload(m)
 
 
@@ -285,6 +285,22 @@ class KitTools(unreal.ToolsetDefinition):
         """
         keys = [k.strip() for k in item_keys.split(",") if k.strip()] if item_keys else None
         return _dump(icon.shoot(keys, import_assets=True if import_assets is None else import_assets))
+
+    # ── 데이터 테이블 생성 ────────────────────────────────
+    @toolset_registry.tool_call
+    @staticmethod
+    def item_table_export(write: bool | None = None) -> str:
+        """ItemTable.csv 외형 열(AttachSocket·AttachM·AttachF·Mask·HideHair)과 BodyTable.csv를 items.json·kit_profiles.json에서 생성한다(MC4.1).
+
+        CSV만 쓴다 — 이후 DataTableReimportTools.reimport_csv로 DT를 다시 채운다.
+
+        Args:
+            write: False면 쓰지 않고 바뀔 값만 돌려준다(기본 True).
+
+        Returns:
+            JSON {items: {csv, rows, changed, written}, bodies: {csv, rows, changed, written}}.
+        """
+        return _dump(item_table.export(write=write is not False))
 
 
 @unreal.uclass()

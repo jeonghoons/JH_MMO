@@ -43,6 +43,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 | MonsterTable | 몬스터 종류별 스탯·스킬·리스폰 (ID = `ObjectInfo.template_id`) |
 | UITable | 해당 기능 작업 시 |
 | WorldTable | 맵별 시야(AOI) 수치 — 서버 전용(2026-10-31 A1.3) |
+| BodyTable | 체형별 기준 캐릭터 구성(리더·눈·이·헤어·몸 머티리얼·AnimBP) — 클라 전용(2026-11-07 MC4.1) |
 
 2026-11-04 Phase MC: 계획했던 `HeroTable`/`WeaponItemTable`은 만들지 않고 **ItemTable**로 대체합니다. 플레이어 메시·AnimBP는 매니퀸 공용이라 테이블이 필요 없고, `DT_CharacterAsset`은 MC4에서 플레이어 참조를 끊은 뒤 정리합니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
 
@@ -79,10 +80,13 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 ### ItemTable (2026-11-07 MC3.1 확정, 서버 구현됨)
 - 서버가 읽는 열: `Name`(itemId), `Slot`(`Head`/`Top`/`Bottom`/`Gloves`/`Boots`/`Weapon`), `Grade`(`Common`/`Uncommon`/`Rare`), `Tier`(`Cloth`/`Leather`/`Plate`), `WeaponType`(무기만 `Sword`/`Bow`, 나머지 `None`), `BonusAttackDamage`(무기만), `BonusMaxHp`(방어구만), `Starter`(1 = 가입 시 기본 장비, 0/1만, 슬롯당 최대 1개 — MC3.3; 마이그레이션 SQL `migrations/2026-11-07_mc33_equip.sql`의 목록과 같아야 함).
 - **itemId 규칙 = 4자리 [슬롯][티어][일련번호 01~99]**: 슬롯 번호 Head 1·Top 2·Bottom 3·Gloves 4·Boots 5·Weapon 6(MC3.2의 새 `EquipPart` 번호와 같음), 티어 번호 Cloth 1·Leather 2·Plate 3. 예: 1101 천 두건, 6101 천 한손검, 6102 천 활, 6301 판금 한손검. 규칙에 어긋나는 ID, 무기·방어구의 WeaponType/보너스 열 오용, 음수 보너스, 중복 ID는 서버 시작을 중단합니다.
-- 클라 전용 열: `DisplayName`(FText), `Icon`(`T_Icon_<Item>`), `MeshM`/`MeshF`(스켈레탈 슬롯의 체형별 메시), `StaticMesh`(머리·무기 — 지금은 `Source/SM_<Item>_Src`). 부착 소켓·상대 변환·몸 숨김 파라미터는 아직 `Content/Python/jm_kit/items.json`에 있고, 이를 실제로 쓰는 MC4.1 장비 컴포넌트 작업 때 열을 확정해 옮깁니다.
+- 클라 전용 열: `DisplayName`(FText), `Icon`(`T_Icon_<Item>`), `MeshM`/`MeshF`(스켈레탈 슬롯의 체형별 메시), `StaticMesh`(머리·무기 — 지금은 `Source/SM_<Item>_Src`), MC4.1 외형 열 `AttachSocket`(머리·무기가 붙는 본/소켓), `AttachM`/`AttachF`(체형별 소켓 기준 상대 변환, FTransform 텍스트), `Mask`(입었을 때 몸 마스크 파라미터 `FBodyMaskParams` — 슬롯 기본값 + 아이템 덮어쓰기를 합친 값), `HideHair`(1 = 헤어 숨김, 두건·투구). **외형 열(`AttachSocket`~`HideHair`)은 `jm_kit.item_table.export`(MCP `item_table_export`)가 `items.json`·`kit_profiles.json`에서 생성하므로 손으로 고치지 않습니다**(`DECISIONS.md` 2026-11-07 MC4.1).
 - 초기 수치(2026-11-07): 방어구 부위당 천 +30 / 판금 +80 MaxHp(5부위 세트 650 / 900), 무기 천 +10 / 판금 +20 공격력. 등급 천 Common, 판금 Uncommon.
 - 맨손은 행이 없습니다(무기 슬롯 비어 있음 = Unarmed). 현재 14행: 천·판금 × (5부위 + 한손검 + 활)([DESIGN_ART_CONCEPT.md](DESIGN_ART_CONCEPT.md)).
 - UE: `FItemTableRow`(`Source/JM/Data/ItemTableRow.h`, enum `EWeaponType`·`EEquipSlot`·`EItemTier`·`EItemGrade`), `DT_ItemTable`, 조회 `UDataManager::FindItemById`.
+
+### BodyTable (클라이언트 전용, 2026-11-07 MC4.1)
+체형별 기준 캐릭터 구성. `Name` = PlayerType(1 MALE, 2 FEMALE), `Leader`(보이는 몸 = 키트 `Body_Combined`, 애니메이션 재생), `Eyes`·`Teeth`·`Hair`(Leader Pose로 따라가는 키트 부위), `BodyMaterial`(몸 섹션 마스크 머티리얼 `MI_Body_<M|F>`), `AnimClass`(Leader의 AnimBP). `jm_kit.item_table.export`가 `kit_profiles.json`에서 생성합니다. 서버는 읽지 않습니다. UE: `FBodyTableRow`(`Source/JM/Data/BodyTableRow.h`), `DT_BodyTable`, 조회 `UDataManager::FindBody`.
 
 ### WorldTable (서버 전용, 2026-10-31 A1.3)
 `Name`(worldId, 1001~), `MapName`(맵 리소스 파일 이름 = `GameMap::LoadMapData` 인자, 중복 불가), `CellSizeCm`(AOI 큰 셀 한 변 — 셀마다 쿼드트리, 100~100000), `QuadSplitCount`(쿼드트리 노드가 이 수를 넘으면 4분할, 1~1000), `QuadMinSizeCm`(이보다 작은 노드로는 나누지 않음, 100~CellSizeCm), `ViewRadiusCm`(목표 시야 반경 R — 이 안의 캐릭터는 반드시 보임, 100~100000), `ViewHysteresisCm`(H — 나갈 때는 R+H를 넘어야 사라짐, 0~R). 서버가 쓰는 맵(`Room.h` `ROOM_MAP_NAME`) 행이 없으면 시작을 중단합니다. 현재 행: 1001 ParagonSample(셀 5000, 분할 8, 최소 노드 500, R 5000, H 500 — R·H는 A1.3b 스크린샷으로 결정). UE는 이 테이블을 임포트하지 않습니다.

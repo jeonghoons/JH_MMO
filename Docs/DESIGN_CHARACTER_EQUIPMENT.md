@@ -55,4 +55,10 @@
 - 이펙트(`P_Greystone_GroundSmash`, `P_Sparrow_RainofArrows`)는 검·활 스킬에서 계속 쓰므로 `Content/FX/`로 옮깁니다([DESIGN_ART_CONCEPT.md](DESIGN_ART_CONCEPT.md) 6장).
 - 서버 `equip_items`(DB `Player_Equipped`, `DatabaseWorker::UpdateEquipData`)는 그대로 쓰고 슬롯 번호만 새 `EquipPart`로 바꿉니다.
 - 2026-10-17에 삭제한 `ModularAppearanceComponent`/`ModularEquipmentComponent`는 되살리지 않고 새 장비 컴포넌트를 설계합니다(이름 충돌 주의).
+
+## 클라이언트 구현 (MC4.1, 2026-11-07)
+- `UEquipmentComponent`(`Source/JM/Character/`, `AJMPlayer`가 소유): 체형(`player_type`)과 장착 목록 6칸 → `BodyTable`·`ItemTable` 조회 → 에셋 비동기 로드 → 입은 아이템 마스크 합치기(Hide*는 최댓값, KeepCm은 그 영역을 지운 아이템 값) → 표시 구현에 넘김. `SetPlayerData`(첫 표시)와 `SC_CHANGE_EQUIP`(한 슬롯)에서 갱신. 늦게 끝난 옛 로드는 요청 번호로 버림.
+- 표시 = `UEquipmentAppearance`(추상) → 지금 구현 `ULeaderPoseAppearance`: Leader = 캐릭터 `Mesh`(키트 `Body_Combined` + `ABP_PlayerBase`), 눈·이·헤어·스켈레탈 4슬롯은 Leader Pose + 리더 bounds, 머리·무기는 `ItemTable.AttachSocket`에 `AttachM/F` 상대 변환, 몸 섹션(슬롯 이름에 body)에 `BodyMaterial` MID, `HideHair`면 헤어 숨김. 빈 슬롯은 컴포넌트를 숨기고 재사용. 메시 병합·Mutable로 바꿀 때는 이 클래스만 교체(`AppearanceClass`).
+- 데이터: `BodyTable`(체형별 리더·부위·몸 머티리얼·AnimClass)과 ItemTable 외형 열은 `jm_kit.item_table.export`가 `kit_profiles.json`·`items.json`에서 생성([DESIGN_DATA.md](DESIGN_DATA.md)). 방 입장 전 `UDataManager::PreloadGameAssets`가 체형 2개 + 장비 전체를 미리 로드.
+- Greystone/Sparrow 임시 외형(`AJMPlayer::GetCharacterRowName`)은 삭제. `DT_CharacterAsset`·`UJMGameInstance::CharacterAssetTable`은 플레이어가 더 이상 쓰지 않음 — 정리 여부는 사용자에게 묻습니다.
 - 계획했던 `HeroTable`·`WeaponItemTable`은 만들지 않습니다(ItemTable로 대체).

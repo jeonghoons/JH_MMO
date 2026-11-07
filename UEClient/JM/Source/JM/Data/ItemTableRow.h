@@ -52,9 +52,26 @@ enum class EItemGrade : uint8
 	Rare
 };
 
+// 장비를 입었을 때 몸 섹션 마스크 머티리얼(MI_Body_<M|F>)에 넣는 파라미터. 이름 = 머티리얼 스칼라 파라미터 이름(jm_kit.body_mask.PARAMS).
+// Hide* = 1이면 그 영역을 지운다, *KeepCm = 손목·발목에서 남기는 길이. 여러 아이템을 입으면 Hide*는 큰 값, KeepCm은 그 영역을 지운 아이템의 값.
+USTRUCT(BlueprintType)
+struct FBodyMaskParams
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float HideTorso = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float HideArms = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ArmKeepCm = 8.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float HideLegs = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float LegKeepCm = 8.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float HideFeet = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float HideHands = 0.f;
+};
+
 // Common/DataTable/ItemTable.csv 의 한 행. 컬럼명은 CSV 헤더와 1:1이다.
 // RowName = itemId 문자열(슬롯 1자리 + 티어 1자리 + 일련번호 2자리, 예: 6101 = 천 한손검).
-// 스탯 수치의 권위는 서버이며, 클라이언트는 외형·UI에만 쓴다. 부착 소켓·상대 변환·몸 숨김 열은 MC4.1에서 추가한다.
+// 스탯 수치의 권위는 서버이며, 클라이언트는 외형·UI에만 쓴다.
+// 외형 열(AttachSocket~HideHair)은 jm_kit.item_table.export가 items.json·kit_profiles.json에서 생성한다 — CSV를 손으로 고치지 않는다(MC4.1).
 USTRUCT(BlueprintType)
 struct FItemTableRow : public FTableRowBase
 {
@@ -76,4 +93,12 @@ struct FItemTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<USkeletalMesh> MeshF;
 	// 정적 슬롯(머리·무기)의 메시. 본/소켓에 붙인다(체형 공용).
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UStaticMesh> StaticMesh;
+	// 정적 슬롯이 붙는 본/소켓(머리 head, 한손검 hand_r, 활 hand_l)과 체형별 상대 변환. 스켈레탈 슬롯은 비어 있다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) FName AttachSocket;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) FTransform AttachM;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) FTransform AttachF;
+	// 입었을 때 몸 마스크(슬롯 기본값 + 아이템 덮어쓰기를 합친 값)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) FBodyMaskParams Mask;
+	// 1 = 헤어를 숨긴다(두건·투구)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 HideHair = 0;
 };

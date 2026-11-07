@@ -8,7 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P0 유령 플레이어 수정 → P1 송신 묶기 차례, 2026-11-06 기준선·동시성 감사 완료). 2026-11-06 결정: 트랙 B를 MC4.2 무기 공격까지 먼저 진행한 뒤 트랙 A 재개 (`DECISIONS.md`)**
-`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블·MC3.1b 스탯 재설계·MC3.2 장착 패킷·MC3.3 장비 저장 완료(2026-11-07), 다음 MC4.1 장비 컴포넌트(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블·MC3.1b 스탯 재설계·MC3.2 장착 패킷·MC3.3 장비 저장·MC4.1 장비 컴포넌트 완료(2026-11-07), 다음 MC4.1b 원격 이동 방향 전환 튐(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** (재개 시 기준선 재측정) P0 유령 플레이어 → P1a 송신 지표 → P1b 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -24,7 +24,7 @@
 - 서버는 `Server/Server` 폴더에서 `..\x64\Debug\GameServer.exe`로 실행합니다(DataTable·맵 상대 경로, SQL Server Express 필요). PIE 전에 Debug 빌드가 최신인지 확인하고, 서버가 실행 중이면 VS 빌드가 exe를 덮어쓰지 못합니다.
 - 궁수 계정은 `LoadTest --hero archer`의 `arc_*` 계정이나 UE 로그인 화면에서 궁수 타입으로 가입하면 됩니다. (`content/dev` MC3.1부터 전사·궁수가 없어져 봇은 `--body male|female`, 가입은 남성/여성 — 병합 후에는 이쪽을 따름)
 
-## ▶ 중단점 트랙 B (2026-11-07) — `content/dev`, MC3.1b 스탯 테이블 재설계 완료 → 다음 MC3.2
+## ▶ 중단점 트랙 B (2026-11-07) — `content/dev`, MC4.1 장비 컴포넌트 완료 → 다음 MC4.1b
 **상태:** 판금 7개 모두 생성(상의·하의·장화·장갑·한손검·활·투구, 남녀, `Content/Equipment/Plate/*`, `jm_kit/items.json` `Plate_*`). VARCO 누적 3,250포인트. 투구는 **사슬을 뺀 눈높이 이미지 → 3만 폴리 생성 → UE 엔진 메시 축소로 LOD 4,000/2,000/1,000**(`garment.reduce_static_lods`, `attach.target_tris`), 정적 메시 + `head` 소켓 `fit: "helm"`, `yaw` 90. 상세는 `TESTING.md` 2026-11-06 "투구 4·5차".
 **다음 작업:**
 1. ~~투구 사용자 확인~~ 완료(2026-11-06, 시험 액터 `HM_*`·`HF_*` 삭제).
@@ -34,7 +34,8 @@
 5. ~~MC3.1b~~ 완료(2026-11-07, PlayerStatTable Level 키·MonsterTable 스탯·몬스터 ID 1001 + `template_id`, PlayerType 체형 전용, 피해 = BaseDamage + 공격력 — `DECISIONS.md`·`TESTING.md`).
 6. ~~MC3.2~~ 완료(2026-11-07, 장착 패킷·서버 검증·스왑 잠금·콘솔 `Equip` — `DECISIONS.md`·`TESTING.md`).
 7. ~~MC3.3~~ 완료(2026-11-07, `ItemTable.Starter` 기본 장비, 로그인 장비 복원, 변경 즉시 저장(측정 후 결정), DB 마이그레이션 — `DECISIONS.md`·`TESTING.md`).
-8. **다음: MC4.1** 장비 컴포넌트(Leader Pose, 몸 숨김 데이터 구동, 표시 방식 교체 가능 인터페이스). 남은 임시 처리: MALE/FEMALE 임시 외형 Greystone/Sparrow(MC4.1에서 삭제). 정리 후보: 쓰지 않는 `CS_DMOVE_PACKET`(`Protocol.proto`).
+8. ~~MC4.1~~ 완료(2026-11-07, `UEquipmentComponent` + 교체 가능한 표시 `ULeaderPoseAppearance`, `BodyTable`·ItemTable 외형 열은 `jm_kit.item_table` 생성, `ABP_PlayerBase`, Greystone/Sparrow 임시 외형 삭제 — `DECISIONS.md`·`TESTING.md`).
+9. **다음: MC4.1b** 원격 이동 방향 전환 튐: 측정(방향 전환 시 원격 위치 오차·순간 최대 속도) → A 방향이 N° 넘게 바뀌거나 멈추면 즉시 송신 + B 따라잡는 속도 상한(이동 속도 × 배율), 수치는 `MovementTable` → 재측정. 같은 항목 메모: 봇 `SendMove`가 속도를 보내지 않아 원격 다리가 안 움직임. 정리 후보: 쓰지 않는 `CS_DMOVE_PACKET`(`Protocol.proto`), `DT_CharacterAsset`·`UJMGameInstance::CharacterAssetTable`(플레이어 참조 끊김 — 정리 여부는 사용자에게 묻기).
 **VARCO 흐름 노드(JH_MMO 플로):** 투구 정면 컨셉 `531e1ef7…`, 3/4 시점 편집 `c1511cae…`, 3차 3D `8456f6d4…`(실패), 초록 배경 `aa21a66f…`, 4차 3D `4e325e94…`(실패), 사슬 뺀 눈높이 `a0bb8331…`, **5차 3D `ad0e9513…`(채택, 출력 0)**. 판금 상의 컨셉 `cb90b725…`가 세트 스타일 참고.
 
 ## 트랙 A — 서버/포트폴리오
@@ -203,8 +204,9 @@
 - [x] MC3.3 `Player_Equipped` 저장, 가입 시 기본 장비, 기존 `PlayerType`·장비 행 마이그레이션 (2026-11-07: `ItemTable.Starter`, 변경 즉시 저장(플레이어별 동시 1건·합치기, 측정 15회 후 사용자 결정), 마이그레이션 639명 → MALE·665명 기본 장비, 원시 소켓·부하·PIE 사용자 확인 — `DECISIONS.md`·`TESTING.md`)
 
 **MC4 클라이언트**
-- [ ] MC4.1 장비 컴포넌트(Leader Pose, 몸 숨김 데이터 구동) (표시 방식 교체 가능 인터페이스 — `DECISIONS.md` 2026-11-05)
-- [ ] MC4.2 `ABP_Mannequin` + `ALI_Weapon` + 무기 타입별 레이어·몽타주, `ExportSkillTiming.bat` (+ 장갑 손가락 맞춤 보완 — 무기 쥐기와 함께, `DECISIONS.md` 2026-11-05)
+- [x] MC4.1 장비 컴포넌트(Leader Pose, 몸 숨김 데이터 구동) (표시 방식 교체 가능 인터페이스 — `DECISIONS.md` 2026-11-05) (2026-11-07: `UEquipmentComponent`·`ULeaderPoseAppearance`, `BodyTable` + ItemTable 외형 열(`jm_kit.item_table`), `ABP_PlayerBase`, PIE 남녀·장비 교체·원격 봇 3명·PIE 2인 사용자 확인 — `TESTING.md`)
+- [ ] MC4.1b 원격 이동 방향 전환 튐(2026-11-07 MC4.1 확인 중 발견, S1 원격 보간): 측정 → 방향 변화·정지 시 즉시 송신 + 따라잡는 속도 상한(`MovementTable`) → 재측정, 봇 이동 속도 전송 보완
+- [ ] MC4.2 `ABP_PlayerBase` + `ALI_Weapon` + 무기 타입별 레이어·몽타주, `ExportSkillTiming.bat` (+ 장갑 손가락 맞춤 보완 — 무기 쥐기와 함께, `DECISIONS.md` 2026-11-05)
 - [ ] MC4.3 비전투 시 무기 등에 메기
 - [ ] MC4.4 개발용 장비창 `WBP_Equipment`, 스킬 슬롯 배열 HUD
 
@@ -223,6 +225,7 @@
 - [ ] ~~MC1.3: `jm_modular.body_parts.build("M"/"F")` → `Character/Mannequin/Body/SK_Body_*` 12개, `verify()` 통과, 테스트 레벨 `Dev/MC/L_BodyTest`(git 제외, 디버그 머티리얼과 함께 보관)에서 SceneCapture 확인, 중간 결과물 삭제 (2026-11-04, 도구로 처리)~~ 삭제됨
 - [ ] ~~MC2.1: 프로토타입 FBX 5개(`Saved/VDL`) → `Dev/MC/Garments` 임포트, 프로토타입·보완판 결과 `Dev/MC/ProtoFit`·`Dev/MC/Fit`(git 제외), 의상 머티리얼 양면 (2026-11-04, 도구로 처리)~~ 삭제됨
 - [x] MC2.1b: Fab 키트를 사용자가 Add to Project(`Content/CoreC`, git 제외), `body_parts.build("M"/"F")`로 몸 부위·눈·이·헤어(LOD 3) 재생성, `MI_Skin_<M|F>_<Body|Face>` 4개 생성(`UseComic?` 끔) (2026-11-04, 도구로 처리) — 키트 설치는 유지, 몸 부위·`MI_Skin_*`은 2026-11-04 삭제
+- [x] MC4.1: `ABP_PlayerBase`(템플릿 `ABP_Unarmed` 복제·부모 `JMAnimInstance`, 도구로 처리) 상태·전이 안 연결 5개(Walk/Run X·Y, Idle↔Walk/Run, Land→Locomotion) — 공식 MCP가 중첩 그래프에 노드를 못 만들어 사용자가 직접 (2026-11-07 완료)
 - [ ] 로딩 화면 이미지: 사용자가 이미지를 구해 오면(2026-11-06 무렵) `WBP_SystemMessage` 대기(Waiting) 배경에 적용
 - [x] A2.2f: `WBP_SkillSlot`·`WBP_CombatHud` 생성, `BP_GameMode` 부모 → `AIngameGameModeBase` + `HUDWidgetClass = WBP_CombatHud` (2026-10-28, 도구로 처리)
 - [x] A2.2f: 스킬1 아이콘 2개(배경 투명 처리) → `Character/<영웅>/Icons` 가져오기, SkillTable `Icon` 경로 + `DT_SkillTable` Reimport, `WBP_CombatHud`에서 `SlotAttack` 제거 (2026-10-28, 도구로 처리)
