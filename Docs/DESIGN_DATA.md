@@ -77,7 +77,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 - 클라이언트는 몬스터를 `object_type`으로 판별합니다. 종류별 외형(template_id → 액터)은 몬스터가 늘 때 추가합니다. A2.3 보상(경험치·골드)과 A3 `DropTable`은 이 ID를 참조합니다.
 
 ### ItemTable (2026-11-07 MC3.1 확정, 서버 구현됨)
-- 서버가 읽는 열: `Name`(itemId), `Slot`(`Head`/`Top`/`Bottom`/`Gloves`/`Boots`/`Weapon`), `Grade`(`Common`/`Uncommon`/`Rare`), `Tier`(`Cloth`/`Leather`/`Plate`), `WeaponType`(무기만 `Sword`/`Bow`, 나머지 `None`), `BonusAttackDamage`(무기만), `BonusMaxHp`(방어구만).
+- 서버가 읽는 열: `Name`(itemId), `Slot`(`Head`/`Top`/`Bottom`/`Gloves`/`Boots`/`Weapon`), `Grade`(`Common`/`Uncommon`/`Rare`), `Tier`(`Cloth`/`Leather`/`Plate`), `WeaponType`(무기만 `Sword`/`Bow`, 나머지 `None`), `BonusAttackDamage`(무기만), `BonusMaxHp`(방어구만), `Starter`(1 = 가입 시 기본 장비, 0/1만, 슬롯당 최대 1개 — MC3.3; 마이그레이션 SQL `migrations/2026-11-07_mc33_equip.sql`의 목록과 같아야 함).
 - **itemId 규칙 = 4자리 [슬롯][티어][일련번호 01~99]**: 슬롯 번호 Head 1·Top 2·Bottom 3·Gloves 4·Boots 5·Weapon 6(MC3.2의 새 `EquipPart` 번호와 같음), 티어 번호 Cloth 1·Leather 2·Plate 3. 예: 1101 천 두건, 6101 천 한손검, 6102 천 활, 6301 판금 한손검. 규칙에 어긋나는 ID, 무기·방어구의 WeaponType/보너스 열 오용, 음수 보너스, 중복 ID는 서버 시작을 중단합니다.
 - 클라 전용 열: `DisplayName`(FText), `Icon`(`T_Icon_<Item>`), `MeshM`/`MeshF`(스켈레탈 슬롯의 체형별 메시), `StaticMesh`(머리·무기 — 지금은 `Source/SM_<Item>_Src`). 부착 소켓·상대 변환·몸 숨김 파라미터는 아직 `Content/Python/jm_kit/items.json`에 있고, 이를 실제로 쓰는 MC4.1 장비 컴포넌트 작업 때 열을 확정해 옮깁니다.
 - 초기 수치(2026-11-07): 방어구 부위당 천 +30 / 판금 +80 MaxHp(5부위 세트 650 / 900), 무기 천 +10 / 판금 +20 공격력. 등급 천 Common, 판금 Uncommon.

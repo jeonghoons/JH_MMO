@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "DB/DatabaseWorker.h"
 #include "Game/Object/Player.h"
+#include "Game/Room/Room.h"
+#include "Utils/Metrics.h"
 
 // 연결 문자열은 ServerConfig([Database] ConnectionString 또는 환경변수 JH_DB_CONNECTION)에서 받는다.
 DatabaseWorker::DatabaseWorker(HANDLE iocpHandle, int num_connections, const wstring& connectionString) : _iocpHandle(iocpHandle)
@@ -108,7 +110,7 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 
 			if (loginSuccess && outItemId != 0)
 			{
-				outPlayerData.equipItemIds.push_back(outItemId);
+				outPlayerData.equipped.emplace_back(outEquipSlot, outItemId);
 			}
 		}
 
@@ -159,8 +161,16 @@ void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, s
 	SQLLEN hpLen = 0;
 	dbConn->BindParam(6, &startHp, &hpLen);
 
-	
-	const WCHAR* query = L" \
+	// 기본 장비(ItemTable.Starter)를 같은 트랜잭션에서 지급한다. 값은 로더가 검증한 정수라 쿼리에 그대로 넣는다. ItemDbId는 A3 전까지 0.
+	wstring starterInsert;
+	for (const ItemData* item : DataManager::GetStarterItems())
+	{
+		starterInsert += std::format(L"INSERT INTO [Player_Equipped] (PlayerId, EquipSlot, ItemDbId, ItemId) VALUES (@PlayerID, {}, 0, {}); ",
+			static_cast<int>(item->slot), item->itemId);
+	}
+
+	const wstring query = wstring(L" \
+        SET NOCOUNT ON; SET XACT_ABORT ON; \
         BEGIN TRAN; \
         DECLARE @AccID BIGINT, @PlayerID BIGINT; \
         INSERT INTO [User_Account] (LoginId, LoginPassword) VALUES (?, ?); \
@@ -168,9 +178,9 @@ void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, s
         INSERT INTO [User_Info] (AccountId) VALUES (@AccID); \
         INSERT INTO [Player_Info] (AccountId, Name, PlayerType, [Level], Exp, Hp, Gold) \
         VALUES (@AccID, ?, ?, ?, 0, ?, 0); \
-        COMMIT TRAN;";
+        SET @PlayerID = SCOPE_IDENTITY(); ") + starterInsert + L"COMMIT TRAN;";
 
-	const bool success = dbConn->Execute(query);
+	const bool success = dbConn->Execute(query.c_str());
 	if (success)
 	{
 		LOG_DEBUG("DB", "회원가입 및 캐릭터 자동생성 성공 - ID : {}", recvId);
@@ -185,39 +195,36 @@ void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, s
 }
 
 
-void DatabaseWorker::UpdateEquipData(int64_t playerUID, int32_t equipSlot, int64_t itemDbId, int32_t itemId)
+void DatabaseWorker::SaveEquipSnapshot(shared_ptr<Room> room, shared_ptr<Player> player, int64_t playerUID, vector<int32_t> items, long long requestUs)
 {
 	DBConnection* dbConn = _dbConnectionPool->Pop();
 	dbConn->Unbind();
 
-	SQLLEN lenList[4] = { 0 };
-	dbConn->BindParam(1, &playerUID, &lenList[0]);
-	dbConn->BindParam(2, &equipSlot, &lenList[1]);
+	SQLLEN uidLen = 0;
+	dbConn->BindParam(1, &playerUID, &uidLen);
 
-	if (itemId == 0)
+	// 슬롯 = 인덱스 + 1 (Protocol::EquipPart). 값은 Room이 검증한 itemId라 쿼리에 그대로 넣는다. ItemDbId는 A3 전까지 0.
+	wstring inserts;
+	for (size_t i = 0; i < items.size(); ++i)
 	{
-		dbConn->Execute(L"DELETE FROM [dbo].[Player_Equipped] WHERE PlayerId = ? AND EquipSlot = ?");
+		if (items[i] == 0) continue;
+		inserts += std::format(L"INSERT INTO [Player_Equipped] (PlayerId, EquipSlot, ItemDbId, ItemId) VALUES (@P, {}, 0, {}); ", i + 1, items[i]);
 	}
-	else
-	{
-		dbConn->BindParam(3, &itemDbId, &lenList[2]);
-		dbConn->BindParam(4, &itemId, &lenList[3]);
+	const wstring query = L"SET NOCOUNT ON; SET XACT_ABORT ON; DECLARE @P BIGINT = ?; BEGIN TRAN; "
+		L"DELETE FROM [Player_Equipped] WHERE PlayerId = @P; " + inserts + L"COMMIT TRAN;";
 
-		const WCHAR* query = L" \
-            MERGE INTO [dbo].[Player_Equipped] AS Target \
-            USING (SELECT ? AS PlayerId, ? AS EquipSlot, ? AS ItemDbId, ? AS ItemId) AS Source \
-            ON Target.PlayerId = Source.PlayerId AND Target.EquipSlot = Source.EquipSlot \
-            WHEN MATCHED THEN \
-                UPDATE SET ItemDbId = Source.ItemDbId, ItemId = Source.ItemId, EquippedAt = GETDATE() \
-            WHEN NOT MATCHED THEN \
-                INSERT (PlayerId, EquipSlot, ItemDbId, ItemId) \
-                VALUES (Source.PlayerId, Source.EquipSlot, Source.ItemDbId, Source.ItemId);";
-
-		dbConn->Execute(query);
-	}
-
+	const long long startUs = Metrics::NowUs();
+	const bool success = dbConn->Execute(query.c_str());
+	const long long endUs = Metrics::NowUs();
 	_dbConnectionPool->Push(dbConn);
+
+	Metrics::EquipSaveExecUs.Add(endUs - startUs);        // DB 실행 시간
+	Metrics::EquipSaveTotalUs.Add(endUs - requestUs);     // 요청(장착 성공·퇴장) → 저장 완료 (큐 대기 포함)
+	if (!success)
+	{
+		Metrics::EquipSaveFailed.fetch_add(1);
+		LOG_ERROR("DB", "장비 저장 실패 (PlayerId {})", playerUID);
+	}
+
+	room->PushJob(&Room::OnEquipSaved, player, success);
 }
-	
-
-

@@ -90,16 +90,22 @@ void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	_dbPlayerInfo = info;
 	_dbPlayerData = data;
 
-	
-	// A2.5에서 DB 레벨(data.level)로 조회하도록 바꾼다. 지금은 아무도 부르지 않는다.
-	if (const StatData* statData = DataManager::GetPlayerStatData(PLAYER_START_LEVEL)) {
-		_statInfo.InitFromData(_objectInfo.mutable_stat(), *statData);
+	// 장비만 불러온다(MC3.3). 레벨·HP는 A2.5 — 그 전까지 시작 레벨 스탯(생성자)을 쓴다.
+	// 잘못된 행(슬롯 범위 밖, 없는 아이템, 슬롯 불일치)은 경고 후 건너뛴다.
+	for (const auto& [slot, itemId] : data.equipped)
+	{
+		const ItemData* item = DataManager::GetItemData(itemId);
+		if (slot < Protocol::EQUIP_PART_HEAD || slot > Protocol::EQUIP_PART_WEAPON || item == nullptr || static_cast<int>(item->slot) != slot)
+		{
+			LOG_WARN("Player", "Player_Equipped 행을 건너뜁니다 (PlayerId {}, EquipSlot {}, ItemId {}: 슬롯이 없거나 아이템이 없거나 슬롯이 다름)",
+				info.playerUID, slot, itemId);
+			continue;
+		}
+		SetEquippedItem(static_cast<Protocol::EquipPart>(slot), itemId);
 	}
 
-	_objectInfo.clear_equip_items();
-	for (int32_t itemId : data.equipItemIds)
-	{
-		_objectInfo.add_equip_items(itemId);
-	}
+	// 로그인 HP = 장비 반영 최대치 (DB HP를 읽는 것은 A2.5)
+	RecalcStat();
+	_objectInfo.mutable_stat()->set_hp(_statInfo.GetMaxHp());
 }
 

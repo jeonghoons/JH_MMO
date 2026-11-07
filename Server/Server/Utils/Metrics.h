@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <atomic>
+#include <chrono>
 #include <mutex>
 #include <vector>
 
@@ -29,6 +30,20 @@ namespace Metrics
 		std::mutex _mutex;
 		std::vector<long long> _samples;
 	};
+
+	inline long long NowUs()
+	{
+		return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+	}
+
+	// 장비 저장(MC3.3, Room::RequestEquipSave → DatabaseWorker::SaveEquipSnapshot)
+	inline std::atomic<long long> EquipSaveRequested{ 0 };  // 저장 요청(누적)
+	inline std::atomic<long long> EquipSaveSent{ 0 };       // DB 작업으로 보낸 수(누적)
+	inline std::atomic<long long> EquipSaveCoalesced{ 0 };  // 진행 중인 저장이 있어 합쳐진 요청(누적)
+	inline std::atomic<long long> EquipSaveFailed{ 0 };     // DB 실패(누적)
+	inline std::atomic<int>       EquipSaveInFlight{ 0 };   // 지금 DB에 가 있는 저장 수
+	inline SampleStat EquipSaveExecUs;    // DB 실행 시간(us)
+	inline SampleStat EquipSaveTotalUs;   // 요청 → 완료(us, DB 큐 대기 포함)
 
 	inline std::atomic<int>       Monsters{ 0 };      // 현재 월드에 살아 있거나 시체로 남아 있는 몬스터 수
 	inline std::atomic<long long> AttackRequests{ 0 };  // CS_ATTACK 수신 수(누적)

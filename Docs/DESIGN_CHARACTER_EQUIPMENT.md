@@ -47,8 +47,8 @@
 3. 서버 반영: 장착 목록·최종 스탯 재계산. **무기 슬롯이 바뀌면(착용·해제 모두) `MovementTable.ServerWeaponSwapLockMs`(1000) 동안 행동 잠금**(공용 행동 잠금 재사용). 스왑 잠금 중에도 방어구 교체는 받습니다(시전 중 거부는 시전 애니메이션만 해당). 요청 빈도는 캐릭터당 `ServerEquipMinIntervalMs`(200). 스킬 쿨타임은 스킬별로 유지됩니다. 최대 HP가 줄면 현재 HP를 새 최대치로 자르고, 늘어도 회복하지 않습니다.
 4. 서버 방송: `SC_CHANGE_EQUIP(objectId, slot, itemId, 최종 스탯)`을 AOI 전체(본인 포함)에. 거부는 본인에게만 `SC_CHANGE_EQUIP_RESULT(EquipResult, slot, itemId)`. 처음 보이는 캐릭터는 `ObjectInfo.equip_items`(슬롯 순서)로 받습니다.
 5. 클라이언트 반영: itemId로 ItemTable을 조회해 메시를 바꾸고 몸 가시성을 다시 계산합니다. 스탯은 받은 값을 그대로 씁니다.
-6. 저장: 장착 변경은 `Player_Equipped`(PlayerId, EquipSlot, ItemDbId, ItemId)에 저장합니다. `ItemDbId`는 A3 전까지 0. 로그인 때 장비·체형만 불러오고, 레벨·HP 저장은 A2.5입니다.
-- 가입 시 기본 장비: 천 5부위 + 천 한손검.
+6. 저장: 장착이 성공할 때마다 6칸 스냅숏을 `Player_Equipped`(PlayerId, EquipSlot, ItemDbId, ItemId)에 한 트랜잭션으로 저장합니다(`Room::RequestEquipSave` → `DatabaseWorker::SaveEquipSnapshot`). 플레이어당 동시에 1건만 보내고, 진행 중에 또 바뀌면 끝난 뒤 최신 값으로 한 번 더 저장해 순서가 뒤바뀌지 않습니다. 실패하면 다음 변경·퇴장 때 다시 저장합니다(MC3.3, 측정 근거 `TESTING.md`). `ItemDbId`는 A3 전까지 0. 로그인 때 장비·체형만 불러오고(잘못된 행은 WARN 후 건너뜀, HP = 장비 반영 최대치), 레벨·HP 저장은 A2.5입니다.
+- 가입 시 기본 장비: 천 5부위 + 천 한손검(`ItemTable.Starter` = 1, 가입 트랜잭션에서 지급).
 
 ## 기존 코드/데이터의 처리
 - 남은 Paragon 플레이어 자산: `DT_CharacterAsset`(`FCharacterAssetData`), `ABP_Greystone`/`ABP_Sparrow`, `Character/Greystone`·`Character/Sparrow`의 몽타주·아이콘. 매니퀸 캐릭터가 동작하면(MC4) 플레이어 쪽 참조를 끊고 정리 여부를 사용자에게 묻습니다. Rampage 쪽은 유지합니다.

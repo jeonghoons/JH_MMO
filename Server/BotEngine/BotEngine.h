@@ -22,6 +22,7 @@ struct BotConfig
 	std::string body = "male";     // 체형. male: dummy 계정 로그인, female: fem_* 계정 가입 후 로그인 (무기는 MC3.2 전까지 없음 = 맨손)
 	bool chaos = false;         // 일부 공격 요청을 일부러 잘못된 값으로 보낸다(오류 테스트)
 	bool hunt = false;         // 가장 가까운 몬스터에게 이동해 공격 (hunt 프로필)
+	int equipIntervalMs = 0;   // >0이면 이 간격(±50%)마다 무작위 장비 교체 요청, 10%는 바로 한 번 더 보냄(빈도 제한 시험). 장비 저장 측정용(MC3.3)
 	std::string outFile;
 	std::string serverProc = "GameServer.exe";
 	std::string mapLogic;          // 맵 로직 JSON(몬스터 스폰 위치). hunt 프로필의 봇이 가까운 스폰으로 이동하는 데 쓴다
@@ -37,6 +38,7 @@ struct BotCounters
 	std::atomic<long long> loginOk{ 0 }, loginFail{ 0 }, unexpectedClose{ 0 }, protocolError{ 0 }, sendDropped{ 0 };
 	std::atomic<long long> pktSent{ 0 }, pktRecv{ 0 }, bytesRecv{ 0 }, pongRecv{ 0 }, moveCorrected{ 0 };
 	std::atomic<long long> monsterDead{ 0 }, monsterRemoved{ 0 }, monsterAdded{ 0 }, damageRecv{ 0 }, objectAdded{ 0 };
+	std::atomic<long long> equipSent{ 0 }, equipOk{ 0 }, equipRejected{ 0 };   // 장착 요청 / 내 SC_CHANGE_EQUIP / SC_CHANGE_EQUIP_RESULT
 	std::atomic<int> connected{ 0 }, inGame{ 0 };
 	// 구간(리포트 간격) 동안 봇 한 명이 받은 최대 바이트. 리포터가 읽으며 0으로 되돌리고 windowEpoch를 올린다.
 	std::atomic<long long> maxBotBytesWindow{ 0 };

@@ -66,6 +66,7 @@ struct FItemTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) EWeaponType WeaponType = EWeaponType::None;   // 무기만 Sword/Bow
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 BonusAttackDamage = 0;                  // 무기만 (표시용, 계산은 서버)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 BonusMaxHp = 0;                         // 방어구만 (표시용, 계산은 서버)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 Starter = 0;                            // 1 = 가입 시 기본 장비 (지급은 서버, MC3.3)
 
 	// 이하 클라이언트 전용(서버 로더는 읽지 않음)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) FText DisplayName;

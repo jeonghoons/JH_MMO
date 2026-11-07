@@ -1,4 +1,5 @@
 ﻿-- 2026-10-28: Item_Meta/Player_Inventory/Trade_Log, Player_Info.Mp, User_Account.Status 삭제 반영 (migrations/2026-10-28_drop_unused.sql)
+-- 2026-11-07: 스키마 변경 없음. Player_Info.PlayerType = 체형(1 MALE, 2 FEMALE)만, Player_Equipped.EquipSlot = Protocol::EquipPart(1~6), 가입 시 기본 장비 6행 (migrations/2026-11-07_mc33_equip.sql — 기존 DB의 옛 값 정리)
 USE [master]
 GO
 /****** 개체: Database [GameServer] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/

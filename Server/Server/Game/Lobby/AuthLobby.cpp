@@ -20,17 +20,19 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
         return;
     }
 
-    // 옛 영웅 타입(WARRIOR 4 / ARCHER 5 — dummy 봇 계정 포함)은 체형 MALE로 들어온다. DB 행은 MC3.3 마이그레이션에서 바꾼다.
+    // 체형은 MALE/FEMALE뿐이다(옛 4·5는 MC3.3 마이그레이션에서 1로 바꿨다). 다른 값이면 DB가 잘못된 것이다.
     if (info.playerType != Protocol::PLAYER_TYPE_MALE && info.playerType != Protocol::PLAYER_TYPE_FEMALE)
     {
-        LOG_DEBUG("Lobby", "PlayerType {} 은 체형이 아니므로 MALE로 바꿉니다 (MC3.3 마이그레이션 전 임시)", info.playerType);
-        info.playerType = Protocol::PLAYER_TYPE_MALE;
+        LOG_ERROR("Lobby", "PlayerId {} 의 PlayerType {} 은 체형이 아닙니다 (migrations/2026-11-07_mc33_equip.sql 실행 여부 확인)", info.playerUID, info.playerType);
+        OnLoginFailed(session, Protocol::LOGIN_RESULT_SERVER_ERROR);
+        return;
     }
 
     int objectId = session->GetId();
     shared_ptr<Player> player = make_shared<Player>(session, (Protocol::PlayerType)info.playerType);
 
     player->SetId(objectId);
+    player->InitFromDb(info, data);   // PlayerUID·장비 (MC3.3)
 
     wstring playerName(info.playerName);
     player->SetName(playerName);

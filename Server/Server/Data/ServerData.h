@@ -15,7 +15,8 @@ struct DB_PlayerData {
 	int32_t hp;
 	int64_t gold;
 	
-	std::vector<int32_t> equipItemIds;
+	// Player_Equipped 행 (EquipSlot = Protocol::EquipPart, ItemId). 검증은 Player::InitFromDb가 한다.
+	std::vector<std::pair<int32_t, int32_t>> equipped;
 };
 
 enum class HitShape
@@ -79,6 +80,7 @@ struct ItemData
 	WeaponType weaponType; // 무기만 Sword/Bow, 나머지는 None
 	int bonusAttackDamage; // 무기만
 	int bonusMaxHp;        // 방어구만
+	bool starter;          // 가입 시 기본 장비 (슬롯당 최대 1개, MC3.3)
 };
 
 struct SkillData
@@ -160,6 +162,9 @@ public:
 	// Common/DataTable/PlayerStatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
 	static bool Init();
 
+	// 가입 시 지급하는 기본 장비(ItemTable.Starter = 1), 슬롯 순서
+	static const std::vector<const ItemData*>& GetStarterItems() { return _starterItems; }
+
 	static const ItemData* GetItemData(int itemId)
 	{
 		auto it = _itemTable.find(itemId);
@@ -218,5 +223,6 @@ private:
 	static inline std::unordered_map<int, MovementData> _movementTable;
 	static inline std::unordered_map<std::string, WorldData> _worldTable; // key = mapName
 	static inline std::unordered_map<int, ItemData> _itemTable;
+	static inline std::vector<const ItemData*> _starterItems;
 	static inline std::unordered_map<int, int> _skillBySlot; // key = (int)WeaponType*100 + slot -> skillId (플레이어 무기 타입만)
 };

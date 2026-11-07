@@ -7,6 +7,7 @@
 #include "Game/Combat/CombatProcessor.h"
 #include "Data/ServerData.h"
 #include "Utils/Metrics.h"
+#include "DB/DatabaseWorker.h"
 
 Room::Room(shared_ptr<Timer> timer, HANDLE iocpHandle) : _timer(timer), _jobQueue(make_shared<JobQueue>(iocpHandle))
 {
@@ -241,6 +242,10 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 	if (_players.erase(playerId) > 0)
 		ReleaseSlot();
 
+	// 저장에 실패해 남은 변경이 있으면 나갈 때 다시 저장한다. (진행 중인 저장은 OnEquipSaved에서 마무리된다)
+	if (player->equipSaveDirty && !player->equipSaveInFlight)
+		RequestEquipSave(player);
+
 }
 
 void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, uint32_t correctionSeq)
@@ -379,6 +384,46 @@ void Room::PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part
 		player->LockActionForSwap(rule->weaponSwapLockMs);
 
 	BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_CHANGE_EQUIP(player->GetId(), part, itemId, player->GetInfo().stat()), true);
+
+	// 변경 즉시 저장(DECISIONS 2026-11-07, 측정: TESTING.md MC3.3)
+	RequestEquipSave(player);
+}
+
+void Room::RequestEquipSave(shared_ptr<Player> player)
+{
+	if (player == nullptr || player->GetPlayerUID() == 0) return;   // DB 캐릭터가 아닌 경우(로그인 전 등)
+	Metrics::EquipSaveRequested.fetch_add(1);
+
+	if (player->equipSaveInFlight)
+	{
+		player->equipSaveDirty = true;
+		Metrics::EquipSaveCoalesced.fetch_add(1);
+		return;
+	}
+
+	player->equipSaveInFlight = true;
+	player->equipSaveDirty = false;
+	Metrics::EquipSaveSent.fetch_add(1);
+	Metrics::EquipSaveInFlight.fetch_add(1);
+
+	vector<int32_t> items(player->GetInfo().equip_items().begin(), player->GetInfo().equip_items().end());
+	GDBWorker->PushDBJob(&DatabaseWorker::SaveEquipSnapshot, shared_from_this(), player, player->GetPlayerUID(), items, Metrics::NowUs());
+}
+
+void Room::OnEquipSaved(shared_ptr<Player> player, bool success)
+{
+	Metrics::EquipSaveInFlight.fetch_sub(1);
+	player->equipSaveInFlight = false;
+
+	// 실패하면 dirty로 남겨 다음 변경·퇴장 때 다시 저장한다.
+	if (!success)
+	{
+		player->equipSaveDirty = true;
+		return;
+	}
+	// 저장하는 동안 다시 바뀌었으면 최신 값으로 한 번 더 저장한다.
+	if (player->equipSaveDirty)
+		RequestEquipSave(player);
 }
 
 void Room::Broadcast(shared_ptr<SendBuffer> sendBuffer)

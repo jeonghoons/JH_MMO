@@ -32,7 +32,9 @@ public:
 	void TrySignUP(shared_ptr<GameSession> session, string recvId, string recvPw, int playerType);
 
 
-	void UpdateEquipData(int64_t playerUID, int32_t equipSlot, int64_t itemDbId, int32_t itemId);
+	// 장비 6칸 스냅숏을 한 트랜잭션으로 저장한다(DELETE 후 빈 칸을 뺀 INSERT). 끝나면 room 잡(Room::OnEquipSaved)으로 돌아간다.
+	// 플레이어당 동시에 하나만 보내므로(Room::RequestEquipSave) 저장 순서가 뒤바뀌지 않는다.
+	void SaveEquipSnapshot(shared_ptr<class Room> room, shared_ptr<class Player> player, int64_t playerUID, vector<int32_t> items, long long requestUs);
 
 private:
 	ConcurrentQ<shared_ptr<Job>> _dbJobQueue;

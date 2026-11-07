@@ -88,6 +88,7 @@ struct Bot
 	long long loginSentUs = 0;
 	long long nextMoveUs = 0;
 	long long nextPingUs = 0;
+	long long nextEquipUs = 0;
 	int objectId = -1;
 	float x = 0, y = 0, z = 0;
 	vector<uint8_t> rbuf;   // 수신 누적 버퍼
@@ -411,6 +412,16 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 	case Protocol::SC_DAMAGE:
 		GStat.damageRecv.fetch_add(1);
 		break;
+	case Protocol::SC_CHANGE_EQUIP:
+	{
+		Protocol::SC_CHANGE_EQUIP_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		if (pkt.object_id() == b.objectId) GStat.equipOk.fetch_add(1);
+		break;
+	}
+	case Protocol::SC_CHANGE_EQUIP_RESULT:
+		GStat.equipRejected.fetch_add(1);
+		break;
 	default:
 		break;
 	}
@@ -494,7 +505,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 			{
 				b.loginDueUs = 0;
 				Protocol::CS_LOGIN_PACKET login;
-				login.set_account_id("arc_" + to_string(b.index));
+				login.set_account_id("fem_" + to_string(b.index));   // 가입한 계정과 같아야 한다(옛 "arc_" 잔재 수정)
 				login.set_account_pw("1234");
 				b.loginSentUs = now;
 				SendPacket(b, Protocol::CS_LOGIN, login);
@@ -623,6 +634,25 @@ static void WorkerMain(int workerIndex, int workerCount)
 					}
 					SendPacket(b, Protocol::CS_ATTACK, atk);
 				}
+				// 장비 교체(--equip-interval): 슬롯 무작위, 천(x1xx)·판금(x3xx)·해제 중 하나. 무기는 검/활도 섞는다.
+				if (GConfig.equipIntervalMs > 0 && now >= b.nextEquipUs)
+				{
+					const int half = GConfig.equipIntervalMs / 2;
+					b.nextEquipUs = now + (GConfig.equipIntervalMs - half + rand() % (2 * half + 1)) * 1000LL;
+					const int repeat = (rand() % 10 == 0) ? 2 : 1;
+					for (int k = 0; k < repeat; ++k)
+					{
+						const int part = 1 + rand() % 6;
+						const int r = rand() % 3;
+						int itemId = (r == 2) ? 0 : part * 1000 + (r == 0 ? 100 : 300) + 1;
+						if (part == 6 && itemId != 0 && rand() % 2) itemId += 1;   // 6102 / 6302 = 활
+						Protocol::CS_CHANGE_EQUIP_PACKET eq;
+						eq.set_part(static_cast<Protocol::EquipPart>(part));
+						eq.set_item_id(itemId);
+						SendPacket(b, Protocol::CS_CHANGE_EQUIP, eq);
+						GStat.equipSent.fetch_add(1);
+					}
+				}
 				if (now >= b.nextPingUs)
 				{
 					b.nextPingUs = now + GConfig.pingIntervalMs * 1000LL;
@@ -715,7 +745,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 void BotEngine::Usage(const char* program)
 {
 	printf("%s --bots N --ramp-rate R --duration S [--host H] [--port P] [--threads T]\n"
-		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
+		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
 		"         [--zone x,y,r]   (hotspot: bots walk to (x,y) and stay within radius r cm)\n",
 		program);
 }
@@ -742,6 +772,7 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--profile") { if (!(v = next("--profile"))) return false; GConfig.hunt = (string(v) == "hunt"); GConfig.move = (string(v) == "move" || GConfig.hunt); }
 		else if (a == "--body") { if (!(v = next("--body"))) return false; GConfig.body = v; if (GConfig.body != "male" && GConfig.body != "female") { printf("--body must be male or female\n"); return false; } }
 		else if (a == "--chaos") { GConfig.chaos = true; }
+		else if (a == "--equip-interval") { if (!(v = next("--equip-interval"))) return false; GConfig.equipIntervalMs = atoi(v); }
 		else if (a == "--map") { if (!(v = next("--map"))) return false; GConfig.mapLogic = v; }
 		else if (a == "--out") { if (!(v = next("--out"))) return false; GConfig.outFile = v; }
 		else if (a == "--server-proc") { if (!(v = next("--server-proc"))) return false; GConfig.serverProc = v; }

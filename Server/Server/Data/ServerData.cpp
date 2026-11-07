@@ -290,7 +290,7 @@ bool DataManager::Init()
 		_monsterTable[d.templateId] = d;
 	}
 
-	// ItemTable: Name(=itemId), Slot, Grade, Tier, WeaponType, BonusAttackDamage, BonusMaxHp
+	// ItemTable: Name(=itemId), Slot, Grade, Tier, WeaponType, BonusAttackDamage, BonusMaxHp, Starter
 	// (DisplayName, Icon, MeshM, MeshF, StaticMesh 는 클라이언트 전용이라 읽지 않는다)
 	CsvFile item;
 	if (!item.Load((dir / "ItemTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
@@ -299,16 +299,25 @@ bool DataManager::Init()
 	{
 		ItemData d{};
 		std::string slot, grade, tier, weapon;
+		int starter = 0;
 		if (!row.GetInt("Name", d.itemId, err) || !row.GetString("Slot", slot, err) ||
 			!row.GetString("Grade", grade, err) || !row.GetString("Tier", tier, err) ||
 			!row.GetString("WeaponType", weapon, err) ||
-			!row.GetInt("BonusAttackDamage", d.bonusAttackDamage, err) || !row.GetInt("BonusMaxHp", d.bonusMaxHp, err))
+			!row.GetInt("BonusAttackDamage", d.bonusAttackDamage, err) || !row.GetInt("BonusMaxHp", d.bonusMaxHp, err) ||
+			!row.GetInt("Starter", starter, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
 
 		const std::string where = item.Path() + " line " + std::to_string(row.Line()) + ": ";
+
+		if (starter != 0 && starter != 1)
+		{
+			LOG_ERROR("Data", "{}Starter 는 0 또는 1이어야 합니다 ({})", where, starter);
+			return false;
+		}
+		d.starter = (starter == 1);
 
 		if (!ParseItemSlot(slot, d.slot))
 		{
@@ -361,6 +370,25 @@ bool DataManager::Init()
 			return false;
 		}
 		_itemTable[d.itemId] = d;
+	}
+
+	// 기본 장비: 슬롯당 최대 1개 (가입 시 Player_Equipped에 그대로 넣는다)
+	_starterItems.clear();
+	{
+		std::map<int, int> starterBySlot;   // 슬롯 -> itemId (슬롯 순서로 정렬)
+		for (const auto& [itemId, d] : _itemTable)
+		{
+			if (!d.starter) continue;
+			const int slotNo = static_cast<int>(d.slot);
+			if (starterBySlot.count(slotNo))
+			{
+				LOG_ERROR("Data", "{}: 슬롯 {} 의 Starter 아이템이 둘 이상입니다 ({}, {})", item.Path(), slotNo, starterBySlot[slotNo], itemId);
+				return false;
+			}
+			starterBySlot[slotNo] = itemId;
+		}
+		for (const auto& [slotNo, itemId] : starterBySlot)
+			_starterItems.push_back(&_itemTable.at(itemId));
 	}
 
 	// MovementTable: Name(=movementId), ServerSpeedTolerance, ServerMoveBudgetMs, ServerMoveSlackCm, ServerMinMoveIntervalMs, ServerNavToleranceCm,

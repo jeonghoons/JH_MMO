@@ -62,13 +62,16 @@ namespace
 			const Metrics::Percentiles viewP = Metrics::ViewPlayers.TakeAndReset();
 			const Metrics::Percentiles viewO = Metrics::ViewObjects.TakeAndReset();
 			const int sendQueueMax = NetStats::SendQueueMax.exchange(0);
+			const Metrics::Percentiles eqExec = Metrics::EquipSaveExecUs.TakeAndReset();
+			const Metrics::Percentiles eqTotal = Metrics::EquipSaveTotalUs.TakeAndReset();
 
 			LOG_INFO("metrics",
 				"sessions={} rooms={} players={} monsters={} in/s={:.0f} out/s={:.0f} atk(req/ok per s)={:.1f}/{:.1f} zones(total created/hits)={}/{} "
 				"move(total ok/speed/nav/bad/stale/rate)={}/{}/{}/{}/{}/{} "
 				"tickLate(avg/p50/p95/p99/max ms)={:.1f}/{:.1f}/{:.1f}/{:.1f}/{:.1f} tickBody(avg/p50/p95/p99/max ms)={:.2f}/{:.2f}/{:.2f}/{:.2f}/{:.2f} "
 				"viewPlayers(avg/p99/max)={:.1f}/{:.0f}/{:.0f} viewObjects(avg/p99/max)={:.1f}/{:.0f}/{:.0f} sendQ(total/sessionMax)={}/{} logDrop={} "
-				"viewAudit(must/missing mustNot/extra)={}/{} {}/{} aoi(nodes/depth)={}/{}",
+				"viewAudit(must/missing mustNot/extra)={}/{} {}/{} aoi(nodes/depth)={}/{} "
+				"equipSave(total req/sent/coalesced/fail inflight)={}/{}/{}/{} {} equipSaveMs(n exec avg/p99/max total avg/p99/max)={} {:.1f}/{:.1f}/{:.1f} {:.1f}/{:.1f}/{:.1f}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
@@ -77,7 +80,10 @@ namespace
 				viewP.avg, viewP.p99, viewP.max, viewO.avg, viewO.p99, viewO.max,
 				NetStats::SendQueued.load(), sendQueueMax, Logger::Dropped(),
 				Metrics::ViewAuditMust.load(), Metrics::ViewAuditMissing.load(), Metrics::ViewAuditMustNot.load(), Metrics::ViewAuditExtra.load(),
-				Metrics::AoiNodes.exchange(0), Metrics::AoiDepth.exchange(0));
+				Metrics::AoiNodes.exchange(0), Metrics::AoiDepth.exchange(0),
+				Metrics::EquipSaveRequested.load(), Metrics::EquipSaveSent.load(), Metrics::EquipSaveCoalesced.load(), Metrics::EquipSaveFailed.load(),
+				Metrics::EquipSaveInFlight.load(), eqExec.count,
+				eqExec.avg / 1000.0, eqExec.p99 / 1000.0, eqExec.max / 1000.0, eqTotal.avg / 1000.0, eqTotal.p99 / 1000.0, eqTotal.max / 1000.0);
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","

@@ -58,6 +58,11 @@ public:
 	// 장착 요청 빈도 제한. Room 잡 안에서만 읽고 쓴다.
 	Cooldown equipCooldown;
 
+	// 장비 저장 상태(MC3.3). Room 잡 안에서만 읽고 쓴다. 저장은 플레이어당 동시에 하나만 보내고,
+	// 진행 중에 또 바뀌면 dirty만 표시했다가 끝난 뒤 최신 값으로 한 번 더 저장한다(순서 보장).
+	bool equipSaveInFlight = false;
+	bool equipSaveDirty = false;
+
 protected:
 	virtual const SkillData* GetSlotSkill(int slot) const override { return DataManager::GetSkillBySlot(GetWeaponType(), slot); }
 
@@ -65,8 +70,8 @@ private:
 	weak_ptr<GameSession> _ownerSession;
 	wstring _name;
 	
-	DB_PlayerInfo _dbPlayerInfo;
-	DB_PlayerData _dbPlayerData;
+	DB_PlayerInfo _dbPlayerInfo{};   // InitFromDb 전에는 playerUID 0 (저장하지 않음)
+	DB_PlayerData _dbPlayerData{};
 };
 
 
