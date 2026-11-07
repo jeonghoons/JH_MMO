@@ -16,8 +16,8 @@ ostream& operator<<(ostream& os, MonsterState state);
 class Monster : public Character
 {
 public:
-	Monster();
-	explicit Monster(Protocol::PlayerType type);
+	// templateId = MonsterTable ID(스폰 마커의 monsterTemplateId). 스탯·스킬을 그 행에서 읽는다.
+	explicit Monster(int templateId);
 	virtual ~Monster();
 
 	friend ostream& operator<<(ostream& os, MonsterState state)

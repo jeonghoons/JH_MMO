@@ -5,7 +5,7 @@
 #include "Data/ServerData.h"
 #include "Game/World/NavmeshManager.h"
 
-void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_ptr<Character> attacker, int skillId, int targetId, float aimYaw, float aimX, float aimY)
+void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_ptr<Character> attacker, int skillId, int targetId, float aimYaw, float aimX, float aimY, int damage)
 {
 	if (attacker == nullptr || attacker->GetStat().IsDead()) return;
 
@@ -19,7 +19,7 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 	// 지면 장판: 지점에 영역을 만들고 이후 Room::UpdateZones가 주기적으로 피해를 준다.
 	if (skillData->hitShape == HitShape::Zone)
 	{
-		room->CreateZone(attacker, *skillData, aimX, aimY);
+		room->CreateZone(attacker, *skillData, aimX, aimY, damage);
 		return;
 	}
 
@@ -44,10 +44,10 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 		}
 
 		if (flightTimeMs <= 0) {
-			targetChar->OnDamaged(skillData->baseDamage, attacker->GetId(), attacker);
+			targetChar->OnDamaged(damage, attacker->GetId(), attacker);
 		}
 		else {
-			room->ReserveJob(flightTimeMs, &Room::ApplyDelayedDamage, targetChar->GetId(), attacker->GetId(), skillData->baseDamage);
+			room->ReserveJob(flightTimeMs, &Room::ApplyDelayedDamage, targetChar->GetId(), attacker->GetId(), damage);
 		}
 		return;
 	}
@@ -92,8 +92,7 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 				}
 				else
 				{
-					int finalDamage = skillData->baseDamage;
-					targetChar->OnDamaged(finalDamage, attacker->GetId(), attacker);
+					targetChar->OnDamaged(damage, attacker->GetId(), attacker);
 				}
 			}
 		}
@@ -110,10 +109,10 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 		}
 
 		if (flightTimeMs <= 0) {
-			closestProjTarget->OnDamaged(skillData->baseDamage, attacker->GetId(), attacker);
+			closestProjTarget->OnDamaged(damage, attacker->GetId(), attacker);
 		}
 		else {
-			room->ReserveJob(flightTimeMs, &Room::ApplyDelayedDamage, closestProjTarget->GetId(), attacker->GetId(), skillData->baseDamage);
+			room->ReserveJob(flightTimeMs, &Room::ApplyDelayedDamage, closestProjTarget->GetId(), attacker->GetId(), damage);
 		}
 	}
 }

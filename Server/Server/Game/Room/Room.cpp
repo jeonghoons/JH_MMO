@@ -448,27 +448,31 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 
 	BroadcastAOI(caster, PacketSerializer::MAKE_SC_ATTACK(caster->GetId(), skill->skillId, targetId, yaw, ax, ay, static_cast<int>(timing.cooldownMs)), true);
 
-	ReserveJob(static_cast<DWORD>(timing.hitDelayMs), &Room::ExecuteSkillHit, caster->GetId(), skill->skillId, targetId, yaw, ax, ay);
+	// 피해 = 스킬 BaseDamage + 시전자 공격력. 시전 순간에 확정해 즉시 판정·투사체·장판에 같은 값을 쓴다
+	// (판정 전에 무기를 바꿔도 이미 나간 공격은 그대로 — DESIGN_COMBAT_SKILL.md). 방어력 감소는 나중(Character::OnDamaged).
+	const int damage = skill->baseDamage + caster->GetStat().GetAttackDamage();
+
+	ReserveJob(static_cast<DWORD>(timing.hitDelayMs), &Room::ExecuteSkillHit, caster->GetId(), skill->skillId, targetId, yaw, ax, ay, damage);
 }
 
-void Room::ExecuteSkillHit(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY)
+void Room::ExecuteSkillHit(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY, int damage)
 {
 	auto attackerObj = GetGameObject(attackerId);
 	if (attackerObj == nullptr) return;
 
 	auto attackerChar = std::static_pointer_cast<Character>(attackerObj);
 
-	CombatProcessor::ProcessSkillHit(shared_from_this(), attackerChar, skillId, targetId, aimYaw, aimX, aimY);
+	CombatProcessor::ProcessSkillHit(shared_from_this(), attackerChar, skillId, targetId, aimYaw, aimX, aimY, damage);
 }
 
-void Room::CreateZone(shared_ptr<Character> attacker, const SkillData& skill, float x, float y)
+void Room::CreateZone(shared_ptr<Character> attacker, const SkillData& skill, float x, float y, int damage)
 {
 	SkillZone zone;
 	zone.attackerId = attacker->GetId();
 	zone.x = x;
 	zone.y = y;
 	zone.radius = skill.radius;
-	zone.damage = skill.baseDamage;
+	zone.damage = damage;
 	zone.tickMs = max(1, skill.tickMs);
 	zone.endTime = chrono::steady_clock::now() + chrono::milliseconds(skill.durationMs);
 	_zones.push_back(std::move(zone));
@@ -561,7 +565,15 @@ void Room::SpawnMonster(int spawnIndex)
 
 	const MonsterSpawnPoint& spawn = spawns[spawnIndex];
 
-	shared_ptr<Monster> monster = make_shared<Monster>((Protocol::PlayerType)spawn.MonsterTemplateId);
+	// 맵 로직 JSON의 monsterTemplateId가 MonsterTable에 없으면 스탯 없는 몬스터가 생기므로 이 마커는 스폰하지 않는다.
+	// (방은 플레이어가 늘면 실행 중에도 만들어지므로 서버를 멈추지 않고 ERROR만 남긴다)
+	if (DataManager::GetMonsterData(spawn.MonsterTemplateId) == nullptr)
+	{
+		LOG_ERROR("Room", "스폰 마커 {} 의 monsterTemplateId {} 가 MonsterTable에 없어 스폰하지 않습니다", spawnIndex, spawn.MonsterTemplateId);
+		return;
+	}
+
+	shared_ptr<Monster> monster = make_shared<Monster>(spawn.MonsterTemplateId);
 	monster->SetId(MonsterIdGenerator());
 	monster->SetSpawnIndex(spawnIndex);
 
@@ -597,7 +609,7 @@ void Room::RemoveMonster(int monsterId)
 	if (monster == nullptr) return;
 
 	const int spawnIndex = monster->GetSpawnIndex();
-	const int templateId = (int)monster->GetInfo().player_type();
+	const int templateId = monster->GetInfo().template_id();
 
 	// 시야에 있던 플레이어들에게 SC_REMOVE_OBJECT가 전달된다.
 	ViewUpdate result = _gameMap.LeaveMap(monsterId, monster->_viewList);

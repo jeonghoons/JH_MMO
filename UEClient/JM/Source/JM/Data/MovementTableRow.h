@@ -11,7 +11,7 @@ struct FMovementTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	// 최고 이동 속도는 여기 두지 않는다. 서버 스탯(StatTable.MoveSpeed, ObjectInfo.stat.move_speed)을 쓴다. (DECISIONS 2026-10-30 S1)
+	// 최고 이동 속도는 여기 두지 않는다. 서버 스탯(PlayerStatTable.MoveSpeed, ObjectInfo.stat.move_speed)을 쓴다. (DECISIONS 2026-10-30 S1)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float AccelCmSec2 = 2048.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float BrakeDecelCmSec2 = 2048.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float RotationRateYawDegSec = 500.f;

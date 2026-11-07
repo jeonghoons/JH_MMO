@@ -66,11 +66,12 @@ public:
 
 	// 슬롯(0 = 기본 공격)의 스킬을 시전한다. 사거리/대상/방향은 서버가 검증·보정하며, 실패하면 아무 일도 일어나지 않는다.
 	void CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY);
-	void ExecuteSkillHit(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY);
+	// damage: 시전 순간에 확정한 피해(BaseDamage + 시전자 공격력)
+	void ExecuteSkillHit(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY, int damage);
 	void ApplyDelayedDamage(int targetId, int attackerId, int damage);
 
 	// 지면 장판 (HitShape::Zone)
-	void CreateZone(shared_ptr<Character> attacker, const SkillData& skill, float x, float y);
+	void CreateZone(shared_ptr<Character> attacker, const SkillData& skill, float x, float y, int damage);
 	// Npc
 	void NpcEnterRoom(shared_ptr<Monster> monster);
 	void SpawnMonster(int spawnIndex);   // 스폰 마커 반경 안의 임의 위치에 몬스터 한 마리를 만든다.

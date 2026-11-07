@@ -5,7 +5,7 @@
 #include "StructUtils/InstancedStruct.h"
 #include "LevelMarker.generated.h"
 
-// 서버 Common/Protocol/Enum.proto의 PlayerType, Server/Server/GameMap.h의 마커 구조체와 대응된다.
+// 서버 Server/Server/Game/World/GameMap.h의 마커 구조체와 대응된다.
 // 새 마커 타입을 추가할 때는 이 enum에 값을 추가하고, 아래에 대응하는 FXxxParams 구조체를 하나 추가하면 된다.
 // (ALevelMarker, MapExportCommandlet은 그대로 둬도 됨)
 UENUM(BlueprintType)
@@ -22,7 +22,7 @@ struct FMonsterSpawnParams
 {
 	GENERATED_BODY()
 
-	// Server/Server/ServerData.h DataManager::_characterTable의 키(Protocol::PlayerType)와 매칭된다.
+	// Common/DataTable/MonsterTable.csv의 Name(1001~). 서버가 ObjectInfo.template_id로 클라이언트에 알린다. 없는 ID면 서버가 이 마커를 스폰하지 않는다.
 	UPROPERTY(EditAnywhere, Category = "MonsterSpawn")
 	int32 MonsterTemplateId = 0;
 

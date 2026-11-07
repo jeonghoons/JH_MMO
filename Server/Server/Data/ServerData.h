@@ -102,27 +102,31 @@ struct SkillData
 	int tickMs;          // Zone: 한 대상에게 피해를 주는 최소 간격
 };
 
-struct CharacterData
+// 캐릭터 기본 스탯 묶음. 플레이어는 PlayerStatTable(레벨별, 체형 공용), 몬스터는 MonsterTable(종류별)에서 읽는다.
+// 피해 = 스킬 BaseDamage + 시전자 attackDamage (시전 순간 확정). 플레이어는 여기에 장비 보너스가 더해진다(MC3.2).
+struct StatData
 {
-	int typeId;
-	int hp;
 	int maxHp;
 	int attackDamage;
 	float attackSpeed;  // 기본 공격 애니메이션 재생 배율 (행동 시간·판정 시점 ÷ attackSpeed)
 	float moveSpeed;
 };
 
+// 플레이어가 처음 갖는 레벨. 레벨 저장·성장은 A2.3·A2.5 (그 전까지 모든 플레이어가 이 레벨의 스탯을 쓴다).
+constexpr int PLAYER_START_LEVEL = 1;
+
 struct MonsterData
 {
-	int templateId;           // MonsterTable.Name = 스폰 마커의 monsterTemplateId (= StatTable.PlayerType)
+	int templateId;           // MonsterTable.Name(1001~) = 스폰 마커의 monsterTemplateId = ObjectInfo.template_id
 	int skillId;              // 기본 공격 스킬 (SkillTable, WeaponType = Monster)
+	StatData stat;            // 몬스터 고정 스탯(공격력 포함)
 	int respawnMs;            // 사망 후 리스폰까지의 시간
 	int deathRemoveDelayMs;   // 사망 연출을 위해 시체를 남겨 두는 시간
 	int hitStunMs;            // 피격 후 행동(공격)이 막히는 시간. 피격 모션 길이에 맞춘다
 	int wanderRadiusCm;       // 대기 중 배회: 현재 위치에서 이 반경 안 임의 지점 (임시 — 행동트리 개선 때 재검토)
 };
 
-// MovementTable 중 서버가 쓰는 열. 이동 속도 자체는 StatTable.MoveSpeed(영웅별)를 쓰고, 여기는 검증 허용치만 둔다.
+// MovementTable 중 서버가 쓰는 열. 이동 속도 자체는 스탯(PlayerStatTable·MonsterTable의 MoveSpeed)을 쓰고, 여기는 검증 허용치만 둔다.
 struct MovementData
 {
 	int id;
@@ -151,7 +155,7 @@ struct WorldData
 class DataManager
 {
 public:
-	// Common/DataTable/StatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
+	// Common/DataTable/PlayerStatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
 	static bool Init();
 
 	static const ItemData* GetItemData(int itemId)
@@ -190,10 +194,11 @@ public:
 		return nullptr;
 	}
 
-	static const CharacterData* GetCharacterData(int typeId)
+	// 플레이어 기본 스탯(체형 공용). 없는 레벨이면 nullptr
+	static const StatData* GetPlayerStatData(int level)
 	{
-		auto it = _characterTable.find(typeId);
-		if (it != _characterTable.end()) return &it->second;
+		auto it = _playerStatTable.find(level);
+		if (it != _playerStatTable.end()) return &it->second;
 		return nullptr;
 	}
 
@@ -206,7 +211,7 @@ public:
 
 private:
 	static inline std::unordered_map<int, SkillData> _skillTable;
-	static inline std::unordered_map<int, CharacterData> _characterTable;
+	static inline std::unordered_map<int, StatData> _playerStatTable; // key = Level
 	static inline std::unordered_map<int, MonsterData> _monsterTable;
 	static inline std::unordered_map<int, MovementData> _movementTable;
 	static inline std::unordered_map<std::string, WorldData> _worldTable; // key = mapName

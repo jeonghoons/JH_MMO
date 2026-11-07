@@ -58,7 +58,8 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 			}
 		}
 	}
-	else if (ObjInfo.player_type() == Protocol::PLAYER_TYPE_MONSTER)
+	// 몬스터는 ObjectType으로 구분한다(PlayerType은 플레이어 체형 전용). 몬스터 종류(template_id)별 외형은 몬스터가 늘 때 추가한다.
+	else if (ObjInfo.object_type() == Protocol::OBJECT_TYPE_MONSTER)
 	{
 		if (GameInst->NpcCharacterClass)
 		{

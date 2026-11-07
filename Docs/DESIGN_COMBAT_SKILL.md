@@ -5,7 +5,7 @@
 ## 현재 상태 (2026-11-07 MC3.1 완료 시점)
 - 서버는 `Common/DataTable/SkillTable.csv`를 읽고(`DataManager`), 플레이어 스킬은 **`WeaponType` + `Slot`**(`DataManager::GetSkillBySlot`), 몬스터 스킬은 `MonsterTable.SkillId`로 찾습니다(`Character::GetSlotSkill` — `Player`/`Monster`가 각각 구현). 클라이언트는 슬롯만 보내고 서버가 해석합니다.
 - 행: 1001(맨손), 2001/2002(검), 3001/3002(활), 9001(몬스터). 타겟팅 타입·지면 장판·행동 시간(`AnimMs`)·공용 행동 잠금은 구현되어 있습니다.
-- 장착 시스템(MC3.2) 전이라 플레이어의 무기 타입은 항상 `Unarmed`이고, 피해는 아직 `BaseDamage`만입니다(공격력 합산은 MC3.2).
+- 장착 시스템(MC3.2) 전이라 플레이어의 무기 타입은 항상 `Unarmed`입니다. 피해 공식(`BaseDamage` + 공격력)은 MC3.1b에서 들어갔고, 플레이어 공격력은 무기 보너스가 생기는 MC3.2부터 0이 아니게 됩니다.
 - (2026-10-28 A2.2 완료 시점에는 `PlayerType`(영웅) + `Slot`으로 찾았고 행은 301/401/402/501/502였습니다.)
 
 ## 목표 구조
@@ -24,7 +24,9 @@
 
 ### 피해 공식 (2026-11-04)
 - **피해 = 스킬 `BaseDamage` + 공격력(`AttackDamage` = 기본 0 + 무기 보너스)**. 시전 순간에 확정해 즉시 판정·투사체·장판에 모두 같은 값을 씁니다(시전 후 무기를 바꿔도 이미 나간 공격은 그대로).
-- 체형(MALE/FEMALE) 기본 스탯은 같습니다. 검·활의 공격 속도 차이는 모션 길이(`AnimMs`)가 만듭니다.
+- 체형(MALE/FEMALE) 기본 스탯은 같습니다(PlayerStatTable은 레벨별·체형 공용). 검·활의 공격 속도 차이는 모션 길이(`AnimMs`)가 만듭니다.
+- (2026-11-07 MC3.1b 구현) 플레이어·몬스터가 **같은 공식**을 씁니다. 몬스터 공격력은 장비 없이 `MonsterTable.AttackDamage`로 **고정**입니다(9001 = BaseDamage 40 + 20 = 60). 서버 `Room::CastSkill`이 피해를 계산해 `ExecuteSkillHit` → `CombatProcessor::ProcessSkillHit` → 장판(`CreateZone`)까지 그 값을 넘깁니다.
+- 방어력(받는 피해 감소, 예: 피해 − 방어력)은 나중에(A2.3 무렵) 넣습니다. 피해가 적용되는 곳이 `Character::OnDamaged` 한 곳입니다.
 
 ### 타겟팅 타입 추가
 `SkillData`에 새 축을 추가합니다:

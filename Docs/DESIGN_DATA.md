@@ -37,10 +37,11 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 | 테이블 | 용도 |
 |---|---|
 | MovementTable | 이동 속도, 카메라 관련 수치 (Test에서 이식됨: `MovementTable.csv`) |
-| StatTable | 체형(MALE/FEMALE)·몬스터 기본 스탯 |
+| PlayerStatTable | 플레이어 레벨별 기본 스탯(체형 공용) — 2026-11-07 MC3.1b에 StatTable에서 분리 |
 | ItemTable | 장비 아이템(슬롯, 등급, 티어, 스탯 보너스, 무기 타입, 외형 경로는 클라 전용) — MC3.1 구현, A3에서 확장 |
 | SkillTable | `WeaponType`(무기 타입 종속), 슬롯, 쿨타임, 판정 Shape, 타겟팅 타입, 범위, 데미지, 몽타주 경로(클라 전용) |
-| MonsterTable / UITable | 해당 기능 작업 시 |
+| MonsterTable | 몬스터 종류별 스탯·스킬·리스폰 (ID = `ObjectInfo.template_id`) |
+| UITable | 해당 기능 작업 시 |
 | WorldTable | 맵별 시야(AOI) 수치 — 서버 전용(2026-10-31 A1.3) |
 
 2026-11-04 Phase MC: 계획했던 `HeroTable`/`WeaponItemTable`은 만들지 않고 **ItemTable**로 대체합니다. 플레이어 메시·AnimBP는 매니퀸 공용이라 테이블이 필요 없고, `DT_CharacterAsset`은 MC4에서 플레이어 참조를 끊은 뒤 정리합니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
@@ -51,10 +52,14 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 - **형식 오류·중복 키·존재하지 않는 참조는 서버 시작을 중단**합니다(줄 번호 포함 메시지). 데이터 버그를 조용히 넘기지 않기 위함입니다.
 - 수치 변경은 CSV 수정 후 **서버 재시작**으로 반영됩니다(핫 리로드 없음).
 
-### StatTable (서버 구현됨)
-`Name`(ID, 1001~), `PlayerType`(`Enum.proto`의 PlayerType 값, 서버 조회 키·중복 불가), `MaxHp`, `AttackDamage`, `AttackSpeed`, `MoveSpeed`. 생성 시 HP는 `MaxHp`입니다. 현재 행(2026-11-07 MC3.1): 1001 MALE(1)·1002 FEMALE(2) — 같은 값(MaxHp 500, AttackDamage 0, AttackSpeed 1.0, MoveSpeed 500), 1003 몬스터(3). MALE·FEMALE 행이 없으면 서버 시작을 중단합니다. 가입은 MALE/FEMALE만 받습니다.
-- 최종 스탯 = 기본 + 장비 보너스(무기 `AttackDamage`, 방어구 `MaxHp`)이며 서버가 계산합니다(MC3.2). `AttackDamage`는 피해 공식(`BaseDamage` + 공격력)에 쓰입니다(MC3.2부터 — 그 전까지 피해는 `BaseDamage`만).
-- 옛 전사(4)·궁수(5) 행은 삭제했습니다. DB에 남은 4·5 캐릭터(봇 `dummy` 계정 포함)는 로그인할 때 서버가 메모리에서 MALE로 바꾸고, DB 행은 MC3.3 마이그레이션에서 바꿉니다.
+### PlayerStatTable (서버 구현됨, 2026-11-07 MC3.1b — 옛 StatTable)
+플레이어 **레벨별** 기본 스탯이며 **체형 공용**입니다(MALE/FEMALE은 외형만 다름). `Name`(ID, 1001~), `Level`(서버 조회 키, 1 이상·중복 불가), `MaxHp`, `AttackDamage`, `AttackSpeed`, `MoveSpeed`. 현재 행: 1001 = Level 1(MaxHp 500, AttackDamage 0, AttackSpeed 1.0, MoveSpeed 500). 시작 레벨(`PLAYER_START_LEVEL` = 1) 행이 없으면 서버 시작을 중단합니다.
+- 생성 시 HP는 `MaxHp`입니다. 가입 시 DB `Player_Info`에 저장하는 Level·Hp도 이 행에서 가져옵니다(SQL에 수치를 쓰지 않음).
+- 레벨 성장(행 추가, 필요 경험치 열)은 A2.3, DB에 저장된 레벨로 조회하는 것은 A2.5(`InitFromDb` 연결)에서 합니다. 그 전까지 모든 플레이어는 Level 1 스탯입니다.
+- 최종 스탯 = 기본 + 장비 보너스(무기 `AttackDamage`, 방어구 `MaxHp`)이며 서버가 계산합니다(MC3.2).
+- **피해 = 스킬 `BaseDamage` + 시전자 `AttackDamage`**(플레이어·몬스터 같은 공식, 시전 순간 확정 — 2026-11-07 MC3.1b). 방어력(받는 피해 감소)은 나중에(A2.3 무렵) `Character::OnDamaged`에 넣습니다.
+- 가입은 MALE/FEMALE만 받습니다. DB에 남은 옛 4·5 캐릭터(봇 `dummy` 계정 포함)는 로그인할 때 서버가 메모리에서 MALE로 바꾸고, DB 행은 MC3.3 마이그레이션에서 바꿉니다.
+- `PlayerType`(`Enum.proto`)은 **플레이어 체형 전용**입니다(NONE/MALE/FEMALE, 3·4·5는 `reserved`). 몬스터는 `ObjectType`으로 구분하고 종류는 `ObjectInfo.template_id`로 보냅니다.
 
 ### SkillTable (서버 구현됨)
 `Name`(skillId), `WeaponType`(무기 종속 — `Unarmed`/`Sword`/`Bow`/`Monster`), `Slot`(0 = 기본 공격, 1~5 = 숫자키), `TargetingType`(`Targeted`/`NonTargeted`), `HitShape`(`Sector`/`Line`/`Projectile`/`Zone`), `HitDelayMs`, `CooldownMs`, `CastRange`(Targeted는 대상까지, Zone은 지점까지 최대 거리), `Radius`, `Angle`, `Range`, `Width`, `BaseDamage`, `ProjSpeed`, `DurationMs`/`TickMs`(Zone: 지속 시간 / 한 대상에게 피해를 주는 최소 간격 — 진입 즉시 피해 후 `TickMs`마다 반복). 클라이언트 전용 열(서버 로더는 무시): `Fx`/`FxBaseRadius`(이펙트), `Montage`(시전 몽타주), `Icon`(전투 HUD 슬롯 아이콘 텍스처).
@@ -65,8 +70,11 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 - 플레이어의 현재 무기 타입: MC3.1에서는 장착 시스템이 없어 항상 `Unarmed`(서버 `Player::GetWeaponType`, 클라 `AJMPlayer::GetWeaponType`) — MC3.2에서 장착 무기의 `ItemTable.WeaponType`으로 바꿉니다.
 
 ### MonsterTable (서버 구현됨)
-`Name`(=스폰 마커의 `monsterTemplateId`, StatTable.PlayerType과 동일해야 함), `RespawnSec`(사망 후 리스폰까지), `DeathRemoveDelaySec`(시체를 남기는 시간, `<= RespawnSec`), `HitStunMs`(피격 후 행동이 막히는 시간, 0~10000 — 피격 모션 길이에 맞춘다), `WanderRadiusCm`(대기 중 배회: 현재 위치에서 이 반경 안 임의 지점, 0~10000 — 2026-10-31 A1.3c에서 AOI 셀과 분리한 임시값, 행동트리 개선 때 재검토). 사망 연출 길이에 맞춰 `DeathRemoveDelaySec`를 조절합니다. 스폰 위치/수는 맵 JSON의 `spawnRadius`/`maxCount`를 따릅니다. 보상(경험치/골드) 컬럼은 A2.3에서 추가합니다.
-- `SkillId`(2026-11-07 MC3.1, 둘째 열, 필수): 기본 공격 스킬. SkillTable에 없거나 `WeaponType`이 `Monster`가 아니면 서버 시작을 중단합니다. 몬스터 스킬은 `PlayerType`이 아니라 이 열로 찾습니다. 현재 행: 3 → 9001.
+`Name`(몬스터 종류 ID, 1001~ = 스폰 마커의 `monsterTemplateId` = `ObjectInfo.template_id`), `SkillId`, `MaxHp`·`AttackDamage`·`AttackSpeed`·`MoveSpeed`(몬스터 고정 스탯 — 2026-11-07 MC3.1b에 StatTable에서 옮김, 범위는 PlayerStatTable과 같음), `RespawnSec`(사망 후 리스폰까지), `DeathRemoveDelaySec`(시체를 남기는 시간, `<= RespawnSec`), `HitStunMs`(피격 후 행동이 막히는 시간, 0~10000 — 피격 모션 길이에 맞춘다), `WanderRadiusCm`(대기 중 배회: 현재 위치에서 이 반경 안 임의 지점, 0~10000 — 2026-10-31 A1.3c에서 AOI 셀과 분리한 임시값, 행동트리 개선 때 재검토). 사망 연출 길이에 맞춰 `DeathRemoveDelaySec`를 조절합니다. 스폰 위치/수는 맵 JSON의 `spawnRadius`/`maxCount`를 따릅니다. 보상(경험치/골드) 컬럼은 A2.3에서 추가합니다.
+- `SkillId`(2026-11-07 MC3.1, 둘째 열, 필수): 기본 공격 스킬. SkillTable에 없거나 `WeaponType`이 `Monster`가 아니면 서버 시작을 중단합니다. 몬스터 스킬은 `PlayerType`이 아니라 이 열로 찾습니다.
+- 현재 행(2026-11-07 MC3.1b): 1001(Rampage, 옛 ID 3) — SkillId 9001, MaxHp 150, AttackDamage 20, AttackSpeed 1.0, MoveSpeed 400. 몬스터 피해는 스킬 `BaseDamage`(9001 = 40) + 고정 공격력 20 = 60입니다. 몬스터 세기는 이 공격력으로 조절합니다.
+- 1001 미만 ID는 서버 시작을 중단합니다(옛 PlayerType 값을 막기 위함). 맵 로직 JSON의 `monsterTemplateId`가 이 테이블에 없으면 서버는 그 마커를 스폰하지 않고 ERROR를 남깁니다(방은 실행 중에도 만들어지므로 중단하지 않음). `ParagonSample_Logic.json`은 레벨에 `ALevelMarker`가 없어 손으로 관리합니다.
+- 클라이언트는 몬스터를 `object_type`으로 판별합니다. 종류별 외형(template_id → 액터)은 몬스터가 늘 때 추가합니다. A2.3 보상(경험치·골드)과 A3 `DropTable`은 이 ID를 참조합니다.
 
 ### ItemTable (2026-11-07 MC3.1 확정, 서버 구현됨)
 - 서버가 읽는 열: `Name`(itemId), `Slot`(`Head`/`Top`/`Bottom`/`Gloves`/`Boots`/`Weapon`), `Grade`(`Common`/`Uncommon`/`Rare`), `Tier`(`Cloth`/`Leather`/`Plate`), `WeaponType`(무기만 `Sword`/`Bow`, 나머지 `None`), `BonusAttackDamage`(무기만), `BonusMaxHp`(방어구만).
@@ -84,7 +92,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 - Test의 `UDataManager`/`UDataTableSettings` 구현을 이식하되 `JM` 접두사 규칙(UE와 충돌할 때만)을 따릅니다.
 
 ## MovementTable 컬럼
-ID `1001` = 플레이어 기본값. 클라이언트(`DT_MovementTable`)와 서버(`DataManager`, `Server`로 시작하는 열만)가 함께 읽습니다. 최고 이동 속도는 이 테이블에 두지 않고 **서버 스탯 `StatTable.MoveSpeed`**(영웅별, `ObjectInfo.stat.move_speed`)를 씁니다 — 클라이언트 `MaxWalkSpeed`와 서버 검증이 같은 값을 봅니다(2026-10-30 S1, `MaxSpeedCmSec` 열 삭제).
+ID `1001` = 플레이어 기본값. 클라이언트(`DT_MovementTable`)와 서버(`DataManager`, `Server`로 시작하는 열만)가 함께 읽습니다. 최고 이동 속도는 이 테이블에 두지 않고 **서버 스탯 `MoveSpeed`**(플레이어 `PlayerStatTable`, `ObjectInfo.stat.move_speed`)를 씁니다 — 클라이언트 `MaxWalkSpeed`와 서버 검증이 같은 값을 봅니다(2026-10-30 S1, `MaxSpeedCmSec` 열 삭제).
 
 | 컬럼 | 기본값 | 읽는 쪽 | 설명 |
 |---|---|---|---|

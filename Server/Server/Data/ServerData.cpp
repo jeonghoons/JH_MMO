@@ -27,7 +27,7 @@ namespace
 
 		for (const fs::path& p : candidates)
 		{
-			if (fs::exists(p / "StatTable.csv"))
+			if (fs::exists(p / "PlayerStatTable.csv"))
 			{
 				out = fs::absolute(p);
 				return true;
@@ -75,6 +75,22 @@ namespace
 		return false;
 	}
 
+	// PlayerStatTable·MonsterTable 공통 스탯 열(MaxHp, AttackDamage, AttackSpeed, MoveSpeed)을 읽고 범위를 검사한다.
+	bool ReadStat(const CsvFile& file, const CsvRow& row, StatData& out, std::string& err)
+	{
+		if (!row.GetInt("MaxHp", out.maxHp, err) || !row.GetInt("AttackDamage", out.attackDamage, err) ||
+			!row.GetFloat("AttackSpeed", out.attackSpeed, err) || !row.GetFloat("MoveSpeed", out.moveSpeed, err))
+		{
+			return false;
+		}
+		if (out.maxHp <= 0 || out.attackDamage < 0 || out.attackSpeed <= 0.f || out.moveSpeed < 0.f)
+		{
+			err = file.Path() + " line " + std::to_string(row.Line()) + ": 스탯이 허용 범위를 벗어났습니다 (MaxHp>0, AttackDamage>=0, AttackSpeed>0, MoveSpeed>=0)";
+			return false;
+		}
+		return true;
+	}
+
 	bool ParseItemGrade(const std::string& text, ItemGrade& out)
 	{
 		if (text == "Common") { out = ItemGrade::Common; return true; }
@@ -87,7 +103,7 @@ namespace
 bool DataManager::Init()
 {
 	_skillTable.clear();
-	_characterTable.clear();
+	_playerStatTable.clear();
 	_monsterTable.clear();
 	_movementTable.clear();
 	_itemTable.clear();
@@ -104,37 +120,34 @@ bool DataManager::Init()
 
 	std::string err;
 
-	// StatTable: Name, PlayerType, MaxHp, AttackDamage, AttackSpeed, MoveSpeed
+	// PlayerStatTable: Name, Level, MaxHp, AttackDamage, AttackSpeed, MoveSpeed (체형 공용, 조회 키 = Level)
 	CsvFile stat;
-	if (!stat.Load((dir / "StatTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
+	if (!stat.Load((dir / "PlayerStatTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
 	for (const CsvRow& row : stat.Rows())
 	{
-		int id = 0, playerType = 0, maxHp = 0, attackDamage = 0;
-		float attackSpeed = 0.f, moveSpeed = 0.f;
-		if (!row.GetInt("Name", id, err) || !row.GetInt("PlayerType", playerType, err) ||
-			!row.GetInt("MaxHp", maxHp, err) || !row.GetInt("AttackDamage", attackDamage, err) ||
-			!row.GetFloat("AttackSpeed", attackSpeed, err) || !row.GetFloat("MoveSpeed", moveSpeed, err))
+		int id = 0, level = 0;
+		StatData d{};
+		if (!row.GetInt("Name", id, err) || !row.GetInt("Level", level, err) || !ReadStat(stat, row, d, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
-		if (maxHp <= 0 || attackDamage < 0 || attackSpeed <= 0.f || moveSpeed < 0.f)
+		if (level < 1)
 		{
-			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (MaxHp>0, AttackDamage>=0, AttackSpeed>0, MoveSpeed>=0)", stat.Path(), row.Line());
+			LOG_ERROR("Data", "{} line {}: Level 은 1 이상이어야 합니다", stat.Path(), row.Line());
 			return false;
 		}
-		if (_characterTable.count(playerType))
+		if (_playerStatTable.count(level))
 		{
-			LOG_ERROR("Data", "{} line {}: PlayerType {} 가 중복되었습니다", stat.Path(), row.Line(), playerType);
+			LOG_ERROR("Data", "{} line {}: Level {} 이 중복되었습니다", stat.Path(), row.Line(), level);
 			return false;
 		}
-		_characterTable[playerType] = { playerType, maxHp, maxHp, attackDamage, attackSpeed, moveSpeed };
+		_playerStatTable[level] = d;
 	}
-	// 플레이어 체형(가입 때 고르는 값) 두 행은 반드시 있어야 한다.
-	if (_characterTable.count(Protocol::PLAYER_TYPE_MALE) == 0 || _characterTable.count(Protocol::PLAYER_TYPE_FEMALE) == 0)
+	if (GetPlayerStatData(PLAYER_START_LEVEL) == nullptr)
 	{
-		LOG_ERROR("Data", "{}: 체형 MALE({})·FEMALE({}) 행이 모두 있어야 합니다", stat.Path(), (int)Protocol::PLAYER_TYPE_MALE, (int)Protocol::PLAYER_TYPE_FEMALE);
+		LOG_ERROR("Data", "{}: 시작 레벨 {} 행이 없습니다", stat.Path(), PLAYER_START_LEVEL);
 		return false;
 	}
 
@@ -230,7 +243,8 @@ bool DataManager::Init()
 		LOG_ERROR("Data", "{}: 맨손(Unarmed) 기본 공격(Slot 0) 행이 없습니다", skill.Path());
 		return false;
 	}
-	// MonsterTable: Name(=monsterTemplateId), SkillId, RespawnSec, DeathRemoveDelaySec, HitStunMs, WanderRadiusCm
+	// MonsterTable: Name(=monsterTemplateId, 1001~), SkillId, MaxHp, AttackDamage, AttackSpeed, MoveSpeed,
+	//               RespawnSec, DeathRemoveDelaySec, HitStunMs, WanderRadiusCm
 	CsvFile monster;
 	if (!monster.Load((dir / "MonsterTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
@@ -239,6 +253,7 @@ bool DataManager::Init()
 		MonsterData d{};
 		int respawnSec = 0, removeDelaySec = 0, hitStunMs = 0, wanderRadiusCm = 0;
 		if (!row.GetInt("Name", d.templateId, err) || !row.GetInt("SkillId", d.skillId, err) ||
+			!ReadStat(monster, row, d.stat, err) ||
 			!row.GetInt("RespawnSec", respawnSec, err) ||
 			!row.GetInt("DeathRemoveDelaySec", removeDelaySec, err) || !row.GetInt("HitStunMs", hitStunMs, err) ||
 			!row.GetInt("WanderRadiusCm", wanderRadiusCm, err))
@@ -256,9 +271,10 @@ bool DataManager::Init()
 			LOG_ERROR("Data", "{} line {}: monsterTemplateId {} 가 중복되었습니다", monster.Path(), row.Line(), d.templateId);
 			return false;
 		}
-		if (_characterTable.count(d.templateId) == 0)
+		// 테이블 ID 규칙(1001~). 옛 PlayerType 값(3)을 그대로 쓰면 여기서 걸린다.
+		if (d.templateId < 1001)
 		{
-			LOG_ERROR("Data", "{} line {}: 템플릿 {} 의 스탯이 StatTable(PlayerType)에 없습니다", monster.Path(), row.Line(), d.templateId);
+			LOG_ERROR("Data", "{} line {}: monsterTemplateId {} 는 1001 이상이어야 합니다", monster.Path(), row.Line(), d.templateId);
 			return false;
 		}
 		const SkillData* monsterSkill = GetSkillData(d.skillId);
@@ -411,7 +427,7 @@ bool DataManager::Init()
 		_worldTable[d.mapName] = d;
 	}
 
-	LOG_INFO("Data", "로드 완료 (StatTable {}행, SkillTable {}행, MonsterTable {}행, ItemTable {}행, MovementTable {}행, WorldTable {}행)",
-		_characterTable.size(), _skillTable.size(), _monsterTable.size(), _itemTable.size(), _movementTable.size(), _worldTable.size());
+	LOG_INFO("Data", "로드 완료 (PlayerStatTable {}행, SkillTable {}행, MonsterTable {}행, ItemTable {}행, MovementTable {}행, WorldTable {}행)",
+		_playerStatTable.size(), _skillTable.size(), _monsterTable.size(), _itemTable.size(), _movementTable.size(), _worldTable.size());
 	return true;
 }

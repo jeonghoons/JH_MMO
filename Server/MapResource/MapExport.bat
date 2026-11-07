@@ -10,8 +10,8 @@ set "MAP_NAME=%~1"
 set "CONFIG=%~2"
 if "%CONFIG%"=="" set "CONFIG=Debug"
 
-REM ===== 로컬 UE 5.6 설치 경로에 맞게 직접 채워야 합니다 =====
-set "UE_EDITOR_CMD=C:\Program Files\Epic Games\UE_5.6\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
+REM ===== 로컬 UE 5.8 설치 경로에 맞게 직접 채워야 합니다 =====
+set "UE_EDITOR_CMD=C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 set "UPROJECT=%~dp0..\..\UEClient\JM\JM.uproject"
 
 set "GEO_BIN=%~dp0Export\%MAP_NAME%\Geometry\%MAP_NAME%_Geo.bin"

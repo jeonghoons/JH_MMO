@@ -8,7 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P0 유령 플레이어 수정 → P1 송신 묶기 차례, 2026-11-06 기준선·동시성 감사 완료). 2026-11-06 결정: 트랙 B를 MC4.2 무기 공격까지 먼저 진행한 뒤 트랙 A 재개 (`DECISIONS.md`)**
-`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블 완료(2026-11-07), 다음 MC3.2 장착 패킷(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블·MC3.1b 스탯 재설계 완료(2026-11-07), 다음 MC3.2 장착 패킷(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** (재개 시 기준선 재측정) P0 유령 플레이어 → P1a 송신 지표 → P1b 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -24,14 +24,15 @@
 - 서버는 `Server/Server` 폴더에서 `..\x64\Debug\GameServer.exe`로 실행합니다(DataTable·맵 상대 경로, SQL Server Express 필요). PIE 전에 Debug 빌드가 최신인지 확인하고, 서버가 실행 중이면 VS 빌드가 exe를 덮어쓰지 못합니다.
 - 궁수 계정은 `LoadTest --hero archer`의 `arc_*` 계정이나 UE 로그인 화면에서 궁수 타입으로 가입하면 됩니다. (`content/dev` MC3.1부터 전사·궁수가 없어져 봇은 `--body male|female`, 가입은 남성/여성 — 병합 후에는 이쪽을 따름)
 
-## ▶ 중단점 트랙 B (2026-11-07) — `content/dev`, MC3.1 데이터 테이블 완료 → 다음 MC3.2
+## ▶ 중단점 트랙 B (2026-11-07) — `content/dev`, MC3.1b 스탯 테이블 재설계 완료 → 다음 MC3.2
 **상태:** 판금 7개 모두 생성(상의·하의·장화·장갑·한손검·활·투구, 남녀, `Content/Equipment/Plate/*`, `jm_kit/items.json` `Plate_*`). VARCO 누적 3,250포인트. 투구는 **사슬을 뺀 눈높이 이미지 → 3만 폴리 생성 → UE 엔진 메시 축소로 LOD 4,000/2,000/1,000**(`garment.reduce_static_lods`, `attach.target_tris`), 정적 메시 + `head` 소켓 `fit: "helm"`, `yaw` 90. 상세는 `TESTING.md` 2026-11-06 "투구 4·5차".
 **다음 작업:**
 1. ~~투구 사용자 확인~~ 완료(2026-11-06, 시험 액터 `HM_*`·`HF_*` 삭제).
 2. ~~판금 상의 등 윗부분 피부 비침~~ 완료(2026-11-06, `clear_cm` 1.5 — `TESTING.md`).
 3. ~~MC2.4 아이콘~~ 완료(2026-11-07, 14개, `jm_kit.icon`, 사용자 확인 — `TESTING.md`).
 4. ~~MC3.1~~ 완료(2026-11-07, ItemTable 14행·SkillTable 무기 타입·StatTable MALE/FEMALE·`MonsterTable.SkillId`, 바로 전환 — `DECISIONS.md`·`TESTING.md`).
-5. **다음: MC3.2** `CS_/SC_CHANGE_EQUIP` + 서버 검증·스탯 계산·무기 스왑 잠금. 함께 할 것: `Enum.proto` `EquipPart` 새 번호(Head 1 … Weapon 6 = itemId 첫째 자리)와 옛 `PLAYER_TYPE_WARRIOR/ARCHER` 정리, 서버 `Player::GetWeaponType`·클라 `AJMPlayer::GetWeaponType`을 장착 무기 기준으로(지금은 항상 Unarmed), 피해 = `BaseDamage` + 공격력, 무기 교체 시 HUD `SetWeaponType`, 봇에 무기 장착(활·검 스킬 부하 시험 복구). MC3.1이 남긴 임시 처리: 로그인 시 옛 4·5 → MALE 치환(MC3.3에서 DB 마이그레이션 후 삭제), MALE/FEMALE 임시 외형 Greystone/Sparrow(MC4.1에서 삭제).
+5. ~~MC3.1b~~ 완료(2026-11-07, PlayerStatTable Level 키·MonsterTable 스탯·몬스터 ID 1001 + `template_id`, PlayerType 체형 전용, 피해 = BaseDamage + 공격력 — `DECISIONS.md`·`TESTING.md`).
+6. **다음: MC3.2** `CS_/SC_CHANGE_EQUIP` + 서버 검증·스탯 계산·무기 스왑 잠금. 함께 할 것: `Enum.proto` `EquipPart` 새 번호(Head 1 … Weapon 6 = itemId 첫째 자리), `SC_CHANGE_EQUIP`에 최종 스탯 + **결과 코드**(거부 사유는 본인에게, 클라 `ShowSystemMessage`로 코드별 문구), **개발용 콘솔 명령 `Equip <part> <itemId>`**(PIE 시험용, MC4.4에서 삭제), 서버 `Player::GetWeaponType`·클라 `AJMPlayer::GetWeaponType`을 장착 무기 기준으로(지금은 항상 Unarmed), 장비 보너스 → 공격력·MaxHp(피해 공식은 MC3.1b에서 이미 공격력을 더함), 무기 교체 시 HUD `SetWeaponType`, 봇에 무기 장착(활·검 스킬 부하 시험 복구). 남은 임시 처리: 로그인 시 옛 4·5 → MALE 치환(MC3.3에서 DB 마이그레이션 후 삭제), MALE/FEMALE 임시 외형 Greystone/Sparrow(MC4.1에서 삭제). 정리 후보: 쓰지 않는 `CS_DMOVE_PACKET`(`Protocol.proto`).
 **VARCO 흐름 노드(JH_MMO 플로):** 투구 정면 컨셉 `531e1ef7…`, 3/4 시점 편집 `c1511cae…`, 3차 3D `8456f6d4…`(실패), 초록 배경 `aa21a66f…`, 4차 3D `4e325e94…`(실패), 사슬 뺀 눈높이 `a0bb8331…`, **5차 3D `ad0e9513…`(채택, 출력 0)**. 판금 상의 컨셉 `cb90b725…`가 세트 스타일 참고.
 
 ## 트랙 A — 서버/포트폴리오
@@ -57,7 +58,7 @@
 - [x] A2.2g 행동 잠금·공격 속도 구조 (2026-10-28 추가, `DECISIONS.md`): SkillTable `AnimMs`(도구 추출), 기본 공격 `CooldownMs` 0, 서버 공용 행동 잠금, AttackSpeed = 기본 공격 재생 배율(서버 행동 시간·타격 시점, 클라 몽타주 재생 속도), 몬스터 AI 간격도 같은 규칙. A2.2f보다 먼저 — 코드·데이터 완료(2026-10-28, 서버 행동 잠금 시나리오·회귀 통과 `TESTING.md`, 클라이언트 빌드). PIE 확인 완료
 - [ ] A2.3 서버+클라이언트: 경험치/레벨/골드 보상 패킷과 HUD(내 HP·EXP·레벨)
 - [ ] A2.4 서버+클라이언트: 플레이어 사망/부활
-- [ ] A2.5 서버: DB 저장 연결(`InitFromDb`, 접속 해제·주기 저장, `SavePlayerData` SQL 수정). 완료: 재접속 시 레벨·HP·골드 유지
+- [ ] A2.5 서버: DB 저장 연결(`InitFromDb`, 접속 해제·주기 저장, `SavePlayerData` SQL 수정). 완료: 재접속 시 레벨·HP·골드 유지 (2026-11-07 메모: 지금 `InitFromDb`를 아무도 부르지 않아 DB 레벨·HP를 무시함 — 연결할 때 DB `Level`로 `PlayerStatTable`을 조회하고 `PLAYER_START_LEVEL` 고정을 없앰)
 - [x] A2.6 미사용 패킷 정리(`CS_LOGOUT`/`CS_CMOVE`/`CS_LEAVE_ROOM`/`SC_CHAT`): 구현 또는 제거 — LOGOUT/CMOVE/LEAVE_ROOM은 C-1에서 삭제, 채팅은 **C-4에서 구현**(2026-10-30 완료)
 
 ### R. ③ 저장소 정리 (2026-10-28 계획, `DECISIONS.md`) — 지우는 일 먼저, 옮기는 일은 나중에
@@ -195,7 +196,8 @@
 
 **MC3 데이터·서버**
 - [x] MC3.1 `ItemTable` + SkillTable 무기 ID 재번호(1xxx/2xxx/3xxx/9xxx), StatTable MALE/FEMALE, `MonsterTable.SkillId` (2026-11-07: 바로 전환 — 전사·궁수 삭제, 무기 타입은 MC3.2 전까지 Unarmed. itemId = [슬롯][티어][일련번호], 로더 오류 26종·가입 검증·hunt 부하·PIE 통과, `DECISIONS.md`·`TESTING.md`)
-- [ ] MC3.2 `CS_/SC_CHANGE_EQUIP`(`.proto` → `GanPackets.bat`) + 서버 검증·스탯 계산·무기 스왑 잠금
+- [x] MC3.1b 스탯 테이블 재설계 + 몬스터 ID 분리 + 피해 공식 (2026-11-07 추가·완료, `DECISIONS.md`·`TESTING.md`): StatTable → `PlayerStatTable`(Level 키, 체형 공용), 몬스터 스탯 → `MonsterTable` 열, 몬스터 ID 3 → 1001(`ObjectInfo.template_id`), `PlayerType` 체형 전용(3·4·5 reserved), 피해 = BaseDamage + 시전자 공격력(시전 순간 확정, 9001 BaseDamage 40), 가입 Level·Hp 데이터 기반, `MapExport.bat`·`ExportSkillTiming.bat` UE 5.8 경로. 로더 오류 35종·스폰 템플릿 없음·피해 값·가입·부하·PIE 통과
+- [ ] MC3.2 `CS_/SC_CHANGE_EQUIP`(`.proto` → `GanPackets.bat`) + 서버 검증·스탯 계산·무기 스왑 잠금 + 거부 결과 코드·UI 표시 + 개발용 콘솔 명령 `Equip`
 - [ ] MC3.3 `Player_Equipped` 저장, 가입 시 기본 장비, 기존 `PlayerType`·장비 행 마이그레이션
 
 **MC4 클라이언트**

@@ -6,17 +6,11 @@ Player::Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type)
 	: Character(Protocol::ObjectType::OBJECT_TYPE_PLAYER), _ownerSession(ownerSession)
 {
 	_objectInfo.set_player_type(type);
-	const CharacterData* statData = DataManager::GetCharacterData((int)_objectInfo.player_type());
-	if (statData) {
-		Protocol::StatInfo* stat = _objectInfo.mutable_stat();
-		stat->set_max_hp(statData->maxHp);
-		stat->set_hp(statData->hp);
-		stat->set_attack_damage(statData->attackDamage);
-		stat->set_attack_speed(statData->attackSpeed);
-		stat->set_move_speed(statData->moveSpeed);
-		_statInfo.Init(stat);
+	// 기본 스탯은 체형 공용, 레벨별(PlayerStatTable). 레벨 저장은 A2.3·A2.5 — 그 전까지 시작 레벨. 로더가 시작 레벨 행을 보장한다.
+	if (const StatData* statData = DataManager::GetPlayerStatData(PLAYER_START_LEVEL)) {
+		_statInfo.InitFromData(_objectInfo.mutable_stat(), *statData);
 	}
-	
+
 	_maxSpeed = _statInfo.GetMoveSpeed();
 }
 
@@ -47,15 +41,9 @@ void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	_dbPlayerData = data;
 
 	
-	const CharacterData* statData = DataManager::GetCharacterData(info.playerType);
-	if (statData) {
-		Protocol::StatInfo* stat = _objectInfo.mutable_stat();
-		stat->set_max_hp(statData->maxHp);
-		stat->set_hp(statData->hp);
-		stat->set_attack_damage(statData->attackDamage);
-		stat->set_attack_speed(statData->attackSpeed);
-		stat->set_move_speed(statData->moveSpeed);
-		_statInfo.Init(stat);
+	// A2.5에서 DB 레벨(data.level)로 조회하도록 바꾼다. 지금은 아무도 부르지 않는다.
+	if (const StatData* statData = DataManager::GetPlayerStatData(PLAYER_START_LEVEL)) {
+		_statInfo.InitFromData(_objectInfo.mutable_stat(), *statData);
 	}
 
 	_objectInfo.clear_equip_items();

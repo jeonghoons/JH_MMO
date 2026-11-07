@@ -5,27 +5,15 @@
 #include "Game/World/NavmeshManager.h"
 #include "Data/ServerData.h"
 
-Monster::Monster() : Monster(Protocol::PLAYER_TYPE_MONSTER)
+Monster::Monster(int templateId) : Character(Protocol::ObjectType::OBJECT_TYPE_MONSTER)
 {
-}
+	// 몬스터 종류는 template_id(MonsterTable ID)로 알린다. PlayerType은 플레이어 체형 전용이라 NONE.
+	_objectInfo.set_player_type(Protocol::PLAYER_TYPE_NONE);
+	_objectInfo.set_template_id(templateId);
 
-Monster::Monster(Protocol::PlayerType type) : Character(Protocol::ObjectType::OBJECT_TYPE_MONSTER)
-{
-	_objectInfo.set_player_type(type);
-
-	const CharacterData* statData = DataManager::GetCharacterData((int)_objectInfo.player_type());
-	if (statData) {
-		Protocol::StatInfo* stat = _objectInfo.mutable_stat();
-		stat->set_max_hp(statData->maxHp);
-		stat->set_hp(statData->hp);
-		stat->set_attack_damage(statData->attackDamage);
-		stat->set_attack_speed(statData->attackSpeed);
-		stat->set_move_speed(statData->moveSpeed);
-		_statInfo.Init(stat);
-	}
-	
-	// 템플릿(= PlayerType)의 MonsterTable 행이 기본 공격 스킬을 정한다. 로더가 SkillId의 존재를 보장한다.
-	if (const MonsterData* monsterData = DataManager::GetMonsterData((int)_objectInfo.player_type())) {
+	// MonsterTable 행이 스탯(고정 공격력 포함)과 기본 공격 스킬을 정한다. 로더가 SkillId의 존재를, Room이 템플릿의 존재를 보장한다.
+	if (const MonsterData* monsterData = DataManager::GetMonsterData(templateId)) {
+		_statInfo.InitFromData(_objectInfo.mutable_stat(), monsterData->stat);
 		_skillId = monsterData->skillId;
 		if (const SkillData* skill = DataManager::GetSkillData(_skillId)) {
 			_attackRange = skill->radius;
@@ -86,7 +74,7 @@ void Monster::OnDamaged(int damage, int attackerId, std::shared_ptr<Character> a
 
 int Monster::GetHitStunMs() const
 {
-	const MonsterData* data = DataManager::GetMonsterData((int)_objectInfo.player_type());
+	const MonsterData* data = DataManager::GetMonsterData(_objectInfo.template_id());
 	return data ? data->hitStunMs : Character::GetHitStunMs();
 }
 
@@ -98,7 +86,7 @@ void Monster::OnDead(std::shared_ptr<Character> attacker)
 
 	// 사망 연출 시간이 지나면 월드에서 제거하고, 그 시점부터 리스폰을 예약한다. (Room::RemoveMonster)
 	if (auto room = GetCurrentRoom()) {
-		const MonsterData* data = DataManager::GetMonsterData((int)_objectInfo.player_type());
+		const MonsterData* data = DataManager::GetMonsterData(_objectInfo.template_id());
 		const int removeDelayMs = data ? data->deathRemoveDelayMs : 3000;
 		room->ReserveJob(removeDelayMs, &Room::RemoveMonster, GetId());
 	}
@@ -173,7 +161,7 @@ void Monster::UpdatePatrol()
 	if (!_hasPath && _patrolTimer.IsReady())
 	{
 		// 배회 범위는 MonsterTable.WanderRadiusCm (임시 — 행동트리 개선 때 재검토)
-		const MonsterData* data = DataManager::GetMonsterData((int)_objectInfo.player_type());
+		const MonsterData* data = DataManager::GetMonsterData(_objectInfo.template_id());
 		const float wanderRadius = data ? static_cast<float>(data->wanderRadiusCm) : 500.f;
 		Protocol::PositionInfo randomDest = room->GetGameMap().GetRandomPosNear(_objectInfo.position(), wanderRadius);
 

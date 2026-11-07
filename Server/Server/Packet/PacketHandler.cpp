@@ -92,8 +92,8 @@ void PacketHandler::Handle_CS_SIGNUP(shared_ptr<GameSession> session, Protocol::
     string pw = pkt.account_pw();
     int type = static_cast<int>(pkt.player_type());
 
-    // 플레이어 체형은 MALE/FEMALE만 고를 수 있다(몬스터·옛 영웅 타입 거부). 스탯 행이 없어도 거부한다.
-    if ((type != Protocol::PLAYER_TYPE_MALE && type != Protocol::PLAYER_TYPE_FEMALE) || DataManager::GetCharacterData(type) == nullptr)
+    // 플레이어 체형은 MALE/FEMALE만 고를 수 있다(옛 몬스터·영웅 값 3~5와 그 밖의 값은 거부). 스탯은 체형 공용(PlayerStatTable)이다.
+    if (type != Protocol::PLAYER_TYPE_MALE && type != Protocol::PLAYER_TYPE_FEMALE)
     {
         LOG_WARN("Packet", "Invalid PlayerType on signup : {}", type);
         GLobby->PushJob(&AuthLobby::OnSignUpResult, session, false);

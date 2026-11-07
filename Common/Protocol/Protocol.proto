@@ -41,7 +41,7 @@ message CS_DMOVE_PACKET {
 
 message CS_ATTACK_PACKET {
 	int32 target_id = 1;      // Targeted 스킬의 대상 (NonTargeted는 0)
-	int32 skill_slot = 2;     // 0 = 기본 공격, 1~5 = 스킬 슬롯 (서버가 영웅의 SkillTable로 해석)
+	int32 skill_slot = 2;     // 0 = 기본 공격, 1~5 = 스킬 슬롯 (서버가 장착 무기 타입의 SkillTable로 해석)
 	float aim_yaw = 3;       // NonTargeted의 시전 방향(deg)
 	float aim_x = 4;         // 지면 지정 스킬의 목표 지점
 	float aim_y = 5;
@@ -67,7 +67,7 @@ message SC_LOGIN_INFO_PACKET {
 }
 
 message SC_SIGNUP_PACKET {
-	bool result = 1;   // false: 중복 ID, 잘못된 영웅, 이미 로그인한 연결 등
+	bool result = 1;   // false: 중복 ID, 잘못된 체형(MALE/FEMALE 외), 이미 로그인한 연결 등
 }
 
 message SC_ADD_OBJECT_PACKET {

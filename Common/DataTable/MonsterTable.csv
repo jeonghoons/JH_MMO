@@ -1,2 +1,2 @@
-Name,SkillId,RespawnSec,DeathRemoveDelaySec,HitStunMs,WanderRadiusCm
-3,9001,10,3,800,500
+Name,SkillId,MaxHp,AttackDamage,AttackSpeed,MoveSpeed,RespawnSec,DeathRemoveDelaySec,HitStunMs,WanderRadiusCm
+1001,9001,150,20,1.0,400,10,3,800,500

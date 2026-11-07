@@ -370,8 +370,8 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
 		GStat.objectAdded.fetch_add(1);
 		if (b.index == 0)
-			printf("[bot] bot0 sees object id=%d type=%d playerType=%d pos=(%.0f,%.0f)\n", pkt.object_info().id(),
-				static_cast<int>(pkt.object_info().object_type()), static_cast<int>(pkt.object_info().player_type()),
+			printf("[bot] bot0 sees object id=%d type=%d playerType=%d template=%d pos=(%.0f,%.0f)\n", pkt.object_info().id(),
+				static_cast<int>(pkt.object_info().object_type()), static_cast<int>(pkt.object_info().player_type()), pkt.object_info().template_id(),
 				pkt.object_info().position().x(), pkt.object_info().position().y());
 		// 로그인 응답의 위치는 0이고 실제 시작 위치는 입장 후 내 SC_ADD_OBJECT로 온다.
 		if (pkt.object_info().id() == b.objectId && !b.spawnKnown)

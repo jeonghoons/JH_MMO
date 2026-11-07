@@ -47,13 +47,13 @@ enum ObjectType {
     OBJECT_TYPE_ENVIRONMENT = 5;
 }
 
+// 플레이어 체형(가입 때 고정). 몬스터는 ObjectType으로 구분하고 종류는 ObjectInfo.template_id(MonsterTable ID)로 보낸다.
+// 3(옛 MONSTER), 4(옛 WARRIOR), 5(옛 ARCHER)는 재사용하지 않는다 (2026-11-07 MC3.1b). DB에 남은 4·5 행은 MC3.3에서 마이그레이션한다.
 enum PlayerType {
+    reserved 3, 4, 5;
     PLAYER_TYPE_NONE = 0;
     PLAYER_TYPE_MALE = 1;
     PLAYER_TYPE_FEMALE = 2;
-    PLAYER_TYPE_MONSTER = 3;
-    PLAYER_TYPE_WARRIOR = 4;
-    PLAYER_TYPE_ARCHER = 5;
 }
 
 enum EquipPart {

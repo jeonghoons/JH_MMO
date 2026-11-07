@@ -149,6 +149,16 @@ void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, s
 	SQLLEN typeLen = 0;
 	dbConn->BindParam(4, &cType, &typeLen);
 
+	// 시작 레벨과 그 레벨의 최대 HP(PlayerStatTable, 로더가 시작 레벨 행을 보장)를 저장한다. SQL에 수치를 쓰지 않는다.
+	int32_t startLevel = PLAYER_START_LEVEL;
+	SQLLEN levelLen = 0;
+	dbConn->BindParam(5, &startLevel, &levelLen);
+
+	const StatData* startStat = DataManager::GetPlayerStatData(PLAYER_START_LEVEL);
+	int32_t startHp = startStat ? startStat->maxHp : 1;
+	SQLLEN hpLen = 0;
+	dbConn->BindParam(6, &startHp, &hpLen);
+
 	
 	const WCHAR* query = L" \
         BEGIN TRAN; \
@@ -157,7 +167,7 @@ void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, s
         SET @AccID = SCOPE_IDENTITY(); \
         INSERT INTO [User_Info] (AccountId) VALUES (@AccID); \
         INSERT INTO [Player_Info] (AccountId, Name, PlayerType, [Level], Exp, Hp, Gold) \
-        VALUES (@AccID, ?, ?, 1, 0, 500, 0); \
+        VALUES (@AccID, ?, ?, ?, 0, ?, 0); \
         COMMIT TRAN;";
 
 	const bool success = dbConn->Execute(query);

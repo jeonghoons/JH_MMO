@@ -5,7 +5,7 @@
 
 ## 캐릭터 = 체형 + 장비
 - 플레이어는 **UE 매니퀸 공용 스켈레톤** 하나를 씁니다. 체형은 `PlayerType` MALE(1, Manny) / FEMALE(2, Quinn)이며 **가입 때 고정**합니다. 직업은 없습니다.
-- 캐릭터의 능력은 **기본 스탯(StatTable, 체형별 행) + 장비 보너스**, 쓸 수 있는 스킬은 **장착 무기 타입**이 정합니다([DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md)).
+- 캐릭터의 능력은 **기본 스탯(PlayerStatTable — 레벨별, 체형 공용) + 장비 보너스**, 쓸 수 있는 스킬은 **장착 무기 타입**이 정합니다([DESIGN_COMBAT_SKILL.md](DESIGN_COMBAT_SKILL.md)).
 - 몬스터는 Paragon Rampage를 그대로 씁니다(`PLAYER_TYPE_MONSTER`, 자체 메시·`ABP_Rampage`). 이 문서의 모듈형 구조는 플레이어에만 적용합니다.
 - 기존 `PLAYER_TYPE_WARRIOR`(4)/`ARCHER`(5)와 Greystone/Sparrow 플레이어는 MC 완료 시 사라집니다. DB의 기존 플레이어는 마이그레이션으로 MALE(1)이 됩니다(MC3.3).
 - 캐릭터 이름은 로그인 ID를 그대로 씁니다.
