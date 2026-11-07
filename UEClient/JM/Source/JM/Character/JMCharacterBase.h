@@ -85,6 +85,7 @@ protected:
 	float RemoteSnapDistCm = 500.f;
 	float RemoteExtrapolateMaxSec = 0.3f;
 	double LastNetUpdateTime = 0.0;   // 마지막으로 서버 위치를 받은 시각(월드 시간)
+	float RemoteCatchUpSpeedMul = 0.f;   // 따라잡기 속도 상한 배율(0 = 끔, MC4.1b)
 
 public:
 	bool IsMyPlayer = false;

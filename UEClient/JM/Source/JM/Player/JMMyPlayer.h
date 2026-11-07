@@ -73,6 +73,9 @@ protected:
 	float TimeSinceMoveSend = 1.f;
 	bool bMoveSendPending = false;
 	bool bWasMoving = false;
+	// 속도 방향 변화로 보내기(MC4.1b): 마지막으로 보낸 속도 방향, 기준 각도의 cos(MoveSendTurnDeg 0이면 끔)
+	FVector2D LastSentVelDir = FVector2D::ZeroVector;
+	float MoveSendTurnCos = -2.f;
 	uint32 CorrectionSeq = 0;
 
 	FVector2D	DesiredInput;

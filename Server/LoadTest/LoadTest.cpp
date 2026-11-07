@@ -1,6 +1,6 @@
 ﻿// 헤드리스 부하 테스트 클라이언트. 봇 동작은 BotEngine이 맡고, 여기서는 지연/처리량/서버 CPU를 CSV와 콘솔로 기록한다.
 // 사용법: LoadTest.exe --bots 1000 --ramp-rate 100 --duration 60 [--host 127.0.0.1] [--port 8888]
-//         [--threads 4] [--move-interval 1000] [--ping-interval 1000] [--profile move|idle|hunt] [--out loadtest.csv]
+//         [--threads 4] [--move-interval 1000] [--ping-interval 1000] [--profile move|idle|hunt|turn] [--out loadtest.csv]
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 
 	printf("[loadtest] host=%s:%d bots=%d ramp=%d/s duration=%ds threads=%d profile=%s body=%s chaos=%d out=%s\n",
 		GConfig.host.c_str(), GConfig.port, GConfig.bots, GConfig.rampRate, GConfig.durationSec,
-		GConfig.threads, GConfig.hunt ? "hunt" : (GConfig.move ? "move" : "idle"), GConfig.body.c_str(), GConfig.chaos ? 1 : 0, GConfig.outFile.c_str());
+		GConfig.threads, GConfig.hunt ? "hunt" : GConfig.turn ? "turn" : (GConfig.move ? "move" : "idle"), GConfig.body.c_str(), GConfig.chaos ? 1 : 0, GConfig.outFile.c_str());
 
 	BotEngine::Start();
 

@@ -1,4 +1,5 @@
 ﻿#include "Player/JMPlayerController.h"
+#include "Network/NetMoveStats.h"
 #include "Network/NetworkManager.h"
 #include "UI/JMUIManager.h"
 #include "UI/WidgetNames.h"
@@ -53,6 +54,12 @@ void AJMPlayerController::Equip(int32 Part, int32 ItemId)
 		UE_LOG(LogTemp, Log, TEXT("Equip: part=%d item=%d"), Part, ItemId);
 		NetManager->SendChangeEquip(Part, ItemId);
 	}
+}
+
+void AJMPlayerController::NetMoveStats(int32 Reset)
+{
+	// 원격 플레이어 이동 표시 측정 결과(MC4.1b). 로그로만 남긴다.
+	UE_LOG(LogTemp, Log, TEXT("%s"), *FNetMoveStats::Get().Report(Reset != 0));
 }
 
 void AJMPlayerController::OnChatKeyPressed()

@@ -110,6 +110,8 @@ struct Bot
 	// 무작위 이동: 목표 지점을 정해 몇 초씩 그쪽으로 걷는다(매번 방향을 바꾸면 클라이언트에서 제자리 미끄러짐으로 보인다)
 	bool hasGoal = false;
 	float goalX = 0, goalY = 0;
+	float heading = 0.f;        // turn 프로필: 현재 진행 방향(라디안)
+	long long nextTurnUs = 0;
 	long long goalUntilUs = 0;
 	int windowEpoch = -1;
 };
@@ -129,6 +131,15 @@ static void SendMove(Bot& b, long long now, float nx, float ny, float yaw, Proto
 	Protocol::PositionInfo* p = mv.mutable_pos_info();
 	p->set_x(nx); p->set_y(ny); p->set_z(b.z); p->set_yaw(yaw);
 	p->set_state(state);
+	// 실제 클라이언트처럼 속도를 싣는다(원격 클라이언트의 외삽·걷기 애니메이션이 이 값을 쓴다, MC4.1b). 이동 스탯 이하로 자른다.
+	const double elapsedSec = (now - b.lastMoveSentUs) / 1e6;
+	if (state == Protocol::MOVE_STATE_RUN && elapsedSec > 0.0 && b.lastMoveSentUs > 0)
+	{
+		float vx = static_cast<float>((nx - b.x) / elapsedSec), vy = static_cast<float>((ny - b.y) / elapsedSec);
+		const float sp = sqrtf(vx * vx + vy * vy);
+		if (sp > b.moveSpeed && sp > 0.f) { vx *= b.moveSpeed / sp; vy *= b.moveSpeed / sp; }
+		p->set_v_x(vx); p->set_v_y(vy);
+	}
 	mv.set_force(false);
 	mv.set_correction_seq(b.correctionSeq);
 
@@ -521,7 +532,27 @@ static void WorkerMain(int workerIndex, int workerCount)
 					float nx = b.x, ny = b.y, yaw = 0.f;
 					const float zdx = GConfig.zoneX - b.x, zdy = GConfig.zoneY - b.y;
 					const float zoneDist = sqrtf(zdx * zdx + zdy * zdy);
-					if (GConfig.zone && zoneDist > GConfig.zoneR && b.moveFailures < 3)
+					if (GConfig.turn)
+					{
+						// 직선으로 걷다 일정 간격마다 왼쪽으로 90° 꺾는다(사각형을 돌아 시작점 근처에 머문다). 급회전 = 원격 표시의 최악 조건.
+						bool corner = false;
+						if (now >= b.nextTurnUs)
+						{
+							corner = b.nextTurnUs != 0;
+							if (corner && !GConfig.turnSend) b.heading += 3.14159265f / 2.f;
+							b.nextTurnUs = now + GConfig.turnIntervalMs * 1000LL;
+						}
+						const float stride = MaxStep(b, now);
+						nx = b.x + cosf(b.heading) * stride; ny = b.y + sinf(b.heading) * stride;
+						yaw = b.heading * 180.f / 3.14159265f;
+						if (corner && GConfig.turnSend)
+						{
+							// 모서리까지 옛 방향으로 온 위치를 지금 보내고, 꺾은 방향은 서버 최소 간격(50ms)을 넘긴 60ms 뒤 패킷부터
+							b.heading += 3.14159265f / 2.f;
+							b.nextMoveUs = now + 60 * 1000LL;
+						}
+					}
+					else if (GConfig.zone && zoneDist > GConfig.zoneR && b.moveFailures < 3)
 					{
 						// 핫존 밖이면 중심 쪽으로 걸어간다(길 찾기 없음 — 막히면 아래 무작위 이동으로 잠시 비킨다).
 						const float stride = min({ 500.f, zoneDist, MaxStep(b, now) });
@@ -769,9 +800,11 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--threads") { if (!(v = next("--threads"))) return false; GConfig.threads = atoi(v); }
 		else if (a == "--move-interval") { if (!(v = next("--move-interval"))) return false; GConfig.moveIntervalMs = atoi(v); }
 		else if (a == "--ping-interval") { if (!(v = next("--ping-interval"))) return false; GConfig.pingIntervalMs = atoi(v); }
-		else if (a == "--profile") { if (!(v = next("--profile"))) return false; GConfig.hunt = (string(v) == "hunt"); GConfig.move = (string(v) == "move" || GConfig.hunt); }
+		else if (a == "--profile") { if (!(v = next("--profile"))) return false; GConfig.hunt = (string(v) == "hunt"); GConfig.turn = (string(v) == "turn"); GConfig.move = (string(v) == "move" || GConfig.hunt || GConfig.turn); }
 		else if (a == "--body") { if (!(v = next("--body"))) return false; GConfig.body = v; if (GConfig.body != "male" && GConfig.body != "female") { printf("--body must be male or female\n"); return false; } }
 		else if (a == "--chaos") { GConfig.chaos = true; }
+		else if (a == "--turn-send") { GConfig.turnSend = true; }
+		else if (a == "--turn-interval") { if (!(v = next("--turn-interval"))) return false; GConfig.turnIntervalMs = max(200, atoi(v)); }
 		else if (a == "--equip-interval") { if (!(v = next("--equip-interval"))) return false; GConfig.equipIntervalMs = atoi(v); }
 		else if (a == "--map") { if (!(v = next("--map"))) return false; GConfig.mapLogic = v; }
 		else if (a == "--out") { if (!(v = next("--out"))) return false; GConfig.outFile = v; }

@@ -34,6 +34,10 @@ struct FMovementTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float RemoteInterpSpeed = 10.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float RemoteSnapDistCm = 500.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 RemoteExtrapolateMaxMs = 300;
+	// MC4.1b: 이동 중 속도 방향이 마지막 송신 때보다 이 각도(°)를 넘게 바뀌면 바로 보낸다(0 = 끔)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float MoveSendTurnDeg = 0.f;
+	// MC4.1b: 원격 캐릭터가 뒤처진 위치를 따라잡는 화면 속도 상한 = 이동 스탯 × 이 배율(0 = 상한 없음, 비례 추적)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float RemoteCatchUpSpeedMul = 0.f;
 
 	// 서버 이동 검증 허용치(서버 전용). 클라이언트는 ServerMinMoveIntervalMs만 전송 간격 하한으로 쓴다(이보다 잦으면 서버가 버림).
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ServerSpeedTolerance = 1.2f;

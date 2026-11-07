@@ -6,6 +6,7 @@
 #include "Data/SkillTableRow.h"
 #include "Data/MovementTableRow.h"
 #include "Game/DataManager.h"
+#include "Network/NetMoveStats.h"
 
 AJMCharacterBase::AJMCharacterBase()
 {
@@ -31,6 +32,7 @@ void AJMCharacterBase::BeginPlay()
 		RemoteInterpSpeed = Row->RemoteInterpSpeed;
 		RemoteSnapDistCm = Row->RemoteSnapDistCm;
 		RemoteExtrapolateMaxSec = Row->RemoteExtrapolateMaxMs / 1000.f;
+		RemoteCatchUpSpeedMul = Row->RemoteCatchUpSpeedMul;
 	}
 }
 
@@ -69,9 +71,11 @@ void AJMCharacterBase::ApplyNetworkMovement(float DeltaTime)
 	FVector DestPos(DestPosition.x(), DestPosition.y(), DestPosition.z());
 	FVector DestVel(DestPosition.v_x(), DestPosition.v_y(), DestPosition.v_z());
 
+	const bool bRemotePlayer = ObjectInfo.object_type() == Protocol::OBJECT_TYPE_PLAYER;
 	if (FVector::Dist(CurrentLoc, DestPos) > RemoteSnapDistCm)
 	{
 		SetActorLocation(DestPos);
+		if (bRemotePlayer) FNetMoveStats::Get().AddSnap();
 	}
 	else
 	{
@@ -79,7 +83,19 @@ void AJMCharacterBase::ApplyNetworkMovement(float DeltaTime)
 		DestPosition.set_x(DestPos.X);
 		DestPosition.set_y(DestPos.Y);
 		DestPosition.set_z(DestPos.Z);
-		SetActorLocation(FMath::VInterpTo(CurrentLoc, DestPos, DeltaTime, RemoteInterpSpeed), false);
+		FVector NewLoc = FMath::VInterpTo(CurrentLoc, DestPos, DeltaTime, RemoteInterpSpeed);
+		// 따라잡기 속도 상한(MC4.1b): 비례 추적은 차이가 크면(급회전 직후) 순간 속도가 이동 스탯의 몇 배가 된다.
+		// 한 프레임 이동량을 이동 스탯 × 배율로 자른다. 차이가 RemoteSnapDistCm를 넘으면 위에서 순간이동한다.
+		const float MaxSpeed = GetCharacterMovement() ? GetCharacterMovement()->MaxWalkSpeed : 0.f;
+		if (RemoteCatchUpSpeedMul > 0.f && MaxSpeed > 0.f)
+			NewLoc = CurrentLoc + (NewLoc - CurrentLoc).GetClampedToMaxSize(MaxSpeed * RemoteCatchUpSpeedMul * DeltaTime);
+		SetActorLocation(NewLoc, false);
+
+		// 측정(MC4.1b): 화면 속도 ÷ 이동 스탯
+		const float MoveSpeed = GetCharacterMovement() ? GetCharacterMovement()->MaxWalkSpeed : 0.f;
+		const float Moved = FVector::Dist2D(CurrentLoc, GetActorLocation());
+		if (bRemotePlayer && DeltaTime > 0.f && MoveSpeed > 0.f && Moved > 0.01f)
+			FNetMoveStats::Get().AddFrame(Moved / DeltaTime / MoveSpeed);
 	}
 
 	if (GetCharacterMovement())
@@ -107,6 +123,10 @@ void AJMCharacterBase::SyncTransformToInfo()
 
 void AJMCharacterBase::SetDestInfo(const Protocol::PositionInfo& PosInfo)
 {
+	// 측정(MC4.1b): 패킷이 도착한 순간 화면 위치와 받은 위치의 차이(원격 플레이어만)
+	if (!IsMyPlayer && ObjectInfo.object_type() == Protocol::OBJECT_TYPE_PLAYER)
+		FNetMoveStats::Get().AddPacketError(FVector::Dist2D(GetActorLocation(), FVector(PosInfo.x(), PosInfo.y(), PosInfo.z())));
+
 	DestPosition.CopyFrom(PosInfo);
 	ObjectInfo.mutable_position()->CopyFrom(PosInfo);
 	if (GetWorld()) LastNetUpdateTime = GetWorld()->GetTimeSeconds();

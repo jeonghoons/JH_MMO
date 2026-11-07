@@ -22,6 +22,9 @@ struct BotConfig
 	std::string body = "male";     // 체형. male: dummy 계정 로그인, female: fem_* 계정 가입 후 로그인 (무기는 MC3.2 전까지 없음 = 맨손)
 	bool chaos = false;         // 일부 공격 요청을 일부러 잘못된 값으로 보낸다(오류 테스트)
 	bool hunt = false;         // 가장 가까운 몬스터에게 이동해 공격 (hunt 프로필)
+	bool turn = false;         // turn 프로필(MC4.1b): 직선으로 걷다 turnIntervalMs마다 90° 꺾음 — 원격 이동 표시 측정용(--move-interval 200과 함께)
+	int turnIntervalMs = 1500;
+	bool turnSend = false;     // --turn-send: 꺾는 순간 모서리 위치를 바로 보내고 새 방향은 60ms 뒤부터(클라 '방향 바뀌면 즉시 송신' 모사, MC4.1b)
 	int equipIntervalMs = 0;   // >0이면 이 간격(±50%)마다 무작위 장비 교체 요청, 10%는 바로 한 번 더 보냄(빈도 제한 시험). 장비 저장 측정용(MC3.3)
 	std::string outFile;
 	std::string serverProc = "GameServer.exe";

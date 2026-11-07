@@ -1,4 +1,5 @@
 ﻿#include "Player/JMMyPlayer.h"
+#include "Network/NetMoveStats.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "JMPlayerController.h"
@@ -66,6 +67,7 @@ void AJMMyPlayer::PossessedBy(AController* NewController)
 
 	MoveSendInterval = Row->MoveSendIntervalMs / 1000.f;
 	MoveMinInterval = Row->ServerMinMoveIntervalMs / 1000.f;
+	MoveSendTurnCos = Row->MoveSendTurnDeg > 0.f ? FMath::Cos(FMath::DegreesToRadians(Row->MoveSendTurnDeg)) : -2.f;
 
 	// 카메라 피치 제한과 시작 각도 (음수 피치 = 아래로 내려다봄)
 	if (APlayerController* PC = Cast<APlayerController>(NewController))
@@ -152,6 +154,11 @@ void AJMMyPlayer::Tick(float DeltaTime)
 	// 입력을 놓아도 감속하며 조금 더 미끄러진다. 완전히 멈춘 순간의 위치를 한 번 더 보내 서버 위치를 맞춘다.
 	const bool bMoving = DesiredInput != FVector2D::Zero() || GetVelocity().SizeSquared2D() > 1.f;
 	if (bWasMoving && !bMoving) bMoveSendPending = true;
+
+	// 속도 방향이 마지막 송신 때보다 MoveSendTurnDeg 넘게 바뀌면 바로 보낸다(가속 중 회전·마우스로 시점을 돌리며 이동). 원격 외삽 오차를 줄인다(MC4.1b).
+	const FVector2D VelDir = FVector2D(GetVelocity()).GetSafeNormal();
+	if (bMoving && !VelDir.IsZero() && !LastSentVelDir.IsZero() && FVector2D::DotProduct(VelDir, LastSentVelDir) < MoveSendTurnCos)
+		bMoveSendPending = true;
 	bWasMoving = bMoving;
 
 	MovePacketSendTimer -= DeltaTime;
@@ -162,9 +169,11 @@ void AJMMyPlayer::Tick(float DeltaTime)
 	if ((bMoveSendPending || bPeriodic) && TimeSinceMoveSend >= MoveMinInterval)
 	{
 		NetManager->SendMove(ObjectInfo.position(), bMoveSendPending, CorrectionSeq);
+		FNetMoveStats::Get().AddSend();
 		MovePacketSendTimer = MoveSendInterval;
 		TimeSinceMoveSend = 0.f;
 		bMoveSendPending = false;
+		LastSentVelDir = VelDir;
 	}
 
 }

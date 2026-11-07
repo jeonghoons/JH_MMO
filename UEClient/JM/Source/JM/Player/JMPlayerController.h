@@ -31,6 +31,11 @@ public:
     UFUNCTION(Exec)
     void Equip(int32 Part, int32 ItemId);
 
+    // Dev console command (MC4.1b): "NetMoveStats [reset 0/1]" logs remote-player move display stats
+    // (screen speed / move stat, packet-arrival position error). Default resets after printing.
+    UFUNCTION(Exec)
+    void NetMoveStats(int32 Reset = 1);
+
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<class UUserWidget> ChatWidgetClass;

@@ -8,7 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P0 유령 플레이어 수정 → P1 송신 묶기 차례, 2026-11-06 기준선·동시성 감사 완료). 2026-11-06 결정: 트랙 B를 MC4.2 무기 공격까지 먼저 진행한 뒤 트랙 A 재개 (`DECISIONS.md`)**
-`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블·MC3.1b 스탯 재설계·MC3.2 장착 패킷·MC3.3 장비 저장·MC4.1 장비 컴포넌트 완료(2026-11-07), 다음 MC4.1b 원격 이동 방향 전환 튐(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블·MC3.1b 스탯 재설계·MC3.2 장착 패킷·MC3.3 장비 저장·MC4.1 장비 컴포넌트·MC4.1b 원격 이동 튐 완료(2026-11-07), 다음 MC4.2 애니메이션(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** (재개 시 기준선 재측정) P0 유령 플레이어 → P1a 송신 지표 → P1b 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -24,7 +24,7 @@
 - 서버는 `Server/Server` 폴더에서 `..\x64\Debug\GameServer.exe`로 실행합니다(DataTable·맵 상대 경로, SQL Server Express 필요). PIE 전에 Debug 빌드가 최신인지 확인하고, 서버가 실행 중이면 VS 빌드가 exe를 덮어쓰지 못합니다.
 - 궁수 계정은 `LoadTest --hero archer`의 `arc_*` 계정이나 UE 로그인 화면에서 궁수 타입으로 가입하면 됩니다. (`content/dev` MC3.1부터 전사·궁수가 없어져 봇은 `--body male|female`, 가입은 남성/여성 — 병합 후에는 이쪽을 따름)
 
-## ▶ 중단점 트랙 B (2026-11-07) — `content/dev`, MC4.1 장비 컴포넌트 완료 → 다음 MC4.1b
+## ▶ 중단점 트랙 B (2026-11-07) — `content/dev`, MC4.1b 원격 이동 튐 완료 → 다음 MC4.2
 **상태:** 판금 7개 모두 생성(상의·하의·장화·장갑·한손검·활·투구, 남녀, `Content/Equipment/Plate/*`, `jm_kit/items.json` `Plate_*`). VARCO 누적 3,250포인트. 투구는 **사슬을 뺀 눈높이 이미지 → 3만 폴리 생성 → UE 엔진 메시 축소로 LOD 4,000/2,000/1,000**(`garment.reduce_static_lods`, `attach.target_tris`), 정적 메시 + `head` 소켓 `fit: "helm"`, `yaw` 90. 상세는 `TESTING.md` 2026-11-06 "투구 4·5차".
 **다음 작업:**
 1. ~~투구 사용자 확인~~ 완료(2026-11-06, 시험 액터 `HM_*`·`HF_*` 삭제).
@@ -35,7 +35,8 @@
 6. ~~MC3.2~~ 완료(2026-11-07, 장착 패킷·서버 검증·스왑 잠금·콘솔 `Equip` — `DECISIONS.md`·`TESTING.md`).
 7. ~~MC3.3~~ 완료(2026-11-07, `ItemTable.Starter` 기본 장비, 로그인 장비 복원, 변경 즉시 저장(측정 후 결정), DB 마이그레이션 — `DECISIONS.md`·`TESTING.md`).
 8. ~~MC4.1~~ 완료(2026-11-07, `UEquipmentComponent` + 교체 가능한 표시 `ULeaderPoseAppearance`, `BodyTable`·ItemTable 외형 열은 `jm_kit.item_table` 생성, `ABP_PlayerBase`, Greystone/Sparrow 임시 외형 삭제 — `DECISIONS.md`·`TESTING.md`).
-9. **다음: MC4.1b** 원격 이동 방향 전환 튐: 측정(방향 전환 시 원격 위치 오차·순간 최대 속도) → A 방향이 N° 넘게 바뀌거나 멈추면 즉시 송신 + B 따라잡는 속도 상한(이동 속도 × 배율), 수치는 `MovementTable` → 재측정. 같은 항목 메모: 봇 `SendMove`가 속도를 보내지 않아 원격 다리가 안 움직임. 정리 후보: 쓰지 않는 `CS_DMOVE_PACKET`(`Protocol.proto`), `DT_CharacterAsset`·`UJMGameInstance::CharacterAssetTable`(플레이어 참조 끊김 — 정리 여부는 사용자에게 묻기).
+9. ~~MC4.1b~~ 완료(2026-11-07, A 속도 방향 30° 변화 시 즉시 송신 + B 따라잡기 상한 1.3배, `NetMoveStats`·봇 `--profile turn` — 남은 다듬기는 P2·P3에서, `DECISIONS.md`·`TESTING.md`).
+10. **다음: MC4.2** `ABP_PlayerBase` + `ALI_Weapon` + 무기 타입별 레이어(`ABP_Layer_<Weapon>`)·몽타주(`AM_<WeaponType>_<Action>`), 피격·사망 몽타주, Main States 점프·착지 정리(Land→Locomotion 자동 전이 복구 또는 상태 삭제), `ExportSkillTiming.bat`, 장갑 손가락 맞춤. 정리 후보: 쓰지 않는 `CS_DMOVE_PACKET`(`Protocol.proto`), `DT_CharacterAsset`·`UJMGameInstance::CharacterAssetTable`(플레이어 참조 끊김 — 정리 여부는 사용자에게 묻기), `MovementTable.xlsx`(2026-10-20 이후 CSV와 어긋남 — 맞출지 사용자에게 묻기).
 **VARCO 흐름 노드(JH_MMO 플로):** 투구 정면 컨셉 `531e1ef7…`, 3/4 시점 편집 `c1511cae…`, 3차 3D `8456f6d4…`(실패), 초록 배경 `aa21a66f…`, 4차 3D `4e325e94…`(실패), 사슬 뺀 눈높이 `a0bb8331…`, **5차 3D `ad0e9513…`(채택, 출력 0)**. 판금 상의 컨셉 `cb90b725…`가 세트 스타일 참고.
 
 ## 트랙 A — 서버/포트폴리오
@@ -90,8 +91,8 @@
 - [ ] P0 유령 플레이어 수정(2026-11-06 감사 F1·F2, `AUDIT_2026-11-06_CONCURRENCY.md`): `Session::ProcessData`가 `OnRecvPacket` 뒤 연결이 끊겼으면 중단, `Room::PlayerEnterRoom` 첫머리에서 세션 연결 확인(아니면 자리 반환), `PlayerEnterRoom`의 중복 `SC_ADD_OBJECT` 제거. 완료: Python 원시 소켓 `[깨진 CS_MOVE][CS_ENTER_ROOM]` 한 번 전송 → 수정 전 `sessions=0 players=1` 재현, 수정 후 0 + chaos 램프 중 강제 종료 반복 후 `players` 잔류 0 + 짧은 부하 회귀
 - [ ] P1a 송신 지표 먼저: `NetStats`에 `WSASend` 호출 수/s와 호출당 메시지 수(WSABUF 평균) 추가, `metrics.csv` 재시작 헤더 중복 수정(+ 실행 ID 열), 측정 CSV·서버 로그 보관 규칙. 수정 전 값 기록(핫존 100 WSABUF 평균 ≈ 1 예상)
 - [ ] P1b 송신 묶기: 방 작업 안에서는 `Session::Send(pushOnly)`로 큐에만 넣고 넣은 세션을 모아 두었다가 세션당 `WSASend` 1회. **작업 묶음 끝만이 아니라 잡 N개(16~64) 또는 1~2ms마다 보내기**(`ExecuteJobs` 독점 — 감사 F5 — 도 함께 해결), 보내기는 `_isProcessing` 해제 전, 모은 세션 목록은 RAII로 비움(감사 §7). 프로토콜 변경 없음. 목표(`PERF_BASELINE_2026-11-06.md` §5): 핫존 100 핑 p99 ≤ 50·틱 지연 p99 ≤ 20·서버 CPU 코어1 환산 ≤ 25%(워커 1 자연 실험 수준), 분산 1,000 핑 p99 ≤ 40, 핫존 100 WSABUF 평균 ≥ 10. `WorkerThreads`는 기본 유지(늘리면 악화). 구현 후 동시성 리뷰는 Fable 5.1로
-- [ ] P2 이동 패킷 묶기: 틱마다 수신자별로 그 틱에 움직인 대상들의 위치를 패킷 하나에(새 패킷, `.proto` → `GanPackets.bat` → 서버·UE 핸들러·봇). 클라이언트 보간 확인(PIE)
-- [ ] P3 거리별 전송 빈도: 가까운 수신자에게는 매 이동, 먼 수신자(예: 25m 밖)에게는 일부만(멈춤·방향 전환은 항상). 거리·비율은 `WorldTable`
+- [ ] P2 이동 패킷 묶기: 틱마다 수신자별로 그 틱에 움직인 대상들의 위치를 패킷 하나에(새 패킷, `.proto` → `GanPackets.bat` → 서버·UE 핸들러·봇). 클라이언트 보간 확인(PIE). **완료 기준에 MC4.1b 회귀 측정 추가**: 봇 `--profile turn --turn-send --turn-interval 550 --move-interval 200` 3명 60초 + 관찰자 `NetMoveStats`가 MC4.1b 결과(최대 1.23배, 1.2배 초과 0.02%, 오차 16/83cm)보다 나빠지지 않을 것 — 한 틱 안의 즉시 송신이 합쳐지는 영향과 A2(속도 크기 변화 시 송신)·`RemoteCatchUpSpeedMul` 재조정을 여기서 판단(`DECISIONS.md` 2026-11-07)
+- [ ] P3 거리별 전송 빈도: 가까운 수신자에게는 매 이동, 먼 수신자(예: 25m 밖)에게는 일부만(멈춤·방향 전환은 항상). 거리·비율은 `WorldTable`. **완료 기준: 먼 수신자 기준으로 MC4.1b turn 시나리오 회귀 측정**(간격이 길어진 대상의 외삽·따라잡기 확인)
 - [ ] P4 몬스터 깨우기 범위 분리: `MonsterTable` 깨우기 반경(예: 20m), 시야(50m) 안이라도 그 밖이면 보이기만 하고 AI는 잠 — 행동트리 개선 때 재검토
 - [x] A1.4 서버 CSV 로더로 `ServerData.h` 하드코딩 대체 (**트랙 B의 M2 "서버 CSV 로더"와 같은 작업**). **A0 직후, A2′ 시작 전에 진행** — `StatTable`/`SkillTable`을 CSV로 이전. 완료: CSV 수치를 고치고 서버만 재시작하면 반영됨 + 검증 게이트 (2026-10-20: 잘못된 CSV 6종 오류 테스트, 수치 변경 반영, 1,000봇 회귀 확인 — `TESTING.md`). **`MonsterTable`(리스폰·보상 수치)은 사용처가 생기는 A2.1/A2.3에서 추가**하고 같은 로더(`CsvFile`)를 재사용
 
@@ -205,7 +206,7 @@
 
 **MC4 클라이언트**
 - [x] MC4.1 장비 컴포넌트(Leader Pose, 몸 숨김 데이터 구동) (표시 방식 교체 가능 인터페이스 — `DECISIONS.md` 2026-11-05) (2026-11-07: `UEquipmentComponent`·`ULeaderPoseAppearance`, `BodyTable` + ItemTable 외형 열(`jm_kit.item_table`), `ABP_PlayerBase`, PIE 남녀·장비 교체·원격 봇 3명·PIE 2인 사용자 확인 — `TESTING.md`)
-- [ ] MC4.1b 원격 이동 방향 전환 튐(2026-11-07 MC4.1 확인 중 발견, S1 원격 보간): 측정 → 방향 변화·정지 시 즉시 송신 + 따라잡는 속도 상한(`MovementTable`) → 재측정, 봇 이동 속도 전송 보완
+- [x] MC4.1b 원격 이동 방향 전환 튐(2026-11-07 MC4.1 확인 중 발견, S1 원격 보간): 측정 → 방향 변화·정지 시 즉시 송신 + 따라잡는 속도 상한(`MovementTable`) → 재측정, 봇 이동 속도 전송 보완 (2026-11-07: `MoveSendTurnDeg` 30 + `RemoteCatchUpSpeedMul` 1.3, turn 봇 최대 2.78→1.23배·오차 −82%·송신 +18%, PIE 2인 개선 확인 — 남은 다듬기는 P2·P3, `TESTING.md`)
 - [ ] MC4.2 `ABP_PlayerBase` + `ALI_Weapon` + 무기 타입별 레이어·몽타주, `ExportSkillTiming.bat` (+ 장갑 손가락 맞춤 보완 — 무기 쥐기와 함께, `DECISIONS.md` 2026-11-05)
 - [ ] MC4.3 비전투 시 무기 등에 메기
 - [ ] MC4.4 개발용 장비창 `WBP_Equipment`, 스킬 슬롯 배열 HUD
