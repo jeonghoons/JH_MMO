@@ -12,12 +12,12 @@ import unreal
 import toolset_registry
 from toolset_registry.registration import Registration
 
-from jm_kit import body_mask, garment, glove_paint, icon, item_table, preview, profiles, retarget, skeleton_check, testbed
+from jm_kit import body_mask, garment, glove_paint, icon, item_table, posed, preview, profiles, refs, retarget, skeleton_check, testbed
 
 
 def _reload():
     """도구를 고친 뒤 에디터 재시작 없이 반영(의존 순서대로)."""
-    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table, testbed):
+    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table, testbed, posed, refs):
         importlib.reload(m)
 
 
@@ -289,6 +289,60 @@ class KitTools(unreal.ToolsetDefinition):
             JSON 측정값.
         """
         return _dump(garment.measure(item_path, body))
+
+    # ── 자세별 측정(MC4.2e) ───────────────────────────────
+    @toolset_registry.tool_call
+    @staticmethod
+    def posed_run(body: str, loadout: str, poses: str, shots: bool | None = None, label: str | None = None) -> str:
+        """동작 프레임으로 자세를 잡고 장갑·무기 관통, 상의 어깨 뭉침을 잰다(jm_kit.posed.run). 촬영은 Saved/MCShots.
+
+        Args:
+            body: 체형 "M" 또는 "F".
+            loadout: JSON {"top","gloves","bottom","boots": 아이템 키 또는 메시 경로, "bow"/"sword": 무기 아이템 키}.
+            poses: 쉼표 구분 포즈 키(posed.POSES — bow_idle, bow_draw, bow_aim, sword_idle, sword_windup, sword_swing, sword_skill_up).
+            shots: 촬영 여부(기본 True).
+            label: 촬영 파일 이름 구분자.
+
+        Returns:
+            JSON {포즈: {hands, top, shots}}.
+        """
+        keys = [k.strip() for k in poses.split(",") if k.strip()]
+        return _dump(posed.run(body, json.loads(loadout), keys, shots is not False, label or ""))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def posed_grip_search(body: str, weapon_key: str, gloves_key: str, pose_key: str, span: float | None = None,
+                          step: float | None = None) -> str:
+        """무기 쥔 자세에서 부착 위치를 손 본 기준으로 옮겨 보며 관통이 적고 손에 닿는 위치를 찾는다(jm_kit.posed.grip_search).
+
+        Args:
+            body: 체형 "M" 또는 "F".
+            weapon_key: 무기 아이템 키(예 Cloth_Sword).
+            gloves_key: 장갑 아이템 키(예 Cloth_Gloves).
+            pose_key: 쥔 자세 포즈 키(예 sword_idle, bow_idle).
+            span: 탐색 반경 cm(기본 3).
+            step: 거친 격자 간격 cm(기본 1).
+
+        Returns:
+            JSON {current, best: [{offset(손 본 로컬 cm), glove_in_weapon, weapon_in_glove, touch, score}]}.
+        """
+        return _dump(posed.grip_search(body, weapon_key, gloves_key, pose_key, float(span or 3.0), float(step or 1.0)))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def refs_find(roots: str | None = None, forbidden: str | None = None, skip: str | None = None) -> str:
+        """루트 에셋·폴더에서 의존을 끝까지 따라가 금지 경로(기본 Paragon·Greystone·Sparrow)에 닿는 사슬을 찾는다(jm_kit.refs.find).
+
+        Args:
+            roots: 쉼표 구분 패키지·폴더(기본 = 플레이어 쪽 루트 refs.PLAYER_ROOTS).
+            forbidden: 쉼표 구분 금지 접두사(기본 refs.PARAGON_PREFIXES).
+            skip: 쉼표 구분 — 따라가지 않을 접두사.
+
+        Returns:
+            JSON {roots, visited, hits: [{asset, class, chain}]}.
+        """
+        sp = lambda v, d: tuple(x.strip() for x in v.split(",") if x.strip()) if v else d
+        return _dump(refs.find(sp(roots, refs.PLAYER_ROOTS), sp(forbidden, refs.PARAGON_PREFIXES), sp(skip, ())))
 
     # ── 몸 마스크 ─────────────────────────────────────────
     @toolset_registry.tool_call

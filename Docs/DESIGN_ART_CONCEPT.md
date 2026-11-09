@@ -48,6 +48,7 @@
 ## 5. 아이콘
 - 최종 메시를 UE **SceneCapture**로 같은 각도·조명·투명 배경으로 촬영. 테두리(등급 색)는 UI에서 그린다.
 - 규격: **512×512 PNG**, 원본은 `SourceArt/Icons/`, 임포트 이름 `T_Icon_<Item>`. 각도는 슬롯별 고정 — 무기 대각선 45°, 방어구 정면 3/4.
+- 스킬 아이콘은 VARCO 2D 그림. 에셋 `Content/UI/Icons/Skill/T_Icon_Skill_<WeaponType>_<Slot>`, 원본 `SourceArt/Icons/`(같은 이름, 제작 원본 `Original/`), SkillTable `Icon` 열로 연결(DECISIONS 2026-11-10).
 
 ## 6. 이펙트
 - 스킬 이펙트는 Paragon 이펙트를 `Content/FX/`로 **Duplicate**해 재사용하고, 부족하면 Fab 무료 에셋. 원본 팩 파일은 직접 고치지 않는다(DECISIONS 2026-10-19 방침).

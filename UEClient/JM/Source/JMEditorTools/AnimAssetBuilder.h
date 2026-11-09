@@ -4,6 +4,8 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "AnimAssetBuilder.generated.h"
 
+class USkeletalMeshComponent;
+
 // MC4.2 애니메이션 에셋 빌더(에디터 전용). 공식 MCP의 그래프 DSL이 AnimGraph를 다루지 못해 C++로 만든다.
 // 각 함수는 BlueprintCallable 정적 함수라 에디터 Python(unreal.AnimAssetBuilder.*)에서 부를 수 있고, jm_mcp 툴셋이 감싼다.
 // 결과는 사람이 읽는 텍스트(성공/실패 사유)를 돌려준다. 실패하면 저장하지 않는다.
@@ -71,6 +73,11 @@ public:
 	// 시퀀스를 Samples개로 나눠 본의 루트 기준 위치(앞쪽 = 메시 공간 Y, 위 = Z, 옆 = X)를 표로 돌려준다. 타격 시점(손이 가장 앞으로 뻗는 순간) 고르기용.
 	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
 	static FString MeasureBoneReach(const FString& SequencePath, const FString& BoneName, int32 Samples);
+
+	// 에디터 월드의 스켈레탈 메시 컴포넌트를 시퀀스의 Time초 자세로 즉시 만든다(틱 없이 평가·본 갱신). MC4.2e 자세별 측정·촬영용.
+	// SequencePath가 비면 애니메이션을 지우고 기준 자세로 되돌린다. 결과 = "OK ..." 또는 "ERROR: ...".
+	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
+	static FString PoseComponentAtTime(USkeletalMeshComponent* Component, const FString& SequencePath, float Time);
 
 	// ABP_PlayerBase 재배선(MC4.2a):
 	//  1) LocomotionStateName 스테이트의 내용을 "Linked Anim Layer(Interface, LocomotionLayer) → 결과"로 바꾼다.

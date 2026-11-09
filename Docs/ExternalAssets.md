@@ -22,8 +22,8 @@
 
 | 에셋 | 원본 | 출처 | 비고 |
 |---|---|---|---|
-| `Content/Character/Greystone/Icons/T_Greystone_Icon_Skill1` | `UEClient/JM/SourceArt/Icons/Original/SwordSkill.png` | 사용자 제공 임시 아이콘(출처 미기재) | 2026-10-28. 그려진 체크무늬 배경을 투명 처리·256px 축소한 `SourceArt/Icons/T_Greystone_Icon_Skill1.png`를 가져옴. 정식 아이콘으로 교체 예정 |
-| `Content/Character/Sparrow/Icons/T_Sparrow_Icon_Skill1` | `UEClient/JM/SourceArt/Icons/Original/ArrowSkill.png` | 위와 같음 | 위와 같음 |
+| `Content/UI/Icons/Skill/T_Icon_Skill_Sword_1` | `UEClient/JM/SourceArt/Icons/Original/SwordSkill.png` | VARCO 생성(사용자 제작) | 2026-10-28. 그려진 체크무늬 배경을 투명 처리·256px 축소한 `SourceArt/Icons/T_Icon_Skill_Sword_1.png`를 가져옴. 2026-11-10 `Character/Greystone/Icons/T_Greystone_Icon_Skill1`에서 이름·위치 변경(Greystone과 무관) |
+| `Content/UI/Icons/Skill/T_Icon_Skill_Bow_1` | `UEClient/JM/SourceArt/Icons/Original/ArrowSkill.png` | 위와 같음 | 위와 같음(원본 `T_Icon_Skill_Bow_1.png`, 옛 경로 `Character/Sparrow/Icons/T_Sparrow_Icon_Skill1`) |
 
 ## 엔진 템플릿에서 가져온 에셋 (git 포함)
 

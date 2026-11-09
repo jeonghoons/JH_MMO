@@ -20,6 +20,7 @@
 #include "Animation/AnimMontage.h"
 #include "../JM/Animation/AnimNotify_SkillHit.h"
 #include "Animation/AnimSequence.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Animation/BlendSpace.h"
 #include "Animation/BlendSpace1D.h"
 #include "Factories/BlendSpaceFactory1D.h"
@@ -778,6 +779,35 @@ FString UAnimAssetBuilder::MeasureBoneReach(const FString& SequencePath, const F
 		Out += FString::Printf(TEXT("%.3f\t%.1f\t%.1f\t%.1f\t%.1f\n"), T, L.X, L.Y, L.Z, L.Size2D());
 	}
 	return Out;
+}
+
+FString UAnimAssetBuilder::PoseComponentAtTime(USkeletalMeshComponent* Component, const FString& SequencePath, float Time)
+{
+	if (Component == nullptr || Component->GetSkeletalMeshAsset() == nullptr) return Fail(TEXT("component or mesh is null"));
+	if (SequencePath.IsEmpty())
+	{
+		// 기준 자세: 단일 노드 모드에서 애니메이션 없이 평가하면 참조 포즈가 된다
+		Component->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+		Component->SetAnimation(nullptr);
+	}
+	else
+	{
+		UAnimSequenceBase* Anim = LoadObject<UAnimSequenceBase>(nullptr, *SequencePath);
+		if (Anim == nullptr) return Fail(TEXT("sequence load failed: ") + SequencePath);
+		Time = FMath::Clamp(Time, 0.f, Anim->GetPlayLength());
+		// OverrideAnimationData는 이미 단일 노드 모드면 인스턴스에 애니메이션을 다시 넣지 않으므로 직접 넣는다
+		Component->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+		Component->SetAnimation(Anim);
+		Component->SetPlayRate(0.f);
+		Component->SetPosition(Time, false);
+	}
+	// 에디터 월드는 틱하지 않으므로 직접 평가한다(TickFunction 없이 부르면 동기 평가 + FinalizeBoneTransform)
+	Component->TickAnimation(0.f, false);
+	Component->RefreshBoneTransforms();
+	Component->UpdateComponentToWorld();
+	Component->UpdateChildTransforms();
+	Component->MarkRenderDynamicDataDirty();
+	return FString::Printf(TEXT("OK %s t=%.3f bones=%d"), *Component->GetSkeletalMeshAsset()->GetName(), Time, Component->GetComponentSpaceTransforms().Num());
 }
 
 FString UAnimAssetBuilder::RewirePlayerBase(const FString& BlueprintPath, const FString& InterfacePath, const FString& LocomotionLayer, const FString& UpperBodyLayer,

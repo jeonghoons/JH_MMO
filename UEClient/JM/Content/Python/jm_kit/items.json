@@ -120,7 +120,8 @@
       ],
       "yaw": 0.0,
       "target_tris": null,
-      "paint": "Plate"
+      "paint": "Plate",
+      "clean_cuff": true
     },
     "varco": {
       "edit_image_node": "152a0d5c-18be-4944-9e2b-b701472df5e1",
@@ -194,7 +195,7 @@
       "length_cm": 125,
       "grip_frac": 0.5,
       "offset": [
-        0,
+        2.0,
         0,
         0
       ],
@@ -297,7 +298,8 @@
         0.0
       ],
       "yaw": 0.0,
-      "target_tris": null
+      "target_tris": null,
+      "clean_cuff": true
     },
     "varco": {
       "edit_image_node": "74646725-bd20-4a40-9337-c94077ebb1cf",
@@ -371,7 +373,7 @@
       "length_cm": 125,
       "grip_frac": 0.5,
       "offset": [
-        0,
+        2.0,
         0,
         0
       ],

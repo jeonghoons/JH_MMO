@@ -790,7 +790,7 @@ def _hand_triangles(dm, body_mid, vdata, cuff_cm):
     return keep, drop
 
 
-def _kit_hand_mesh(body, cuff_cm=GLOVE_CUFF_CM, target_tris=None):
+def _kit_hand_mesh(body, cuff_cm=GLOVE_CUFF_CM, target_tris=None, clean_cuff=False):
     """키트 몸(리더)에서 손 + 손목 위 cuff_cm 삼각형만 남긴 DynamicMesh(가중치 포함, 머티리얼 ID 0). 반환: (dm, 원래 손 삼각형 수).
     target_tris: 손 부분이 이 정도가 되도록 **몸 전체를 먼저 단순화**한 뒤 자른다. 잘라낸 뒤 단순화하면 열린 소매 가장자리가
     안쪽으로 접혀 손목 위 띠가 사라졌다(2026-11-05 — 마스크로 지운 손목 피부와 함께 구멍이 보임)."""
@@ -809,7 +809,41 @@ def _kit_hand_mesh(body, cuff_cm=GLOVE_CUFF_CM, target_tris=None):
     r = ED.delete_triangles_from_mesh(dm, lst)
     dm = r[0] if isinstance(r, tuple) else r
     dm = unreal.GeometryScript_Materials.remap_material_i_ds(dm, body_mid, 0)
+    if clean_cuff:
+        dm, _n = _flatten_cuff(dm, leader, vdata, cuff_cm)
     return dm, kit_tris
+
+
+def _flatten_cuff(dm, leader, vdata, cuff_cm):
+    """잘린 손목 가장자리(열린 경계 정점)를 팔뚝 축을 따라 손목에서 cuff_cm 높이로 옮긴다(MC4.2e).
+    삼각형 통째로 남기는 자르기라 단순화한 메시에서는 가장자리가 톱니 모양(뾰족한 조각)이 된다. 남긴 정점은 모두 cuff_cm 이하라
+    바깥(팔꿈치 쪽)으로만 늘어나 삼각형이 뒤집히지 않는다. 가중치는 그대로. 반환: (dm, 옮긴 정점 수)."""
+    bones = {n: t.translation for n, _p, t in skeleton_check.bones(leader)}
+    axis = {}
+    for s in ("l", "r"):
+        d, _ = _norm(_sub(_v(bones[f"lowerarm_{s}"]), _v(bones[f"hand_{s}"])))
+        axis[s] = d
+    edges = {}
+    dm, tids, _ = Q.get_all_triangle_i_ds(dm)
+    for t in L.convert_index_list_to_array(tids):
+        idx, _ = Q.get_triangle_indices(dm, t)
+        for a, b in ((idx.x, idx.y), (idx.y, idx.z), (idx.z, idx.x)):
+            k = (min(a, b), max(a, b))
+            edges[k] = edges.get(k, 0) + 1
+    boundary = {v for k, c in edges.items() if c == 1 for v in k}
+    moved = 0
+    for v in boundary:
+        reg, dist = vdata.get(v, ("", 0.0))
+        if reg != "arm" or dist >= cuff_cm:
+            continue
+        p, _ = Q.get_vertex_position(dm, v)
+        s = "l" if _dist(p, bones["hand_l"]) < _dist(p, bones["hand_r"]) else "r"
+        k = cuff_cm - dist
+        a = axis[s]
+        r = ED.set_vertex_position(dm, v, unreal.Vector(p.x + a[0] * k, p.y + a[1] * k, p.z + a[2] * k), False)
+        dm = r[0] if isinstance(r, tuple) else r
+        moved += 1
+    return dm, moved
 
 
 def _glove_mi(src_static, path, base_color, normal, orm=None):
@@ -836,7 +870,7 @@ def _glove_mi(src_static, path, base_color, normal, orm=None):
     return mi
 
 
-def build_gloves_kit_hand(src_static, body, out_path, paint="Cloth", overwrite=False):
+def build_gloves_kit_hand(src_static, body, out_path, paint="Cloth", overwrite=False, clean_cuff=False):
     """장갑 = 키트 손을 부풀린 형상(방법 B) + glove_paint 무늬(paint = 스타일 이름). 텍스처·MI는 out_path와 같은 폴더."""
     _not_playing()
     if EAL.does_asset_exist(out_path) and not overwrite:
@@ -846,7 +880,7 @@ def build_gloves_kit_hand(src_static, body, out_path, paint="Cloth", overwrite=F
     folder, name = out_path.rsplit("/", 1)
     stem = name[3:] if name.startswith("SK_") else name          # SK_Cloth_Gloves_M → Cloth_Gloves_M
     rep = {"body": body, "slot": "gloves", "out": out_path, "method": "kit_hand", "paint": paint}
-    dm, rep["kit_tris"] = _kit_hand_mesh(body, target_tris=rule["tris"])   # 키트 손 약 5천 → 슬롯 예산
+    dm, rep["kit_tris"] = _kit_hand_mesh(body, target_tris=rule["tris"], clean_cuff=clean_cuff)   # 키트 손 약 5천 → 슬롯 예산
     rep["tris"] = _tris(dm)
     oo = unreal.GeometryScriptMeshOffsetOptions()
     oo.offset_distance = GLOVE_OFFSET_CM
@@ -1052,7 +1086,8 @@ def build_item(key, bodies=("M", "F"), overwrite=True):
     out = {}
     for b in bodies:
         if it["slot"] == "gloves" and fit.get("method") == "kit_hand":
-            out[b] = build_gloves_kit_hand(it["source"], b, it["out"].format(body=b), paint=fit.get("paint", "Cloth"), overwrite=overwrite)
+            out[b] = build_gloves_kit_hand(it["source"], b, it["out"].format(body=b), paint=fit.get("paint", "Cloth"), overwrite=overwrite,
+                                           clean_cuff=fit.get("clean_cuff", False))
             continue
         if it["slot"] == "gloves":
             out[b] = build_gloves(it["source"], b, it["out"].format(body=b), ratio=fit.get("ratio", (1.0, 1.0, 1.0)),
