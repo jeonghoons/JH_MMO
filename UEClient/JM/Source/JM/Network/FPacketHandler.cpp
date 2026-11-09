@@ -101,6 +101,7 @@ namespace
 		case Protocol::EQUIP_RESULT_DEAD:			return FText::FromString(TEXT("사망 중에는 장비를 바꿀 수 없습니다."));
 		case Protocol::EQUIP_RESULT_TOO_FREQUENT:	return FText::FromString(TEXT("장비를 너무 자주 바꾸고 있습니다. 잠시 후 다시 시도하세요."));
 		case Protocol::EQUIP_RESULT_NOT_IN_ROOM:	return FText::FromString(TEXT("게임에 들어간 뒤에 장비를 바꿀 수 있습니다."));
+		case Protocol::EQUIP_RESULT_NEED_SWORD:		return FText::FromString(TEXT("방패는 한손검을 들었을 때만 착용할 수 있습니다."));
 		default:									return FText::FromString(TEXT("장비를 바꾸지 못했습니다."));
 		}
 	}

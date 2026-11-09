@@ -31,6 +31,8 @@ public:
 	// 무기 등에 메기(MC4.2d-2, DECISIONS 2026-11-09, 클라 연출 전용 — 모든 클라가 같은 이벤트로 각자 계산):
 	// 공격(SC_ATTACK)·조준 시작 → 즉시 손, 조준 해제·공격 뒤(손에 든 동안 피격 포함) SheatheDelaySec이 지나면 넣기 동작 → SheatheSwapSec에 등.
 	virtual int32 GetWeaponStance() const override;
+	// ObjectInfo.equip_items의 보조손(EquipPart OFFHAND)이 비어 있지 않은가(서버 값 — 무기가 한손검이 아니면 서버가 비운다)
+	virtual bool HasOffhandItem() const override;
 	virtual void SetSheatheData(bool bInCanSheathe, float DelaySec, UAnimMontage* Montage, float SwapSec) override;
 	virtual void SetSkillAiming(int32 SkillId) override;
 	virtual void OnAttack(const struct FSkillTableRow* Skill) override;

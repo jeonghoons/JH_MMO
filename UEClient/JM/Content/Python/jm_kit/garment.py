@@ -990,6 +990,71 @@ def _helm_world(at, raw_c, raw_e, body):
     return unreal.Transform(location=unreal.Vector(*loc), rotation=rot, scale=unreal.Vector(s, s, s))
 
 
+def _axis(text):
+    """"+x"·"-z" → (축 번호, 부호)."""
+    return "xyz".index(text[-1]), (-1.0 if text.startswith("-") else 1.0)
+
+
+def _unit(i, sgn=1.0):
+    v = [0.0, 0.0, 0.0]
+    v[i] = sgn
+    return unreal.Vector(*v)
+
+
+def shield_frame(at, raw_c, raw_e):
+    """방패 메시 로컬 프레임(MC4.2f): (앞면 축, 위 축, 배율, 뒷면 중심 — 메시 로컬 cm).
+    at.face·at.up = 메시 축("+x" 등, 가져온 뒤 확인), 배율 = length_cm / 위 축 길이. 뒷면 중심 = 상자 중심에서 앞면 반대쪽 끝(grip_local로 덮어씀)."""
+    fi, fs = _axis(at["face"])
+    ui, us = _axis(at["up"])
+    if fi == ui:
+        raise RuntimeError("shield fit: face와 up이 같은 축")
+    s = at["length_cm"] / raw_e[ui]
+    back = list(raw_c)
+    back[fi] = raw_c[fi] - fs * raw_e[fi] / 2
+    for k, val in (at.get("grip_local") or {}).items():
+        back["xyz".index(k)] = float(val)
+    return (fi, fs), (ui, us), s, back
+
+
+def _shield_rel(at, raw_c, raw_e, body, bone):
+    """방패를 쥔 손(socket hand_l) 기준 상대 변환(MC4.2f).
+    가운데 손잡이를 주먹으로 쥐는 방식: 방패 앞면 = 손 → 가운데 손가락 방향(주먹 앞), 방패 위 = 손가락 뿌리 선(검지 → 새끼, 활 쥐기와 같은 축)을
+    손가락 방향에 수직으로 만든 것(flip이면 반대), 방패 뒷면 중심 = 손바닥 가운데에서 앞면 쪽으로 gap_cm. offset(손 본 로컬 cm)으로 마지막 보정."""
+    (fi, fs), (ui, us), s, back = shield_frame(at, raw_c, raw_e)
+    side = at["socket"][-1]
+    bones = {n: t for n, _p, t in skeleton_check.bones(profiles.body(body)["leader"])}
+    hp, mp = (bones[f"{n}_{side}"].translation for n in ("hand", "middle_01"))
+    fing, _ = _norm(_sub(_v(mp), _v(hp)))
+    knuck = _sub(_v(bones[f"index_01_{side}"].translation), _v(bones[f"pinky_01_{side}"].translation))
+    up, _ = _norm(_sub(knuck, tuple(_dot(knuck, fing) * c for c in fing)))
+    if at.get("flip"):
+        up = tuple(-c for c in up)
+    # face_dir: "fingers" = 주먹 앞(가운데 손잡이), "back"/"palm" = 손등/손바닥 법선(팔뚝에 차는 방패 — Mixamo 검·방패 동작)
+    fd = at.get("face_dir", "fingers")
+    if fd != "fingers":
+        n, _ = _norm(_cross(fing, up))
+        face = n if fd == "back" else tuple(-c for c in n)
+        if at.get("up_along_arm"):
+            up = tuple(-c for c in fing)   # 방패 위 = 손 → 손목(팔뚝을 세로로 댈 때)
+    else:
+        face = fing
+    to_local = lambda d: unreal.MathLibrary.inverse_transform_direction(bone, unreal.Vector(*d))
+    # 메시 (앞면, 위) → 손 본 로컬 (앞면 방향, 위): 두 프레임을 각각 X·Z로 맞춘 회전을 합성한다
+    mesh_rot = unreal.MathLibrary.make_rot_from_xz(_unit(fi, fs), _unit(ui, us))
+    hand_rot = unreal.MathLibrary.make_rot_from_xz(to_local(face), to_local(up))
+    rot_tf = unreal.MathLibrary.compose_transforms(unreal.MathLibrary.invert_transform(unreal.Transform(rotation=mesh_rot)),
+                                                   unreal.Transform(rotation=hand_rot))
+    q = rot_tf.rotation
+    palm = unreal.MathLibrary.inverse_transform_location(bone, unreal.Vector(*[(a + b) / 2 for a, b in zip(_v(hp), _v(mp))]))
+    fl = to_local(face)
+    gap = float(at.get("gap_cm", 4.0))
+    o = at.get("offset", (0.0, 0.0, 0.0))
+    target = (palm.x + fl.x * gap + o[0], palm.y + fl.y * gap + o[1], palm.z + fl.z * gap + o[2])
+    off = q.rotate_vector(unreal.Vector(-back[0] * s, -back[1] * s, -back[2] * s))
+    return unreal.Transform(location=unreal.Vector(off.x + target[0], off.y + target[1], off.z + target[2]),
+                            rotation=q.rotator(), scale=unreal.Vector(s, s, s))
+
+
 def static_attachment(item_key, body, which="attach"):
     """정적 아이템의 부착 정보 {"mesh", "socket", "transform"(소켓 기준 상대)}. items.json attach 값으로 계산.
     which = "back"이면 무기를 등에 멜 때의 값(items.json back — attach와 같은 형식, MC4.2d-2).
@@ -1030,6 +1095,8 @@ def static_attachment(item_key, body, which="attach"):
         rel_tf = unreal.MathLibrary.compose_transforms(world, unreal.MathLibrary.invert_transform(bone))
     elif at["fit"] == "helm":
         rel_tf = unreal.MathLibrary.compose_transforms(_helm_world(at, raw_c, raw_e, body), unreal.MathLibrary.invert_transform(bone))
+    elif at["fit"] == "shield":
+        rel_tf = _shield_rel(at, raw_c, raw_e, body, bone)
     else:   # length: 무기 — 메시 로컬에서 가장 긴 축의 grip_frac 지점이 소켓 원점, 그다음 rot 회전
         axis = max(range(3), key=lambda i: raw_e[i])
         s = at["length_cm"] / raw_e[axis]

@@ -723,7 +723,8 @@ static void WorkerMain(int workerIndex, int workerCount)
 					SendPacket(b, Protocol::CS_CHANGE_EQUIP, eq);
 					GStat.equipSent.fetch_add(1);
 				}
-				// 장비 교체(--equip-interval): 슬롯 무작위, 천(x1xx)·판금(x3xx)·해제 중 하나. 무기는 검/활도 섞는다.
+				// 장비 교체(--equip-interval): 슬롯 무작위(1~7), 천(x1xx)·판금(x3xx)·해제 중 하나. 무기는 검/활도 섞는다.
+				// 보조손(7, 방패)은 무기가 검이 아니면 서버가 NEED_SWORD로 거부하고, 무기를 활·맨손으로 바꾸면 서버가 비운다(MC4.2f).
 				if (GConfig.equipIntervalMs > 0 && now >= b.nextEquipUs)
 				{
 					const int half = GConfig.equipIntervalMs / 2;
@@ -731,7 +732,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 					const int repeat = (rand() % 10 == 0) ? 2 : 1;
 					for (int k = 0; k < repeat; ++k)
 					{
-						const int part = 1 + rand() % 6;
+						const int part = 1 + rand() % 7;
 						const int r = rand() % 3;
 						int itemId = (r == 2) ? 0 : part * 1000 + (r == 0 ? 100 : 300) + 1;
 						if (part == 6 && itemId != 0 && rand() % 2) itemId += 1;   // 6102 / 6302 = 활

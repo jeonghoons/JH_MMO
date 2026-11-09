@@ -64,6 +64,8 @@ public:
 
 	// 무기 자세(MC4.2d-2, UJMAnimInstance.WeaponStance): 0 = 등에 멤(맨손 이동), 1 = 손에 듦, 2 = 스킬 조준. 등에 메지 않는 캐릭터는 1/2.
 	virtual int32 GetWeaponStance() const { return IsSkillAiming() ? 2 : 1; }
+	// 보조손(방패)을 들었는가(MC4.2f, UJMAnimInstance.LeftArmOverrideAlpha). 플레이어만 장비가 있다.
+	virtual bool HasOffhandItem() const { return false; }
 	// 장착 무기의 넣기 값(UEquipmentComponent가 로드 뒤 호출). bCanSheathe가 false면 무기를 항상 손에 든다.
 	virtual void SetSheatheData(bool bCanSheathe, float DelaySec, class UAnimMontage* Montage, float SwapSec) {}
 

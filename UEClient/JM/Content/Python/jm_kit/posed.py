@@ -165,7 +165,7 @@ def rig(prefix, body, loadout, weapon_key=None, loc=(0.0, 0.0, 0.0)):
     clear(prefix)
     bp = profiles.body(body)
     lead = _skel(prefix, "Leader", bp["leader"], loc)
-    items = {s: _mesh_of(s, v, body) for s, v in loadout.items() if s not in ("bow", "sword")}
+    items = {s: _mesh_of(s, v, body) for s, v in loadout.items() if s not in ("bow", "sword", "shield")}
     mask = profiles.mask_params(items)
     if mask:
         body_mask.apply(lead.skeletal_mesh_component, body, mask)
@@ -191,7 +191,20 @@ def rig(prefix, body, loadout, weapon_key=None, loc=(0.0, 0.0, 0.0)):
                               unreal.AttachmentRule.SNAP_TO_TARGET, unreal.AttachmentRule.SNAP_TO_TARGET, False)
         sc.set_relative_transform(s["transform"], False, True)
         weapon = (sc, s)
-    rec = {"lead": lead, "body": body, "skel": skel, "weapon": weapon, "items": items, "weapon_key": weapon_key}
+    # 보조손(방패, MC4.2f): 검 리그에만 붙인다(서버가 검이 아니면 방패를 비운다)
+    offhand = None
+    if loadout.get("shield") and weapon_key and weapon_key == loadout.get("sword"):
+        s = garment.static_attachment(loadout["shield"], body)
+        a = EAS.spawn_actor_from_class(unreal.StaticMeshActor, unreal.Vector(*loc))
+        a.set_actor_label(f"{prefix}_item_offhand")
+        sc = a.static_mesh_component
+        sc.set_static_mesh(unreal.load_asset(s["mesh"]))
+        sc.set_mobility(unreal.ComponentMobility.MOVABLE)
+        a.attach_to_component(lead.skeletal_mesh_component, s["socket"], unreal.AttachmentRule.SNAP_TO_TARGET,
+                              unreal.AttachmentRule.SNAP_TO_TARGET, unreal.AttachmentRule.SNAP_TO_TARGET, False)
+        sc.set_relative_transform(s["transform"], False, True)
+        offhand = (sc, s)
+    rec = {"lead": lead, "body": body, "skel": skel, "weapon": weapon, "offhand": offhand, "items": items, "weapon_key": weapon_key}
     _pose_all(rec, "", 0.0)
     rec["bind"] = {k: _to_local(_copy(c), lead) for k, c in skel.items() if k in ("body", "top", "gloves")}
     _RIGS[prefix] = rec
@@ -210,9 +223,10 @@ def _pose_all(rec, seq, t):
         if r.startswith("ERROR"):
             raise RuntimeError(r)
         msgs.append(r)
-    if rec["weapon"]:
-        sc, s = rec["weapon"]
-        sc.set_relative_transform(s["transform"], False, True)   # 소켓의 새 위치를 따라가게
+    for k in ("weapon", "offhand"):
+        if rec.get(k):
+            sc, s = rec[k]
+            sc.set_relative_transform(s["transform"], False, True)   # 소켓의 새 위치를 따라가게
     return msgs
 
 
@@ -413,13 +427,17 @@ def shots(prefix, name):
         n = math.sqrt(d[0] ** 2 + d[1] ** 2) or 1.0
         cam = (h.x + 70 * d[0] / n + 15, h.y + 70 * d[1] / n + 25, h.z + 15)
         out.append(preview.shot(f"{name}_hand", cam, (h.x, h.y, h.z), fov=45.0, w=800, h=800))
+    if rec.get("offhand"):   # 방패: 왼쪽 앞(+X·+Y)과 뒤쪽 안(손잡이 쥔 모습)에서
+        h = lc.get_socket_location(rec["offhand"][1]["socket"])
+        out.append(preview.shot(f"{name}_shield_front", (h.x + 120, h.y + 160, h.z + 30), (h.x, h.y, h.z), fov=50.0, w=800, h=800))
+        out.append(preview.shot(f"{name}_shield_back", (h.x - 60, h.y - 110, h.z + 50), (h.x, h.y, h.z), fov=50.0, w=800, h=800))
     return out
 
 
 # ---------------------------------------------------------------- 묶음 실행
 def run(body, loadout, pose_keys, take_shots=True, label="", prefix="PZ", loc=(0.0, 0.0, 0.0)):
     """pose_keys 각각에 대해 (무기 타입별 리그) 자세 → 측정(장갑·무기, 상의 어깨) → 촬영.
-    loadout: {"top", "gloves", "bottom", "boots": 아이템 키 또는 메시 경로, "bow"/"sword": 무기 아이템 키}. 반환: {포즈: 결과}."""
+    loadout: {"top", "gloves", "bottom", "boots": 아이템 키 또는 메시 경로, "bow"/"sword": 무기 아이템 키, "shield": 방패 키(검 자세에만)}. 반환: {포즈: 결과}."""
     results = {}
     current = None
     for key in pose_keys:

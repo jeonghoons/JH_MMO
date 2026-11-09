@@ -64,6 +64,7 @@ namespace
 		if (text == "Gloves") { out = ItemSlot::Gloves; return true; }
 		if (text == "Boots") { out = ItemSlot::Boots; return true; }
 		if (text == "Weapon") { out = ItemSlot::Weapon; return true; }
+		if (text == "Offhand") { out = ItemSlot::Offhand; return true; }
 		return false;
 	}
 
@@ -327,7 +328,7 @@ bool DataManager::Init()
 
 		if (!ParseItemSlot(slot, d.slot))
 		{
-			LOG_ERROR("Data", "{}Slot '{}' 는 Head/Top/Bottom/Gloves/Boots/Weapon 중 하나여야 합니다", where, slot);
+			LOG_ERROR("Data", "{}Slot '{}' 는 Head/Top/Bottom/Gloves/Boots/Weapon/Offhand 중 하나여야 합니다", where, slot);
 			return false;
 		}
 		if (!ParseItemGrade(grade, d.grade))
@@ -392,6 +393,16 @@ bool DataManager::Init()
 				return false;
 			}
 			starterBySlot[slotNo] = itemId;
+		}
+		// 보조손(방패)은 한손검 전용이라, 기본 보조손이 있으면 기본 무기도 Sword여야 한다 (MC4.2f)
+		if (starterBySlot.count(static_cast<int>(ItemSlot::Offhand)))
+		{
+			const auto weaponIt = starterBySlot.find(static_cast<int>(ItemSlot::Weapon));
+			if (weaponIt == starterBySlot.end() || _itemTable.at(weaponIt->second).weaponType != WeaponType::Sword)
+			{
+				LOG_ERROR("Data", "{}: Starter 보조손 아이템 {} 은 Starter 무기가 Sword일 때만 둘 수 있습니다", item.Path(), starterBySlot[static_cast<int>(ItemSlot::Offhand)]);
+				return false;
+			}
 		}
 		for (const auto& [slotNo, itemId] : starterBySlot)
 			_starterItems.push_back(&_itemTable.at(itemId));

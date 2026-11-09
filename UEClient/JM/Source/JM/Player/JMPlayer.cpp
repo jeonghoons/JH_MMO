@@ -1,6 +1,7 @@
 ﻿#include "Player/JMPlayer.h"
 #include "Game/JMGameInstance.h"
 #include "Character/EquipmentComponent.h"
+#include "Character/EquipmentAppearance.h"
 #include "Game/DataManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimInstance.h"
@@ -24,11 +25,17 @@ EWeaponType AJMPlayer::GetWeaponType() const
 	return (Item && Item->WeaponType != EWeaponType::None) ? Item->WeaponType : EWeaponType::Unarmed;
 }
 
+bool AJMPlayer::HasOffhandItem() const
+{
+	const int32 Index = static_cast<int32>(Protocol::EQUIP_PART_OFFHAND) - 1;
+	return Index < ObjectInfo.equip_items_size() && ObjectInfo.equip_items(Index) != 0;
+}
+
 void AJMPlayer::ApplyEquipChange(Protocol::EquipPart Part, int32 ItemId, const Protocol::StatInfo& Stat)
 {
 	const int32 Index = static_cast<int32>(Part) - 1;
-	if (Index < 0 || Index >= 6) return;
-	while (ObjectInfo.equip_items_size() < 6) ObjectInfo.add_equip_items(0);
+	if (Index < 0 || Index >= EQUIP_SLOT_COUNT) return;
+	while (ObjectInfo.equip_items_size() < EQUIP_SLOT_COUNT) ObjectInfo.add_equip_items(0);
 	ObjectInfo.set_equip_items(Index, ItemId);
 
 	// 무기가 바뀌면 새 무기는 등에 멘 상태로 시작한다(넣기 값은 외형 로드 뒤 SetSheatheData로 온다)

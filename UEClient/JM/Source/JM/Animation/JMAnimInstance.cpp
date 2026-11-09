@@ -15,6 +15,8 @@ void UJMAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsSkillAiming = BaseCharacter->IsSkillAiming();
 		AimSkillId = BaseCharacter->GetAimSkillId();
 		WeaponStance = BaseCharacter->GetWeaponStance();
+		// 방패를 들면 무기 레이어의 왼팔을 원본(방패 든 자세)으로, 없으면 맨손 포즈로 덮는다(MC4.2f)
+		LeftArmOverrideAlpha = BaseCharacter->HasOffhandItem() ? 0.f : 1.f;
 
 		if (UCharacterMovementComponent* MovementComp = BaseCharacter->GetCharacterMovement())
 		{

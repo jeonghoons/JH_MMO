@@ -14,10 +14,10 @@ class USkeletalMeshComponent;
 class UStaticMeshComponent;
 class UMaterialInstanceDynamic;
 
-// 장착 슬롯 수 = Protocol::EquipPart 1~6 (인덱스 = EquipPart - 1)
-static constexpr int32 EQUIP_SLOT_COUNT = 6;
+// 장착 슬롯 수 = Protocol::EquipPart 1~7 (인덱스 = EquipPart - 1). 7 = 보조손(방패, MC4.2f)
+static constexpr int32 EQUIP_SLOT_COUNT = 7;
 
-// 한 슬롯의 외형(로드된 에셋). 스켈레탈 슬롯(상의·하의·장갑·장화)은 Skeletal, 정적 슬롯(머리·무기)은 Static + 부착값.
+// 한 슬롯의 외형(로드된 에셋). 스켈레탈 슬롯(상의·하의·장갑·장화)은 Skeletal, 정적 슬롯(머리·무기·보조손)은 Static + 부착값.
 struct FEquipSlotLook
 {
 	USkeletalMesh* Skeletal = nullptr;

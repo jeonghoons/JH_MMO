@@ -84,6 +84,18 @@ def _weapon_transform(mesh):
     return unreal.Transform(location=unreal.Vector(LOC[0] - c.x, LOC[1] - c.y, LOC[2] - c.z), rotation=rot, scale=unreal.Vector(1, 1, 1))
 
 
+def _shield_transform(mesh, at):
+    """방패(MC4.2f): 앞면 축(items.json attach.face) → 카메라(+Y), 위 축(attach.up) → +Z, 상자 중심을 촬영 위치에."""
+    b = unreal.load_asset(mesh).get_bounds()
+    o = unreal.Vector(b.origin.x, b.origin.y, b.origin.z)
+    (fi, fs), (ui, us), _s, _back = garment.shield_frame(at, (o.x, o.y, o.z), (b.box_extent.x * 2, b.box_extent.y * 2, b.box_extent.z * 2))
+    mesh_rot = unreal.MathLibrary.make_rot_from_xz(garment._unit(fi, fs), garment._unit(ui, us))
+    want = unreal.MathLibrary.make_rot_from_xz(unreal.Vector(0, 1, 0), unreal.Vector(0, 0, 1))
+    tf = unreal.MathLibrary.compose_transforms(unreal.MathLibrary.invert_transform(unreal.Transform(rotation=mesh_rot)), unreal.Transform(rotation=want))
+    c = tf.rotation.rotate_vector(o)
+    return unreal.Transform(location=unreal.Vector(LOC[0] - c.x, LOC[1] - c.y, LOC[2] - c.z), rotation=tf.rotation.rotator(), scale=unreal.Vector(1, 1, 1))
+
+
 def _right_glove_actor(mesh):
     """장갑 결과 메시에서 오른손 쪽 삼각형만 남긴 임시 정적 메시 액터(기준 자세)."""
     hand_x = garment._bone_ref(BODY, "hand_r").translation.x
@@ -144,6 +156,8 @@ def _subject(key, it):
         at = it["attach"]
         if at["fit"] == "length":
             return _static_actor(it["source"], _weapon_transform(it["source"])), False
+        if at["fit"] == "shield":
+            return _static_actor(it["source"], _shield_transform(it["source"], at)), True   # 방패: 방어구처럼 정면 3/4
         s = garment.static_attachment(key, BODY)   # 머리 장비: 머리에 씌운 배치 그대로
         world = unreal.MathLibrary.compose_transforms(s["transform"], garment._bone_ref(BODY, s["socket"]))
         return _static_actor(s["mesh"], _move(world, LOC)), True

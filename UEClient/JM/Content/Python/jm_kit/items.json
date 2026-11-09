@@ -408,5 +408,55 @@
         0
       ]
     }
+  },
+  "Cloth_Shield": {
+    "slot": "offhand",
+    "source": "/Game/Equipment/Cloth/Shield/Source/SM_Cloth_Shield_Src",
+    "varco": {
+      "image_node": "8e261aee-e34c-4ac0-ae0a-c6899e3f8bed",
+      "output_index": 0,
+      "generate3d_node": "6bb34cbb-5b55-4e64-88ee-cfc1b71ecb69",
+      "polygon_count": 30000
+    },
+    "attach": {
+      "socket": "hand_l",
+      "fit": "shield",
+      "face_dir": "back",
+      "length_cm": 70,
+      "face": "+y",
+      "up": "+z",
+      "gap_cm": 4.0,
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "target_tris": 5000
+    }
+  },
+  "Plate_Shield": {
+    "slot": "offhand",
+    "source": "/Game/Equipment/Plate/Shield/Source/SM_Plate_Shield_Src",
+    "varco": {
+      "image_node": "c7ee8633-1b8c-4a4c-8c21-1f7cd06bf2fc",
+      "output_index": 1,
+      "generate3d_node": "04ca4912-ce6d-46b6-b870-54c43be043df",
+      "polygon_count": 30000
+    },
+    "attach": {
+      "socket": "hand_l",
+      "fit": "shield",
+      "face_dir": "back",
+      "length_cm": 75,
+      "face": "+y",
+      "up": "+z",
+      "gap_cm": 4.0,
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "target_tris": 5000
+    }
   }
 }

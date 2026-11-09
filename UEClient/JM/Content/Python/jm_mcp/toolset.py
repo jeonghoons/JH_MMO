@@ -238,7 +238,7 @@ class KitTools(unreal.ToolsetDefinition):
         """BP_TestPlayer 시작 장비와 체형을 바꾼다.
 
         Args:
-            items: ItemTable ID 6개를 쉼표로(EquipPart 순서 머리·상의·하의·장갑·장화·무기, 빈 슬롯 0).
+            items: ItemTable ID 7개(또는 6개)를 쉼표로(EquipPart 순서 머리·상의·하의·장갑·장화·무기·보조손, 빈 슬롯 0).
             player_type: 1 MALE, 2 FEMALE. 비우면 그대로.
 
         Returns:

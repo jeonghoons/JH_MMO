@@ -8,8 +8,8 @@
 
 namespace
 {
-	constexpr int32 WEAPON_SLOT = EQUIP_SLOT_COUNT - 1;   // = EquipPart WEAPON(6) - 1
-	const TCHAR* const SlotNames[EQUIP_SLOT_COUNT] = { TEXT("Head"), TEXT("Top"), TEXT("Bottom"), TEXT("Gloves"), TEXT("Boots"), TEXT("Weapon") };
+	constexpr int32 WEAPON_SLOT = 5;   // = EquipPart WEAPON(6) - 1
+	const TCHAR* const SlotNames[EQUIP_SLOT_COUNT] = { TEXT("Head"), TEXT("Top"), TEXT("Bottom"), TEXT("Gloves"), TEXT("Boots"), TEXT("Weapon"), TEXT("Offhand") };
 
 	// 몸 섹션 머티리얼 슬롯: 이름에 body가 들어간 슬롯(jm_kit.body_mask._body_slot_index와 같은 규칙). 얼굴 섹션은 키트 원본을 둔다.
 	int32 FindBodyMaterialIndex(const USkeletalMeshComponent* Comp)

@@ -1,4 +1,5 @@
 ﻿#include "Player/TestPlayer.h"
+#include "Character/EquipmentAppearance.h"
 #include "Camera/CameraComponent.h"
 #include "Camera/PlayerCameraManager.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -28,7 +29,7 @@ ATestPlayer::ATestPlayer()
 
 	// UJMAnimInstance가 내 캐릭터로 보고 실제 속도·가속도로 이동 애니메이션을 고른다. 원격 보간(ApplyNetworkMovement)도 꺼진다.
 	IsMyPlayer = true;
-	TestItems.Init(0, 6);
+	TestItems.Init(0, EQUIP_SLOT_COUNT);
 }
 
 void ATestPlayer::BeginPlay()
@@ -39,7 +40,7 @@ void ATestPlayer::BeginPlay()
 	ObjectInfo.set_object_type(Protocol::OBJECT_TYPE_PLAYER);
 	ObjectInfo.set_player_type(static_cast<Protocol::PlayerType>(TestPlayerType));
 	ObjectInfo.clear_equip_items();
-	for (int32 i = 0; i < 6; ++i)
+	for (int32 i = 0; i < EQUIP_SLOT_COUNT; ++i)
 		ObjectInfo.add_equip_items(TestItems.IsValidIndex(i) ? TestItems[i] : 0);
 	// 최고 속도는 BP의 MaxWalkSpeed(테스트 전용). 조준 배율(SkillTable.AimMoveSpeedMul)이 이 값에 곱해지도록 스탯에 넣는다.
 	ObjectInfo.mutable_stat()->set_move_speed(GetCharacterMovement()->MaxWalkSpeed);
@@ -195,9 +196,17 @@ void ATestPlayer::PlaySkillSlot(int32 Slot)
 void ATestPlayer::TestEquip(int32 Part, int32 ItemId)
 {
 	const int32 Index = Part - 1;
-	if (Index < 0 || Index >= 6) return;
+	if (Index < 0 || Index >= EQUIP_SLOT_COUNT) return;
 
-	while (ObjectInfo.equip_items_size() < 6) ObjectInfo.add_equip_items(0);
+	while (ObjectInfo.equip_items_size() < EQUIP_SLOT_COUNT) ObjectInfo.add_equip_items(0);
 	ObjectInfo.set_equip_items(Index, ItemId);
 	if (Equipment) Equipment->SetSlotItem(Index, ItemId);
+
+	// 서버와 같은 규칙(MC4.2f): 무기가 한손검이 아니게 되면 보조손(방패)을 비운다
+	const int32 OffhandIndex = static_cast<int32>(Protocol::EQUIP_PART_OFFHAND) - 1;
+	if (Part == static_cast<int32>(Protocol::EQUIP_PART_WEAPON) && GetWeaponType() != EWeaponType::Sword && ObjectInfo.equip_items(OffhandIndex) != 0)
+	{
+		ObjectInfo.set_equip_items(OffhandIndex, 0);
+		if (Equipment) Equipment->SetSlotItem(OffhandIndex, 0);
+	}
 }

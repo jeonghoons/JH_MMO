@@ -23,7 +23,7 @@ class JM_API ATestPlayer : public AJMPlayer
 public:
 	ATestPlayer();
 
-	// 콘솔: TestEquip <part 1~6> <itemId> — 로컬에서만 장비를 바꾼다(itemId 0 = 해제, 스탯 변화 없음)
+	// 콘솔: TestEquip <part 1~7> <itemId> — 로컬에서만 장비를 바꾼다(itemId 0 = 해제, 스탯 변화 없음)
 	UFUNCTION(Exec)
 	void TestEquip(int32 Part, int32 ItemId);
 

@@ -118,10 +118,12 @@ def set_override(montage_path):
 
 
 def set_loadout(items, player_type=None):
-    """시작 장비(6칸, EquipPart 순서, 빈 슬롯 0)와 체형(1 MALE, 2 FEMALE)."""
+    """시작 장비(7칸, EquipPart 순서 — 7 = 보조손(방패, MC4.2f), 빈 슬롯 0. 6칸이면 보조손 0)와 체형(1 MALE, 2 FEMALE)."""
     items = [int(i) for i in items]
-    if len(items) != 6:
-        raise ValueError(f"장비는 6칸: {items}")
+    if len(items) == 6:
+        items.append(0)
+    if len(items) != 7:
+        raise ValueError(f"장비는 7칸(또는 6칸): {items}")
     bp, cdo = _player_cdo()
     cdo.set_editor_property("test_items", items)
     if player_type is not None:

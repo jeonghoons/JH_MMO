@@ -184,12 +184,13 @@ enum EquipPart : int {
   EQUIP_PART_GLOVES = 4,
   EQUIP_PART_BOOTS = 5,
   EQUIP_PART_WEAPON = 6,
+  EQUIP_PART_OFFHAND = 7,
   EquipPart_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   EquipPart_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool EquipPart_IsValid(int value);
 constexpr EquipPart EquipPart_MIN = EQUIP_PART_NONE;
-constexpr EquipPart EquipPart_MAX = EQUIP_PART_WEAPON;
+constexpr EquipPart EquipPart_MAX = EQUIP_PART_OFFHAND;
 constexpr int EquipPart_ARRAYSIZE = EquipPart_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EquipPart_descriptor();
@@ -215,12 +216,13 @@ enum EquipResult : int {
   EQUIP_RESULT_DEAD = 5,
   EQUIP_RESULT_TOO_FREQUENT = 6,
   EQUIP_RESULT_NOT_IN_ROOM = 7,
+  EQUIP_RESULT_NEED_SWORD = 8,
   EquipResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   EquipResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool EquipResult_IsValid(int value);
 constexpr EquipResult EquipResult_MIN = EQUIP_RESULT_NONE;
-constexpr EquipResult EquipResult_MAX = EQUIP_RESULT_NOT_IN_ROOM;
+constexpr EquipResult EquipResult_MAX = EQUIP_RESULT_NEED_SWORD;
 constexpr int EquipResult_ARRAYSIZE = EquipResult_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EquipResult_descriptor();

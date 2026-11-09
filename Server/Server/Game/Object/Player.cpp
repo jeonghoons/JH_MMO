@@ -13,7 +13,7 @@ Player::Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type)
 
 	_maxSpeed = _statInfo.GetMoveSpeed();
 
-	// 장착 목록은 항상 슬롯 6칸(비면 0). 저장·기본 장비는 MC3.3.
+	// 장착 목록은 항상 슬롯 EQUIP_SLOT_COUNT(7)칸(비면 0). 저장·기본 장비는 MC3.3.
 	_objectInfo.clear_equip_items();
 	for (int i = 0; i < EQUIP_SLOT_COUNT; ++i)
 		_objectInfo.add_equip_items(0);
@@ -133,13 +133,21 @@ void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	for (const auto& [slot, itemId] : data.equipped)
 	{
 		const ItemData* item = DataManager::GetItemData(itemId);
-		if (slot < Protocol::EQUIP_PART_HEAD || slot > Protocol::EQUIP_PART_WEAPON || item == nullptr || static_cast<int>(item->slot) != slot)
+		if (slot < Protocol::EQUIP_PART_HEAD || slot > Protocol::EQUIP_PART_OFFHAND || item == nullptr || static_cast<int>(item->slot) != slot)
 		{
 			LOG_WARN("Player", "Player_Equipped 행을 건너뜁니다 (PlayerId {}, EquipSlot {}, ItemId {}: 슬롯이 없거나 아이템이 없거나 슬롯이 다름)",
 				info.playerUID, slot, itemId);
 			continue;
 		}
 		SetEquippedItem(static_cast<Protocol::EquipPart>(slot), itemId);
+	}
+
+	// 보조손(방패)은 한손검 전용 (MC4.2f). 저장 값이 어긋나 있으면 보조손만 비운다(다음 저장 때 DB에도 반영).
+	if (GetEquippedItem(Protocol::EQUIP_PART_OFFHAND) != 0 && GetWeaponType() != WeaponType::Sword)
+	{
+		LOG_WARN("Player", "Player_Equipped 보조손을 비웁니다 (PlayerId {}, ItemId {}: 무기가 한손검이 아님)",
+			info.playerUID, GetEquippedItem(Protocol::EQUIP_PART_OFFHAND));
+		SetEquippedItem(Protocol::EQUIP_PART_OFFHAND, 0);
 	}
 
 	// 로그인 HP = 장비 반영 최대치 (DB HP를 읽는 것은 A2.5)

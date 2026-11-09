@@ -70,8 +70,8 @@ public:
 	WeaponType GetWeaponType() const;
 
 	// 장착 (MC3.2). Room 잡 안에서만 부른다. 검증은 Room::PlayerChangeEquip이 하고, 여기서는 반영·스탯 재계산만 한다.
-	// itemId 0 = 해제. 슬롯 순서 = Protocol::EquipPart(1~6) = ObjectInfo.equip_items[part - 1].
-	static constexpr int EQUIP_SLOT_COUNT = 6;
+	// itemId 0 = 해제. 슬롯 순서 = Protocol::EquipPart(1~7) = ObjectInfo.equip_items[part - 1]. 7 = 보조손(방패, MC4.2f)
+	static constexpr int EQUIP_SLOT_COUNT = 7;
 	int GetEquippedItem(Protocol::EquipPart part) const;
 	void SetEquippedItem(Protocol::EquipPart part, int itemId);
 	// 기본 스탯(PlayerStatTable) + 장착 아이템 보너스로 최종 스탯을 다시 계산한다. HP는 자르기만 한다.

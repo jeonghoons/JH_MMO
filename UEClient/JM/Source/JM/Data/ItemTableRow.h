@@ -30,7 +30,8 @@ enum class EEquipSlot : uint8
 	Bottom = 3,
 	Gloves = 4,
 	Boots = 5,
-	Weapon = 6
+	Weapon = 6,
+	Offhand = 7   // 보조손(방패). 한손검 전용 (MC4.2f)
 };
 
 // 장비 티어(외형 계열). 번호 = itemId 둘째 자리.

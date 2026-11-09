@@ -427,13 +427,16 @@ void Room::PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part
 	if (GetGameObject(player->GetId()) == nullptr) { reject(Protocol::EQUIP_RESULT_NOT_IN_ROOM); return; }
 
 	// 검증 순서: 형식(슬롯·아이템) → 상태(사망·시전) → 빈도. 빈도 제한은 통과한 요청만 시간을 갱신한다.
-	if (part < Protocol::EQUIP_PART_HEAD || part > Protocol::EQUIP_PART_WEAPON) { reject(Protocol::EQUIP_RESULT_WRONG_SLOT); return; }
+	if (part < Protocol::EQUIP_PART_HEAD || part > Protocol::EQUIP_PART_OFFHAND) { reject(Protocol::EQUIP_RESULT_WRONG_SLOT); return; }
+	const ItemData* item = nullptr;
 	if (itemId != 0)
 	{
-		const ItemData* item = DataManager::GetItemData(itemId);
+		item = DataManager::GetItemData(itemId);
 		if (item == nullptr) { reject(Protocol::EQUIP_RESULT_NO_ITEM); return; }
 		if (static_cast<int>(item->slot) != static_cast<int>(part)) { reject(Protocol::EQUIP_RESULT_WRONG_SLOT); return; }
 	}
+	// 보조손(방패)은 한손검을 든 상태에서만 착용한다 (MC4.2f, DECISIONS 2026-11-09). 해제는 언제나 허용.
+	if (part == Protocol::EQUIP_PART_OFFHAND && itemId != 0 && player->GetWeaponType() != WeaponType::Sword) { reject(Protocol::EQUIP_RESULT_NEED_SWORD); return; }
 	if (player->GetStat().IsDead()) { reject(Protocol::EQUIP_RESULT_DEAD); return; }
 	if (player->IsCasting()) { reject(Protocol::EQUIP_RESULT_ACTING); return; }
 
@@ -449,12 +452,22 @@ void Room::PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part
 		player->SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
 
 	player->SetEquippedItem(part, itemId);
+
+	// 무기가 한손검이 아니게 되면(활·맨손 포함) 보조손(방패)을 서버가 비운다 (MC4.2f)
+	const bool offhandCleared = part == Protocol::EQUIP_PART_WEAPON &&
+		player->GetEquippedItem(Protocol::EQUIP_PART_OFFHAND) != 0 && player->GetWeaponType() != WeaponType::Sword;
+	if (offhandCleared)
+		player->SetEquippedItem(Protocol::EQUIP_PART_OFFHAND, 0);
+
 	player->RecalcStat();
 
 	// 무기 슬롯이 바뀌면 착용·해제 모두 행동 잠금 — 스왑으로 쿨타임을 우회하지 못하게 한다(DECISIONS 2026-11-04, 2026-11-07)
 	if (part == Protocol::EQUIP_PART_WEAPON)
 		player->LockActionForSwap(rule->weaponSwapLockMs);
 
+	// 보조손 해제를 먼저 보내 클라이언트가 "활 + 방패" 상태를 거치지 않게 한다. 두 패킷 모두 최종 스탯을 싣는다.
+	if (offhandCleared)
+		BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_CHANGE_EQUIP(player->GetId(), Protocol::EQUIP_PART_OFFHAND, 0, player->GetInfo().stat()), true);
 	BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_CHANGE_EQUIP(player->GetId(), part, itemId, player->GetInfo().stat()), true);
 
 	// 변경 즉시 저장(DECISIONS 2026-11-07, 측정: TESTING.md MC3.3)
