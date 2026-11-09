@@ -179,7 +179,7 @@
 - [x] 1. 이 카탈로그 작성, `DESIGN_ART_CONCEPT.md` 6장 링크 (2026-11-10)
 - [x] 2. 복제 (2026-11-10): MCP `AssetTools.duplicate` 87개 + `move` 2개(`P_AoE_Smash`·`P_AoE_ArrowRain`, 리다이렉터 없이 이동됨) → `/Game/FX` 82 + `Character/Rampage/FX` 7, 의존은 전부 엔진·Paragon만, `SkillTable.csv` `Fx` 갱신 + `DT_SkillTable` 재임포트(6행)
 - [x] 3a. 미리보기 시트 도구·촬영 (2026-11-10): `jm_kit.fx_sheet` + MCP `fx_sheet_start/status/stop`(에디터 재시작으로 등록), 82개 × 0.3·1.0·2.0초 → `Saved/MCShots/fx_sheet_all_<분류>.png`(행 = 에셋, 열 = 시점, 행 순서 `fx_sheet_index.md`) + 낱장 `fx_<이름>_t030/t100/t200.png`. 시트에서 **비어 보이는 것은 도구 한계**이지 탈락 근거가 아님 — Trail 9개(AnimTrail은 몽타주 노티파이·소켓 필요), Proj 대부분(리본은 이동해야 그려짐), BONESOCK 계열(Paragon 본), 일부 Buff(인스턴스 파라미터로 켜지는 이미터 — 4단계에서 기본값 확인). 도구 함정은 `UEClient/JM/CLAUDE.md` jm_kit.fx_sheet 참고
-- [ ] 3b. 사용자 채택/탈락 결정 → 상태 열 갱신(`복제` → `채택`/`탈락`), `TESTING.md`에 시트 경로·날짜 기록
+- [ ] 3b. 사용자 채택/탈락 결정([FX_REVIEW.md](FX_REVIEW.md) `판정` 열) → 상태 열 갱신(`복제` → `채택`/`탈락`), `TESTING.md`에 시트 경로·날짜 기록
 - [ ] 4. 손질(채택분): 본 이름 교체·삭제(F·G), 화살 메시 교체(B), 침·별자리·거품 삭제(D·E·G), Water 분리(E), 매니퀸 스켈레톤 `FX_Weapon_Top/Bottom` 소켓(A 선행)
 - [ ] 5. 문서: `DECISIONS.md` 1행(선별 기준·제외 규칙·네이밍 `P_<Role>_<Name>`), `ROADMAP.md` MC4.5, `ExternalAssets.md` 비고
 
