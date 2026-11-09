@@ -48,6 +48,9 @@ struct FSkillTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ProjSpeed = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 DurationMs = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 TickMs = 0;
+	// 스킬 조준(MC4.2d-1): 조준 중 이동 속도 배율(0 < 값 <= 1), 최대 유지 시간(0 = 조준할 수 없는 스킬). 서버도 같은 값으로 검증한다
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float AimMoveSpeedMul = 1.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 AimMaxMs = 0;
 
 	// 클라이언트 전용(서버 로더는 읽지 않음). 시전 몽타주. 비어 있으면 DT_CharacterAsset의 기본 공격 몽타주를 쓴다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UAnimMontage> Montage;

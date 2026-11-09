@@ -98,6 +98,10 @@ struct Bot
 	unordered_set<int> deadMonsters;   // SC_DEAD를 받았고 아직 제거되지 않은 몬스터(trackWorld)
 	long long nextAttackUs = 0;
 	int castCount = 0;
+	// --aim (MC4.2d-1): 슬롯 1을 쓰기 전에 조준을 켜고 잠시 느리게 움직인 뒤 쏜다
+	bool aiming = false;
+	bool aimBowSent = false;    // 시작할 때 활(6102)을 한 번 장착했는지
+	uint32_t aimSeq = 0;
 	int moveFailures = 0;   // 서버가 내 이동을 거부(보정)한 횟수. hunt 봇이 막혔는지 판단한다
 	int spawnTarget = -1;   // hunt 봇이 찾아가는 몬스터 스폰(GMonsterSpawns 인덱스). 처음엔 가장 가까운 곳
 	int blockedCount = 0;   // 지금 목표로 가다가 막힌 횟수. 많이 막히면 다른 스폰으로 바꾼다
@@ -122,7 +126,9 @@ static void SendPacket(Bot& b, uint16_t id, const google::protobuf::Message& msg
 static float MaxStep(const Bot& b, long long now)
 {
 	const double elapsedSec = min(1.0, (now - b.lastMoveSentUs) / 1e6);
-	return static_cast<float>(b.moveSpeed * 0.9 * elapsedSec);
+	// 조준 중에는 서버가 AimMoveSpeedMul(활 0.4)을 곱하므로 그만큼만 움직인다
+	const double aimMul = b.aiming ? 0.4 : 1.0;
+	return static_cast<float>(b.moveSpeed * 0.9 * aimMul * elapsedSec);
 }
 
 static void SendMove(Bot& b, long long now, float nx, float ny, float yaw, Protocol::MoveState state)
@@ -433,6 +439,19 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 	case Protocol::SC_CHANGE_EQUIP_RESULT:
 		GStat.equipRejected.fetch_add(1);
 		break;
+	case Protocol::SC_SKILL_AIM:
+	{
+		Protocol::SC_SKILL_AIM_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		GStat.aimRecv.fetch_add(1);
+		// 내 조준의 거부·시간 초과(seq가 최신일 때만)
+		if (pkt.object_id() == b.objectId && !pkt.active() && pkt.seq() == b.aimSeq && b.aiming)
+		{
+			b.aiming = false;
+			GStat.aimOwnOff.fetch_add(1);
+		}
+		break;
+	}
 	default:
 		break;
 	}
@@ -641,7 +660,35 @@ static void WorkerMain(int workerIndex, int workerCount)
 					// 몬스터 방향(aim_yaw)·위치(aim_x/y)와 대상(target_id)을 함께 보내고, 서버가 장착 무기의 스킬에 맞는 값만 쓴다.
 					// (MC3.1: 무기가 없어 맨손 기본 공격만 있고 1번 슬롯은 서버가 거부한다 — MC3.2 장착 후 검·활 스킬)
 					Protocol::CS_ATTACK_PACKET atk;
-					const int slot = (++b.castCount % 3 == 0) ? 1 : 0;
+					int slot = (++b.castCount % 3 == 0) ? 1 : 0;
+					// --aim: 슬롯 1은 조준을 먼저 켜고 300~800ms 뒤 다음 공격 차례에 쏜다. 10%는 쏘지 않고 취소한다.
+					bool skipAttack = false;
+					if (GConfig.aim)
+					{
+						if (b.aiming)
+						{
+							slot = 1;
+							b.aiming = false;   // 서버는 CS_ATTACK을 받으며 해제한다
+							if (rand() % 10 == 0)
+							{
+								Protocol::CS_SKILL_AIM_PACKET off;
+								off.set_slot(1); off.set_active(false); off.set_seq(++b.aimSeq);
+								SendPacket(b, Protocol::CS_SKILL_AIM, off);
+								GStat.aimSent.fetch_add(1);
+								skipAttack = true;
+							}
+						}
+						else if (slot == 1)
+						{
+							Protocol::CS_SKILL_AIM_PACKET on;
+							on.set_slot(1); on.set_active(true); on.set_seq(++b.aimSeq);
+							SendPacket(b, Protocol::CS_SKILL_AIM, on);
+							GStat.aimSent.fetch_add(1);
+							b.aiming = true;
+							b.nextAttackUs = now + (300 + rand() % 501) * 1000LL;
+							skipAttack = true;
+						}
+					}
 					atk.set_skill_slot(slot);
 					atk.set_target_id(targetId);
 					atk.set_aim_yaw(yaw);
@@ -663,7 +710,18 @@ static void WorkerMain(int workerIndex, int workerCount)
 						default: atk.set_skill_slot(2); break;                       // 비어 있는 슬롯
 						}
 					}
-					SendPacket(b, Protocol::CS_ATTACK, atk);
+					if (!skipAttack)
+						SendPacket(b, Protocol::CS_ATTACK, atk);
+				}
+				// --aim: 처음 한 번 활을 장착한다(조준할 수 있는 스킬 3002)
+				if (GConfig.aim && !b.aimBowSent)
+				{
+					b.aimBowSent = true;
+					Protocol::CS_CHANGE_EQUIP_PACKET eq;
+					eq.set_part(Protocol::EQUIP_PART_WEAPON);
+					eq.set_item_id(6102);
+					SendPacket(b, Protocol::CS_CHANGE_EQUIP, eq);
+					GStat.equipSent.fetch_add(1);
 				}
 				// 장비 교체(--equip-interval): 슬롯 무작위, 천(x1xx)·판금(x3xx)·해제 중 하나. 무기는 검/활도 섞는다.
 				if (GConfig.equipIntervalMs > 0 && now >= b.nextEquipUs)
@@ -776,7 +834,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 void BotEngine::Usage(const char* program)
 {
 	printf("%s --bots N --ramp-rate R --duration S [--host H] [--port P] [--threads T]\n"
-		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
+		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
 		"         [--zone x,y,r]   (hotspot: bots walk to (x,y) and stay within radius r cm)\n",
 		program);
 }
@@ -805,6 +863,7 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--chaos") { GConfig.chaos = true; }
 		else if (a == "--turn-send") { GConfig.turnSend = true; }
 		else if (a == "--turn-interval") { if (!(v = next("--turn-interval"))) return false; GConfig.turnIntervalMs = max(200, atoi(v)); }
+		else if (a == "--aim") GConfig.aim = true;
 		else if (a == "--equip-interval") { if (!(v = next("--equip-interval"))) return false; GConfig.equipIntervalMs = atoi(v); }
 		else if (a == "--map") { if (!(v = next("--map"))) return false; GConfig.mapLogic = v; }
 		else if (a == "--out") { if (!(v = next("--out"))) return false; GConfig.outFile = v; }

@@ -52,6 +52,14 @@ message CS_CHANGE_EQUIP_PACKET {
 	int32 item_id = 2;   // 0 = 해제
 }
 
+// 스킬 조준(숫자키 → 범위 선택) 켜기/끄기. 상태가 바뀔 때만 보낸다.
+// 확정(CS_ATTACK)은 서버가 조준을 함께 해제하므로 끄기를 따로 보내지 않는다.
+message CS_SKILL_AIM_PACKET {
+	int32 slot = 1;     // 1~5 = 스킬 슬롯 (서버가 장착 무기 타입의 SkillTable로 해석)
+	bool active = 2;
+	uint32 seq = 3;     // 클라가 켜기/끄기를 보낼 때마다 1씩 올린다. 서버가 본인에게 보내는 거부·시간 초과에 그대로 돌려준다
+}
+
 // 서버 JobQueue 지연까지 포함한 왕복 시간 측정용. client_time은 서버가 그대로 돌려준다.
 message CS_PING_PACKET {
 	int64 client_time = 1;
@@ -124,6 +132,16 @@ message SC_CHANGE_EQUIP_RESULT_PACKET {
 	EquipResult result = 1;
 	EquipPart part = 2;
 	int32 item_id = 3;
+}
+
+// 스킬 조준 상태. 켜기 = AOI 방송(본인 포함), 클라 취소·시전 실패 해제 = 본인 제외 방송,
+// 거부 = 본인에게만(active=false, seq), 시간 초과 = 본인(seq 포함) + 다른 사람.
+// 확정·사망·무기 교체 해제는 보내지 않는다(원격 클라는 SC_ATTACK·SC_DEAD·SC_CHANGE_EQUIP으로 해제).
+message SC_SKILL_AIM_PACKET {
+	int32 object_id = 1;
+	int32 skill_id = 2;   // 꺼질 때는 0일 수 있음
+	bool active = 3;
+	uint32 seq = 4;       // 본인에게 보내는 거부·시간 초과에만 채움 (그 밖은 0)
 }
 
 message SC_PONG_PACKET {

@@ -45,6 +45,18 @@ const FSkillTableRow* UDataManager::FindSkillById(int32 SkillId) const
 	return Table->FindRow<FSkillTableRow>(FName(*FString::FromInt(SkillId)), TEXT("FindSkillById"), false);
 }
 
+int32 UDataManager::FindSkillIdBySlot(EWeaponType WeaponType, int32 Slot) const
+{
+	const FSkillTableRow* Found = FindSkillBySlot(WeaponType, Slot);
+	if (Found == nullptr) return 0;
+	for (const TPair<FName, uint8*>& Pair : CachedSkillTable->GetRowMap())
+	{
+		if (reinterpret_cast<const FSkillTableRow*>(Pair.Value) == Found)
+			return FCString::Atoi(*Pair.Key.ToString());
+	}
+	return 0;
+}
+
 const FSkillTableRow* UDataManager::FindSkillBySlot(EWeaponType WeaponType, int32 Slot) const
 {
 	if (GetSkillTable() == nullptr) return nullptr;

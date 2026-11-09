@@ -142,9 +142,11 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYa
 		const FSkillTableRow* Skill = DataManager ? DataManager->FindSkillById(SkillId) : nullptr;   // 몬스터 스킬은 SkillTable에 없을 수 있다
 
 		// 서버가 확정한 시전 방향으로 돌린다. 내 캐릭터는 입력 시점에 이미 돌렸다.
+		// 원격 캐릭터의 스킬 조준은 시전(SC_ATTACK)으로 끝난다(MC4.2d-1). 내 조준은 로컬이 관리한다.
 		if (Attacker != MyPlayer)
 		{
 			Attacker->FaceYaw(AimYaw);
+			Attacker->SetSkillAiming(0);
 		}
 		if (Skill) Attacker->LockFacingForSkill(*Skill);
 
@@ -156,6 +158,7 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYa
 		if (Skill && Attacker == MyPlayer)
 		{
 			if (UCombatHudWidget* Hud = GetCombatHud()) Hud->StartCooldown(Skill->Slot, CooldownMs);
+			MyPlayer->NoteSkillCooldown(SkillId, CooldownMs);
 		}
 	}
 }
@@ -243,6 +246,13 @@ void UJMObjectManager::HandleChangeEquip(int32 ObjectId, Protocol::EquipPart Par
 	AJMPlayer* Player = Cast<AJMPlayer>(*FoundActor);
 	if (Player == nullptr) return;   // 몬스터는 장비가 없다
 
+	// 무기가 바뀌면 스킬 조준이 끝난다(서버도 해제). 내 캐릭터는 끄기를 보내 서버와 맞춘다.
+	if (Part == Protocol::EQUIP_PART_WEAPON)
+	{
+		if (*FoundActor == MyPlayer) MyPlayer->CancelLocalAim();
+		else Player->SetSkillAiming(0);
+	}
+
 	Player->ApplyEquipChange(Part, ItemId, Stat);
 
 	if (*FoundActor == MyPlayer)
@@ -253,6 +263,20 @@ void UJMObjectManager::HandleChangeEquip(int32 ObjectId, Protocol::EquipPart Par
 			Hud->SetHp(Stat.hp(), Stat.max_hp());
 		}
 	}
+}
+
+void UJMObjectManager::HandleSkillAim(int32 ObjectId, int32 SkillId, bool bActive, uint32 Seq)
+{
+	TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(ObjectId);
+	if (FoundActor == nullptr || *FoundActor == nullptr) return;
+
+	if (*FoundActor == MyPlayer)
+	{
+		// 켜기 방송(본인 포함)은 이미 로컬에서 켰으므로 무시한다.
+		if (!bActive) MyPlayer->OnServerAimOff(Seq);
+		return;
+	}
+	(*FoundActor)->SetSkillAiming(bActive ? SkillId : 0);
 }
 
 void UJMObjectManager::HandleDead(int32 CharacterId)

@@ -68,6 +68,7 @@ PROTOBUF_CONSTEXPR ObjectInfo::ObjectInfo(
   , /*decltype(_impl_.object_type_)*/0
   , /*decltype(_impl_.player_type_)*/0
   , /*decltype(_impl_.template_id_)*/0
+  , /*decltype(_impl_.aim_skill_id_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct ObjectInfoDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ObjectInfoDefaultTypeInternal()
@@ -122,6 +123,7 @@ const uint32_t TableStruct_Struct_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
   PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.stat_),
   PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.template_id_),
   PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.equip_items_),
+  PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.aim_skill_id_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::Protocol::PositionInfo)},
@@ -143,20 +145,20 @@ const char descriptor_table_protodef_Struct_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "ocol.MoveState\"g\n\010StatInfo\022\016\n\006max_hp\030\001 \001"
   "(\005\022\n\n\002hp\030\002 \001(\005\022\025\n\rattack_damage\030\003 \001(\005\022\024\n"
   "\014attack_speed\030\004 \001(\002\022\022\n\nmove_speed\030\005 \001(\002\""
-  "\352\001\n\nObjectInfo\022\n\n\002id\030\001 \001(\005\022)\n\013object_typ"
+  "\200\002\n\nObjectInfo\022\n\n\002id\030\001 \001(\005\022)\n\013object_typ"
   "e\030\002 \001(\0162\024.Protocol.ObjectType\022)\n\013player_"
   "type\030\003 \001(\0162\024.Protocol.PlayerType\022(\n\010posi"
   "tion\030\004 \001(\0132\026.Protocol.PositionInfo\022 \n\004st"
   "at\030\005 \001(\0132\022.Protocol.StatInfo\022\023\n\013template"
-  "_id\030\006 \001(\005\022\023\n\013equip_items\030\010 \003(\005J\004\010\007\020\010b\006pr"
-  "oto3"
+  "_id\030\006 \001(\005\022\023\n\013equip_items\030\010 \003(\005\022\024\n\014aim_sk"
+  "ill_id\030\t \001(\005J\004\010\007\020\010b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_Struct_2eproto_deps[1] = {
   &::descriptor_table_Enum_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_Struct_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Struct_2eproto = {
-    false, false, 524, descriptor_table_protodef_Struct_2eproto,
+    false, false, 546, descriptor_table_protodef_Struct_2eproto,
     "Struct.proto",
     &descriptor_table_Struct_2eproto_once, descriptor_table_Struct_2eproto_deps, 1, 3,
     schemas, file_default_instances, TableStruct_Struct_2eproto::offsets,
@@ -954,6 +956,7 @@ ObjectInfo::ObjectInfo(const ObjectInfo& from)
     , decltype(_impl_.object_type_){}
     , decltype(_impl_.player_type_){}
     , decltype(_impl_.template_id_){}
+    , decltype(_impl_.aim_skill_id_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -964,8 +967,8 @@ ObjectInfo::ObjectInfo(const ObjectInfo& from)
     _this->_impl_.stat_ = new ::Protocol::StatInfo(*from._impl_.stat_);
   }
   ::memcpy(&_impl_.id_, &from._impl_.id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.template_id_) -
-    reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.template_id_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.aim_skill_id_) -
+    reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.aim_skill_id_));
   // @@protoc_insertion_point(copy_constructor:Protocol.ObjectInfo)
 }
 
@@ -982,6 +985,7 @@ inline void ObjectInfo::SharedCtor(
     , decltype(_impl_.object_type_){0}
     , decltype(_impl_.player_type_){0}
     , decltype(_impl_.template_id_){0}
+    , decltype(_impl_.aim_skill_id_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
 }
@@ -1022,8 +1026,8 @@ void ObjectInfo::Clear() {
   }
   _impl_.stat_ = nullptr;
   ::memset(&_impl_.id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.template_id_) -
-      reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.template_id_));
+      reinterpret_cast<char*>(&_impl_.aim_skill_id_) -
+      reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.aim_skill_id_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1090,6 +1094,14 @@ const char* ObjectInfo::_InternalParse(const char* ptr, ::_pbi::ParseContext* ct
           CHK_(ptr);
         } else if (static_cast<uint8_t>(tag) == 64) {
           _internal_add_equip_items(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 aim_skill_id = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 72)) {
+          _impl_.aim_skill_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1172,6 +1184,12 @@ uint8_t* ObjectInfo::_InternalSerialize(
     }
   }
 
+  // int32 aim_skill_id = 9;
+  if (this->_internal_aim_skill_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(9, this->_internal_aim_skill_id(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1238,6 +1256,11 @@ size_t ObjectInfo::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_template_id());
   }
 
+  // int32 aim_skill_id = 9;
+  if (this->_internal_aim_skill_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_aim_skill_id());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -1277,6 +1300,9 @@ void ObjectInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PRO
   if (from._internal_template_id() != 0) {
     _this->_internal_set_template_id(from._internal_template_id());
   }
+  if (from._internal_aim_skill_id() != 0) {
+    _this->_internal_set_aim_skill_id(from._internal_aim_skill_id());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -1296,8 +1322,8 @@ void ObjectInfo::InternalSwap(ObjectInfo* other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   _impl_.equip_items_.InternalSwap(&other->_impl_.equip_items_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ObjectInfo, _impl_.template_id_)
-      + sizeof(ObjectInfo::_impl_.template_id_)
+      PROTOBUF_FIELD_OFFSET(ObjectInfo, _impl_.aim_skill_id_)
+      + sizeof(ObjectInfo::_impl_.aim_skill_id_)
       - PROTOBUF_FIELD_OFFSET(ObjectInfo, _impl_.position_)>(
           reinterpret_cast<char*>(&_impl_.position_),
           reinterpret_cast<char*>(&other->_impl_.position_));

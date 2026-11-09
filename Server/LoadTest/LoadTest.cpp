@@ -140,6 +140,9 @@ int main(int argc, char** argv)
 	if (GConfig.hunt)
 		printf("[summary] hunt: monsterAdded=%lld monsterDead(SC_DEAD)=%lld monsterRemoved(SC_REMOVE_OBJECT)=%lld damagePackets=%lld\n",
 			GStat.monsterAdded.load(), GStat.monsterDead.load(), GStat.monsterRemoved.load(), GStat.damageRecv.load());
+	if (GConfig.aim)
+		printf("[summary] aim: sent=%lld recv(SC_SKILL_AIM)=%lld ownOff(reject/timeout)=%lld\n",
+			GStat.aimSent.load(), GStat.aimRecv.load(), GStat.aimOwnOff.load());
 	if (GConfig.equipIntervalMs > 0)
 		printf("[summary] equip: sent=%lld ok(own SC_CHANGE_EQUIP)=%lld rejected(SC_CHANGE_EQUIP_RESULT)=%lld\n",
 			GStat.equipSent.load(), GStat.equipOk.load(), GStat.equipRejected.load());

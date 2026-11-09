@@ -68,6 +68,7 @@ void AJMMyPlayer::PossessedBy(AController* NewController)
 	MoveSendInterval = Row->MoveSendIntervalMs / 1000.f;
 	MoveMinInterval = Row->ServerMinMoveIntervalMs / 1000.f;
 	MoveSendTurnCos = Row->MoveSendTurnDeg > 0.f ? FMath::Cos(FMath::DegreesToRadians(Row->MoveSendTurnDeg)) : -2.f;
+	AimMinInterval = Row->ServerAimMinIntervalMs / 1000.f;
 
 	// 카메라 피치 제한과 시작 각도 (음수 피치 = 아래로 내려다봄)
 	if (APlayerController* PC = Cast<APlayerController>(NewController))
@@ -132,8 +133,9 @@ void AJMMyPlayer::Tick(float DeltaTime)
 	{
 		const FSkillTableRow* AimSkill = FindMySkill(AimingSlot);
 		FAimResult Aim;
-		if (AimSkill && ComputeAim(*AimSkill, Aim)) DrawAimIndicator(*AimSkill, Aim);
-		else if (AimSkill == nullptr) bAiming = false;
+		if (AimSkill == nullptr) EndLocalAim(true);
+		else if ((FPlatformTime::Seconds() - AimStartTime) * 1000.0 >= AimMaxMs) EndLocalAim(true);   // 최대 유지 시간: 서버보다 먼저 끈다
+		else if (ComputeAim(*AimSkill, Aim)) DrawAimIndicator(*AimSkill, Aim);
 	}
 
 	UNetworkManager* NetManager = UNetworkManager::Get(this);
@@ -358,7 +360,7 @@ void AJMMyPlayer::CastSkillSlot(int32 Slot)
 	const FSkillTableRow* Skill = FindMySkill(Slot);
 	if (Skill == nullptr)
 	{
-		bAiming = false;
+		EndLocalAim(true);
 		return;
 	}
 
@@ -373,7 +375,8 @@ void AJMMyPlayer::CastSkillSlot(int32 Slot)
 	// 반응성을 위해 시전 방향으로 바로 돌린다. 실제 판정 방향은 서버가 확정한다.
 	SetActorRotation(FRotator(0.f, Aim.Yaw, 0.f));
 	LockFacingForSkill(*Skill);
-	bAiming = false;
+	// 서버는 CS_ATTACK을 받으며 조준을 해제한다(성공이든 실패든). 끄기를 따로 보내지 않는다.
+	EndLocalAim(false);
 }
 
 void AJMMyPlayer::OnAttackInput()
@@ -390,18 +393,83 @@ void AJMMyPlayer::OnSkill1Input()
 	// 1번 키: 조준 진입. 조준 중에 다시 누르면 취소한다.
 	if (bAiming && AimingSlot == 1)
 	{
-		bAiming = false;
+		EndLocalAim(true);
 		return;
 	}
-
-	if (FindMySkill(1) != nullptr)
-	{
-		bAiming = true;
-		AimingSlot = 1;
-	}
+	BeginLocalAim(1);
 }
 
 void AJMMyPlayer::OnCancelAimInput()
 {
+	EndLocalAim(true);
+}
+
+void AJMMyPlayer::BeginLocalAim(int32 Slot)
+{
+	if (bIsDead) return;
+	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const FSkillTableRow* Skill = FindMySkill(Slot);
+	const int32 SkillId = DataManager ? DataManager->FindSkillIdBySlot(GetWeaponType(), Slot) : 0;
+	if (Skill == nullptr || SkillId == 0) return;
+
+	// 조준 단계가 없는 스킬(AimMaxMs 0)은 바로 시전한다.
+	if (Skill->AimMaxMs <= 0)
+	{
+		EndLocalAim(true);
+		CastSkillSlot(Slot);
+		return;
+	}
+
+	const double Now = FPlatformTime::Seconds();
+	if (const double* CooldownEnd = SkillCooldownEnd.Find(SkillId); CooldownEnd && Now < *CooldownEnd) return;
+	if (Now - LastAimOnTime < AimMinInterval) return;   // 서버가 거부할 빈도
+
+	if (bAiming) EndLocalAim(true);   // 다른 슬롯으로 바꿔 조준
+
+	LastAimOnTime = Now;
+	AimStartTime = Now;
+	AimMaxMs = Skill->AimMaxMs;
+	bAiming = true;
+	AimingSlot = Slot;
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this))
+		NetManager->SendSkillAim(Slot, true, ++AimSeq);
+	SetSkillAiming(SkillId);   // 이동 속도 배율을 바로 적용(서버 예산과 같은 배율)
+}
+
+void AJMMyPlayer::EndLocalAim(bool bSendOff)
+{
+	if (!bAiming) return;
 	bAiming = false;
+	if (bSendOff)
+	{
+		if (UNetworkManager* NetManager = UNetworkManager::Get(this))
+			NetManager->SendSkillAim(AimingSlot, false, ++AimSeq);
+	}
+	SetSkillAiming(0);
+}
+
+void AJMMyPlayer::OnServerAimOff(uint32 Seq)
+{
+	if (bAiming && Seq == AimSeq)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[SkillAim] 서버 해제(거부·시간 초과) seq=%u"), Seq);
+		EndLocalAim(false);
+	}
+}
+
+void AJMMyPlayer::CancelLocalAim()
+{
+	EndLocalAim(true);
+}
+
+void AJMMyPlayer::NoteSkillCooldown(int32 SkillId, int32 CooldownMs)
+{
+	if (CooldownMs > 0)
+		SkillCooldownEnd.Add(SkillId, FPlatformTime::Seconds() + CooldownMs / 1000.0);
+}
+
+void AJMMyPlayer::OnDead()
+{
+	EndLocalAim(true);   // 서버는 사망 때 이미 해제했다(끄기는 무시됨)
+	Super::OnDead();
 }

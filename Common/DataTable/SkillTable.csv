@@ -1,7 +1,7 @@
-Name,WeaponType,Slot,TargetingType,HitShape,HitDelayMs,CooldownMs,AnimMs,CastRange,Radius,Angle,Range,Width,BaseDamage,ProjSpeed,DurationMs,TickMs,Fx,FxBaseRadius,Montage,Icon
-1001,Unarmed,0,NonTargeted,Sector,414,0,1000,0,150,180,0,0,30,0,0,0,,0,/Game/Character/Mannequin/Anims/Unarmed/AM_Unarmed_Attack.AM_Unarmed_Attack,
-2001,Sword,0,NonTargeted,Sector,620,0,1500,0,190,180,0,0,50,0,0,0,,0,/Game/Character/Mannequin/Anims/OneHandSword/AM_OneHandSword_Attack.AM_OneHandSword_Attack,
-2002,Sword,1,NonTargeted,Sector,1250,5000,2333,0,300,360,0,0,120,0,0,0,/Game/Character/Greystone/P_Greystone_GroundSmash.P_Greystone_GroundSmash,300,/Game/Character/Mannequin/Anims/OneHandSword/AM_OneHandSword_Skill1.AM_OneHandSword_Skill1,/Game/Character/Greystone/Icons/T_Greystone_Icon_Skill1.T_Greystone_Icon_Skill1
-3001,Bow,0,Targeted,Projectile,200,0,1000,1800,0,0,1800,80,35,3000,0,0,,0,/Game/Character/Sparrow/AM_Sparrow_Attack.AM_Sparrow_Attack,
-3002,Bow,1,NonTargeted,Zone,666,5000,1700,1500,400,0,0,0,20,0,3000,1000,/Game/Character/Sparrow/P_Sparrow_RainofArrows.P_Sparrow_RainofArrows,400,/Game/Character/Sparrow/AM_Sparrow_Skill1.AM_Sparrow_Skill1,/Game/Character/Sparrow/Icons/T_Sparrow_Icon_Skill1.T_Sparrow_Icon_Skill1
-9001,Monster,0,NonTargeted,Sector,400,0,1000,0,170,150,0,0,40,0,0,0,,0,/Game/Character/Rampage/AM_Rampage_Attack.AM_Rampage_Attack,
+Name,WeaponType,Slot,TargetingType,HitShape,HitDelayMs,CooldownMs,AnimMs,CastRange,Radius,Angle,Range,Width,BaseDamage,ProjSpeed,DurationMs,TickMs,AimMoveSpeedMul,AimMaxMs,Fx,FxBaseRadius,Montage,Icon
+1001,Unarmed,0,NonTargeted,Sector,414,0,1000,0,150,180,0,0,30,0,0,0,1.0,0,,0,/Game/Character/Mannequin/Anims/Unarmed/AM_Unarmed_Attack.AM_Unarmed_Attack,
+2001,Sword,0,NonTargeted,Sector,620,0,1500,0,190,180,0,0,50,0,0,0,1.0,0,,0,/Game/Character/Mannequin/Anims/OneHandSword/AM_OneHandSword_Attack.AM_OneHandSword_Attack,
+2002,Sword,1,NonTargeted,Sector,1250,5000,2333,0,300,360,0,0,120,0,0,0,1.0,10000,/Game/Character/Greystone/P_Greystone_GroundSmash.P_Greystone_GroundSmash,300,/Game/Character/Mannequin/Anims/OneHandSword/AM_OneHandSword_Skill1.AM_OneHandSword_Skill1,/Game/Character/Greystone/Icons/T_Greystone_Icon_Skill1.T_Greystone_Icon_Skill1
+3001,Bow,0,Targeted,Projectile,200,0,1000,1800,0,0,1800,80,35,3000,0,0,1.0,0,,0,/Game/Character/Sparrow/AM_Sparrow_Attack.AM_Sparrow_Attack,
+3002,Bow,1,NonTargeted,Zone,666,5000,1700,1500,400,0,0,0,20,0,3000,1000,0.4,10000,/Game/Character/Sparrow/P_Sparrow_RainofArrows.P_Sparrow_RainofArrows,400,/Game/Character/Sparrow/AM_Sparrow_Skill1.AM_Sparrow_Skill1,/Game/Character/Sparrow/Icons/T_Sparrow_Icon_Skill1.T_Sparrow_Icon_Skill1
+9001,Monster,0,NonTargeted,Sector,400,0,1000,0,170,150,0,0,40,0,0,0,1.0,0,,0,/Game/Character/Rampage/AM_Rampage_Attack.AM_Rampage_Attack,

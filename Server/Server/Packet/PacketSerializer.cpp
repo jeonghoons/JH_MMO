@@ -78,6 +78,16 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHANGE_EQUIP_RESULT(Protocol::E
 	return MakeSendBuffer(packet, Protocol::SC_CHANGE_EQUIP_RESULT);
 }
 
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_SKILL_AIM(int objectId, int skillId, bool active, uint32_t seq)
+{
+	Protocol::SC_SKILL_AIM_PACKET packet;
+	packet.set_object_id(objectId);
+	packet.set_skill_id(skillId);
+	packet.set_active(active);
+	packet.set_seq(seq);
+	return MakeSendBuffer(packet, Protocol::SC_SKILL_AIM);
+}
+
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHAT(int senderId, const wstring& senderName, const wstring& message)
 {
 	Protocol::SC_CHAT_PACKET packet;

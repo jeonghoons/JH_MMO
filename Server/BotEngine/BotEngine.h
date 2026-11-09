@@ -25,6 +25,7 @@ struct BotConfig
 	bool turn = false;         // turn 프로필(MC4.1b): 직선으로 걷다 turnIntervalMs마다 90° 꺾음 — 원격 이동 표시 측정용(--move-interval 200과 함께)
 	int turnIntervalMs = 1500;
 	bool turnSend = false;     // --turn-send: 꺾는 순간 모서리 위치를 바로 보내고 새 방향은 60ms 뒤부터(클라 '방향 바뀌면 즉시 송신' 모사, MC4.1b)
+	bool aim = false;          // --aim (MC4.2d-1): 활을 장착하고, 1번 스킬은 조준을 켜고 300~800ms 느리게 움직인 뒤 쏜다(10%는 취소). hunt와 함께
 	int equipIntervalMs = 0;   // >0이면 이 간격(±50%)마다 무작위 장비 교체 요청, 10%는 바로 한 번 더 보냄(빈도 제한 시험). 장비 저장 측정용(MC3.3)
 	std::string outFile;
 	std::string serverProc = "GameServer.exe";
@@ -41,6 +42,7 @@ struct BotCounters
 	std::atomic<long long> loginOk{ 0 }, loginFail{ 0 }, unexpectedClose{ 0 }, protocolError{ 0 }, sendDropped{ 0 };
 	std::atomic<long long> pktSent{ 0 }, pktRecv{ 0 }, bytesRecv{ 0 }, pongRecv{ 0 }, moveCorrected{ 0 };
 	std::atomic<long long> monsterDead{ 0 }, monsterRemoved{ 0 }, monsterAdded{ 0 }, damageRecv{ 0 }, objectAdded{ 0 };
+	std::atomic<long long> aimSent{ 0 }, aimRecv{ 0 }, aimOwnOff{ 0 };   // CS_SKILL_AIM / 받은 SC_SKILL_AIM / 내 조준의 거부·시간 초과
 	std::atomic<long long> equipSent{ 0 }, equipOk{ 0 }, equipRejected{ 0 };   // 장착 요청 / 내 SC_CHANGE_EQUIP / SC_CHANGE_EQUIP_RESULT
 	std::atomic<int> connected{ 0 }, inGame{ 0 };
 	// 구간(리포트 간격) 동안 봇 한 명이 받은 최대 바이트. 리포터가 읽으며 0으로 되돌리고 windowEpoch를 올린다.

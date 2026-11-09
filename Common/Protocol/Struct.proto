@@ -32,6 +32,7 @@ message ObjectInfo {
 	int32 template_id = 6;   // 몬스터 = MonsterTable ID(종류), 플레이어 = 0
 	reserved 7;   // appearance_items (모듈러 외형 잔재, 2026-10-28 삭제)
 	repeated int32 equip_items = 8;
+	int32 aim_skill_id = 9;   // 스킬 조준 중인 스킬 ID(0 = 조준 안 함). 클라는 스폰(SC_ADD_OBJECT) 때만 읽는다
 }
 
 

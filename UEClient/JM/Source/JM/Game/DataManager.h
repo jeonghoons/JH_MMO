@@ -21,6 +21,8 @@ public:
 
 	// 무기 타입의 슬롯(0 = 기본 공격, 1~5 = 숫자키)에 해당하는 스킬 행. 없으면 nullptr (몬스터 스킬은 ID로 찾는다)
 	const FSkillTableRow* FindSkillBySlot(EWeaponType WeaponType, int32 Slot) const;
+	// 위와 같은 행의 스킬 ID(RowName). 없으면 0
+	int32 FindSkillIdBySlot(EWeaponType WeaponType, int32 Slot) const;
 
 	// 아이템 ID(ItemTable의 RowName)로 찾는다. 없거나 테이블이 지정되지 않았으면 nullptr
 	const FItemTableRow* FindItemById(int32 ItemId) const;

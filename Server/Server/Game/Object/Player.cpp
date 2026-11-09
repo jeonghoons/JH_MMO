@@ -82,7 +82,45 @@ void Player::OnDamaged(int damage, int attackerId, std::shared_ptr<Character> at
 
 void Player::OnDead(std::shared_ptr<Character> attacker)
 {
+	// 조준 해제는 상태만 바꾼다 — 원격 클라이언트는 SC_DEAD로, 본인 클라이언트는 자기 사망 처리로 끈다(DECISIONS 2026-11-09).
+	if (IsSkillAiming())
+		SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
 	Character::OnDead(attacker);
+}
+
+float Player::GetMoveSpeedLimit(const MovementData& rule) const
+{
+	return _objectInfo.stat().move_speed() * rule.speedTolerance * aim.speedMul;
+}
+
+void Player::AccrueMoveBudget(long long nowMs, const MovementData& rule)
+{
+	const float maxSpeed = GetMoveSpeedLimit(rule);
+	const float budgetCap = maxSpeed * rule.moveBudgetMs / 1000.f;
+	moveGuard.budgetCm = min(budgetCap, moveGuard.budgetCm + maxSpeed * (nowMs - moveGuard.lastAccrueMs) / 1000.f);
+	moveGuard.lastAccrueMs = nowMs;
+}
+
+bool Player::SetSkillAim(const SkillData* skill, long long nowMs)
+{
+	const bool wasAiming = IsSkillAiming();
+	if (const MovementData* rule = DataManager::GetMovementData(PLAYER_MOVEMENT_ID))   // 서버 시작 때 존재를 확인했다
+		AccrueMoveBudget(nowMs, *rule);
+
+	if (skill != nullptr)
+	{
+		aim.skillId = skill->skillId;
+		aim.speedMul = skill->aimMoveSpeedMul;
+		aim.deadlineMs = nowMs + skill->aimMaxMs;
+	}
+	else
+	{
+		aim.skillId = 0;
+		aim.speedMul = 1.f;
+		aim.deadlineMs = 0;
+	}
+	_objectInfo.set_aim_skill_id(aim.skillId);
+	return wasAiming;
 }
 
 void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)

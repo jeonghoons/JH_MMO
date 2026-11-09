@@ -122,6 +122,7 @@ void Room::Update(long long elapsedTime)
 		object.second->Update(dt);
 	}
 	UpdateZones();
+	UpdateAims(currentTick);
 	Metrics::TickBody.Add(chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - bodyStart).count());
 
 	// 1초(10틱)마다 플레이어별 시야 인원을 표본으로 남긴다(지표용, 틱 본문 시간에는 넣지 않음).
@@ -204,6 +205,8 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	// 이동 검증 상태: 예산 0에서 시작해 시간이 지나면 모인다.
 	player->moveGuard = {};
 	player->moveGuard.lastAccrueMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	// 조준 상태도 새로 시작한다(seq는 클라이언트 값이라 그대로 둔다).
+	player->SetSkillAim(nullptr, player->moveGuard.lastAccrueMs);
 	
 	LOG_DEBUG("Room", "Client[{}] Enter Room", player->GetId());
 
@@ -241,6 +244,10 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 
 	if (_players.erase(playerId) > 0)
 		ReleaseSlot();
+
+	// 조준 중이었다면 상태만 지운다(SC_REMOVE_OBJECT로 다른 사람의 표시는 사라진다).
+	if (player->IsSkillAiming())
+		player->SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
 
 	// 저장에 실패해 남은 변경이 있으면 나갈 때 다시 저장한다. (진행 중인 저장은 OnEquipSaved에서 마무리된다)
 	if (player->equipSaveDirty && !player->equipSaveInFlight)
@@ -293,10 +300,9 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 
 	// 4) 속도: 경과 시간 × 이동 속도 × 허용 배율만큼 예산이 모이고(상한 = BudgetMs 분량), 이동 거리만큼 쓴다.
 	//    지연으로 패킷이 몰려 와도 평균 속도가 맞으면 통과한다.
-	const float maxSpeed = player->GetInfo().stat().move_speed() * rule->speedTolerance;
-	const float budgetCap = maxSpeed * rule->moveBudgetMs / 1000.f;
-	guard.budgetCm = min(budgetCap, guard.budgetCm + maxSpeed * (nowMs - guard.lastAccrueMs) / 1000.f);
-	guard.lastAccrueMs = nowMs;
+	//    스킬 조준 중이면 속도 상한에 AimMoveSpeedMul이 곱해진다(MC4.2d-1).
+	player->AccrueMoveBudget(nowMs, *rule);
+	const float maxSpeed = player->GetMoveSpeedLimit(*rule);
 
 	const float dx = position.x() - currentPos.x(), dy = position.y() - currentPos.y();
 	const float dist = sqrtf(dx * dx + dy * dy);
@@ -346,6 +352,68 @@ void Room::PlayerPing(shared_ptr<Player> player, long long clientTime)
 		session->Send(PacketSerializer::MAKE_SC_PONG(clientTime));
 }
 
+void Room::PlayerSkillAim(shared_ptr<Player> player, int slot, bool active, uint32_t seq)
+{
+	if (player == nullptr || Id2Player(player->GetId()) == nullptr) return;
+
+	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	player->aim.seq = seq;
+
+	// 끄기: 조준 중일 때만 해제하고 다른 사람에게 알린다. 빈도 제한 없이 항상 받는다(버리면 서버만 느린 상태로 남는다).
+	if (!active)
+	{
+		if (!player->IsSkillAiming()) return;
+		player->SetSkillAim(nullptr, nowMs);
+		Metrics::AimOff.fetch_add(1);
+		BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_SKILL_AIM(player->GetId(), 0, false, 0));
+		return;
+	}
+
+	// 켜기: 생존 → 조준할 수 있는 스킬(슬롯 1~5, AimMaxMs > 0) → 쿨타임 → 빈도. 피격 경직·시전 중은 허용한다(확정할 때 CastSkill이 다시 본다).
+	const SkillData* skill = player->FindSlotSkill(slot);
+	const MovementData* rule = DataManager::GetMovementData(PLAYER_MOVEMENT_ID);   // 서버 시작 때 존재를 확인했다
+	const char* reason = nullptr;
+	if (player->GetStat().IsDead()) reason = "dead";
+	else if (skill == nullptr || skill->slot == 0 || skill->aimMaxMs <= 0) reason = "not-aimable";
+	else if (!player->IsSkillReady(skill->skillId)) reason = "cooldown";
+	else if (!player->aim.onCooldown.IsReady()) reason = "too-frequent";
+
+	if (reason != nullptr)
+	{
+		LOG_DEBUG("Aim", "거부 player={} slot={} seq={} reason={}", player->GetId(), slot, seq, reason);
+		Metrics::AimReject.fetch_add(1);
+		// 거부는 본인에게만(seq 포함 — 본인 클라이언트는 seq가 최신일 때만 끈다). 이미 조준 중이었다면 클라이언트가 끄게 되므로
+		// 서버도 함께 해제하고 다른 사람에게 알린다.
+		if (player->IsSkillAiming())
+		{
+			player->SetSkillAim(nullptr, nowMs);
+			BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_SKILL_AIM(player->GetId(), 0, false, 0));
+		}
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_SKILL_AIM(player->GetId(), 0, false, seq));
+		return;
+	}
+
+	player->aim.onCooldown.Reset(rule->aimMinIntervalMs);
+	player->SetSkillAim(skill, nowMs);
+	Metrics::AimOn.fetch_add(1);
+	BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_SKILL_AIM(player->GetId(), skill->skillId, true, 0), true);
+}
+
+void Room::UpdateAims(long long nowMs)
+{
+	for (const auto& [id, player] : _players)
+	{
+		if (!player->IsSkillAiming() || nowMs < player->aim.deadlineMs) continue;
+
+		player->SetSkillAim(nullptr, nowMs);
+		Metrics::AimTimeout.fetch_add(1);
+		BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_SKILL_AIM(id, 0, false, 0));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_SKILL_AIM(id, 0, false, player->aim.seq));
+	}
+}
+
 void Room::PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part, int itemId)
 {
 	if (player == nullptr) return;
@@ -375,6 +443,10 @@ void Room::PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part
 
 	// 같은 아이템이면 바뀌는 것이 없다 (잠금·방송 없이 끝낸다)
 	if (player->GetEquippedItem(part) == itemId) return;
+
+	// 무기가 바뀌면 조준 중인 스킬도 바뀌므로 조준을 해제한다. 상태만 바꾼다 — 원격은 SC_CHANGE_EQUIP으로, 본인은 자기 무기 교체 처리로 끈다.
+	if (part == Protocol::EQUIP_PART_WEAPON && player->IsSkillAiming())
+		player->SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
 
 	player->SetEquippedItem(part, itemId);
 	player->RecalcStat();
@@ -473,11 +545,37 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 	if (caster == nullptr) return;
 	if (GetGameObject(caster->GetId()) == nullptr) return;   // 이 방에 없는 시전자
 
+	const bool casterIsPlayer = (caster->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER);
+
+	// 스킬 조준 중이었다면 공격 요청을 받는 순간(검증 전) 해제한다(MC4.2d-1, DECISIONS 2026-11-09).
+	// 본인 클라이언트는 공격을 보내면서 이미 껐다. 시전이 확정되면 SC_ATTACK이 다른 사람에게 해제를 뜻하고,
+	// 아래 검증에서 실패해 돌아가면 소멸자가 다른 사람에게 false를 보낸다(조준 자세가 남지 않게).
+	struct AimClearNotice
+	{
+		Room* room = nullptr;
+		shared_ptr<Character> caster;
+		bool pending = false;
+		~AimClearNotice()
+		{
+			if (pending)
+				room->BroadcastAOI(caster, PacketSerializer::MAKE_SC_SKILL_AIM(caster->GetId(), 0, false, 0));
+		}
+	} aimNotice{ this, caster, false };
+	if (casterIsPlayer)
+	{
+		shared_ptr<Player> player = static_pointer_cast<Player>(caster);
+		if (player->IsSkillAiming())
+		{
+			player->SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
+			Metrics::AimCastClear.fetch_add(1);
+			aimNotice.pending = true;
+		}
+	}
+
 	const SkillData* skill = caster->FindCastableSkill(slot);
 	if (skill == nullptr) return;
 
 	const Protocol::PositionInfo& pos = caster->GetPosition();
-	const bool casterIsPlayer = (caster->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER);
 	constexpr float RAD_TO_DEG = 180.0f / MathUtils::PI;
 
 	float yaw = aimYaw;
@@ -525,7 +623,8 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 		}
 	}
 
-	// 여기부터 시전이 확정된다.
+	// 여기부터 시전이 확정된다. 조준 해제는 SC_ATTACK이 알린다.
+	aimNotice.pending = false;
 	caster->GetMutablePosition()->set_yaw(yaw);
 	const Character::CastTiming timing = caster->BeginCast(*skill);
 	if (casterIsPlayer)

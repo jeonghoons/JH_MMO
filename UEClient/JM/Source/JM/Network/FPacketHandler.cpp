@@ -22,6 +22,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_CHAT, &FPacketHandler::Handle_SC_CHAT);
 	RegisterHandler(Protocol::SC_CHANGE_EQUIP, &FPacketHandler::Handle_SC_CHANGE_EQUIP);
 	RegisterHandler(Protocol::SC_CHANGE_EQUIP_RESULT, &FPacketHandler::Handle_SC_CHANGE_EQUIP_RESULT);
+	RegisterHandler(Protocol::SC_SKILL_AIM, &FPacketHandler::Handle_SC_SKILL_AIM);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -169,6 +170,12 @@ void FPacketHandler::Handle_SC_CHANGE_EQUIP(TSharedPtr<NetworkSession>& session,
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandleChangeEquip(pkt.object_id(), pkt.part(), pkt.item_id(), pkt.stat());
+}
+
+void FPacketHandler::Handle_SC_SKILL_AIM(TSharedPtr<NetworkSession>& session, Protocol::SC_SKILL_AIM_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleSkillAim(pkt.object_id(), pkt.skill_id(), pkt.active(), pkt.seq());
 }
 
 void FPacketHandler::Handle_SC_CHANGE_EQUIP_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_RESULT_PACKET& pkt)

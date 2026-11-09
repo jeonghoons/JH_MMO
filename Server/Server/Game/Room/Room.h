@@ -68,6 +68,9 @@ public:
 	// 장비 6칸을 DB에 저장한다(MC3.3). 플레이어당 동시에 하나만 보내고 나머지는 합친다. 방을 나간 플레이어도 받는다.
 	void RequestEquipSave(shared_ptr<Player> player);
 	void OnEquipSaved(shared_ptr<Player> player, bool success);
+	// 스킬 조준 켜기/끄기(MC4.2d-1, DECISIONS 2026-11-09). 켜기 성공 = AOI 전체(본인 포함) 방송, 거부 = 본인에게만 false + seq,
+	// 끄기 = 조준 중일 때만 해제하고 본인 제외 방송(본인 클라이언트는 이미 껐다).
+	void PlayerSkillAim(shared_ptr<Player> player, int slot, bool active, uint32_t seq);
 
 	// 슬롯(0 = 기본 공격)의 스킬을 시전한다. 사거리/대상/방향은 서버가 검증·보정하며, 실패하면 아무 일도 일어나지 않는다.
 	void CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY);
@@ -120,6 +123,8 @@ private:
 	};
 	vector<SkillZone> _zones;
 	void UpdateZones();
+	// AimMaxMs가 지난 조준을 해제한다(Update마다). 본인에게는 seq를 실어, 다른 사람에게는 seq 없이 보낸다.
+	void UpdateAims(long long nowMs);
 
 	atomic<int> _playerCount = 0;
 	int _tickCount = 0;   // Update 횟수. 1초(10틱)마다 시야 인원 지표·시야 감사를 하는 데 쓴다

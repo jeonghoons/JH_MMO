@@ -44,6 +44,10 @@ void PacketHandler::Init()
     GPacketHandler[Protocol::CS_CHANGE_EQUIP] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_CHANGE_EQUIP_PACKET>(&PacketHandler::Handle_CS_CHANGE_EQUIP, session, buffer, len);
         };
+
+    GPacketHandler[Protocol::CS_SKILL_AIM] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_SKILL_AIM_PACKET>(&PacketHandler::Handle_CS_SKILL_AIM, session, buffer, len);
+        };
 }
 
 void PacketHandler::ProcessPacket(shared_ptr<GameSession> session, BYTE* buffer, int len)
@@ -194,6 +198,21 @@ void PacketHandler::Handle_CS_CHANGE_EQUIP(shared_ptr<GameSession> session, Prot
 
     // 슬롯·아이템·상태·빈도 검증과 결과 응답은 Room 잡에서 한다(플레이어 상태는 Room 스레드에서만 바꾼다).
     room->PushJob(&Room::PlayerChangeEquip, player, pkt.part(), pkt.item_id());
+}
+
+void PacketHandler::Handle_CS_SKILL_AIM(shared_ptr<GameSession> session, Protocol::CS_SKILL_AIM_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    // 슬롯 범위 밖은 버린다. 스킬·상태·빈도 검증과 응답은 Room::PlayerSkillAim이 한다.
+    const int slot = pkt.slot();
+    if (slot < 0 || slot > 5) return;
+
+    room->PushJob(&Room::PlayerSkillAim, player, slot, pkt.active(), pkt.seq());
 }
 
 void PacketHandler::Handle_CS_ATTACK(shared_ptr<GameSession> session, Protocol::CS_ATTACK_PACKET& pkt)

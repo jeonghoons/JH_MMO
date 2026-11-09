@@ -39,6 +39,15 @@ public:
 	// 서버가 내 이동을 거부했을 때(SC_MOVE 보정) 서버 위치로 돌아가고, 이후 이동 패킷에 그 순번을 싣는다. (서버 권위 이동, S1)
 	void ApplyServerCorrection(const Protocol::PositionInfo& ServerPos, uint32 Seq);
 
+	// 스킬 조준(MC4.2d-1, DECISIONS 2026-11-09): 내 조준 상태는 로컬이 권위다. 서버가 본인에게 보낸 해제(거부·시간 초과)는
+	// Seq가 지금 조준의 것일 때만 반영한다(늦게 온 옛 응답이 새 조준을 끄지 않게).
+	void OnServerAimOff(uint32 Seq);
+	// 내 무기가 바뀌면 조준을 끈다. 서버에도 끄기를 보낸다(서버가 이미 해제했으면 무시).
+	void CancelLocalAim();
+	// 서버가 적용한 스킬 쿨타임(SC_ATTACK.cooldown_ms)을 기록한다. 쿨타임 중에는 조준에 들어가지 않는다.
+	void NoteSkillCooldown(int32 SkillId, int32 CooldownMs);
+	virtual void OnDead() override;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* DefaultMappingContext;
@@ -103,7 +112,17 @@ private:
 	void DrawAimIndicator(const FSkillTableRow& Skill, const FAimResult& Aim) const;
 	void CastSkillSlot(int32 Slot);
 
+	// 조준 켜기/끄기. 켜기는 쿨타임·사망·빈도·AimMaxMs를 로컬에서 먼저 본다. bSendOff = 서버에 끄기를 보낼지(확정 공격은 서버가 해제하므로 false)
+	void BeginLocalAim(int32 Slot);
+	void EndLocalAim(bool bSendOff);
+
 	bool bAiming = false;
 	int32 AimingSlot = 0;
+	uint32 AimSeq = 0;                 // CS_SKILL_AIM을 보낼 때마다 +1
+	double AimStartTime = 0.0;         // FPlatformTime::Seconds
+	double LastAimOnTime = -1.0e9;
+	int32 AimMaxMs = 0;                // 지금 조준 스킬의 최대 유지 시간. 지나면 로컬에서 취소를 보낸다
+	float AimMinInterval = 0.2f;       // MovementTable.ServerAimMinIntervalMs (PossessedBy)
+	TMap<int32, double> SkillCooldownEnd;   // 스킬 ID → 쿨타임 끝 시각(FPlatformTime::Seconds)
 	uint64 LastAttackInputFrame = 0;
 };

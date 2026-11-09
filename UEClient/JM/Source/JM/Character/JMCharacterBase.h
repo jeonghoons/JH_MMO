@@ -55,6 +55,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	void PlayAttackAnim(float PlayRate = 1.f);
 
+	// 스킬 조준 상태(MC4.2d-1). SkillId 0 = 끔. 원격 캐릭터는 SC_SKILL_AIM·스폰(ObjectInfo.aim_skill_id)·암묵 해제(SC_ATTACK·SC_DEAD·무기 교체)로,
+	// 내 캐릭터는 로컬 입력(AJMMyPlayer)으로 정한다. 이동 속도에 SkillTable.AimMoveSpeedMul을 곱한다(서버 이동 예산과 같은 배율).
+	void SetSkillAiming(int32 SkillId);
+	bool IsSkillAiming() const { return AimSkillId != 0; }
+	int32 GetAimSkillId() const { return AimSkillId; }
+	// MaxWalkSpeed = 서버 스탯 move_speed × 조준 배율. 스탯이 바뀌거나 조준이 바뀔 때 부른다.
+	void RefreshMoveSpeed();
+
 	// 피격·사망 몽타주를 데이터(BodyTable)에서 넣는다(MC4.2, UEquipmentComponent가 로드 뒤 호출). nullptr면 그 몽타주를 재생하지 않는다.
 	void SetReactionMontages(UAnimMontage* Hit, UAnimMontage* Dead);
 
@@ -78,6 +86,9 @@ protected:
 
 	// 사망한 뒤에는 서버가 보내는 좌표로 보간하지 않는다. 서버 Z는 바닥 높이라서 따라가면 캡슐 중심이 바닥까지 내려와 몸이 땅에 박힌다.
 	bool bIsDead = false;
+
+	int32 AimSkillId = 0;
+	float AimSpeedMul = 1.f;
 
 protected:
 	Protocol::ObjectInfo				ObjectInfo;

@@ -182,6 +182,15 @@ void UNetworkManager::SendChangeEquip(int32 Part, int32 ItemId)
 	SendProtocol(*this, pkt, Protocol::CS_CHANGE_EQUIP);
 }
 
+void UNetworkManager::SendSkillAim(int32 Slot, bool bActive, uint32 Seq)
+{
+	Protocol::CS_SKILL_AIM_PACKET pkt;
+	pkt.set_slot(Slot);
+	pkt.set_active(bActive);
+	pkt.set_seq(Seq);
+	SendProtocol(*this, pkt, Protocol::CS_SKILL_AIM);
+}
+
 void UNetworkManager::EnterGame()
 {
 	SwitchGameMapLevel(FName("ParagonSample"));

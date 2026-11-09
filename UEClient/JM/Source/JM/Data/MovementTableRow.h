@@ -49,4 +49,6 @@ struct FMovementTableRow : public FTableRowBase
 	// 장비 교체(MC3.2, 서버 전용): 무기 슬롯이 바뀌면 이 시간 동안 행동 잠금, 캐릭터당 장착 요청 최소 간격
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerWeaponSwapLockMs = 1000;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerEquipMinIntervalMs = 200;
+	// 스킬 조준 켜기 요청 최소 간격(MC4.2d-1). 클라이언트도 이보다 잦은 켜기는 보내지 않는다(서버가 거부)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerAimMinIntervalMs = 200;
 };

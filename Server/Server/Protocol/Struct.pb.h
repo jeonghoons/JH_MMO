@@ -610,6 +610,7 @@ class ObjectInfo final :
     kObjectTypeFieldNumber = 2,
     kPlayerTypeFieldNumber = 3,
     kTemplateIdFieldNumber = 6,
+    kAimSkillIdFieldNumber = 9,
   };
   // repeated int32 equip_items = 8;
   int equip_items_size() const;
@@ -705,6 +706,15 @@ class ObjectInfo final :
   void _internal_set_template_id(int32_t value);
   public:
 
+  // int32 aim_skill_id = 9;
+  void clear_aim_skill_id();
+  int32_t aim_skill_id() const;
+  void set_aim_skill_id(int32_t value);
+  private:
+  int32_t _internal_aim_skill_id() const;
+  void _internal_set_aim_skill_id(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.ObjectInfo)
  private:
   class _Internal;
@@ -721,6 +731,7 @@ class ObjectInfo final :
     int object_type_;
     int player_type_;
     int32_t template_id_;
+    int32_t aim_skill_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1310,6 +1321,26 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
 ObjectInfo::mutable_equip_items() {
   // @@protoc_insertion_point(field_mutable_list:Protocol.ObjectInfo.equip_items)
   return _internal_mutable_equip_items();
+}
+
+// int32 aim_skill_id = 9;
+inline void ObjectInfo::clear_aim_skill_id() {
+  _impl_.aim_skill_id_ = 0;
+}
+inline int32_t ObjectInfo::_internal_aim_skill_id() const {
+  return _impl_.aim_skill_id_;
+}
+inline int32_t ObjectInfo::aim_skill_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.aim_skill_id)
+  return _internal_aim_skill_id();
+}
+inline void ObjectInfo::_internal_set_aim_skill_id(int32_t value) {
+  
+  _impl_.aim_skill_id_ = value;
+}
+inline void ObjectInfo::set_aim_skill_id(int32_t value) {
+  _internal_set_aim_skill_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.aim_skill_id)
 }
 
 #ifdef __GNUC__

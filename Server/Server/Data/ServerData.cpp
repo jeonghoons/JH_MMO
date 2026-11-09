@@ -152,7 +152,7 @@ bool DataManager::Init()
 	}
 
 	// SkillTable: Name(=skillId), WeaponType, Slot, TargetingType, HitShape, HitDelayMs, CooldownMs, AnimMs, CastRange,
-	//             Radius, Angle, Range, Width, BaseDamage, ProjSpeed, DurationMs, TickMs
+	//             Radius, Angle, Range, Width, BaseDamage, ProjSpeed, DurationMs, TickMs, AimMoveSpeedMul, AimMaxMs
 	CsvFile skill;
 	if (!skill.Load((dir / "SkillTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
@@ -168,7 +168,8 @@ bool DataManager::Init()
 			!row.GetFloat("Radius", d.radius, err) || !row.GetFloat("Angle", d.angle, err) ||
 			!row.GetFloat("Range", d.range, err) || !row.GetFloat("Width", d.width, err) ||
 			!row.GetInt("BaseDamage", d.baseDamage, err) || !row.GetFloat("ProjSpeed", d.projSpeed, err) ||
-			!row.GetInt("DurationMs", d.durationMs, err) || !row.GetInt("TickMs", d.tickMs, err))
+			!row.GetInt("DurationMs", d.durationMs, err) || !row.GetInt("TickMs", d.tickMs, err) ||
+			!row.GetFloat("AimMoveSpeedMul", d.aimMoveSpeedMul, err) || !row.GetInt("AimMaxMs", d.aimMaxMs, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
@@ -207,6 +208,11 @@ bool DataManager::Init()
 			d.durationMs < 0 || d.tickMs < 0)
 		{
 			LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (Slot 0~5, 나머지 음수 불가, AnimMs>0, 스킬(Slot 1~5)은 CooldownMs>0)", where);
+			return false;
+		}
+		if (!(d.aimMoveSpeedMul > 0.f && d.aimMoveSpeedMul <= 1.f) || d.aimMaxMs < 0 || d.aimMaxMs > 60000 || (d.slot == 0 && d.aimMaxMs > 0))
+		{
+			LOG_ERROR("Data", "{}조준 값이 허용 범위를 벗어났습니다 (0 < AimMoveSpeedMul <= 1, 0 <= AimMaxMs <= 60000, 기본 공격(Slot 0)은 AimMaxMs = 0)", where);
 			return false;
 		}
 		if (d.targeting == SkillTargeting::Targeted && d.castRange <= 0.f)
@@ -392,7 +398,7 @@ bool DataManager::Init()
 	}
 
 	// MovementTable: Name(=movementId), ServerSpeedTolerance, ServerMoveBudgetMs, ServerMoveSlackCm, ServerMinMoveIntervalMs, ServerNavToleranceCm,
-	// ServerWeaponSwapLockMs, ServerEquipMinIntervalMs
+	// ServerWeaponSwapLockMs, ServerEquipMinIntervalMs, ServerAimMinIntervalMs
 	// (나머지 열은 클라이언트 전용이라 읽지 않는다)
 	CsvFile movement;
 	if (!movement.Load((dir / "MovementTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
@@ -403,16 +409,18 @@ bool DataManager::Init()
 		if (!row.GetInt("Name", d.id, err) || !row.GetFloat("ServerSpeedTolerance", d.speedTolerance, err) ||
 			!row.GetInt("ServerMoveBudgetMs", d.moveBudgetMs, err) || !row.GetFloat("ServerMoveSlackCm", d.moveSlackCm, err) ||
 			!row.GetInt("ServerMinMoveIntervalMs", d.minMoveIntervalMs, err) || !row.GetFloat("ServerNavToleranceCm", d.navToleranceCm, err) ||
-			!row.GetInt("ServerWeaponSwapLockMs", d.weaponSwapLockMs, err) || !row.GetInt("ServerEquipMinIntervalMs", d.equipMinIntervalMs, err))
+			!row.GetInt("ServerWeaponSwapLockMs", d.weaponSwapLockMs, err) || !row.GetInt("ServerEquipMinIntervalMs", d.equipMinIntervalMs, err) ||
+			!row.GetInt("ServerAimMinIntervalMs", d.aimMinIntervalMs, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
 		if (d.speedTolerance < 1.f || d.speedTolerance > 3.f || d.moveBudgetMs <= 0 || d.moveBudgetMs > 10000 ||
 			d.moveSlackCm < 0.f || d.minMoveIntervalMs < 0 || d.minMoveIntervalMs > 1000 || d.navToleranceCm < 0.f || d.navToleranceCm > 100.f ||
-			d.weaponSwapLockMs < 0 || d.weaponSwapLockMs > 5000 || d.equipMinIntervalMs < 0 || d.equipMinIntervalMs > 5000)
+			d.weaponSwapLockMs < 0 || d.weaponSwapLockMs > 5000 || d.equipMinIntervalMs < 0 || d.equipMinIntervalMs > 5000 ||
+			d.aimMinIntervalMs < 0 || d.aimMinIntervalMs > 5000)
 		{
-			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (1 <= ServerSpeedTolerance <= 3, 0 < ServerMoveBudgetMs <= 10000, ServerMoveSlackCm >= 0, 0 <= ServerMinMoveIntervalMs <= 1000, 0 <= ServerNavToleranceCm <= 100, 0 <= ServerWeaponSwapLockMs <= 5000, 0 <= ServerEquipMinIntervalMs <= 5000)", movement.Path(), row.Line());
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (1 <= ServerSpeedTolerance <= 3, 0 < ServerMoveBudgetMs <= 10000, ServerMoveSlackCm >= 0, 0 <= ServerMinMoveIntervalMs <= 1000, 0 <= ServerNavToleranceCm <= 100, 0 <= ServerWeaponSwapLockMs <= 5000, 0 <= ServerEquipMinIntervalMs <= 5000, 0 <= ServerAimMinIntervalMs <= 5000)", movement.Path(), row.Line());
 			return false;
 		}
 		if (_movementTable.count(d.id))

@@ -15,6 +15,7 @@ enum PacketId {
     CS_ATTACK = 1008;
     CS_CHANGE_EQUIP = 1009;
     CS_PING = 1010;       // 부하 테스트/지연 측정용
+    CS_SKILL_AIM = 1011;  // 스킬 조준 켜기/끄기 (상태가 바뀔 때만)
     
     // Server -> Client
     SC_LOGIN = 2000;
@@ -29,6 +30,7 @@ enum PacketId {
     SC_CHANGE_EQUIP = 2011;
     SC_PONG = 2012;
     SC_CHANGE_EQUIP_RESULT = 2013;   // 장착 거부 결과 (본인에게만)
+    SC_SKILL_AIM = 2014;             // 스킬 조준 상태 (AOI 방송, 거부·시간 초과는 본인에게 seq 포함)
 }
 
 enum MoveState {

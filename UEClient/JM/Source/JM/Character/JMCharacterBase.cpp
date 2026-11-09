@@ -7,6 +7,7 @@
 #include "Data/MovementTableRow.h"
 #include "Game/DataManager.h"
 #include "Network/NetMoveStats.h"
+#include "Engine/Engine.h"
 
 AJMCharacterBase::AJMCharacterBase()
 {
@@ -138,9 +139,43 @@ void AJMCharacterBase::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
 	DestPosition.CopyFrom(ObjectInfo.position());
 	if (GetWorld()) LastNetUpdateTime = GetWorld()->GetTimeSeconds();
 
-	// 이동 속도의 기준은 서버 스탯이다. 서버도 같은 값으로 내 이동을 검증한다.
+	// 이동 속도의 기준은 서버 스탯(× 조준 배율)이다. 서버도 같은 값으로 내 이동을 검증한다.
+	// 늦게 시야에 들어온 캐릭터가 이미 조준 중이면 스폰 정보로 받는다(MC4.2d-1).
+	SetSkillAiming(ObjectInfo.aim_skill_id());
+}
+
+void AJMCharacterBase::SetSkillAiming(int32 SkillId)
+{
+	float Mul = 1.f;
+	if (SkillId != 0)
+	{
+		const UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+		const FSkillTableRow* Skill = DataManager ? DataManager->FindSkillById(SkillId) : nullptr;
+		if (Skill && Skill->AimMoveSpeedMul > 0.f) Mul = Skill->AimMoveSpeedMul;
+	}
+	const bool bChanged = (AimSkillId != SkillId);
+	AimSkillId = SkillId;
+	AimSpeedMul = Mul;
+	RefreshMoveSpeed();
+
+	if (bChanged)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[SkillAim] %s id=%d %s skill=%d mul=%.2f"), IsMyPlayer ? TEXT("Me") : TEXT("Remote"), ObjectInfo.id(),
+			SkillId != 0 ? TEXT("ON") : TEXT("OFF"), SkillId, Mul);
+#if !UE_BUILD_SHIPPING
+		// 활 조준 애니메이션(MC4.2d-2) 전까지 원격 조준 상태를 눈으로 확인하는 임시 표시
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, SkillId != 0 ? FColor::Yellow : FColor::Silver,
+				FString::Printf(TEXT("[SkillAim] %s id=%d %s (skill %d, x%.1f)"), IsMyPlayer ? TEXT("Me") : TEXT("Remote"), ObjectInfo.id(),
+					SkillId != 0 ? TEXT("ON") : TEXT("OFF"), SkillId, Mul));
+#endif
+	}
+}
+
+void AJMCharacterBase::RefreshMoveSpeed()
+{
 	if (ObjectInfo.stat().move_speed() > 0.f && GetCharacterMovement())
-		GetCharacterMovement()->MaxWalkSpeed = ObjectInfo.stat().move_speed();
+		GetCharacterMovement()->MaxWalkSpeed = ObjectInfo.stat().move_speed() * AimSpeedMul;
 }
 
 void AJMCharacterBase::OnDamaged(int32_t Damage, int32_t RemainHP)
@@ -159,6 +194,7 @@ void AJMCharacterBase::OnDamaged(int32_t Damage, int32_t RemainHP)
 void AJMCharacterBase::OnDead()
 {
 	bIsDead = true;
+	SetSkillAiming(0);
 	GetCharacterMovement()->StopMovementImmediately();
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
 	if (AnimInst && CurrentDeadMontage)

@@ -45,7 +45,9 @@ public:
 	void SendMove(const Protocol::PositionInfo& PosInfo, bool bForce, uint32 CorrectionSeq);
 	void SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY);
 	void SendChat(const FString& Message);   // 검증(길이·제어 문자·도배)은 서버가 한다
-	void SendChangeEquip(int32 Part, int32 ItemId);   // Part = Protocol::EquipPart(1~6), ItemId 0 = 해제. 검증은 서버가 한다
+	void SendChangeEquip(int32 Part, int32 ItemId);
+	// 스킬 조준 켜기/끄기(MC4.2d-1). 상태가 바뀔 때만, Seq는 보낼 때마다 1씩 올린 값. 확정(공격)은 서버가 함께 해제하므로 끄기를 보내지 않는다
+	void SendSkillAim(int32 Slot, bool bActive, uint32 Seq);   // Part = Protocol::EquipPart(1~6), ItemId 0 = 해제. 검증은 서버가 한다
 
 public:
 	void EnterGame();

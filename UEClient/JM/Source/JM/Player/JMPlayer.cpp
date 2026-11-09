@@ -28,8 +28,7 @@ void AJMPlayer::ApplyEquipChange(Protocol::EquipPart Part, int32 ItemId, const P
 	ObjectInfo.set_equip_items(Index, ItemId);
 
 	ObjectInfo.mutable_stat()->CopyFrom(Stat);
-	if (Stat.move_speed() > 0.f && GetCharacterMovement())
-		GetCharacterMovement()->MaxWalkSpeed = Stat.move_speed();
+	RefreshMoveSpeed();   // 스탯 × 조준 배율 (방어구 교체는 조준을 풀지 않는다)
 
 	if (Equipment) Equipment->SetSlotItem(Index, ItemId);
 }

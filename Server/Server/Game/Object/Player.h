@@ -44,6 +44,28 @@ public:
 	};
 	MoveGuard moveGuard;
 
+	// 이동 예산을 지금 속도 상한(스탯 × 허용 배율 × 조준 배율)으로 nowMs까지 채운다. 상한 = BudgetMs 분량.
+	// Room::PlayerMove와 조준 배율을 바꾸기 직전(SetSkillAim)에 부른다 — 배율이 바뀌기 전 시간은 이전 배율로 쌓이게.
+	float GetMoveSpeedLimit(const MovementData& rule) const;
+	void AccrueMoveBudget(long long nowMs, const MovementData& rule);
+
+	// 스킬 조준 상태(MC4.2d-1, DECISIONS 2026-11-09). Room 잡 안에서만 읽고 쓴다. 방에 들어갈 때 초기화한다.
+	struct AimState
+	{
+		int skillId = 0;            // 0 = 조준 안 함
+		float speedMul = 1.f;       // 조준 중 이동 속도 배율 (SkillTable.AimMoveSpeedMul)
+		long long deadlineMs = 0;   // 이 시각이 지나면 서버가 해제 (SkillTable.AimMaxMs)
+		uint32_t seq = 0;           // 마지막으로 받은 CS_SKILL_AIM의 seq (거부·시간 초과 때 본인에게 돌려준다)
+		Cooldown onCooldown;        // 켜기 요청 빈도 제한 (MovementTable.ServerAimMinIntervalMs)
+	};
+	AimState aim;
+	bool IsSkillAiming() const { return aim.skillId != 0; }
+	// 조준을 켜거나(skill != nullptr) 끈다(nullptr). 이동 예산을 이전 배율로 정산한 뒤 배율을 바꾸고 ObjectInfo.aim_skill_id도 맞춘다.
+	// 패킷은 보내지 않는다(호출한 쪽이 상황에 맞게 보낸다). 반환 = 바꾸기 전에 조준 중이었는가.
+	bool SetSkillAim(const SkillData* skill, long long nowMs);
+	// 무기 타입 + 슬롯의 스킬 (시전 가능 여부는 보지 않음)
+	const SkillData* FindSlotSkill(int slot) const { return GetSlotSkill(slot); }
+
 	// 장착 무기의 타입. 무기 슬롯이 비면 Unarmed.
 	WeaponType GetWeaponType() const;
 

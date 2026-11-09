@@ -31,6 +31,8 @@ public:
 	// 시전이 확정되면 호출해 행동 잠금과 스킬 쿨타임(CooldownMs > 0)을 시작한다.
 	// 기본 공격(슬롯 0)은 행동 시간과 판정 시점을 AttackSpeed(애니메이션 재생 배율)로 나눈다. 스킬은 원래 속도.
 	CastTiming BeginCast(const SkillData& skill);
+	// 스킬 쿨타임이 끝났는가 (쿨타임 기록이 없으면 준비됨)
+	bool IsSkillReady(int skillId) const { auto it = _skillCooldowns.find(skillId); return it == _skillCooldowns.end() || it->second.IsReady(); }
 	bool IsHit() const { return !_hitTimer.IsReady(); }
 	bool IsActing() const { return !_actionTimer.IsReady(); }
 	// 시전 애니메이션 중인가 (무기 스왑 잠금은 제외 — 스왑 잠금 중에도 방어구 교체는 받는다)

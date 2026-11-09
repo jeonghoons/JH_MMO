@@ -29,6 +29,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Locomotion")
 	float LeftArmOverrideAlpha = 1.f;
 
+	// 스킬 조준 중인가(MC4.2d-1, 서버 동기화 — 원격 캐릭터도 같다). MC4.2d-2에서 ABP_Layer_Bow가 당긴 자세·조준 이동에 쓴다.
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	bool bIsSkillAiming = false;
+
+	// 조준 중인 스킬 ID(0 = 조준 안 함). 스킬마다 자세가 다르면 이 값으로 고른다.
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	int32 AimSkillId = 0;
+
 	bool IsMyPlayer;
 	FVector Velocity;
 	FVector DestVelocity;

@@ -102,6 +102,8 @@ struct SkillData
 	float projSpeed;    // 투사체 이동 속도 (units/sec)
 	int durationMs;      // Zone: 장판 지속 시간
 	int tickMs;          // Zone: 한 대상에게 피해를 주는 최소 간격
+	float aimMoveSpeedMul; // 스킬 조준 중 이동 속도 배율 (0 < 값 <= 1, MC4.2d-1)
+	int aimMaxMs;          // 스킬 조준 최대 유지 시간. 0 = 조준할 수 없는 스킬 (기본 공격은 항상 0)
 };
 
 // 캐릭터 기본 스탯 묶음. 플레이어는 PlayerStatTable(레벨별, 체형 공용), 몬스터는 MonsterTable(종류별)에서 읽는다.
@@ -139,6 +141,7 @@ struct MovementData
 	float navToleranceCm;      // 목표가 내비메시 경계 밖으로 이만큼(수평)까지는 허용. 벽 두께 + 양쪽 침식(34cm×2)보다 작아야 벽을 못 뚫는다
 	int weaponSwapLockMs;      // 무기 슬롯이 바뀌면(착용·해제) 이 시간 동안 공용 행동 잠금 (MC3.2)
 	int equipMinIntervalMs;    // 같은 캐릭터의 장착 요청 최소 간격 (MC3.2)
+	int aimMinIntervalMs;      // 같은 캐릭터의 스킬 조준 켜기 요청 최소 간격 — 끄기는 제한하지 않는다 (MC4.2d-1)
 };
 
 // MovementTable에서 플레이어 기본값을 담은 행 (클라이언트 UDataManager도 같은 행을 쓴다)

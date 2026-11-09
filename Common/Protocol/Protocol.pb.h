@@ -74,6 +74,9 @@ extern CS_PING_PACKETDefaultTypeInternal _CS_PING_PACKET_default_instance_;
 class CS_SIGNUP_PACKET;
 struct CS_SIGNUP_PACKETDefaultTypeInternal;
 extern CS_SIGNUP_PACKETDefaultTypeInternal _CS_SIGNUP_PACKET_default_instance_;
+class CS_SKILL_AIM_PACKET;
+struct CS_SKILL_AIM_PACKETDefaultTypeInternal;
+extern CS_SKILL_AIM_PACKETDefaultTypeInternal _CS_SKILL_AIM_PACKET_default_instance_;
 class SC_ADD_OBJECT_PACKET;
 struct SC_ADD_OBJECT_PACKETDefaultTypeInternal;
 extern SC_ADD_OBJECT_PACKETDefaultTypeInternal _SC_ADD_OBJECT_PACKET_default_instance_;
@@ -110,6 +113,9 @@ extern SC_REMOVE_OBJECT_PACKETDefaultTypeInternal _SC_REMOVE_OBJECT_PACKET_defau
 class SC_SIGNUP_PACKET;
 struct SC_SIGNUP_PACKETDefaultTypeInternal;
 extern SC_SIGNUP_PACKETDefaultTypeInternal _SC_SIGNUP_PACKET_default_instance_;
+class SC_SKILL_AIM_PACKET;
+struct SC_SKILL_AIM_PACKETDefaultTypeInternal;
+extern SC_SKILL_AIM_PACKETDefaultTypeInternal _SC_SKILL_AIM_PACKET_default_instance_;
 }  // namespace Protocol
 PROTOBUF_NAMESPACE_OPEN
 template<> ::Protocol::CS_ATTACK_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_ATTACK_PACKET>(Arena*);
@@ -121,6 +127,7 @@ template<> ::Protocol::CS_LOGIN_PACKET* Arena::CreateMaybeMessage<::Protocol::CS
 template<> ::Protocol::CS_MOVE_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_MOVE_PACKET>(Arena*);
 template<> ::Protocol::CS_PING_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_PING_PACKET>(Arena*);
 template<> ::Protocol::CS_SIGNUP_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_SIGNUP_PACKET>(Arena*);
+template<> ::Protocol::CS_SKILL_AIM_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_SKILL_AIM_PACKET>(Arena*);
 template<> ::Protocol::SC_ADD_OBJECT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ADD_OBJECT_PACKET>(Arena*);
 template<> ::Protocol::SC_ATTACK_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ATTACK_PACKET>(Arena*);
 template<> ::Protocol::SC_CHANGE_EQUIP_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHANGE_EQUIP_PACKET>(Arena*);
@@ -133,6 +140,7 @@ template<> ::Protocol::SC_MOVE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_
 template<> ::Protocol::SC_PONG_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_PONG_PACKET>(Arena*);
 template<> ::Protocol::SC_REMOVE_OBJECT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_REMOVE_OBJECT_PACKET>(Arena*);
 template<> ::Protocol::SC_SIGNUP_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_SIGNUP_PACKET>(Arena*);
+template<> ::Protocol::SC_SKILL_AIM_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_SKILL_AIM_PACKET>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace Protocol {
 
@@ -1488,6 +1496,176 @@ class CS_CHANGE_EQUIP_PACKET final :
 };
 // -------------------------------------------------------------------
 
+class CS_SKILL_AIM_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_SKILL_AIM_PACKET) */ {
+ public:
+  inline CS_SKILL_AIM_PACKET() : CS_SKILL_AIM_PACKET(nullptr) {}
+  ~CS_SKILL_AIM_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR CS_SKILL_AIM_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  CS_SKILL_AIM_PACKET(const CS_SKILL_AIM_PACKET& from);
+  CS_SKILL_AIM_PACKET(CS_SKILL_AIM_PACKET&& from) noexcept
+    : CS_SKILL_AIM_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline CS_SKILL_AIM_PACKET& operator=(const CS_SKILL_AIM_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CS_SKILL_AIM_PACKET& operator=(CS_SKILL_AIM_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CS_SKILL_AIM_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CS_SKILL_AIM_PACKET* internal_default_instance() {
+    return reinterpret_cast<const CS_SKILL_AIM_PACKET*>(
+               &_CS_SKILL_AIM_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    8;
+
+  friend void swap(CS_SKILL_AIM_PACKET& a, CS_SKILL_AIM_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CS_SKILL_AIM_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CS_SKILL_AIM_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CS_SKILL_AIM_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<CS_SKILL_AIM_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const CS_SKILL_AIM_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const CS_SKILL_AIM_PACKET& from) {
+    CS_SKILL_AIM_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(CS_SKILL_AIM_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.CS_SKILL_AIM_PACKET";
+  }
+  protected:
+  explicit CS_SKILL_AIM_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kSlotFieldNumber = 1,
+    kActiveFieldNumber = 2,
+    kSeqFieldNumber = 3,
+  };
+  // int32 slot = 1;
+  void clear_slot();
+  int32_t slot() const;
+  void set_slot(int32_t value);
+  private:
+  int32_t _internal_slot() const;
+  void _internal_set_slot(int32_t value);
+  public:
+
+  // bool active = 2;
+  void clear_active();
+  bool active() const;
+  void set_active(bool value);
+  private:
+  bool _internal_active() const;
+  void _internal_set_active(bool value);
+  public:
+
+  // uint32 seq = 3;
+  void clear_seq();
+  uint32_t seq() const;
+  void set_seq(uint32_t value);
+  private:
+  uint32_t _internal_seq() const;
+  void _internal_set_seq(uint32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.CS_SKILL_AIM_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t slot_;
+    bool active_;
+    uint32_t seq_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
 class CS_PING_PACKET final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_PING_PACKET) */ {
  public:
@@ -1536,7 +1714,7 @@ class CS_PING_PACKET final :
                &_CS_PING_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    9;
 
   friend void swap(CS_PING_PACKET& a, CS_PING_PACKET& b) {
     a.Swap(&b);
@@ -1684,7 +1862,7 @@ class SC_LOGIN_INFO_PACKET final :
                &_SC_LOGIN_INFO_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    10;
 
   friend void swap(SC_LOGIN_INFO_PACKET& a, SC_LOGIN_INFO_PACKET& b) {
     a.Swap(&b);
@@ -1852,7 +2030,7 @@ class SC_SIGNUP_PACKET final :
                &_SC_SIGNUP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    11;
 
   friend void swap(SC_SIGNUP_PACKET& a, SC_SIGNUP_PACKET& b) {
     a.Swap(&b);
@@ -2000,7 +2178,7 @@ class SC_ADD_OBJECT_PACKET final :
                &_SC_ADD_OBJECT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    12;
 
   friend void swap(SC_ADD_OBJECT_PACKET& a, SC_ADD_OBJECT_PACKET& b) {
     a.Swap(&b);
@@ -2157,7 +2335,7 @@ class SC_REMOVE_OBJECT_PACKET final :
                &_SC_REMOVE_OBJECT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    13;
 
   friend void swap(SC_REMOVE_OBJECT_PACKET& a, SC_REMOVE_OBJECT_PACKET& b) {
     a.Swap(&b);
@@ -2305,7 +2483,7 @@ class SC_CHAT_PACKET final :
                &_SC_CHAT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    14;
 
   friend void swap(SC_CHAT_PACKET& a, SC_CHAT_PACKET& b) {
     a.Swap(&b);
@@ -2485,7 +2663,7 @@ class SC_MOVE_PACKET final :
                &_SC_MOVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    15;
 
   friend void swap(SC_MOVE_PACKET& a, SC_MOVE_PACKET& b) {
     a.Swap(&b);
@@ -2664,7 +2842,7 @@ class SC_ATTACK_PACKET final :
                &_SC_ATTACK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    16;
 
   friend void swap(SC_ATTACK_PACKET& a, SC_ATTACK_PACKET& b) {
     a.Swap(&b);
@@ -2878,7 +3056,7 @@ class SC_DAMAGE_PACKET final :
                &_SC_DAMAGE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    17;
 
   friend void swap(SC_DAMAGE_PACKET& a, SC_DAMAGE_PACKET& b) {
     a.Swap(&b);
@@ -3059,7 +3237,7 @@ class SC_DEAD_PACKET final :
                &_SC_DEAD_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    18;
 
   friend void swap(SC_DEAD_PACKET& a, SC_DEAD_PACKET& b) {
     a.Swap(&b);
@@ -3207,7 +3385,7 @@ class SC_CHANGE_EQUIP_PACKET final :
                &_SC_CHANGE_EQUIP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    19;
 
   friend void swap(SC_CHANGE_EQUIP_PACKET& a, SC_CHANGE_EQUIP_PACKET& b) {
     a.Swap(&b);
@@ -3397,7 +3575,7 @@ class SC_CHANGE_EQUIP_RESULT_PACKET final :
                &_SC_CHANGE_EQUIP_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    20;
 
   friend void swap(SC_CHANGE_EQUIP_RESULT_PACKET& a, SC_CHANGE_EQUIP_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -3519,6 +3697,187 @@ class SC_CHANGE_EQUIP_RESULT_PACKET final :
 };
 // -------------------------------------------------------------------
 
+class SC_SKILL_AIM_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_SKILL_AIM_PACKET) */ {
+ public:
+  inline SC_SKILL_AIM_PACKET() : SC_SKILL_AIM_PACKET(nullptr) {}
+  ~SC_SKILL_AIM_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_SKILL_AIM_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_SKILL_AIM_PACKET(const SC_SKILL_AIM_PACKET& from);
+  SC_SKILL_AIM_PACKET(SC_SKILL_AIM_PACKET&& from) noexcept
+    : SC_SKILL_AIM_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_SKILL_AIM_PACKET& operator=(const SC_SKILL_AIM_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_SKILL_AIM_PACKET& operator=(SC_SKILL_AIM_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_SKILL_AIM_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_SKILL_AIM_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_SKILL_AIM_PACKET*>(
+               &_SC_SKILL_AIM_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    21;
+
+  friend void swap(SC_SKILL_AIM_PACKET& a, SC_SKILL_AIM_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_SKILL_AIM_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_SKILL_AIM_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_SKILL_AIM_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_SKILL_AIM_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_SKILL_AIM_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_SKILL_AIM_PACKET& from) {
+    SC_SKILL_AIM_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_SKILL_AIM_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_SKILL_AIM_PACKET";
+  }
+  protected:
+  explicit SC_SKILL_AIM_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kObjectIdFieldNumber = 1,
+    kSkillIdFieldNumber = 2,
+    kActiveFieldNumber = 3,
+    kSeqFieldNumber = 4,
+  };
+  // int32 object_id = 1;
+  void clear_object_id();
+  int32_t object_id() const;
+  void set_object_id(int32_t value);
+  private:
+  int32_t _internal_object_id() const;
+  void _internal_set_object_id(int32_t value);
+  public:
+
+  // int32 skill_id = 2;
+  void clear_skill_id();
+  int32_t skill_id() const;
+  void set_skill_id(int32_t value);
+  private:
+  int32_t _internal_skill_id() const;
+  void _internal_set_skill_id(int32_t value);
+  public:
+
+  // bool active = 3;
+  void clear_active();
+  bool active() const;
+  void set_active(bool value);
+  private:
+  bool _internal_active() const;
+  void _internal_set_active(bool value);
+  public:
+
+  // uint32 seq = 4;
+  void clear_seq();
+  uint32_t seq() const;
+  void set_seq(uint32_t value);
+  private:
+  uint32_t _internal_seq() const;
+  void _internal_set_seq(uint32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_SKILL_AIM_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t object_id_;
+    int32_t skill_id_;
+    bool active_;
+    uint32_t seq_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
 class SC_PONG_PACKET final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_PONG_PACKET) */ {
  public:
@@ -3567,7 +3926,7 @@ class SC_PONG_PACKET final :
                &_SC_PONG_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    22;
 
   friend void swap(SC_PONG_PACKET& a, SC_PONG_PACKET& b) {
     a.Swap(&b);
@@ -4317,6 +4676,70 @@ inline void CS_CHANGE_EQUIP_PACKET::_internal_set_item_id(int32_t value) {
 inline void CS_CHANGE_EQUIP_PACKET::set_item_id(int32_t value) {
   _internal_set_item_id(value);
   // @@protoc_insertion_point(field_set:Protocol.CS_CHANGE_EQUIP_PACKET.item_id)
+}
+
+// -------------------------------------------------------------------
+
+// CS_SKILL_AIM_PACKET
+
+// int32 slot = 1;
+inline void CS_SKILL_AIM_PACKET::clear_slot() {
+  _impl_.slot_ = 0;
+}
+inline int32_t CS_SKILL_AIM_PACKET::_internal_slot() const {
+  return _impl_.slot_;
+}
+inline int32_t CS_SKILL_AIM_PACKET::slot() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_SKILL_AIM_PACKET.slot)
+  return _internal_slot();
+}
+inline void CS_SKILL_AIM_PACKET::_internal_set_slot(int32_t value) {
+  
+  _impl_.slot_ = value;
+}
+inline void CS_SKILL_AIM_PACKET::set_slot(int32_t value) {
+  _internal_set_slot(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_SKILL_AIM_PACKET.slot)
+}
+
+// bool active = 2;
+inline void CS_SKILL_AIM_PACKET::clear_active() {
+  _impl_.active_ = false;
+}
+inline bool CS_SKILL_AIM_PACKET::_internal_active() const {
+  return _impl_.active_;
+}
+inline bool CS_SKILL_AIM_PACKET::active() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_SKILL_AIM_PACKET.active)
+  return _internal_active();
+}
+inline void CS_SKILL_AIM_PACKET::_internal_set_active(bool value) {
+  
+  _impl_.active_ = value;
+}
+inline void CS_SKILL_AIM_PACKET::set_active(bool value) {
+  _internal_set_active(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_SKILL_AIM_PACKET.active)
+}
+
+// uint32 seq = 3;
+inline void CS_SKILL_AIM_PACKET::clear_seq() {
+  _impl_.seq_ = 0u;
+}
+inline uint32_t CS_SKILL_AIM_PACKET::_internal_seq() const {
+  return _impl_.seq_;
+}
+inline uint32_t CS_SKILL_AIM_PACKET::seq() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_SKILL_AIM_PACKET.seq)
+  return _internal_seq();
+}
+inline void CS_SKILL_AIM_PACKET::_internal_set_seq(uint32_t value) {
+  
+  _impl_.seq_ = value;
+}
+inline void CS_SKILL_AIM_PACKET::set_seq(uint32_t value) {
+  _internal_set_seq(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_SKILL_AIM_PACKET.seq)
 }
 
 // -------------------------------------------------------------------
@@ -5309,6 +5732,90 @@ inline void SC_CHANGE_EQUIP_RESULT_PACKET::set_item_id(int32_t value) {
 
 // -------------------------------------------------------------------
 
+// SC_SKILL_AIM_PACKET
+
+// int32 object_id = 1;
+inline void SC_SKILL_AIM_PACKET::clear_object_id() {
+  _impl_.object_id_ = 0;
+}
+inline int32_t SC_SKILL_AIM_PACKET::_internal_object_id() const {
+  return _impl_.object_id_;
+}
+inline int32_t SC_SKILL_AIM_PACKET::object_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_SKILL_AIM_PACKET.object_id)
+  return _internal_object_id();
+}
+inline void SC_SKILL_AIM_PACKET::_internal_set_object_id(int32_t value) {
+  
+  _impl_.object_id_ = value;
+}
+inline void SC_SKILL_AIM_PACKET::set_object_id(int32_t value) {
+  _internal_set_object_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_SKILL_AIM_PACKET.object_id)
+}
+
+// int32 skill_id = 2;
+inline void SC_SKILL_AIM_PACKET::clear_skill_id() {
+  _impl_.skill_id_ = 0;
+}
+inline int32_t SC_SKILL_AIM_PACKET::_internal_skill_id() const {
+  return _impl_.skill_id_;
+}
+inline int32_t SC_SKILL_AIM_PACKET::skill_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_SKILL_AIM_PACKET.skill_id)
+  return _internal_skill_id();
+}
+inline void SC_SKILL_AIM_PACKET::_internal_set_skill_id(int32_t value) {
+  
+  _impl_.skill_id_ = value;
+}
+inline void SC_SKILL_AIM_PACKET::set_skill_id(int32_t value) {
+  _internal_set_skill_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_SKILL_AIM_PACKET.skill_id)
+}
+
+// bool active = 3;
+inline void SC_SKILL_AIM_PACKET::clear_active() {
+  _impl_.active_ = false;
+}
+inline bool SC_SKILL_AIM_PACKET::_internal_active() const {
+  return _impl_.active_;
+}
+inline bool SC_SKILL_AIM_PACKET::active() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_SKILL_AIM_PACKET.active)
+  return _internal_active();
+}
+inline void SC_SKILL_AIM_PACKET::_internal_set_active(bool value) {
+  
+  _impl_.active_ = value;
+}
+inline void SC_SKILL_AIM_PACKET::set_active(bool value) {
+  _internal_set_active(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_SKILL_AIM_PACKET.active)
+}
+
+// uint32 seq = 4;
+inline void SC_SKILL_AIM_PACKET::clear_seq() {
+  _impl_.seq_ = 0u;
+}
+inline uint32_t SC_SKILL_AIM_PACKET::_internal_seq() const {
+  return _impl_.seq_;
+}
+inline uint32_t SC_SKILL_AIM_PACKET::seq() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_SKILL_AIM_PACKET.seq)
+  return _internal_seq();
+}
+inline void SC_SKILL_AIM_PACKET::_internal_set_seq(uint32_t value) {
+  
+  _impl_.seq_ = value;
+}
+inline void SC_SKILL_AIM_PACKET::set_seq(uint32_t value) {
+  _internal_set_seq(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_SKILL_AIM_PACKET.seq)
+}
+
+// -------------------------------------------------------------------
+
 // SC_PONG_PACKET
 
 // int64 client_time = 1;
@@ -5334,6 +5841,10 @@ inline void SC_PONG_PACKET::set_client_time(int64_t value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

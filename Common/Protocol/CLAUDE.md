@@ -25,5 +25,5 @@
 1. `Enum.proto`에 enum 값 추가
 2. `Protocol.proto`에 메시지 추가
 3. `GanPackets.bat` 실행
-4. `Server/Server/PacketHandler.cpp`에 `Handle_CS_*` 구현 (`PacketHandler::Init()`에 등록) — 서버 구조 세부 내용은 [Server/CLAUDE.md](../../Server/CLAUDE.md) 참고
+4. `Server/Server/Packet/PacketHandler.cpp`에 `Handle_CS_*` 구현 (`PacketHandler::Init()`에 등록, 송신 패킷 생성은 같은 폴더 `PacketSerializer`) — 서버 구조 세부 내용은 [Server/CLAUDE.md](../../Server/CLAUDE.md) 참고
 5. UE 클라이언트의 `FPacketHandler`/`NetworkManager`에 대응하는 처리 구현 — 클라이언트 구조 세부 내용은 [UEClient/JM/CLAUDE.md](../../UEClient/JM/CLAUDE.md) 참고

@@ -45,6 +45,13 @@ namespace Metrics
 	inline SampleStat EquipSaveExecUs;    // DB 실행 시간(us)
 	inline SampleStat EquipSaveTotalUs;   // 요청 → 완료(us, DB 큐 대기 포함)
 
+	// 스킬 조준(MC4.2d-1, Room::PlayerSkillAim). 모두 누적
+	inline std::atomic<long long> AimOn{ 0 };         // 켜기 수락
+	inline std::atomic<long long> AimReject{ 0 };     // 켜기 거부
+	inline std::atomic<long long> AimOff{ 0 };        // 클라 취소로 해제
+	inline std::atomic<long long> AimCastClear{ 0 };  // CS_ATTACK으로 해제 (시전 성공·실패 모두)
+	inline std::atomic<long long> AimTimeout{ 0 };    // AimMaxMs 초과로 서버가 해제
+
 	inline std::atomic<int>       Monsters{ 0 };      // 현재 월드에 살아 있거나 시체로 남아 있는 몬스터 수
 	inline std::atomic<long long> AttackRequests{ 0 };  // CS_ATTACK 수신 수(누적)
 	inline std::atomic<long long> AttackAccepted{ 0 };  // 쿨타임·상태 검사를 통과한 플레이어 공격 수(누적)

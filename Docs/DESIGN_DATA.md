@@ -64,7 +64,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 - `PlayerType`(`Enum.proto`)은 **플레이어 체형 전용**입니다(NONE/MALE/FEMALE, 3·4·5는 `reserved`). 몬스터는 `ObjectType`으로 구분하고 종류는 `ObjectInfo.template_id`로 보냅니다.
 
 ### SkillTable (서버 구현됨)
-`Name`(skillId), `WeaponType`(무기 종속 — `Unarmed`/`Sword`/`Bow`/`Monster`), `Slot`(0 = 기본 공격, 1~5 = 숫자키), `TargetingType`(`Targeted`/`NonTargeted`), `HitShape`(`Sector`/`Line`/`Projectile`/`Zone`), `HitDelayMs`, `CooldownMs`, `CastRange`(Targeted는 대상까지, Zone은 지점까지 최대 거리), `Radius`, `Angle`, `Range`, `Width`, `BaseDamage`, `ProjSpeed`, `DurationMs`/`TickMs`(Zone: 지속 시간 / 한 대상에게 피해를 주는 최소 간격 — 진입 즉시 피해 후 `TickMs`마다 반복). 클라이언트 전용 열(서버 로더는 무시): `Fx`/`FxBaseRadius`(이펙트), `Montage`(시전 몽타주), `Icon`(전투 HUD 슬롯 아이콘 텍스처).
+`Name`(skillId), `WeaponType`(무기 종속 — `Unarmed`/`Sword`/`Bow`/`Monster`), `Slot`(0 = 기본 공격, 1~5 = 숫자키), `TargetingType`(`Targeted`/`NonTargeted`), `HitShape`(`Sector`/`Line`/`Projectile`/`Zone`), `HitDelayMs`, `CooldownMs`, `CastRange`(Targeted는 대상까지, Zone은 지점까지 최대 거리), `Radius`, `Angle`, `Range`, `Width`, `BaseDamage`, `ProjSpeed`, `DurationMs`/`TickMs`(Zone: 지속 시간 / 한 대상에게 피해를 주는 최소 간격 — 진입 즉시 피해 후 `TickMs`마다 반복), `AimMoveSpeedMul`(스킬 조준 중 이동 속도 배율, 0 < 값 ≤ 1)·`AimMaxMs`(조준 최대 유지 시간, 0 = 조준할 수 없는 스킬 — 기본 공격 Slot 0은 반드시 0, 0~60000. 2026-11-09 MC4.2d-1: 3002 = 0.4/10000, 2002 = 1.0/10000, 나머지 1.0/0). 클라이언트 전용 열(서버 로더는 무시): `Fx`/`FxBaseRadius`(이펙트), `Montage`(시전 몽타주), `Icon`(전투 HUD 슬롯 아이콘 텍스처).
 - 클라이언트는 skillId가 아니라 **슬롯**을 보내고, 서버가 캐릭터의 현재 무기 타입으로 SkillTable을 해석합니다(다른 무기의 스킬 사용 불가). 쿨타임은 스킬별이며 기본 공격(슬롯 0)만 공격 속도 배율을 반영합니다.
 - (2026-11-07 MC3.1) 서버 조회 키 = (WeaponType, Slot), 중복 불가. **ID는 4자리, 첫째 자리 = 무기 종류**(맨손 1xxx, 검 2xxx, 활 3xxx, 몬스터 9xxx — 어긋나면 서버 시작 중단). 현재 행: 1001 맨손 기본 공격(검 기본 공격의 60% 피해 30, 반경 150, 시간은 검과 같음 — MC4.2에서 맨손 몽타주로 다시 뽑음), 2001/2002 검(옛 401/402), 3001/3002 활(옛 501/502), 9001 몬스터(옛 301). 맨손 기본 공격(Unarmed, 0) 행이 없으면 시작을 중단합니다.
 - `Monster` 스킬은 슬롯 색인에 넣지 않고 `MonsterTable.SkillId`로만 찾습니다(몬스터 종류마다 슬롯 0이 따로 있을 수 있음).
@@ -125,6 +125,7 @@ ID `1001` = 플레이어 기본값. 클라이언트(`DT_MovementTable`)와 서�
 | `ServerNavToleranceCm` | 50 | 서버 | 목표가 내비메시 경계 밖으로 이만큼(수평)까지는 허용. 내비메시는 벽에서 34cm 안쪽까지 깔리므로 68cm + 벽 두께보다 작아야 벽을 뚫지 못함, 0~100 |
 | `ServerWeaponSwapLockMs` | 1000 | 서버 | 무기 슬롯이 바뀌면(착용·해제 모두) 이 시간 동안 공용 행동 잠금 — 스왑으로 쿨타임 우회 방지(MC3.2), 0~5000 |
 | `ServerEquipMinIntervalMs` | 200 | 서버 | 같은 캐릭터의 장착 요청 최소 간격(슬롯 구분 없음). 더 잦으면 `EQUIP_RESULT_TOO_FREQUENT`(MC3.2), 0~5000 |
+| `ServerAimMinIntervalMs` | 200 | 서버·클라 | 같은 캐릭터의 스킬 조준 **켜기** 요청 최소 간격(끄기는 제한 없음). 더 잦으면 서버가 거부(본인에게 `SC_SKILL_AIM` false), 클라는 이보다 잦은 켜기를 보내지 않음(MC4.2d-1), 0~5000 |
 
 서버는 값이 범위를 벗어나거나 1001 행·열이 없으면 시작을 중단합니다.
 
