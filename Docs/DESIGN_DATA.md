@@ -12,7 +12,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 | 종류 | 경로 | 역할 |
 |---|---|---|
 | CSV | `Common/DataTable/<Table>.csv` | 서버/UE가 읽는 기준 |
-| xlsx | `Common/DataTable/<Table>.xlsx` | 편집용. CSV와 같은 이름, 같은 폴더 |
+| xlsx | `Common/DataTable/<Table>.xlsx` | 편집용(선택). CSV와 같은 이름, 같은 폴더. 2026-11-10 기준 없음(유일했던 `MovementTable.xlsx`는 CSV와 어긋나 삭제) — 만들면 CSV와 함께 유지 |
 | DataTable 애셋 | `UEClient/JM/Content/Data/DT_<Table>.uasset` | UE에서 쓰는 형태 (경로는 구현 시 확정) |
 | Row 구조체 | `UEClient/JM/Source/JM/Data/<Table>Row.h` | CSV 컬럼과 1:1 |
 
@@ -46,7 +46,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 | BodyTable | 체형별 기준 캐릭터 구성(리더·눈·이·헤어·몸 머티리얼·AnimBP, 공용 피격·사망 몽타주) — 클라 전용(2026-11-07 MC4.1, 2026-11-08 MC4.2) |
 | WeaponTypeTable | 무기 타입별 연출(레이어 AnimBP, 이후 등 소켓·넣기 지연) — 클라 전용(2026-11-08 MC4.2) |
 
-2026-11-04 Phase MC: 계획했던 `HeroTable`/`WeaponItemTable`은 만들지 않고 **ItemTable**로 대체합니다. 플레이어 메시·AnimBP는 매니퀸 공용이라 테이블이 필요 없고, `DT_CharacterAsset`은 MC4에서 플레이어 참조를 끊은 뒤 정리합니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
+2026-11-04 Phase MC: 계획했던 `HeroTable`/`WeaponItemTable`은 만들지 않고 **ItemTable**로 대체합니다. 플레이어 메시·AnimBP는 매니퀸 공용이라 테이블이 필요 없고, `DT_CharacterAsset`은 2026-11-10 삭제했습니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
 
 ## 서버 로더 (구현됨, 2026-10-20)
 - `CsvFile`(ServerCore `Utils/`)이 CSV를 파싱하고(UTF-8·BOM·따옴표 지원, 컬럼 수/숫자 형식 검증), `DataManager::Init()`(`Server/Server/Data/ServerData.cpp`)가 테이블을 읽어 `GetCharacterData`/`GetSkillData`/`GetSkillBySlot`/`GetMonsterData`/`GetItemData` 등으로 제공합니다.

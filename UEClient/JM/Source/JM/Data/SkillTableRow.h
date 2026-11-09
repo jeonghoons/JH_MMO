@@ -52,7 +52,7 @@ struct FSkillTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float AimMoveSpeedMul = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 AimMaxMs = 0;
 
-	// 클라이언트 전용(서버 로더는 읽지 않음). 시전 몽타주. 비어 있으면 DT_CharacterAsset의 기본 공격 몽타주를 쓴다.
+	// 클라이언트 전용(서버 로더는 읽지 않음). 시전 몽타주. 비어 있으면 캐릭터의 기본 공격 몽타주(`AJMCharacterBase::CurrentAttackMontage`)를 쓴다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UAnimMontage> Montage;
 
 	// 클라이언트 전용(서버 로더는 읽지 않음). 스킬 이펙트. 장판은 조준 지점, 부채꼴·직선은 시전자 발밑에서 재생한다.

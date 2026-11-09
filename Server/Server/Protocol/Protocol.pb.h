@@ -56,9 +56,6 @@ extern CS_CHANGE_EQUIP_PACKETDefaultTypeInternal _CS_CHANGE_EQUIP_PACKET_default
 class CS_CHAT_PACKET;
 struct CS_CHAT_PACKETDefaultTypeInternal;
 extern CS_CHAT_PACKETDefaultTypeInternal _CS_CHAT_PACKET_default_instance_;
-class CS_DMOVE_PACKET;
-struct CS_DMOVE_PACKETDefaultTypeInternal;
-extern CS_DMOVE_PACKETDefaultTypeInternal _CS_DMOVE_PACKET_default_instance_;
 class CS_ENTER_ROOM_PACKET;
 struct CS_ENTER_ROOM_PACKETDefaultTypeInternal;
 extern CS_ENTER_ROOM_PACKETDefaultTypeInternal _CS_ENTER_ROOM_PACKET_default_instance_;
@@ -121,7 +118,6 @@ PROTOBUF_NAMESPACE_OPEN
 template<> ::Protocol::CS_ATTACK_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_ATTACK_PACKET>(Arena*);
 template<> ::Protocol::CS_CHANGE_EQUIP_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_CHANGE_EQUIP_PACKET>(Arena*);
 template<> ::Protocol::CS_CHAT_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_CHAT_PACKET>(Arena*);
-template<> ::Protocol::CS_DMOVE_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_DMOVE_PACKET>(Arena*);
 template<> ::Protocol::CS_ENTER_ROOM_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_ENTER_ROOM_PACKET>(Arena*);
 template<> ::Protocol::CS_LOGIN_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_LOGIN_PACKET>(Arena*);
 template<> ::Protocol::CS_MOVE_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_MOVE_PACKET>(Arena*);
@@ -986,165 +982,6 @@ class CS_MOVE_PACKET final :
 };
 // -------------------------------------------------------------------
 
-class CS_DMOVE_PACKET final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_DMOVE_PACKET) */ {
- public:
-  inline CS_DMOVE_PACKET() : CS_DMOVE_PACKET(nullptr) {}
-  ~CS_DMOVE_PACKET() override;
-  explicit PROTOBUF_CONSTEXPR CS_DMOVE_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  CS_DMOVE_PACKET(const CS_DMOVE_PACKET& from);
-  CS_DMOVE_PACKET(CS_DMOVE_PACKET&& from) noexcept
-    : CS_DMOVE_PACKET() {
-    *this = ::std::move(from);
-  }
-
-  inline CS_DMOVE_PACKET& operator=(const CS_DMOVE_PACKET& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline CS_DMOVE_PACKET& operator=(CS_DMOVE_PACKET&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const CS_DMOVE_PACKET& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const CS_DMOVE_PACKET* internal_default_instance() {
-    return reinterpret_cast<const CS_DMOVE_PACKET*>(
-               &_CS_DMOVE_PACKET_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    5;
-
-  friend void swap(CS_DMOVE_PACKET& a, CS_DMOVE_PACKET& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(CS_DMOVE_PACKET* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(CS_DMOVE_PACKET* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  CS_DMOVE_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<CS_DMOVE_PACKET>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const CS_DMOVE_PACKET& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const CS_DMOVE_PACKET& from) {
-    CS_DMOVE_PACKET::MergeImpl(*this, from);
-  }
-  private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
-  public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  uint8_t* _InternalSerialize(
-      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(CS_DMOVE_PACKET* other);
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "Protocol.CS_DMOVE_PACKET";
-  }
-  protected:
-  explicit CS_DMOVE_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kInputXFieldNumber = 1,
-    kInputYFieldNumber = 2,
-  };
-  // float input_x = 1;
-  void clear_input_x();
-  float input_x() const;
-  void set_input_x(float value);
-  private:
-  float _internal_input_x() const;
-  void _internal_set_input_x(float value);
-  public:
-
-  // float input_y = 2;
-  void clear_input_y();
-  float input_y() const;
-  void set_input_y(float value);
-  private:
-  float _internal_input_y() const;
-  void _internal_set_input_y(float value);
-  public:
-
-  // @@protoc_insertion_point(class_scope:Protocol.CS_DMOVE_PACKET)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-    float input_x_;
-    float input_y_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_Protocol_2eproto;
-};
-// -------------------------------------------------------------------
-
 class CS_ATTACK_PACKET final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_ATTACK_PACKET) */ {
  public:
@@ -1193,7 +1030,7 @@ class CS_ATTACK_PACKET final :
                &_CS_ATTACK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    5;
 
   friend void swap(CS_ATTACK_PACKET& a, CS_ATTACK_PACKET& b) {
     a.Swap(&b);
@@ -1385,7 +1222,7 @@ class CS_CHANGE_EQUIP_PACKET final :
                &_CS_CHANGE_EQUIP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    6;
 
   friend void swap(CS_CHANGE_EQUIP_PACKET& a, CS_CHANGE_EQUIP_PACKET& b) {
     a.Swap(&b);
@@ -1544,7 +1381,7 @@ class CS_SKILL_AIM_PACKET final :
                &_CS_SKILL_AIM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    7;
 
   friend void swap(CS_SKILL_AIM_PACKET& a, CS_SKILL_AIM_PACKET& b) {
     a.Swap(&b);
@@ -1714,7 +1551,7 @@ class CS_PING_PACKET final :
                &_CS_PING_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    8;
 
   friend void swap(CS_PING_PACKET& a, CS_PING_PACKET& b) {
     a.Swap(&b);
@@ -1862,7 +1699,7 @@ class SC_LOGIN_INFO_PACKET final :
                &_SC_LOGIN_INFO_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    9;
 
   friend void swap(SC_LOGIN_INFO_PACKET& a, SC_LOGIN_INFO_PACKET& b) {
     a.Swap(&b);
@@ -2030,7 +1867,7 @@ class SC_SIGNUP_PACKET final :
                &_SC_SIGNUP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    10;
 
   friend void swap(SC_SIGNUP_PACKET& a, SC_SIGNUP_PACKET& b) {
     a.Swap(&b);
@@ -2178,7 +2015,7 @@ class SC_ADD_OBJECT_PACKET final :
                &_SC_ADD_OBJECT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    11;
 
   friend void swap(SC_ADD_OBJECT_PACKET& a, SC_ADD_OBJECT_PACKET& b) {
     a.Swap(&b);
@@ -2335,7 +2172,7 @@ class SC_REMOVE_OBJECT_PACKET final :
                &_SC_REMOVE_OBJECT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    12;
 
   friend void swap(SC_REMOVE_OBJECT_PACKET& a, SC_REMOVE_OBJECT_PACKET& b) {
     a.Swap(&b);
@@ -2483,7 +2320,7 @@ class SC_CHAT_PACKET final :
                &_SC_CHAT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    13;
 
   friend void swap(SC_CHAT_PACKET& a, SC_CHAT_PACKET& b) {
     a.Swap(&b);
@@ -2663,7 +2500,7 @@ class SC_MOVE_PACKET final :
                &_SC_MOVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    14;
 
   friend void swap(SC_MOVE_PACKET& a, SC_MOVE_PACKET& b) {
     a.Swap(&b);
@@ -2842,7 +2679,7 @@ class SC_ATTACK_PACKET final :
                &_SC_ATTACK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    15;
 
   friend void swap(SC_ATTACK_PACKET& a, SC_ATTACK_PACKET& b) {
     a.Swap(&b);
@@ -3056,7 +2893,7 @@ class SC_DAMAGE_PACKET final :
                &_SC_DAMAGE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    16;
 
   friend void swap(SC_DAMAGE_PACKET& a, SC_DAMAGE_PACKET& b) {
     a.Swap(&b);
@@ -3237,7 +3074,7 @@ class SC_DEAD_PACKET final :
                &_SC_DEAD_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    17;
 
   friend void swap(SC_DEAD_PACKET& a, SC_DEAD_PACKET& b) {
     a.Swap(&b);
@@ -3385,7 +3222,7 @@ class SC_CHANGE_EQUIP_PACKET final :
                &_SC_CHANGE_EQUIP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    18;
 
   friend void swap(SC_CHANGE_EQUIP_PACKET& a, SC_CHANGE_EQUIP_PACKET& b) {
     a.Swap(&b);
@@ -3575,7 +3412,7 @@ class SC_CHANGE_EQUIP_RESULT_PACKET final :
                &_SC_CHANGE_EQUIP_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    19;
 
   friend void swap(SC_CHANGE_EQUIP_RESULT_PACKET& a, SC_CHANGE_EQUIP_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -3745,7 +3582,7 @@ class SC_SKILL_AIM_PACKET final :
                &_SC_SKILL_AIM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    20;
 
   friend void swap(SC_SKILL_AIM_PACKET& a, SC_SKILL_AIM_PACKET& b) {
     a.Swap(&b);
@@ -3926,7 +3763,7 @@ class SC_PONG_PACKET final :
                &_SC_PONG_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    21;
 
   friend void swap(SC_PONG_PACKET& a, SC_PONG_PACKET& b) {
     a.Swap(&b);
@@ -4484,50 +4321,6 @@ inline void CS_MOVE_PACKET::_internal_set_correction_seq(uint32_t value) {
 inline void CS_MOVE_PACKET::set_correction_seq(uint32_t value) {
   _internal_set_correction_seq(value);
   // @@protoc_insertion_point(field_set:Protocol.CS_MOVE_PACKET.correction_seq)
-}
-
-// -------------------------------------------------------------------
-
-// CS_DMOVE_PACKET
-
-// float input_x = 1;
-inline void CS_DMOVE_PACKET::clear_input_x() {
-  _impl_.input_x_ = 0;
-}
-inline float CS_DMOVE_PACKET::_internal_input_x() const {
-  return _impl_.input_x_;
-}
-inline float CS_DMOVE_PACKET::input_x() const {
-  // @@protoc_insertion_point(field_get:Protocol.CS_DMOVE_PACKET.input_x)
-  return _internal_input_x();
-}
-inline void CS_DMOVE_PACKET::_internal_set_input_x(float value) {
-  
-  _impl_.input_x_ = value;
-}
-inline void CS_DMOVE_PACKET::set_input_x(float value) {
-  _internal_set_input_x(value);
-  // @@protoc_insertion_point(field_set:Protocol.CS_DMOVE_PACKET.input_x)
-}
-
-// float input_y = 2;
-inline void CS_DMOVE_PACKET::clear_input_y() {
-  _impl_.input_y_ = 0;
-}
-inline float CS_DMOVE_PACKET::_internal_input_y() const {
-  return _impl_.input_y_;
-}
-inline float CS_DMOVE_PACKET::input_y() const {
-  // @@protoc_insertion_point(field_get:Protocol.CS_DMOVE_PACKET.input_y)
-  return _internal_input_y();
-}
-inline void CS_DMOVE_PACKET::_internal_set_input_y(float value) {
-  
-  _impl_.input_y_ = value;
-}
-inline void CS_DMOVE_PACKET::set_input_y(float value) {
-  _internal_set_input_y(value);
-  // @@protoc_insertion_point(field_set:Protocol.CS_DMOVE_PACKET.input_y)
 }
 
 // -------------------------------------------------------------------
@@ -5841,8 +5634,6 @@ inline void SC_PONG_PACKET::set_client_time(int64_t value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
-// -------------------------------------------------------------------
-
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

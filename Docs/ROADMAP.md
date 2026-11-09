@@ -39,7 +39,7 @@
 10. ~~MC4.2a~~ 완료(2026-11-08, `ALI_Weapon`(`LocomotionLayer`·`UpperBodyLayer`)·`ABP_Layer_Unarmed`·`AM_Unarmed_Attack`·`AM_Common_Death`, `ABP_PlayerBase` 재배선(C++ `UAnimAssetBuilder`)·루트 모션 무시, `WeaponTypeTable`·BodyTable 몽타주 열, PIE 사용자 확인 — `DECISIONS.md`·`TESTING.md`). 남은 확인: 에디터를 닫을 때 `ExportSkillTiming.bat`을 돌려 1001이 "변경 없음"인지(이번에는 같은 규칙으로 CSV를 직접 씀).
 11. ~~MC4.2b~~ 완료(2026-11-09, Mixamo 시범 리타깃 `AS_Bow_StandingDrawArrow`, `RTG_Mixamo_Mannequin`·`RetargetTools`, V1·V2 사용자 확인, 활·옷 어색함은 4.2d·4.2e로, V3는 4.2c·4.2d 다운로드 때 — `DECISIONS.md`·`TESTING.md`·`ExternalAssets.md`).
 12. ~~MC4.2c~~ 완료(2026-11-09, 한손검 이동·공격·스킬 + 공용 피격: `Anims/OneHandSword/*`(`AS_`·`AM_OneHandSword_*`·`BS_OneHandSword_Locomotion`·`ABP_Layer_OneHandSword`)·`Anims/Hit/AM_Common_Hit`, 리타기터 Root Motion 끔 + Pin IK Bones, 제자리 처리(Mixamo In Place 방식), 스킬 2002 = 도약 내려찍기(사용자 교체), 테스트 플레이어 메시 오프셋 버그 수정, TestLevel 사용자 확인 — `DECISIONS.md`·`TESTING.md`·`ExternalAssets.md`). 4.2b와 함께 커밋.
-    - 이후: 4.2d 활 → 4.2e 장갑·어깨 뭉침 → **4.2f 방패**. 정리 후보: 쓰지 않는 `CS_DMOVE_PACKET`(`Protocol.proto`), `DT_CharacterAsset`·`UJMGameInstance::CharacterAssetTable`(플레이어 참조 끊김 — 정리 여부는 사용자에게 묻기), `MovementTable.xlsx`(2026-10-20 이후 CSV와 어긋남 — 맞출지 사용자에게 묻기).
+    - 이후: 4.2d 활 → 4.2e 장갑·어깨 뭉침 → **4.2f 방패**. 정리 후보 3개는 2026-11-10 삭제 완료(`CS_DMOVE_PACKET`, `DT_CharacterAsset`·`CharacterAssetTable`·`FCharacterAssetData`, `MovementTable.xlsx` — `DECISIONS.md`).
 13. ~~MC4.2d-1~~ 완료(2026-11-09, 스킬 조준 동기화 — `DECISIONS.md`·`TESTING.md`). MC4.2d-2 활 애니메이션·등에 메기 구현 완료(2026-11-10, 확인은 중간 테스트). **다음: MC4.2e** → MC4.2f 방패 → **MC4.2 중간 테스트**(무기·동작 사용자 확인을 한꺼번에 — 2026-11-10 사용자 결정). 이전 메모: — 4.2d-2 시작 시 Longbow 팩 동작 목록 대조(팩 다운로드는 In Place 옵션이 없어 `retarget_strip_drift`로 제자리 처리). 활 시범 `AS_Bow_StandingDrawArrow`는 4.2c에서 새 리타기터 설정으로 다시 리타깃해 둠.
 **VARCO 흐름 노드(JH_MMO 플로):** 투구 정면 컨셉 `531e1ef7…`, 3/4 시점 편집 `c1511cae…`, 3차 3D `8456f6d4…`(실패), 초록 배경 `aa21a66f…`, 4차 3D `4e325e94…`(실패), 사슬 뺀 눈높이 `a0bb8331…`, **5차 3D `ad0e9513…`(채택, 출력 0)**. 판금 상의 컨셉 `cb90b725…`가 세트 스타일 참고.
 
@@ -256,6 +256,6 @@
 
 ## Paragon 에셋 최종 Move (캐릭터 작업 종료 시, 2026-10-17·10-19 방침)
 재다운로드한 Paragon 전체 팩은 커밋하지 않고(`.gitignore`), 실제 쓰는 에셋과 의존 에셋만 `Content/Character/<영웅>/`(Greystone, Sparrow, Rampage)로 **Move**해 커밋합니다. 고칠 에셋(몽타주·AnimBP·피격·사망)은 이미 Duplicate 완료, 무거운 에셋(메시·스켈레톤·머티리얼·텍스처·시퀀스)이 남아 있습니다. 한 단계씩 사용자에게 묻고 진행합니다.
-1. 영웅 폴더와 `Characters/Global`을 Move → Fix Up Redirectors → `DT_CharacterAsset`·`BP_Npc` 확인 → Save All → `Paragon*` 삭제 → PIE 확인 (Reference Viewer로 의존 확인)
+1. 영웅 폴더와 `Characters/Global`을 Move → Fix Up Redirectors → `BP_Npc` 확인 → Save All → `Paragon*` 삭제 → PIE 확인 (Reference Viewer로 의존 확인)
 2. 활/화살 `SM_Sparrow_Arrow`, 검 `SM_Greystone_Blade_01`을 쓰기로 하면 Move 대상에 포함
 3. 영웅 하나가 끝날 때마다 `Content/Character/**`와 소스·문서만 체크포인트 커밋. 원본 `Paragon*` 폴더의 재다운로드 변경분은 커밋하지 않음(복원 또는 제외 방식은 그때 결정)

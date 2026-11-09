@@ -34,11 +34,6 @@ message CS_MOVE_PACKET {
 	uint32 correction_seq = 3; // 마지막으로 받은 내 위치 보정(SC_MOVE)의 순번. 서버는 이보다 오래된 이동을 버린다
 }
 
-message CS_DMOVE_PACKET {
-	float input_x = 1;
-	float input_y = 2;
-}
-
 message CS_ATTACK_PACKET {
 	int32 target_id = 1;      // Targeted 스킬의 대상 (NonTargeted는 0)
 	int32 skill_slot = 2;     // 0 = 기본 공격, 1~5 = 스킬 슬롯 (서버가 장착 무기 타입의 SkillTable로 해석)

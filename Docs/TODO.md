@@ -18,7 +18,7 @@
 - ~~서버 권위 이동: 내 캐릭터 위치·이동 상태를 클라이언트가 계산해 전송하고 서버 응답은 무시함(`JMObjectManager.cpp:88`, `JMMyPlayer.cpp:86-101`). 서버 보정 경로 필요 — [DESIGN_CONTROL_CAMERA.md](DESIGN_CONTROL_CAMERA.md)~~ (S1 완료, 2026-10-30)
 - ~~원격 데드레커닝 시간 상한(`JMCharacterBase.cpp:55-58`), `SyncTransformToInfo`의 매 프레임 `ObjectInfo.position` 덮어쓰기 정리~~ (S1 완료, 2026-10-30)
 - 하드코딩 → 데이터: 서버 주소/포트, 인게임 맵 이름, PlayerType→영웅 매핑(`JMPlayer.cpp:91-106`), 캡슐/보간/카메라/이동 임계값, UI 위젯 이름·크기 (`MovementTable`/`HeroTable`/`UITable`)
-- 몬스터 데이터: `template_id` 기반 메시/AnimBP 로드, Rampage `DT_CharacterAsset` 행
+- 몬스터 데이터: `template_id` 기반 메시/AnimBP 로드(`DT_CharacterAsset`은 2026-11-10 삭제 — 필요하면 몬스터 전용 테이블을 새로 설계)
 - ~~채팅 기능 복구~~(C-4 완료, 2026-10-30) (송신 주석 처리 — `ChatWidget.cpp`의 TODO, `UNetworkManager::SendChat` 없음, 클라이언트 `SC_CHAT` 핸들러 없음. 2026-10-27 PIE에서 입력 후 메시지가 쌓이지 않음 확인) → ROADMAP C-4. 로그인 실패 응답은 A0.7에서 처리
 - 인벤토리 UI는 A6.1에서 새로 만든다(2026-10-28 C-1: 입력이 연결된 적 없던 `OnInventoryKeyPressed`·인벤토리 위젯 등록 삭제, 로그아웃·`CMOVE` 패킷 삭제)
 - 렌더 설정(레이트레이싱 등) MMO 클라이언트 기준 재검토, 안드로이드 토큰 저장소 노출 확인

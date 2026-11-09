@@ -18,7 +18,7 @@
 
 - `Network/` — `NetworkManager`(소켓/연결 소유), `NetworkWorker`(수신 스레드), `NetworkSession`, `FPacketHandler`(수신되는 `SC_*` 패킷 디스패치, 서버의 `PacketHandler`와 대응되는 역할), `SendBuffer`.
 - `Protocol/` — `GanPackets.bat`으로 복사되는 생성된 Protobuf 소스. 손으로 수정 금지.
-- `Game/` — `JMGameInstance`(최상위 영속 상태), `JMObjectManager`(서버 오브젝트 ID ↔ 클라이언트 액터 매핑), `CharacterAssetData.h`(`FCharacterAssetData`: 영웅 메시/AnimBP/몽타주 참조, 이후 HeroTable로 대체), `IngameGameModeBase`, `LoginGameMode`.
+- `Game/` — `JMGameInstance`(최상위 영속 상태), `JMObjectManager`(서버 오브젝트 ID ↔ 클라이언트 액터 매핑), `IngameGameModeBase`, `LoginGameMode`.
 - `Character/`, `Animation/`, `Player/` — `JMCharacterBase`, `JMAnimInstance`, `JMPlayer`/`JMMyPlayer`(로컬 제어 vs 리모트), `JMPlayerController`, `NpcCharaceter`(서버 주도 NPC/몬스터).
 - `UI/` — `JMUIManager`(중앙 UI/위젯 스택 매니저), `LoginWidget`, `ChatWidget`, `HpBarWidget`.
 
