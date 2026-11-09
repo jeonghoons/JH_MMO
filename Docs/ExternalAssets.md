@@ -50,4 +50,9 @@
 | `MX_OneHandSword_Run` → `AS_OneHandSword_Run` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield run.fbx` | Sword And Shield Run(앞) | 제자리 처리, BS 500 ×1.31 |
 | `MX_OneHandSword_Attack` → `AS_OneHandSword_Attack` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield slash.fbx` | Downward Slash | 2001 기본 공격 |
 | `MX_OneHandSword_Skill1` → `AS_OneHandSword_Skill1` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield attack.fbx` | Sword And Shield Attack(도약 내려찍기) | 2002, 제자리 처리(사용자 교체 — 처음 Power Slash `slash (4)`) |
+| `MX_Bow_Idle`·`MX_Bow_Walk`·`MX_Bow_Run` → `AS_Bow_*` | `SourceArt/Mixamo/Pro Longbow Pack/standing idle 01.fbx`·`standing walk forward.fbx`·`standing run forward.fbx` | Standing Idle 01 / Walk Forward / Run Forward | MC4.2d-2 활 든 이동(`BS_Bow_Locomotion` 0·106·500 ×1.49), 걷기·달리기 제자리 처리 |
+| `MX_Bow_AimIdle`·`MX_Bow_AimWalkFwd/Bwd/Left/Right` → `AS_Bow_*` | `standing aim overdraw.fbx`·`standing aim walk forward/back/left/right.fbx` | Standing Aim Overdraw / Aim Walk 4방향 | 조준 이동(`BS_Bow_AimWalk`, 속도 200에 ×1.46~2.3), 제자리 처리 |
+| `MX_Bow_Attack` + `MX_Bow_Skill1` → `AM_Bow_Attack` | `standing draw arrow.fbx` + `standing aim recoil.fbx` | Standing Draw Arrow + Standing Aim Recoil | 3001 기본 공격(당기기 1.033초 + 놓기, 타격 1.213) |
+| `MX_Bow_Skill1` → `AM_Bow_Skill1` | `standing aim recoil.fbx` | Standing Aim Recoil | 3002 확정 발사(타격 0.18) |
+| `MX_Bow_Sheathe` → `AM_Bow_Sheathe` | `standing disarm bow.fbx` | Standing Disarm Bow | 활 넣기(등 소켓 전환 0.45초, 왼손 궤적 측정) |
 | `MX_Common_Hit` → `Mannequin/Anims/Hit/AS_Common_Hit` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield impact (3).fbx` | Sword And Shield Impact(머리) | 공용 피격(BodyTable `HitMontage`) |

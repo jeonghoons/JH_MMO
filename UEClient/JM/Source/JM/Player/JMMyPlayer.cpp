@@ -69,6 +69,7 @@ void AJMMyPlayer::PossessedBy(AController* NewController)
 	MoveMinInterval = Row->ServerMinMoveIntervalMs / 1000.f;
 	MoveSendTurnCos = Row->MoveSendTurnDeg > 0.f ? FMath::Cos(FMath::DegreesToRadians(Row->MoveSendTurnDeg)) : -2.f;
 	AimMinInterval = Row->ServerAimMinIntervalMs / 1000.f;
+	MoveSendTurnDegValue = Row->MoveSendTurnDeg;
 
 	// 카메라 피치 제한과 시작 각도 (음수 피치 = 아래로 내려다봄)
 	if (APlayerController* PC = Cast<APlayerController>(NewController))
@@ -161,6 +162,10 @@ void AJMMyPlayer::Tick(float DeltaTime)
 	const FVector2D VelDir = FVector2D(GetVelocity()).GetSafeNormal();
 	if (bMoving && !VelDir.IsZero() && !LastSentVelDir.IsZero() && FVector2D::DotProduct(VelDir, LastSentVelDir) < MoveSendTurnCos)
 		bMoveSendPending = true;
+	// 조준 중 제자리 회전(카메라 방향)도 원격에 보이도록 방향이 MoveSendTurnDeg 넘게 바뀌면 보낸다(MC4.2d-2)
+	if (!bMoving && IsSkillAiming() && MoveSendTurnDegValue > 0.f &&
+		FMath::Abs(FMath::FindDeltaAngleDegrees(LastSentYaw, GetActorRotation().Yaw)) > MoveSendTurnDegValue)
+		bMoveSendPending = true;
 	bWasMoving = bMoving;
 
 	MovePacketSendTimer -= DeltaTime;
@@ -176,6 +181,7 @@ void AJMMyPlayer::Tick(float DeltaTime)
 		TimeSinceMoveSend = 0.f;
 		bMoveSendPending = false;
 		LastSentVelDir = VelDir;
+		LastSentYaw = GetActorRotation().Yaw;
 	}
 
 }

@@ -157,6 +157,7 @@ void AJMCharacterBase::SetSkillAiming(int32 SkillId)
 	AimSkillId = SkillId;
 	AimSpeedMul = Mul;
 	RefreshMoveSpeed();
+	ApplyAimRotationMode(SkillId != 0);
 
 	if (bChanged)
 	{
@@ -169,6 +170,33 @@ void AJMCharacterBase::SetSkillAiming(int32 SkillId)
 				FString::Printf(TEXT("[SkillAim] %s id=%d %s (skill %d, x%.1f)"), IsMyPlayer ? TEXT("Me") : TEXT("Remote"), ObjectInfo.id(),
 					SkillId != 0 ? TEXT("ON") : TEXT("OFF"), SkillId, Mul));
 #endif
+	}
+}
+
+void AJMCharacterBase::ApplyAimRotationMode(bool bAim)
+{
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	if (Move == nullptr || !IsLocallyControlled()) return;
+
+	const bool bFacingLocked = GetWorldTimerManager().IsTimerActive(FacingLockTimer);
+	if (bAim)
+	{
+		// 조준 중: 이동 방향 대신 컨트롤러(카메라) 방향으로 RotationRate만큼 돌아 4방향 조준 걷기(옆·뒤 걸음)
+		if (!bAimRotationActive)
+		{
+			bAimSavedOrient = bFacingLocked ? bSavedOrientToMovement : Move->bOrientRotationToMovement;
+			bAimRotationActive = true;
+		}
+		Move->bOrientRotationToMovement = false;
+		Move->bUseControllerDesiredRotation = true;
+	}
+	else if (bAimRotationActive)
+	{
+		bAimRotationActive = false;
+		Move->bUseControllerDesiredRotation = false;
+		// 시전 방향 고정(LockFacing) 중이면 고정이 풀릴 때 원래 값으로 돌아가게 한다
+		if (bFacingLocked) bSavedOrientToMovement = bAimSavedOrient;
+		else Move->bOrientRotationToMovement = bAimSavedOrient;
 	}
 }
 
@@ -283,7 +311,11 @@ void AJMCharacterBase::LockFacingForSkill(const FSkillTableRow& Skill)
 void AJMCharacterBase::UnlockFacing()
 {
 	if (UCharacterMovementComponent* Move = GetCharacterMovement())
-		Move->bOrientRotationToMovement = bSavedOrientToMovement;
+	{
+		// 고정 중에 조준을 시작했으면 조준 회전(카메라 방향)을 유지하고, 조준이 끝날 때 bAimSavedOrient로 돌아간다
+		if (bAimRotationActive) bAimSavedOrient = bSavedOrientToMovement;
+		else Move->bOrientRotationToMovement = bSavedOrientToMovement;
+	}
 }
 
 void AJMCharacterBase::OnHitMontageEnded(UAnimMontage* Montage, bool bInterrupted)

@@ -956,11 +956,12 @@ def _helm_world(at, raw_c, raw_e, body):
     return unreal.Transform(location=unreal.Vector(*loc), rotation=rot, scale=unreal.Vector(s, s, s))
 
 
-def static_attachment(item_key, body):
+def static_attachment(item_key, body, which="attach"):
     """정적 아이템의 부착 정보 {"mesh", "socket", "transform"(소켓 기준 상대)}. items.json attach 값으로 계산.
+    which = "back"이면 무기를 등에 멜 때의 값(items.json back — attach와 같은 형식, MC4.2d-2).
     attach.fit = "head"(머리+헤어 상자에 ratio·rel_off), "helm"(머리 상자에 균일 배율·yaw, 투구) 또는 "length"(가장 긴 축을 length_cm로, grip_frac 지점을 소켓에, rot 회전)."""
     it = load_items()[item_key]
-    at = it["attach"]
+    at = it[which]
     st = unreal.load_asset(it["source"])
     b = st.get_bounds()
     raw_c = (b.origin.x, b.origin.y, b.origin.z)
@@ -974,6 +975,24 @@ def static_attachment(item_key, body):
         scale = [ratio[i] * size[i] / raw_e[i] for i in range(3)]
         world = unreal.Transform(location=unreal.Vector(*[ctr[i] - raw_c[i] * scale[i] for i in range(3)]),
                                  rotation=unreal.Rotator(0, 0, 0), scale=unreal.Vector(*scale))
+        rel_tf = unreal.MathLibrary.compose_transforms(world, unreal.MathLibrary.invert_transform(bone))
+    elif at["fit"] == "back":
+        # 등에 멜 때(MC4.2d-2): 몸(컴포넌트) 공간에서 놓는다 — 정면 +Y, 위 +Z, 캐릭터 왼쪽 +X.
+        # 메시의 긴 축(활 길이)을 dir 방향으로, 메시 +X(활: 시위 쪽)를 face 방향으로, 쥐는 점(grip_frac·grip_local)을 center에 둔 뒤 본 기준으로 바꾼다.
+        axis = max(range(3), key=lambda i: raw_e[i])
+        s = at["length_cm"] / raw_e[axis]
+        grip = list(raw_c)
+        grip[axis] = raw_c[axis] - raw_e[axis] / 2 + at.get("grip_frac", 0.5) * raw_e[axis]
+        for k, val in (at.get("grip_local") or {}).items():
+            grip["xyz".index(k)] = float(val)
+        d, f = unreal.Vector(*at["dir"]), unreal.Vector(*at["face"])
+        mk = {1: unreal.MathLibrary.make_rot_from_xy, 2: unreal.MathLibrary.make_rot_from_xz}
+        if axis == 0:
+            raise RuntimeError("back fit: 메시 긴 축이 X(시위 쪽 축)와 같아 방향을 정할 수 없음")
+        rot = mk[axis](f, d)
+        off = rot.quaternion().rotate_vector(unreal.Vector(-grip[0] * s, -grip[1] * s, -grip[2] * s))
+        c = at["center"]
+        world = unreal.Transform(location=unreal.Vector(off.x + c[0], off.y + c[1], off.z + c[2]), rotation=rot, scale=unreal.Vector(s, s, s))
         rel_tf = unreal.MathLibrary.compose_transforms(world, unreal.MathLibrary.invert_transform(bone))
     elif at["fit"] == "helm":
         rel_tf = unreal.MathLibrary.compose_transforms(_helm_world(at, raw_c, raw_e, body), unreal.MathLibrary.invert_transform(bone))

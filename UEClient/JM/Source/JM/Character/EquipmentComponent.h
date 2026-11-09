@@ -25,6 +25,9 @@ public:
 	void SetSlotItem(int32 Index, int32 ItemId);
 
 	int32 GetPlayerType() const { return PlayerType; }
+
+	// 무기를 등(true)/손(false)에 둔다(MC4.2d-2, 캐릭터의 무기 자세가 부른다). 다음 외형 갱신에도 유지된다.
+	void SetWeaponOnBack(bool bOnBack);
 	const TArray<int32>& GetItems() const { return Items; }
 
 protected:
@@ -41,6 +44,7 @@ private:
 
 	int32 PlayerType = 0;
 	TArray<int32> Items;
+	bool bWeaponOnBack = true;   // 처음 보이는 캐릭터는 등에 멘 상태(DESIGN_ANIMATION)
 
 	// 늦게 끝난 옛 로드 결과를 버리기 위한 요청 번호
 	int32 RequestSerial = 0;

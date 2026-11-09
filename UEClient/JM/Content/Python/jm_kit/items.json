@@ -204,6 +204,30 @@
       },
       "grip_axis": "knuckles",
       "depth_to_wrist": true
+    },
+    "back": {
+      "socket": "spine_05",
+      "fit": "back",
+      "length_cm": 125,
+      "grip_frac": 0.5,
+      "grip_local": {
+        "x": -5.0
+      },
+      "center": [
+        0,
+        -27,
+        118
+      ],
+      "dir": [
+        1,
+        0,
+        1.1
+      ],
+      "face": [
+        0,
+        1,
+        0
+      ]
     }
   },
   "Cloth_Bottom": {
@@ -357,6 +381,30 @@
       },
       "grip_axis": "knuckles",
       "depth_to_wrist": true
+    },
+    "back": {
+      "socket": "spine_05",
+      "fit": "back",
+      "length_cm": 125,
+      "grip_frac": 0.5,
+      "grip_local": {
+        "x": -5.0
+      },
+      "center": [
+        0,
+        -27,
+        118
+      ],
+      "dir": [
+        1,
+        0,
+        1.1
+      ],
+      "face": [
+        0,
+        1,
+        0
+      ]
     }
   }
 }

@@ -23,6 +23,8 @@
 #include "Animation/BlendSpace.h"
 #include "Animation/BlendSpace1D.h"
 #include "Factories/BlendSpaceFactory1D.h"
+#include "Factories/BlendSpaceFactoryNew.h"
+#include "AnimGraphNode_BlendListByInt.h"
 #include "Animation/Skeleton.h"
 #include "AnimationGraph.h"
 #include "AnimationGraphSchema.h"
@@ -585,6 +587,175 @@ FString UAnimAssetBuilder::CreateMontage(const FString& SequencePath, const FStr
 	Montage->PostEditChange();
 	Montage->MarkPackageDirty();
 	if (!SaveAsset(Montage)) return Fail(TEXT("save failed: ") + Montage->GetPathName());
+	return Out + TEXT("saved\n");
+}
+
+FString UAnimAssetBuilder::CreateMontageFromSequences(const TArray<FString>& SequencePaths, const FString& PackagePath, const FString& SlotName, bool bAutoBlendOut, float SkillHitTimeSec)
+{
+	if (SequencePaths.Num() == 0) return Fail(TEXT("SequencePaths is empty"));
+	TArray<UAnimSequence*> Seqs;
+	for (const FString& P : SequencePaths)
+	{
+		UAnimSequence* S = LoadObject<UAnimSequence>(nullptr, *P);
+		if (S == nullptr || S->GetSkeleton() == nullptr) return Fail(TEXT("sequence load failed: ") + P);
+		if (Seqs.Num() && S->GetSkeleton() != Seqs[0]->GetSkeleton()) return Fail(TEXT("sequence skeleton mismatch: ") + P);
+		Seqs.Add(S);
+	}
+
+	// 첫 시퀀스로 만든다(알림 없이) → 나머지를 같은 슬롯 트랙 뒤에 잇는다 → 전체 길이 기준으로 알림을 단다
+	FString Out = CreateMontage(SequencePaths[0], PackagePath, SlotName, bAutoBlendOut, -1.f);
+	if (Out.StartsWith(TEXT("ERROR"))) return Out;
+	UAnimMontage* Montage = LoadObject<UAnimMontage>(nullptr, *PackagePath);
+	if (Montage == nullptr || Montage->SlotAnimTracks.Num() == 0) return Fail(TEXT("montage reload failed: ") + PackagePath);
+
+	FAnimTrack& Track = Montage->SlotAnimTracks[0].AnimTrack;
+	for (int32 i = 1; i < Seqs.Num(); ++i)
+	{
+		FAnimSegment Segment;
+		Segment.SetAnimReference(Seqs[i], true);
+		Segment.StartPos = Track.GetLength();
+		Track.AnimSegments.Add(Segment);
+		Out += FString::Printf(TEXT("  + segment %s at %.3f length=%.3f\n"), *Seqs[i]->GetName(), Segment.StartPos, Seqs[i]->GetPlayLength());
+	}
+	Montage->SetCompositeLength(Track.GetLength());
+
+	if (SkillHitTimeSec >= 0.f)
+	{
+		const float Time = FMath::Clamp(SkillHitTimeSec, 0.f, Montage->GetPlayLength());
+		if (Montage->AnimNotifyTracks.Num() == 0) Montage->AnimNotifyTracks.AddDefaulted();
+		const int32 Index = Montage->Notifies.AddDefaulted();
+		FAnimNotifyEvent& Event = Montage->Notifies[Index];
+		Event.Notify = NewObject<UAnimNotify_SkillHit>(Montage, UAnimNotify_SkillHit::StaticClass(), NAME_None, RF_Transactional);
+		Event.NotifyName = FName(*Event.Notify->GetNotifyName());
+		Event.Link(Montage, Time);
+		Event.TriggerTimeOffset = GetTriggerTimeOffsetForType(Montage->CalculateOffsetForNotify(Time));
+		Event.TrackIndex = 0;
+		Out += FString::Printf(TEXT("  notify SkillHit at %.3f\n"), Time);
+	}
+	Montage->RefreshCacheData();
+	Montage->PostEditChange();
+	Montage->MarkPackageDirty();
+	if (!SaveAsset(Montage)) return Fail(TEXT("save failed: ") + Montage->GetPathName());
+	return Out + FString::Printf(TEXT("  total length=%.3f\nsaved\n"), Montage->GetPlayLength());
+}
+
+FString UAnimAssetBuilder::CreateBlendSpace2D(const FString& PackagePath, const FString& SkeletonPath, const FString& XAxisName, float XMin, float XMax,
+	const FString& YAxisName, float YMin, float YMax, const TArray<FString>& SequencePaths, const TArray<float>& XValues, const TArray<float>& YValues,
+	const TArray<float>& RateScales)
+{
+	FString Folder, Name;
+	if (!SplitPackagePath(PackagePath, Folder, Name)) return Fail(TEXT("bad package path: ") + PackagePath);
+	if (UEditorAssetLibrary::DoesAssetExist(PackagePath)) return Fail(TEXT("asset already exists: ") + PackagePath);
+	if (SequencePaths.Num() == 0 || SequencePaths.Num() != XValues.Num() || SequencePaths.Num() != YValues.Num())
+		return Fail(TEXT("SequencePaths, XValues, YValues must have the same non-zero count"));
+	if (RateScales.Num() != 0 && RateScales.Num() != SequencePaths.Num()) return Fail(TEXT("RateScales must be empty or match SequencePaths"));
+	if (XMax <= XMin || YMax <= YMin) return Fail(TEXT("axis max must be greater than min"));
+	USkeleton* Skeleton = LoadObject<USkeleton>(nullptr, *SkeletonPath);
+	if (Skeleton == nullptr) return Fail(TEXT("skeleton load failed: ") + SkeletonPath);
+
+	TArray<UAnimSequence*> Seqs;
+	for (const FString& P : SequencePaths)
+	{
+		UAnimSequence* S = LoadObject<UAnimSequence>(nullptr, *P);
+		if (S == nullptr) return Fail(TEXT("sequence load failed: ") + P);
+		if (S->GetSkeleton() != Skeleton) return Fail(TEXT("sequence skeleton mismatch: ") + P);
+		Seqs.Add(S);
+	}
+
+	UBlendSpaceFactoryNew* Factory = NewObject<UBlendSpaceFactoryNew>();
+	Factory->TargetSkeleton = Skeleton;
+	UBlendSpace* BS = Cast<UBlendSpace>(AssetTools().CreateAsset(Name, Folder, UBlendSpace::StaticClass(), Factory));
+	if (BS == nullptr) return Fail(TEXT("CreateAsset failed (BlendSpace)"));
+
+	FProperty* Prop = FindFProperty<FProperty>(UBlendSpace::StaticClass(), TEXT("BlendParameters"));
+	if (Prop == nullptr) return Fail(TEXT("BlendParameters property not found"));
+	FBlendParameter* AxisX = Prop->ContainerPtrToValuePtr<FBlendParameter>(BS, 0);
+	FBlendParameter* AxisY = Prop->ContainerPtrToValuePtr<FBlendParameter>(BS, 1);
+	AxisX->DisplayName = XAxisName; AxisX->Min = XMin; AxisX->Max = XMax; AxisX->bSnapToGrid = false;
+	AxisY->DisplayName = YAxisName; AxisY->Min = YMin; AxisY->Max = YMax; AxisY->bSnapToGrid = false;
+
+	FString Out = FString::Printf(TEXT("created %s X %s [%.1f, %.1f] Y %s [%.1f, %.1f]\n"), *BS->GetPathName(), *XAxisName, XMin, XMax, *YAxisName, YMin, YMax);
+	for (int32 i = 0; i < Seqs.Num(); ++i)
+	{
+		const int32 Index = BS->AddSample(Seqs[i], FVector(XValues[i], YValues[i], 0.f));
+		if (Index == INDEX_NONE) return Fail(FString::Printf(TEXT("AddSample failed: %s at (%.1f, %.1f)"), *Seqs[i]->GetName(), XValues[i], YValues[i]));
+		const float Rate = RateScales.Num() ? RateScales[i] : 1.f;
+		const_cast<FBlendSample&>(BS->GetBlendSample(Index)).RateScale = Rate;
+		Out += FString::Printf(TEXT("  sample %s at (%.1f, %.1f) rate %.3f\n"), *Seqs[i]->GetName(), XValues[i], YValues[i], Rate);
+	}
+	BS->ValidateSampleData();
+	BS->ResampleData();
+	BS->PostEditChange();
+	BS->MarkPackageDirty();
+	if (!SaveAsset(BS)) return Fail(TEXT("save failed: ") + BS->GetPathName());
+	return Out + TEXT("saved\n");
+}
+
+FString UAnimAssetBuilder::SetLayerBlendSpacesByInt(const FString& BlueprintPath, const FString& LayerName, const FString& IntVariable,
+	const TArray<FString>& BlendSpacePaths, const TArray<FString>& XVariables, const TArray<FString>& YVariables, float BlendTimeSec)
+{
+	UAnimBlueprint* BP = LoadObject<UAnimBlueprint>(nullptr, *BlueprintPath);
+	if (BP == nullptr) return Fail(TEXT("AnimBlueprint load failed: ") + BlueprintPath);
+	UEdGraph* Graph = FindLayerGraph(BP, LayerName);
+	if (Graph == nullptr) return Fail(TEXT("layer graph not found: ") + LayerName);
+	const int32 N = BlendSpacePaths.Num();
+	if (N < 2 || XVariables.Num() != N || YVariables.Num() != N) return Fail(TEXT("need >= 2 blendspaces and matching X/Y variable counts"));
+	if (IntVariable.IsEmpty()) return Fail(TEXT("IntVariable is required"));
+	TArray<UBlendSpace*> Spaces;
+	for (const FString& P : BlendSpacePaths)
+	{
+		UBlendSpace* BS = LoadObject<UBlendSpace>(nullptr, *P);
+		if (BS == nullptr) return Fail(TEXT("blendspace load failed: ") + P);
+		Spaces.Add(BS);
+	}
+	TArray<UAnimGraphNode_Root*> Roots = NodesOf<UAnimGraphNode_Root>(Graph);
+	if (Roots.Num() == 0) return Fail(TEXT("layer graph has no result node: ") + LayerName);
+
+	ClearLayerGraph(BP, Graph);
+
+	FGraphNodeCreator<UAnimGraphNode_BlendListByInt> CB(*Graph);
+	UAnimGraphNode_BlendListByInt* List = CB.CreateNode();
+	List->NodePosX = -300;
+	CB.Finalize();
+	// 새 노드는 포즈 2개로 시작한다. 모자란 만큼 에디터 "핀 추가"와 같은 경로로 늘린다.
+	for (int32 Guard = 0; Guard < 16 && List->FindPin(FName(*FString::Printf(TEXT("BlendPose_%d"), N - 1)), EGPD_Input) == nullptr; ++Guard)
+		List->AddPinToBlendList();
+	if (List->FindPin(FName(*FString::Printf(TEXT("BlendPose_%d"), N - 1)), EGPD_Input) == nullptr) return Fail(TEXT("BlendListByInt pose pins could not be added"));
+
+	FString Err, Out = FString::Printf(TEXT("layer %s: BlendListByInt(%s) x%d\n"), *LayerName, *IntVariable, N);
+	if (!Connect(Graph, FindPosePin(List, EGPD_Output), FindPosePin(Roots[0], EGPD_Input), Err)) return Fail(Err);
+	{
+		UK2Node_VariableGet* V = MakeVariableGet(Graph, IntVariable, -650, -260);
+		if (!Connect(Graph, V->GetValuePin(), List->FindPin(TEXT("ActiveChildIndex"), EGPD_Input), Err)) return Fail(Err);
+	}
+	for (int32 i = 0; i < N; ++i)
+	{
+		FGraphNodeCreator<UAnimGraphNode_BlendSpacePlayer> C(*Graph);
+		UAnimGraphNode_BlendSpacePlayer* Player = C.CreateNode();
+		Player->SetAnimationAsset(Spaces[i]);
+		Player->NodePosX = -700; Player->NodePosY = -120 + i * 220;
+		C.Finalize();
+		if (!Connect(Graph, FindPosePin(Player, EGPD_Output), FindPosePin(List, EGPD_Input, FName(*FString::Printf(TEXT("BlendPose_%d"), i))), Err)) return Fail(Err);
+		if (UEdGraphPin* TimePin = List->FindPin(FName(*FString::Printf(TEXT("BlendTime_%d"), i)), EGPD_Input))
+			Graph->GetSchema()->TrySetDefaultValue(*TimePin, FString::SanitizeFloat(BlendTimeSec));
+		Out += FString::Printf(TEXT("  pose %d: %s"), i, *Spaces[i]->GetName());
+		const FString* Vars[2] = { &XVariables[i], &YVariables[i] };
+		const TCHAR* PinNames[2] = { TEXT("X"), TEXT("Y") };
+		for (int32 k = 0; k < 2; ++k)
+		{
+			if (Vars[k]->IsEmpty()) continue;
+			UK2Node_VariableGet* V = MakeVariableGet(Graph, *Vars[k], -1000, -120 + i * 220 + k * 70);
+			if (!Connect(Graph, V->GetValuePin(), Player->FindPin(PinNames[k], EGPD_Input), Err)) return Fail(Err);
+			Out += FString::Printf(TEXT(" %s<-%s"), PinNames[k], **Vars[k]);
+		}
+		Out += TEXT("\n");
+	}
+
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(BP);
+	const FString Compile = CompileBlueprint(BP);
+	if (Compile.StartsWith(TEXT("COMPILE ERROR"))) return Fail(Compile);
+	Out += Compile;
+	if (!SaveAsset(BP)) return Fail(TEXT("save failed: ") + BP->GetPathName());
 	return Out + TEXT("saved\n");
 }
 

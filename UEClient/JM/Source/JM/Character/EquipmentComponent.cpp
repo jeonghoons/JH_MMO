@@ -83,7 +83,10 @@ void UEquipmentComponent::Refresh()
 	Add(Body->HitMontage.ToSoftObjectPath());
 	Add(Body->DeathMontage.ToSoftObjectPath());
 	if (const FWeaponTypeTableRow* Weapon = Data->FindWeaponType(WeaponTypeOf(*Data, Items)))
+	{
 		Add(Weapon->AnimLayer.ToSoftObjectPath());
+		Add(Weapon->SheatheMontage.ToSoftObjectPath());
+	}
 	for (int32 ItemId : Items)
 	{
 		if (ItemId == 0) continue;
@@ -122,12 +125,18 @@ void UEquipmentComponent::OnAssetsLoaded(int32 Serial)
 	Look.Hair = Body->Hair.Get();
 	Look.BodyMaterial = Body->BodyMaterial.Get();
 	Look.AnimClass = Body->AnimClass.Get();
-	if (const FWeaponTypeTableRow* Weapon = Data->FindWeaponType(WeaponTypeOf(*Data, Items)))
-		Look.AnimLayer = Weapon->AnimLayer.Get();
+	const FWeaponTypeTableRow* Weapon = Data->FindWeaponType(WeaponTypeOf(*Data, Items));
+	if (Weapon) Look.AnimLayer = Weapon->AnimLayer.Get();
 
-	// 피격·사망 몽타주는 외형이 아니라 캐릭터 행동이라 Appearance가 아닌 캐릭터에 넣는다
+	// 피격·사망 몽타주와 무기 넣기 값은 외형이 아니라 캐릭터 행동이라 Appearance가 아닌 캐릭터에 넣는다
 	if (AJMCharacterBase* Character = Cast<AJMCharacterBase>(Owner))
+	{
 		Character->SetReactionMontages(Body->HitMontage.Get(), Body->DeathMontage.Get());
+		const FItemTableRow* WeaponItem = Items.IsValidIndex(WEAPON_SLOT_INDEX) && Items[WEAPON_SLOT_INDEX] != 0 ? Data->FindItemById(Items[WEAPON_SLOT_INDEX]) : nullptr;
+		const bool bCanSheathe = Weapon && Weapon->SheatheDelaySec > 0.f && WeaponItem && !WeaponItem->BackSocket.IsNone();
+		Character->SetSheatheData(bCanSheathe, bCanSheathe ? Weapon->SheatheDelaySec : 0.f, bCanSheathe ? Weapon->SheatheMontage.Get() : nullptr,
+			bCanSheathe ? Weapon->SheatheSwapSec : 0.f);
+	}
 
 	for (int32 i = 0; i < EQUIP_SLOT_COUNT; ++i)
 	{
@@ -138,6 +147,8 @@ void UEquipmentComponent::OnAssetsLoaded(int32 Serial)
 		S.Static = Item->StaticMesh.Get();
 		S.Socket = Item->AttachSocket;
 		S.Attach = bFemale ? Item->AttachF : Item->AttachM;
+		S.BackSocket = Item->BackSocket;
+		S.BackAttach = bFemale ? Item->BackF : Item->BackM;
 		MergeMask(Look.Mask, Item->Mask);
 		Look.bHideHair |= Item->HideHair != 0;
 	}
@@ -149,5 +160,12 @@ void UEquipmentComponent::OnAssetsLoaded(int32 Serial)
 	}
 	// 적용 뒤에는 컴포넌트·AnimInstance·MID가 에셋을 참조하므로 핸들을 따로 붙잡지 않아도 된다.
 	// (이미 로드된 에셋이면 콜백이 RequestAsyncLoad 안에서 바로 불려 PendingHandle 대입 전일 수 있다 — 여기서 핸들을 건드리지 않는다)
+	Appearance->SetWeaponOnBack(bWeaponOnBack);
 	Appearance->Apply(Owner, Look);
+}
+
+void UEquipmentComponent::SetWeaponOnBack(bool bOnBack)
+{
+	bWeaponOnBack = bOnBack;
+	if (Appearance) Appearance->SetWeaponOnBack(bOnBack);
 }

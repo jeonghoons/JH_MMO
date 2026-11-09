@@ -24,6 +24,8 @@
 - `SC_ATTACK`을 받으면 **즉시** 손 소켓으로 옮깁니다(꺼내는 모션 때문에 서버 `HitDelayMs`를 늦추지 않음).
 - 마지막 공격·피격 후 `SheatheDelaySec`(5초, `MovementTable` 클라 전용 열 예정)이 지나면 넣는 모션 → 등 소켓.
 - 프로토콜 변경이 없고 서버는 이 상태를 모릅니다.
+- (2026-11-09 MC4.2d-2 구현, 활 먼저 — `DECISIONS.md`) 값 위치: WeaponTypeTable `SheatheDelaySec`(0이면 항상 손, 지금 검)·`SheatheMontage`·`SheatheSwapSec`(넣기 동작 중 등 소켓으로 옮기는 시각), 아이템별 등 부착 = ItemTable 생성 열 `BackSocket`·`BackM`·`BackF`(items.json `back`, `fit: "back"` = 몸 공간의 중심·방향·시위 쪽으로 지정). 조준 시작도 꺼내기 조건이고, 피격은 손에 든 동안 타이머만 다시 시작. 구현: `AJMPlayer`(DrawWeapon·넣기 타이머) + `UEquipmentComponent::SetWeaponOnBack` → `ULeaderPoseAppearance`.
+- **무기 자세 `WeaponStance`**(`UJMAnimInstance`): 0 = 등에 멤(맨손 이동), 1 = 손에 듦(무기 이동), 2 = 스킬 조준. `ABP_Layer_Bow`의 `LocomotionLayer`가 Blend Poses by Int로 `BS_Idle_Walk_Run` / `BS_Bow_Locomotion`(1D 속도) / `BS_Bow_AimWalk`(2D 방향×속도)를 고른다. 조준 중 직접 조종하는 캐릭터는 카메라 방향을 보고(`bUseControllerDesiredRotation`) 옆·뒤로 걷는다.
 
 ## 모션 출처
 - 우선순위(`DECISIONS.md` 2026-11-09): ① 매니퀸 템플릿에 이미 있는 모션(맨손 이동·점프·공격, 사망) → ② Mixamo(검·활 레이어 전체, 공용 피격, 활 조준 이동 — 사용자가 FBX 다운로드, `RTG_Mixamo_Mannequin` 하나로 리타깃) → ③ Mixamo에 없거나 불가능하면 VARCO(`Rig` → `Animate`) → ④ 셋 다 없으면 모션 없이 소켓 전환 + 블렌드. GASP·Lyra는 쓰지 않으며 외부 DCC도 쓰지 않습니다.

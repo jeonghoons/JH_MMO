@@ -41,6 +41,8 @@ void ATestPlayer::BeginPlay()
 	ObjectInfo.clear_equip_items();
 	for (int32 i = 0; i < 6; ++i)
 		ObjectInfo.add_equip_items(TestItems.IsValidIndex(i) ? TestItems[i] : 0);
+	// 최고 속도는 BP의 MaxWalkSpeed(테스트 전용). 조준 배율(SkillTable.AimMoveSpeedMul)이 이 값에 곱해지도록 스탯에 넣는다.
+	ObjectInfo.mutable_stat()->set_move_speed(GetCharacterMovement()->MaxWalkSpeed);
 	RefreshEquipment();
 }
 
@@ -135,12 +137,32 @@ void ATestPlayer::Look(const FInputActionValue& Value)
 
 void ATestPlayer::OnAttackInput()
 {
+	// 조준 중이면 조준한 스킬을 확정한다(실제 게임과 같이 시전 방향 고정 뒤 조준 해제)
+	if (IsSkillAiming())
+	{
+		PlaySkillSlot(1);
+		SetSkillAiming(0);
+		return;
+	}
 	PlaySkillSlot(0);
 }
 
 void ATestPlayer::OnSkill1Input()
 {
-	// 조준 단계 없이 바로 재생한다(조준 동기화는 MC4.2d, 서버가 필요해 실제 게임에서 확인).
+	// 조준 단계가 있는 스킬(AimMaxMs > 0)은 조준 켜기/끄기(로컬 — 감속·카메라 방향·조준 자세 확인용), 없으면 바로 재생한다.
+	if (IsSkillAiming())
+	{
+		SetSkillAiming(0);
+		return;
+	}
+	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const FSkillTableRow* Skill = DataManager ? DataManager->FindSkillBySlot(GetWeaponType(), 1) : nullptr;
+	const int32 SkillId = DataManager ? DataManager->FindSkillIdBySlot(GetWeaponType(), 1) : 0;
+	if (Skill && Skill->AimMaxMs > 0 && SkillId != 0)
+	{
+		SetSkillAiming(SkillId);
+		return;
+	}
 	PlaySkillSlot(1);
 }
 

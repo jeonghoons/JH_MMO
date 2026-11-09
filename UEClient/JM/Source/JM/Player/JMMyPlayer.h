@@ -85,6 +85,9 @@ protected:
 	// 속도 방향 변화로 보내기(MC4.1b): 마지막으로 보낸 속도 방향, 기준 각도의 cos(MoveSendTurnDeg 0이면 끔)
 	FVector2D LastSentVelDir = FVector2D::ZeroVector;
 	float MoveSendTurnCos = -2.f;
+	// 스킬 조준 중 제자리에서 카메라로 몸을 돌리면 방향만 바뀌어도 보낸다(MC4.2d-2 — 원격도 같은 방향을 봄). 기준 = MoveSendTurnDeg
+	float MoveSendTurnDegValue = 0.f;
+	float LastSentYaw = 0.f;
 	uint32 CorrectionSeq = 0;
 
 	FVector2D	DesiredInput;

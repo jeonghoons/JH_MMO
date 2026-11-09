@@ -101,4 +101,8 @@ struct FItemTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) FBodyMaskParams Mask;
 	// 1 = 헤어를 숨긴다(두건·투구)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 HideHair = 0;
+	// 무기를 등에 멜 때의 본/소켓과 체형별 상대 변환(MC4.2d-2, 생성 열). 비어 있으면 등에 메지 않는 무기(항상 손에 듦).
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) FName BackSocket;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) FTransform BackM;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) FTransform BackF;
 };

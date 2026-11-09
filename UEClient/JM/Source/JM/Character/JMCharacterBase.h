@@ -57,11 +57,16 @@ public:
 
 	// 스킬 조준 상태(MC4.2d-1). SkillId 0 = 끔. 원격 캐릭터는 SC_SKILL_AIM·스폰(ObjectInfo.aim_skill_id)·암묵 해제(SC_ATTACK·SC_DEAD·무기 교체)로,
 	// 내 캐릭터는 로컬 입력(AJMMyPlayer)으로 정한다. 이동 속도에 SkillTable.AimMoveSpeedMul을 곱한다(서버 이동 예산과 같은 배율).
-	void SetSkillAiming(int32 SkillId);
+	virtual void SetSkillAiming(int32 SkillId);
 	bool IsSkillAiming() const { return AimSkillId != 0; }
 	int32 GetAimSkillId() const { return AimSkillId; }
 	// MaxWalkSpeed = 서버 스탯 move_speed × 조준 배율. 스탯이 바뀌거나 조준이 바뀔 때 부른다.
 	void RefreshMoveSpeed();
+
+	// 무기 자세(MC4.2d-2, UJMAnimInstance.WeaponStance): 0 = 등에 멤(맨손 이동), 1 = 손에 듦, 2 = 스킬 조준. 등에 메지 않는 캐릭터는 1/2.
+	virtual int32 GetWeaponStance() const { return IsSkillAiming() ? 2 : 1; }
+	// 장착 무기의 넣기 값(UEquipmentComponent가 로드 뒤 호출). bCanSheathe가 false면 무기를 항상 손에 든다.
+	virtual void SetSheatheData(bool bCanSheathe, float DelaySec, class UAnimMontage* Montage, float SwapSec) {}
 
 	// 피격·사망 몽타주를 데이터(BodyTable)에서 넣는다(MC4.2, UEquipmentComponent가 로드 뒤 호출). nullptr면 그 몽타주를 재생하지 않는다.
 	void SetReactionMontages(UAnimMontage* Hit, UAnimMontage* Dead);
@@ -89,6 +94,10 @@ protected:
 
 	int32 AimSkillId = 0;
 	float AimSpeedMul = 1.f;
+	// 직접 조종하는 캐릭터(내 캐릭터·테스트 플레이어)는 조준 중 카메라 방향을 본다(MC4.2d-2). 원격은 서버 yaw를 따른다.
+	void ApplyAimRotationMode(bool bAim);
+	bool bAimRotationActive = false;
+	bool bAimSavedOrient = false;
 
 protected:
 	Protocol::ObjectInfo				ObjectInfo;

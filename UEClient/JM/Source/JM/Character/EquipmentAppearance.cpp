@@ -8,6 +8,7 @@
 
 namespace
 {
+	constexpr int32 WEAPON_SLOT = EQUIP_SLOT_COUNT - 1;   // = EquipPart WEAPON(6) - 1
 	const TCHAR* const SlotNames[EQUIP_SLOT_COUNT] = { TEXT("Head"), TEXT("Top"), TEXT("Bottom"), TEXT("Gloves"), TEXT("Boots"), TEXT("Weapon") };
 
 	// 몸 섹션 머티리얼 슬롯: 이름에 body가 들어간 슬롯(jm_kit.body_mask._body_slot_index와 같은 규칙). 얼굴 섹션은 키트 원본을 둔다.
@@ -129,4 +130,25 @@ void ULeaderPoseAppearance::Apply(ACharacter* Owner, const FEquipmentLook& Look)
 			}
 		}
 	}
+
+	// 무기는 등/손 상태를 따른다(MC4.2d-2)
+	WeaponLook = Look.Slots[WEAPON_SLOT];
+	AttachWeapon();
+}
+
+void ULeaderPoseAppearance::SetWeaponOnBack(bool bOnBack)
+{
+	bWeaponOnBack = bOnBack;
+	AttachWeapon();
+}
+
+void ULeaderPoseAppearance::AttachWeapon()
+{
+	UStaticMeshComponent* Comp = StaticSlots[WEAPON_SLOT];
+	USkeletalMeshComponent* Leader = Comp ? Cast<USkeletalMeshComponent>(Comp->GetAttachParent()) : nullptr;
+	if (Comp == nullptr || Leader == nullptr || WeaponLook.Static == nullptr) return;
+
+	const bool bBack = bWeaponOnBack && !WeaponLook.BackSocket.IsNone();
+	Comp->AttachToComponent(Leader, FAttachmentTransformRules::SnapToTargetNotIncludingScale, bBack ? WeaponLook.BackSocket : WeaponLook.Socket);
+	Comp->SetRelativeTransform(bBack ? WeaponLook.BackAttach : WeaponLook.Attach);
 }

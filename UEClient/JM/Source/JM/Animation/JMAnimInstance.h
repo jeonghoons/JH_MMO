@@ -37,6 +37,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	int32 AimSkillId = 0;
 
+	// 무기 자세(MC4.2d-2): 0 = 등에 멤(맨손 이동), 1 = 손에 듦(무기 이동), 2 = 스킬 조준. ABP_Layer_Bow의 이동 레이어가 Blend Poses by Int로 고른다.
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	int32 WeaponStance = 1;
+
 	bool IsMyPlayer;
 	FVector Velocity;
 	FVector DestVelocity;

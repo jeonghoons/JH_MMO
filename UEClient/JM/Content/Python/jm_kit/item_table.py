@@ -21,7 +21,7 @@ import unreal
 from . import body_mask, garment, profiles
 
 CSV_DIR = os.path.normpath(os.path.join(unreal.Paths.project_dir(), "../../Common/DataTable"))
-ITEM_COLS = ["AttachSocket", "AttachM", "AttachF", "Mask", "HideHair"]
+ITEM_COLS = ["AttachSocket", "AttachM", "AttachF", "Mask", "HideHair", "BackSocket", "BackM", "BackF"]
 BODY_COLS = ["Name", "Leader", "Eyes", "Teeth", "Hair", "BodyMaterial", "AnimClass", "HitMontage", "DeathMontage"]
 BODY_IDS = {"M": 1, "F": 2}   # = Protocol PlayerType MALE/FEMALE
 ANIM_CLASS = "/Game/Character/Mannequin/Anims/ABP_PlayerBase.ABP_PlayerBase_C"   # 플레이어 공용 AnimBP(DECISIONS 2026-11-07)
@@ -79,17 +79,23 @@ def _item_by_mesh():
 def item_values(key):
     """items.json 아이템 키 → 외형 열 값 dict."""
     it = garment.load_items()[key]
+    # 무기를 등에 멜 때(MC4.2d-2): items.json back이 있는 아이템만. 없으면 빈 소켓(항상 손에 듦)
+    back = {"BackSocket": "", "BackM": _identity_text(), "BackF": _identity_text()}
+    if "back" in it:
+        btf = {b: garment.static_attachment(key, b, "back") for b in ("M", "F")}
+        back = {"BackSocket": it["back"]["socket"], "BackM": btf["M"]["transform"].export_text(),
+                "BackF": btf["F"]["transform"].export_text()}
     if "attach" in it:
         tf = {b: garment.static_attachment(key, b) for b in ("M", "F")}
         return {"AttachSocket": it["attach"]["socket"],
                 "AttachM": tf["M"]["transform"].export_text(),
                 "AttachF": tf["F"]["transform"].export_text(),
                 "Mask": _mask_text({}),
-                "HideHair": "1" if "hair" in it["attach"].get("hide_parts", []) else "0"}
+                "HideHair": "1" if "hair" in it["attach"].get("hide_parts", []) else "0", **back}
     p = dict(profiles.load().get("mask", {}).get(it["slot"], {}))
     p.update(it.get("mask", {}))
     return {"AttachSocket": "", "AttachM": _identity_text(), "AttachF": _identity_text(),
-            "Mask": _mask_text(p), "HideHair": "0"}
+            "Mask": _mask_text(p), "HideHair": "0", **back}
 
 
 def export_items(write=True):

@@ -589,6 +589,81 @@ class AnimBuilderTools(unreal.ToolsetDefinition):
 
     @toolset_registry.tool_call
     @staticmethod
+    def anim_create_montage_multi(sequence_paths: str, package_path: str, slot_name: str,
+                                  auto_blend_out: bool | None = None, skill_hit_time_sec: float | None = None) -> str:
+        """여러 시퀀스를 차례로 이어 몽타주 하나를 만든다(MC4.2d-2 활 기본 공격 = 당기기 + 놓기).
+
+        Args:
+            sequence_paths: 시퀀스 경로를 쉼표로(재생 순서).
+            package_path: 만들 몽타주 경로.
+            slot_name: 슬롯(UpperBody 또는 DefaultSlot).
+            auto_blend_out: Auto Blend Out(기본 True).
+            skill_hit_time_sec: AnimNotify_SkillHit 시각(몽타주 전체 기준 초). 비우면 달지 않음.
+
+        Returns:
+            결과 텍스트.
+        """
+        hit = -1.0 if skill_hit_time_sec is None else float(skill_hit_time_sec)
+        return unreal.AnimAssetBuilder.create_montage_from_sequences(_csv_list(sequence_paths), package_path, slot_name, auto_blend_out is not False, hit)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_create_blendspace_2d(package_path: str, skeleton_path: str, x_axis_name: str, x_min: float, x_max: float,
+                                  y_axis_name: str, y_min: float, y_max: float, sequence_paths: str, x_values: str, y_values: str,
+                                  rate_scales: str | None = None) -> str:
+        """2D 블렌드스페이스를 만든다(MC4.2d-2 조준 걷기: X = Direction, Y = Speed).
+
+        Args:
+            package_path: 예 /Game/Character/Mannequin/Anims/Bow/BS_Bow_AimWalk.
+            skeleton_path: 스켈레톤 경로.
+            x_axis_name: X 축 이름(예 Direction).
+            x_min: X 최소.
+            x_max: X 최대.
+            y_axis_name: Y 축 이름(예 Speed).
+            y_min: Y 최소.
+            y_max: Y 최대.
+            sequence_paths: 샘플 시퀀스 경로를 쉼표로.
+            x_values: 샘플 X를 쉼표로.
+            y_values: 샘플 Y를 쉼표로.
+            rate_scales: 샘플 재생 배율을 쉼표로(비우면 모두 1).
+
+        Returns:
+            결과 텍스트.
+        """
+        xs = [float(v) for v in _csv_list(x_values)]
+        ys = [float(v) for v in _csv_list(y_values)]
+        rates = [float(v) for v in _csv_list(rate_scales)] if rate_scales else []
+        fn = next(getattr(unreal.AnimAssetBuilder, n) for n in ("create_blend_space2d", "create_blend_space_2d", "create_blend_space2_d")
+                  if hasattr(unreal.AnimAssetBuilder, n))  # 숫자 포함 이름의 Python 변환 차이 대비
+        return fn(package_path, skeleton_path, x_axis_name, float(x_min), float(x_max), y_axis_name, float(y_min), float(y_max),
+                  _csv_list(sequence_paths), xs, ys, rates)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_set_layer_blendspaces_by_int(blueprint_path: str, layer_name: str, int_variable: str, blendspace_paths: str,
+                                          x_variables: str, y_variables: str, blend_time_sec: float | None = None) -> str:
+        """레이어 그래프 = Blend Poses by Int(int_variable) ← 블렌드스페이스 플레이어 N개 → 결과(MC4.2d-2 WeaponStance).
+
+        Args:
+            blueprint_path: 레이어 AnimBP 경로.
+            layer_name: 레이어(그래프) 이름.
+            int_variable: 고르는 정수 변수(예 WeaponStance).
+            blendspace_paths: 포즈 순서대로 블렌드스페이스 경로를 쉼표로.
+            x_variables: 포즈별 X 변수를 쉼표로(빈 칸이면 연결 안 함, 예 "GroundSpeed,GroundSpeed,Direction").
+            y_variables: 포즈별 Y 변수를 쉼표로(빈 칸 허용, 예 ",,GroundSpeed").
+            blend_time_sec: 포즈 전환 블렌드 시간(기본 0.2).
+
+        Returns:
+            결과 텍스트.
+        """
+        bs = _csv_list(blendspace_paths)
+        xs = [s.strip() for s in x_variables.split(",")]
+        ys = [s.strip() for s in y_variables.split(",")]
+        return unreal.AnimAssetBuilder.set_layer_blend_spaces_by_int(blueprint_path, layer_name, int_variable, bs, xs, ys,
+                                                                     0.2 if blend_time_sec is None else float(blend_time_sec))
+
+    @toolset_registry.tool_call
+    @staticmethod
     def anim_measure_bone_reach(sequence_path: str, bone_name: str, samples: int | None = None) -> str:
         """시퀀스를 샘플링해 본의 루트 기준 위치(옆 X·앞 Y·위 Z) 표를 돌려준다(타격 시점 고르기용).
 

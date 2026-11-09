@@ -14,6 +14,7 @@ void UJMAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Rotation = BaseCharacter->GetActorRotation();
 		bIsSkillAiming = BaseCharacter->IsSkillAiming();
 		AimSkillId = BaseCharacter->GetAimSkillId();
+		WeaponStance = BaseCharacter->GetWeaponStance();
 
 		if (UCharacterMovementComponent* MovementComp = BaseCharacter->GetCharacterMovement())
 		{

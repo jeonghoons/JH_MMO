@@ -43,6 +43,19 @@ public:
 	static FString SetLayerBlendSpaceWithOverride(const FString& BlueprintPath, const FString& LayerName, const FString& BlendSpacePath, const FString& XVariable,
 		const FString& OverlayBlendSpacePath, const FString& OverlayXVariable, const FString& OverlayYVariable, const FString& BranchBone, const FString& AlphaVariable);
 
+	// 2D 블렌드스페이스(BS_*)를 만든다(MC4.2d-2 조준 걷기: X = Direction -180~180, Y = Speed). 샘플 i = SequencePaths[i]를 (XValues[i], YValues[i])에,
+	// 재생 배율 RateScales[i](비우면 1). 이미 있으면 실패.
+	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
+	static FString CreateBlendSpace2D(const FString& PackagePath, const FString& SkeletonPath, const FString& XAxisName, float XMin, float XMax,
+		const FString& YAxisName, float YMin, float YMax, const TArray<FString>& SequencePaths, const TArray<float>& XValues, const TArray<float>& YValues,
+		const TArray<float>& RateScales);
+
+	// 레이어 그래프를 "Blend Poses by Int(IntVariable) ← 블렌드스페이스 플레이어 N개 → 결과"로 채운다(MC4.2d-2 무기 자세 WeaponStance).
+	// 포즈 i = BlendSpacePaths[i], X ← XVariables[i], Y ← YVariables[i](빈 문자열이면 연결 안 함), 전환 블렌드 시간 BlendTimeSec.
+	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
+	static FString SetLayerBlendSpacesByInt(const FString& BlueprintPath, const FString& LayerName, const FString& IntVariable,
+		const TArray<FString>& BlendSpacePaths, const TArray<FString>& XVariables, const TArray<FString>& YVariables, float BlendTimeSec);
+
 	// 레이어 그래프를 "입력 포즈 → 결과" 통과로 채운다(상체 포즈 레이어의 기본 구현).
 	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
 	static FString SetLayerPassThrough(const FString& BlueprintPath, const FString& LayerName);
@@ -50,6 +63,10 @@ public:
 	// 시퀀스로 몽타주를 만든다. SlotName(UpperBody/DefaultSlot), bAutoBlendOut(사망은 false), SkillHitTimeSec >= 0이면 그 시각에 AnimNotify_SkillHit를 단다.
 	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
 	static FString CreateMontage(const FString& SequencePath, const FString& PackagePath, const FString& SlotName, bool bAutoBlendOut, float SkillHitTimeSec);
+
+	// 여러 시퀀스를 차례로 이어 몽타주 하나를 만든다(MC4.2d-2 활 기본 공격 = 당기기 + 놓기). SkillHitTimeSec은 몽타주 전체 기준 시각.
+	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
+	static FString CreateMontageFromSequences(const TArray<FString>& SequencePaths, const FString& PackagePath, const FString& SlotName, bool bAutoBlendOut, float SkillHitTimeSec);
 
 	// 시퀀스를 Samples개로 나눠 본의 루트 기준 위치(앞쪽 = 메시 공간 Y, 위 = Z, 옆 = X)를 표로 돌려준다. 타격 시점(손이 가장 앞으로 뻗는 순간) 고르기용.
 	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")

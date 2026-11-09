@@ -184,7 +184,7 @@ def _follower(prefix, label, mesh, lead, loc):
 
 def spawn(prefix, body, loc, outfit="kit", extra_hidden=(), anim=None, mask_override=None):
     """리더(= 보이는 몸, 키트 Body_Combined) + 눈·이·헤어 + 의상 조립(2026-11-05 몸 하나로).
-    outfit: "kit"(키트 기본 의상 전부), None(맨몸), 또는 {슬롯: 메시 경로}.
+    outfit: "kit"(키트 기본 의상 전부), None(맨몸), 또는 {슬롯: 메시 경로}. 아이템 키 뒤에 "@back"을 붙이면 무기를 등 부착값으로(MC4.2d-2).
     입은 슬롯이 덮는 몸 영역은 몸 섹션 마스크(M_Body_Masked MID)로 지운다(profiles.mask_params). mask_override: 파라미터 dict로 직접 지정({}면 키트 원본 머티리얼).
     extra_hidden: 통째로 숨길 부위(parts 키, 예 "hair"). anim: 반복 재생할 애니메이션 경로(ANIM 참고). 반환: 리더 액터."""
     bp = profiles.body(body)
@@ -195,9 +195,10 @@ def spawn(prefix, body, loc, outfit="kit", extra_hidden=(), anim=None, mask_over
         if v.startswith("/"):
             items[slot] = v
             continue
-        it = garment.load_items()[v]
+        key, _, which = v.partition("@")
+        it = garment.load_items()[key]
         if "attach" in it:
-            statics[slot] = garment.static_attachment(v, body)
+            statics[slot] = garment.static_attachment(key, body, which or "attach")
         else:
             items[slot] = it["out"].format(body=body)
     hidden = profiles.hidden_parts(list(items.keys()) + list(statics.keys())) | set(extra_hidden)

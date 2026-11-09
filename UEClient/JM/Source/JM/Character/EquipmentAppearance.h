@@ -24,6 +24,9 @@ struct FEquipSlotLook
 	UStaticMesh* Static = nullptr;
 	FName Socket;
 	FTransform Attach = FTransform::Identity;
+	// 무기를 등에 멜 때(MC4.2d-2). BackSocket이 비면 등에 메지 않는다.
+	FName BackSocket;
+	FTransform BackAttach = FTransform::Identity;
 };
 
 // 장착 목록을 표시용으로 풀어 둔 결과. UEquipmentComponent가 BodyTable·ItemTable로 만들고 에셋 로드를 끝낸 뒤 넘긴다.
@@ -53,6 +56,8 @@ class JM_API UEquipmentAppearance : public UObject
 public:
 	// Owner의 외형을 Look 그대로 만든다. 같은 Look으로 여러 번 불러도 결과가 같아야 한다.
 	virtual void Apply(ACharacter* Owner, const FEquipmentLook& Look) PURE_VIRTUAL(UEquipmentAppearance::Apply, );
+	// 무기를 등(true)/손(false)에 둔다(MC4.2d-2). 다음 Apply에도 유지된다. 무기에 등 부착값이 없으면 항상 손.
+	virtual void SetWeaponOnBack(bool bOnBack) PURE_VIRTUAL(UEquipmentAppearance::SetWeaponOnBack, );
 };
 
 // Leader = 캐릭터 기본 Mesh(보이는 몸, 애니메이션 재생). 눈·이·헤어·스켈레탈 슬롯은 Leader Pose로 따라가고,
@@ -64,8 +69,14 @@ class JM_API ULeaderPoseAppearance : public UEquipmentAppearance
 
 public:
 	virtual void Apply(ACharacter* Owner, const FEquipmentLook& Look) override;
+	virtual void SetWeaponOnBack(bool bOnBack) override;
 
 private:
+	// 무기 정적 컴포넌트를 지금 상태(bWeaponOnBack)에 맞는 소켓·변환에 붙인다
+	void AttachWeapon();
+	bool bWeaponOnBack = true;
+	FEquipSlotLook WeaponLook;   // 마지막 Apply의 무기 슬롯
+
 	USkeletalMeshComponent* EnsureFollower(ACharacter* Owner, TObjectPtr<USkeletalMeshComponent>& Comp, const TCHAR* Name);
 	UStaticMeshComponent* EnsureStatic(ACharacter* Owner, TObjectPtr<UStaticMeshComponent>& Comp, const TCHAR* Name);
 	void ApplyBodyMask(USkeletalMeshComponent* Leader, const FEquipmentLook& Look);
