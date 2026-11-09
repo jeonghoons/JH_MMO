@@ -8,7 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P0 유령 플레이어 수정 → P1 송신 묶기 차례, 2026-11-06 기준선·동시성 감사 완료). 2026-11-06 결정: 트랙 B를 MC4.2 무기 공격까지 먼저 진행한 뒤 트랙 A 재개 (`DECISIONS.md`)**
-`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블·MC3.1b 스탯 재설계·MC3.2 장착 패킷·MC3.3 장비 저장·MC4.1 장비 컴포넌트·MC4.1b 원격 이동 튐 완료(2026-11-07), 다음 MC4.2 애니메이션(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블·MC3.1b 스탯 재설계·MC3.2 장착 패킷·MC3.3 장비 저장·MC4.1 장비 컴포넌트·MC4.1b 원격 이동 튐 완료(2026-11-07), MC4.2a 구조·맨손(2026-11-08)·MC4.2b Mixamo 시범 리타깃·MC4.2c 한손검 + 공용 피격(2026-11-09) 완료, 다음 MC4.2d 활 + 스킬 조준 동기화(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** (재개 시 기준선 재측정) P0 유령 플레이어 → P1a 송신 지표 → P1b 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -24,7 +24,7 @@
 - 서버는 `Server/Server` 폴더에서 `..\x64\Debug\GameServer.exe`로 실행합니다(DataTable·맵 상대 경로, SQL Server Express 필요). PIE 전에 Debug 빌드가 최신인지 확인하고, 서버가 실행 중이면 VS 빌드가 exe를 덮어쓰지 못합니다.
 - 궁수 계정은 `LoadTest --hero archer`의 `arc_*` 계정이나 UE 로그인 화면에서 궁수 타입으로 가입하면 됩니다. (`content/dev` MC3.1부터 전사·궁수가 없어져 봇은 `--body male|female`, 가입은 남성/여성 — 병합 후에는 이쪽을 따름)
 
-## ▶ 중단점 트랙 B (2026-11-07) — `content/dev`, MC4.1b 원격 이동 튐 완료 → 다음 MC4.2
+## ▶ 중단점 트랙 B (2026-11-09) — `content/dev`, MC4.2c 완료 → 다음 MC4.2d 활
 **상태:** 판금 7개 모두 생성(상의·하의·장화·장갑·한손검·활·투구, 남녀, `Content/Equipment/Plate/*`, `jm_kit/items.json` `Plate_*`). VARCO 누적 3,250포인트. 투구는 **사슬을 뺀 눈높이 이미지 → 3만 폴리 생성 → UE 엔진 메시 축소로 LOD 4,000/2,000/1,000**(`garment.reduce_static_lods`, `attach.target_tris`), 정적 메시 + `head` 소켓 `fit: "helm"`, `yaw` 90. 상세는 `TESTING.md` 2026-11-06 "투구 4·5차".
 **다음 작업:**
 1. ~~투구 사용자 확인~~ 완료(2026-11-06, 시험 액터 `HM_*`·`HF_*` 삭제).
@@ -37,7 +37,10 @@
 8. ~~MC4.1~~ 완료(2026-11-07, `UEquipmentComponent` + 교체 가능한 표시 `ULeaderPoseAppearance`, `BodyTable`·ItemTable 외형 열은 `jm_kit.item_table` 생성, `ABP_PlayerBase`, Greystone/Sparrow 임시 외형 삭제 — `DECISIONS.md`·`TESTING.md`).
 9. ~~MC4.1b~~ 완료(2026-11-07, A 속도 방향 30° 변화 시 즉시 송신 + B 따라잡기 상한 1.3배, `NetMoveStats`·봇 `--profile turn` — 남은 다듬기는 P2·P3에서, `DECISIONS.md`·`TESTING.md`).
 10. ~~MC4.2a~~ 완료(2026-11-08, `ALI_Weapon`(`LocomotionLayer`·`UpperBodyLayer`)·`ABP_Layer_Unarmed`·`AM_Unarmed_Attack`·`AM_Common_Death`, `ABP_PlayerBase` 재배선(C++ `UAnimAssetBuilder`)·루트 모션 무시, `WeaponTypeTable`·BodyTable 몽타주 열, PIE 사용자 확인 — `DECISIONS.md`·`TESTING.md`). 남은 확인: 에디터를 닫을 때 `ExportSkillTiming.bat`을 돌려 1001이 "변경 없음"인지(이번에는 같은 규칙으로 CSV를 직접 씀).
-11. **다음: MC4.2b** Mixamo 시범 리타깃(1개 → 사용자 확인) + 일괄 리타깃 도구, 이어서 4.2c 검·4.2d 활·4.2e 장갑 손가락 맞춤. 정리 후보: 쓰지 않는 `CS_DMOVE_PACKET`(`Protocol.proto`), `DT_CharacterAsset`·`UJMGameInstance::CharacterAssetTable`(플레이어 참조 끊김 — 정리 여부는 사용자에게 묻기), `MovementTable.xlsx`(2026-10-20 이후 CSV와 어긋남 — 맞출지 사용자에게 묻기).
+11. ~~MC4.2b~~ 완료(2026-11-09, Mixamo 시범 리타깃 `AS_Bow_StandingDrawArrow`, `RTG_Mixamo_Mannequin`·`RetargetTools`, V1·V2 사용자 확인, 활·옷 어색함은 4.2d·4.2e로, V3는 4.2c·4.2d 다운로드 때 — `DECISIONS.md`·`TESTING.md`·`ExternalAssets.md`).
+12. ~~MC4.2c~~ 완료(2026-11-09, 한손검 이동·공격·스킬 + 공용 피격: `Anims/OneHandSword/*`(`AS_`·`AM_OneHandSword_*`·`BS_OneHandSword_Locomotion`·`ABP_Layer_OneHandSword`)·`Anims/Hit/AM_Common_Hit`, 리타기터 Root Motion 끔 + Pin IK Bones, 제자리 처리(Mixamo In Place 방식), 스킬 2002 = 도약 내려찍기(사용자 교체), 테스트 플레이어 메시 오프셋 버그 수정, TestLevel 사용자 확인 — `DECISIONS.md`·`TESTING.md`·`ExternalAssets.md`). 4.2b와 함께 커밋.
+    - 이후: 4.2d 활 → 4.2e 장갑·어깨 뭉침 → **4.2f 방패**. 정리 후보: 쓰지 않는 `CS_DMOVE_PACKET`(`Protocol.proto`), `DT_CharacterAsset`·`UJMGameInstance::CharacterAssetTable`(플레이어 참조 끊김 — 정리 여부는 사용자에게 묻기), `MovementTable.xlsx`(2026-10-20 이후 CSV와 어긋남 — 맞출지 사용자에게 묻기).
+13. **다음: MC4.2d 활 + 스킬 조준 동기화** — 시작 시 Longbow 팩 동작 목록 대조(팩 다운로드는 In Place 옵션이 없어 `retarget_strip_drift`로 제자리 처리). 활 시범 `AS_Bow_StandingDrawArrow`는 4.2c에서 새 리타기터 설정으로 다시 리타깃해 둠.
 **VARCO 흐름 노드(JH_MMO 플로):** 투구 정면 컨셉 `531e1ef7…`, 3/4 시점 편집 `c1511cae…`, 3차 3D `8456f6d4…`(실패), 초록 배경 `aa21a66f…`, 4차 3D `4e325e94…`(실패), 사슬 뺀 눈높이 `a0bb8331…`, **5차 3D `ad0e9513…`(채택, 출력 0)**. 판금 상의 컨셉 `cb90b725…`가 세트 스타일 참고.
 
 ## 트랙 A — 서버/포트폴리오
@@ -210,10 +213,11 @@
 - [x] MC4.1b 원격 이동 방향 전환 튐(2026-11-07 MC4.1 확인 중 발견, S1 원격 보간): 측정 → 방향 변화·정지 시 즉시 송신 + 따라잡는 속도 상한(`MovementTable`) → 재측정, 봇 이동 속도 전송 보완 (2026-11-07: `MoveSendTurnDeg` 30 + `RemoteCatchUpSpeedMul` 1.3, turn 봇 최대 2.78→1.23배·오차 −82%·송신 +18%, PIE 2인 개선 확인 — 남은 다듬기는 P2·P3, `TESTING.md`)
 - [ ] MC4.2 `ABP_PlayerBase` + `ALI_Weapon` + 무기 타입별 레이어·몽타주, `ExportSkillTiming.bat` (+ 장갑 손가락 맞춤 보완 — 무기 쥐기와 함께, `DECISIONS.md` 2026-11-05). 2026-11-08 하위 단계로 분할(모션 출처·스킬 조준 동기화 — `DECISIONS.md` 2026-11-08):
   - [x] MC4.2a 구조 + 맨손 + 사망(템플릿만): `WeaponTypeTable`(Name 1·2·3) → `LinkAnimClassLayers`, BodyTable `HitMontage`·`DeathMontage`(생성기), `ALI_Weapon`·`ABP_Layer_Unarmed`·`AM_Unarmed_Attack`·`AM_Common_Death`, Main States 점프·착지 정리 (2026-11-08: 레이어 이름 `LocomotionLayer`·`UpperBodyLayer`, 상체 슬롯 `spine_01` 레이어 블렌드, 기본 구현 = 맨손 이동, `RootMotionMode = IgnoreRootMotion`, Land→Locomotion은 이미 자동 전이라 변경 없음, SkillTable 1001 몽타주 연결, PIE 사용자 확인 — `TESTING.md`)
-  - [ ] MC4.2b Mixamo 시범 리타깃(1개 → 사용자 확인) + 일괄 리타깃 도구(jm_kit·jm_mcp), (선택) GASP strafe·Lyra 피격 확인, `ExternalAssets.md`
-  - [ ] MC4.2c 한손검 + 공용 피격: `ABP_Layer_Sword`(왼팔 맨손 포즈 덮기), `AM_Sword_Attack`·`AM_Sword_Skill2`, `AM_Common_Hit`, SkillTable 2001·2002 교체·타이밍 재추출
-  - [ ] MC4.2d 활 + 스킬 조준 동기화: `CS_/SC_SKILL_AIM_PACKET`, SkillTable `AimMoveSpeedMul`·`AimMaxMs`, 서버 이동 예산 감속·자동 해제, `ABP_Layer_Bow`(조준 = 느린 strafe + 당김 상체), `AM_Bow_Attack`·`AM_Bow_Skill1`, 활 등 메기(MC4.3 장치 먼저 적용)
-  - [ ] MC4.2e 장갑 손가락 맞춤 + Paragon 애니메이션 참조 0 확인 + 문서 정리(정리 후보는 사용자에게 묻기)
+  - [x] MC4.2b Mixamo 시범 리타깃(활 Standing Draw Arrow 1개 → 사용자 확인: V1 리타깃 품질, V2 템플릿 이동 위 상체 재생, V3 검·활 팩 동작 목록 대조) + 일괄 리타깃 도구(`jm_kit.retarget`·jm_mcp `RetargetTools`), `ExternalAssets.md` (2026-11-09 출처 우선순위 템플릿 → Mixamo → VARCO, GASP·Lyra 제외 — `DECISIONS.md`) (2026-11-09: V1 "Mixamo와 거의 비슷"·V2 `BP_TestPlayer` 상체 재생 사용자 확인, 손바닥뼈 체인 매핑 해제, V3는 4.2c·4.2d 시작 시로 이동, 활·옷 어색함은 4.2d·4.2e — `TESTING.md`)
+  - [x] MC4.2c 한손검 + 공용 피격(시작 시 Sword and Shield 팩 동작 목록 대조 — 없는 동작은 VARCO): `ABP_Layer_Sword`(왼팔 맨손 포즈 덮기 — 방패 착용 시 원본 왼팔로 전환하는 값은 자리만 두고 MC4.2f에서 연결, `DECISIONS.md` 2026-11-09 방패), `AM_Sword_Attack`·`AM_Sword_Skill2`, `AM_Common_Hit`, SkillTable 2001·2002 교체·타이밍 재추출 (2026-11-09: 애셋 이름은 사용자 요청으로 `OneHandSword`(WeaponType은 `Sword` 그대로) — `ABP_Layer_OneHandSword`(이동 = 1D `BS_OneHandSword_Locomotion` + `upperarm_l` 아래 맨손 덮기, 비율 `LeftArmOverrideAlpha` 기본 1·4.2f에서 방패 착용 시 0), `AM_OneHandSword_Attack`(UpperBody, 타격 0.62)·`AM_OneHandSword_Skill1`(DefaultSlot, 도약 내려찍기, 타격 1.25)·`AM_Common_Hit`(UpperBody, 머리 피격), SkillTable 2001 620/1500·2002 1250/2333, TestLevel 사용자 확인(이동·공격·스킬·피격) — `TESTING.md`)
+  - [ ] MC4.2d 활 + 스킬 조준 동기화: `CS_/SC_SKILL_AIM_PACKET`, SkillTable `AimMoveSpeedMul`·`AimMaxMs`, 서버 이동 예산 감속·자동 해제, `ABP_Layer_Bow`(조준 = Longbow 팩 aim walk + 당김 상체), `AM_Bow_Attack`·`AM_Bow_Skill1`, 활 등 메기(MC4.3 장치 먼저 적용). 시작 시 Longbow 팩 동작 목록 대조. **완료 기준에 추가(2026-11-09 MC4.2b): 당김 동작에서 활이 손에 쥐어진 위치·각도(손 앞에 뜨지 않음), 시위는 정적 유지 여부를 사용자 확인 후 결정**
+  - [ ] MC4.2e 장갑 손가락 맞춤 + **팔을 어깨 높이로 든 자세(활 당김·검 스킬)에서 천·판금 상의 어깨·소매 뭉침 확인·보완**(2026-11-09 MC4.2b에서 발견) + Paragon 애니메이션 참조 0 확인 + 문서 정리(정리 후보는 사용자에게 묻기)
+  - [ ] MC4.2f 방패(선택 장비, 2026-11-09 추가 — `DECISIONS.md`): `OFFHAND` 슬롯(EquipPart 7, `.proto` → `GanPackets.bat`, `equip_items` 7칸, 서버 한손검 전용 검증·무기 변경 시 자동 해제·방송, `UEquipmentComponent`), ItemTable 방패 행(스탯 0), VARCO 천·판금 방패 2개(포인트 사전 승인) + 아이콘, `ABP_Layer_Sword` 방패 착용 시 왼팔 원본 전환, `DESIGN_CHARACTER_EQUIPMENT.md` 슬롯 표 갱신. 완료: 방패 착용·미착용 검 동작, 활로 바꿀 때 방패 해제 PIE 확인
 - [ ] MC4.3 비전투 시 무기 등에 메기 (활은 MC4.2d에서 먼저 적용 — 검에 같은 장치 확장)
 - [ ] MC4.4 개발용 장비창 `WBP_Equipment`, 스킬 슬롯 배열 HUD
 
@@ -234,6 +238,8 @@
 - [x] MC2.1b: Fab 키트를 사용자가 Add to Project(`Content/CoreC`, git 제외), `body_parts.build("M"/"F")`로 몸 부위·눈·이·헤어(LOD 3) 재생성, `MI_Skin_<M|F>_<Body|Face>` 4개 생성(`UseComic?` 끔) (2026-11-04, 도구로 처리) — 키트 설치는 유지, 몸 부위·`MI_Skin_*`은 2026-11-04 삭제
 - [x] MC4.1: `ABP_PlayerBase`(템플릿 `ABP_Unarmed` 복제·부모 `JMAnimInstance`, 도구로 처리) 상태·전이 안 연결 5개(Walk/Run X·Y, Idle↔Walk/Run, Land→Locomotion) — 공식 MCP가 중첩 그래프에 노드를 못 만들어 사용자가 직접 (2026-11-07 완료)
 - [x] MC4.2a: `ALI_Weapon`·`ABP_Layer_Unarmed`·`AM_Unarmed_Attack`·`AM_Common_Death` 생성, `ABP_PlayerBase` 재배선·`RootMotionMode`, `DT_WeaponTypeTable` 생성, `DT_BodyTable`·`DT_SkillTable` Reimport (2026-11-08, 도구로 처리 — `AnimBuilderTools`)
+- [x] MC4.2b: 사용자가 Mixamo에서 Y Bot·Standing Draw Arrow FBX 다운로드 → `SourceArt/Mixamo/`, 가져오기·IK 리그·리타기터·리타깃 (2026-11-09, 도구로 처리 — `RetargetTools`)
+- [x] MC4.2c: 사용자가 Mixamo Pro Sword and Shield Pack 다운로드 → `SourceArt/Mixamo/Pro Sword and Shield Pack/`, 가져오기·리타깃·블렌드스페이스·레이어·몽타주·DT (2026-11-09, 도구로 처리 — `RetargetTools`·`AnimBuilderTools`)
 - [ ] 로딩 화면 이미지: 사용자가 이미지를 구해 오면(2026-11-06 무렵) `WBP_SystemMessage` 대기(Waiting) 배경에 적용
 - [x] A2.2f: `WBP_SkillSlot`·`WBP_CombatHud` 생성, `BP_GameMode` 부모 → `AIngameGameModeBase` + `HUDWidgetClass = WBP_CombatHud` (2026-10-28, 도구로 처리)
 - [x] A2.2f: 스킬1 아이콘 2개(배경 투명 처리) → `Character/<영웅>/Icons` 가져오기, SkillTable `Icon` 경로 + `DT_SkillTable` Reimport, `WBP_CombatHud`에서 `SlotAttack` 제거 (2026-10-28, 도구로 처리)

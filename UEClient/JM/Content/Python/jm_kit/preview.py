@@ -1,6 +1,7 @@
 """키트 구성 캐릭터를 테스트 레벨에 조립하고 SceneCapture로 확인한다 (MC1.2).
 
-- 테스트 레벨 /Game/Dev/MC/L_KitTest (Content/Dev는 git 제외)
+- 테스트 레벨 /Game/Maps/TestLevel(UE 베이직 레벨 템플릿, git 추적 — DECISIONS 2026-11-09 "테스트 레벨"). 서버가 필요 없는 확인은
+  모두 이 레벨에서 한다: 에디터 촬영(여기 함수) + PIE 조작(GameMode Override = BP_TestGameMode → BP_TestPlayer, jm_kit.testbed)
 - 캐릭터 = 리더(키트 몸 전체 메시 Body_Combined — 애니메이션 재생, 그대로 보이는 몸, 몸 섹션은 마스크 MID) + 눈·이·헤어 + 의상
   (2026-11-05: 키트 부위 5개 대신 몸 하나 — DECISIONS)
 - 애니메이션은 에디터 월드에서 틱하지 않으므로 Simulate(editor_play_simulate) 중에 shot_game()으로 찍는다.
@@ -21,7 +22,15 @@ UES = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem)
 LES = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 EAL = unreal.EditorAssetLibrary
 SHOT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_saved_dir() + "MCShots")
-LEVEL = "/Game/Dev/MC/L_KitTest"
+LEVEL = "/Game/Maps/TestLevel"
+LEVEL_TEMPLATE = "/Engine/Maps/Templates/Template_Default"   # 에디터 "새 레벨 → Basic"과 같은 템플릿
+TEST_GAME_MODE = "/Game/_Core/Blueprints/Test/BP_TestGameMode"
+# 템플릿 액터 → 고정 라벨(기존 조명 설정 _basic_lighting·FIXTURES가 라벨로 찾는다)
+_TEMPLATE_LABELS = (("DirectionalLight", "T_Sun"), ("SkyLight", "T_Sky"), ("SkyAtmosphere", "T_Atmos"),
+                    ("ExponentialHeightFog", "T_Fog"), ("VolumetricCloud", "T_Cloud"), ("PlayerStart", "T_Start"))
+# 템플릿 정적 메시 액터는 메시로 구분한다(바닥 SM_Template_Map_Floor, 하늘 돔 SM_SkySphere)
+_TEMPLATE_MESH_LABELS = (("SM_Template_Map_Floor", "T_Floor"), ("SM_SkySphere", "T_SkyDome"))
+START_LOC, START_YAW = (0, -600, 100), 90   # PIE 시작 위치 — 촬영 위치(원점) 뒤쪽, 정면(+Y)을 본다
 KW = unreal.AttachmentRule.KEEP_WORLD
 _A = "/Game/Character/Mannequin/Anims/Unarmed/"
 ANIM = {"idle": _A + "MM_Idle", "jog": _A + "Jog/MF_Unarmed_Jog_Fwd", "walk": _A + "Walk/MF_Unarmed_Walk_Fwd",
@@ -35,7 +44,9 @@ def setup_level():
     if EAL.does_asset_exist(LEVEL):
         LES.load_level(LEVEL)
     else:
-        LES.new_level(LEVEL)
+        if not LES.new_level_from_template(LEVEL, LEVEL_TEMPLATE):
+            raise RuntimeError(f"레벨 생성 실패: {LEVEL} ← {LEVEL_TEMPLATE}")
+        _relabel_template()
     have = {a.get_actor_label() for a in EAS.get_all_level_actors()}
     if "T_Sun" not in have:
         EAS.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 500), unreal.Rotator(0, -35, -60)).set_actor_label("T_Sun")
@@ -45,7 +56,6 @@ def setup_level():
         EAS.spawn_actor_from_class(unreal.SkyAtmosphere, unreal.Vector(0, 0, 0)).set_actor_label("T_Atmos")
     if "T_Fog" not in have:
         EAS.spawn_actor_from_class(unreal.ExponentialHeightFog, unreal.Vector(0, 0, 0)).set_actor_label("T_Fog")
-    _basic_lighting()
     if "T_Floor" not in have:
         floor = EAS.spawn_actor_from_class(unreal.StaticMeshActor, unreal.Vector(0, 0, 0))
         floor.static_mesh_component.set_static_mesh(unreal.load_asset("/Engine/BasicShapes/Plane"))
@@ -56,13 +66,54 @@ def setup_level():
         fill.point_light_component.set_intensity(80)
         fill.point_light_component.set_attenuation_radius(2000)
         fill.set_actor_label("T_Fill")
+    _basic_lighting()   # T_Floor·T_Fill이 있어야 함(새 레벨이면 위에서 방금 만듦)
     if "T_CapG" not in have:
         EAS.spawn_actor_from_class(unreal.SceneCapture2D, unreal.Vector(0, 600, 120), unreal.Rotator(0, 0, -90)).set_actor_label("T_CapG")
+    if "T_Start" not in have:
+        EAS.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(*START_LOC), unreal.Rotator(0, 0, START_YAW)).set_actor_label("T_Start")
+    _set_game_mode()
     LES.save_current_level()
     return LEVEL
 
 
-FIXTURES = ("T_Sun", "T_Back", "T_Sky", "T_Atmos", "T_Fog", "T_PPV", "T_Floor", "T_Fill", "T_CapG")   # 레벨 고정 액터 — clear()가 지우지 않음
+FIXTURES = ("T_Sun", "T_Back", "T_Sky", "T_Atmos", "T_Fog", "T_Cloud", "T_SkyDome", "T_PPV", "T_Floor", "T_Fill",
+            "T_CapG", "T_Start")   # 레벨 고정 액터 — clear()가 지우지 않음
+
+
+def _relabel_template():
+    """베이직 템플릿 액터에 고정 라벨을 붙인다(기존 조명 값·FIXTURES가 라벨로 찾음).
+    바닥은 촬영·아이콘과 같은 평면으로 바꾸고(크기는 _basic_lighting), PlayerStart는 촬영 위치 뒤로 옮긴다."""
+    used = set()
+    for a in EAS.get_all_level_actors():
+        cls = a.get_class().get_name()
+        label = None
+        if cls == "StaticMeshActor":
+            sm = a.static_mesh_component.get_editor_property("static_mesh")
+            mesh = sm.get_name() if sm else ""
+            label = next((lb for m, lb in _TEMPLATE_MESH_LABELS if m == mesh), None)
+        else:
+            label = next((lb for c, lb in _TEMPLATE_LABELS if c == cls), None)
+        if label and label not in used:
+            a.set_actor_label(label)
+            used.add(label)
+    acts = {a.get_actor_label(): a for a in EAS.get_all_level_actors()}
+    if "T_Floor" in acts:
+        floor = acts["T_Floor"]
+        floor.set_actor_location(unreal.Vector(0, 0, 0), False, False)
+        floor.set_actor_rotation(unreal.Rotator(0, 0, 0), False)
+        floor.static_mesh_component.set_static_mesh(unreal.load_asset("/Engine/BasicShapes/Plane"))
+    if "T_Start" in acts:
+        acts["T_Start"].set_actor_location(unreal.Vector(*START_LOC), False, False)
+        acts["T_Start"].set_actor_rotation(unreal.Rotator(0, 0, START_YAW), False)
+
+
+def _set_game_mode():
+    """World Settings GameMode Override = BP_TestGameMode(있을 때만 — jm_kit.testbed.ensure_blueprints가 만든다)."""
+    gm = unreal.EditorAssetLibrary.load_blueprint_class(TEST_GAME_MODE) if EAL.does_asset_exist(TEST_GAME_MODE) else None
+    if gm is None:
+        unreal.log_warning(f"{TEST_GAME_MODE} 없음 — testbed.ensure_blueprints() 후 setup_level()을 다시 호출")
+        return
+    UES.get_editor_world().get_world_settings().set_editor_property("default_game_mode", gm)
 
 
 def _basic_lighting():
@@ -75,6 +126,7 @@ def _basic_lighting():
     lc.set_intensity(10.0)   # UE 기본 레벨 태양 밝기(lux)
     lc.set_editor_property("atmosphere_sun_light", True)
     lc.set_editor_property("cast_shadows", True)
+    lc.set_editor_property("forward_shading_priority", 1)   # 보조광 T_Back(0)보다 높게 — "Multiple directional lights" 경고 방지
     sky = acts["T_Sky"].light_component
     sky.set_editor_property("real_time_capture", True)
     sky.set_editor_property("source_type", unreal.SkyLightSourceType.SLS_CAPTURED_SCENE)
@@ -83,6 +135,9 @@ def _basic_lighting():
     fog = acts["T_Fog"].component
     fog.set_editor_property("fog_density", 0.005)
     acts["T_Fill"].point_light_component.set_intensity(40)
+    acts["T_Floor"].static_mesh_component.set_static_mesh(unreal.load_asset("/Engine/BasicShapes/Plane"))   # 템플릿 바닥도 평면으로
+    acts["T_Floor"].set_actor_location(unreal.Vector(0, 0, 0), False, False)
+    acts["T_Floor"].set_actor_rotation(unreal.Rotator(0, 0, 0), False)
     acts["T_Floor"].set_actor_scale3d(unreal.Vector(600, 600, 1))   # 600m — 캐릭터를 어디에 세워도 바닥 위
     acts["T_Floor"].static_mesh_component.set_material(0, unreal.load_asset("/Engine/BasicShapes/BasicShapeMaterial"))
     if "T_Back" not in acts:   # 뒤쪽 보조광(그림자 없음) — 키트 만화 셰이더는 그늘이 아주 어두워 뒷모습이 안 보임

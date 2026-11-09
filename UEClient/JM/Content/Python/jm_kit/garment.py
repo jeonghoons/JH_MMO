@@ -982,6 +982,9 @@ def static_attachment(item_key, body):
         s = at["length_cm"] / raw_e[axis]
         grip = list(raw_c)
         grip[axis] = raw_c[axis] - raw_e[axis] / 2 + at.get("grip_frac", 0.1) * raw_e[axis]
+        # grip_local: 긴 축이 아닌 축의 쥐는 점(메시 로컬 cm, 축소 전). 활은 상자 중앙이 손잡이와 시위 사이라 손잡이 쪽으로 옮긴다
+        for k, val in (at.get("grip_local") or {}).items():
+            grip["xyz".index(k)] = float(val)
         o = list(at.get("offset", (0.0, 0.0, 0.0)))
         if at.get("align") == "grip":
             # 손 본에서 계산: 긴 축 = 쥐는 축(엄지 방향에서 손가락 방향 성분을 뺀 것), 폭 축 = 손가락 방향, 쥐는 점 = 손바닥 가운데
@@ -990,10 +993,16 @@ def static_attachment(item_key, body):
             hp, mp, tp = (bones[f"{n}_{side}"].translation for n in ("hand", "middle_01", "thumb_01"))
             fing, _ = _norm(_sub(_v(mp), _v(hp)))
             thumb = _sub(_v(tp), _v(hp))
+            if at.get("grip_axis") == "knuckles":
+                # 주먹 쥔 손잡이는 손가락 뿌리 선(검지 → 새끼)을 따라간다. 엄지 뿌리는 손바닥 쪽 성분이 섞여 활이 옆으로 눕는다(2026-11-09)
+                thumb = _sub(_v(bones[f"index_01_{side}"].translation), _v(bones[f"pinky_01_{side}"].translation))
             t_perp = _sub(thumb, tuple(_dot(thumb, fing) * c for c in fing))
             grip_dir, _ = _norm(t_perp)
             if at.get("flip"):
                 grip_dir = tuple(-c for c in grip_dir)
+            if at.get("depth_to_wrist"):
+                # 메시 +X(활: 시위 쪽)를 손목 쪽으로 — 활은 손잡이를 쥐면 시위가 팔뚝 쪽에 온다(2026-11-09)
+                fing = tuple(-c for c in fing)
             to_local = lambda d: unreal.MathLibrary.inverse_transform_direction(bone, unreal.Vector(*d))
             gl, fl = to_local(grip_dir), to_local(fing)
             axes = {0: "x", 1: "y", 2: "z"}

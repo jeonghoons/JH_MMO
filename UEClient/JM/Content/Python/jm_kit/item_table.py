@@ -147,4 +147,7 @@ def export_bodies(write=True):
 
 def export(write=True):
     """ItemTable 외형 열 + BodyTable을 생성한다. write=False면 바뀔 값만 돌려준다."""
+    # Simulate/PIE 중에는 EditorAssetLibrary가 조용히 실패한다(does_asset_exist가 False — 2026-11-09 실제 발생)
+    if unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_game_world() is not None:
+        raise RuntimeError("Simulate/PIE 중에는 내보낼 수 없음 — 종료(StopPIE) 후 다시 호출")
     return {"items": export_items(write), "bodies": export_bodies(write)}

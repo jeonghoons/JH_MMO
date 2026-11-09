@@ -12,12 +12,12 @@ import unreal
 import toolset_registry
 from toolset_registry.registration import Registration
 
-from jm_kit import body_mask, garment, glove_paint, icon, item_table, preview, profiles, skeleton_check
+from jm_kit import body_mask, garment, glove_paint, icon, item_table, preview, profiles, retarget, skeleton_check, testbed
 
 
 def _reload():
     """도구를 고친 뒤 에디터 재시작 없이 반영(의존 순서대로)."""
-    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table):
+    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table, testbed):
         importlib.reload(m)
 
 
@@ -90,7 +90,7 @@ class KitTools(unreal.ToolsetDefinition):
     @toolset_registry.tool_call
     @staticmethod
     def preview_setup_level() -> str:
-        """테스트 레벨 Dev/MC/L_KitTest를 열고 조명·바닥을 준비한다.
+        """테스트 레벨 /Game/Maps/TestLevel을 열거나(없으면 베이직 템플릿으로 생성) 조명·바닥·PlayerStart·GameMode Override(BP_TestGameMode)를 준비한다.
 
         Returns:
             결과 문구.
@@ -202,6 +202,50 @@ class KitTools(unreal.ToolsetDefinition):
         """
         preview.stop_simulate()
         return "종료 요청"
+
+    # ── 테스트 플레이어(서버 없는 PIE) ────────────────────
+    @toolset_registry.tool_call
+    @staticmethod
+    def testbed_ensure(reset: bool | None = None) -> str:
+        """BP_TestPlayer(부모 C++ TestPlayer)·BP_TestGameMode를 만든다(있으면 그대로). 그 뒤 preview_setup_level로 TestLevel에 GameMode를 지정한다.
+
+        Args:
+            reset: True면 입력 에셋·기본 장비(천 세트 + 천 활)·MaxWalkSpeed를 다시 넣는다.
+
+        Returns:
+            JSON 요약(장비·덮어쓰기 몽타주·GameMode 폰).
+        """
+        importlib.reload(testbed)
+        return _dump(testbed.ensure_blueprints(reset is True))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def testbed_set_override(montage_path: str | None = None) -> str:
+        """BP_TestPlayer 좌클릭(슬롯 0)에 SkillTable 대신 재생할 몽타주를 지정한다.
+
+        Args:
+            montage_path: 몽타주 경로. 비우면 해제(SkillTable 몽타주 사용).
+
+        Returns:
+            JSON 요약.
+        """
+        importlib.reload(testbed)
+        return _dump(testbed.set_override(montage_path or None))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def testbed_set_loadout(items: str, player_type: int | None = None) -> str:
+        """BP_TestPlayer 시작 장비와 체형을 바꾼다.
+
+        Args:
+            items: ItemTable ID 6개를 쉼표로(EquipPart 순서 머리·상의·하의·장갑·장화·무기, 빈 슬롯 0).
+            player_type: 1 MALE, 2 FEMALE. 비우면 그대로.
+
+        Returns:
+            JSON 요약.
+        """
+        importlib.reload(testbed)
+        return _dump(testbed.set_loadout(_csv_list(items), player_type))
 
     # ── 의상 맞춤 ─────────────────────────────────────────
     @toolset_registry.tool_call
@@ -461,6 +505,57 @@ class AnimBuilderTools(unreal.ToolsetDefinition):
 
     @toolset_registry.tool_call
     @staticmethod
+    def anim_create_blendspace_1d(package_path: str, skeleton_path: str, axis_name: str, axis_min: float, axis_max: float,
+                                  sequence_paths: str, sample_values: str, rate_scales: str | None = None) -> str:
+        """1D 블렌드스페이스를 만든다(MC4.2c 무기 타입 이동).
+
+        Args:
+            package_path: 예 /Game/Character/Mannequin/Anims/OneHandSword/BS_OneHandSword_Locomotion.
+            skeleton_path: 스켈레톤 경로.
+            axis_name: 축 이름(예 Speed).
+            axis_min: 축 최소.
+            axis_max: 축 최대.
+            sequence_paths: 샘플 시퀀스 경로를 쉼표로.
+            sample_values: 샘플 위치를 쉼표로(시퀀스와 같은 개수).
+            rate_scales: 샘플 재생 배율을 쉼표로(비우면 모두 1).
+
+        Returns:
+            결과 텍스트.
+        """
+        values = [float(v) for v in _csv_list(sample_values)]
+        rates = [float(v) for v in _csv_list(rate_scales)] if rate_scales else []
+        fn = next(getattr(unreal.AnimAssetBuilder, n) for n in ("create_blend_space1d", "create_blend_space_1d", "create_blend_space1_d")
+                  if hasattr(unreal.AnimAssetBuilder, n))  # 숫자 포함 이름의 Python 변환 차이 대비
+        return fn(package_path, skeleton_path, axis_name, float(axis_min), float(axis_max),
+                                                            _csv_list(sequence_paths), values, rates)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def anim_set_layer_blendspace_override(blueprint_path: str, layer_name: str, blendspace_path: str, x_variable: str,
+                                           overlay_blendspace_path: str, overlay_x_variable: str, overlay_y_variable: str,
+                                           branch_bone: str, alpha_variable: str) -> str:
+        """레이어 그래프 = 블렌드스페이스(기본) + 덮기 블렌드스페이스를 branch_bone 아래에만 레이어 블렌드(메시 공간 회전) → 결과.
+
+        Args:
+            blueprint_path: 레이어 AnimBP 경로.
+            layer_name: 레이어(그래프) 이름.
+            blendspace_path: 기본 블렌드스페이스.
+            x_variable: 기본 X 변수(예 GroundSpeed).
+            overlay_blendspace_path: 덮기 블렌드스페이스(예 맨손 BS_Idle_Walk_Run).
+            overlay_x_variable: 덮기 X 변수(빈 문자열이면 연결 안 함).
+            overlay_y_variable: 덮기 Y 변수(빈 문자열이면 연결 안 함).
+            branch_bone: 덮을 본(예 upperarm_l).
+            alpha_variable: 블렌드 가중치 변수(예 LeftArmOverrideAlpha).
+
+        Returns:
+            결과 텍스트.
+        """
+        return unreal.AnimAssetBuilder.set_layer_blend_space_with_override(blueprint_path, layer_name, blendspace_path, x_variable,
+                                                                            overlay_blendspace_path, overlay_x_variable, overlay_y_variable,
+                                                                            branch_bone, alpha_variable)
+
+    @toolset_registry.tool_call
+    @staticmethod
     def anim_set_layer_passthrough(blueprint_path: str, layer_name: str) -> str:
         """레이어 그래프를 "입력 포즈 → 결과" 통과로 채운다.
 
@@ -529,4 +624,82 @@ class AnimBuilderTools(unreal.ToolsetDefinition):
                                                            locomotion_state, land_state or "", save is True)
 
 
-registration = Registration([KitTools, DataTableReimportTools, AnimBuilderTools])
+@unreal.uclass()
+class RetargetTools(unreal.ToolsetDefinition):
+    """MC4.2b Mixamo → 매니퀸 리타깃(jm_kit.retarget): Y Bot·애니메이션 FBX 가져오기, IK 리그·리타기터 생성, 일괄 리타깃."""
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def retarget_import_source_mesh(fbx_path: str) -> str:
+        """Mixamo Y Bot(With Skin, T-Pose) FBX를 /Game/Character/Mixamo/SKM_YBot으로 가져온다.
+
+        Args:
+            fbx_path: FBX 절대 경로(짧은 경로, 예 C:/.../UEClient/JM/SourceArt/Mixamo/Y Bot.fbx).
+
+        Returns:
+            JSON {mesh, skeleton, imported}.
+        """
+        importlib.reload(retarget)
+        return _dump(retarget.import_source_mesh(fbx_path))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def retarget_import_anims(fbx_paths: str, pack: str) -> str:
+        """애니메이션 FBX(Without Skin)들을 Y Bot 스켈레톤으로 가져온다 → /Game/Character/Mixamo/Anims/<pack>/MX_<이름>.
+
+        Args:
+            fbx_paths: FBX 절대 경로를 쉼표로.
+            pack: 무기 타입 폴더 이름(Bow·Sword).
+
+        Returns:
+            JSON 시퀀스 경로 목록.
+        """
+        importlib.reload(retarget)
+        return _dump(retarget.import_anims(_csv_list(fbx_paths), pack))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def retarget_ensure_rigs(rebuild: bool | None = None) -> str:
+        """IK_Mixamo·IK_Mannequin·RTG_Mixamo_Mannequin을 만든다(있으면 그대로, rebuild면 다시 구성).
+
+        Args:
+            rebuild: True면 자동 정의·체인 매핑·대상 포즈 정렬을 다시 한다.
+
+        Returns:
+            JSON 체인·매핑·오퍼레이션 요약.
+        """
+        importlib.reload(retarget)
+        return _dump(retarget.ensure_rigs(rebuild is True))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def retarget_run(sequence_paths: str, pack: str) -> str:
+        """MX_* 시퀀스들을 매니퀸으로 복제·리타깃 → /Game/Character/Mannequin/Anims/<pack>/AS_<pack>_<이름>.
+
+        Args:
+            sequence_paths: 원본 시퀀스 경로를 쉼표로.
+            pack: 무기 타입 폴더 이름(Bow·Sword).
+
+        Returns:
+            JSON 새 시퀀스 경로 목록.
+        """
+        importlib.reload(retarget)
+        return _dump(retarget.retarget(_csv_list(sequence_paths), pack))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def retarget_strip_drift(sequence_paths: str, bone: str | None = None) -> str:
+        """리타깃한 시퀀스의 골반 수평 선형 이동만 빼 제자리로 만든다(흔들림·내딛기는 남김, MC4.2c).
+
+        Args:
+            sequence_paths: 매니퀸 시퀀스 경로를 쉼표로.
+            bone: 본 이름(기본 pelvis).
+
+        Returns:
+            JSON 시퀀스별 {keys, drift_cm, after_cm}.
+        """
+        importlib.reload(retarget)
+        return _dump([retarget.strip_linear_drift(p, bone or "pelvis") for p in _csv_list(sequence_paths)])
+
+
+registration = Registration([KitTools, DataTableReimportTools, AnimBuilderTools, RetargetTools])

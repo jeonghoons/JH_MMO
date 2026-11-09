@@ -69,6 +69,7 @@ UEClient/**/*.VC.opendb
 # 사전 컴파일된 소스 아트 파일
 UEClient/**/SourceArt/**/*.png
 UEClient/**/SourceArt/**/*.tga
+UEClient/**/SourceArt/**/*.fbx
 
 # Fab/Marketplace에서 받은 에셋 팩 (docs/ExternalAssets.md 참고)
 UEClient/JM/Content/KiteDemo/

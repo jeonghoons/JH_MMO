@@ -1,4 +1,6 @@
 @echo off
+REM 이 파일은 UTF-8(CRLF)이다 — 한글 echo가 깨지지 않도록 코드 페이지를 UTF-8로 바꾼다.
+chcp 65001 >nul
 setlocal
 
 REM 스킬 몽타주의 Skill Hit 노티파이 시각으로 SkillTable.csv의 HitDelayMs를 갱신하고 DT_SkillTable을 Reimport한다.

@@ -1,4 +1,4 @@
 Name,WeaponType,AnimLayer
 1,Unarmed,/Game/Character/Mannequin/Anims/Unarmed/ABP_Layer_Unarmed.ABP_Layer_Unarmed_C
-2,Sword,
+2,Sword,/Game/Character/Mannequin/Anims/OneHandSword/ABP_Layer_OneHandSword.ABP_Layer_OneHandSword_C
 3,Bow,

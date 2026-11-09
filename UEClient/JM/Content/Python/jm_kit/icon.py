@@ -7,7 +7,7 @@
 - 메시: 스켈레탈 장비는 남자(M) 결과 메시의 기준 자세, 머리 장비는 남자 머리에 씌운 배치 그대로,
   장갑은 오른손만(손목 끝 톱니를 평면으로 잘라 임시 정적 메시로, items.json icon.yaw -90 = 손등 쪽).
 - 촬영: 1024²에 색(FinalColorLDR)과 덮임(SceneColorHDR 알파)을 따로 찍고, 덮인 영역에 맞춰 정사각형으로 잘라 512로 줄인다.
-  조명은 테스트 레벨(L_KitTest) 고정 조명, 대기·안개는 캡처에서 끈다(가장자리가 하늘색으로 물들지 않게).
+  조명은 테스트 레벨(TestLevel) 고정 조명, 대기·안개는 캡처에서 끈다(가장자리가 하늘색으로 물들지 않게).
 - 아이템별로 items.json "icon": {"yaw", "pitch", "margin"}로 덮어쓸 수 있다.
 
 예) import importlib, jm_kit.icon as ic; importlib.reload(ic); ic.shoot(["Plate_Top"])

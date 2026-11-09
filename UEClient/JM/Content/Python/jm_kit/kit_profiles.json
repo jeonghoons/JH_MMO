@@ -48,7 +48,7 @@
   },
   "montages": {
     "_comment": "BodyTable HitMontage·DeathMontage(공용 1벌, 남녀 같은 값 — DECISIONS 2026-11-08). 비면 CSV도 빈 칸.",
-    "hit": "",
+    "hit": "/Game/Character/Mannequin/Anims/Hit/AM_Common_Hit",
     "death": "/Game/Character/Mannequin/Anims/Death/AM_Common_Death"
   }
 }

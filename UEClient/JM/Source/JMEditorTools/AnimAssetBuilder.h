@@ -30,6 +30,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
 	static FString SetLayerBlendSpace(const FString& BlueprintPath, const FString& LayerName, const FString& BlendSpacePath, const FString& XVariable, const FString& YVariable);
 
+	// 1D 블렌드스페이스(BS_*)를 만든다(MC4.2c). 샘플 i = SequencePaths[i]를 SampleValues[i] 위치에, 샘플 재생 배율 RateScales[i]
+	// (비우면 1 — 모션 속도와 샘플 위치가 다를 때 발 미끄러짐 보정, 예: 382cm/s 달리기를 이동 속도 500 위치에 1.31배). 이미 있으면 실패.
+	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
+	static FString CreateBlendSpace1D(const FString& PackagePath, const FString& SkeletonPath, const FString& AxisName, float AxisMin, float AxisMax,
+		const TArray<FString>& SequencePaths, const TArray<float>& SampleValues, const TArray<float>& RateScales);
+
+	// 레이어 그래프를 "블렌드스페이스(기본) + 덮기 블렌드스페이스를 BranchBone 아래에만 레이어 블렌드 → 결과"로 채운다(MC4.2c 왼팔 맨손 덮기).
+	// 기본 X ← XVariable, 덮기 X/Y ← OverlayXVariable/OverlayYVariable(비우면 연결 안 함), 블렌드 가중치 ← AlphaVariable(멤버 변수).
+	// 메시 공간 회전 블렌드를 켠다(상체 자세가 달라도 팔 방향 유지).
+	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
+	static FString SetLayerBlendSpaceWithOverride(const FString& BlueprintPath, const FString& LayerName, const FString& BlendSpacePath, const FString& XVariable,
+		const FString& OverlayBlendSpacePath, const FString& OverlayXVariable, const FString& OverlayYVariable, const FString& BranchBone, const FString& AlphaVariable);
+
 	// 레이어 그래프를 "입력 포즈 → 결과" 통과로 채운다(상체 포즈 레이어의 기본 구현).
 	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
 	static FString SetLayerPassThrough(const FString& BlueprintPath, const FString& LayerName);

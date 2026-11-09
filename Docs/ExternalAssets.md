@@ -31,3 +31,23 @@
 |---|---|---|---|
 | `Content/Character/Mannequin/` (Meshes, Materials, Textures, Rigs, Anims/Unarmed, Anims/Death — 60개, 약 100MB) | `UE_5.6/Templates/TemplateResources/High/Characters/Content/Mannequins` | Epic UE 5.6.1 템플릿 매니퀸(Manny/Quinn, `SK_Mannequin`), 사용 가능 여부는 사용자 확인(DECISIONS 2026-11-04) | 2026-11-04 MC1.1. 원본과 바이트 동일 확인 후 에디터에서 Move. `Anims/Pistol`·`Anims/Rifle`(68개)은 무기 타입과 무관해 가져오지 않음(git 제외 경로 `Content/Characters/Mannequins/`에 남음). 몇몇 공격 모션에 템플릿 원본부터 있던 없는 경로 참조(`EditableAnimations/LS_*`, `SKM_Manny`)가 있으나 재생에는 영향 없음 |
 | ~~`Content/Character/Mannequin/Body/SK_Body_<M\|F>_<Part>`~~ | — | — | 2026-11-04 삭제(MC1 재작업 — 키트 부위 메시를 그대로 사용) |
+
+## Mixamo 애니메이션 (FBX 원본은 git 제외, 가져온 uasset·리타깃 결과는 git 포함)
+
+출처: Adobe Mixamo(https://www.mixamo.com, Adobe 계정 로그인, 무료). 원본 FBX 재배포 금지 — `UEClient/JM/SourceArt/Mixamo/*.fbx`는 `.gitignore`. 가져온 uasset·리타깃 결과를 공개 저장소에 커밋하는 것은 사용자 결정(DECISIONS 2026-11-09).
+
+**다운로드 설정(모두 같게):** 캐릭터 업로드 없이 기본 **Y Bot**. Format **FBX Binary**, Frames per Second **30**, Keyframe Reduction **none**. 애니메이션은 **Without Skin**, 이동 동작은 **In Place** 체크(낱개 다운로드만 — **팩 다운로드에는 In Place 옵션이 없으므로** 가져온 뒤 `retarget_strip_drift`로 제자리 처리). Y Bot 메시 자체는 한 번만 **With Skin**·T-Pose로 받음. 파일 이름은 Mixamo 동작 이름 그대로(`MX_<CamelCase>`로 가져옴).
+
+**가져오기·리타깃(에디터를 켠 채 MCP, PIE·Simulate가 꺼져 있어야 함):** `RetargetTools.retarget_import_source_mesh`(최초 1회) → `retarget_import_anims(FBX 목록, 팩)` → `retarget_ensure_rigs`(최초 1회, 있으면 그대로) → `retarget_run(시퀀스 목록, 팩)` → 이동이 든 동작은 `retarget_strip_drift`. 리타기터는 `RTG_Mixamo_Mannequin` 하나(손바닥뼈 체인은 매핑 안 함, Root Motion 오퍼레이션 끔, `Pin IK Bones`로 IK 본이 발·손을 따름). 쓰는 시퀀스는 `MX_<무기>_<동작>`으로 이름을 바꾼 뒤 리타깃하면 `AS_<무기>_<동작>`이 된다.
+
+| 에셋 | 원본 FBX | Mixamo 동작 | 비고 |
+|---|---|---|---|
+| `Content/Character/Mixamo/SKM_YBot`(+`_Skeleton`), `IK_Mixamo` | `SourceArt/Mixamo/Y Bot.fbx` | Y Bot(With Skin) | 리타깃 원본 메시. 2026-11-09 MC4.2b |
+| `Content/Character/Mannequin/Rigs/IK_Mannequin`, `RTG_Mixamo_Mannequin` | — | — | 대상 `SKM_Manny_Simple`, 결과 스켈레톤 `SK_Mannequin` |
+| `Content/Character/Mixamo/Anims/Bow/MX_StandingDrawArrow` → `Content/Character/Mannequin/Anims/Bow/AS_Bow_StandingDrawArrow` | `SourceArt/Mixamo/Standing Draw Arrow.fbx` | Standing Draw Arrow | MC4.2b 시범(사용자 확인). MC4.2d 활 스킬 조준 당김 후보 |
+| `Mixamo/Anims/OneHandSword/MX_OneHandSword_Idle` → `Mannequin/Anims/OneHandSword/AS_OneHandSword_Idle` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield idle (4).fbx` | Sword And Shield Idle | MC4.2c 대기 |
+| `MX_OneHandSword_Walk` → `AS_OneHandSword_Walk` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield walk.fbx` | Sword And Shield Walk(앞) | 제자리 처리, BS 138 |
+| `MX_OneHandSword_Run` → `AS_OneHandSword_Run` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield run.fbx` | Sword And Shield Run(앞) | 제자리 처리, BS 500 ×1.31 |
+| `MX_OneHandSword_Attack` → `AS_OneHandSword_Attack` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield slash.fbx` | Downward Slash | 2001 기본 공격 |
+| `MX_OneHandSword_Skill1` → `AS_OneHandSword_Skill1` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield attack.fbx` | Sword And Shield Attack(도약 내려찍기) | 2002, 제자리 처리(사용자 교체 — 처음 Power Slash `slash (4)`) |
+| `MX_Common_Hit` → `Mannequin/Anims/Hit/AS_Common_Hit` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield impact (3).fbx` | Sword And Shield Impact(머리) | 공용 피격(BodyTable `HitMontage`) |
