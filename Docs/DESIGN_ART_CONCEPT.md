@@ -52,6 +52,7 @@
 
 ## 6. 이펙트
 - 스킬 이펙트는 Paragon 이펙트를 `Content/FX/`로 **Duplicate**해 재사용하고, 부족하면 Fab 무료 에셋. 원본 팩 파일은 직접 고치지 않는다(DECISIONS 2026-10-19 방침).
+- 선별 목록·역할·근거·제외 규칙·네이밍(`Content/FX/<분류>/P_<역할>_<이름>`)은 [FX_CATALOG.md](FX_CATALOG.md) (2026-11-10, Paragon 193개 분석 → 복제 89개: 공용 82 + 몬스터 전용 7).
 
 ## 7. 제작 파이프라인 (VARCO 기준)
 1. 컨셉 이미지: VARCO `GenerateImage`. 원본은 `SourceArt/Concept/`에 보관.

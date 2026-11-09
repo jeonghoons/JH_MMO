@@ -12,12 +12,12 @@ import unreal
 import toolset_registry
 from toolset_registry.registration import Registration
 
-from jm_kit import body_mask, garment, glove_paint, icon, item_table, posed, preview, profiles, refs, retarget, skeleton_check, testbed
+from jm_kit import body_mask, fx_sheet, garment, glove_paint, icon, item_table, posed, preview, profiles, refs, retarget, skeleton_check, testbed
 
 
 def _reload():
     """도구를 고친 뒤 에디터 재시작 없이 반영(의존 순서대로)."""
-    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table, testbed, posed, refs):
+    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table, testbed, posed, refs, fx_sheet):
         importlib.reload(m)
 
 
@@ -202,6 +202,47 @@ class KitTools(unreal.ToolsetDefinition):
         """
         preview.stop_simulate()
         return "종료 요청"
+
+    # ── FX 미리보기 시트(FX_CATALOG 3단계) ────────────────
+    @toolset_registry.tool_call
+    @staticmethod
+    def fx_sheet_start(category: str | None = None, keys: str | None = None, times: str | None = None) -> str:
+        """Content/FX 파티클을 Simulate 중 게임 월드에 하나씩 재생해 시점별로 찍는다(프레임마다 진행 — 바로 반환, fx_sheet_status로 확인).
+
+        먼저 preview_setup_level → preview_spawn("KM", "M", [0,0,0], "kit") → preview_start_simulate 를 하고 다음 호출에서 부른다.
+        결과: Saved/MCShots/fx_<이름>_t030.png·t100.png, 분류별 시트 fx_sheet_<분류>.png, fx_sheet_status.json.
+
+        Args:
+            category: 분류 하나(Trail/Hit/Proj/Cast/AoE/Buff/Life). 비우면 전부.
+            keys: 에셋 이름 또는 경로를 쉼표로(예 "P_Hit_Slash,P_AoE_Smash"). 비우면 분류 전부.
+            times: 촬영 시점(초)을 쉼표로(기본 "0.3,1.0").
+
+        Returns:
+            JSON {count, times, status}.
+        """
+        ks = [k.strip() for k in keys.split(",") if k.strip()] if keys else None
+        ts = tuple(float(t) for t in times.split(",")) if times else fx_sheet.TIMES
+        return _dump(fx_sheet.start(keys=ks, category=category or None, times=ts))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def fx_sheet_status() -> str:
+        """fx_sheet_start 진행 상태(state running/done, progress, sheets, 에셋별 bb·샷 경로·오류).
+
+        Returns:
+            JSON.
+        """
+        return _dump(fx_sheet.status())
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def fx_sheet_stop() -> str:
+        """진행 중인 fx_sheet 작업을 중단하고 지금까지 찍은 것으로 시트를 만든다.
+
+        Returns:
+            JSON(status와 같음).
+        """
+        return _dump(fx_sheet.stop())
 
     # ── 테스트 플레이어(서버 없는 PIE) ────────────────────
     @toolset_registry.tool_call
