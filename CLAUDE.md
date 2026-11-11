@@ -20,18 +20,19 @@ JH_MMO는 자체 제작 MMORPG 게임 프로젝트이며, 서로 동기화 상�
 
 ## 문서 (작업 전에 읽는 순서)
 
-1. [Docs/ROADMAP.md](Docs/ROADMAP.md) — **현재 Phase와 다음 작업**, 완료 기준
+1. [Docs/ROADMAP.md](Docs/ROADMAP.md) — **현재 위치와 다음 작업**, 완료 기준 (맨 아래 "완료 이력"은 필요할 때만)
 2. 해당 작업의 설계 문서 (아래 "설계 문서" 목록, 데이터 규약은 [Docs/DESIGN_DATA.md](Docs/DESIGN_DATA.md))
 3. [Docs/DECISIONS.md](Docs/DECISIONS.md) — 확정된 결정 로그 (번복 시 새 항목을 추가하고 기존 항목은 지우지 않음)
 4. 외부 에셋 설치는 [Docs/ExternalAssets.md](Docs/ExternalAssets.md)
+5. 검증 기록 [Docs/TESTING.md](Docs/TESTING.md)는 통째로 읽지 않고, 맨 위 "읽는 법"대로 필요한 행만 찾아 읽습니다.
 
 ## 작업 절차 규칙
 
 1. 작업 시작 전 ROADMAP에서 현재 Phase와 다음 미완료 항목을 확인합니다.
-2. **한 번에 하나의 체크박스 단위**만 진행합니다. 범위가 크면 먼저 계획을 제시합니다.
+2. **한 번에 하나의 ROADMAP 항목 단위**만 진행합니다. 범위가 크면 먼저 계획을 제시합니다.
 3. 문서에 없는 결정이 필요하면 구현 전에 사용자에게 묻고, 확정되면 `Docs/DECISIONS.md`에 기록합니다.
-4. 완료 기준(빌드 성공 + ROADMAP에 적힌 확인)을 충족하면 체크박스를 갱신합니다.
-5. `Content/` 애셋 작업은 **Claude가 에디터 MCP로 직접 처리하는 것이 기본**입니다(사용자 선호, 방법과 대체 순서는 [UEClient/JM/CLAUDE.md](UEClient/JM/CLAUDE.md) "에디터 MCP"). 직접 처리할 수 없는 `Content/` 애셋(Blueprint/AnimBP/DataTable/머티리얼/위젯) 작업만 사용자가 에디터에서 그대로 따라 할 수 있도록 **모든 단계**를 **대화창으로** 안내하고, ROADMAP의 "수동 작업 기록"에는 한 줄 요약과 완료 상태만 남깁니다. 안내에 포함할 것: 애셋 종류와 부모 클래스, 저장 경로·이름, 에디터 조작 순서, 설정할 프로퍼티와 값, 다른 곳에 연결하는 방법, 완료 확인 방법, C++가 Blueprint에 노출하는 프로퍼티/함수.
+4. ROADMAP 항목의 상태는 `[예정]`·`[진행]`·`[확인 대기]`·`[완료]`·`[보류]`·`[폐기]` + (이유 또는 비고)로 표기합니다. 항목에 적힌 완료 기준(빌드 성공 + 적힌 확인)을 충족하면 `[완료]`로 바꾸고 한 줄로 줄여 맨 아래 "완료 이력"으로 옮깁니다. 사용자 확인만 남았으면 `[확인 대기]`(누가·언제 확인하는지 함께).
+5. `Content/` 애셋 작업은 **Claude가 에디터 MCP로 직접 처리하는 것이 기본**입니다(사용자 선호, 방법과 대체 순서는 [UEClient/JM/CLAUDE.md](UEClient/JM/CLAUDE.md) "에디터 MCP"). 직접 처리할 수 없는 `Content/` 애셋(Blueprint/AnimBP/DataTable/머티리얼/위젯) 작업만 사용자가 에디터에서 그대로 따라 할 수 있도록 **모든 단계**를 **대화창으로** 안내하고, ROADMAP "완료 이력"의 수동 작업 기록에는 한 줄 요약과 완료 상태만 남깁니다. 안내에 포함할 것: 애셋 종류와 부모 클래스, 저장 경로·이름, 에디터 조작 순서, 설정할 프로퍼티와 값, 다른 곳에 연결하는 방법, 완료 확인 방법, C++가 Blueprint에 노출하는 프로퍼티/함수.
 6. 사용자가 요청하지 않은 파일 수정/삭제는 하지 않습니다.
 7. PIE·에디터 확인을 준비할 때는 **서버가 필요한 확인인지 먼저 판단**합니다. 애니메이션·외형·이펙트처럼 서버가 필요 없으면 서버 없이 TestLevel + `BP_TestPlayer`로 확인합니다(절차는 `pie-check` 스킬).
 8. 반복 절차는 프로젝트 스킬(`.claude/skills/`)에 있습니다: `ue-build`(UE 빌드·에디터 재시작), `run-server`(GameServer 빌드·실행·종료), `pie-check`, `gen-packets`, `varco-gear`, `mixamo-lookup`. 판독 전용 작업은 `reader` 에이전트(`.claude/agents/reader.md`)에 맡깁니다.

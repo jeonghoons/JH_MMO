@@ -2,6 +2,8 @@
 
 서버에는 자동화된 테스트 스위트가 없습니다. 아래는 봇(`LoadTest` 콘솔, `DummyClient` 시각화 — 둘 다 같은 `BotEngine`)으로 서버 로직을 수동 검증하는 절차입니다. 아키텍처/빌드 전반은 [Server/CLAUDE.md](../Server/CLAUDE.md)를 참고하세요.
 
+> **읽는 법 (2026-11-12, ROADMAP W4)**: 이 문서는 통째로 읽지 않습니다. 사용법은 "기본 절차"·"부하 테스트 하니스"·맨 끝 "새 패킷/기능 체크리스트" 절만 읽고, 검증 기록은 `grep -n "| 날짜 | ID"` 또는 `grep -n "MC4.2c"`로 줄 번호를 찾아 그 행만 `Read(offset, limit=1)`로 읽습니다(한 행 = 한 줄). 새 기록 행은 날짜순으로 표 끝에 추가하고, 단계 열 맨 앞에 ROADMAP ID를 씁니다(같은 ID가 여러 번이면 `MC2.3 (2/5) 투구 4·5차`처럼 구분).
+
 ## 기본 절차
 
 1. `GameServer`를 빌드하고 실행합니다: `msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:GameServer`
