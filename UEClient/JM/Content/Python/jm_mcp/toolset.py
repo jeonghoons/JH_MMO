@@ -451,6 +451,45 @@ class KitTools(unreal.ToolsetDefinition):
         sp = lambda v, d: tuple(x.strip() for x in v.split(",") if x.strip()) if v else d
         return _dump(refs.find(sp(roots, refs.PLAYER_ROOTS), sp(forbidden, refs.PARAGON_PREFIXES), sp(skip, ())))
 
+    @toolset_registry.tool_call
+    @staticmethod
+    def refs_plan(roots: str, targets: str, deleting: str | None = None) -> str:
+        """roots에서 의존을 끝까지 따라가 targets 접두사 안에서 닿는 패키지 전체(팩 내부 사슬 포함, jm_kit.refs.plan).
+
+        Args:
+            roots: 쉼표 구분 폴더·패키지("/Game"이면 targets·deleting 바깥 전체).
+            targets: 쉼표 구분 — 옮길 대상 접두사(예 "/Game/ParagonSparrow/").
+            deleting: 쉼표 구분 — 지울 접두사. 남길 에셋이 여기를 참조하면 blockers로 보고.
+
+        Returns:
+            JSON {roots, visited, moves, blockers, missing}.
+        """
+        sp = lambda v: tuple(x.strip() for x in v.split(",") if x.strip()) if v else ()
+        return _dump(refs.plan(sp(roots), sp(targets), sp(deleting)))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def refs_move(roots: str, mapping_json: str, deleting: str | None = None, dry_run: bool | None = None) -> str:
+        """refs_plan(roots, mapping 원본 접두사들)의 moves를 mapping대로 Move → 리디렉터 Fix Up → 저장(jm_kit.refs.move).
+
+        Args:
+            roots: refs_plan과 같음.
+            mapping_json: JSON [[원본 접두사, 대상 접두사], ...].
+            deleting: refs_plan과 같음(blockers가 있으면 옮기지 않음).
+            dry_run: 기본 True — 대상 경로·충돌만 보고.
+
+        Returns:
+            JSON 결과.
+        """
+        sp = lambda v: tuple(x.strip() for x in v.split(",") if x.strip()) if v else ()
+        mapping = [tuple(m) for m in json.loads(mapping_json)]
+        pl = refs.plan(sp(roots), tuple(m[0] for m in mapping), sp(deleting))
+        if pl["blockers"]:
+            return _dump({"blocked": pl["blockers"][:50]})
+        res = refs.move(pl["moves"], mapping, True if dry_run is None else dry_run)
+        res["missing"] = pl["missing"]
+        return _dump(res)
+
     # ── 몸 마스크 ─────────────────────────────────────────
     @toolset_registry.tool_call
     @staticmethod

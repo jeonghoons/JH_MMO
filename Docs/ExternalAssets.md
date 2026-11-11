@@ -6,9 +6,9 @@
 
 | 폴더 | 이름 | 링크 | 용도 | 설치 방법 |
 |---|---|---|---|---|
-| `Content/ParagonGreystone` | Paragon: Greystone | (Fab 링크 기입) | 영웅 후보(검+방패) | Fab 라이브러리 → Add to Project → `JM` |
-| `Content/ParagonSparrow` | Paragon: Sparrow | (Fab 링크 기입) | 영웅 후보(활) | 위와 동일 |
-| `Content/ParagonRampage` | Paragon: Rampage | (Fab 링크 기입) | 기존 사용 중 | 위와 동일 |
+| ~~`Content/ParagonGreystone`~~ | Paragon: Greystone | (Fab 링크 기입) | **2026-11-12 삭제** — 쓰던 FX 의존은 `Content/FX/Dep/Greystone`(git 포함). 설치 불필요 | — |
+| ~~`Content/ParagonSparrow`~~ | Paragon: Sparrow | (Fab 링크 기입) | **2026-11-12 삭제** — 쓰던 FX 의존은 `Content/FX/Dep/Sparrow`(git 포함). 설치 불필요 | — |
+| `Content/ParagonRampage` | Paragon: Rampage | (Fab 링크 기입) | 몬스터(메시·스켈레톤 등). FX가 쓰던 의존은 2026-11-12 `Content/FX/Dep/Rampage`로 옮겨 팩에서 빠짐 — 새로 받으면 그 에셋이 팩 쪽에도 다시 생기지만 참조하지 않음 | Fab 라이브러리 → Add to Project → `JM` |
 | `Content/ParagonProps` | Paragon: Props | (Fab 링크 기입) | 환경 소품(미사용 확인 필요) | 위와 동일 |
 | `Content/KiteDemo` | Kite Demo | (Fab 링크 기입) | 데모 에셋(미사용 확인 필요) | 위와 동일 |
 | `Content/LevelPrototyping`, `Content/StarterContent` | UE 템플릿 기본 에셋 | - | 프로토타이핑용 | 새 프로젝트 템플릿에서 가져오기 |

@@ -53,8 +53,8 @@
 - 가입 시 기본 장비: 천 5부위 + 천 한손검(`ItemTable.Starter` = 1, 가입 트랜잭션에서 지급).
 
 ## 기존 코드/데이터의 처리
-- 남은 Paragon 플레이어 자산: ~~`DT_CharacterAsset`(`FCharacterAssetData`)~~(2026-11-10 삭제), `ABP_Greystone`/`ABP_Sparrow`, `Character/Greystone`·`Character/Sparrow`의 몽타주·아이콘. 매니퀸 캐릭터가 동작하면(MC4) 플레이어 쪽 참조를 끊고 정리 여부를 사용자에게 묻습니다. Rampage 쪽은 유지합니다.
-- 이펙트(`P_Greystone_GroundSmash`, `P_Sparrow_RainofArrows`)는 검·활 스킬에서 계속 쓰므로 `Content/FX/`로 옮깁니다([DESIGN_ART_CONCEPT.md](DESIGN_ART_CONCEPT.md) 6장).
+- 남은 Paragon 플레이어 자산: 없음. `DT_CharacterAsset`은 2026-11-10, `Character/Greystone`·`Character/Sparrow`(`ABP_Greystone`/`ABP_Sparrow`·몽타주·`BP_Arrow`)와 원본 팩 `ParagonGreystone`·`ParagonSparrow`는 2026-11-12 삭제(사용자 결정). Rampage 쪽은 유지합니다.
+- 이펙트는 `Content/FX/`(FX 라이브러리, `P_AoE_Smash`·`P_AoE_ArrowRain` 포함)에 있고, 그 머티리얼·텍스처·메시는 `Content/FX/Dep/`에 있습니다([DESIGN_ART_CONCEPT.md](DESIGN_ART_CONCEPT.md) 6장).
 - 서버 `equip_items`(DB `Player_Equipped`, `DatabaseWorker::UpdateEquipData`)는 그대로 쓰고 슬롯 번호만 새 `EquipPart`로 바꿉니다.
 - 2026-10-17에 삭제한 `ModularAppearanceComponent`/`ModularEquipmentComponent`는 되살리지 않고 새 장비 컴포넌트를 설계합니다(이름 충돌 주의).
 
