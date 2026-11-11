@@ -1,0 +1,5 @@
+#!/bin/sh
+# 커밋 전 프로토콜 검사: 스테이징된 .proto와 생성 코드(.pb.*) 세 사본이 맞는지 확인합니다.
+# 설치(클론마다 한 번): git config core.hooksPath .githooks
+command -v python >/dev/null 2>&1 || { echo "[pre-commit] python이 없어 프로토콜 검사를 건너뜁니다." >&2; exit 0; }
+exec python -I "$(git rev-parse --show-toplevel)/Common/Protocol/check_generated.py" --staged

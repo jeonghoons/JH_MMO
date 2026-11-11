@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# 훅 스크립트는 sh가 읽으므로 항상 LF
+.githooks/* text eol=lf

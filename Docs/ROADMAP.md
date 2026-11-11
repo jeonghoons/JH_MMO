@@ -8,6 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move(Greystone·Sparrow 팩은 2026-11-12 삭제, Rampage 몬스터 쪽만 남음)
 
 현재 위치: **P. 성능 개선 (P0 유령 플레이어 수정 → P1 송신 묶기 차례, 2026-11-06 기준선·동시성 감사 완료). 2026-11-06 결정: 트랙 B를 MC4.2 무기 공격까지 먼저 진행한 뒤 트랙 A 재개 (`DECISIONS.md`)**
+**2026-11-12 끼워 넣기: 아래 "Phase W — 작업 환경 개선"을 W0부터 차례로 진행 중** (`DECISIONS.md` 2026-11-12 "작업 환경 개선"). 끝나면 MC4.2 중간 테스트로 돌아갑니다.
 브랜치(2026-11-12 정리): 개발은 **`Jeonghoon` 하나**, `main`은 Phase·마일스톤 끝에 병합하는 안정판, 시험은 짧은 작업 브랜치(`exp/…`) — `DECISIONS.md` 2026-11-12. `content/dev`는 병합 후 사용 종료.
 이전 `content/dev` 진행 기록: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블·MC3.1b 스탯 재설계·MC3.2 장착 패킷·MC3.3 장비 저장·MC4.1 장비 컴포넌트·MC4.1b 원격 이동 튐 완료(2026-11-07), MC4.2a 구조·맨손(2026-11-08)·MC4.2b Mixamo 시범 리타깃·MC4.2c 한손검 + 공용 피격(2026-11-09) 완료, MC4.2d-1 스킬 조준 동기화 완료(2026-11-09), MC4.2d-2 활 애니메이션·MC4.2e 장갑·어깨·MC4.2f 방패 구현 완료(2026-11-10, 확인은 중간 테스트), FX 라이브러리(MC4.5) 1~5단계 완료(2026-11-12 — 채택 51개 손질, PIE 확인·`Fx` 연결은 남음), Paragon Greystone·Sparrow 팩 삭제(2026-11-12 — FX 의존 515개를 `Content/FX/Dep`로 Move), 다음 **MC4.2 중간 테스트**(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A P1도 같은 `Jeonghoon`에서 이어감)
 
@@ -42,6 +43,15 @@
 12. ~~MC4.2c~~ 완료(2026-11-09, 한손검 이동·공격·스킬 + 공용 피격: `Anims/OneHandSword/*`(`AS_`·`AM_OneHandSword_*`·`BS_OneHandSword_Locomotion`·`ABP_Layer_OneHandSword`)·`Anims/Hit/AM_Common_Hit`, 리타기터 Root Motion 끔 + Pin IK Bones, 제자리 처리(Mixamo In Place 방식), 스킬 2002 = 도약 내려찍기(사용자 교체), 테스트 플레이어 메시 오프셋 버그 수정, TestLevel 사용자 확인 — `DECISIONS.md`·`TESTING.md`·`ExternalAssets.md`). 4.2b와 함께 커밋.
     - 이후: 4.2d 활 → 4.2e 장갑·어깨 뭉침 → **4.2f 방패**. 정리 후보 3개는 2026-11-10 삭제 완료(`CS_DMOVE_PACKET`, `DT_CharacterAsset`·`CharacterAssetTable`·`FCharacterAssetData`, `MovementTable.xlsx` — `DECISIONS.md`).
 13. ~~MC4.2d-1~~ 완료(2026-11-09, 스킬 조준 동기화 — `DECISIONS.md`·`TESTING.md`). MC4.2d-2 활 애니메이션·등에 메기 구현 완료(2026-11-10, 확인은 중간 테스트). MC4.2e 장갑·어깨·Paragon 참조 구현 완료(2026-11-10, 확인은 중간 테스트). MC4.2f 방패 구현 완료(2026-11-10, 서버·데이터·VARCO 600포인트·클라, 확인은 중간 테스트 — `DECISIONS.md`·`TESTING.md`). **다음: MC4.2 중간 테스트**(무기·동작 사용자 확인을 한꺼번에 — 2026-11-10 사용자 결정, 볼 것은 4.2d-2·4.2e·4.2f 체크박스에 적어 둠). 이전 메모: — 4.2d-2 시작 시 Longbow 팩 동작 목록 대조(팩 다운로드는 In Place 옵션이 없어 `retarget_strip_drift`로 제자리 처리). 활 시범 `AS_Bow_StandingDrawArrow`는 4.2c에서 새 리타기터 설정으로 다시 리타깃해 둠.
+## Phase W — 작업 환경 개선 (Claude Code, 2026-11-12, `DECISIONS.md` 2026-11-12 "작업 환경 개선")
+작고 효과가 확실한 것부터 진행합니다. 각 단계는 사용자 확인 후 커밋합니다. 상태 표기는 W4에서 ROADMAP 전체를 한글 표기로 바꿀 때 함께 바꿉니다.
+- [x] W0 개선 계획을 ROADMAP·DECISIONS에 등록 (2026-11-12)
+- [x] W1 프로토콜 재생성 방어 (2026-11-12 완료: 문법 오류·재생성 누락·git add 누락·생성 파일 손 수정 시나리오 Claude 테스트, bat 더블클릭·`/hooks` Stop 등록 사용자 확인, 사용법은 `Common/Protocol/CLAUDE.md`): ① `GanPackets.bat` 수정(CP949 유지 — 바이트 단위 수정, `cd /d "%~dp0"`·`"%~dp0protoc.exe"`, 실패 시 종료 코드, 인자가 있으면 `pause` 생략) ② git pre-commit 훅(`.githooks/` + `core.hooksPath`): 임시 폴더에 생성한 결과를 **스테이징된** `.pb.*` 세 곳(`Common/Protocol`·`Server/Server/Protocol`·`UEClient/JM/Source/JM/Protocol`)과 줄바꿈 무시 비교, 다르면 커밋 거부 ③ Claude Stop 훅: 응답 종료 시 같은 비교로 작업 폴더가 낡았으면 exit 2(`stop_hook_active`면 통과). 완료: 일부러 `.proto`만 고친 상태에서 Stop 훅·pre-commit이 막고, 재생성 후 통과(Claude 테스트) + bat 더블클릭 실행 정상(사용자)
+- [ ] W2 `reader` 에이전트 정의(`.claude/agents/reader.md`: opus·medium, Read·Grep·Glob·Bash, 수정 금지, "제안 — 근거" 형식). 완료: 시험 판독 1회에서 지정 모델로 실행·파일 변경 없음 확인
+- [ ] W3 메모리 → 스킬 이관: 스킬 `ue-build`·`gen-packets`·`run-server`·`pie-check`·`varco-gear`·`mixamo-lookup`(스크립트 동봉, 개인 경로 제외 — 공개 저장소), UE 인코딩·에디터 MCP 함정은 `UEClient/JM/CLAUDE.md`로, "서버가 필요한 확인인가 먼저 판단"은 `CLAUDE.md`로. 이관한 메모리는 삭제. 완료: 각 스킬을 1회 실제 호출해 동작 확인, 메모리 인덱스에는 선호·사실만 남음
+- [ ] W4 ROADMAP 정리: `TESTING.md` 읽기 규칙(목차 + 필요한 절만) 먼저 → `TODO.md` 백로그를 ROADMAP "백로그(순서 미정)"로 옮기고 `TODO.md` 삭제 → 상태 표기를 `[예정]`·`[진행]`·`[확인 대기]`·`[완료]`·`[보류]`·`[폐기]` + (이유 또는 비고)로 변경 → 현재 위치·남은 항목을 위로, 완료 항목은 한 줄로 줄여 맨 아래 "완료 이력"으로(상세는 `TESTING.md`·`DECISIONS.md`) → `CLAUDE.md` 규칙 4·5 문구 수정. 완료: 사용자 검토
+- [ ] W5 결정 로그 정리: `reader` 분류(유효/대체/완료·이관/미적용, 일부 대체 행 분리) → **사용자가 대체·완료 목록 승인** → `DECISIONS_CURRENT.md` 신설(유효 결정을 주제별 한 줄 + 고정 ID, 끝에 "채택하지 않은 안"과 이유) → 원본 `DECISIONS.md`는 이름·내용 유지(외부 참조 127곳 보존), 끊긴 참조 3곳(`preview.py`·`testbed.py`·`TestPlayer.h`)만 수정 → `CLAUDE.md` 읽기 순서를 `DECISIONS_CURRENT.md`로. 완료: 사용자 검토
+
 **VARCO 흐름 노드(JH_MMO 플로):** 투구 정면 컨셉 `531e1ef7…`, 3/4 시점 편집 `c1511cae…`, 3차 3D `8456f6d4…`(실패), 초록 배경 `aa21a66f…`, 4차 3D `4e325e94…`(실패), 사슬 뺀 눈높이 `a0bb8331…`, **5차 3D `ad0e9513…`(채택, 출력 0)**. 판금 상의 컨셉 `cb90b725…`가 세트 스타일 참고.
 
 ## 트랙 A — 서버/포트폴리오
