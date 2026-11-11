@@ -12,12 +12,12 @@ import unreal
 import toolset_registry
 from toolset_registry.registration import Registration
 
-from jm_kit import body_mask, fx_sheet, garment, glove_paint, icon, item_table, posed, preview, profiles, refs, retarget, skeleton_check, testbed
+from jm_kit import body_mask, fx_fix, fx_sheet, garment, glove_paint, icon, item_table, posed, preview, profiles, refs, retarget, skeleton_check, testbed
 
 
 def _reload():
     """도구를 고친 뒤 에디터 재시작 없이 반영(의존 순서대로)."""
-    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table, testbed, posed, refs, fx_sheet):
+    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table, testbed, posed, refs, fx_sheet, fx_fix):
         importlib.reload(m)
 
 
@@ -243,6 +243,72 @@ class KitTools(unreal.ToolsetDefinition):
             JSON(status와 같음).
         """
         return _dump(fx_sheet.stop())
+
+    # ── FX 손질(FX_CATALOG 4단계) ──────────────────────────
+    @toolset_registry.tool_call
+    @staticmethod
+    def fx_inspect(keys: str | None = None, category: str | None = None) -> str:
+        """Content/FX 파티클의 구조 요약(jm_kit.fx_fix.inspect): 이미터별 이름·LOD 활성·TypeData·모듈·본 이름(매니퀸에 없는 본은 bones_missing)·메시·머티리얼·지연.
+
+        Args:
+            keys: 에셋 이름 또는 경로를 쉼표로(예 "P_Life_Death,P_Debuff_Burn"). 비우면 category 또는 전부.
+            category: 분류 하나(Trail/Hit/Proj/Cast/AoE/Buff/Life).
+
+        Returns:
+            JSON {경로: {emitters: [...], lod_method}}.
+        """
+        ks = [k.strip() for k in keys.split(",") if k.strip()] if keys else None
+        return _dump(fx_fix.inspect(keys=ks, category=category or None))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def fx_apply(ops_json: str, save: bool | None = None) -> str:
+        """정해진 편집을 파티클에 적용하고 저장한다(jm_kit.fx_fix.apply). 임의 코드가 아니라 op 종류만 허용:
+        delete_emitter·disable_emitter·rename_bones(map)·drop_bones(names)·set_bone_source(bones)·set_mesh(mesh). emitter는 이름 또는 "#인덱스".
+
+        Args:
+            ops_json: JSON 배열 문자열. 예 [{"asset":"P_Debuff_Burn","op":"rename_bones","map":{"chest_playe":"spine_03"}}].
+            save: 저장 여부(기본 True).
+
+        Returns:
+            JSON {경로: [결과...], _saved, _errors}.
+        """
+        ops = json.loads(ops_json)
+        return _dump(fx_fix.apply(ops, save=True if save is None else save))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def fx_weapon_socket_points(item_key: str | None = None, body: str | None = None, fracs: str | None = None) -> str:
+        """무기 메시 긴 축의 지점들을 손 본 로컬 좌표로(jm_kit.fx_fix.weapon_socket_points) — AnimTrail 소켓 FX_Weapon_Bottom/Top 추가용.
+
+        Args:
+            item_key: items.json 무기 키(기본 Cloth_Sword).
+            body: 체형 "M"/"F"(기본 M).
+            fracs: 지점 비율을 쉼표로(기본 "0.22,1.0" — 날 시작·칼끝).
+
+        Returns:
+            JSON {socket, axis, length_cm, points_bone_local: {비율: [x,y,z]}}.
+        """
+        fs = tuple(float(f) for f in fracs.split(",")) if fracs else (0.22, 1.0)
+        return _dump(fx_fix.weapon_socket_points(item_key or "Cloth_Sword", body or "M", fs))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def fx_trail_notify(montage_path: str, fx_key: str | None = None, start_sec: float | None = None, duration_sec: float | None = None,
+                        remove: bool | None = None) -> str:
+        """몽타주의 AnimNotifyState_Trail을 모두 지우고 fx_key 파티클로 하나 단다(jm_kit.fx_fix.set_trail_notify, 소켓 FX_Weapon_Bottom→Top). TRAIL 확인용.
+
+        Args:
+            montage_path: 몽타주 경로(예 /Game/Character/Mannequin/Anims/OneHandSword/AM_OneHandSword_Attack).
+            fx_key: FX 이름 또는 경로(예 P_Trail_Sword_Basic). remove면 생략.
+            start_sec: 시작 초(기본 0).
+            duration_sec: 길이 초(기본 0 = 끝까지).
+            remove: True면 Trail 노티파이 제거만.
+
+        Returns:
+            결과 문구.
+        """
+        return fx_fix.set_trail_notify(montage_path, fx_key or "", start_sec or 0.0, duration_sec or 0.0, bool(remove))
 
     # ── 테스트 플레이어(서버 없는 PIE) ────────────────────
     @toolset_registry.tool_call

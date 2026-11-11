@@ -8,7 +8,7 @@
 - **트랙 B — 콘텐츠/클라이언트** (그 아래, 기존 Test 병합 작업): 남은 것은 영웅·무기 테이블과 Paragon 에셋 최종 Move
 
 현재 위치: **P. 성능 개선 (P0 유령 플레이어 수정 → P1 송신 묶기 차례, 2026-11-06 기준선·동시성 감사 완료). 2026-11-06 결정: 트랙 B를 MC4.2 무기 공격까지 먼저 진행한 뒤 트랙 A 재개 (`DECISIONS.md`)**
-`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블·MC3.1b 스탯 재설계·MC3.2 장착 패킷·MC3.3 장비 저장·MC4.1 장비 컴포넌트·MC4.1b 원격 이동 튐 완료(2026-11-07), MC4.2a 구조·맨손(2026-11-08)·MC4.2b Mixamo 시범 리타깃·MC4.2c 한손검 + 공용 피격(2026-11-09) 완료, MC4.2d-1 스킬 조준 동기화 완료(2026-11-09), MC4.2d-2 활 애니메이션·MC4.2e 장갑·어깨·MC4.2f 방패 구현 완료(2026-11-10, 확인은 중간 테스트), 다음 **MC4.2 중간 테스트**(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
+`content/dev` 브랜치: **트랙 B Phase MC(모듈러 캐릭터 전환) 진행 중 — MC1부터 재작업(2026-11-04), MC2.3 판금 세트 완료(2026-11-06), MC2.4 아이콘 완료(2026-11-07), MC3.1 데이터 테이블·MC3.1b 스탯 재설계·MC3.2 장착 패킷·MC3.3 장비 저장·MC4.1 장비 컴포넌트·MC4.1b 원격 이동 튐 완료(2026-11-07), MC4.2a 구조·맨손(2026-11-08)·MC4.2b Mixamo 시범 리타깃·MC4.2c 한손검 + 공용 피격(2026-11-09) 완료, MC4.2d-1 스킬 조준 동기화 완료(2026-11-09), MC4.2d-2 활 애니메이션·MC4.2e 장갑·어깨·MC4.2f 방패 구현 완료(2026-11-10, 확인은 중간 테스트), FX 라이브러리(MC4.5) 1~5단계 완료(2026-11-12 — 채택 51개 손질, PIE 확인·`Fx` 연결은 남음), 다음 **MC4.2 중간 테스트**(U8 Mutable은 보류 — `DECISIONS.md` 2026-11-05). 2026-11-05 UE 5.8 업그레이드와 함께 `main`·`Jeonghoon`·`content/dev`를 한 지점(U7)으로 맞춤** (트랙 A는 `Jeonghoon`에서 P1)
 
 **실행 순서 (2026-10-30 재계획, `DECISIONS.md`):** 완료: A0, A1.4, A2.1~A2.2g, M0.5, C-1~C-6, U1, A2.6, S1, A1.1, A1.2 , A1.3(AOI 재설계·병목 탐색) → **② 서버 기반** (재개 시 기준선 재측정) P0 유령 플레이어 → P1a 송신 지표 → P1b 송신 묶기 → P2 이동 패킷 묶기 → P3 거리별 전송 빈도 → P4 몬스터 깨우기 범위 → **③ 성장·저장** A2.3 경험치/레벨/골드 → A2.4 사망/부활 → A2.5 DB 저장 → **④** A3 아이템 → A4 거래/경매장 → A5 본 벤치마크 → A6 UI → A7 산출물. 큰 항목(C-5, C-6, S1, A3 이후)은 차례가 되면 코드를 읽고 하위 단계로 따로 계획합니다.
 
@@ -222,6 +222,7 @@
   - [ ] MC4.2f 방패(선택 장비, 2026-11-09 추가 — `DECISIONS.md`): `OFFHAND` 슬롯(EquipPart 7, `.proto` → `GanPackets.bat`, `equip_items` 7칸, 서버 한손검 전용 검증·무기 변경 시 자동 해제·방송, `UEquipmentComponent`), ItemTable 방패 행(스탯 0), VARCO 천·판금 방패 2개(포인트 사전 승인) + 아이콘, `ABP_Layer_Sword` 방패 착용 시 왼팔 원본 전환, `DESIGN_CHARACTER_EQUIPMENT.md` 슬롯 표 갱신. 완료: 방패 착용·미착용 검 동작, 활로 바꿀 때 방패 해제 PIE 확인 (2026-11-10 구현 완료, **사용자 확인은 중간 테스트** — 볼 것: 대기·공격·스킬1 때 방패 위치·각도(손등 방향 앞면, 손바닥에서 4cm), 방패 착용 시 왼팔 원본·미착용 시 맨손 덮기, 활·맨손으로 바꿀 때 방패 사라짐(서버가 해제 먼저 방송), 판금 방패 색이 어두운지. 원시 소켓 22/22·DB 불일치·로더 7종·장비 봇·hunt 부하, 7101 천·7301 판금, VARCO 600포인트, TestLevel PIE 표시 — `DECISIONS.md`·`TESTING.md`)
 - [ ] MC4.3 비전투 시 무기 등에 메기 (활은 MC4.2d에서 먼저 적용 — 검에 같은 장치 확장)
 - [ ] MC4.4 개발용 장비창 `WBP_Equipment`, 스킬 슬롯 배열 HUD
+- [ ] MC4.5 FX 라이브러리(`Docs/FX_CATALOG.md`): 1~5단계 완료(2026-11-12, Paragon 파티클 193개 → 채택 51개 손질, 도구 `UFxEditLibrary`·`jm_kit.fx_fix`). 남은 것: 중간 테스트(PIE)에서 사망·부활·화상·냉기 시전의 본 이미터와 한손검 공격 궤적(`AM_OneHandSword_Attack` Trail 0~1.5초) 확인 후 구간·폭 조정, 스킬별 `SkillTable.csv` `Fx` 연결(기본 공격 2001/3001 타격·투사체, 버프·텔레그래프는 기능 생길 때), `Paragon*` 삭제 전 FX 의존(머티리얼·메시·텍스처·벡터필드) `Content/FX`로 Move('Paragon 에셋 최종 Move' 2)
 
 **MC5 검증·병합**
 - [ ] MC5.1 오류·부하 테스트, 클라이언트 성능 측정, SceneCapture 시트 승인(`TESTING.md`), `Jeonghoon` 병합(사용자 승인). 클라이언트 성능은 20명(남녀 각 10) 측정 → 기준 초과 시 `FSkeletalMeshMerge` 시험(`DECISIONS.md` 2026-11-05)
@@ -258,5 +259,5 @@
 ## Paragon 에셋 최종 Move (캐릭터 작업 종료 시, 2026-10-17·10-19 방침)
 재다운로드한 Paragon 전체 팩은 커밋하지 않고(`.gitignore`), 실제 쓰는 에셋과 의존 에셋만 `Content/Character/<영웅>/`(Greystone, Sparrow, Rampage)로 **Move**해 커밋합니다. 고칠 에셋(몽타주·AnimBP·피격·사망)은 이미 Duplicate 완료, 무거운 에셋(메시·스켈레톤·머티리얼·텍스처·시퀀스)이 남아 있습니다. 한 단계씩 사용자에게 묻고 진행합니다.
 1. 영웅 폴더와 `Characters/Global`을 Move → Fix Up Redirectors → `BP_Npc` 확인 → Save All → `Paragon*` 삭제 → PIE 확인 (Reference Viewer로 의존 확인)
-2. 활/화살 `SM_Sparrow_Arrow`, 검 `SM_Greystone_Blade_01`을 쓰기로 하면 Move 대상에 포함
+2. 검 `SM_Greystone_Blade_01`을 쓰기로 하면 Move 대상에 포함. 화살은 2026-11-12 `/Game/Equipment/Common/SM_Arrow`로 복제 완료(Move 불필요, `BP_Arrow`는 참조 0 → 삭제). **`Content/FX` 51개가 `Paragon{Sparrow,Greystone,Rampage}/FX`의 머티리얼·메시·텍스처·벡터필드에 의존**(예: `P_AoE_ArrowRain` 25개)하므로 `Paragon*`을 지우기 전에 `refs_find`(루트 `/Game/FX`, 금지 접두사 Paragon)로 사슬을 뽑아 `Content/FX/Dep/` 등으로 Move → Fix Up Redirectors → 참조 0 확인
 3. 영웅 하나가 끝날 때마다 `Content/Character/**`와 소스·문서만 체크포인트 커밋. 원본 `Paragon*` 폴더의 재다운로드 변경분은 커밋하지 않음(복원 또는 제외 방식은 그때 결정)

@@ -12,7 +12,7 @@
 | `Content/ParagonProps` | Paragon: Props | (Fab 링크 기입) | 환경 소품(미사용 확인 필요) | 위와 동일 |
 | `Content/KiteDemo` | Kite Demo | (Fab 링크 기입) | 데모 에셋(미사용 확인 필요) | 위와 동일 |
 | `Content/LevelPrototyping`, `Content/StarterContent` | UE 템플릿 기본 에셋 | - | 프로토타이핑용 | 새 프로젝트 템플릿에서 가져오기 |
-| `Content/CoreC` | Stylized Handpainted Modular Character Starter Kit: Male & Female + Outfit (CoreCharacters, 무료) | https://fab.com/s/485d4e7206ec | **플레이어 베이스 바디(남/여)**, 2026-11-04 MC2.1b | Fab 내 라이브러리 → Add to Project → `JM`. 몸 부위는 키트 메시를 그대로 사용(`jm_kit/kit_profiles.json`) |
+| `Content/CoreC` | Stylized Handpainted Modular Character Starter Kit: Male & Female + Outfit (CoreCharacters, 무료) | https://fab.com/s/485d4e7206ec | **플레이어 베이스 바디(남/여)**, 2026-11-04 MC2.1b | Fab 내 라이브러리 → Add to Project → `JM`. 몸 부위는 키트 메시를 그대로 사용(`jm_kit/kit_profiles.json`). **재설치 뒤 소켓 추가 필요**(2026-11-12 FX 궤적용, 폴더가 git 제외): `SKM_CoreC_M_Base_Body_Combined`·`SKM_CoreC_F_Base_Body_Combined`에 `hand_r` 자식 소켓 `FX_Weapon_Bottom`·`FX_Weapon_Top`(회전 0, 배율 1) — M 위치 (-5.264, 6.422, 11.429)·(-8.211, 44.988, 74.633), F (-5.657, 12.754, 2.98)·(-8.466, 85.167, 18.446). 값은 MCP `fx_weapon_socket_points`(검 부착값의 날 22%·칼끝), 추가는 `SkeletalMeshTools.add_socket` → `set_socket_transform` → 저장 |
 | (Test) `Content/Polyphoria` | (에셋 이름 기입) | (Fab 링크 기입) | 모듈러 검토용, 병합 여부 미정 | 위와 동일 |
 | (Test) `Content/Pirate`, `Adventures_woman` | (에셋 이름 기입) | (Fab 링크 기입) | 모듈러 캐릭터 검토용, 캐릭터 베이스 결정 후 폐기 여부 확정 | 위와 동일 |
 
