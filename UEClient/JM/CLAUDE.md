@@ -48,7 +48,17 @@
 에디터가 켜지면 `http://127.0.0.1:8000/mcp`가 자동으로 시작되고(`Config/DefaultEditorPerProjectUserSettings.ini`), 저장소 루트 `.mcp.json`의 `unreal` 서버로 연결됩니다(Claude Code는 에디터가 켜진 뒤 시작하거나 `/mcp`로 재연결). 도구는 `list_toolsets` → `describe_toolset` → `call_tool` 순서로 찾아 부릅니다.
 - 공식 툴셋: Asset·Actor·Scene(`load_level` — 현재 레벨이 저장돼 있어야 함)·Blueprint(`write_graph_dsl`로 그래프 편집)·DataTable(행 읽기·쓰기)·Material·SkeletalMesh·UMG(위젯 트리)·EditorApp(`StartPIE`/`StopPIE` 실제 PIE, `CaptureViewport`·`CaptureEditorImage` 스크린샷, `CaptureViewport`는 `captureTransform`·`annotations`를 값으로 줘야 함)·Logs·AutomationTest.
 - 프로젝트 툴셋 `jm_mcp`(`Content/Python/jm_mcp/toolset.py`, `Content/Python/init_unreal.py`에서 등록): `KitTools`(jm_kit 함수 — 뼈대 검사, 테스트 레벨 조립·촬영, 의상 맞춤, 몸 마스크, FX 시트·손질), `DataTableReimportTools.reimport_csv`(CSV 재임포트).
+- 공식 도구로 안 되는 작업의 순서: ① jm_kit 함수 + `jm_mcp` 툴셋 추가(에디터 재시작) ② 그래도 안 되면 `JMEditorTools`에 임시 커맨드렛 → `UnrealEditor-Cmd.exe <uproject> -run=<Name> -unattended -nopause`(에디터를 닫고, 필요한 모듈은 `Build.cs`에 임시 추가, 끝나면 커맨드렛·`Build.cs`를 되돌리고 다시 빌드). 어느 경우든 먼저 덤프로 현재 상태를 확인하고(사용자가 일부를 이미 해 뒀을 수 있음) 수정 전에 에셋을 백업합니다.
 - 서버에 인증이 없으므로 **임의 Python 실행 도구는 두지 않습니다**. 새 자동화가 필요하면 jm_kit 등에 함수를 만들고 `jm_mcp` 툴셋에 감싸 추가합니다. 툴셋 인자는 `X | None = None` 형식(`Optional[X]`는 등록 실패). 툴셋을 고친 뒤에는 에디터를 다시 시작해야 반영됩니다(`KitTools.reload_kit`는 jm_kit만 다시 불러옴).
+
+## 알려진 함정 (Gotcha)
+
+- **소스 인코딩**: 한글 주석이 있는 C++ 파일은 UTF-8 **BOM을 유지**합니다(BOM 없는 UTF-8이면 MSVC가 다음 줄을 삼킬 수 있음, `JMEditorTools/*.cpp`는 예외로 BOM 없이도 컴파일됨). 일부 파일(`JMUIManager.*`, `JMPlayerController.cpp`, `NetworkManager.cpp` 등)은 **CP949**라 Edit 도구가 거부하므로 바이트 단위로 고칩니다. Bash 히어독으로 한글을 넘기면 CP949로 깨지므로, 한글이 든 스크립트는 파일로 만든 뒤 `python -I -X utf8`로 실행합니다.
+- **빌드**: 에디터가 켜져 있으면 Live Coding 때문에 명령줄 빌드가 막힙니다 — 순서는 `ue-build` 스킬(`.claude/skills/ue-build`).
+- **위젯 블루프린트 C++ 조작**(커맨드렛, UE 5.6에서 확인): 새 위젯은 변수 여부와 관계없이 **모두** `WidgetBP->OnVariableAdded(Name)`로 GUID를 등록해야 컴파일 ensure가 나지 않습니다. 삭제는 `WidgetTree->RemoveWidget` → `Rename(nullptr, GetTransientPackage())` → `OnVariableRemoved` 순서. WBP 생성은 `FKismetEditorUtilities::CreateBlueprint(Parent, Package, Name, BPTYPE_Normal, UWidgetBlueprint::StaticClass(), UWidgetBlueprintGeneratedClass::StaticClass())`, 텍스처 가져오기는 `UAssetImportTask` + AssetTools(`Build.cs`에 `AssetTools`, 위젯이면 `UMG`·`UMGEditor`·`Slate`·`SlateCore` 임시 추가).
+- **GameMode 상속 확인**: 맵이 쓰는 GameMode가 C++ 클래스를 실제로 상속하는지 먼저 봅니다(2026-10-28 `BP_GameMode`의 부모가 엔진 `GameModeBase`라 HUD 등록 코드가 실행되지 않았음).
+- **MCP 연결**: 세션 시작 때 `unreal` MCP 연결이 실패해도 에디터 서버(127.0.0.1:8000)는 살아 있을 수 있습니다 → JSON-RPC(`initialize` → `tools/call` `call_tool`)로 직접 호출할 수 있습니다.
+- **사용자 안내**: 에디터 수동 작업을 안내할 때는 UE 5.8 UI 이름을 기준으로 합니다. 사용자가 "그 항목이 없다"고 하면 5.8에서의 표시 위치를 설명합니다.
 
 ## 에디터 Python 도구 (`Content/Python/`)
 
