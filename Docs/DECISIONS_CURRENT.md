@@ -21,6 +21,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-144** (2026-11-12) 원본 `DECISIONS.md`는 보존하고 평소엔 이 요약을 읽음. 진행 문서는 ROADMAP 하나, 상태 표기 `[예정]`·`[진행]`·`[확인 대기]`·`[완료]`·`[보류]`·`[폐기]`. 분류 변경은 사용자 승인 후, 함정·상시 판단은 `CLAUDE.md` — 작업 전 읽는 분량 축소
 - **D-144** (2026-11-12) `.proto` 재생성은 `GanPackets.bat` + git pre-commit + Stop 훅으로 강제, 판독 전용 `reader` 에이전트, 절차형 메모리는 프로젝트 스킬로 — PostToolUse는 중간 상태에서 실패
 - **D-145** (2026-11-15) 번복된 안은 끝 절 "채택하지 않은 안"에 이유와 함께 한 줄씩(원본에 이유가 없으면 `(추정)` 또는 "기록 없음"), 요약 줄 끝에 이미 이유가 있는 번복은 따로 적지 않음
+- **D-146** (2026-11-15) 검증 게이트 = 서버 기능 항목은 항목별 완료 기준에 더해 오류 + 부하 테스트(200 → 1,000 → 5,000) 필수(면제 없음, D-019). 리뷰 모델은 버전 고정 없이 "최상위 모델 high", M3 Paragon Move 범위는 `ParagonRampage`까지, MC5.1 클라 성능 기준 수치는 측정 전에 정함
 - **D-013** (2026-10-19) 외부 팩 에셋 중 고칠 것(몽타주·AnimBP 등)은 Duplicate해 새 이름으로 관리, Move 뒤 Fix Up Redirectors 필수 (일부: 팩 일괄 Move는 D-142로 대체)
 - **D-023** (2026-10-21) 외부 팩(`Paragon*`·`KiteDemo`·`StarterContent`)은 git 제외, 그 밖은 git 추적. 클래스 BP `_Core/Blueprints/`, UI `_Core/UI/`, DataTable `Data/`, 캐릭터·NPC BP는 `Character/` 하위. `ParagonSample` 맵은 팩을 참조해 자체 맵 전까지 유지 (일부: 영웅 폴더는 낡음)
 - **D-023** (2026-10-21) `Maps/TestMap`은 삭제됨 — 서버 없는 테스트 레벨은 `/Game/Maps/TestLevel` (원본의 "TestMap 유지"는 낡음)
