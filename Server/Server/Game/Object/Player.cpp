@@ -6,7 +6,8 @@ Player::Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type)
 	: Character(Protocol::ObjectType::OBJECT_TYPE_PLAYER), _ownerSession(ownerSession)
 {
 	_objectInfo.set_player_type(type);
-	// 기본 스탯은 체형 공용, 레벨별(PlayerStatTable). 레벨 저장은 A2.3·A2.5 — 그 전까지 시작 레벨. 로더가 시작 레벨 행을 보장한다.
+	// 기본 스탯은 체형 공용, 레벨별(PlayerStatTable). 레벨 저장·성장은 A2.5·A2.3b — 그 전까지 시작 레벨. 로더가 시작 레벨 행을 보장한다.
+	_objectInfo.set_level(PLAYER_START_LEVEL);
 	if (const StatData* statData = DataManager::GetPlayerStatData(PLAYER_START_LEVEL)) {
 		_statInfo.InitFromData(_objectInfo.mutable_stat(), *statData);
 	}

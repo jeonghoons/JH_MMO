@@ -604,6 +604,7 @@ class ObjectInfo final :
 
   enum : int {
     kEquipItemsFieldNumber = 8,
+    kNameFieldNumber = 10,
     kPositionFieldNumber = 4,
     kStatFieldNumber = 5,
     kIdFieldNumber = 1,
@@ -611,6 +612,7 @@ class ObjectInfo final :
     kPlayerTypeFieldNumber = 3,
     kTemplateIdFieldNumber = 6,
     kAimSkillIdFieldNumber = 9,
+    kLevelFieldNumber = 11,
   };
   // repeated int32 equip_items = 8;
   int equip_items_size() const;
@@ -633,6 +635,20 @@ class ObjectInfo final :
       equip_items() const;
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
       mutable_equip_items();
+
+  // string name = 10;
+  void clear_name();
+  const std::string& name() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_name(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_name();
+  PROTOBUF_NODISCARD std::string* release_name();
+  void set_allocated_name(std::string* name);
+  private:
+  const std::string& _internal_name() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_name(const std::string& value);
+  std::string* _internal_mutable_name();
+  public:
 
   // .Protocol.PositionInfo position = 4;
   bool has_position() const;
@@ -715,6 +731,15 @@ class ObjectInfo final :
   void _internal_set_aim_skill_id(int32_t value);
   public:
 
+  // int32 level = 11;
+  void clear_level();
+  int32_t level() const;
+  void set_level(int32_t value);
+  private:
+  int32_t _internal_level() const;
+  void _internal_set_level(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.ObjectInfo)
  private:
   class _Internal;
@@ -725,6 +750,7 @@ class ObjectInfo final :
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > equip_items_;
     mutable std::atomic<int> _equip_items_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr name_;
     ::Protocol::PositionInfo* position_;
     ::Protocol::StatInfo* stat_;
     int32_t id_;
@@ -732,6 +758,7 @@ class ObjectInfo final :
     int player_type_;
     int32_t template_id_;
     int32_t aim_skill_id_;
+    int32_t level_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1341,6 +1368,76 @@ inline void ObjectInfo::_internal_set_aim_skill_id(int32_t value) {
 inline void ObjectInfo::set_aim_skill_id(int32_t value) {
   _internal_set_aim_skill_id(value);
   // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.aim_skill_id)
+}
+
+// string name = 10;
+inline void ObjectInfo::clear_name() {
+  _impl_.name_.ClearToEmpty();
+}
+inline const std::string& ObjectInfo::name() const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.name)
+  return _internal_name();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ObjectInfo::set_name(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.name_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.name)
+}
+inline std::string* ObjectInfo::mutable_name() {
+  std::string* _s = _internal_mutable_name();
+  // @@protoc_insertion_point(field_mutable:Protocol.ObjectInfo.name)
+  return _s;
+}
+inline const std::string& ObjectInfo::_internal_name() const {
+  return _impl_.name_.Get();
+}
+inline void ObjectInfo::_internal_set_name(const std::string& value) {
+  
+  _impl_.name_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ObjectInfo::_internal_mutable_name() {
+  
+  return _impl_.name_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ObjectInfo::release_name() {
+  // @@protoc_insertion_point(field_release:Protocol.ObjectInfo.name)
+  return _impl_.name_.Release();
+}
+inline void ObjectInfo::set_allocated_name(std::string* name) {
+  if (name != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.name_.SetAllocated(name, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.name_.IsDefault()) {
+    _impl_.name_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:Protocol.ObjectInfo.name)
+}
+
+// int32 level = 11;
+inline void ObjectInfo::clear_level() {
+  _impl_.level_ = 0;
+}
+inline int32_t ObjectInfo::_internal_level() const {
+  return _impl_.level_;
+}
+inline int32_t ObjectInfo::level() const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.level)
+  return _internal_level();
+}
+inline void ObjectInfo::_internal_set_level(int32_t value) {
+  
+  _impl_.level_ = value;
+}
+inline void ObjectInfo::set_level(int32_t value) {
+  _internal_set_level(value);
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.level)
 }
 
 #ifdef __GNUC__

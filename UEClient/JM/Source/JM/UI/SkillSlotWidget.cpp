@@ -3,6 +3,7 @@
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 #include "Data/SkillTableRow.h"
+#include "Data/ItemTableRow.h"
 
 void USkillSlotWidget::NativeConstruct()
 {
@@ -14,9 +15,19 @@ void USkillSlotWidget::NativeConstruct()
 
 void USkillSlotWidget::SetSkill(const FSkillTableRow* Skill)
 {
+	ShowIcon(Skill ? Skill->Icon : TSoftObjectPtr<UTexture2D>());
+}
+
+void USkillSlotWidget::SetItem(const FItemTableRow* Item)
+{
+	ShowIcon(Item ? Item->Icon : TSoftObjectPtr<UTexture2D>());
+}
+
+void USkillSlotWidget::ShowIcon(const TSoftObjectPtr<UTexture2D>& IconRef)
+{
 	if (ImgIcon == nullptr) return;
 
-	UTexture2D* Icon = (Skill && !Skill->Icon.IsNull()) ? Skill->Icon.LoadSynchronous() : nullptr;
+	UTexture2D* Icon = IconRef.IsNull() ? nullptr : IconRef.LoadSynchronous();
 	if (Icon)
 	{
 		ImgIcon->SetBrushFromTexture(Icon);
@@ -24,9 +35,9 @@ void USkillSlotWidget::SetSkill(const FSkillTableRow* Skill)
 		return;
 	}
 
-	if (Skill && !Skill->Icon.IsNull())
+	if (!IconRef.IsNull())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SkillSlot: Icon load failed (%s)"), *Skill->Icon.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("SkillSlot: Icon load failed (%s)"), *IconRef.ToString());
 	}
 	ImgIcon->SetVisibility(ESlateVisibility::Hidden);
 }

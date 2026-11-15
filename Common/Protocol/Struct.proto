@@ -33,6 +33,8 @@ message ObjectInfo {
 	reserved 7;   // appearance_items (모듈러 외형 잔재, 2026-10-28 삭제)
 	repeated int32 equip_items = 8;
 	int32 aim_skill_id = 9;   // 스킬 조준 중인 스킬 ID(0 = 조준 안 함). 클라는 스폰(SC_ADD_OBJECT) 때만 읽는다
+	string name = 10;         // 플레이어 캐릭터 이름(UTF-8). 몬스터는 빈 문자열
+	int32 level = 11;         // 플레이어 레벨(경험치 보상 전까지 시작 레벨 고정, A2.3b). 몬스터는 0
 }
 
 

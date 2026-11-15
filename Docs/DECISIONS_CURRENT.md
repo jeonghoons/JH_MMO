@@ -150,6 +150,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-039** (2026-10-28) 인게임 `BP_GameMode`의 부모 = `AIngameGameModeBase`, `HUDWidgetClass = WBP_CombatHud`
 - **D-050** (2026-10-30) 시스템 메시지 = 공용 모달 `WBP_SystemMessage`(`UJMUIManager::ShowSystemMessage`, Notice/Waiting, FIFO), 입장 전 에셋 미리 로드
 - **D-138** (2026-11-10) 스킬 아이콘 `Content/UI/Icons/Skill/T_Icon_Skill_<WeaponType>_<Slot>`, 원본 `SourceArt/Icons/`, VARCO 제작, Greystone·Sparrow 자산은 이펙트만 사용
+- **D-148** (2026-11-16) HUD = HP 바·수치 + 내 이름·레벨(`ObjectInfo.name`·`level`) + EXP 바(보상 전까지 0) + 액티브 칸 5개(빈 칸/스킬/아이템 구조, 지금은 칸 N = 무기 스킬 슬롯 N, 숫자키 1~5, 아이템 넣기·서버 저장은 소비 아이템이 생길 때). 골드는 인벤토리에서. 경험치·레벨·골드 보상(A2.3b)은 마일스톤 2 뒤
 
 ## 도구·엔진·외부 서비스
 

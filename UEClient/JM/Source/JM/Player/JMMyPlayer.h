@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Player/JMPlayer.h"
+#include "Player/QuickSlot.h"
 #include "JMMyPlayer.generated.h"
 
 struct FInputActionValue;
@@ -25,7 +26,8 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void OnAttackInput();
-	void OnSkill1Input();
+	// 숫자키 N(Index = N-1): 칸 내용이 스킬이면 조준 진입(조준 중에 같은 칸이면 취소), 빈 칸은 무시
+	void OnQuickSlotInput(int32 Index);
 	void OnCancelAimInput();
 
 public:
@@ -48,6 +50,11 @@ public:
 	void NoteSkillCooldown(int32 SkillId, int32 CooldownMs);
 	virtual void OnDead() override;
 
+	// 액티브 칸(D-148): 칸 수 = QuickSlotActions 수. 지금은 규칙 배치 — 칸 N = 현재 무기의 SkillTable 슬롯 N(없으면 빈 칸).
+	// 무기가 바뀌면 다시 부른다(UJMObjectManager가 스폰·장비 변경 때 부르고 HUD에 넘긴다).
+	void RebuildQuickSlots();
+	const TArray<FQuickSlot>& GetQuickSlots() const { return QuickSlots; }
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* DefaultMappingContext;
@@ -59,11 +66,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* MouseLookAction;
 
-	// 전투 입력 (A2.2c): 좌클릭 = 일반공격/조준 스킬 확정, 1번 키 = 조준 진입, 우클릭 = 조준 취소
+	// 전투 입력 (A2.2c): 좌클릭 = 일반공격/조준 스킬 확정, 숫자키 = 액티브 칸(스킬이면 조준 진입), 우클릭 = 조준 취소
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* AttackAction;
+	// 액티브 칸 입력(D-148). 인덱스 0 = 숫자키 1(IA_Skill1), 1~4 = IA_QuickSlot2~5. 칸 수도 이 배열 길이로 정한다.
 	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* Skill1Action;
+	TArray<TObjectPtr<UInputAction>> QuickSlotActions;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* CancelAimAction;
 
@@ -128,4 +136,6 @@ private:
 	float AimMinInterval = 0.2f;       // MovementTable.ServerAimMinIntervalMs (PossessedBy)
 	TMap<int32, double> SkillCooldownEnd;   // 스킬 ID → 쿨타임 끝 시각(FPlatformTime::Seconds)
 	uint64 LastAttackInputFrame = 0;
+
+	TArray<FQuickSlot> QuickSlots;
 };

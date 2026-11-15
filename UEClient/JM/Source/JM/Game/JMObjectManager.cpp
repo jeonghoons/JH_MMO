@@ -81,9 +81,11 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 
 		if (SpawnedActor == MyPlayer)
 		{
+			MyPlayer->RebuildQuickSlots();
 			if (UCombatHudWidget* Hud = GetCombatHud())
 			{
-				Hud->SetWeaponType(MyPlayer->GetWeaponType());
+				Hud->SetIdentity(UTF8_TO_TCHAR(ObjInfo.name().c_str()), ObjInfo.level());
+				Hud->SetQuickSlots(MyPlayer->GetQuickSlots(), MyPlayer->GetWeaponType());
 				Hud->SetHp(ObjInfo.stat().hp(), ObjInfo.stat().max_hp());
 			}
 
@@ -257,9 +259,10 @@ void UJMObjectManager::HandleChangeEquip(int32 ObjectId, Protocol::EquipPart Par
 
 	if (*FoundActor == MyPlayer)
 	{
+		MyPlayer->RebuildQuickSlots();   // 무기가 바뀌면 칸 N의 스킬도 바뀐다(규칙 배치, D-148)
 		if (UCombatHudWidget* Hud = GetCombatHud())
 		{
-			Hud->SetWeaponType(MyPlayer->GetWeaponType());
+			Hud->SetQuickSlots(MyPlayer->GetQuickSlots(), MyPlayer->GetWeaponType());
 			Hud->SetHp(Stat.hp(), Stat.max_hp());
 		}
 	}

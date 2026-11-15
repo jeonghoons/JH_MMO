@@ -120,7 +120,10 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AJMMyPlayer::Look);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AJMMyPlayer::Look);
 		if (AttackAction) EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AJMMyPlayer::OnAttackInput);
-		if (Skill1Action) EnhancedInputComponent->BindAction(Skill1Action, ETriggerEvent::Started, this, &AJMMyPlayer::OnSkill1Input);
+		for (int32 Index = 0; Index < QuickSlotActions.Num(); ++Index)
+		{
+			if (QuickSlotActions[Index]) EnhancedInputComponent->BindAction(QuickSlotActions[Index].Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnQuickSlotInput, Index);
+		}
 		if (CancelAimAction) EnhancedInputComponent->BindAction(CancelAimAction, ETriggerEvent::Started, this, &AJMMyPlayer::OnCancelAimInput);
 		
 	}
@@ -394,15 +397,43 @@ void AJMMyPlayer::OnAttackInput()
 	CastSkillSlot(bAiming ? AimingSlot : 0);
 }
 
-void AJMMyPlayer::OnSkill1Input()
+void AJMMyPlayer::OnQuickSlotInput(int32 Index)
 {
-	// 1번 키: 조준 진입. 조준 중에 다시 누르면 취소한다.
-	if (bAiming && AimingSlot == 1)
+	if (!QuickSlots.IsValidIndex(Index)) return;
+	const FQuickSlot& QuickSlot = QuickSlots[Index];
+
+	switch (QuickSlot.Kind)
 	{
-		EndLocalAim(true);
-		return;
+	case EQuickSlotKind::Skill:
+		// 스킬 칸: 조준 진입. 조준 중에 같은 스킬 칸을 다시 누르면 취소한다.
+		if (bAiming && AimingSlot == QuickSlot.Value)
+		{
+			EndLocalAim(true);
+			return;
+		}
+		BeginLocalAim(QuickSlot.Value);
+		break;
+	case EQuickSlotKind::Item:
+		// 아이템 사용 패킷은 소비 아이템이 생길 때(A3.1 설계, D-148)
+		UE_LOG(LogTemp, Verbose, TEXT("QuickSlot %d: item %d use is not implemented yet"), Index + 1, QuickSlot.Value);
+		break;
+	default:
+		break;
 	}
-	BeginLocalAim(1);
+}
+
+void AJMMyPlayer::RebuildQuickSlots()
+{
+	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const EWeaponType WeaponType = GetWeaponType();
+
+	QuickSlots.Reset(QuickSlotActions.Num());
+	for (int32 Index = 0; Index < QuickSlotActions.Num(); ++Index)
+	{
+		const int32 SkillSlot = Index + 1;   // 칸 N = SkillTable 슬롯 N(0은 좌클릭 기본 공격)
+		const bool bHasSkill = DataManager && DataManager->FindSkillBySlot(WeaponType, SkillSlot) != nullptr;
+		QuickSlots.Add(bHasSkill ? FQuickSlot::MakeSkill(SkillSlot) : FQuickSlot());
+	}
 }
 
 void AJMMyPlayer::OnCancelAimInput()
