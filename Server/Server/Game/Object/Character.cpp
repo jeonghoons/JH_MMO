@@ -76,7 +76,7 @@ void Character::OnDead(shared_ptr<Character> attacker)
 {
 	auto room = GetCurrentRoom();
 	if (room) {
-		shared_ptr<SendBuffer> sendBuffer = PacketSerializer::MAKE_SC_DEAD(GetId());
+		shared_ptr<SendBuffer> sendBuffer = PacketSerializer::MAKE_SC_DEAD(GetId(), GetReviveDelayMs());
 		room->BroadcastAOI(static_pointer_cast<Character>(shared_from_this()), sendBuffer, true);
 		// room->PushJob(&Room::RemoveObject, GetId());
 	}

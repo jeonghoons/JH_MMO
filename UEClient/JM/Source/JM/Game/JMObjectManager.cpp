@@ -15,6 +15,7 @@
 #include "UI/JMUIManager.h"
 #include "UI/WidgetNames.h"
 #include "UI/CombatHudWidget.h"
+#include "UI/ReviveWidget.h"
 
 void UJMObjectManager::ClearObjects()
 {
@@ -78,6 +79,10 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	{
 		SpawnedActor->SetPlayerData(ObjInfo);
 		Objects.Add(ObjectId, SpawnedActor);
+
+		// 이미 죽어 있는 플레이어가 시야에 들어왔다(사망 상태 = hp 0, D-149). 바로 사망 자세로 둔다.
+		if (ObjInfo.object_type() == Protocol::OBJECT_TYPE_PLAYER && ObjInfo.stat().hp() <= 0 && SpawnedActor != MyPlayer)
+			SpawnedActor->EnterDeadPose();
 
 		if (SpawnedActor == MyPlayer)
 		{
@@ -282,7 +287,7 @@ void UJMObjectManager::HandleSkillAim(int32 ObjectId, int32 SkillId, bool bActiv
 	(*FoundActor)->SetSkillAiming(bActive ? SkillId : 0);
 }
 
-void UJMObjectManager::HandleDead(int32 CharacterId)
+void UJMObjectManager::HandleDead(int32 CharacterId, int32 ReviveDelayMs)
 {
 	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(CharacterId))
 	{
@@ -293,6 +298,33 @@ void UJMObjectManager::HandleDead(int32 CharacterId)
 		if (*FoundActor == MyPlayer)
 		{
 			if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetHp(0, MyPlayer->GetObjectInfo().stat().max_hp());
+
+			// 부활 창: 서버가 알려 준 대기 시간이 지나면 버튼이 켜진다.
+			if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+			{
+				if (UReviveWidget* Revive = Cast<UReviveWidget>(UIManager->GetWidget(WidgetNames::Revive)))
+				{
+					Revive->StartCountdown(ReviveDelayMs);
+					UIManager->SetWidgetVisible(WidgetNames::Revive, true);
+				}
+			}
 		}
 	}
+}
+
+void UJMObjectManager::HandleRevive(int32 CharacterId, const Protocol::PositionInfo& Pos, int32 Hp, uint32 CorrectionSeq)
+{
+	TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(CharacterId);
+	if (FoundActor == nullptr || *FoundActor == nullptr) return;
+
+	if (*FoundActor != MyPlayer)
+	{
+		(*FoundActor)->OnRevive(Pos, Hp);
+		return;
+	}
+
+	MyPlayer->OnMyRevive(Pos, Hp, CorrectionSeq);
+	if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetHp(Hp, MyPlayer->GetObjectInfo().stat().max_hp());
+	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+		UIManager->SetWidgetVisible(WidgetNames::Revive, false);
 }

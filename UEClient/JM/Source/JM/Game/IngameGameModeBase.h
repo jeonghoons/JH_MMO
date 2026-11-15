@@ -17,4 +17,8 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> HUDWidgetClass;
+
+	// Revive window (WBP_Revive, parent UReviveWidget). Shown while my character is dead (A2.4).
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> ReviveWidgetClass;
 };

@@ -16,7 +16,10 @@ public:
 	
 	static shared_ptr<SendBuffer> MAKE_SC_DAMAGE(int attackerId, int targetId, int damage, int remainHp);
 
-	static shared_ptr<SendBuffer> MAKE_SC_DEAD(int objectId);
+	// reviveDelayMs: 플레이어만(이 시간이 지나야 부활 요청을 받는다), 몬스터는 0
+	static shared_ptr<SendBuffer> MAKE_SC_DEAD(int objectId, int reviveDelayMs = 0);
+	// 부활한 플레이어의 현재 위치·HP를 싣는다. correctionSeq는 본인이 이후 CS_MOVE에 실을 순번
+	static shared_ptr<SendBuffer> MAKE_SC_REVIVE(shared_ptr<GameObject> object, uint32_t correctionSeq);
 
 	static shared_ptr<SendBuffer> MAKE_SC_PONG(long long clientTime);
 	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_EQUIP(int objectId, Protocol::EquipPart part, int itemId, const Protocol::StatInfo& stat);

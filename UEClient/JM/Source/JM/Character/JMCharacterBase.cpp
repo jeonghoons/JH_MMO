@@ -227,6 +227,7 @@ void AJMCharacterBase::OnDead()
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
 	if (AnimInst && CurrentDeadMontage)
 	{
+		bDeadPoseApplied = true;
 		const float MontageLength = AnimInst->Montage_Play(CurrentDeadMontage);
 		FOnMontageEnded EndDelegate;
 		EndDelegate.BindUObject(this, &AJMCharacterBase::OnDeathMontageEnded);
@@ -250,6 +251,54 @@ void AJMCharacterBase::OnDead()
 				}), FreezeDelay, false);
 		}
 	}
+}
+
+float AJMCharacterBase::GetDeathFreezePosition() const
+{
+	if (CurrentDeadMontage == nullptr) return 0.f;
+	const float BlendOutTime = CurrentDeadMontage->bEnableAutoBlendOut ? CurrentDeadMontage->GetDefaultBlendOutTime() : 0.f;
+	return FMath::Max(CurrentDeadMontage->GetPlayLength() - BlendOutTime - 0.03f, 0.01f);
+}
+
+void AJMCharacterBase::EnterDeadPose()
+{
+	bIsDead = true;
+	SetSkillAiming(0);
+	if (GetCharacterMovement()) GetCharacterMovement()->StopMovementImmediately();
+
+	UAnimInstance* AnimInst = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+	if (AnimInst == nullptr || CurrentDeadMontage == nullptr || bDeadPoseApplied) return;
+
+	// 쓰러지는 과정을 건너뛰고 멈출 위치로 바로 옮겨 일시정지한다.
+	bDeadPoseApplied = true;
+	AnimInst->Montage_Play(CurrentDeadMontage);
+	AnimInst->Montage_SetPosition(CurrentDeadMontage, GetDeathFreezePosition());
+	AnimInst->Montage_Pause(CurrentDeadMontage);
+}
+
+void AJMCharacterBase::OnRevive(const Protocol::PositionInfo& Pos, int32 Hp)
+{
+	bIsDead = false;
+	bDeadPoseApplied = false;
+	GetWorldTimerManager().ClearTimer(DeathFreezeTimer);
+	ObjectInfo.mutable_stat()->set_hp(Hp);
+
+	// 멈춰 둔 사망 몽타주를 풀고 짧게 섞어 내보낸다(일시정지 상태에서는 블렌드 아웃이 진행되지 않을 수 있어 먼저 재개).
+	UAnimInstance* AnimInst = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+	if (AnimInst && CurrentDeadMontage)
+	{
+		AnimInst->Montage_Resume(CurrentDeadMontage);
+		AnimInst->Montage_Stop(0.2f, CurrentDeadMontage);
+	}
+
+	// 서버가 정한 부활 위치로 순간이동한다(보간하면 죽은 자리에서 미끄러져 온다). 속도는 0에서 시작.
+	Protocol::PositionInfo Target = Pos;
+	Target.set_v_x(0.f); Target.set_v_y(0.f); Target.set_v_z(0.f);
+	DestPosition.CopyFrom(Target);
+	ObjectInfo.mutable_position()->CopyFrom(Target);
+	if (GetWorld()) LastNetUpdateTime = GetWorld()->GetTimeSeconds();
+	SetActorLocation(FVector(Target.x(), Target.y(), Target.z()), false, nullptr, ETeleportType::TeleportPhysics);
+	if (GetCharacterMovement()) GetCharacterMovement()->StopMovementImmediately();
 }
 
 void AJMCharacterBase::OnAttack(const FSkillTableRow* Skill)
@@ -331,6 +380,8 @@ void AJMCharacterBase::SetReactionMontages(UAnimMontage* Hit, UAnimMontage* Dead
 {
 	CurrentHitMontage = Hit;
 	CurrentDeadMontage = Dead;
+	// 죽은 채로 시야에 들어온 캐릭터: 몽타주가 로드된 지금 사망 자세를 잡는다.
+	if (bIsDead && !bDeadPoseApplied) EnterDeadPose();
 }
 
 void AJMCharacterBase::PlayAttackAnim(float PlayRate)

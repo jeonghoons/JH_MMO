@@ -37,5 +37,6 @@ private:
     static void Handle_CS_PING(shared_ptr<GameSession> session, Protocol::CS_PING_PACKET& pkt);
     static void Handle_CS_CHANGE_EQUIP(shared_ptr<GameSession> session, Protocol::CS_CHANGE_EQUIP_PACKET& pkt);
     static void Handle_CS_SKILL_AIM(shared_ptr<GameSession> session, Protocol::CS_SKILL_AIM_PACKET& pkt);
+    static void Handle_CS_REVIVE(shared_ptr<GameSession> session, Protocol::CS_REVIVE_PACKET& pkt);
 };
 

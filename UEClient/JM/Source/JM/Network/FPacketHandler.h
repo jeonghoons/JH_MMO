@@ -52,5 +52,6 @@ private:
     static void Handle_SC_CHANGE_EQUIP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_PACKET& pkt);
     static void Handle_SC_CHANGE_EQUIP_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_RESULT_PACKET& pkt);
     static void Handle_SC_SKILL_AIM(TSharedPtr<NetworkSession>& session, Protocol::SC_SKILL_AIM_PACKET& pkt);
+    static void Handle_SC_REVIVE(TSharedPtr<NetworkSession>& session, Protocol::SC_REVIVE_PACKET& pkt);
 };
 

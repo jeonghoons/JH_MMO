@@ -142,6 +142,16 @@ void AJMMyPlayer::Tick(float DeltaTime)
 		else if (ComputeAim(*AimSkill, Aim)) DrawAimIndicator(*AimSkill, Aim);
 	}
 
+	// 사망 중에는 이동을 보내지 않는다(서버도 버린다, D-149). 부활 때 SC_REVIVE의 위치·순번에서 다시 시작한다.
+	if (bIsDead)
+	{
+		DesiredInput = FVector2D::Zero();
+		LastDesiredInput = DesiredInput;
+		bMoveSendPending = false;
+		bWasMoving = false;
+		return;
+	}
+
 	UNetworkManager* NetManager = UNetworkManager::Get(this);
 	if (NetManager == nullptr) return;
 
@@ -192,6 +202,8 @@ void AJMMyPlayer::Tick(float DeltaTime)
 void AJMMyPlayer::Move(const FInputActionValue& Value)
 {
 	FVector2D MovementVector = Value.Get<FVector2D>();
+
+	if (bIsDead) return;   // 사망 중 이동 입력 차단(D-149)
 
 	if (GetController() != nullptr)
 	{
@@ -394,6 +406,8 @@ void AJMMyPlayer::OnAttackInput()
 	if (LastAttackInputFrame == GFrameCounter) return;
 	LastAttackInputFrame = GFrameCounter;
 
+	if (bIsDead) return;   // 사망 중 공격 입력 차단(D-149, 서버도 거부한다)
+
 	CastSkillSlot(bAiming ? AimingSlot : 0);
 }
 
@@ -509,4 +523,13 @@ void AJMMyPlayer::OnDead()
 {
 	EndLocalAim(true);   // 서버는 사망 때 이미 해제했다(끄기는 무시됨)
 	Super::OnDead();
+}
+
+void AJMMyPlayer::OnMyRevive(const Protocol::PositionInfo& Pos, int32 Hp, uint32 Seq)
+{
+	OnRevive(Pos, Hp);
+	// 서버가 부활 때 보정 순번을 올렸다. 그 순번으로 부활 위치에서 다시 시작한다고 알린다(ApplyServerCorrection과 같은 절차).
+	CorrectionSeq = Seq;
+	SyncTransformToInfo();
+	bMoveSendPending = true;
 }

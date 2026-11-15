@@ -42,6 +42,11 @@ public:
 	virtual void SetPlayerData(const Protocol::ObjectInfo& ObjInfo);
 	virtual void OnDamaged(int32_t Damage, int32_t RemainHP);
 	virtual void OnDead();
+	// 부활(SC_REVIVE, A2.4): 사망 상태·멈춘 사망 몽타주를 풀고 서버가 정한 위치로 순간이동, HP 반영.
+	virtual void OnRevive(const Protocol::PositionInfo& Pos, int32 Hp);
+	// 이미 죽은 캐릭터가 시야에 들어왔을 때(SC_ADD_OBJECT의 hp 0): 쓰러지는 과정 없이 바로 사망 자세로 둔다.
+	// 사망 몽타주가 아직 로드되지 않았으면 SetReactionMontages에서 다시 시도한다.
+	void EnterDeadPose();
 	// Skill이 있고 Montage가 지정돼 있으면 그 몽타주를, 아니면 기본 공격 몽타주를 재생한다. (몬스터 스킬은 SkillTable에 없을 수 있음)
 	virtual void OnAttack(const struct FSkillTableRow* Skill);
 
@@ -85,6 +90,9 @@ protected:
 	
 	// 사망 몽타주의 마지막 포즈를 유지하기 위해, 몽타주가 끝나기 직전에 애니메이션을 멈춘다.
 	FTimerHandle DeathFreezeTimer;
+	// 사망 몽타주에서 멈출 위치(끝 - 자동 블렌드 아웃 - 여유). 몽타주가 없으면 0
+	float GetDeathFreezePosition() const;
+	bool bDeadPoseApplied = false;   // 사망 몽타주를 재생(또는 끝 자세로 고정)했는가
 
 	FTimerHandle FacingLockTimer;
 	bool bSavedOrientToMovement = false;

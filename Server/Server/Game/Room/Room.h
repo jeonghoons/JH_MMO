@@ -71,6 +71,9 @@ public:
 	// 스킬 조준 켜기/끄기(MC4.2d-1, DECISIONS 2026-11-09). 켜기 성공 = AOI 전체(본인 포함) 방송, 거부 = 본인에게만 false + seq,
 	// 끄기 = 조준 중일 때만 해제하고 본인 제외 방송(본인 클라이언트는 이미 껐다).
 	void PlayerSkillAim(shared_ptr<Player> player, int slot, bool active, uint32_t seq);
+	// 부활 요청(A2.4, D-149). 죽어 있고 WorldTable.ReviveDelaySec가 지났을 때만 받는다(그 밖은 조용히 버림).
+	// 입장 때 배치된 자리로 옮기고 HP를 채운 뒤 SC_REVIVE를 AOI 전체(본인 포함)에 보낸다.
+	void PlayerRevive(shared_ptr<Player> player);
 
 	// 슬롯(0 = 기본 공격)의 스킬을 시전한다. 사거리/대상/방향은 서버가 검증·보정하며, 실패하면 아무 일도 일어나지 않는다.
 	void CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY);

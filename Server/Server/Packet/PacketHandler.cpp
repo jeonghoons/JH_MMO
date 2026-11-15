@@ -48,6 +48,10 @@ void PacketHandler::Init()
     GPacketHandler[Protocol::CS_SKILL_AIM] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_SKILL_AIM_PACKET>(&PacketHandler::Handle_CS_SKILL_AIM, session, buffer, len);
         };
+
+    GPacketHandler[Protocol::CS_REVIVE] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_REVIVE_PACKET>(&PacketHandler::Handle_CS_REVIVE, session, buffer, len);
+        };
 }
 
 void PacketHandler::ProcessPacket(shared_ptr<GameSession> session, BYTE* buffer, int len)
@@ -213,6 +217,18 @@ void PacketHandler::Handle_CS_SKILL_AIM(shared_ptr<GameSession> session, Protoco
     if (slot < 0 || slot > 5) return;
 
     room->PushJob(&Room::PlayerSkillAim, player, slot, pkt.active(), pkt.seq());
+}
+
+void PacketHandler::Handle_CS_REVIVE(shared_ptr<GameSession> session, Protocol::CS_REVIVE_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    // 사망 여부·대기 시간 검증과 부활 처리는 Room 잡에서 한다(플레이어 상태는 Room 스레드에서만 바꾼다).
+    room->PushJob(&Room::PlayerRevive, player);
 }
 
 void PacketHandler::Handle_CS_ATTACK(shared_ptr<GameSession> session, Protocol::CS_ATTACK_PACKET& pkt)

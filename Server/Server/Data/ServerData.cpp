@@ -447,7 +447,7 @@ bool DataManager::Init()
 		return false;
 	}
 
-	// WorldTable: Name(=worldId), MapName, CellSizeCm, QuadSplitCount, QuadMinSizeCm, ViewRadiusCm, ViewHysteresisCm
+	// WorldTable: Name(=worldId), MapName, CellSizeCm, QuadSplitCount, QuadMinSizeCm, ViewRadiusCm, ViewHysteresisCm, ReviveDelaySec, ReviveHpPercent
 	CsvFile world;
 	if (!world.Load((dir / "WorldTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
@@ -458,15 +458,17 @@ bool DataManager::Init()
 		if (!row.GetInt("Name", d.id, err) || !row.GetString("MapName", d.mapName, err) ||
 			!row.GetInt("CellSizeCm", d.cellSizeCm, err) || !row.GetInt("QuadSplitCount", d.quadSplitCount, err) ||
 			!row.GetInt("QuadMinSizeCm", d.quadMinSizeCm, err) ||
-			!row.GetInt("ViewRadiusCm", d.viewRadiusCm, err) || !row.GetInt("ViewHysteresisCm", d.viewHysteresisCm, err))
+			!row.GetInt("ViewRadiusCm", d.viewRadiusCm, err) || !row.GetInt("ViewHysteresisCm", d.viewHysteresisCm, err) ||
+			!row.GetInt("ReviveDelaySec", d.reviveDelaySec, err) || !row.GetInt("ReviveHpPercent", d.reviveHpPercent, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
 		if (d.mapName.empty() || d.cellSizeCm < 100 || d.cellSizeCm > 100000 || d.quadSplitCount < 1 || d.quadSplitCount > 1000 || d.quadMinSizeCm < 100 || d.quadMinSizeCm > d.cellSizeCm ||
-			d.viewRadiusCm < 100 || d.viewRadiusCm > 100000 || d.viewHysteresisCm < 0 || d.viewHysteresisCm > d.viewRadiusCm)
+			d.viewRadiusCm < 100 || d.viewRadiusCm > 100000 || d.viewHysteresisCm < 0 || d.viewHysteresisCm > d.viewRadiusCm ||
+			d.reviveDelaySec < 0 || d.reviveDelaySec > 3600 || d.reviveHpPercent < 1 || d.reviveHpPercent > 100)
 		{
-			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (MapName 필수, 100 <= CellSizeCm <= 100000, 1 <= QuadSplitCount <= 1000, 100 <= QuadMinSizeCm <= CellSizeCm, 100 <= ViewRadiusCm <= 100000, 0 <= ViewHysteresisCm <= ViewRadiusCm)", world.Path(), row.Line());
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (MapName 필수, 100 <= CellSizeCm <= 100000, 1 <= QuadSplitCount <= 1000, 100 <= QuadMinSizeCm <= CellSizeCm, 100 <= ViewRadiusCm <= 100000, 0 <= ViewHysteresisCm <= ViewRadiusCm, 0 <= ReviveDelaySec <= 3600, 1 <= ReviveHpPercent <= 100)", world.Path(), row.Line());
 			return false;
 		}
 		if (!worldIds.insert(d.id).second || _worldTable.count(d.mapName))

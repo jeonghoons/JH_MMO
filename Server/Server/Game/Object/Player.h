@@ -19,6 +19,7 @@ public:
 	
 	virtual void OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker) override;
 	virtual void OnDead(std::shared_ptr<Character> attacker) override;
+	virtual int GetReviveDelayMs() const override;
 public:
 
 	void InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data);
@@ -30,6 +31,10 @@ public:
 	// 캐릭터 이름(Player_Info.Name). 로그인 때 정해지고 바뀌지 않는다. ObjectInfo.name(UTF-8)에도 실어 HUD·다른 플레이어에게 보낸다(A2.3a).
 	void SetName(const wstring& name) { _name = name; _objectInfo.set_name(Utils::WStringToUTF8(name)); }
 	const wstring& GetName() const { return _name; }
+
+	// 사망·부활(A2.4, D-149). Room 잡 안에서만 읽고 쓴다.
+	long long deadAtMs = 0;                // 죽은 시각(steady_clock ms). 부활 요청은 이 시각 + ReviveDelaySec 뒤부터 받는다
+	Protocol::PositionInfo spawnPosition;  // 방에 들어올 때 배치된 자리(Room::AddObject) = 부활 위치
 
 	// 채팅 도배 방지. Room 잡 안에서만 읽고 쓴다.
 	Cooldown chatCooldown;

@@ -60,6 +60,10 @@ message CS_PING_PACKET {
 	int64 client_time = 1;
 }
 
+// 부활 요청. 내용 없음 — 위치·HP는 서버가 정한다. 살아 있거나 대기 시간 전이면 서버가 조용히 버린다.
+message CS_REVIVE_PACKET {
+}
+
 // ==========================================
 //  Server -> Client
 // ==========================================
@@ -112,6 +116,15 @@ message SC_DAMAGE_PACKET {
 
 message SC_DEAD_PACKET {
 	int32 object_id = 1;
+	int32 revive_delay_ms = 2;   // 플레이어만: 이 시간이 지나야 부활 요청을 받는다(WorldTable.ReviveDelaySec). 몬스터는 0
+}
+
+// 플레이어 부활. AOI 전체(본인 포함)에 방송한다. 위치·HP는 서버가 정한 값.
+message SC_REVIVE_PACKET {
+	int32 object_id = 1;
+	PositionInfo pos_info = 2;
+	int32 hp = 3;
+	uint32 correction_seq = 4;   // 본인용: 부활로 올라간 이동 보정 순번(이후 CS_MOVE에 싣는다). 다른 사람에게는 의미 없음
 }
 
 // 장착 성공을 AOI 전체에 방송한다. stat = 장비 반영 후 최종 스탯(서버 계산).

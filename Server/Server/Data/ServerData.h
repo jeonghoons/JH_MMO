@@ -148,7 +148,7 @@ struct MovementData
 // MovementTable에서 플레이어 기본값을 담은 행 (클라이언트 UDataManager도 같은 행을 쓴다)
 constexpr int PLAYER_MOVEMENT_ID = 1001;
 
-// WorldTable: 맵별 시야(AOI) 수치. 서버 전용(클라이언트는 읽지 않는다).
+// WorldTable: 맵별 시야(AOI) 수치와 부활 규칙. 서버 전용(클라이언트는 읽지 않는다).
 struct WorldData
 {
 	int id;
@@ -158,6 +158,8 @@ struct WorldData
 	int quadMinSizeCm;     // 이 크기보다 작은 노드로는 나누지 않는다
 	int viewRadiusCm;      // 목표 시야 반경 R: 이 거리 안의 캐릭터는 반드시 보여야 한다
 	int viewHysteresisCm;  // 히스테리시스 H: 나갈 때는 R+H를 넘어야 사라진다(경계 깜빡임 방지)
+	int reviveDelaySec;    // 플레이어가 죽은 뒤 이 시간이 지나야 부활 요청(CS_REVIVE)을 받는다 (A2.4)
+	int reviveHpPercent;   // 부활 HP = 최대 HP × 이 값 / 100 (최소 1)
 };
 
 class DataManager

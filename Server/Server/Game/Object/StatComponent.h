@@ -47,6 +47,14 @@ public:
 		return actualDamage;
 	}
 
+	// 부활(A2.4): 죽은 상태에서만 HP를 최대치의 percent%로 채운다(최소 1). 반환 = 부활했는가
+	bool Revive(int percent)
+	{
+		if (_statInfo == nullptr || _statInfo->hp() > 0) return false;
+		_statInfo->set_hp(std::max(1, static_cast<int>(static_cast<long long>(_statInfo->max_hp()) * percent / 100)));
+		return true;
+	}
+
 	void OnHealed(int amount)
 	{
 		if (IsDead()) return;

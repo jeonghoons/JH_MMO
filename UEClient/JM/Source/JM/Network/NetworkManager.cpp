@@ -191,6 +191,12 @@ void UNetworkManager::SendSkillAim(int32 Slot, bool bActive, uint32 Seq)
 	SendProtocol(*this, pkt, Protocol::CS_SKILL_AIM);
 }
 
+void UNetworkManager::SendRevive()
+{
+	Protocol::CS_REVIVE_PACKET pkt;
+	SendProtocol(*this, pkt, Protocol::CS_REVIVE);
+}
+
 void UNetworkManager::EnterGame()
 {
 	SwitchGameMapLevel(FName("ParagonSample"));

@@ -23,6 +23,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_CHANGE_EQUIP, &FPacketHandler::Handle_SC_CHANGE_EQUIP);
 	RegisterHandler(Protocol::SC_CHANGE_EQUIP_RESULT, &FPacketHandler::Handle_SC_CHANGE_EQUIP_RESULT);
 	RegisterHandler(Protocol::SC_SKILL_AIM, &FPacketHandler::Handle_SC_SKILL_AIM);
+	RegisterHandler(Protocol::SC_REVIVE, &FPacketHandler::Handle_SC_REVIVE);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -164,7 +165,13 @@ void FPacketHandler::Handle_SC_DAMAGE(TSharedPtr<NetworkSession>& session, Proto
 void FPacketHandler::Handle_SC_DEAD(TSharedPtr<NetworkSession>& session, Protocol::SC_DEAD_PACKET& pkt)
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
-		ObjectManager->HandleDead(pkt.object_id());
+		ObjectManager->HandleDead(pkt.object_id(), pkt.revive_delay_ms());
+}
+
+void FPacketHandler::Handle_SC_REVIVE(TSharedPtr<NetworkSession>& session, Protocol::SC_REVIVE_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleRevive(pkt.object_id(), pkt.pos_info(), pkt.hp(), pkt.correction_seq());
 }
 
 void FPacketHandler::Handle_SC_CHANGE_EQUIP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_PACKET& pkt)

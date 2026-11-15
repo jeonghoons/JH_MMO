@@ -118,6 +118,9 @@ struct Bot
 	long long nextTurnUs = 0;
 	long long goalUntilUs = 0;
 	int windowEpoch = -1;
+	// 사망·부활(A2.4): 내 SC_DEAD를 받으면 행동을 멈추고, 서버가 알려 준 대기 시간이 지나면 CS_REVIVE를 보낸다
+	bool dead = false;
+	long long reviveAtUs = 0;
 };
 
 static void SendPacket(Bot& b, uint16_t id, const google::protobuf::Message& msg);
@@ -424,6 +427,33 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 			GStat.monsterDead.fetch_add(1);
 			if (GConfig.trackWorld) b.deadMonsters.insert(pkt.object_id());
 		}
+		else if (pkt.object_id() == b.objectId && !b.dead)
+		{
+			// 내가 죽었다. 대기 시간 + 여유 200ms 뒤에 부활을 요청한다(서버 시계 기준이라 조금 늦게 보낸다).
+			b.dead = true;
+			b.aiming = false;
+			b.reviveAtUs = NowUs() + (pkt.revive_delay_ms() + 200) * 1000LL;
+			GStat.selfDead.fetch_add(1);
+		}
+		break;
+	}
+	case Protocol::SC_REVIVE:
+	{
+		// 다른 사람의 부활은 파싱하지 않는다. SC_REVIVE_PACKET = { 1: object_id(varint) ... }
+		Protocol::SC_REVIVE_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		if (pkt.object_id() != b.objectId) break;
+		b.dead = false;
+		b.x = pkt.pos_info().x();
+		b.y = pkt.pos_info().y();
+		b.z = pkt.pos_info().z();
+		b.correctionSeq = pkt.correction_seq();
+		b.lastMoveSentUs = NowUs();   // 서버 이동 예산이 0에서 다시 모이므로 여기서부터 걸음을 잰다
+		b.hasGoal = false;
+		b.spawnTarget = -1;
+		b.moveFailures = 0;
+		GStat.selfRevived.fetch_add(1);
+		if (b.index == 0) printf("[bot] bot0 revived: hp=%d pos=(%.0f, %.0f, %.0f) seq=%u\n", pkt.hp(), b.x, b.y, b.z, pkt.correction_seq());
 		break;
 	}
 	case Protocol::SC_DAMAGE:
@@ -543,8 +573,22 @@ static void WorkerMain(int workerIndex, int workerCount)
 
 			if (b.state == BotState::InGame && b.spawnKnown)
 			{
+				// 사망 중(A2.4): 대기 시간이 지나면 부활을 요청하고(응답이 없으면 1초마다 다시), 그동안 이동·공격·장비는 보내지 않는다.
+				// chaos는 죽은 채로도 계속 보내고(서버가 버리거나 거부해야 한다) 부활 요청도 두 번 연달아 보낸다(중복 요청).
+				if (b.dead && now >= b.reviveAtUs)
+				{
+					b.reviveAtUs = now + 1000 * 1000LL;
+					Protocol::CS_REVIVE_PACKET revive;
+					for (int k = 0; k < (GConfig.chaos ? 2 : 1); ++k)
+					{
+						SendPacket(b, Protocol::CS_REVIVE, revive);
+						GStat.reviveSent.fetch_add(1);
+					}
+				}
+				const bool canAct = !b.dead || GConfig.chaos;
+
 				// hunt 프로필은 주변에 알려진 몬스터가 없을 때만 무작위로 돌아다니며 몬스터를 찾는다.
-				if (GConfig.move && now >= b.nextMoveUs && (!GConfig.hunt || b.monsters.empty()))
+				if (canAct && GConfig.move && now >= b.nextMoveUs && (!GConfig.hunt || b.monsters.empty()))
 				{
 					b.nextMoveUs = now + GConfig.moveIntervalMs * 1000LL;
 					const float step = min(300.f, MaxStep(b, now));
@@ -633,7 +677,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 					}
 					SendMove(b, now, nx, ny, yaw, Protocol::MOVE_STATE_RUN);
 				}
-				if (GConfig.hunt && now >= b.nextAttackUs && !b.monsters.empty())
+				if (canAct && GConfig.hunt && now >= b.nextAttackUs && !b.monsters.empty())
 				{
 					b.nextAttackUs = now + 700 * 1000LL;
 
@@ -714,7 +758,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 						SendPacket(b, Protocol::CS_ATTACK, atk);
 				}
 				// --aim: 처음 한 번 활을 장착한다(조준할 수 있는 스킬 3002)
-				if (GConfig.aim && !b.aimBowSent)
+				if (!b.dead && GConfig.aim && !b.aimBowSent)
 				{
 					b.aimBowSent = true;
 					Protocol::CS_CHANGE_EQUIP_PACKET eq;
@@ -725,7 +769,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 				}
 				// 장비 교체(--equip-interval): 슬롯 무작위(1~7), 천(x1xx)·판금(x3xx)·해제 중 하나. 무기는 검/활도 섞는다.
 				// 보조손(7, 방패)은 무기가 검이 아니면 서버가 NEED_SWORD로 거부하고, 무기를 활·맨손으로 바꾸면 서버가 비운다(MC4.2f).
-				if (GConfig.equipIntervalMs > 0 && now >= b.nextEquipUs)
+				if (canAct && GConfig.equipIntervalMs > 0 && now >= b.nextEquipUs)
 				{
 					const int half = GConfig.equipIntervalMs / 2;
 					b.nextEquipUs = now + (GConfig.equipIntervalMs - half + rand() % (2 * half + 1)) * 1000LL;
@@ -749,6 +793,13 @@ static void WorkerMain(int workerIndex, int workerCount)
 					Protocol::CS_PING_PACKET ping;
 					ping.set_client_time(now);
 					SendPacket(b, Protocol::CS_PING, ping);
+					// chaos: 살아 있을 때·대기 시간 전에도 가끔 부활을 요청한다(서버가 조용히 버려야 한다)
+					if (GConfig.chaos && rand() % 4 == 0)
+					{
+						Protocol::CS_REVIVE_PACKET revive;
+						SendPacket(b, Protocol::CS_REVIVE, revive);
+						GStat.reviveSent.fetch_add(1);
+					}
 				}
 			}
 

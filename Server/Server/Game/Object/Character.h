@@ -40,6 +40,10 @@ public:
 	// 시전 없이 공용 행동 잠금만 건다 (무기 스왑, DECISIONS 2026-11-04). 스킬 쿨타임은 건드리지 않는다.
 	void LockActionForSwap(long long ms) { _actionTimer.Reset(ms); _actionIsSwapLock = true; }
 	virtual int GetHitStunMs() const { return 300; }   // 피격 후 행동이 막히는 시간
+	// SC_DEAD에 싣는 부활 대기 시간(ms). 플레이어만 값이 있고 그 밖은 0 (A2.4)
+	virtual int GetReviveDelayMs() const { return 0; }
+	// 부활할 때 피격 경직·행동 잠금을 푼다(스킬 쿨타임은 그대로).
+	void ClearActionLocks() { _hitTimer.Reset(0); _actionTimer.Reset(0); _actionIsSwapLock = false; }
 protected:
 	// 슬롯에 해당하는 스킬(시전 가능 여부는 보지 않음). 플레이어는 무기 타입, 몬스터는 MonsterTable.SkillId로 찾는다.
 	virtual const SkillData* GetSlotSkill(int slot) const = 0;

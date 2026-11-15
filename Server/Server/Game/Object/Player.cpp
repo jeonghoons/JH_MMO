@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "Game/Object/Player.h"
 #include "Data/ServerData.h"
+#include "Utils/Metrics.h"
 
 Player::Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type) 
 	: Character(Protocol::ObjectType::OBJECT_TYPE_PLAYER), _ownerSession(ownerSession)
@@ -86,7 +87,15 @@ void Player::OnDead(std::shared_ptr<Character> attacker)
 	// 조준 해제는 상태만 바꾼다 — 원격 클라이언트는 SC_DEAD로, 본인 클라이언트는 자기 사망 처리로 끈다(DECISIONS 2026-11-09).
 	if (IsSkillAiming())
 		SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
+	Metrics::PlayerDeaths.fetch_add(1);
+	deadAtMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 	Character::OnDead(attacker);
+}
+
+int Player::GetReviveDelayMs() const
+{
+	const WorldData* world = DataManager::GetWorldData(ROOM_MAP_NAME);   // 서버 시작 때 존재를 확인했다
+	return world ? world->reviveDelaySec * 1000 : 0;
 }
 
 float Player::GetMoveSpeedLimit(const MovementData& rule) const

@@ -49,6 +49,13 @@
 - 서버가 사거리/쿨다운/자원을 재검증한 뒤, **영향받는 대상을 서버가 직접 산출**합니다(클라이언트가 보낸 대상/히트 리스트는 신뢰하지 않습니다).
 - 새 패킷(스킬 시전 요청 등)이 필요하면 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md)의 절차(Enum.proto → Protocol.proto → `GanPackets.bat` → 서버/클라이언트 핸들러)를 따릅니다.
 
+### 플레이어 사망·부활 (2026-11-16, A2.4, D-149)
+- 사망: HP가 0이 되면 서버가 `SC_DEAD{object_id, revive_delay_ms}`를 AOI에 방송합니다(`revive_delay_ms` = 플레이어의 부활 대기 시간, 몬스터는 0). 사망 상태는 전용 필드 없이 `stat.hp == 0`으로 판정하고, 시체는 방과 AOI에 그대로 남습니다(늦게 본 사람은 `SC_ADD_OBJECT`의 hp 0을 보고 바로 사망 자세).
+- 사망 중 요청: 이동은 조용히 버림, 공격·장비 교체(`EQUIP_RESULT_DEAD`)·조준 켜기는 거부, 채팅·핑·조준 끄기는 허용. 클라이언트도 이동·공격 입력을 막습니다.
+- 부활(요청형): 사망 후 `WorldTable.ReviveDelaySec`가 지나면 클라이언트가 부활 버튼(`WBP_Revive`)으로 `CS_REVIVE`를 보냅니다. 서버는 사망 여부와 대기 시간(사망 시각 비교, 타이머 없음)을 검증하고, 통과하면 입장 때 배치된 자리(플레이어 = 맵의 첫 PlayerStart, 더미 봇 = 입장 때 뽑힌 자리)로 옮겨 HP를 최대치 × `WorldTable.ReviveHpPercent`로 채우고, 이동 보정 순번을 올린 뒤(늦게 온 옛 이동을 버리기 위해) `SC_REVIVE{object_id, pos_info, hp, correction_seq}`를 AOI와 본인에게 보냅니다. 살아 있거나 대기 시간 전이거나 중복인 요청은 조용히 버립니다. 패널티는 없습니다.
+- 사망 중 접속을 끊고 다시 들어오면 살아 있는 상태로 입장합니다(DB HP 저장은 A2.5에서 재검토).
+- 클라이언트 연출: 사망 몽타주(BodyTable `DeathMontage`)를 재생하고 끝 자세에서 멈춤, 부활 때 몽타주를 풀고 서버 위치로 순간이동합니다. AnimBP `bIsDead` 상태 전환은 하지 않습니다(백로그).
+
 ## 알아둘 간극
 - 스킬 조회 키가 `PlayerType`에서 "현재 무기 타입"으로 바뀌므로, 캐릭터가 장착 무기 타입을 들고 있어야 하고 `CombatProcessor`/`Room::CharacterAttack`의 조회부가 바뀝니다(MC3.1~MC3.2).
 - 몬스터는 `PlayerType`이 아니라 `MonsterTable.SkillId`로 스킬을 찾게 됩니다.

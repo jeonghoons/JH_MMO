@@ -98,11 +98,23 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHAT(int senderId, const wstrin
 	return MakeSendBuffer(packet, Protocol::SC_CHAT);
 }
 
-shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_DEAD(int objectId)
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_DEAD(int objectId, int reviveDelayMs)
 {
 	Protocol::SC_DEAD_PACKET packet;
 	packet.set_object_id(objectId);
+	packet.set_revive_delay_ms(reviveDelayMs);
 
 	return MakeSendBuffer(packet, Protocol::SC_DEAD);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_REVIVE(shared_ptr<GameObject> object, uint32_t correctionSeq)
+{
+	Protocol::SC_REVIVE_PACKET packet;
+	packet.set_object_id(object->GetId());
+	packet.mutable_pos_info()->CopyFrom(object->GetInfo().position());
+	packet.set_hp(object->GetInfo().stat().hp());
+	packet.set_correction_seq(correctionSeq);
+
+	return MakeSendBuffer(packet, Protocol::SC_REVIVE);
 }
 

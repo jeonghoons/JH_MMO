@@ -49,6 +49,8 @@ public:
 	// 서버가 적용한 스킬 쿨타임(SC_ATTACK.cooldown_ms)을 기록한다. 쿨타임 중에는 조준에 들어가지 않는다.
 	void NoteSkillCooldown(int32 SkillId, int32 CooldownMs);
 	virtual void OnDead() override;
+	// 내 부활(SC_REVIVE): 서버 위치로 옮기고 이후 이동에 실을 보정 순번을 받는다.
+	void OnMyRevive(const Protocol::PositionInfo& Pos, int32 Hp, uint32 Seq);
 
 	// 액티브 칸(D-148): 칸 수 = QuickSlotActions 수. 지금은 규칙 배치 — 칸 N = 현재 무기의 SkillTable 슬롯 N(없으면 빈 칸).
 	// 무기가 바뀌면 다시 부른다(UJMObjectManager가 스폰·장비 변경 때 부르고 HUD에 넘긴다).

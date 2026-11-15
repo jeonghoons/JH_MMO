@@ -45,6 +45,9 @@ public:
     // 2. 위젯을 껐다 켰다 하는 함수
     void ToggleWidget(FName WidgetName);
 
+    // 위젯을 보이게/숨기게 한다(이미 그 상태면 그대로). 창이면 입력 모드(커서)도 갱신한다.
+    void SetWidgetVisible(FName WidgetName, bool bVisible);
+
     UUserWidget* GetWidget(FName WidgetName);
 
     // 마우스 커서 등 입력을 제어하는 내부 함수

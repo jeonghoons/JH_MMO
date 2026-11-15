@@ -173,6 +173,7 @@ bool Room::AddObject(shared_ptr<GameObject> object)
 				dummyPos = _gameMap.GetNavManager()->GetRandomPosition();
 			dummyPlayer->SetPosition(dummyPos);
 		}
+		dummyPlayer->spawnPosition = dummyPlayer->GetPosition();   // 부활 위치(A2.4)
 	}
 
 	Protocol::PositionInfo currentPos = object->GetPosition();
@@ -216,6 +217,7 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	player->moveGuard.lastAccrueMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 	// 조준 상태도 새로 시작한다(seq는 클라이언트 값이라 그대로 둔다).
 	player->SetSkillAim(nullptr, player->moveGuard.lastAccrueMs);
+	player->deadAtMs = 0;
 	
 	LOG_DEBUG("Room", "Client[{}] Enter Room", player->GetId());
 
@@ -267,6 +269,13 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 {
 	if (nullptr == Id2Player(player->GetId()))
 		return;
+
+	// 사망 중 이동은 조용히 버린다(A2.4, D-149). 보정을 보내지 않는다 — 클라이언트도 입력을 막고, 부활 때 SC_REVIVE로 위치를 맞춘다.
+	if (player->GetStat().IsDead())
+	{
+		Metrics::MoveDroppedDead.fetch_add(1);
+		return;
+	}
 
 	Player::MoveGuard& guard = player->moveGuard;
 
@@ -406,6 +415,49 @@ void Room::PlayerSkillAim(shared_ptr<Player> player, int slot, bool active, uint
 	player->SetSkillAim(skill, nowMs);
 	Metrics::AimOn.fetch_add(1);
 	BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_SKILL_AIM(player->GetId(), skill->skillId, true, 0), true);
+}
+
+void Room::PlayerRevive(shared_ptr<Player> player)
+{
+	if (player == nullptr || Id2Player(player->GetId()) == nullptr) return;
+
+	const WorldData* world = DataManager::GetWorldData(ROOM_MAP_NAME);   // 서버 시작 때 존재를 확인했다
+	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+
+	// 검증: 죽어 있는가 → 대기 시간이 지났는가. 살아 있을 때 온 요청(중복 부활 포함)과 이른 요청은 응답 없이 버린다.
+	const char* reason = nullptr;
+	if (!player->GetStat().IsDead()) reason = "alive";
+	else if (nowMs - player->deadAtMs < static_cast<long long>(world->reviveDelaySec) * 1000) reason = "too-early";
+	if (reason != nullptr)
+	{
+		LOG_DEBUG("Revive", "거부 player={} reason={}", player->GetId(), reason);
+		Metrics::ReviveReject.fetch_add(1);
+		return;
+	}
+
+	// 위치 = 입장 때 배치된 자리(플레이어 = 첫 PlayerStart, 더미 봇 = 그때 뽑힌 자리), HP = 최대치 × ReviveHpPercent.
+	player->GetStat().Revive(world->reviveHpPercent);
+	player->ClearActionLocks();
+	player->deadAtMs = 0;
+	player->SetPosition(player->spawnPosition);
+
+	// 죽기 전·죽은 동안 보낸 이동이 뒤늦게 와도 버려지도록 보정 순번을 올리고, 이동 예산은 0에서 다시 모은다.
+	Player::MoveGuard& guard = player->moveGuard;
+	++guard.correctionSeq;
+	guard.budgetCm = 0.f;
+	guard.lastAccrueMs = nowMs;
+
+	Metrics::Revives.fetch_add(1);
+	LOG_DEBUG("Revive", "player={} hp={} pos=({:.0f},{:.0f},{:.0f})", player->GetId(), player->GetStat().GetHp(),
+		player->GetPosition().x(), player->GetPosition().y(), player->GetPosition().z());
+
+	// 죽은 자리에서 보던 사람들에게 먼저 알리고(본인 포함), 그 다음 시야를 새 위치 기준으로 갱신한다.
+	// 새 위치에서 처음 보게 된 사람은 UpdateView의 SC_ADD_OBJECT(hp > 0)로 살아 있는 모습을 받는다.
+	BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_REVIVE(player, guard.correctionSeq), true);
+
+	ViewUpdate result = _gameMap.UpdateMap(player->GetId(), player->GetPosition(), player->_viewList);
+	if (!result.entered.empty() || !result.leaved.empty())
+		UpdateView(player, result);
 }
 
 void Room::UpdateAims(long long nowMs)

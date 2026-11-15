@@ -82,6 +82,8 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-126** (2026-11-08) 스킬 조준은 서버 동기화: 상태가 바뀔 때만 전용 패킷, 서버가 무기·쿨타임·생존 검증 후 이동 예산 감속·AOI 방송 — "조준은 로컬 전용" 번복 (일부: skill_id → slot은 D-133)
 - **D-133** (2026-11-09) `CS_SKILL_AIM`(1011){slot,active,seq}·`SC_SKILL_AIM`(2014), 늦게 본 사람은 `ObjectInfo.aim_skill_id`, SkillTable `AimMoveSpeedMul`·`AimMaxMs`, `ServerAimMinIntervalMs` 200
 - **D-133** (2026-11-09) `CS_ATTACK` 수신 시 검증 전 조준 해제, 내 조준 상태는 로컬 권위(서버 `false`는 seq가 같을 때만), 이동 예산 배수는 이전 배수로 정산 후 교체
+- **D-149** (2026-11-16) 플레이어 부활은 요청형: 사망 후 `WorldTable.ReviveDelaySec`가 지나면 `CS_REVIVE`(1012) → 서버가 사망·대기 시간 검증(사망 시각 비교, 타이머 없음) → 입장 때 배치된 자리(플레이어 = 첫 PlayerStart)에서 최대 HP × `ReviveHpPercent`로 부활, `SC_REVIVE`(2015: id·위치·HP·`correction_seq`) AOI 방송, 대기 시간은 `SC_DEAD.revive_delay_ms`로 전달, 패널티 없음. 사망 상태 = `stat.hp == 0`(전용 필드 없음, 늦게 본 사람은 스폰 때 hp 0이면 사망 자세)
+- **D-149** (2026-11-16) 사망 중 이동은 서버가 조용히 버리고 클라도 이동·공격 입력 차단, 채팅·핑·조준 끄기는 허용. 시체는 AOI에 남김, 사망 중 재접속은 살아서 입장(A2.5 때 재검토). 사망 연출은 몽타주 + 멈춤 유지·부활 때 해제(AnimBP `bIsDead` 전환은 백로그), 부활 UI = `WBP_Revive`, 봇은 자기 `SC_DEAD` 후 대기 → `CS_REVIVE`
 
 ## 장비 시스템
 

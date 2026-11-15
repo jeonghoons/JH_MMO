@@ -65,6 +65,12 @@ namespace Metrics
 	inline std::atomic<long long> MoveRejectInvalid{ 0 };  // NaN/Inf
 	inline std::atomic<long long> MoveDroppedStale{ 0 };   // 보정 전에 보낸 이동(옛 순번)
 	inline std::atomic<long long> MoveDroppedRate{ 0 };    // 너무 잦은 이동
+	inline std::atomic<long long> MoveDroppedDead{ 0 };    // 사망 중 이동 (A2.4)
+
+	// 플레이어 사망·부활(A2.4, Room::PlayerRevive). 모두 누적
+	inline std::atomic<long long> PlayerDeaths{ 0 };
+	inline std::atomic<long long> Revives{ 0 };        // 부활 수락
+	inline std::atomic<long long> ReviveReject{ 0 };   // 부활 거부(살아 있음·대기 시간 전)
 
 	inline SampleStat TickLate;     // Room 틱이 예정보다 늦어진 시간(us) (Timer/JobQueue/IOCP 대기 지연)
 	inline SampleStat TickBody;     // Room::Update 본문 처리 시간(us)

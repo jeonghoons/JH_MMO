@@ -44,6 +44,7 @@ struct BotCounters
 	std::atomic<long long> monsterDead{ 0 }, monsterRemoved{ 0 }, monsterAdded{ 0 }, damageRecv{ 0 }, objectAdded{ 0 };
 	std::atomic<long long> aimSent{ 0 }, aimRecv{ 0 }, aimOwnOff{ 0 };   // CS_SKILL_AIM / 받은 SC_SKILL_AIM / 내 조준의 거부·시간 초과
 	std::atomic<long long> equipSent{ 0 }, equipOk{ 0 }, equipRejected{ 0 };   // 장착 요청 / 내 SC_CHANGE_EQUIP / SC_CHANGE_EQUIP_RESULT
+	std::atomic<long long> selfDead{ 0 }, reviveSent{ 0 }, selfRevived{ 0 };   // 내 SC_DEAD / CS_REVIVE / 내 SC_REVIVE (A2.4)
 	std::atomic<int> connected{ 0 }, inGame{ 0 };
 	// 구간(리포트 간격) 동안 봇 한 명이 받은 최대 바이트. 리포터가 읽으며 0으로 되돌리고 windowEpoch를 올린다.
 	std::atomic<long long> maxBotBytesWindow{ 0 };

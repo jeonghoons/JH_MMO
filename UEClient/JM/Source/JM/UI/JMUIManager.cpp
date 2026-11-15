@@ -92,6 +92,20 @@ void UJMUIManager::ToggleWidget(FName WidgetName)
     UpdateInputMode();
 }
 
+void UJMUIManager::SetWidgetVisible(FName WidgetName, bool bVisible)
+{
+    FWidgetInfo* Info = ManagedWidgets.Find(WidgetName);
+    if (Info == nullptr || Info->WidgetInstance == nullptr) return;
+
+    Info->WidgetInstance->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (Info->bIsWindow)
+    {
+        if (bVisible) OpenedWindows.AddUnique(WidgetName);
+        else OpenedWindows.Remove(WidgetName);
+    }
+    UpdateInputMode();
+}
+
 UUserWidget* UJMUIManager::GetWidget(FName WidgetName)
 {
     if (ManagedWidgets.Contains(WidgetName))
