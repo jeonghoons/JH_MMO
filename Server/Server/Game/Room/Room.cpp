@@ -195,6 +195,15 @@ bool Room::RemoveObject(int objectId)
 
 void Room::PlayerEnterRoom(shared_ptr<Player> player)
 {
+	// 입장 예약(EnterPlayer)과 이 잡 사이에 세션이 끊겼으면 들이지 않는다. 끊긴 세션의 OnDisconnected는
+	// 아직 방에 없던 플레이어라 퇴장 잡을 넣지 않았을 수 있으므로, 여기서 들이면 유령 플레이어가 된다(감사 F1·F2).
+	shared_ptr<GameSession> enterSession = player->GetSession();
+	if (enterSession == nullptr || false == enterSession->IsConnected()) {
+		LOG_DEBUG("Room", "Player[{}] Enter 취소: 세션 끊김", player->GetId());
+		ReleaseSlot();
+		return;
+	}
+
 	if (false == AddObject(player)) {
 		ReleaseSlot(); // EnterPlayer에서 예약한 자리를 반환한다.
 		return;
@@ -210,14 +219,7 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	
 	LOG_DEBUG("Room", "Client[{}] Enter Room", player->GetId());
 
-	shared_ptr<SendBuffer> objectAddBuffer = PacketSerializer::MAKE_SC_ADD_OBJECT(player);
-	if (auto session = player->GetSession()) {
-		session->Send(objectAddBuffer);
-	}
-
-	if (auto session = player->GetSession()) {
-		session->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(player));
-	}
+	enterSession->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(player));
 
 	// 맵 등록 및 시야 동기화
 	ViewUpdate result = _gameMap.EnterMap(player->GetId(), player->GetPosition());
@@ -231,6 +233,12 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 	LOG_DEBUG("Room", "Player[{}] Leave", player->GetId());
 
 	int playerId = player->GetId();
+
+	// 입장 잡보다 퇴장 잡이 먼저 실행됐거나(입장 잡은 세션 끊김을 보고 취소됨) 중복 퇴장이면 정리할 것이 없다.
+	if (nullptr == Id2Player(playerId)) {
+		LOG_DEBUG("Room", "Player[{}] Leave: 방에 없음(입장 취소·중복 퇴장)", playerId);
+		return;
+	}
 
 	ViewUpdate result = _gameMap.LeaveMap(playerId, player->_viewList);
 	if (!result.leaved.empty()) {

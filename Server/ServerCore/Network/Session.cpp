@@ -110,6 +110,10 @@ int Session::ProcessData(BYTE* buffer, int len)
 
 		processLen += header.size;
 
+		// 핸들러가 Disconnect했으면(파싱 실패 등) 같은 수신 묶음의 남은 패킷은 버린다.
+		// 계속 처리하면 끊긴 세션의 CS_ENTER_ROOM이 방에 들어가 유령 플레이어가 된다(감사 F1).
+		if (false == IsConnected())
+			break;
 	}
 	return processLen;
 }
