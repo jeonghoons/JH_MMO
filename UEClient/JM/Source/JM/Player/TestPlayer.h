@@ -27,7 +27,23 @@ public:
 	UFUNCTION(Exec)
 	void TestEquip(int32 Part, int32 ItemId);
 
+	// 콘솔: TestFx <이펙트 이름> — /Game/FX/<분류>/ 의 파티클을 몸 메시에 붙여 재생한다(본 이미터 확인용, 예: TestFx P_Life_Death).
+	// TestFx stop = 이 명령으로 띄운 이펙트를 모두 끈다(반복 이펙트용)
+	UFUNCTION(Exec)
+	void TestFx(const FString& Name);
+
+	virtual void Tick(float DeltaSeconds) override;
+
 protected:
+	// 자동 확인 스크립트(입력 없이 PIE에서 장면을 만들어 찍기 위한 것). "초:명령 인자;초:명령 인자;..." 형식.
+	// 명령: attack / skill1 / equip <part> <item> / fx <이름|stop> / face <0|1> / move <앞뒤> <좌우> /
+	//       cam <캐릭터 기준 yaw> <pitch> <거리> [피벗 높이] / pause
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Test")
+	FString AutoScript;
+
+	void RunAutoCommand(const FString& Command);
+	FVector2D AutoMoveInput = FVector2D::ZeroVector;
+
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -71,6 +87,9 @@ protected:
 	TObjectPtr<USpringArmComponent> CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> FollowCamera;
+
+	// TestFx로 띄운 이펙트(stop 때 끔)
+	TArray<TWeakObjectPtr<class UParticleSystemComponent>> TestFxComponents;
 
 	float LookSensitivityYaw = 1.f;
 	float LookSensitivityPitch = 1.f;

@@ -11,6 +11,13 @@
 #include "Character/EquipmentComponent.h"
 #include "Game/DataManager.h"
 #include "Data/SkillTableRow.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Misc/PackageName.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Engine/Engine.h"
 
 ATestPlayer::ATestPlayer()
 {
@@ -45,6 +52,63 @@ void ATestPlayer::BeginPlay()
 	// 최고 속도는 BP의 MaxWalkSpeed(테스트 전용). 조준 배율(SkillTable.AimMoveSpeedMul)이 이 값에 곱해지도록 스탯에 넣는다.
 	ObjectInfo.mutable_stat()->set_move_speed(GetCharacterMovement()->MaxWalkSpeed);
 	RefreshEquipment();
+
+	// 자동 확인 스크립트: 항목마다 타이머를 건다
+	// BP 값이 비어 있으면 Saved/TestAuto.txt를 읽는다(에셋을 건드리지 않고 도구가 장면을 바꿔 가며 찍을 수 있게)
+	FString Script = AutoScript;
+	if (Script.IsEmpty())
+		FFileHelper::LoadFileToString(Script, *(FPaths::ProjectSavedDir() / TEXT("TestAuto.txt")));
+	Script.ReplaceInline(TEXT("\r"), TEXT(""));
+	Script.ReplaceInline(TEXT("\n"), TEXT(";"));
+	TArray<FString> Entries;
+	Script.ParseIntoArray(Entries, TEXT(";"), true);
+	for (const FString& Entry : Entries)
+	{
+		FString TimeText, Command;
+		if (!Entry.Split(TEXT(":"), &TimeText, &Command)) continue;
+		const float Delay = FMath::Max(FCString::Atof(*TimeText), 0.01f);
+		Command.TrimStartAndEndInline();
+		FTimerHandle Handle;
+		GetWorldTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(this, [this, Command]() { RunAutoCommand(Command); }), Delay, false);
+	}
+}
+
+void ATestPlayer::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (!AutoMoveInput.IsZero() && GetController())
+	{
+		const FRotator YawRotation(0, GetController()->GetControlRotation().Yaw, 0);
+		AddMovementInput(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X), AutoMoveInput.X);
+		AddMovementInput(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y), AutoMoveInput.Y);
+	}
+}
+
+void ATestPlayer::RunAutoCommand(const FString& Command)
+{
+	TArray<FString> Args;
+	Command.ParseIntoArrayWS(Args);
+	if (Args.Num() == 0) return;
+	const FString& Verb = Args[0];
+	auto Num = [&Args](int32 Index, float Default) { return Args.IsValidIndex(Index) ? FCString::Atof(*Args[Index]) : Default; };
+
+	UE_LOG(LogTemp, Log, TEXT("TestPlayer auto: %s"), *Command);
+	if (Verb == TEXT("attack")) OnAttackInput();
+	else if (Verb == TEXT("skill1")) OnSkill1Input();
+	else if (Verb == TEXT("equip")) TestEquip(static_cast<int32>(Num(1, 0)), static_cast<int32>(Num(2, 0)));
+	else if (Verb == TEXT("fx") && Args.IsValidIndex(1)) TestFx(Args[1]);
+	else if (Verb == TEXT("face")) bFaceCameraOnAttack = Num(1, 1) != 0.f;
+	else if (Verb == TEXT("move")) AutoMoveInput = FVector2D(Num(1, 0), Num(2, 0));
+	else if (Verb == TEXT("pause")) UGameplayStatics::SetGamePaused(this, true);
+	else if (Verb == TEXT("cam"))
+	{
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+			PC->SetControlRotation(FRotator(Num(2, -10), GetActorRotation().Yaw + Num(1, 0), 0.f));
+		CameraBoom->TargetArmLength = Num(3, 450);
+		CameraBoom->SocketOffset = FVector::ZeroVector;
+		if (Args.IsValidIndex(4)) CameraBoom->TargetOffset = FVector(0.f, 0.f, Num(4, 0));
+	}
 }
 
 void ATestPlayer::PossessedBy(AController* NewController)
@@ -209,4 +273,37 @@ void ATestPlayer::TestEquip(int32 Part, int32 ItemId)
 		ObjectInfo.set_equip_items(OffhandIndex, 0);
 		if (Equipment) Equipment->SetSlotItem(OffhandIndex, 0);
 	}
+}
+
+void ATestPlayer::TestFx(const FString& Name)
+{
+	if (Name.Equals(TEXT("stop"), ESearchCase::IgnoreCase))
+	{
+		for (const TWeakObjectPtr<UParticleSystemComponent>& Comp : TestFxComponents)
+			if (Comp.IsValid()) Comp->DestroyComponent();
+		TestFxComponents.Reset();
+		return;
+	}
+
+	static const TCHAR* Categories[] = { TEXT("Life"), TEXT("Buff"), TEXT("Cast"), TEXT("Hit"), TEXT("AoE"), TEXT("Trail"), TEXT("Proj") };
+	UParticleSystem* Template = nullptr;
+	for (const TCHAR* Category : Categories)
+	{
+		const FString PackagePath = FString::Printf(TEXT("/Game/FX/%s/%s"), Category, *Name);
+		if (!FPackageName::DoesPackageExist(PackagePath)) continue;
+		Template = LoadObject<UParticleSystem>(nullptr, *FString::Printf(TEXT("%s.%s"), *PackagePath, *Name));
+		if (Template) break;
+	}
+	if (Template == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TestFx: '%s' not found under /Game/FX/<Category>/"), *Name);
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 4.f, FColor::Red, FString::Printf(TEXT("TestFx: %s not found"), *Name));
+		return;
+	}
+
+	// Attach to the body mesh so bone/socket emitters read the mannequin bones (attach-parent fallback).
+	UParticleSystemComponent* Comp = UGameplayStatics::SpawnEmitterAttached(Template, GetMesh(), NAME_None,
+		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
+	if (Comp) TestFxComponents.Add(Comp);
+	UE_LOG(LogTemp, Log, TEXT("TestFx: %s %s"), *Name, Comp ? TEXT("spawned") : TEXT("spawn failed"));
 }

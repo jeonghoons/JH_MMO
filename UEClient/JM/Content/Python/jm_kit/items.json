@@ -425,7 +425,7 @@
       "length_cm": 70,
       "face": "+y",
       "up": "+z",
-      "gap_cm": 4.0,
+      "gap_cm": 9.0,
       "offset": [
         0,
         0,
