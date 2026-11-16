@@ -60,6 +60,7 @@ enum class WeaponType
 // 장비 슬롯. 번호 = itemId 첫째 자리 = Protocol::EquipPart (MC3.2)
 enum class ItemSlot
 {
+	None = 0,     // 장착할 수 없는 아이템(소비 아이템). itemId 첫째 자리는 8 (A3.2)
 	Head = 1,
 	Top = 2,
 	Bottom = 3,
@@ -72,6 +73,7 @@ enum class ItemSlot
 // 장비 티어. 번호 = itemId 둘째 자리.
 enum class ItemTier
 {
+	None = 0,     // 티어 없음(소비 아이템)
 	Cloth = 1,
 	Leather = 2,
 	Plate = 3
@@ -84,10 +86,17 @@ enum class ItemGrade
 	Rare
 };
 
+// 소비 아이템의 사용 효과 (ItemTable.UseEffect, UE EItemUseEffect와 이름이 같아야 한다)
+enum class ItemUseEffect
+{
+	None,
+	HealHp   // UseValue만큼 HP 회복
+};
+
 // ItemTable 중 서버가 읽는 열. 외형(메시·아이콘·이름)은 클라이언트 전용이라 읽지 않는다.
 struct ItemData
 {
-	int itemId;            // 슬롯(1자리) + 티어(1자리) + 일련번호(2자리). 예: 6101 = 천 한손검
+	int itemId;            // 슬롯(1자리) + 티어(1자리) + 일련번호(2자리). 예: 6101 = 천 한손검, 8001 = HP 물약(슬롯 None = 8, 티어 None = 0)
 	ItemSlot slot;
 	ItemGrade grade;
 	ItemTier tier;
@@ -95,7 +104,56 @@ struct ItemData
 	int bonusAttackDamage; // 무기만
 	int bonusMaxHp;        // 방어구만
 	bool starter;          // 가입 시 기본 장비 (슬롯당 최대 1개, MC3.3)
+	int requiredLevel;     // 장착(소비 아이템은 사용)에 필요한 레벨 (D-156)
+	int maxStack;          // 한 칸에 겹치는 최대 수량. 장비는 1
+	ItemUseEffect useEffect; // 장비는 None
+	int useValue;          // HealHp: 회복량
+	int useCooldownMs;     // 같은 아이템 종류의 재사용 시간
 };
+
+// DropTable 한 행 = 몬스터 한 종류가 떨어뜨릴 수 있는 것 하나. 처치 때 그 몬스터의 모든 행을 각각 독립으로 굴린다 (D-157). 서버 전용.
+struct DropData
+{
+	int id;
+	int monsterId;
+	int itemId;      // 0 = 골드
+	int dropRate;    // 만분율 (10000 = 100%)
+	int minCount;    // 아이템 수량 또는 골드 금액 범위
+	int maxCount;
+};
+
+// 드랍 롤 결과 하나. itemId 0 = 골드(count = 금액)
+struct DropResult
+{
+	int itemId;
+	int count;
+};
+
+// EconomyTable(행 1001 하나): 인벤토리·드랍·거래·경매 수치. 서버 전용 (Docs/DESIGN_ITEMS_TRADE.md)
+struct EconomyData
+{
+	int inventorySlots;          // 인벤토리 칸 수(장착품 제외)
+	int itemMinIntervalMs;       // 같은 플레이어의 아이템 요청 최소 간격
+	int goldMax;                 // 보유 골드 상한
+	int dropOwnerSec;            // 막타 소유 시간
+	int dropLifeSec;             // 드랍이 사라지기까지 (dropOwnerSec 이상)
+	int dropScatterCm;           // 사망 지점에서 흩뿌리는 반경
+	int pickupRangeCm;           // 줍기 거리
+	int maxDropsPerRoom;         // 방 하나의 드랍 상한
+	int tradeRangeCm;            // 거래 요청·유지 거리
+	int tradeRequestTimeoutSec;  // 요청 응답 대기
+	int tradeTimeoutSec;         // 수락부터 완료까지
+	int tradeMaxItems;           // 한 사람이 올리는 아이템 수
+	int auctionDurationSec;      // 등록 기간
+	int auctionMaxListings;      // 1인 등록 수
+	int auctionMinPrice;
+	int auctionMaxPrice;
+	int auctionPageSize;         // 목록 한 쪽
+	int auctionExpireCheckSec;   // 만료 검사 주기
+};
+
+// EconomyTable의 유일한 행
+constexpr int ECONOMY_ID = 1001;
 
 struct SkillData
 {
@@ -178,8 +236,25 @@ struct WorldData
 class DataManager
 {
 public:
-	// Common/DataTable/PlayerStatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
+	// Common/DataTable/PlayerStatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv, EconomyTable.csv, DropTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
 	static bool Init();
+
+	// 몬스터 한 종류의 DropTable 행들. 드랍이 없는 몬스터는 빈 목록
+	static const std::vector<DropData>& GetDrops(int monsterId)
+	{
+		static const std::vector<DropData> kEmpty;
+		auto it = _dropTable.find(monsterId);
+		return it != _dropTable.end() ? it->second : kEmpty;
+	}
+
+	// 처치 1회의 드랍 롤: 그 몬스터의 모든 행을 각각 독립으로 굴려 나온 것을 out에 더한다 (D-157).
+	static void RollDrops(int monsterId, std::vector<DropResult>& out);
+
+	// 시험용(--roll-drops <kills>): 몬스터마다 kills번 굴린 드랍 빈도를 기대값과 함께 로그에 남긴다.
+	static void LogDropRollTest(int kills);
+
+	// Init이 성공한 뒤에만 부른다.
+	static const EconomyData& GetEconomy() { return _economy; }
 
 	// 가입 시 지급하는 기본 장비(ItemTable.Starter = 1), 슬롯 순서
 	static const std::vector<const ItemData*>& GetStarterItems() { return _starterItems; }
@@ -243,5 +318,7 @@ private:
 	static inline std::unordered_map<std::string, WorldData> _worldTable; // key = mapName
 	static inline std::unordered_map<int, ItemData> _itemTable;
 	static inline std::vector<const ItemData*> _starterItems;
+	static inline std::unordered_map<int, std::vector<DropData>> _dropTable; // key = monsterId
+	static inline EconomyData _economy{};
 	static inline std::unordered_map<int, int> _skillBySlot; // key = (int)WeaponType*100 + slot -> skillId (플레이어 무기 타입만)
 };

@@ -58,6 +58,12 @@ int main(int argc, char* argv[])
 		LOG_ERROR("Data", "WorldTable에 맵 '{}' 행이 없어 서버를 시작할 수 없습니다.", ROOM_MAP_NAME);
 		exit(-1);
 	}
+	// 시험용: 드랍 롤 빈도만 확인하고 끝낸다 (--roll-drops <kills>)
+	if (GServerConfig.rollDropsKills > 0) {
+		DataManager::LogDropRollTest(GServerConfig.rollDropsKills);
+		Logger::Shutdown();
+		return 0;
+	}
 
 	shared_ptr<ServerService> service = make_shared<ServerService>(
 		NetAddress(Utils::UTF8ToWString(GServerConfig.bindIp), (USHORT)GServerConfig.port),

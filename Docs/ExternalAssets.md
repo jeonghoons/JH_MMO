@@ -24,6 +24,7 @@
 |---|---|---|---|
 | `Content/UI/Icons/Skill/T_Icon_Skill_Sword_1` | `UEClient/JM/SourceArt/Icons/Original/SwordSkill.png` | VARCO 생성(사용자 제작) | 2026-10-28. 그려진 체크무늬 배경을 투명 처리·256px 축소한 `SourceArt/Icons/T_Icon_Skill_Sword_1.png`를 가져옴. 2026-11-10 `Character/Greystone/Icons/T_Greystone_Icon_Skill1`에서 이름·위치 변경(Greystone과 무관) |
 | `Content/UI/Icons/Skill/T_Icon_Skill_Bow_1` | `UEClient/JM/SourceArt/Icons/Original/ArrowSkill.png` | 위와 같음 | 위와 같음(원본 `T_Icon_Skill_Bow_1.png`, 옛 경로 `Character/Sparrow/Icons/T_Sparrow_Icon_Skill1`) |
+| `Content/UI/Icons/Item/T_Icon_Potion_Hp` | `UEClient/JM/SourceArt/Icons/T_Icon_Potion_Hp.png` | Claude가 Python(PIL)으로 그린 임시 그림 | 2026-11-16 A3.2. HP 물약(ItemTable 8001) 임시 아이콘, 256px 투명 배경. 콘텐츠 동결(D-147) 중이라 임시 허용 — 영상 준비 때 교체 판단 |
 
 ## 엔진 템플릿에서 가져온 에셋 (git 포함)
 

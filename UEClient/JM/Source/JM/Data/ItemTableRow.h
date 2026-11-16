@@ -7,7 +7,7 @@
 #include "Engine/Texture2D.h"
 #include "ItemTableRow.generated.h"
 
-// Common/DataTable/SkillTable.csv·ItemTable.csv 의 enum 값과 이름이 같아야 한다. (서버 ServerData.h 의 WeaponType / ItemSlot / ItemTier / ItemGrade)
+// Common/DataTable/SkillTable.csv·ItemTable.csv 의 enum 값과 이름이 같아야 한다. (서버 ServerData.h 의 WeaponType / ItemSlot / ItemTier / ItemGrade / ItemUseEffect)
 
 // 스킬이 종속되는 무기 타입. 플레이어는 장착 무기가 정하고(비면 Unarmed), None은 무기가 아닌 아이템에만 쓴다.
 UENUM(BlueprintType)
@@ -21,6 +21,7 @@ enum class EWeaponType : uint8
 };
 
 // 장비 슬롯. 번호 = itemId 첫째 자리 = Protocol::EquipPart (MC3.2)
+// None = 장착할 수 없는 아이템(소비 아이템, itemId 첫째 자리 8 — A3.2). 에디터 선택 목록에서만 숨긴다.
 UENUM(BlueprintType)
 enum class EEquipSlot : uint8
 {
@@ -42,6 +43,14 @@ enum class EItemTier : uint8
 	Cloth = 1,
 	Leather = 2,
 	Plate = 3
+};
+
+// 소비 아이템의 사용 효과 (A3.2). 효과 적용은 서버가 하고, 클라이언트는 표시(쓸 수 있는 아이템인지)에만 쓴다.
+UENUM(BlueprintType)
+enum class EItemUseEffect : uint8
+{
+	None,
+	HealHp   // UseValue만큼 HP 회복
 };
 
 // 등급. 데이터·아이콘 테두리에만 쓰고 외형은 티어가 정한다.
@@ -70,7 +79,7 @@ struct FBodyMaskParams
 };
 
 // Common/DataTable/ItemTable.csv 의 한 행. 컬럼명은 CSV 헤더와 1:1이다.
-// RowName = itemId 문자열(슬롯 1자리 + 티어 1자리 + 일련번호 2자리, 예: 6101 = 천 한손검).
+// RowName = itemId 문자열(슬롯 1자리 + 티어 1자리 + 일련번호 2자리, 예: 6101 = 천 한손검, 8001 = HP 물약 — Slot·Tier None).
 // 스탯 수치의 권위는 서버이며, 클라이언트는 외형·UI에만 쓴다.
 // 외형 열(AttachSocket~HideHair)은 jm_kit.item_table.export가 items.json·kit_profiles.json에서 생성한다 — CSV를 손으로 고치지 않는다(MC4.1).
 USTRUCT(BlueprintType)
@@ -85,6 +94,12 @@ struct FItemTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 BonusAttackDamage = 0;                  // 무기만 (표시용, 계산은 서버)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 BonusMaxHp = 0;                         // 방어구만 (표시용, 계산은 서버)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 Starter = 0;                            // 1 = 가입 시 기본 장비 (지급은 서버, MC3.3)
+	// A3.2 (Docs/DESIGN_ITEMS_TRADE.md) — 검사·적용은 서버, 클라이언트는 표시용
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 RequiredLevel = 1;                      // 장착(소비 아이템은 사용)에 필요한 레벨
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 MaxStack = 1;                           // 한 칸에 겹치는 최대 수량. 장비는 1
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) EItemUseEffect UseEffect = EItemUseEffect::None;   // 장비는 None
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 UseValue = 0;                           // HealHp 회복량
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 UseCooldownMs = 0;                      // 같은 아이템 종류의 재사용 시간
 
 	// 이하 클라이언트 전용(서버 로더는 읽지 않음)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) FText DisplayName;

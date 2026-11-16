@@ -180,7 +180,7 @@ bool ServerConfig::Load(int argc, char* argv[], std::string& err)
 {
 	// 명령줄을 먼저 훑어 설정 파일 경로를 알아내고, 덮어쓸 값은 마지막에 적용한다.
 	std::string configPath = DEFAULT_CONFIG_PATH;
-	std::string cliPort;
+	std::string cliPort, cliRollDrops;
 	for (int i = 1; i < argc; ++i)
 	{
 		const std::string a = argv[i];
@@ -189,9 +189,14 @@ bool ServerConfig::Load(int argc, char* argv[], std::string& err)
 			if (i + 1 >= argc) { err = "command line: " + a + " needs a value"; return false; }
 			(a == "--config" ? configPath : cliPort) = argv[++i];
 		}
+		else if (a == "--roll-drops")
+		{
+			if (i + 1 >= argc) { err = "command line: " + a + " needs a value"; return false; }
+			cliRollDrops = argv[++i];
+		}
 		else
 		{
-			err = "command line: unknown argument '" + a + "' (use --config <path>, --port <n>)";
+			err = "command line: unknown argument '" + a + "' (use --config <path>, --port <n>, --roll-drops <kills>)";
 			return false;
 		}
 	}
@@ -228,6 +233,10 @@ bool ServerConfig::Load(int argc, char* argv[], std::string& err)
 	{
 		if (!ParseInt(cliPort, 1, 65535, port)) { err = "command line: --port must be 1~65535: '" + cliPort + "'"; return false; }
 		portFrom = "cli --port";
+	}
+	if (!cliRollDrops.empty())
+	{
+		if (!ParseInt(cliRollDrops, 1, 10000000, rollDropsKills)) { err = "command line: --roll-drops must be 1~10000000: '" + cliRollDrops + "'"; return false; }
 	}
 	return true;
 }

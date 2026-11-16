@@ -2,7 +2,7 @@
 
 지금 유효한 결정만 주제별로 한 줄씩 모은 요약입니다. 평소에는 이 파일만 읽습니다.
 원본 로그 [DECISIONS.md](DECISIONS.md)(날짜|결정|이유 표)는 그대로 두며, 근거·세부·번복 이력은 원본에서 날짜와 ID로 찾습니다.
-ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결정은 원본 표 끝에 추가하고, 다음 번호로 여기에도 한 줄 추가합니다.
+ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결정은 원본 표 끝에 추가하고, 다음 번호로 여기에도 한 줄 추가합니다. 단, 2026-11-16의 두 행(A2.5 = D-150·D-151, A3.1 = D-152~D-159)은 한 행에 여러 ID를 적어 그 뒤로는 순번과 ID가 다릅니다 — 새 번호는 **이 파일에서 가장 큰 번호 + 1**로 매기고 원본 행에 ID를 함께 적습니다.
 `(일부: …)` = 원본 행 중 유효한 부분만 남김. 여러 행을 합친 줄은 ID를 모두 적습니다.
 
 ## 원칙·범위
@@ -34,7 +34,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 
 - **D-016** (2026-10-20) DB는 SQL Server Express(ODBC) 유지, 설정 외부화·README 설치 절차로 재현성 보완
 - **D-150** (2026-11-16) DB 스키마 = `Schema_Version` + `migrations/NNNN_*.sql`(한 트랜잭션·재실행 안전·자기 버전 행 INSERT) + `migrate.ps1`(백업 후 순번대로) + 서버 시작 검사(`DB_SCHEMA_VERSION`과 다르면 시작 거부, 서버는 마이그레이션을 실행하지 않음). SQL은 저장 프로시저 없이 인라인, 문자열은 `Server/Server/DB/DbQueries.h`에만. 스키마를 바꾸면 마이그레이션 + `schema.sql` + `DB_SCHEMA_VERSION`을 함께
-- **D-151** (2026-11-16) 진행 상황(레벨·경험치·HP·골드) 저장 = `DB_PlayerProgress` 스냅숏이 DB 값과 다를 때만, 주기(`ServerConfig` `PlayerSaveIntervalSec` 60초, id로 분산) + 퇴장, 플레이어당 동시 1건(`Player::SaveState`), 더미 봇 제외. 로그인: DB 레벨로 `PlayerStatTable` 조회(없으면 `SERVER_ERROR`), HP = DB 값을 최대치 안으로(저장 이력 없으면 최대치, 0 이하면 부활 규칙 값). 죽은 채 끊으면 HP = 최대 × `ReviveHpPercent`로 저장. 중복 접속 차단은 A2.7, 위치 저장 없음
+- **D-151** (2026-11-16) 진행 상황(레벨·경험치·HP·골드 — 골드는 A3.3부터 제외, D-152) 저장 = `DB_PlayerProgress` 스냅숏이 DB 값과 다를 때만, 주기(`ServerConfig` `PlayerSaveIntervalSec` 60초, id로 분산) + 퇴장, 플레이어당 동시 1건(`Player::SaveState`), 더미 봇 제외. 로그인: DB 레벨로 `PlayerStatTable` 조회(없으면 `SERVER_ERROR`), HP = DB 값을 최대치 안으로(저장 이력 없으면 최대치, 0 이하면 부활 규칙 값). 죽은 채 끊으면 HP = 최대 × `ReviveHpPercent`로 저장. 중복 접속 차단은 A2.7, 위치 저장 없음
 - **D-048** (2026-10-30) `Server/ServerCore` 정적 lib(Network/Job/DB/Utils) + GameServer 도메인 폴더. Core는 Protocol·게임 헤더 금지, 가상 훅·`SessionFactory`로 연결, 같은 파일명 금지, `#include`는 프로젝트 루트 기준 (일부: 봇의 Core 재사용은 D-051로 대체)
 - **D-044** (2026-10-28) DummyClient 유지 = LoadTest와 같은 봇 엔진의 부하 테스트 시각화 프런트엔드 — 검증은 콘솔 LoadTest, 시연은 DummyClient
 - **D-051** (2026-10-30) 봇 네트워크는 논블로킹 + WSAPoll 루프를 `Server/BotEngine`(정적 lib)으로, LoadTest·DummyClient 공유
@@ -93,12 +93,23 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-116** (2026-11-07) 장착 빈도 제한 캐릭터당 200ms `MovementTable.ServerEquipMinIntervalMs`, 스왑 잠금 열은 `ServerWeaponSwapLockMs` — 서버 열은 `Server` 접두사
 - **D-117** (2026-11-07) 무기 해제(itemId 0)도 스왑 잠금, 스왑 잠금 중 방어구 교체는 허용(시전 애니메이션 중만 `ACTING` 거부)
 - **D-114·D-115** (2026-11-07) 거부는 본인 전용 `SC_CHANGE_EQUIP_RESULT`(`EquipResult`), 클라가 코드별 문구를 `ShowSystemMessage`로. `SC_CHANGE_EQUIP`은 성공 방송 전용
-- **D-067·D-114** (2026-11-07) 개발용 장비창 `WBP_Equipment`는 미제작, 콘솔 `Equip <part> <itemId>`가 대신(MC4.4 장비창이 생기면 삭제). 보유·레벨 제한은 A3 (일부: 기본 장비 지급은 D-118)
-- **D-067** (2026-11-04) 장비만 DB 저장(`Player_Equipped`), `ItemDbId`는 A3 전 0, 캐릭터 이름 = 로그인 ID
+- **D-067·D-114** (2026-11-07) 개발용 장비창 `WBP_Equipment`는 미제작, 콘솔 `Equip <part> <itemId>`가 대신(MC4.4 장비창이 생기면 삭제). 보유·레벨 제한은 A3 — 설계 확정 D-156(장비창 목록 = 인벤토리) (일부: 기본 장비 지급은 D-118)
+- **D-067** (2026-11-04) 장비만 DB 저장(`Player_Equipped`), `ItemDbId`는 A3 전 0, 캐릭터 이름 = 로그인 ID — A3.3부터 `Player_Item`(D-153)으로 대체
 - **D-119** (2026-11-07) 로그인 HP = DB `Hp`를 장비 반영 최대치 안으로(D-151), `Player_Equipped` 슬롯별 검증 후 `RecalcStat`, 체형이 아니면 `LOGIN_RESULT_SERVER_ERROR` (일부: 슬롯 6 → 7칸)
-- **D-120** (2026-11-07) 장비 저장 = 변경 즉시 7칸 스냅숏(한 트랜잭션), 플레이어당 동시 1건·진행 중 변경은 합침, 실패는 다음 변경·퇴장 때 재시도 — 측정: CPU +2%p 이내 (일부: 6 → 7칸)
+- **D-120** (2026-11-07) 장비 저장 = 변경 즉시 7칸 스냅숏(한 트랜잭션), 플레이어당 동시 1건·진행 중 변경은 합침, 실패는 다음 변경·퇴장 때 재시도 — 측정: CPU +2%p 이내 (일부: 6 → 7칸) — A3.3부터 DB 성공 뒤 반영(D-153)으로 대체
 - **D-130** (2026-11-09) 방패 = 보조손 슬롯 `OFFHAND`(EquipPart 7) 정적 메시, 막기 동작·판정 없음, 스탯 효과 지금 0, 한손검 전용(아니면 거부, 다른 무기로 바꾸면 서버가 자동 해제)
 - **D-139** (2026-11-10) `EQUIP_RESULT_NEED_SWORD`(8), 자동 해제는 보조손 해제 패킷 먼저·무기 변경 다음, 로그인 때 어긋나면 보조손만 비움, 7101 천·7301 판금 방패(보너스 0), Sword끼리 교체는 방패 유지, 해제는 언제나 허용
+
+## 아이템·인벤토리·거래 (A3.1 설계 — 구현은 A3.2 이후, 상세 `DESIGN_ITEMS_TRADE.md`)
+
+- **D-152** (2026-11-16) MS1 골드 출처 = 몬스터 골드 드랍(`DropTable` `ItemId` 0) + 개발 지급 명령(`ServerConfig` `[Debug] DevCommands`, 기본 꺼짐). 골드는 `Player_Info.Gold`를 트랜잭션 안에서 증감, 진행 상황 스냅숏에서 제외(A3.3부터)
+- **D-153** (2026-11-16) 아이템 한 개(스택 한 묶음) = `Player_Item` 한 행(`ItemDbId` IDENTITY, `OwnerId`·`Location` 인벤토리/장착/경매 보관/수령함). 소유가 바뀌는 동작은 Room 검증 → DB 한 트랜잭션 → 성공 뒤 메모리 반영, 플레이어당 동시 1건(진행 중 요청은 `BUSY`). `Player_Equipped`·장비 스냅숏 저장은 A3.3에서 폐지
+- **D-154** (2026-11-16) 아이템 범위 = 장비 + 소비 아이템(HP 물약 1종, 즉시 회복 + 재사용 시간, 스택). 액티브 칸에 아이템 종류를 올리고 배치를 서버에 저장(`Player_QuickSlot`), 칸에 무기 스킬이 있으면 스킬 우선
+- **D-155** (2026-11-16) 인벤토리 = 고정 칸(`EconomyTable.InventorySlots` 30), 장착품은 칸 밖(해제 시 빈 칸 없으면 거부). 버리기 = 바닥에 떨어뜨리기(소유권 없는 드랍). 기본 장비도 거래·경매·버리기 허용(귀속 열 없음)
+- **D-156** (2026-11-16) 장착 = `CS_CHANGE_EQUIP`의 `item_db_id` 기준, 보유 검사 + `ItemTable.RequiredLevel` 열 하나(티어 제한은 이 값으로). 장비창(MC4.4) 목록 출처 = 인벤토리, 시험용 아이템은 개발 지급 명령
+- **D-157** (2026-11-16) `DropTable` = 행마다 독립 확률(몬스터·아이템·만분율·수량 범위). 소유권 = 막타, `DropOwnerSec` 뒤 개방. 줍기 = F 키로 가장 가까운 것. 바닥 아이템은 메모리에만
+- **D-158** (2026-11-16) 중복 접속 = 기존 접속을 끊고 새 로그인 허용(마지막 저장이 끝난 뒤 접속 목록에서 제거, 그때까지 새 로그인 대기). 1:1 거래 = 아이템 + 골드, 거리 이탈·사망·접속 해제·시간 초과 시 취소, 잠금 중 제시 변경 거부·잠금을 풀면 양쪽 잠금·확정 해제. 제시에 수량을 적어 스택 일부만 올릴 수 있음(인벤토리 안 나누기·합치기는 없음)
+- **D-159** (2026-11-16) 경매 = 즉시 구매만, 수수료 없음(1인 등록 수 제한), 어디서나 열기, 대금·구매품·만료·취소 반환은 수령함(`Player_Mail`)에서 직접 수령. 등록 때 수량을 적어 스택 일부만 올릴 수 있고 구매는 등록 단위 통째
 
 ## 캐릭터·아트·장비 제작
 
@@ -155,7 +166,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-039** (2026-10-28) 인게임 `BP_GameMode`의 부모 = `AIngameGameModeBase`, `HUDWidgetClass = WBP_CombatHud`
 - **D-050** (2026-10-30) 시스템 메시지 = 공용 모달 `WBP_SystemMessage`(`UJMUIManager::ShowSystemMessage`, Notice/Waiting, FIFO), 입장 전 에셋 미리 로드
 - **D-138** (2026-11-10) 스킬 아이콘 `Content/UI/Icons/Skill/T_Icon_Skill_<WeaponType>_<Slot>`, 원본 `SourceArt/Icons/`, VARCO 제작, Greystone·Sparrow 자산은 이펙트만 사용
-- **D-148** (2026-11-16) HUD = HP 바·수치 + 내 이름·레벨(`ObjectInfo.name`·`level`) + EXP 바(보상 전까지 0) + 액티브 칸 5개(빈 칸/스킬/아이템 구조, 지금은 칸 N = 무기 스킬 슬롯 N, 숫자키 1~5, 아이템 넣기·서버 저장은 소비 아이템이 생길 때). 골드는 인벤토리에서. 경험치·레벨·골드 보상(A2.3b)은 마일스톤 2 뒤
+- **D-148** (2026-11-16) HUD = HP 바·수치 + 내 이름·레벨(`ObjectInfo.name`·`level`) + EXP 바(보상 전까지 0) + 액티브 칸 5개(빈 칸/스킬/아이템 구조, 지금은 칸 N = 무기 스킬 슬롯 N, 숫자키 1~5, 아이템 넣기·서버 저장은 A3.6, D-154). 골드는 인벤토리에서. 경험치·레벨 보상(A2.3b)은 마일스톤 2 뒤(골드는 드랍으로 먼저, D-152)
 
 ## 도구·엔진·외부 서비스
 

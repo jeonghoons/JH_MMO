@@ -4,6 +4,7 @@
   AttachSocket·AttachM·AttachF = 머리·무기의 부착 본과 체형별 상대 변환(garment.static_attachment 계산 결과 — 투구 배율은 체형별 머리 상자 기준이라 런타임에 계산하지 않음),
   Mask = 몸 마스크 파라미터(kit_profiles.json 슬롯 기본값 + items.json 아이템 mask), HideHair = attach.hide_parts에 hair가 있으면 1.
   items.json 아이템 ↔ CSV 행은 메시 경로(MeshM = out{M}, StaticMesh = source)로 맞춘다. 맞는 아이템이 없는 행이 있으면 실패.
+  Slot이 None인 행(장착할 수 없는 아이템 — 소비 아이템, A3.2)은 메시가 없으므로 건너뛴다(외형 열은 손으로 넣은 기본값 그대로).
 - BodyTable: kit_profiles.json bodies → Name 1(M)·2(F), Leader·Eyes·Teeth·Hair·BodyMaterial(MI_Body_<M|F>)·AnimClass,
   kit_profiles.json montages(hit·death, 공용 1벌) → HitMontage·DeathMontage(MC4.2, DECISIONS 2026-11-08). 비면 빈 칸.
 
@@ -106,9 +107,12 @@ def export_items(write=True):
             header.append(c)
     col = {c: i for i, c in enumerate(header)}
     by_mesh = _item_by_mesh()
-    changed, missing = [], []
+    changed, missing, skipped = [], [], []
     for r in rows:
         r += [""] * (len(header) - len(r))
+        if r[col["Slot"]] == "None":
+            skipped.append(r[col["Name"]])
+            continue
         mesh = _pkg(r[col["MeshM"]]) or _pkg(r[col["StaticMesh"]])
         key = by_mesh.get(mesh)
         if key is None:
@@ -122,7 +126,7 @@ def export_items(write=True):
         raise RuntimeError(f"items.json에 맞는 아이템이 없는 행: {missing}")
     if write and changed:
         _write(path, header, rows, bom, eol)
-    return {"csv": path, "rows": len(rows), "changed": changed, "written": bool(write and changed)}
+    return {"csv": path, "rows": len(rows), "skipped": skipped, "changed": changed, "written": bool(write and changed)}
 
 
 def export_bodies(write=True):

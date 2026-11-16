@@ -57,7 +57,7 @@ Server 코드는 별도 접두사 규칙 없이 기능 위주로 클래스/함�
 
 ## 서버 설정 (ServerConfig.ini)
 
-운영 값(포트, 바인드 IP, IOCP 워커 수, DB 연결 문자열·연결 수·진행 상황 주기 저장 간격 `PlayerSaveIntervalSec`, 로그 레벨·폴더)은 `Data/ServerConfig`(`GServerConfig`)가 시작할 때 읽습니다. 게임 수치는 여기 두지 않고 DataTable에 둡니다. 우선순위(뒤가 앞을 덮어씀): 코드 기본값 → `Server/Server/ServerConfig.ini`(커밋) → 같은 폴더의 `ServerConfig.local.ini`(있으면, 커밋하지 않음) → 환경변수 `JH_DB_CONNECTION` → 명령줄 `--config <경로>`·`--port <n>`. 설정 파일이 없거나 모르는 키·잘못된 값이 있으면 줄 번호와 이유를 출력하고 시작을 중단합니다. 시작 로그의 `[Config]` 줄에 적용된 값과 출처가 찍힙니다(`PWD`는 가림). 다른 PC에서 봇을 붙이려면 `BindIp=0.0.0.0`. 부하 시험용 `[Debug]`: `DummySpawnZone=x,y,r[,n];...`(더미 봇 로그인을 들어오는 순서대로 앞 구역부터 n명씩 원 안에 배치 = 핫존·시야 경계 시험, 비우면 맵 전체 무작위), `ViewAudit=true`(방마다 1초에 한 번 플레이어 시야 목록을 실제 거리와 비교 — 거리 ≤ `WorldTable.ViewRadiusCm`인데 없으면 누락, > R+`ViewHysteresisCm`인데 있으면 초과, `[metrics] viewAudit(must/missing mustNot/extra)` 누적과 처음 10건 WARN 로그. 전수 검사라 부하 측정 때는 끈다). 새 키는 `ServerConfig.cpp`의 `ApplyFile`과 `Print`에 추가하고 `ServerConfig.ini`에도 적습니다. INI 파서는 ServerCore `Utils/ConfigFile`(값 뒤 주석은 지원하지 않음).
+운영 값(포트, 바인드 IP, IOCP 워커 수, DB 연결 문자열·연결 수·진행 상황 주기 저장 간격 `PlayerSaveIntervalSec`, 로그 레벨·폴더)은 `Data/ServerConfig`(`GServerConfig`)가 시작할 때 읽습니다. 게임 수치는 여기 두지 않고 DataTable에 둡니다. 우선순위(뒤가 앞을 덮어씀): 코드 기본값 → `Server/Server/ServerConfig.ini`(커밋) → 같은 폴더의 `ServerConfig.local.ini`(있으면, 커밋하지 않음) → 환경변수 `JH_DB_CONNECTION` → 명령줄 `--config <경로>`·`--port <n>`. 시험용 `--roll-drops <횟수>`는 DataTable만 읽고 드랍 롤 빈도를 로그에 남긴 뒤 종료합니다(DB·포트를 열지 않음, 잘못된 CSV 시험에도 씀). 설정 파일이 없거나 모르는 키·잘못된 값이 있으면 줄 번호와 이유를 출력하고 시작을 중단합니다. 시작 로그의 `[Config]` 줄에 적용된 값과 출처가 찍힙니다(`PWD`는 가림). 다른 PC에서 봇을 붙이려면 `BindIp=0.0.0.0`. 부하 시험용 `[Debug]`: `DummySpawnZone=x,y,r[,n];...`(더미 봇 로그인을 들어오는 순서대로 앞 구역부터 n명씩 원 안에 배치 = 핫존·시야 경계 시험, 비우면 맵 전체 무작위), `ViewAudit=true`(방마다 1초에 한 번 플레이어 시야 목록을 실제 거리와 비교 — 거리 ≤ `WorldTable.ViewRadiusCm`인데 없으면 누락, > R+`ViewHysteresisCm`인데 있으면 초과, `[metrics] viewAudit(must/missing mustNot/extra)` 누적과 처음 10건 WARN 로그. 전수 검사라 부하 측정 때는 끈다). 새 키는 `ServerConfig.cpp`의 `ApplyFile`과 `Print`에 추가하고 `ServerConfig.ini`에도 적습니다. INI 파서는 ServerCore `Utils/ConfigFile`(값 뒤 주석은 지원하지 않음).
 
 시작 순서 주의: 시작 실패 시 `exit()`가 전역 소멸자에서 끝나지 않는 스레드(`GTimer`, DB 작업 스레드)를 join하며 멈추므로, 실패할 수 있는 단계(설정 → DataTable → 포트 → DB 연결)를 스레드를 만드는 단계보다 먼저 둡니다.
 
@@ -69,7 +69,7 @@ Server 코드는 별도 접두사 규칙 없이 기능 위주로 클래스/함�
 
 ## 데이터 테이블 (CSV 로더)
 
-서버는 시작할 때 `Common/DataTable/*.csv`를 읽어 스탯/스킬/몬스터/이동 검증/시야(AOI) 수치를 로드합니다(규약·컬럼: [Docs/DESIGN_DATA.md](../Docs/DESIGN_DATA.md)). 애셋 참조 컬럼은 서버가 무시합니다. CSV 형식 오류·중복 키·없는 참조가 있으면 서버가 시작을 중단하며, 폴더는 환경변수 `JH_DATA_DIR` 또는 `../../Common/DataTable`에서 찾습니다. 새 테이블은 `DataManager::Init()`에 같은 방식으로 추가합니다.
+서버는 시작할 때 `Common/DataTable/*.csv`를 읽어 스탯/스킬/몬스터/아이템/드랍(`DropTable`)/경제(`EconomyTable`)/이동 검증/시야(AOI) 수치를 로드합니다(규약·컬럼: [Docs/DESIGN_DATA.md](../Docs/DESIGN_DATA.md)). 애셋 참조 컬럼은 서버가 무시합니다. CSV 형식 오류·중복 키·없는 참조가 있으면 서버가 시작을 중단하며, 폴더는 환경변수 `JH_DATA_DIR` 또는 `../../Common/DataTable`에서 찾습니다. 새 테이블은 `DataManager::Init()`에 같은 방식으로 추가합니다.
 
 ## 설계 문서
 

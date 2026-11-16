@@ -5,7 +5,7 @@
 // 우선순위(뒤가 앞을 덮어씀): 코드 기본값 → ServerConfig.ini → ServerConfig.local.ini(있으면) → 환경변수 → 명령줄.
 //   설정 파일: --config <경로>, 없으면 작업 폴더의 ServerConfig.ini (없으면 시작 중단)
 //   환경변수: JH_DB_CONNECTION (DB 연결 문자열 — 비밀번호가 필요한 환경은 파일 대신 여기로 준다)
-//   명령줄:   --port <n>
+//   명령줄:   --port <n>, --roll-drops <kills>(시험용 — DataTable을 읽고 드랍 롤 빈도만 로그에 남긴 뒤 종료, A3.2)
 // 값이 틀리거나 모르는 키가 있으면 Load가 false를 돌려주고 서버는 시작하지 않는다.
 
 struct ServerConfig
@@ -30,6 +30,9 @@ struct ServerConfig
 	struct DummyZone { float x = 0, y = 0, r = 0; int count = 0; };   // count 0 = 제한 없음
 	std::vector<DummyZone> dummyZones;
 	bool viewAudit = false;         // 방마다 1초에 한 번 시야 목록을 실제 거리(WorldTable.ViewRadiusCm/ViewHysteresisCm)와 비교
+
+	// 명령줄 --roll-drops <kills>: 0보다 크면 DataTable 로드 뒤 몬스터마다 그 횟수만큼 드랍을 굴려 빈도를 찍고 종료한다(DB·포트를 열지 않음)
+	int rollDropsKills = 0;
 
 	// 값마다 어디서 왔는지(default / 파일 경로 / env / cli). 시작 로그에 함께 출력한다.
 	std::string bindIpFrom = "default", portFrom = "default", workerThreadsFrom = "default";

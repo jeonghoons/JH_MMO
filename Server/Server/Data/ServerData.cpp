@@ -2,10 +2,16 @@
 #include "Data/ServerData.h"
 #include "Utils/CsvFile.h"
 #include <filesystem>
+#include <map>
+#include <set>
+#include <unordered_set>
 
 namespace
 {
 	namespace fs = std::filesystem;
+
+	// 장착할 수 없는 아이템(Slot None)의 itemId 첫째 자리 (A3.2)
+	constexpr int ITEM_ID_PREFIX_NO_SLOT = 8;
 
 	// Common/DataTable 위치를 찾는다. 환경변수 JH_DATA_DIR가 있으면 그것을 쓰고,
 	// 없으면 서버 작업 디렉터리(Server/Server) 기준 상대 경로 후보를 차례로 확인한다.
@@ -56,8 +62,10 @@ namespace
 		return false;
 	}
 
+	// None = 장착할 수 없는 아이템(소비 아이템, A3.2)
 	bool ParseItemSlot(const std::string& text, ItemSlot& out)
 	{
+		if (text == "None") { out = ItemSlot::None; return true; }
 		if (text == "Head") { out = ItemSlot::Head; return true; }
 		if (text == "Top") { out = ItemSlot::Top; return true; }
 		if (text == "Bottom") { out = ItemSlot::Bottom; return true; }
@@ -70,6 +78,7 @@ namespace
 
 	bool ParseItemTier(const std::string& text, ItemTier& out)
 	{
+		if (text == "None") { out = ItemTier::None; return true; }
 		if (text == "Cloth") { out = ItemTier::Cloth; return true; }
 		if (text == "Leather") { out = ItemTier::Leather; return true; }
 		if (text == "Plate") { out = ItemTier::Plate; return true; }
@@ -92,6 +101,13 @@ namespace
 		return true;
 	}
 
+	bool ParseItemUseEffect(const std::string& text, ItemUseEffect& out)
+	{
+		if (text == "None") { out = ItemUseEffect::None; return true; }
+		if (text == "HealHp") { out = ItemUseEffect::HealHp; return true; }
+		return false;
+	}
+
 	bool ParseItemGrade(const std::string& text, ItemGrade& out)
 	{
 		if (text == "Common") { out = ItemGrade::Common; return true; }
@@ -110,6 +126,8 @@ bool DataManager::Init()
 	_itemTable.clear();
 	_worldTable.clear();
 	_skillBySlot.clear();
+	_dropTable.clear();
+	_economy = EconomyData{};
 
 	fs::path dir;
 	if (!FindDataDir(dir))
@@ -297,21 +315,25 @@ bool DataManager::Init()
 		_monsterTable[d.templateId] = d;
 	}
 
-	// ItemTable: Name(=itemId), Slot, Grade, Tier, WeaponType, BonusAttackDamage, BonusMaxHp, Starter
-	// (DisplayName, Icon, MeshM, MeshF, StaticMesh 는 클라이언트 전용이라 읽지 않는다)
+	// ItemTable: Name(=itemId), Slot, Grade, Tier, WeaponType, BonusAttackDamage, BonusMaxHp, Starter,
+	//            RequiredLevel, MaxStack, UseEffect, UseValue, UseCooldownMs
+	// (DisplayName, Icon, MeshM, MeshF, StaticMesh 등 외형 열은 클라이언트 전용이라 읽지 않는다)
 	CsvFile item;
 	if (!item.Load((dir / "ItemTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
 	for (const CsvRow& row : item.Rows())
 	{
 		ItemData d{};
-		std::string slot, grade, tier, weapon;
+		std::string slot, grade, tier, weapon, useEffect;
 		int starter = 0;
 		if (!row.GetInt("Name", d.itemId, err) || !row.GetString("Slot", slot, err) ||
 			!row.GetString("Grade", grade, err) || !row.GetString("Tier", tier, err) ||
 			!row.GetString("WeaponType", weapon, err) ||
 			!row.GetInt("BonusAttackDamage", d.bonusAttackDamage, err) || !row.GetInt("BonusMaxHp", d.bonusMaxHp, err) ||
-			!row.GetInt("Starter", starter, err))
+			!row.GetInt("Starter", starter, err) ||
+			!row.GetInt("RequiredLevel", d.requiredLevel, err) || !row.GetInt("MaxStack", d.maxStack, err) ||
+			!row.GetString("UseEffect", useEffect, err) || !row.GetInt("UseValue", d.useValue, err) ||
+			!row.GetInt("UseCooldownMs", d.useCooldownMs, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
@@ -328,7 +350,7 @@ bool DataManager::Init()
 
 		if (!ParseItemSlot(slot, d.slot))
 		{
-			LOG_ERROR("Data", "{}Slot '{}' 는 Head/Top/Bottom/Gloves/Boots/Weapon/Offhand 중 하나여야 합니다", where, slot);
+			LOG_ERROR("Data", "{}Slot '{}' 는 None/Head/Top/Bottom/Gloves/Boots/Weapon/Offhand 중 하나여야 합니다", where, slot);
 			return false;
 		}
 		if (!ParseItemGrade(grade, d.grade))
@@ -338,7 +360,7 @@ bool DataManager::Init()
 		}
 		if (!ParseItemTier(tier, d.tier))
 		{
-			LOG_ERROR("Data", "{}Tier '{}' 는 Cloth/Leather/Plate 중 하나여야 합니다", where, tier);
+			LOG_ERROR("Data", "{}Tier '{}' 는 None/Cloth/Leather/Plate 중 하나여야 합니다", where, tier);
 			return false;
 		}
 		if (!ParseWeaponType(weapon, d.weaponType))
@@ -346,12 +368,25 @@ bool DataManager::Init()
 			LOG_ERROR("Data", "{}WeaponType '{}' 를 알 수 없습니다", where, weapon);
 			return false;
 		}
-		// itemId = 슬롯(1자리) + 티어(1자리) + 일련번호(01~99)
-		if (d.itemId < 1000 || d.itemId > 9999 || d.itemId / 1000 != static_cast<int>(d.slot) ||
+		if (!ParseItemUseEffect(useEffect, d.useEffect))
+		{
+			LOG_ERROR("Data", "{}UseEffect '{}' 는 None/HealHp 중 하나여야 합니다", where, useEffect);
+			return false;
+		}
+		// 장비는 티어가 있고, 장착할 수 없는 아이템(Slot None)은 티어가 없다.
+		const bool isEquip = d.slot != ItemSlot::None;
+		if (isEquip != (d.tier != ItemTier::None))
+		{
+			LOG_ERROR("Data", "{}Slot None 과 Tier None 은 함께 써야 합니다 (Slot '{}', Tier '{}')", where, slot, tier);
+			return false;
+		}
+		// itemId = 슬롯(1자리) + 티어(1자리) + 일련번호(01~99). 장착할 수 없는 아이템은 첫째 자리 8, 둘째 자리 0
+		const int slotDigit = isEquip ? static_cast<int>(d.slot) : ITEM_ID_PREFIX_NO_SLOT;
+		if (d.itemId < 1000 || d.itemId > 9999 || d.itemId / 1000 != slotDigit ||
 			(d.itemId / 100) % 10 != static_cast<int>(d.tier) || d.itemId % 100 == 0)
 		{
 			LOG_ERROR("Data", "{}itemId {} 는 4자리 [슬롯 번호][티어 번호][일련번호 01~99] 여야 합니다 (Slot {} = {}, Tier {} = {})",
-				where, d.itemId, slot, static_cast<int>(d.slot), tier, static_cast<int>(d.tier));
+				where, d.itemId, slot, slotDigit, tier, static_cast<int>(d.tier));
 			return false;
 		}
 		// 무기는 Sword/Bow + 공격력 보너스만, 방어구는 None + 최대 HP 보너스만 (Docs/DESIGN_CHARACTER_EQUIPMENT.md)
@@ -369,6 +404,26 @@ bool DataManager::Init()
 		if (d.bonusAttackDamage < 0 || d.bonusMaxHp < 0 || (isWeapon && d.bonusMaxHp != 0) || (!isWeapon && d.bonusAttackDamage != 0))
 		{
 			LOG_ERROR("Data", "{}보너스가 허용 범위를 벗어났습니다 (음수 불가, 무기는 BonusAttackDamage만, 방어구는 BonusMaxHp만)", where);
+			return false;
+		}
+		if (d.requiredLevel < 1 || d.maxStack < 1 || d.maxStack > 9999 || d.useValue < 0 || d.useCooldownMs < 0 || d.useCooldownMs > 600000)
+		{
+			LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (RequiredLevel >= 1, 1 <= MaxStack <= 9999, UseValue >= 0, 0 <= UseCooldownMs <= 600000)", where);
+			return false;
+		}
+		if (isEquip && (d.maxStack != 1 || d.useEffect != ItemUseEffect::None))
+		{
+			LOG_ERROR("Data", "{}장비는 MaxStack 1, UseEffect None 이어야 합니다 (MaxStack {}, UseEffect '{}')", where, d.maxStack, useEffect);
+			return false;
+		}
+		if (!isEquip && (d.bonusAttackDamage != 0 || d.bonusMaxHp != 0 || d.starter || d.useEffect == ItemUseEffect::None))
+		{
+			LOG_ERROR("Data", "{}장착할 수 없는 아이템(Slot None)은 보너스 0, Starter 0 이고 UseEffect 가 None 이 아니어야 합니다", where);
+			return false;
+		}
+		if (d.useEffect == ItemUseEffect::HealHp && d.useValue <= 0)
+		{
+			LOG_ERROR("Data", "{}UseEffect HealHp 는 UseValue > 0 이어야 합니다 ({})", where, d.useValue);
 			return false;
 		}
 		if (_itemTable.count(d.itemId))
@@ -479,7 +534,153 @@ bool DataManager::Init()
 		_worldTable[d.mapName] = d;
 	}
 
-	LOG_INFO("Data", "로드 완료 (PlayerStatTable {}행, SkillTable {}행, MonsterTable {}행, ItemTable {}행, MovementTable {}행, WorldTable {}행)",
-		_playerStatTable.size(), _skillTable.size(), _monsterTable.size(), _itemTable.size(), _movementTable.size(), _worldTable.size());
+	// EconomyTable(서버 전용): 행 1001 하나. 열과 허용 범위는 아래 표 (Docs/DESIGN_ITEMS_TRADE.md "EconomyTable")
+	CsvFile economy;
+	if (!economy.Load((dir / "EconomyTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
+	{
+		EconomyData& e = _economy;
+		struct Column { const char* name; int* value; int min; int max; };
+		const Column columns[] = {
+			{ "InventorySlots", &e.inventorySlots, 1, 200 },
+			{ "ItemMinIntervalMs", &e.itemMinIntervalMs, 0, 5000 },
+			{ "GoldMax", &e.goldMax, 1, 2000000000 },
+			{ "DropOwnerSec", &e.dropOwnerSec, 0, 3600 },
+			{ "DropLifeSec", &e.dropLifeSec, 1, 3600 },
+			{ "DropScatterCm", &e.dropScatterCm, 0, 1000 },
+			{ "PickupRangeCm", &e.pickupRangeCm, 1, 5000 },
+			{ "MaxDropsPerRoom", &e.maxDropsPerRoom, 1, 10000 },
+			{ "TradeRangeCm", &e.tradeRangeCm, 1, 5000 },
+			{ "TradeRequestTimeoutSec", &e.tradeRequestTimeoutSec, 1, 600 },
+			{ "TradeTimeoutSec", &e.tradeTimeoutSec, 1, 3600 },
+			{ "TradeMaxItems", &e.tradeMaxItems, 1, 200 },
+			{ "AuctionDurationSec", &e.auctionDurationSec, 1, 2592000 },
+			{ "AuctionMaxListings", &e.auctionMaxListings, 1, 100 },
+			{ "AuctionMinPrice", &e.auctionMinPrice, 1, 2000000000 },
+			{ "AuctionMaxPrice", &e.auctionMaxPrice, 1, 2000000000 },
+			{ "AuctionPageSize", &e.auctionPageSize, 1, 100 },
+			{ "AuctionExpireCheckSec", &e.auctionExpireCheckSec, 1, 3600 },
+		};
+
+		int economyId = 0;
+		if (economy.Rows().size() != 1 || !economy.Rows()[0].GetInt("Name", economyId, err) || economyId != ECONOMY_ID)
+		{
+			LOG_ERROR("Data", "{}: 행은 {} 하나여야 합니다 ({}행)", economy.Path(), ECONOMY_ID, economy.Rows().size());
+			return false;
+		}
+		const CsvRow& row = economy.Rows()[0];
+		for (const Column& c : columns)
+		{
+			if (!row.GetInt(c.name, *c.value, err)) { LOG_ERROR("Data", "{}", err); return false; }
+			if (*c.value < c.min || *c.value > c.max)
+			{
+				LOG_ERROR("Data", "{} line {}: {} = {} 가 허용 범위({}~{})를 벗어났습니다", economy.Path(), row.Line(), c.name, *c.value, c.min, c.max);
+				return false;
+			}
+		}
+		if (e.dropLifeSec < e.dropOwnerSec || e.tradeMaxItems > e.inventorySlots ||
+			e.auctionMinPrice > e.auctionMaxPrice || e.auctionMaxPrice > e.goldMax)
+		{
+			LOG_ERROR("Data", "{} line {}: 값 사이의 관계가 맞지 않습니다 (DropLifeSec >= DropOwnerSec, TradeMaxItems <= InventorySlots, AuctionMinPrice <= AuctionMaxPrice <= GoldMax)", economy.Path(), row.Line());
+			return false;
+		}
+	}
+
+	// DropTable(서버 전용): Name(=행 ID, 1001~), MonsterId, ItemId(0 = 골드), DropRate(만분율), MinCount, MaxCount
+	CsvFile drop;
+	if (!drop.Load((dir / "DropTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
+
+	size_t dropRows = 0;
+	{
+		std::unordered_set<int> dropIds;
+		std::set<std::pair<int, int>> dropPairs;   // (MonsterId, ItemId)
+		for (const CsvRow& row : drop.Rows())
+		{
+			DropData d{};
+			if (!row.GetInt("Name", d.id, err) || !row.GetInt("MonsterId", d.monsterId, err) ||
+				!row.GetInt("ItemId", d.itemId, err) || !row.GetInt("DropRate", d.dropRate, err) ||
+				!row.GetInt("MinCount", d.minCount, err) || !row.GetInt("MaxCount", d.maxCount, err))
+			{
+				LOG_ERROR("Data", "{}", err);
+				return false;
+			}
+
+			const std::string where = drop.Path() + " line " + std::to_string(row.Line()) + ": ";
+
+			if (d.id < 1001 || !dropIds.insert(d.id).second)
+			{
+				LOG_ERROR("Data", "{}행 ID {} 는 1001 이상이고 중복되지 않아야 합니다", where, d.id);
+				return false;
+			}
+			if (GetMonsterData(d.monsterId) == nullptr)
+			{
+				LOG_ERROR("Data", "{}MonsterId {} 가 MonsterTable에 없습니다", where, d.monsterId);
+				return false;
+			}
+			const ItemData* dropItem = nullptr;
+			if (d.itemId != 0 && (dropItem = GetItemData(d.itemId)) == nullptr)
+			{
+				LOG_ERROR("Data", "{}ItemId {} 가 ItemTable에 없습니다 (골드는 0)", where, d.itemId);
+				return false;
+			}
+			if (d.dropRate < 0 || d.dropRate > 10000 || d.minCount < 1 || d.minCount > d.maxCount)
+			{
+				LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (0 <= DropRate <= 10000, 1 <= MinCount <= MaxCount)", where);
+				return false;
+			}
+			const int countLimit = dropItem != nullptr ? dropItem->maxStack : _economy.goldMax;
+			if (d.maxCount > countLimit)
+			{
+				LOG_ERROR("Data", "{}MaxCount {} 가 상한 {} 을 넘습니다 (아이템은 ItemTable.MaxStack, 골드는 EconomyTable.GoldMax)", where, d.maxCount, countLimit);
+				return false;
+			}
+			if (!dropPairs.insert({ d.monsterId, d.itemId }).second)
+			{
+				LOG_ERROR("Data", "{}(MonsterId {}, ItemId {}) 조합이 중복되었습니다", where, d.monsterId, d.itemId);
+				return false;
+			}
+			_dropTable[d.monsterId].push_back(d);
+			++dropRows;
+		}
+	}
+
+	LOG_INFO("Data", "로드 완료 (PlayerStatTable {}행, SkillTable {}행, MonsterTable {}행, ItemTable {}행, MovementTable {}행, WorldTable {}행, DropTable {}행, EconomyTable: 인벤토리 {}칸·골드 상한 {}·드랍 소유 {}초/소멸 {}초)",
+		_playerStatTable.size(), _skillTable.size(), _monsterTable.size(), _itemTable.size(), _movementTable.size(), _worldTable.size(), dropRows,
+		_economy.inventorySlots, _economy.goldMax, _economy.dropOwnerSec, _economy.dropLifeSec);
 	return true;
+}
+
+void DataManager::RollDrops(int monsterId, std::vector<DropResult>& out)
+{
+	for (const DropData& d : GetDrops(monsterId))
+	{
+		// 1~10000 중 하나를 뽑아 DropRate 이하면 나온다 (0 = 절대 안 나옴, 10000 = 항상)
+		if (Utils::GetRandom<int>(1, 10000) > d.dropRate) continue;
+		out.push_back({ d.itemId, Utils::GetRandom<int>(d.minCount, d.maxCount) });
+	}
+}
+
+void DataManager::LogDropRollTest(int kills)
+{
+	for (const auto& [monsterId, rows] : _dropTable)
+	{
+		std::map<int, std::pair<int64_t, int64_t>> seen;   // itemId -> (나온 횟수, 수량 합)
+		std::vector<DropResult> results;
+		for (int i = 0; i < kills; ++i)
+		{
+			results.clear();
+			RollDrops(monsterId, results);
+			for (const DropResult& r : results)
+			{
+				seen[r.itemId].first += 1;
+				seen[r.itemId].second += r.count;
+			}
+		}
+		for (const DropData& d : rows)
+		{
+			const auto [hits, total] = seen[d.itemId];
+			LOG_INFO("Data", "[roll-drops] monster {} item {} : {}회 중 {}회 = {:.2f}% (DropRate {:.2f}%), 평균 수량 {:.2f} (범위 {}~{})",
+				monsterId, d.itemId, kills, hits, 100.0 * hits / kills, d.dropRate / 100.0,
+				hits > 0 ? static_cast<double>(total) / hits : 0.0, d.minCount, d.maxCount);
+		}
+	}
 }

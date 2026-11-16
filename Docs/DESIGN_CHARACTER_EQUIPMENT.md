@@ -45,7 +45,7 @@
 
 ## 장착 흐름 (서버 권위)
 1. 클라이언트: 개발용 장비창 `WBP_Equipment`(ItemTable 전체 목록, A3 전 임시)에서 클릭 → `CS_CHANGE_EQUIP(slot, itemId)`(itemId 0 = 해제).
-2. 서버 검증: 존재하는 아이템인지, 슬롯이 맞는지, 시전 중·사망 중이 아닌지, 교체 빈도 제한. 보유 검사와 레벨/티어 제한은 A3에서 추가합니다.
+2. 서버 검증: 존재하는 아이템인지, 슬롯이 맞는지, 시전 중·사망 중이 아닌지, 교체 빈도 제한. 보유 검사와 레벨/티어 제한은 A3에서 추가합니다(설계 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) "장착 검사 확장" — A3.3부터 `item_db_id` 기준·DB 성공 뒤 반영으로 바뀌고 아래 6번의 스냅숏 저장은 없어집니다, D-153·D-156).
 3. 서버 반영: 장착 목록·최종 스탯 재계산. **무기 슬롯이 바뀌면(착용·해제 모두) `MovementTable.ServerWeaponSwapLockMs`(1000) 동안 행동 잠금**(공용 행동 잠금 재사용). 스왑 잠금 중에도 방어구 교체는 받습니다(시전 중 거부는 시전 애니메이션만 해당). 요청 빈도는 캐릭터당 `ServerEquipMinIntervalMs`(200). 스킬 쿨타임은 스킬별로 유지됩니다. 최대 HP가 줄면 현재 HP를 새 최대치로 자르고, 늘어도 회복하지 않습니다.
 4. 서버 방송: `SC_CHANGE_EQUIP(objectId, slot, itemId, 최종 스탯)`을 AOI 전체(본인 포함)에. 거부는 본인에게만 `SC_CHANGE_EQUIP_RESULT(EquipResult, slot, itemId)`. 처음 보이는 캐릭터는 `ObjectInfo.equip_items`(슬롯 순서)로 받습니다.
 5. 클라이언트 반영: itemId로 ItemTable을 조회해 메시를 바꾸고 몸 가시성을 다시 계산합니다. 스탯은 받은 값을 그대로 씁니다.

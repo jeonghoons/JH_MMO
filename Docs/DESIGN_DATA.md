@@ -38,7 +38,9 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 |---|---|
 | MovementTable | 이동 속도, 카메라 관련 수치 (Test에서 이식됨: `MovementTable.csv`) |
 | PlayerStatTable | 플레이어 레벨별 기본 스탯(체형 공용) — 2026-11-07 MC3.1b에 StatTable에서 분리 |
-| ItemTable | 장비 아이템(슬롯, 등급, 티어, 스탯 보너스, 무기 타입, 외형 경로는 클라 전용) — MC3.1 구현, A3에서 확장 |
+| ItemTable | 장비 아이템(슬롯, 등급, 티어, 스탯 보너스, 무기 타입, 외형 경로는 클라 전용) + 소비 아이템 — MC3.1 구현, 2026-11-16 A3.2에서 열 추가(`RequiredLevel`·`MaxStack`·`UseEffect`·`UseValue`·`UseCooldownMs`)와 HP 물약 8001([DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md)) |
+| DropTable | (2026-11-16 A3.2 서버 구현) 몬스터별 드랍 — 행마다 독립 확률, `ItemId` 0 = 골드. 서버 전용. 열은 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) |
+| EconomyTable | (2026-11-16 A3.2 서버 구현) 인벤토리 칸 수, 드랍 소유·소멸 시간, 줍기·거래 거리, 거래 시간 제한, 경매 기간·등록 수·가격 범위. 서버 전용. 열은 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) |
 | SkillTable | `WeaponType`(무기 타입 종속), 슬롯, 쿨타임, 판정 Shape, 타겟팅 타입, 범위, 데미지, 몽타주 경로(클라 전용) |
 | MonsterTable | 몬스터 종류별 스탯·스킬·리스폰 (ID = `ObjectInfo.template_id`) |
 | UITable | 해당 기능 작업 시 |
@@ -49,7 +51,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 2026-11-04 Phase MC: 계획했던 `HeroTable`/`WeaponItemTable`은 만들지 않고 **ItemTable**로 대체합니다. 플레이어 메시·AnimBP는 매니퀸 공용이라 테이블이 필요 없고, `DT_CharacterAsset`은 2026-11-10 삭제했습니다([DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md)).
 
 ## 서버 로더 (구현됨, 2026-10-20)
-- `CsvFile`(ServerCore `Utils/`)이 CSV를 파싱하고(UTF-8·BOM·따옴표 지원, 컬럼 수/숫자 형식 검증), `DataManager::Init()`(`Server/Server/Data/ServerData.cpp`)가 테이블을 읽어 `GetCharacterData`/`GetSkillData`/`GetSkillBySlot`/`GetMonsterData`/`GetItemData` 등으로 제공합니다.
+- `CsvFile`(ServerCore `Utils/`)이 CSV를 파싱하고(UTF-8·BOM·따옴표 지원, 컬럼 수/숫자 형식 검증), `DataManager::Init()`(`Server/Server/Data/ServerData.cpp`)가 테이블을 읽어 `GetCharacterData`/`GetSkillData`/`GetSkillBySlot`/`GetMonsterData`/`GetItemData`/`GetDrops`/`GetEconomy` 등으로 제공합니다.
 - 데이터 폴더는 환경변수 `JH_DATA_DIR`, 없으면 `../../Common/DataTable` 등 서버 작업 디렉터리 기준 후보 경로에서 찾습니다.
 - **형식 오류·중복 키·존재하지 않는 참조는 서버 시작을 중단**합니다(줄 번호 포함 메시지). 데이터 버그를 조용히 넘기지 않기 위함입니다.
 - 수치 변경은 CSV 수정 후 **서버 재시작**으로 반영됩니다(핫 리로드 없음).
@@ -84,7 +86,16 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 - 클라 전용 열: `DisplayName`(FText), `Icon`(`T_Icon_<Item>`), `MeshM`/`MeshF`(스켈레탈 슬롯의 체형별 메시), `StaticMesh`(머리·무기·보조손 — 지금은 `Source/SM_<Item>_Src`), MC4.1 외형 열 `AttachSocket`(머리·무기가 붙는 본/소켓), `AttachM`/`AttachF`(체형별 소켓 기준 상대 변환, FTransform 텍스트), `Mask`(입었을 때 몸 마스크 파라미터 `FBodyMaskParams` — 슬롯 기본값 + 아이템 덮어쓰기를 합친 값), `HideHair`(1 = 헤어 숨김, 두건·투구), MC4.2d-2 `BackSocket`·`BackM`·`BackF`(무기를 등에 멜 때의 본과 체형별 상대 변환 — 비면 등에 메지 않음, 지금 활만). **외형 열(`AttachSocket`~`BackF`)은 `jm_kit.item_table.export`(MCP `item_table_export`)가 `items.json`·`kit_profiles.json`에서 생성하므로 손으로 고치지 않습니다**(`DECISIONS.md` 2026-11-07 MC4.1).
 - 초기 수치(2026-11-07): 방어구 부위당 천 +30 / 판금 +80 MaxHp(5부위 세트 650 / 900), 무기 천 +10 / 판금 +20 공격력. 등급 천 Common, 판금 Uncommon.
 - 맨손은 행이 없습니다(무기 슬롯 비어 있음 = Unarmed). 현재 16행: 천·판금 × (5부위 + 한손검 + 활 + 방패 — 방패 7101·7301은 MC4.2f, 무기가 아닌 장비라 WeaponType `None`·보너스 0)([DESIGN_ART_CONCEPT.md](DESIGN_ART_CONCEPT.md)).
-- UE: `FItemTableRow`(`Source/JM/Data/ItemTableRow.h`, enum `EWeaponType`·`EEquipSlot`·`EItemTier`·`EItemGrade`), `DT_ItemTable`, 조회 `UDataManager::FindItemById`.
+- UE: `FItemTableRow`(`Source/JM/Data/ItemTableRow.h`, enum `EWeaponType`·`EEquipSlot`·`EItemTier`·`EItemGrade`·`EItemUseEffect`), `DT_ItemTable`, 조회 `UDataManager::FindItemById`.
+- **A3.2 추가 열(2026-11-16, 서버·클라 공용, `Starter` 뒤)**: `RequiredLevel`(1 이상, 장착·사용 레벨), `MaxStack`(1~9999), `UseEffect`(`None`/`HealHp`), `UseValue`(0 이상, `HealHp` 회복량), `UseCooldownMs`(0~600000). 열 설명은 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) "데이터".
+- **장착할 수 없는 아이템(소비 아이템)**: `Slot` `None` + `Tier` `None`(둘은 항상 함께), itemId 첫째 자리 8·둘째 자리 0. 서버 검증(어기면 시작 중단): 장비는 `MaxStack` 1·`UseEffect` `None`, `Slot` `None`은 `WeaponType` `None`·보너스 0·`Starter` 0·`UseEffect`가 `None`이 아님, `HealHp`는 `UseValue` > 0. 현재 행: 8001 HP 물약(`MaxStack` 20, `HealHp` 200, 재사용 5000ms — 초기값). 외형 열은 기본값(빈 소켓·단위 변환·마스크 0)을 손으로 넣고, `jm_kit.item_table.export`는 `Slot` `None` 행을 건너뜁니다(결과 `skipped`). 아이콘은 `Content/UI/Icons/Item/T_Icon_<이름>`(물약은 임시 그림, `ExternalAssets.md`).
+
+### DropTable (서버 전용, 2026-11-16 A3.2)
+`Name`(행 ID, 1001~, 중복 불가), `MonsterId`(MonsterTable ID), `ItemId`(ItemTable ID, 0 = 골드), `DropRate`(만분율 0~10000), `MinCount`·`MaxCount`(1 ≤ Min ≤ Max, 아이템은 `ItemTable.MaxStack` 이하, 골드는 `EconomyTable.GoldMax` 이하). 처치 때 그 몬스터의 모든 행을 각각 독립으로 굴립니다(D-157, `DataManager::RollDrops` — 1~10000 난수가 `DropRate` 이하면 나오고 수량은 범위 안 균등). 없는 `MonsterId`·`ItemId`, (`MonsterId`, `ItemId`) 중복은 시작 중단. EconomyTable·ItemTable·MonsterTable 뒤에 읽습니다. 현재 행(초기값, 몬스터 1001): 골드 100% 10~30, HP 물약 30% 1~2개, 판금 방어구 5종·천 활·천 방패 각 5%, 판금 한손검·활·방패 각 3%. UE는 임포트하지 않습니다.
+- 빈도 확인: `GameServer.exe --roll-drops <횟수>` — DataTable만 읽고 몬스터마다 그 횟수만큼 굴린 결과(행별 비율·평균 수량)를 로그에 남긴 뒤 종료합니다(DB·포트를 열지 않음). 값을 바꾼 사본은 `JH_DATA_DIR`로 지정합니다.
+
+### EconomyTable (서버 전용, 2026-11-16 A3.2)
+행 `1001` 하나(행이 없거나 여럿이거나 ID가 다르면 시작 중단), 조회 `DataManager::GetEconomy()`. 열의 뜻과 초기값은 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) "EconomyTable". 허용 범위(벗어나면 시작 중단): `InventorySlots` 1~200, `ItemMinIntervalMs` 0~5000, `GoldMax` 1~2000000000, `DropOwnerSec` 0~3600, `DropLifeSec` 1~3600(`DropOwnerSec` 이상), `DropScatterCm` 0~1000, `PickupRangeCm` 1~5000, `MaxDropsPerRoom` 1~10000, `TradeRangeCm` 1~5000, `TradeRequestTimeoutSec` 1~600, `TradeTimeoutSec` 1~3600, `TradeMaxItems` 1~200(`InventorySlots` 이하), `AuctionDurationSec` 1~2592000, `AuctionMaxListings` 1~100, `AuctionMinPrice` ≤ `AuctionMaxPrice` ≤ `GoldMax`(각 1 이상), `AuctionPageSize` 1~100, `AuctionExpireCheckSec` 1~3600. 값을 쓰는 코드는 A3.3 이후에 들어옵니다. UE는 임포트하지 않습니다.
 
 ### BodyTable (클라이언트 전용, 2026-11-07 MC4.1)
 체형별 기준 캐릭터 구성. `Name` = PlayerType(1 MALE, 2 FEMALE), `Leader`(보이는 몸 = 키트 `Body_Combined`, 애니메이션 재생), `Eyes`·`Teeth`·`Hair`(Leader Pose로 따라가는 키트 부위), `BodyMaterial`(몸 섹션 마스크 머티리얼 `MI_Body_<M|F>`), `AnimClass`(Leader의 AnimBP), `HitMontage`·`DeathMontage`(2026-11-08 MC4.2 — 무기와 상관없는 공용 1벌이라 남녀 같은 값, 비면 재생 안 함, `kit_profiles.json` `montages`). `jm_kit.item_table.export`가 `kit_profiles.json`에서 생성합니다. 서버는 읽지 않습니다. UE: `FBodyTableRow`(`Source/JM/Data/BodyTableRow.h`), `DT_BodyTable`, 조회 `UDataManager::FindBody`. `UEquipmentComponent`가 로드해 `AJMCharacterBase::SetReactionMontages`로 넣습니다.
