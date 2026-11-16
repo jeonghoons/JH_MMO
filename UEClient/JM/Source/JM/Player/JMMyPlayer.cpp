@@ -22,6 +22,7 @@
 #include "Game/DropItemActor.h"
 #include "Game/JMInventoryManager.h"
 #include "Game/JMObjectManager.h"
+#include "Game/JMTradeManager.h"
 
 AJMMyPlayer::AJMMyPlayer()
 {
@@ -133,6 +134,7 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		if (CancelAimAction) EnhancedInputComponent->BindAction(CancelAimAction, ETriggerEvent::Started, this, &AJMMyPlayer::OnCancelAimInput);
 		if (InventoryAction) EnhancedInputComponent->BindAction(InventoryAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnInventoryInput);
 		if (InteractAction) EnhancedInputComponent->BindAction(InteractAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnInteractInput);
+		if (TradeAction) EnhancedInputComponent->BindAction(TradeAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnTradeInput);
 		
 	}
 }
@@ -517,6 +519,39 @@ void AJMMyPlayer::OnInteractInput()
 	{
 		NetManager->SendPickupItem(Target->GetObjectId());
 	}
+}
+
+void AJMMyPlayer::OnTradeInput()
+{
+	if (bIsDead) return;
+	UGameInstance* GameInstance = GetGameInstance();
+	UJMTradeManager* Trade = GameInstance ? GameInstance->GetSubsystem<UJMTradeManager>() : nullptr;
+	const UJMObjectManager* ObjectManager = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
+	if (Trade == nullptr || ObjectManager == nullptr || FollowCamera == nullptr) return;
+	if (Trade->IsActive()) return;   // 이미 거래 창이 떠 있다
+
+	// 크로스헤어(화면 중앙)에 가장 가까운 다른 플레이어를 고른다. 카메라 정면에서 MinDot 각도 안에 있어야 한다.
+	// 거리(TradeRangeCm)·사망·거래 중 여부는 서버가 판정하고 거부 사유를 시스템 메시지로 알려 준다.
+	constexpr float MinDot = 0.9f;   // 약 25도
+	const FVector CamLoc = FollowCamera->GetComponentLocation();
+	const FVector CamForward = FollowCamera->GetForwardVector();
+	const AJMPlayer* Best = nullptr;
+	float BestDot = MinDot;
+	for (const TPair<int32, TObjectPtr<AJMCharacterBase>>& Pair : ObjectManager->Objects)
+	{
+		const AJMPlayer* Other = Cast<AJMPlayer>(Pair.Value.Get());
+		if (Other == nullptr || Other == this || Other->IsDeadActor()) continue;
+		const float Dot = FVector::DotProduct(CamForward, (Other->GetActorLocation() - CamLoc).GetSafeNormal());
+		if (Dot > BestDot) { BestDot = Dot; Best = Other; }
+	}
+
+	if (Best == nullptr)
+	{
+		if (UJMUIManager* UIManager = GameInstance->GetSubsystem<UJMUIManager>())
+			UIManager->ShowSystemMessage(FText::FromString(TEXT("거래할 상대를 바라보고 다시 시도해 주세요.")));
+		return;
+	}
+	Trade->RequestTrade(Best->GetObjectInfo().id());
 }
 
 void AJMMyPlayer::OnInventoryInput()

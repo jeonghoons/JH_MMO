@@ -7,6 +7,7 @@
 #include "FPacketHandler.h"
 #include "Game/JMObjectManager.h"
 #include "Game/JMInventoryManager.h"
+#include "Game/JMTradeManager.h"
 #include "UI/JMUIManager.h"
 #include "SendBuffer.h"
 
@@ -233,6 +234,52 @@ void UNetworkManager::SendSetQuickSlot(int32 Slot, int32 ItemId)
 	SendProtocol(*this, pkt, Protocol::CS_SET_QUICKSLOT);
 }
 
+void UNetworkManager::SendTradeRequest(int32 TargetId)
+{
+	Protocol::CS_TRADE_REQUEST_PACKET pkt;
+	pkt.set_target_id(TargetId);
+	SendProtocol(*this, pkt, Protocol::CS_TRADE_REQUEST);
+}
+
+void UNetworkManager::SendTradeRespond(bool bAccept)
+{
+	Protocol::CS_TRADE_RESPOND_PACKET pkt;
+	pkt.set_accept(bAccept);
+	SendProtocol(*this, pkt, Protocol::CS_TRADE_RESPOND);
+}
+
+void UNetworkManager::SendTradeSetOffer(const TArray<TPair<int64, int64>>& Items, int64 Gold)
+{
+	Protocol::CS_TRADE_SET_OFFER_PACKET pkt;
+	for (const TPair<int64, int64>& Item : Items)
+	{
+		Protocol::TradeOfferItem* Out = pkt.add_items();
+		Out->set_item_db_id(Item.Key);
+		Out->set_count(Item.Value);
+	}
+	pkt.set_gold(Gold);
+	SendProtocol(*this, pkt, Protocol::CS_TRADE_SET_OFFER);
+}
+
+void UNetworkManager::SendTradeLock(bool bLocked)
+{
+	Protocol::CS_TRADE_LOCK_PACKET pkt;
+	pkt.set_locked(bLocked);
+	SendProtocol(*this, pkt, Protocol::CS_TRADE_LOCK);
+}
+
+void UNetworkManager::SendTradeConfirm()
+{
+	Protocol::CS_TRADE_CONFIRM_PACKET pkt;
+	SendProtocol(*this, pkt, Protocol::CS_TRADE_CONFIRM);
+}
+
+void UNetworkManager::SendTradeCancel()
+{
+	Protocol::CS_TRADE_CANCEL_PACKET pkt;
+	SendProtocol(*this, pkt, Protocol::CS_TRADE_CANCEL);
+}
+
 void UNetworkManager::SendSkillAim(int32 Slot, bool bActive, uint32 Seq)
 {
 	Protocol::CS_SKILL_AIM_PACKET pkt;
@@ -278,6 +325,12 @@ void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad)
 	if (UJMInventoryManager* Inventory = GetGameInstance()->GetSubsystem<UJMInventoryManager>())
 	{
 		Inventory->Clear();
+	}
+
+	// A trade does not survive a level change (the server cancels it when we leave the room).
+	if (UJMTradeManager* Trade = GetGameInstance()->GetSubsystem<UJMTradeManager>())
+	{
+		Trade->Clear();
 	}
 
 	// 이전 레벨의 위젯 참조가 남지 않도록 UI 목록도 비운다.

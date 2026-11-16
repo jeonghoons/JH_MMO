@@ -75,7 +75,7 @@ FReply UItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, con
 	{
 		OnClicked.ExecuteIfBound(this);
 		// 아이템이 있는 칸은 누른 채 움직이면 끌기가 시작된다.
-		if (HasItem())
+		if (HasItem() && bDragEnabled)
 		{
 			return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
 		}
@@ -87,7 +87,7 @@ FReply UItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, con
 void UItemSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
-	if (!HasItem()) return;
+	if (!HasItem() || !bDragEnabled) return;
 
 	UDragDropOperation* Operation = NewObject<UDragDropOperation>(this);
 	Operation->Payload = this;

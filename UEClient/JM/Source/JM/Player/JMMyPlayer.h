@@ -32,6 +32,8 @@ protected:
 	void OnInventoryInput();
 	// F 키(A6.2): 줍기 거리 안의 가장 가까운 바닥 드랍을 줍겠다고 요청한다. 결과는 서버 패킷으로 온다.
 	void OnInteractInput();
+	// T 키(A6.3a): 크로스헤어에 가장 가까운 플레이어에게 1:1 거래를 요청한다. 거리·상태 검증은 서버가 한다.
+	void OnTradeInput();
 	// 줍기 안내(HUD)를 지금 가까운 드랍에 맞춘다. 대상이 바뀔 때만 HUD를 고친다.
 	void UpdateInteractPrompt();
 
@@ -87,6 +89,9 @@ protected:
 	// 상호작용(F 키, A6.2): 지금은 바닥 드랍 줍기
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> InteractAction;
+	// 거래 요청(T 키, A6.3a)
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> TradeAction;
 
 	// 줍기 안내 대상(가장 가까운 드랍)과 다음 검사까지 남은 시간
 	TWeakObjectPtr<class ADropItemActor> InteractTarget;

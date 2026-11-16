@@ -4,7 +4,9 @@
 (2026-11-16 A3.1 작성, 결정 D-152~D-159. 장비 외형·슬롯은 [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), CSV 규약은 [DESIGN_DATA.md](DESIGN_DATA.md), 동시성 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md))
 
 ## 현재 상태 (2026-11-17)
-- A3.6 구현(2026-11-17, 사용자 PIE 확인 대기): 소비 아이템 사용 `CS_USE_ITEM`·`SC_USE_ITEM`, 액티브 칸 배치 `CS_SET_QUICKSLOT` + `Player_QuickSlot`(마이그레이션 0006). 구현 내용은 아래 "A3.6 구현 메모". 거래·경매 코드는 아직 없습니다.
+- A6.3a 구현(2026-11-17, 사용자 2인 PIE 확인 대기): 거래 UI(`UJMTradeManager`·`UTradeWidget`/`WBP_Trade`, T 키). 구현 내용은 아래 "A6.3a 구현 메모".
+- A4.1·A4.2 완료(2026-11-17): 1:1 거래 서버(상태기계·패킷·한 트랜잭션 교환·`Trade_Log`, 마이그레이션 0007). 구현 내용은 아래 "A4.1·A4.2 구현 메모". 거래 UI(A6.3a)와 경매 코드는 아직 없습니다.
+- A3.6 구현(2026-11-17, 사용자 PIE 확인 대기): 소비 아이템 사용 `CS_USE_ITEM`·`SC_USE_ITEM`, 액티브 칸 배치 `CS_SET_QUICKSLOT` + `Player_QuickSlot`(마이그레이션 0006). 구현 내용은 아래 "A3.6 구현 메모".
 - A3.5 완료(2026-11-17): 줍기 `CS_PICKUP_ITEM`·버리기 `CS_DROP_ITEM`(서버). 구현 내용은 아래 "A3.5 구현 메모". 클라이언트 표시·입력(A6.2)도 완료(사용자 PIE 확인)했습니다.
 - A3.4 완료(2026-11-16): 몬스터 처치 시 드랍 롤 → 바닥 드랍(`DropItem`, `OBJECT_TYPE_ITEM`) 생성·소유권 기록·드랍 전용 시야·소멸·방당 상한. 구현 내용은 아래 "A3.4 구현 메모".
 - A3.3 완료(2026-11-16): `Player_Item`(마이그레이션 0004, `Player_Equipped` 이전·삭제), 서버 `Inventory`·아이템 작업 공통 경로(`itemOp`), 장착을 `item_db_id` 기준·DB 성공 뒤 반영으로 전환, 개발 지급 `CS_DEV_GIVE`, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`·`SC_ITEM_RESULT`, 클라이언트 `UJMInventoryManager`(데이터만 — 창은 A6.1)와 콘솔 `Give`. 구현 내용은 아래 "A3.3 구현 메모".
@@ -224,6 +226,17 @@
 - 상태가 바뀔 때마다 두 사람에게 `SC_TRADE_STATE`(상태, 양쪽 제시, 잠금·확정 표시) 전체를 보냅니다. 요청 거부는 본인에게 `SC_TRADE_RESULT`입니다.
 - 클라이언트(A6.3a): 크로스헤어가 가리키는 플레이어에게 거래 키로 요청, 받은 쪽은 수락·거절 창. 결과·거부는 시스템 메시지 창.
 
+### A4.1·A4.2 구현 메모 (2026-11-17)
+- **상태**: `Room::_trades`(거래 id → `TradeSession`: 단계 `TradePhase`, 양쪽 `TradeSide` = 플레이어·제시·잠금·확정, 요청·수락 시각), `Player::tradeId`. 단계는 `REQUESTING` → `OFFERING`(잠금·확정 여부는 제시마다) → `CONFIRMING`(DB 결과 대기). 끝나면 상태를 지웁니다(`Room::EndTrade` — 두 사람에게 `SC_TRADE_END`).
+- **패킷**: `SC_TRADE_STATE`는 두 사람에게 같은 내용(`offers[0]` = 요청한 쪽, `offers[1]` = 받은 쪽, 각 `object_id`·아이템·골드·`locked`·`confirmed`)을 바뀔 때마다 보냅니다. 받은 쪽에는 추가로 `SC_TRADE_REQUEST`(요청자 id·이름·응답 제한 시간). 거부는 본인에게 `SC_TRADE_RESULT`(요청 패킷 id + 사유).
+- **구현하면서 정한 것(설계에 없던 세부 — 바꾸려면 알려 주세요)**: ① **누가 제시를 바꾸면 양쪽의 잠금·확정을 모두 풉니다**(설계는 "잠근 쪽의 제시 변경 거부"와 "잠금을 풀면 양쪽이 풀림"만 적었는데, 한쪽이 잠근 뒤 상대가 제시를 빼는 경우를 막으려고 더 엄격하게 함). ② 지금 단계에서 받을 수 없는 요청(수락 전 제시, 한쪽만 잠근 상태의 확정 등)은 `NOT_ALLOWED`. ③ 요청 도배는 아이템 요청 간격(`ItemMinIntervalMs`)으로 막고 `BUSY`로 답합니다. ④ 확정 중의 취소는 `BUSY`.
+- **올린 행 잠금**: `Room::IsItemInTrade` — 장착(`EQUIP_RESULT_IN_TRADE`)·버리기·사용(`ITEM_RESULT_IN_TRADE`)을 거부하고, 종류로 쓰는 사용(액티브 칸)은 올린 스택을 건너뜁니다. 칸 옮기기와 줍기(스택에 더해짐)는 허용합니다 — 넘어가는 것은 제시한 수량뿐입니다.
+- **자동 취소**: 퇴장(`PlayerLeaveRoom` → `DISCONNECTED`), 사망(`Player::OnDead` → `DEAD`), 이동으로 거리 초과(`PlayerMove` 끝 → `TOO_FAR`), 시간 초과(`Room::UpdateTrades`, 1초마다 — 요청 `TradeRequestTimeoutSec`, 수락 뒤 `TradeTimeoutSec`). 확정 중에는 어느 것도 거래를 끝내지 않고 DB 결과를 기다립니다.
+- **확정** `Room::TryExecuteTrade`: 연결·생존·거리·양쪽 `itemOp` 없음·아이템(아직 인벤토리에 있고 수량 ≥ 제시 수량)·골드·받는 쪽 칸(지금 빈 칸 + 받는 쪽이 통째로 내놓아 비게 될 칸)·골드 상한을 다시 봅니다. 실패하면 양쪽 잠금·확정을 풀고 두 사람에게 `SC_TRADE_RESULT(CS_TRADE_CONFIRM, 사유)`. 통과하면 `ItemOpKind::Trade`를 요청한 쪽(A)의 `itemOp`로 보내고 받은 쪽(B)의 `itemOp.inFlight`도 켭니다.
+- **트랜잭션** `DbQueries::BuildItemTrade`(조립식): ① 통째로 넘기는 행은 **UPDATE 한 문장**으로 `OwnerId`·`BagSlot` 변경(받는 쪽이 방금 내놓은 칸을 다시 써도 칸 유니크 인덱스를 어기지 않음) ② 일부만 넘기는 행은 원래 행 `Count` 감소 + 받는 쪽 새 행 ③ 골드 양쪽 증감(잔액은 결과 Kind 2 = A, 3 = B) ④ `Trade_Log` 1행. 기대 상태(`OwnerId`·`Location`·`ItemId`·`Count`)가 다르면 롤백.
+- **결과** `Room::OnTradeDone`: 성공이면 방에 남아 있는 쪽의 메모리에만 반영(`SC_INVENTORY_UPDATE`) 후 `SC_TRADE_END(SUCCESS)`, 롤백이면 `DB_ERROR`, 결과 불명이면 두 사람 모두 접속을 끊습니다. B의 `itemOp`를 끄고 `NotifyClosedIfDone`을 양쪽에 부릅니다.
+- **시험(TESTING 2026-11-17 A4.1·A4.2)**: 100회 반복에서 합계 보존·`Trade_Log` 행 수 일치. 거래 중 사망 취소는 확인하지 못했습니다.
+
 ## 경매장 (A4.3, D-159)
 - **즉시 구매만**, 수수료 없음, 어디서나 키로 엽니다(사망 중 불가). 팔린 대금·산 아이템·만료·취소 반환은 모두 **수령함**에 쌓이고 경매 창에서 직접 받습니다.
 - **`AuctionService`**(`GAuction`): `AuthLobby`처럼 자체 JobQueue를 가진 전역 서비스이고 수명은 프로세스와 같습니다. 시작 때 판매 중인 등록을 전부 읽어 메모리 목록을 만듭니다(권위는 DB, 목록은 검색·중복 구매 차단용).
@@ -240,6 +253,14 @@
 - 창은 모두 `UJMUIManager::RegisterWidget`(`bIsWindow`, ZOrder는 크로스헤어 100보다 위)로 등록하고 키로 `ToggleWidget`합니다. 창이 열리면 커서가 보입니다(기존 동작). 키는 초기 제안이며 구현 때 조정합니다.
 - **인벤토리 + 장비창**(I 키, `WBP_Inventory` 한 창 — A6.1, D-166): 장착 7칸, 칸 격자(서버 칸 수만큼, 빈 칸 표시, 아이콘·수량 — 칸 위젯 `UItemSlotWidget`/`WBP_ItemSlot`), 골드, 선택한 아이템 이름. 인벤토리의 장비 우클릭 = 장착, 장착 칸 우클릭 = 해제, 끌어다 놓기 = 칸 옮기기·맞바꾸기(인벤토리 ↔ 인벤토리)·장착(인벤토리 → 장착 칸)·해제 또는 교체(장착 칸 → 인벤토리). 창은 클라이언트 사본(`UJMInventoryManager`)을 그리며 여닫을 때 서버에 묻지 않습니다. 선택한 아이템의 버리기(A6.2)·사용·액티브 칸에 올리기(A3.6)는 그때 붙입니다.
 - **거래 창**: 양쪽 제시(아이템·수량·골드), 잠금·확정·취소 버튼, 상대의 잠금·확정 표시. 인벤토리에서 아이템을 골라 수량을 적어 올립니다.
+- **A6.3a 구현 메모 (2026-11-17)**
+  - 상태: `UJMTradeManager`(GameInstanceSubsystem)가 `SC_TRADE_STATE`를 그대로 담습니다(`EJMTradeState` = 받은 요청·응답 대기·제시·확정 중, 내 제시·상대 제시·상대 이름). 조작은 요청만 보내고 화면은 서버 상태가 와야 바뀝니다. 레벨 전환 때 비웁니다.
+  - 요청: T 키(`IA_Trade`) → `AJMMyPlayer::OnTradeInput`이 카메라 정면 약 25도 안에서 크로스헤어에 가장 가까운 다른 플레이어를 골라 `CS_TRADE_REQUEST`. 거리·사망·거래 중은 서버가 판정합니다. 대상이 없으면 클라이언트가 안내만 띄웁니다.
+  - 창(`WBP_Trade`, ZOrder 125, 화면 왼쪽): 요청 화면(받은 요청 = 수락·거절, 보낸 요청 = 응답 대기·취소)과 거래 화면(양쪽 올린 칸·골드·상태 글자 "제시 중/잠금/확정", 잠금·확정·취소)을 한 위젯에 두고 상태에 따라 하나만 보입니다. 제시 단계에 들어가면 인벤토리 창도 함께 엽니다.
+  - 올리기: 제시 단계에서 인벤토리 아이템 우클릭(이때는 장착·사용 대신 올리기) 또는 거래 창으로 끌어다 놓기 = 그 행 전부. 올린 칸을 골라 `EditCount`에 수량을 적고 Enter = 수량 변경(1 ~ 행 수량). 올린 칸 우클릭 = 내리기. 골드는 `EditGold`에 적고 Enter(가진 골드 안으로 맞춤).
+  - `CS_TRADE_SET_OFFER`는 전체 교체라, 응답 전에 연달아 고칠 때는 마지막으로 보낸 제시를 바탕으로 다음 요청을 만듭니다(`Pending`). 거부(`SC_TRADE_RESULT`)가 오면 버리고 서버 값으로 돌아갑니다.
+  - 안내: `SC_TRADE_RESULT`·`SC_TRADE_END` 사유를 시스템 메시지 창으로. 내가 누른 취소·거절로 끝난 것은 띄우지 않습니다.
+  - 창 위젯은 `SelfHitTestInvisible`로 보입니다(`UJMUIManager`) — 화면 전체를 덮는 위젯 자체가 클릭을 받으면 위 창(거래)이 아래 창(인벤토리)을 막기 때문입니다. 창 안의 패널·버튼은 그대로 클릭됩니다.
 - **경매 창**(K 키): 검색(슬롯 필터, 쪽 넘기기)·구매, 등록(인벤토리에서 골라 수량·가격 입력), 내 등록(취소), 수령함(수령) 탭.
 - 거부·실패·성사 안내는 모두 시스템 메시지 창(D-050)입니다.
 

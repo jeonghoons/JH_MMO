@@ -25,4 +25,8 @@ protected:
 	// Inventory + equipment window (WBP_Inventory, parent UInventoryWidget). Toggled with IA_Inventory (A6.1).
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> InventoryWidgetClass;
+
+	// 1:1 trade window (WBP_Trade, parent UTradeWidget). Shown and hidden by UJMTradeManager (A6.3a).
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> TradeWidgetClass;
 };

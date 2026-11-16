@@ -28,6 +28,8 @@ public:
 	// 이 칸의 아이템. nullptr이면 빈 칸. Row = ItemTable 행(아이콘).
 	void SetItem(const FJMInventoryItem* Item, const FItemTableRow* Row);
 	void SetSelected(bool bSelected);
+	// false면 이 칸에서 끌기를 시작할 수 없다(거래 창의 올린 아이템 칸, A6.3a). 기본은 끌 수 있음
+	void SetDragEnabled(bool bEnabled) { bDragEnabled = bEnabled; }
 
 	bool IsEquipSlot() const { return EquipPart != 0; }
 	int32 GetSlotIndex() const { return SlotIndex; }
@@ -66,6 +68,7 @@ private:
 	int64 ItemDbId = 0;
 	int32 ItemId = 0;
 	int64 Count = 0;
+	bool bDragEnabled = true;
 
 	UPROPERTY()
 	TObjectPtr<class UTexture2D> IconTexture;

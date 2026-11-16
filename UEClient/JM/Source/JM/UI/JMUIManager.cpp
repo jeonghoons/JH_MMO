@@ -28,7 +28,9 @@ UUserWidget* UJMUIManager::RegisterWidget(APlayerController* PC, FName WidgetNam
     if (NewWidget)
     {
         NewWidget->AddToViewport(ZOrder);
-        NewWidget->SetVisibility(bStartVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+        // Shown widgets use SelfHitTestInvisible: the full-screen widget itself must not take clicks,
+        // or a window on a higher ZOrder (trade 125) blocks the one below it (inventory 120). Children stay clickable. (A6.3a)
+        NewWidget->SetVisibility(bStartVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
         if (bStartVisible && bIsWindow)
         {
             OpenedWindows.AddUnique(WidgetName);
@@ -69,7 +71,7 @@ void UJMUIManager::ToggleWidget(FName WidgetName)
     // 현재 위젯이 숨겨져 있다면 -> 켭니다.
     if (Info.WidgetInstance->GetVisibility() == ESlateVisibility::Collapsed)
     {
-        Info.WidgetInstance->SetVisibility(ESlateVisibility::Visible);
+        Info.WidgetInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 
         // 창(Window) 종류라면 열려있는 목록에 이름을 추가합니다.
         if (Info.bIsWindow)
@@ -97,7 +99,7 @@ void UJMUIManager::SetWidgetVisible(FName WidgetName, bool bVisible)
     FWidgetInfo* Info = ManagedWidgets.Find(WidgetName);
     if (Info == nullptr || Info->WidgetInstance == nullptr) return;
 
-    Info->WidgetInstance->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    Info->WidgetInstance->SetVisibility(bVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
     if (Info->bIsWindow)
     {
         if (bVisible) OpenedWindows.AddUnique(WidgetName);

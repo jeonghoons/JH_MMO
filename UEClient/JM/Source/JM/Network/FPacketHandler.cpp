@@ -4,6 +4,7 @@
 #include "Network/NetworkSession.h"
 #include "Game/JMObjectManager.h"
 #include "Game/JMInventoryManager.h"
+#include "Game/JMTradeManager.h"
 #include "UI/JMUIManager.h"
 #include "UI/ChatWidget.h"
 #include "UI/WidgetNames.h"
@@ -30,6 +31,10 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_INVENTORY_UPDATE, &FPacketHandler::Handle_SC_INVENTORY_UPDATE);
 	RegisterHandler(Protocol::SC_ITEM_RESULT, &FPacketHandler::Handle_SC_ITEM_RESULT);
 	RegisterHandler(Protocol::SC_USE_ITEM, &FPacketHandler::Handle_SC_USE_ITEM);
+	RegisterHandler(Protocol::SC_TRADE_REQUEST, &FPacketHandler::Handle_SC_TRADE_REQUEST);
+	RegisterHandler(Protocol::SC_TRADE_STATE, &FPacketHandler::Handle_SC_TRADE_STATE);
+	RegisterHandler(Protocol::SC_TRADE_END, &FPacketHandler::Handle_SC_TRADE_END);
+	RegisterHandler(Protocol::SC_TRADE_RESULT, &FPacketHandler::Handle_SC_TRADE_RESULT);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -275,6 +280,37 @@ void FPacketHandler::Handle_SC_ITEM_RESULT(TSharedPtr<NetworkSession>& session, 
 	UE_LOG(LogTemp, Log, TEXT("Item request rejected: request=%d result=%d"), static_cast<int32>(pkt.request()), static_cast<int32>(pkt.result()));
 	if (pkt.result() == Protocol::ITEM_RESULT_BUSY || pkt.result() == Protocol::ITEM_RESULT_TOO_FREQUENT) return;
 	ShowSystemMessage(session, ItemResultText(pkt.result()));
+}
+
+// ---- 1:1 거래(A6.3a): 상태·안내는 UJMTradeManager가 맡는다 ----
+namespace
+{
+	UJMTradeManager* GetTradeManager(const TSharedPtr<NetworkSession>& session)
+	{
+		UNetworkManager* NetManager = session ? session->OwnerNetwork.Get() : nullptr;
+		UGameInstance* GameInstance = NetManager ? NetManager->GetGameInstance() : nullptr;
+		return GameInstance ? GameInstance->GetSubsystem<UJMTradeManager>() : nullptr;
+	}
+}
+
+void FPacketHandler::Handle_SC_TRADE_REQUEST(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_REQUEST_PACKET& pkt)
+{
+	if (UJMTradeManager* Trade = GetTradeManager(session)) Trade->HandleRequest(pkt);
+}
+
+void FPacketHandler::Handle_SC_TRADE_STATE(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_STATE_PACKET& pkt)
+{
+	if (UJMTradeManager* Trade = GetTradeManager(session)) Trade->HandleState(pkt);
+}
+
+void FPacketHandler::Handle_SC_TRADE_END(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_END_PACKET& pkt)
+{
+	if (UJMTradeManager* Trade = GetTradeManager(session)) Trade->HandleEnd(pkt.result());
+}
+
+void FPacketHandler::Handle_SC_TRADE_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_RESULT_PACKET& pkt)
+{
+	if (UJMTradeManager* Trade = GetTradeManager(session)) Trade->HandleResult(pkt.request(), pkt.result());
 }
 
 void FPacketHandler::Handle_SC_CHAT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHAT_PACKET& pkt)

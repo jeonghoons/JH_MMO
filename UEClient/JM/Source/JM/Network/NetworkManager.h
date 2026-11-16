@@ -57,6 +57,13 @@ public:
 	// A3.6: 소비 아이템 사용(ItemDbId 0이면 서버가 ItemId 종류 중에서 고른다), 액티브 칸 배치(Slot 1~5, ItemId 0 = 비우기)
 	void SendUseItem(int64 ItemDbId, int32 ItemId);
 	void SendSetQuickSlot(int32 Slot, int32 ItemId);
+	// A6.3a: 1:1 거래. 요청(대상 오브젝트 id)·응답·제시 전체 교체(아이템 = (ItemDbId, 수량))·잠금·확정·취소. 검증은 서버가 한다
+	void SendTradeRequest(int32 TargetId);
+	void SendTradeRespond(bool bAccept);
+	void SendTradeSetOffer(const TArray<TPair<int64, int64>>& Items, int64 Gold);
+	void SendTradeLock(bool bLocked);
+	void SendTradeConfirm();
+	void SendTradeCancel();
 	// 스킬 조준 켜기/끄기(MC4.2d-1). 상태가 바뀔 때만, Seq는 보낼 때마다 1씩 올린 값. 확정(공격)은 서버가 함께 해제하므로 끄기를 보내지 않는다
 	// 부활 요청(A2.4). 사망 여부·대기 시간은 서버가 검증하고, 받아들이면 SC_REVIVE가 온다
 	void SendRevive();

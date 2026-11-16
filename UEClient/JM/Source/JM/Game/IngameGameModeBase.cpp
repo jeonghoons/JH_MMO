@@ -26,6 +26,8 @@ void AIngameGameModeBase::BeginPlay()
 			UIManager->RegisterWidget(PC, WidgetNames::Revive, ReviveWidgetClass, true, 150, false);
 			// 인벤토리·장비창(A6.1): 숨겨 두었다가 I 키(AJMMyPlayer::OnInventoryInput)로 여닫는다. 크로스헤어(100) 위, 부활 창(150) 아래.
 			if (InventoryWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Inventory, InventoryWidgetClass, true, 120, false);
+			// 거래 창(A6.3a): 숨겨 두었다가 거래 상태가 오면 UJMTradeManager가 띄운다. 인벤토리(120)와 나란히 쓰므로 같은 층 바로 위.
+			if (TradeWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Trade, TradeWidgetClass, true, 125, false);
 
 			// 전투 입력 모드. 시스템 메시지 창(방 입장 대기 등)이 떠 있으면 커서를 유지한다.
 			UIManager->SetGameplayInput(true);

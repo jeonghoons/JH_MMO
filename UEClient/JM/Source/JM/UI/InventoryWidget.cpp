@@ -10,6 +10,7 @@
 #include "Data/ItemTableRow.h"
 #include "Game/DataManager.h"
 #include "Game/JMInventoryManager.h"
+#include "Game/JMTradeManager.h"
 #include "Network/NetworkManager.h"
 
 namespace
@@ -182,6 +183,16 @@ void UInventoryWidget::OnSlotRightClicked(UItemSlotWidget* ItemSlot)
 	{
 		NetManager->SendChangeEquip(ItemSlot->GetEquipPart(), 0);   // 해제
 		return;
+	}
+
+	// 거래의 제시 단계에서는 인벤토리 아이템 우클릭 = 내 제시에 올리기(행 전부, A6.3a). 장착·사용은 거래가 끝난 뒤에 한다.
+	if (UJMTradeManager* Trade = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMTradeManager>() : nullptr)
+	{
+		if (Trade->IsOffering())
+		{
+			Trade->AddItem(ItemSlot->GetItemDbId(), 0);
+			return;
+		}
 	}
 
 	// 인벤토리의 장비: 그 아이템의 슬롯에 장착. 소비 아이템: 그 행에서 하나 사용(A3.6).
