@@ -203,6 +203,20 @@ void UNetworkManager::SendMoveItem(int64 ItemDbId, int32 ToSlot)
 	SendProtocol(*this, pkt, Protocol::CS_MOVE_ITEM);
 }
 
+void UNetworkManager::SendPickupItem(int32 ObjectId)
+{
+	Protocol::CS_PICKUP_ITEM_PACKET pkt;
+	pkt.set_object_id(ObjectId);
+	SendProtocol(*this, pkt, Protocol::CS_PICKUP_ITEM);
+}
+
+void UNetworkManager::SendDropItem(int64 ItemDbId)
+{
+	Protocol::CS_DROP_ITEM_PACKET pkt;
+	pkt.set_item_db_id(ItemDbId);
+	SendProtocol(*this, pkt, Protocol::CS_DROP_ITEM);
+}
+
 void UNetworkManager::SendSkillAim(int32 Slot, bool bActive, uint32 Seq)
 {
 	Protocol::CS_SKILL_AIM_PACKET pkt;

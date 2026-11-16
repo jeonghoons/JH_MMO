@@ -48,6 +48,10 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UButton> BtnClose;
 
+	// 선택한 인벤토리 아이템을 바닥에 버린다(스택 통째, A6.2·D-155). 장착 중인 것은 버릴 수 없어 꺼 둔다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BtnDrop;
+
 private:
 	void Refresh();
 	void BuildEquipSlots();
@@ -60,6 +64,8 @@ private:
 
 	UFUNCTION()
 	void OnCloseClicked();
+	UFUNCTION()
+	void OnDropClicked();
 
 	UPROPERTY()
 	TArray<TObjectPtr<UItemSlotWidget>> BagSlots;     // 인덱스 = 칸 번호

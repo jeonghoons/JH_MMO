@@ -7,6 +7,7 @@
 
 class AJMCharacterBase;
 class AJMMyPlayer;
+class ADropItemActor;
 
 UCLASS()
 class JM_API UJMObjectManager : public UGameInstanceSubsystem
@@ -31,6 +32,9 @@ public:
 	// SC_SKILL_AIM(MC4.2d-1): 원격은 그대로 반영, 내 캐릭터는 해제(거부·시간 초과)만 Seq가 맞을 때 반영한다.
 	void HandleSkillAim(int32 ObjectId, int32 SkillId, bool bActive, uint32 Seq);
 
+	// From에서 수평 거리 RangeCm 안의 가장 가까운 바닥 드랍(A6.2). 없으면 nullptr. 서버도 수평 거리로 판정한다.
+	ADropItemActor* FindNearestDrop(const FVector& From, float RangeCm) const;
+
 private:
 	// 전투 HUD(UIManager에 HUD 이름으로 등록된 위젯). 로그인 화면처럼 HUD가 없으면 nullptr
 	class UCombatHudWidget* GetCombatHud() const;
@@ -43,4 +47,7 @@ public:
 	TObjectPtr<AJMMyPlayer> MyPlayer;
 	UPROPERTY()
 	TMap<int32, TObjectPtr<AJMCharacterBase>> Objects;
+	// 바닥 드랍(OBJECT_TYPE_ITEM). Objects는 캐릭터 전용이라 따로 둔다 (A6.2, D-157)
+	UPROPERTY()
+	TMap<int32, TObjectPtr<ADropItemActor>> Drops;
 };

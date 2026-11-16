@@ -4,7 +4,7 @@
 (2026-11-16 A3.1 작성, 결정 D-152~D-159. 장비 외형·슬롯은 [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), CSV 규약은 [DESIGN_DATA.md](DESIGN_DATA.md), 동시성 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md))
 
 ## 현재 상태 (2026-11-17)
-- A3.5 완료(2026-11-17): 줍기 `CS_PICKUP_ITEM`·버리기 `CS_DROP_ITEM`(서버). 구현 내용은 아래 "A3.5 구현 메모". 클라이언트 표시·입력은 A6.2, 소비 아이템·거래·경매 코드는 아직 없습니다.
+- A3.5 완료(2026-11-17): 줍기 `CS_PICKUP_ITEM`·버리기 `CS_DROP_ITEM`(서버). 구현 내용은 아래 "A3.5 구현 메모". 클라이언트 표시·입력(A6.2)도 완료(사용자 PIE 확인)했습니다. 소비 아이템·거래·경매 코드는 아직 없습니다.
 - A3.4 완료(2026-11-16): 몬스터 처치 시 드랍 롤 → 바닥 드랍(`DropItem`, `OBJECT_TYPE_ITEM`) 생성·소유권 기록·드랍 전용 시야·소멸·방당 상한. 구현 내용은 아래 "A3.4 구현 메모".
 - A3.3 완료(2026-11-16): `Player_Item`(마이그레이션 0004, `Player_Equipped` 이전·삭제), 서버 `Inventory`·아이템 작업 공통 경로(`itemOp`), 장착을 `item_db_id` 기준·DB 성공 뒤 반영으로 전환, 개발 지급 `CS_DEV_GIVE`, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`·`SC_ITEM_RESULT`, 클라이언트 `UJMInventoryManager`(데이터만 — 창은 A6.1)와 콘솔 `Give`. 구현 내용은 아래 "A3.3 구현 메모".
 - 골드는 진행 상황 스냅숏에서 빠졌고 아이템 트랜잭션에서만 증감합니다(지금 들어오는 경로는 개발 지급뿐, 골드 드랍은 A3.4).
@@ -164,6 +164,12 @@
 - **경쟁**: Room 잡은 한 번에 하나라 먼저 처리된 요청이 `picking`을 켜고, 뒤 요청은 DB 결과가 올 때까지 `BUSY`, 그 뒤에는 `NO_ITEM`입니다. `BUSY`는 클라이언트가 문구를 띄우지 않으므로 진 쪽에는 드랍이 사라지는 것만 보입니다.
 - **지표**: `[metrics] pickup(picked/discarded)`, Debug 로그 `[Item] 줍기`·`줍기 거부`·`버리기 거부`.
 - **시험(TESTING 2026-11-17 A3.5)**: 거부 사유, 버리기 → 타인 줍기, 3인 동시 요청 60라운드, DB 롤백·지연·결과 전 접속 해제, 소유권 거부·개방, 골드 상한. 봇의 줍기 프로필은 A5.2입니다.
+
+### A6.2 구현 메모 (2026-11-17)
+- **표시**: `ADropItemActor`(`Game/DropItemActor`) — 메시 컴포넌트 하나, 충돌 없음, 제자리에서 돎. 아이템·골드의 메시·머티리얼·크기는 `BP_DropItem`에서 지정합니다(지금은 엔진 기본 도형: 아이템 = 파란 상자, 골드 = 금색 원판 — `MI_Drop_Item`·`MI_Drop_Gold`). 서버 z(내비메시 높이) 둘레에서 바닥을 찾아 `HoverHeight`만큼 띄웁니다. 클래스는 `BP_JMGameInstance.DropItemClass`.
+- **관리**: `UJMObjectManager::Drops`(id → 액터, `Objects`와 별개). `HandleSpawn`의 ITEM 분기가 만들고 `HandleDespawn`이 `Drops`를 먼저 찾아 지웁니다. `FindNearestDrop(위치, 거리)`는 수평 거리(서버와 같은 기준).
+- **줍기**: `AJMMyPlayer`가 0.1초마다 `PickupRangeCm`(`SC_INVENTORY` 값) 안의 가장 가까운 드랍을 골라 HUD `TxtInteract`에 "[F] 줍기: 이름"을 띄우고, F 키(`IA_Interact` → `OnInteractInput`)로 `CS_PICKUP_ITEM`을 보냅니다. 결과는 서버 패킷(`SC_REMOVE_OBJECT`·`SC_INVENTORY_UPDATE`)으로만 반영하고 거부는 시스템 메시지입니다(`BUSY`는 띄우지 않으므로 경쟁에서 진 쪽은 드랍이 사라지는 것만 봄). 사망 중에는 안내·요청을 하지 않습니다.
+- **버리기**: `WBP_Inventory`의 `BtnDrop`("버리기") — 인벤토리 칸의 아이템을 선택했을 때만 켜지고 `CS_DROP_ITEM(선택한 item_db_id)`을 보냅니다. 확인 창은 없습니다(다시 주울 수 있음).
 
 ## 장착 검사 확장 (A3.3·MC4.4, D-156)
 - `CS_CHANGE_EQUIP`은 `item_id` 대신 **`item_db_id`**(0 = 해제)를 받습니다. 방송 `SC_CHANGE_EQUIP`과 `ObjectInfo.equip_items`는 지금처럼 itemId입니다.

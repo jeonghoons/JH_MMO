@@ -11,7 +11,7 @@
 - 콘텐츠 동결(D-147): 외형·애니메이션·이펙트는 "기능이 동작하면 통과"입니다. 어색한 점은 원인 조사 없이 백로그 "콘텐츠 다듬기"에 한 줄만 적습니다.
 
 ## 현재 위치 (2026-11-17)
-- 지금: 2026-11-16 로드맵 재설계(D-147). P0·A2.3a·A2.4(사망·부활) 완료, A2.5 DB 저장 연결은 구현·Claude 테스트 완료(사용자 PIE 확인 대기). A3.1 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) 완료(D-152~D-159, 사용자 승인), A3.2 데이터 테이블·A2.7 중복 접속 차단·**A3.3 인벤토리**(D-160~D-165) 완료. **A6.1 인벤토리 UI**(+ MC4.4 장착·해제, 칸 위치 서버 저장 — D-166) 완료(사용자 PIE 확인). **A3.4 사망 시 드랍 롤**·**A3.5 줍기·버리기** 완료(Claude 테스트 — 소유권 거부·개방 포함, 2026-11-17). 다음 작업은 **A6.2 드랍 표시·줍기 입력·버리기 버튼**(클라이언트, 사용자 PIE). 골드는 드랍으로 먼저 들어오고(D-152) 경험치·레벨 보상은 A2.3b로 마일스톤 2 뒤.
+- 지금: 2026-11-16 로드맵 재설계(D-147). P0·A2.3a·A2.4(사망·부활) 완료, A2.5 DB 저장 연결은 구현·Claude 테스트 완료(사용자 PIE 확인 대기). A3.1 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) 완료(D-152~D-159, 사용자 승인), A3.2 데이터 테이블·A2.7 중복 접속 차단·**A3.3 인벤토리**(D-160~D-165) 완료. **A6.1 인벤토리 UI**(+ MC4.4 장착·해제, 칸 위치 서버 저장 — D-166) 완료(사용자 PIE 확인). **A3.4 사망 시 드랍 롤**·**A3.5 줍기·버리기** 완료(Claude 테스트 — 소유권 거부·개방 포함, 2026-11-17). **A6.2 드랍 표시·줍기 입력·버리기 버튼** 완료(사용자 PIE 확인, 2026-11-17). 다음 작업은 **A3.6 소비 아이템 사용 + 액티브 칸**. 골드는 드랍으로 먼저 들어오고(D-152) 경험치·레벨 보상은 A2.3b로 마일스톤 2 뒤.
 - 미뤄 둔 것: MC4.2 중간 테스트(2026-11-15~16 Claude가 일부 진행, 결과는 백로그 "콘텐츠 다듬기")·MC4.3·MC5.1·M3 Paragon Move·U8.
 - 참고: 동시성 감사 F1~F10·P1 설계 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md) — 코드가 바뀌었을 수 있으니 함수명으로 찾아 다시 확인. A1.3 병목 근거는 `TESTING.md` 2026-10-31. 기준선 재측정 방법·인자는 [PERF_BASELINE_2026-11-06.md](PERF_BASELINE_2026-11-06.md) §1.
 - 브랜치: 개발은 `Jeonghoon` 하나, `main`은 Phase·마일스톤 끝에 병합(+태그)하는 안정판, 시험은 짧은 `exp/…` 브랜치(`DECISIONS.md` 2026-11-12). `content/dev`는 사용 종료.
@@ -25,7 +25,6 @@
 - [확인 대기] A2.5 서버: DB 저장 연결 (2026-11-16 구현·Claude 테스트 통과, D-150·D-151) — 스키마 버전 관리(`Schema_Version`·`migrate.ps1`·서버 시작 검사), SQL 한 파일(`DbQueries.h`), 로그인 때 DB 레벨·HP 반영(`PLAYER_START_LEVEL` 고정 제거), 진행 상황 저장(값이 달라졌을 때만, 주기 60초 + 퇴장). 남은 확인(사용자, 다음 PIE 때): 로그인 → 몬스터에게 피해 → 종료 → 재접속 시 HUD HP·레벨 유지. 완료: 재접속 시 레벨·HP·골드 유지
 
 ### 1-3. 아이템·드랍·인벤토리
-- [예정] A6.2 드랍 아이템 액터 표시(공용 메시)·줍기 입력(F 키 `IA_Interact`, D-157)·인벤토리 버리기 버튼. 완료: 드랍 표시·소멸, 줍기 입력 → 서버 획득 결과 반영, 버리기 → 바닥 표시, 2인 PIE 경쟁 시 한 명만 획득(사용자 PIE)
 - [예정] A3.6 소비 아이템 사용 + 액티브 칸(D-154): `CS_USE_ITEM`·`SC_USE_ITEM`(HP 물약, 재사용 시간), `CS_SET_QUICKSLOT` + `Player_QuickSlot` 저장, 클라 액티브 칸에 아이템 올리기·수량·재사용 표시(`RebuildQuickSlots` 확장). 완료: 물약 사용 시 HP·수량 반영, 사망·HP 최대·재사용 시간 중 거부(Claude 테스트) + 숫자키로 물약 사용, 칸 배치가 재접속 후 유지(사용자 PIE)
 
 ### 1-4. 거래·경매장
@@ -140,6 +139,7 @@ A5.4 램프에서 병목으로 확인된 것만 합니다(순서는 측정 결�
 - [완료] A3.2 데이터 테이블 — `DropTable.csv`(12행)·`EconomyTable.csv` + 로더(`GetDrops`·`RollDrops`·`GetEconomy`), `ItemTable` 열 5개와 HP 물약 8001(임시 아이콘), 시험용 `--roll-drops <kills>`, UE `FItemTableRow`·`EItemUseEffect`·`DT_ItemTable` 재임포트, `item_table.export`가 `Slot` `None` 행 건너뜀 (2026-11-16, T)
 - [완료] A6.1 인벤토리 UI + MC4.4 장착·해제 + 인벤토리 칸 위치 — 한 창 `WBP_Inventory`(I 키, 장착 7칸 + 칸 격자 + 골드, 우클릭 장착·해제, 끌어다 놓기), `UItemSlotWidget`·`UInventoryWidget`, 칸 위치는 서버 저장(`Player_Item.BagSlot` 마이그레이션 0005, `CS_MOVE_ITEM`, 장착 교체는 옛 장비가 새 장비의 칸으로), 봇 `--slot-interval`. `WBP_Equipment`는 만들지 않음. 사용자 PIE 확인 완료 (2026-11-16, D-166·T)
 - [완료] A3.3 인벤토리 — `Player_Item`(마이그레이션 0004, `Player_Equipped` 이전·삭제), 서버 `Inventory`·아이템 작업 공통 경로(`itemOp`: Room 검증 → DB 한 트랜잭션 → 성공 뒤 반영), 장착을 `item_db_id` 기준 + 보유·`RequiredLevel`·빈 칸 검사로 전환(장비 스냅숏 저장 폐지), 골드 증감 방식, 개발 지급 `CS_DEV_GIVE`(`[Debug] DevCommands`)·콘솔 `Give`, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`·`SC_ITEM_RESULT`, 클라 `UJMInventoryManager`(빌드만, 화면 확인은 A6.1 때). 장착 지연 p99는 200명 램프에서 기준 50ms 초과(원인 = Room 잡 대기, 기록만 — 백로그) (2026-11-16, D-160~D-165·T)
+- [완료] A6.2 드랍 표시·줍기 입력·버리기 버튼 — `ADropItemActor`/`BP_DropItem`(임시 모양: 아이템 = 파란 상자, 골드 = 금색 원판), `UJMObjectManager::Drops`, F 키 `IA_Interact` → `CS_PICKUP_ITEM`, HUD 안내 `TxtInteract`, `WBP_Inventory` `BtnDrop` → `CS_DROP_ITEM` (2026-11-17, 사용자 PIE — "일단은 되는 것 같다")
 - [완료] A3.5 줍기·버리기 — `CS_PICKUP_ITEM`(1013)·`CS_DROP_ITEM`(1014), 서버 `Room::PlayerPickupItem`/`PlayerDropItem`, `ItemOpKind::Pickup`·`Discard`(고정 쿼리 `ItemPickup`·`ItemDiscard`), 줍는 중 표시(`DropItem::picking`)로 경쟁 시 한 명만 획득, 버리면 발밑 80cm 안에 소유권 없는 드랍, 지표 `pickup(picked/discarded)`. 클라이언트 입력·표시는 A6.2 (2026-11-17, T)
 - [완료] A3.4 사망 시 드랍 롤 — `ObjectInfo.item_count`(12), 서버 `DropItem`(`OBJECT_TYPE_ITEM`, `Room::_drops`·id 1,000,000,000~), `Monster::OnDead` → `Room::SpawnMonsterDrops`(막타 소유권 기록, 더미 봇·공격자 없음은 소유권 없음), 드랍 전용 AOI(`GameMap::_dropAoi` + `Player::dropView`, `UpdateDropView`), 소멸(`ExpireDrop`)·방당 상한, 지표 `drops(...)`, 클라는 ITEM 스폰 무시(표시는 A6.2). 소유권 거부·개방은 A3.5에서 확인 (2026-11-16, T)
 - [완료] A2.7 중복 접속 차단 — `AuthLobby` 접속 목록(기존 접속 `SC_KICK` + 소켓 닫기 → 새 로그인은 이전 접속의 마지막 저장이 끝날 때까지 대기, `LOGIN_RESULT_BUSY`), `Room::NotifyClosedIfDone`, `[Network] LoginWaitTimeoutSec`·`LoginCloseForceSec`, 시험용 `[Debug] DbSaveDelayMs`, 클라이언트 `SC_KICK`·게임 중 끊김 → 로그인 화면(빌드만, PIE 확인은 A2.5 확인 때 함께) (2026-11-16, D-158·T)

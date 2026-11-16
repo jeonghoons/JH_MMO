@@ -29,6 +29,13 @@ void UCombatHudWidget::NativeConstruct()
 	}
 }
 
+void UCombatHudWidget::SetInteractPrompt(const FText& Prompt)
+{
+	if (TxtInteract == nullptr) return;
+	TxtInteract->SetText(Prompt);
+	TxtInteract->SetVisibility(Prompt.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
+}
+
 void UCombatHudWidget::SetHp(int32 Hp, int32 MaxHp)
 {
 	Hp = FMath::Max(Hp, 0);

@@ -18,6 +18,10 @@
 #include "Character/NpcCharacter.h"
 #include "UI/JMUIManager.h"
 #include "UI/WidgetNames.h"
+#include "UI/CombatHudWidget.h"
+#include "Game/DropItemActor.h"
+#include "Game/JMInventoryManager.h"
+#include "Game/JMObjectManager.h"
 
 AJMMyPlayer::AJMMyPlayer()
 {
@@ -128,6 +132,7 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		}
 		if (CancelAimAction) EnhancedInputComponent->BindAction(CancelAimAction, ETriggerEvent::Started, this, &AJMMyPlayer::OnCancelAimInput);
 		if (InventoryAction) EnhancedInputComponent->BindAction(InventoryAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnInventoryInput);
+		if (InteractAction) EnhancedInputComponent->BindAction(InteractAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnInteractInput);
 		
 	}
 }
@@ -135,6 +140,14 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 void AJMMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// 줍기 안내는 0.1초마다 맞춘다(드랍 수만큼 거리 비교).
+	InteractCheckTimer -= DeltaTime;
+	if (InteractCheckTimer <= 0.f)
+	{
+		InteractCheckTimer = 0.1f;
+		UpdateInteractPrompt();
+	}
 
 	if (bAiming)
 	{
@@ -456,6 +469,45 @@ void AJMMyPlayer::RebuildQuickSlots()
 void AJMMyPlayer::OnCancelAimInput()
 {
 	EndLocalAim(true);
+}
+
+void AJMMyPlayer::UpdateInteractPrompt()
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	if (GameInstance == nullptr) return;
+
+	// 줍기 거리는 서버 값(SC_INVENTORY.pickup_range_cm)이다. 사망 중에는 주울 수 없다(서버도 거부).
+	ADropItemActor* Nearest = nullptr;
+	if (!bIsDead)
+	{
+		const UJMInventoryManager* Inventory = GameInstance->GetSubsystem<UJMInventoryManager>();
+		const UJMObjectManager* ObjectManager = GameInstance->GetSubsystem<UJMObjectManager>();
+		const float Range = Inventory ? static_cast<float>(Inventory->GetPickupRangeCm()) : 0.f;
+		if (ObjectManager && Range > 0.f) Nearest = ObjectManager->FindNearestDrop(GetActorLocation(), Range);
+	}
+
+	if (Nearest == InteractTarget.Get() && bInteractPromptShown == (Nearest != nullptr)) return;
+	InteractTarget = Nearest;
+	bInteractPromptShown = Nearest != nullptr;
+
+	UJMUIManager* UIManager = GameInstance->GetSubsystem<UJMUIManager>();
+	if (UCombatHudWidget* Hud = UIManager ? Cast<UCombatHudWidget>(UIManager->GetWidget(WidgetNames::HUD)) : nullptr)
+	{
+		Hud->SetInteractPrompt(Nearest ? FText::FromString(FString::Printf(TEXT("[F] 줍기: %s"), *Nearest->GetDisplayText().ToString())) : FText::GetEmpty());
+	}
+}
+
+void AJMMyPlayer::OnInteractInput()
+{
+	if (bIsDead) return;
+	// 누르는 순간의 위치로 다시 고른다(안내는 0.1초 전 것일 수 있다). 거리·소유권·빈 칸 검증은 서버가 하고 거부는 시스템 메시지로 온다.
+	UpdateInteractPrompt();
+	const ADropItemActor* Target = InteractTarget.Get();
+	if (Target == nullptr) return;
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this))
+	{
+		NetManager->SendPickupItem(Target->GetObjectId());
+	}
 }
 
 void AJMMyPlayer::OnInventoryInput()

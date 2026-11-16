@@ -28,6 +28,10 @@ void UInventoryWidget::NativeConstruct()
 	{
 		BtnClose->OnClicked.AddUniqueDynamic(this, &UInventoryWidget::OnCloseClicked);
 	}
+	if (BtnDrop)
+	{
+		BtnDrop->OnClicked.AddUniqueDynamic(this, &UInventoryWidget::OnDropClicked);
+	}
 	BuildEquipSlots();
 
 	if (UGameInstance* GameInstance = GetGameInstance())
@@ -142,6 +146,9 @@ void UInventoryWidget::Refresh()
 		FillSlot(EquipSlots[Index], Equipped[Index]);
 	}
 
+	// 버리기는 인벤토리 칸의 아이템을 골랐을 때만 누를 수 있다.
+	if (BtnDrop) BtnDrop->SetIsEnabled(SelectedItem != nullptr && SelectedItem->EquipPart == 0);
+
 	if (TxtGold) TxtGold->SetText(FText::AsNumber(Inventory->GetGold()));
 	if (TxtSlots) TxtSlots->SetText(FText::FromString(FString::Printf(TEXT("%d / %d"), BagBySlot.Num(), Inventory->GetMaxSlots())));
 	if (TxtSelected)
@@ -208,6 +215,16 @@ void UInventoryWidget::OnSlotDropped(UItemSlotWidget* From, UItemSlotWidget* To)
 		const FItemTableRow* TargetRow = (To->HasItem() && DataManager) ? DataManager->FindItemById(To->GetItemId()) : nullptr;
 		const bool bSwap = TargetRow != nullptr && static_cast<int32>(TargetRow->Slot) == From->GetEquipPart();
 		NetManager->SendChangeEquip(From->GetEquipPart(), bSwap ? To->GetItemDbId() : 0);
+	}
+}
+
+void UInventoryWidget::OnDropClicked()
+{
+	if (SelectedDbId == 0) return;
+	// 요청만 보낸다. 서버가 행을 지운 뒤 SC_INVENTORY_UPDATE(칸에서 사라짐)와 SC_ADD_OBJECT(발밑 드랍)를 보낸다. 거부는 시스템 메시지.
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this))
+	{
+		NetManager->SendDropItem(SelectedDbId);
 	}
 }
 

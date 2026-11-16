@@ -16,10 +16,12 @@
 #include "UI/WidgetNames.h"
 #include "UI/CombatHudWidget.h"
 #include "UI/ReviveWidget.h"
+#include "Game/DropItemActor.h"
 
 void UJMObjectManager::ClearObjects()
 {
 	Objects.Empty();
+	Drops.Empty();
 	MyPlayer = nullptr;
 }
 
@@ -31,13 +33,26 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	int ObjectId = ObjInfo.id();
 	if (Objects.Contains(ObjectId)) return;
 
-	// 바닥 드랍(OBJECT_TYPE_ITEM, 서버 A3.4)은 캐릭터가 아니다. 표시 액터·줍기는 A6.2에서 넣고, 그때까지는 무시한다.
-	// (아래 분기에 들어가면 원격 플레이어로 스폰된다). 드랍의 SC_REMOVE_OBJECT는 Objects에 없는 id라 HandleDespawn이 그냥 넘긴다.
-	if (ObjInfo.object_type() == Protocol::OBJECT_TYPE_ITEM) return;
-
 	UJMGameInstance* GameInst = Cast<UJMGameInstance>(GetGameInstance());
 	UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>();
 	if (GameInst == nullptr || NetManager == nullptr) return;
+
+	// 바닥 드랍(OBJECT_TYPE_ITEM, 서버 A3.4)은 캐릭터가 아니다. 표시 액터를 만들어 드랍 전용 맵에 둔다 (A6.2).
+	// template_id = ItemTable ID(0 = 골드), item_count = 수량. 줍기는 AJMMyPlayer가 거리로 골라 요청한다.
+	if (ObjInfo.object_type() == Protocol::OBJECT_TYPE_ITEM)
+	{
+		if (Drops.Contains(ObjectId)) return;
+		FActorSpawnParameters DropParams;
+		DropParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		UClass* DropClass = GameInst->DropItemClass ? GameInst->DropItemClass.Get() : ADropItemActor::StaticClass();
+		const FVector DropLoc(ObjInfo.position().x(), ObjInfo.position().y(), ObjInfo.position().z());
+		if (ADropItemActor* Drop = World->SpawnActor<ADropItemActor>(DropClass, DropLoc, FRotator::ZeroRotator, DropParams))
+		{
+			Drop->InitDrop(ObjectId, ObjInfo.template_id(), ObjInfo.item_count());
+			Drops.Add(ObjectId, Drop);
+		}
+		return;
+	}
 
 	FVector SpawnLoc(ObjInfo.position().x(), ObjInfo.position().y(), ObjInfo.position().z());
 	FRotator SpawnRot(0, ObjInfo.position().yaw(), 0);
@@ -113,8 +128,36 @@ UCombatHudWidget* UJMObjectManager::GetCombatHud() const
 	return UIManager ? Cast<UCombatHudWidget>(UIManager->GetWidget(WidgetNames::HUD)) : nullptr;
 }
 
+ADropItemActor* UJMObjectManager::FindNearestDrop(const FVector& From, float RangeCm) const
+{
+	ADropItemActor* Nearest = nullptr;
+	float BestSq = RangeCm * RangeCm;
+	for (const TPair<int32, TObjectPtr<ADropItemActor>>& Pair : Drops)
+	{
+		ADropItemActor* Drop = Pair.Value.Get();
+		if (!IsValid(Drop)) continue;
+		const float DistSq = FVector::DistSquared2D(From, Drop->GetActorLocation());
+		if (DistSq <= BestSq)
+		{
+			BestSq = DistSq;
+			Nearest = Drop;
+		}
+	}
+	return Nearest;
+}
+
 void UJMObjectManager::HandleDespawn(int32 ObjectId)
 {
+	// 바닥 드랍: 누가 주웠거나 수명이 다했거나 내 시야에서 벗어났다.
+	if (TObjectPtr<ADropItemActor>* FoundDrop = Drops.Find(ObjectId))
+	{
+		if (*FoundDrop != nullptr)
+		{
+			(*FoundDrop)->Destroy();
+		}
+		Drops.Remove(ObjectId);
+		return;
+	}
 	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(ObjectId))
 	{
 		if (*FoundActor != nullptr)

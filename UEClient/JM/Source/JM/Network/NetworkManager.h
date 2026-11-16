@@ -51,6 +51,9 @@ public:
 	void SendDevGive(int32 ItemId, int64 Count);
 	// 인벤토리 칸 옮기기(A6.1). 대상 칸에 아이템이 있으면 서버가 맞바꾼다. 결과는 SC_INVENTORY_UPDATE.
 	void SendMoveItem(int64 ItemDbId, int32 ToSlot);
+	// A6.2: 바닥 드랍 줍기(ObjectId = 드랍 오브젝트 id), 인벤토리 아이템 버리기(스택 통째). 검증은 서버가 한다
+	void SendPickupItem(int32 ObjectId);
+	void SendDropItem(int64 ItemDbId);
 	// 스킬 조준 켜기/끄기(MC4.2d-1). 상태가 바뀔 때만, Seq는 보낼 때마다 1씩 올린 값. 확정(공격)은 서버가 함께 해제하므로 끄기를 보내지 않는다
 	// 부활 요청(A2.4). 사망 여부·대기 시간은 서버가 검증하고, 받아들이면 SC_REVIVE가 온다
 	void SendRevive();

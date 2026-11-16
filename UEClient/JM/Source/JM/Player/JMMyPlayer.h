@@ -30,6 +30,10 @@ protected:
 	void OnQuickSlotInput(int32 Index);
 	void OnCancelAimInput();
 	void OnInventoryInput();
+	// F 키(A6.2): 줍기 거리 안의 가장 가까운 바닥 드랍을 줍겠다고 요청한다. 결과는 서버 패킷으로 온다.
+	void OnInteractInput();
+	// 줍기 안내(HUD)를 지금 가까운 드랍에 맞춘다. 대상이 바뀔 때만 HUD를 고친다.
+	void UpdateInteractPrompt();
 
 public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -80,6 +84,14 @@ protected:
 	// 인벤토리·장비창 여닫기(I 키, A6.1)
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> InventoryAction;
+	// 상호작용(F 키, A6.2): 지금은 바닥 드랍 줍기
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> InteractAction;
+
+	// 줍기 안내 대상(가장 가까운 드랍)과 다음 검사까지 남은 시간
+	TWeakObjectPtr<class ADropItemActor> InteractTarget;
+	float InteractCheckTimer = 0.f;
+	bool bInteractPromptShown = false;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))

@@ -25,6 +25,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|Classes")
 	TSubclassOf<class ANpcCharacter> NpcCharacterClass;
 
+	// Ground drop display actor (A6.2). Set to BP_DropItem in BP_JMGameInstance. If empty, drops are spawned without a mesh.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|Classes")
+	TSubclassOf<class ADropItemActor> DropItemClass;
+
 	// System message popup (login failure, entering room, ...). Set to WBP_SystemMessage in BP_JMGameInstance.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameData|UI")
 	TSubclassOf<class USystemMessageWidget> SystemMessageWidgetClass;

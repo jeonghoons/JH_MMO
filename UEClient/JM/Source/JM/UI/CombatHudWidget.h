@@ -29,6 +29,9 @@ public:
 	// 서버가 확정한 시전(SC_ATTACK)의 쿨타임을 그 스킬이 든 칸에 표시한다. SkillSlot = SkillTable의 Slot.
 	void StartCooldown(int32 SkillSlot, int32 CooldownMs);
 
+	// 상호작용 안내(A6.2): 주울 수 있는 드랍이 가까이 있으면 "[F] 줍기: 이름". 빈 글이면 숨긴다.
+	void SetInteractPrompt(const FText& Prompt);
+
 protected:
 	// HUD가 내 캐릭터보다 늦게 만들어져도 현재 값으로 시작한다.
 	virtual void NativeConstruct() override;
@@ -49,6 +52,10 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UProgressBar> ExpBar;
+
+	// 상호작용 안내 글(없으면 안내를 띄우지 않는다)
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> TxtInteract;
 
 	// 액티브 칸 1~5(숫자키). 칸 번호는 각 인스턴스의 SkillSlot 값. 기본 공격은 좌클릭이라 칸을 두지 않는다. (D-038·D-148)
 	UPROPERTY(meta = (BindWidgetOptional))
