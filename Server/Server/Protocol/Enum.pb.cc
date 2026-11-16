@@ -29,12 +29,13 @@ static constexpr ::_pbi::MigrationSchema* schemas = nullptr;
 static constexpr ::_pb::Message* const* file_default_instances = nullptr;
 
 const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\nEnum.proto\022\010Protocol*\332\004\n\010PacketId\022\014\n\010P"
+  "\n\nEnum.proto\022\010Protocol*\202\005\n\010PacketId\022\014\n\010P"
   "KT_NONE\020\000\022\r\n\010CS_LOGIN\020\350\007\022\016\n\tCS_SIGNUP\020\351\007"
   "\022\014\n\007CS_CHAT\020\353\007\022\014\n\007CS_MOVE\020\354\007\022\022\n\rCS_ENTER"
   "_ROOM\020\356\007\022\016\n\tCS_ATTACK\020\360\007\022\024\n\017CS_CHANGE_EQ"
   "UIP\020\361\007\022\014\n\007CS_PING\020\362\007\022\021\n\014CS_SKILL_AIM\020\363\007\022"
-  "\016\n\tCS_REVIVE\020\364\007\022\020\n\013CS_DEV_GIVE\020\371\007\022\021\n\014CS_"
+  "\016\n\tCS_REVIVE\020\364\007\022\023\n\016CS_PICKUP_ITEM\020\365\007\022\021\n\014"
+  "CS_DROP_ITEM\020\366\007\022\020\n\013CS_DEV_GIVE\020\371\007\022\021\n\014CS_"
   "MOVE_ITEM\020\206\010\022\r\n\010SC_LOGIN\020\320\017\022\016\n\tSC_SIGNUP"
   "\020\321\017\022\022\n\rSC_ADD_OBJECT\020\323\017\022\025\n\020SC_REMOVE_OBJ"
   "ECT\020\324\017\022\014\n\007SC_CHAT\020\325\017\022\023\n\016SC_MOVE_OBJECT\020\326"
@@ -94,7 +95,7 @@ const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   ;
 static ::_pbi::once_flag descriptor_table_Enum_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Enum_2eproto = {
-    false, false, 2465, descriptor_table_protodef_Enum_2eproto,
+    false, false, 2505, descriptor_table_protodef_Enum_2eproto,
     "Enum.proto",
     &descriptor_table_Enum_2eproto_once, nullptr, 0, 0,
     schemas, file_default_instances, TableStruct_Enum_2eproto::offsets,
@@ -125,6 +126,8 @@ bool PacketId_IsValid(int value) {
     case 1010:
     case 1011:
     case 1012:
+    case 1013:
+    case 1014:
     case 1017:
     case 1030:
     case 2000:

@@ -3,8 +3,9 @@
 목표 구조만 기록합니다. 구현 순서는 [ROADMAP.md](ROADMAP.md) 마일스톤 1(1-3·1-4)을 따르고, 이 문서의 테이블·패킷은 해당 항목을 구현할 때 만듭니다.
 (2026-11-16 A3.1 작성, 결정 D-152~D-159. 장비 외형·슬롯은 [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), CSV 규약은 [DESIGN_DATA.md](DESIGN_DATA.md), 동시성 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md))
 
-## 현재 상태 (2026-11-16)
-- A3.4 완료(2026-11-16): 몬스터 처치 시 드랍 롤 → 바닥 드랍(`DropItem`, `OBJECT_TYPE_ITEM`) 생성·소유권 기록·드랍 전용 시야·소멸·방당 상한. 구현 내용은 아래 "A3.4 구현 메모". 줍기·버리기·소비 아이템·거래·경매 코드는 아직 없습니다.
+## 현재 상태 (2026-11-17)
+- A3.5 완료(2026-11-17): 줍기 `CS_PICKUP_ITEM`·버리기 `CS_DROP_ITEM`(서버). 구현 내용은 아래 "A3.5 구현 메모". 클라이언트 표시·입력은 A6.2, 소비 아이템·거래·경매 코드는 아직 없습니다.
+- A3.4 완료(2026-11-16): 몬스터 처치 시 드랍 롤 → 바닥 드랍(`DropItem`, `OBJECT_TYPE_ITEM`) 생성·소유권 기록·드랍 전용 시야·소멸·방당 상한. 구현 내용은 아래 "A3.4 구현 메모".
 - A3.3 완료(2026-11-16): `Player_Item`(마이그레이션 0004, `Player_Equipped` 이전·삭제), 서버 `Inventory`·아이템 작업 공통 경로(`itemOp`), 장착을 `item_db_id` 기준·DB 성공 뒤 반영으로 전환, 개발 지급 `CS_DEV_GIVE`, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`·`SC_ITEM_RESULT`, 클라이언트 `UJMInventoryManager`(데이터만 — 창은 A6.1)와 콘솔 `Give`. 구현 내용은 아래 "A3.3 구현 메모".
 - 골드는 진행 상황 스냅숏에서 빠졌고 아이템 트랜잭션에서만 증감합니다(지금 들어오는 경로는 개발 지급뿐, 골드 드랍은 A3.4).
 - A2.7 완료(2026-11-16): 같은 캐릭터의 중복 접속은 기존 접속을 끊고 새 로그인을 받습니다(아래 "중복 접속 차단"). 인벤토리·아이템 작업을 추가할 때는 `Room::NotifyClosedIfDone`의 조건과 호출 지점에 함께 넣어야 합니다.
@@ -142,7 +143,7 @@
 4. **AOI**: 드랍은 캐릭터용 시야와 **분리**합니다. `GameMap`에 드랍 전용 색인(`AoiIndex` 하나 더)을 두고, 플레이어는 `_viewList`와 별개인 드랍 시야 목록을 갖습니다. 갱신 시점은 플레이어 이동 처리(`PlayerMove`의 `UpdateMap` 뒤), 입장·퇴장, 드랍 생성·제거뿐이고 판정은 같은 반경(R, R+H)입니다. 플레이어가 다가오면 `SC_ADD_OBJECT`, 멀어지거나 드랍이 사라지면 `SC_REMOVE_OBJECT`입니다. 드랍은 움직이지 않습니다. 이렇게 하면 `Room::UpdateView`·`BroadcastAOI`(인자가 `Character`, `_viewList`는 캐릭터 id만)와 몬스터 이동·`ViewAudit`·시야 지표를 건드리지 않습니다. A3.4에서 드랍이 많을 때의 틱 지연을 전후 비교합니다.
 5. **소멸**: 생성 때 `ReserveJob(DropLifeSec, RemoveDrop, id)`. 실행 때 id로 다시 찾아 없으면(이미 주움) 끝냅니다. 줍는 중이면 건너뛰고 DB 결과 처리에서 수명을 다시 봅니다. `MaxDropsPerRoom` 초과로 지울 때도 줍는 중인 것은 건너뜁니다.
 6. **줍기** `CS_PICKUP_ITEM(object_id)`: 검증(방 안, 생존, 요청 간격, `itemOp` 없음, 드랍 존재, 줍는 중 아님, 거리 ≤ `PickupRangeCm`, 소유자이거나 소유 시간 경과, 칸·골드 상한) → 드랍에 **줍는 중** 표시 + `itemOp` 켬 → DB → 성공이면 드랍 제거(`SC_REMOVE_OBJECT`) + `SC_INVENTORY_UPDATE`, 실패면 표시를 풀고 `DB_ERROR`. 줍는 중인 드랍에 온 다른 요청은 `BUSY`이므로 **경쟁해도 한 명만 얻습니다.**
-7. **버리기** `CS_DROP_ITEM(item_db_id)`: 생존 중, 인벤토리 위치의 행만(장착 중·거래에 올린 것 제외) → DB DELETE → 성공 뒤 내 위치에 소유권 없는 드랍 생성. 바닥에서 다시 주우면 새 `ItemDbId`를 받습니다.
+7. **버리기** `CS_DROP_ITEM(item_db_id)`: 생존 중, 인벤토리 위치의 행만(장착 중·거래에 올린 것 제외) → DB DELETE → 성공 뒤 내 위치(발밑 `DropScatterCm` 안의 내비메시 위)에 소유권 없는 드랍 생성. 바닥에서 다시 주우면 새 `ItemDbId`를 받습니다.
 - 클라이언트(A6.2): `UJMObjectManager::HandleSpawn`에 ITEM 분기와 드랍 전용 맵(`Objects`는 캐릭터 전용이라 따로 둠)을 추가합니다. 표시는 공용 메시 하나(아이템·골드 구분만)로 하고, 거리 안에서 가장 가까운 드랍에 줍기 안내를 띄워 **F 키**(`IA_Interact` 신규)로 줍습니다. 소유권은 클라이언트에 알리지 않고 거부 문구(`NOT_OWNER`)로 안내합니다.
 
 ### A3.4 구현 메모 (2026-11-16)
@@ -154,6 +155,15 @@
 - **지표**: `[metrics] drops(now kills/created/expired/evicted)`, `Log.Level=Debug`에서 `[Drop] 생성 id= item= count= owner= pos=`.
 - **부하(TESTING 2026-11-16 A3.4)**: 기본 `DropTable`에서는 드랍이 없을 때와 틱 지연·틱 본문이 같은 수준입니다. 전 행 100%(처치당 12개) + 상한 지속 제거라는 최악 조건에서는 틱 본문 p99가 약 3배(15 → 44ms)로 늘었는데, 드랍마다 ADD·REMOVE 패킷을 시야 안 전원에게 따로 보내기 때문입니다. 송신 묶기(P1b) 뒤에 다시 잽니다.
 - **클라이언트**: `UJMObjectManager::HandleSpawn`은 `OBJECT_TYPE_ITEM`을 무시합니다(A6.2에서 표시 액터로 교체). 봇은 ITEM을 몬스터 목록에 넣지 않습니다.
+
+### A3.5 구현 메모 (2026-11-17)
+- **줍기** `Room::PlayerPickupItem`: 검증 순서는 방 안 → 더미 봇 아님 → 생존 → 요청 간격 → 진행 중인 작업(`BUSY`) → 드랍 존재(`NO_ITEM`) → 줍는 중 아님(`BUSY`) → 수평 거리 ≤ `PickupRangeCm`(`TOO_FAR`) → `DropItem::CanPickup`(`NOT_OWNER`) → 골드 상한(`GOLD_FULL`)·`Inventory::PlanAdd`(`INVENTORY_FULL`). 통과하면 `drop->picking = true` + `ItemOpKind::Pickup`. 배치 계획은 지급과 같은 필드(`fills`·`newCounts`·`newSlots`·`goldDelta`)에 담습니다.
+- **줍기 결과**(`Room::OnItemOpDone`): 성공 → `RemoveDrop`(방을 나갔어도) → 방에 있으면 인벤토리 반영 + `SC_INVENTORY_UPDATE`. 롤백 확인 → `picking`을 풀고 `DB_ERROR`(드랍은 바닥에 남아 다시 주울 수 있음, 그 사이 수명이 다했으면 그때 제거). 결과 불명 → 드랍을 지웁니다(되돌리면 복제 가능, 플레이어는 공통 경로가 끊음).
+- **버리기** `Room::PlayerDropItem`: 인벤토리 위치의 내 행만(없거나 장착 중이면 `NO_ITEM`), 스택 통째. `ItemOpKind::Discard`가 `ItemDbId`·칸·수량을 조건으로 DELETE하고, 성공하면 메모리에서 지워 `SC_INVENTORY_UPDATE`(removed)를 보낸 뒤 `CreateDrop`(소유권 없음)을 부릅니다. 위치는 방에 있으면 지금 위치, 나갔으면 요청 때 위치의 `GetRandomPosNear(…, DropScatterCm)`입니다. 실패·불명이면 드랍을 만들지 않습니다(DB에 행이 남았을 수 있음).
+- **쿼리(D-165)**: 줍기는 고정 쿼리 `DbQueries::ItemPickup`(덜 찬 스택 하나 + 새 행 하나 + 골드 중 해당하는 것만 실행)입니다. 스택을 둘 이상 채우거나 새 행이 둘 이상인 드문 경우만 지급의 조립식 `BuildItemGive`를 씁니다. 버리기는 고정 쿼리 `ItemDiscard`. 측정: 줍기 DB 실행 avg 4.1ms·p99 7.9ms.
+- **경쟁**: Room 잡은 한 번에 하나라 먼저 처리된 요청이 `picking`을 켜고, 뒤 요청은 DB 결과가 올 때까지 `BUSY`, 그 뒤에는 `NO_ITEM`입니다. `BUSY`는 클라이언트가 문구를 띄우지 않으므로 진 쪽에는 드랍이 사라지는 것만 보입니다.
+- **지표**: `[metrics] pickup(picked/discarded)`, Debug 로그 `[Item] 줍기`·`줍기 거부`·`버리기 거부`.
+- **시험(TESTING 2026-11-17 A3.5)**: 거부 사유, 버리기 → 타인 줍기, 3인 동시 요청 60라운드, DB 롤백·지연·결과 전 접속 해제, 소유권 거부·개방, 골드 상한. 봇의 줍기 프로필은 A5.2입니다.
 
 ## 장착 검사 확장 (A3.3·MC4.4, D-156)
 - `CS_CHANGE_EQUIP`은 `item_id` 대신 **`item_db_id`**(0 = 해제)를 받습니다. 방송 `SC_CHANGE_EQUIP`과 `ObjectInfo.equip_items`는 지금처럼 itemId입니다.

@@ -54,6 +54,17 @@ message CS_DEV_GIVE_PACKET {
 	int64 count = 2;     // 수량(골드는 금액). 1 이상
 }
 
+// 바닥 드랍 줍기(A3.5). 성공은 SC_REMOVE_OBJECT(보던 사람 전원) + SC_INVENTORY_UPDATE(본인), 거부는 SC_ITEM_RESULT(request = CS_PICKUP_ITEM).
+message CS_PICKUP_ITEM_PACKET {
+	int32 object_id = 1;    // 드랍 오브젝트 id (SC_ADD_OBJECT로 받은 OBJECT_TYPE_ITEM)
+}
+
+// 버리기(A3.5, D-155). 인벤토리 위치의 행을 스택 통째로 내 발밑에 소유권 없는 드랍으로 떨어뜨린다.
+// 성공은 SC_INVENTORY_UPDATE(removed) + SC_ADD_OBJECT, 거부는 SC_ITEM_RESULT(request = CS_DROP_ITEM).
+message CS_DROP_ITEM_PACKET {
+	int64 item_db_id = 1;   // 버릴 행 (인벤토리 위치의 내 아이템, 장착 중인 것은 안 됨)
+}
+
 // 인벤토리 칸 옮기기(A6.1). 대상 칸이 비어 있으면 옮기고, 다른 아이템이 있으면 두 칸을 맞바꾼다.
 // 성공은 SC_INVENTORY_UPDATE(바뀐 행), 거부는 SC_ITEM_RESULT(request = CS_MOVE_ITEM).
 message CS_MOVE_ITEM_PACKET {

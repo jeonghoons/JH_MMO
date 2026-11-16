@@ -71,6 +71,8 @@ namespace Metrics
 	inline std::atomic<long long> DropsCreated{ 0 };     // 만든 드랍 수(누적)
 	inline std::atomic<long long> DropsExpired{ 0 };     // DropLifeSec가 지나 지운 수(누적)
 	inline std::atomic<long long> DropsEvicted{ 0 };     // MaxDropsPerRoom을 넘어 오래된 것부터 지운 수(누적)
+	inline std::atomic<long long> DropsPicked{ 0 };      // 주워서 지운 수(누적, A3.5)
+	inline std::atomic<long long> DropsDiscarded{ 0 };   // 플레이어가 버려서 만든 수(누적, DropsCreated에도 들어간다, A3.5)
 
 	inline std::atomic<int>       Monsters{ 0 };      // 현재 월드에 살아 있거나 시체로 남아 있는 몬스터 수
 	inline std::atomic<long long> AttackRequests{ 0 };  // CS_ATTACK 수신 수(누적)

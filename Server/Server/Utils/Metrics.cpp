@@ -80,7 +80,7 @@ namespace
 				"aim(total on/reject/off/castClear/timeout)={}/{}/{}/{}/{} "
 				"revive(total deaths/ok/reject/deadMove)={}/{}/{}/{} "
 				"login(total kick/busy/forced)={}/{}/{} "
-				"drops(now kills/created/expired/evicted)={} {}/{}/{}/{}",
+				"drops(now kills/created/expired/evicted)={} {}/{}/{}/{} pickup(picked/discarded)={}/{}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
@@ -100,7 +100,8 @@ namespace
 				Metrics::AimOn.load(), Metrics::AimReject.load(), Metrics::AimOff.load(), Metrics::AimCastClear.load(), Metrics::AimTimeout.load(),
 				Metrics::PlayerDeaths.load(), Metrics::Revives.load(), Metrics::ReviveReject.load(), Metrics::MoveDroppedDead.load(),
 				Metrics::LoginKicks.load(), Metrics::LoginBusy.load(), Metrics::LoginCloseForced.load(),
-				Metrics::Drops.load(), Metrics::MonsterKills.load(), Metrics::DropsCreated.load(), Metrics::DropsExpired.load(), Metrics::DropsEvicted.load());
+				Metrics::Drops.load(), Metrics::MonsterKills.load(), Metrics::DropsCreated.load(), Metrics::DropsExpired.load(), Metrics::DropsEvicted.load(),
+				Metrics::DropsPicked.load(), Metrics::DropsDiscarded.load());
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","

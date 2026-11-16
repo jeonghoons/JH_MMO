@@ -45,6 +45,8 @@ enum class ItemOpKind
 	Equip,      // 장착·해제: 옛 장비·자동 해제 방패를 내리고 새 장비를 올린다 (고정 쿼리)
 	LoginFix,   // 로그인 때 맞지 않은 장착 행을 인벤토리로 내린다
 	Move,       // 인벤토리 칸 옮기기·맞바꾸기 (고정 쿼리, A6.1)
+	Pickup,     // 바닥 드랍 줍기: Give와 같은 계획(fills·newCounts·goldDelta)을 쓴다 (고정 쿼리, A3.5)
+	Discard,    // 버리기: 인벤토리 행 DELETE, 성공 뒤 바닥 드랍 생성 (고정 쿼리, A3.5)
 };
 
 struct DB_ItemOp {
@@ -80,6 +82,15 @@ struct DB_ItemOp {
 	int32_t moveFrom = -1;                    // 지금 칸(기대 상태)
 	int32_t moveTo = -1;                      // 대상 칸
 	int64_t moveOtherDbId = 0;                // 대상 칸에 있던 행(맞바꿈, 0 = 빈 칸)
+
+	// Pickup — 배치 계획은 Give의 필드(itemId·fills·newCounts·newSlots·goldDelta·goldMax)에 담는다
+	int32_t dropId = 0;                       // 줍는 드랍의 오브젝트 id (결과가 오면 이 id로 다시 찾는다)
+
+	// Discard — 버리는 종류는 itemId에 담는다
+	int64_t discardDbId = 0;                  // 지울 행
+	int32_t discardSlot = -1;                 // 그 행이 지금 있는 칸(기대 상태)
+	int32_t discardCount = 0;                 // 그 행의 수량(기대 상태, 바닥 드랍의 수량이 된다)
+	float discardX = 0.f, discardY = 0.f, discardZ = 0.f;   // 요청 때의 위치(결과가 왔을 때 방에 없으면 여기에 떨어뜨린다)
 };
 
 struct DB_ItemOpResult {

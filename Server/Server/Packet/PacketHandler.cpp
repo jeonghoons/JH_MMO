@@ -60,6 +60,14 @@ void PacketHandler::Init()
     GPacketHandler[Protocol::CS_MOVE_ITEM] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_MOVE_ITEM_PACKET>(&PacketHandler::Handle_CS_MOVE_ITEM, session, buffer, len);
         };
+
+    GPacketHandler[Protocol::CS_PICKUP_ITEM] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_PICKUP_ITEM_PACKET>(&PacketHandler::Handle_CS_PICKUP_ITEM, session, buffer, len);
+        };
+
+    GPacketHandler[Protocol::CS_DROP_ITEM] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_DROP_ITEM_PACKET>(&PacketHandler::Handle_CS_DROP_ITEM, session, buffer, len);
+        };
 }
 
 void PacketHandler::ProcessPacket(shared_ptr<GameSession> session, BYTE* buffer, int len)
@@ -234,6 +242,30 @@ void PacketHandler::Handle_CS_MOVE_ITEM(shared_ptr<GameSession> session, Protoco
 
     // 보유·칸 범위 검증과 DB 트랜잭션은 Room 잡에서 한다.
     room->PushJob(&Room::PlayerMoveItem, player, static_cast<int64_t>(pkt.item_db_id()), static_cast<int>(pkt.to_slot()));
+}
+
+void PacketHandler::Handle_CS_PICKUP_ITEM(shared_ptr<GameSession> session, Protocol::CS_PICKUP_ITEM_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    // 드랍 존재·거리·소유권·빈 칸 검증과 DB 트랜잭션은 Room 잡에서 한다.
+    room->PushJob(&Room::PlayerPickupItem, player, static_cast<int>(pkt.object_id()));
+}
+
+void PacketHandler::Handle_CS_DROP_ITEM(shared_ptr<GameSession> session, Protocol::CS_DROP_ITEM_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    // 보유 검증과 DB 트랜잭션은 Room 잡에서 한다.
+    room->PushJob(&Room::PlayerDropItem, player, static_cast<int64_t>(pkt.item_db_id()));
 }
 
 void PacketHandler::Handle_CS_SKILL_AIM(shared_ptr<GameSession> session, Protocol::CS_SKILL_AIM_PACKET& pkt)

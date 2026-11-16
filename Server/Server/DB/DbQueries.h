@@ -119,6 +119,34 @@ namespace DbQueries
 		L"SET @n += @@ROWCOUNT; "
 		+ ItemOpTail(L"@want");
 
+	// 줍기(고정 쿼리, A3.5 — 자주 오는 작업이라 실행 계획을 재사용한다, D-165). 덜 찬 스택 하나에 더하기 + 새 행 하나 + 골드 증액 중
+	// 해당하는 것만 실행한다(없는 것은 0). 스택을 둘 이상 채우거나 새 행이 둘 이상인 드문 경우는 BuildItemGive를 쓴다.
+	// 파라미터: 1 PlayerId, 2 Fail, 3 ItemId, 4 FillDbId, 5 FillExpect(그 스택의 지금 수량), 6 FillAdd, 7 NewCount, 8 NewSlot, 9 Gold, 10 GoldMax
+	inline const std::wstring ItemPickup =
+		std::wstring(L"SET NOCOUNT ON; SET XACT_ABORT ON; "
+		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @Item INT = ?, @Fill BIGINT = ?, @Expect INT = ?, @Add INT = ?, @NewCount INT = ?, @NewSlot INT = ?, @Gold BIGINT = ?, @GoldMax BIGINT = ?; "
+		L"DECLARE @want INT = IIF(@Fill <> 0, 1, 0) + IIF(@Gold <> 0, 1, 0); ")
+		+ ItemOpHead +
+		L"IF @Fill <> 0 BEGIN "
+		L"UPDATE [Player_Item] SET [Count] = [Count] + @Add, UpdatedAt = SYSDATETIME() "
+		L"WHERE ItemDbId = @Fill AND OwnerId = @P AND Location = 1 AND ItemId = @Item AND [Count] = @Expect; SET @n += @@ROWCOUNT; END "
+		L"IF @NewCount > 0 BEGIN "
+		L"INSERT INTO [Player_Item] (OwnerId, ItemId, [Count], Location, EquipSlot, BagSlot) VALUES (@P, @Item, @NewCount, 1, 0, @NewSlot); "
+		L"INSERT INTO @R (Kind, V) VALUES (1, SCOPE_IDENTITY()); END "
+		L"IF @Gold <> 0 BEGIN "
+		L"UPDATE [Player_Info] SET Gold = Gold + @Gold WHERE PlayerId = @P AND Gold + @Gold BETWEEN 0 AND @GoldMax; SET @n += @@ROWCOUNT; "
+		L"INSERT INTO @R (Kind, V) SELECT 2, Gold FROM [Player_Info] WHERE PlayerId = @P; END "
+		+ ItemOpTail(L"@want");
+
+	// 버리기(고정 쿼리, A3.5). 파라미터: 1 PlayerId, 2 Fail, 3 DbId, 4 Slot, 5 Count (칸·수량은 기대 상태)
+	inline const std::wstring ItemDiscard =
+		std::wstring(L"SET NOCOUNT ON; SET XACT_ABORT ON; "
+		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @A BIGINT = ?, @Slot INT = ?, @Count INT = ?; ")
+		+ ItemOpHead +
+		L"DELETE FROM [Player_Item] WHERE ItemDbId = @A AND OwnerId = @P AND Location = 1 AND BagSlot = @Slot AND [Count] = @Count; "
+		L"SET @n += @@ROWCOUNT; "
+		+ ItemOpTail(L"1");
+
 	// 지급(조립식 — 채울 스택 수가 요청마다 다르다). 파라미터: 1 PlayerId, 2 Fail. 나머지는 Room이 검증한 정수라 쿼리에 그대로 넣는다.
 	// 새 행의 ItemDbId는 Kind 1 행으로(newCounts 순서대로), 골드를 바꿨으면 바뀐 뒤 잔액을 Kind 2 행으로 돌려준다.
 	inline std::wstring BuildItemGive(const DB_ItemOp& op)

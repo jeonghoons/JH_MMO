@@ -691,6 +691,100 @@ void Room::PlayerMoveItem(shared_ptr<Player> player, int64_t itemDbId, int toSlo
 	StartItemOp(player, op);
 }
 
+void Room::PlayerPickupItem(shared_ptr<Player> player, int dropId)
+{
+	if (player == nullptr) return;
+
+	auto reject = [&](Protocol::ItemResult result) {
+		LOG_DEBUG("Item", "줍기 거부 player={} drop={} result={}", player->GetId(), dropId, Protocol::ItemResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_PICKUP_ITEM, result));
+	};
+
+	// 검증 순서: 방 안 → 더미 봇 아님 → 생존 → 요청 간격 → 진행 중인 작업 → 드랍 존재 → 줍는 중 아님 → 거리 → 소유권 → 칸·골드 상한
+	if (false == IsInRoom(player)) { reject(Protocol::ITEM_RESULT_NOT_IN_ROOM); return; }
+	if (player->isDummy || player->GetPlayerUID() == 0) { reject(Protocol::ITEM_RESULT_NOT_ALLOWED); return; }
+	if (player->GetStat().IsDead()) { reject(Protocol::ITEM_RESULT_DEAD); return; }
+	const Protocol::ItemResult check = CheckItemRequest(player);
+	if (check != Protocol::ITEM_RESULT_SUCCESS) { reject(check); return; }
+
+	const shared_ptr<DropItem> drop = GetDrop(dropId);
+	if (drop == nullptr) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }   // 없는 id, 이미 주웠거나 사라짐
+	// 다른 사람의 줍기가 DB에 가 있다. 그쪽이 실패하면 다시 주울 수 있다.
+	if (drop->picking) { reject(Protocol::ITEM_RESULT_BUSY); return; }
+
+	const EconomyData& economy = DataManager::GetEconomy();
+	const Protocol::PositionInfo& myPos = player->GetPosition();
+	const Protocol::PositionInfo& dropPos = drop->GetPosition();
+	const float dx = dropPos.x() - myPos.x(), dy = dropPos.y() - myPos.y();
+	const float range = static_cast<float>(economy.pickupRangeCm);
+	if (dx * dx + dy * dy > range * range) { reject(Protocol::ITEM_RESULT_TOO_FAR); return; }
+
+	// 소유권: 만료는 타이머가 아니라 지금 시각과 비교한다(예약은 취소할 수 없다).
+	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	if (!drop->CanPickup(player->GetPlayerUID(), nowMs)) { reject(Protocol::ITEM_RESULT_NOT_OWNER); return; }
+
+	DB_ItemOp op;
+	op.kind = ItemOpKind::Pickup;
+	op.dropId = dropId;
+	const int64_t count = drop->GetCount();
+	if (drop->IsGold())
+	{
+		if (count < 1) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+		if (count > static_cast<int64_t>(economy.goldMax) - player->GetGold()) { reject(Protocol::ITEM_RESULT_GOLD_FULL); return; }
+		op.goldDelta = count;
+		op.goldMax = economy.goldMax;
+	}
+	else
+	{
+		const ItemData* item = DataManager::GetItemData(drop->GetItemId());
+		if (item == nullptr || count < 1) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+		// 덜 찬 스택부터 채우고 남으면 새 칸. 전부 들어갈 자리가 없으면 통째로 거부한다(D-155). 수량 상한도 PlanAdd가 본다.
+		if (false == player->inventory.PlanAdd(drop->GetItemId(), count, item->maxStack, economy.inventorySlots, op.fills, op.newCounts, op.newSlots)) { reject(Protocol::ITEM_RESULT_INVENTORY_FULL); return; }
+		op.itemId = drop->GetItemId();
+	}
+
+	// 줍는 중 표시: DB 결과가 올 때까지 다른 줍기(BUSY)·소멸·상한 제거가 이 드랍을 건드리지 않는다.
+	drop->picking = true;
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+void Room::PlayerDropItem(shared_ptr<Player> player, int64_t itemDbId)
+{
+	if (player == nullptr) return;
+
+	auto reject = [&](Protocol::ItemResult result) {
+		LOG_DEBUG("Item", "버리기 거부 player={} dbId={} result={}", player->GetId(), itemDbId, Protocol::ItemResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_DROP_ITEM, result));
+	};
+
+	if (false == IsInRoom(player)) { reject(Protocol::ITEM_RESULT_NOT_IN_ROOM); return; }
+	if (player->isDummy || player->GetPlayerUID() == 0) { reject(Protocol::ITEM_RESULT_NOT_ALLOWED); return; }
+	if (player->GetStat().IsDead()) { reject(Protocol::ITEM_RESULT_DEAD); return; }
+	const Protocol::ItemResult check = CheckItemRequest(player);
+	if (check != Protocol::ITEM_RESULT_SUCCESS) { reject(check); return; }
+
+	// 인벤토리 위치의 내 행만 버린다(장착 중인 것은 먼저 해제해야 한다). 스택은 통째로 버린다(D-155).
+	const ItemInstance* item = player->inventory.Find(itemDbId);
+	if (item == nullptr || item->equipPart != 0) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+
+	const Protocol::PositionInfo& pos = player->GetPosition();
+	DB_ItemOp op;
+	op.kind = ItemOpKind::Discard;
+	op.itemId = item->itemId;
+	op.discardDbId = itemDbId;
+	op.discardSlot = item->slot;
+	op.discardCount = item->count;
+	op.discardX = pos.x();
+	op.discardY = pos.y();
+	op.discardZ = pos.z();
+
+	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
 bool Room::IsInRoom(const shared_ptr<Player>& player) const
 {
 	if (player == nullptr) return false;
@@ -766,21 +860,13 @@ void Room::OnItemOpDone(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult
 		changed.push_back(moved);
 	};
 
-	switch (op.kind)
-	{
-	case ItemOpKind::Give:
-	{
-		if (!result.success)
-		{
-			if (session) session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_DEV_GIVE, Protocol::ITEM_RESULT_DB_ERROR));
-			break;
-		}
-		if (!inRoom) break;
+	// 들어온 아이템·골드(지급·줍기의 계획 fills·newCounts·goldDelta)를 메모리에 반영하고 본인에게 알린다.
+	auto applyAdded = [&]() {
 		if (result.newDbIds.size() != op.newCounts.size())
 		{
 			// 일어나면 안 된다(쿼리와 결과 읽기가 어긋남). DB에는 반영됐으므로 다음 로그인 때 맞춰진다.
-			LOG_ERROR("Item", "지급 결과의 새 행 수가 다릅니다 (PlayerId {}, 기대 {}, 받음 {})", op.playerUID, op.newCounts.size(), result.newDbIds.size());
-			break;
+			LOG_ERROR("Item", "지급·줍기 결과의 새 행 수가 다릅니다 (PlayerId {}, 기대 {}, 받음 {})", op.playerUID, op.newCounts.size(), result.newDbIds.size());
+			return;
 		}
 		for (const DB_ItemOp::Fill& fill : op.fills)
 		{
@@ -800,6 +886,76 @@ void Room::OnItemOpDone(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult
 		if (result.gold >= 0)
 			player->SetGold(result.gold);
 		if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, {}, player->GetGold()));
+	};
+
+	switch (op.kind)
+	{
+	case ItemOpKind::Give:
+	{
+		if (!result.success)
+		{
+			if (session) session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_DEV_GIVE, Protocol::ITEM_RESULT_DB_ERROR));
+			break;
+		}
+		if (!inRoom) break;
+		applyAdded();
+		break;
+	}
+	case ItemOpKind::Pickup:
+	{
+		// 줍는 중인 드랍은 소멸·상한 제거가 건너뛰므로 같은 id로 그대로 남아 있다.
+		const shared_ptr<DropItem> drop = GetDrop(op.dropId);
+		if (!result.success)
+		{
+			if (drop != nullptr && drop->picking)
+			{
+				drop->picking = false;
+				const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+				if (result.unknown)
+				{
+					// DB에 들어갔을 수도 있다 — 바닥에 되돌리면 복제가 될 수 있으므로 지운다(플레이어는 위에서 끊었다).
+					RemoveDrop(op.dropId);
+				}
+				else if (nowMs >= drop->expireAtMs)
+				{
+					// 줍는 동안 수명이 다했다(ExpireDrop이 건너뛴 것).
+					RemoveDrop(op.dropId);
+					Metrics::DropsExpired.fetch_add(1);
+				}
+			}
+			if (session) session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_PICKUP_ITEM, Protocol::ITEM_RESULT_DB_ERROR));
+			break;
+		}
+		// 월드 효과(드랍 제거)는 플레이어가 방을 나갔어도 적용한다 — DB에는 이미 들어갔다.
+		if (RemoveDrop(op.dropId))
+			Metrics::DropsPicked.fetch_add(1);
+		LOG_DEBUG("Item", "줍기 player={} uid={} drop={} item={} gold={}", player->GetId(), op.playerUID, op.dropId, op.itemId, op.goldDelta);
+		if (!inRoom) break;
+		applyAdded();
+		break;
+	}
+	case ItemOpKind::Discard:
+	{
+		if (!result.success)
+		{
+			// 결과를 알 수 없을 때도 드랍을 만들지 않는다(DB에 행이 남아 있을 수 있어, 만들면 복제가 된다).
+			if (session) session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_DROP_ITEM, Protocol::ITEM_RESULT_DB_ERROR));
+			break;
+		}
+		if (inRoom)
+		{
+			player->inventory.Remove(op.discardDbId);
+			if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE({}, { op.discardDbId }, player->GetGold()));
+		}
+		// 월드 효과(드랍 생성)는 방을 나갔어도 적용한다 — DB에서는 이미 지웠다. 방에 있으면 지금 위치, 없으면 요청 때 위치.
+		// 발밑 둘레의 갈 수 있는 자리(내비메시 위)에 놓는다. 소유권 없음(누구나 주울 수 있다).
+		Protocol::PositionInfo base;
+		if (inRoom) base = player->GetPosition();
+		else { base.set_x(op.discardX); base.set_y(op.discardY); base.set_z(op.discardZ); }
+		const float scatter = static_cast<float>(DataManager::GetEconomy().dropScatterCm);
+		const Protocol::PositionInfo dropPos = scatter > 0.f ? _gameMap.GetRandomPosNear(base, scatter) : base;
+		CreateDrop(op.itemId, op.discardCount, dropPos, 0);
+		Metrics::DropsDiscarded.fetch_add(1);
 		break;
 	}
 	case ItemOpKind::Equip:

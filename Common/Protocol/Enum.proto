@@ -17,7 +17,9 @@ enum PacketId {
     CS_PING = 1010;       // 부하 테스트/지연 측정용
     CS_SKILL_AIM = 1011;  // 스킬 조준 켜기/끄기 (상태가 바뀔 때만)
     CS_REVIVE = 1012;     // 부활 요청 (사망 후 대기 시간이 지나야 서버가 받는다)
-    CS_DEV_GIVE = 1017;   // 개발 지급 명령 (ServerConfig [Debug] DevCommands=true일 때만). 1013~1016은 A3.5·A3.6 예약(DESIGN_ITEMS_TRADE)
+    CS_PICKUP_ITEM = 1013; // 바닥 드랍 줍기 (A3.5)
+    CS_DROP_ITEM = 1014;   // 인벤토리 아이템을 바닥에 버리기 (A3.5, D-155)
+    CS_DEV_GIVE = 1017;   // 개발 지급 명령 (ServerConfig [Debug] DevCommands=true일 때만). 1015~1016은 A3.6 예약(DESIGN_ITEMS_TRADE)
     CS_MOVE_ITEM = 1030;  // 인벤토리 칸 옮기기·맞바꾸기 (A6.1). 1018~1029는 A4.2·A4.3 예약
 
     // Server -> Client

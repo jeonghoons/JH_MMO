@@ -218,7 +218,10 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 	// 공통 파라미터: 1 PlayerId, 2 Fail(시험용 강제 롤백)
 	int64_t playerUID = op.playerUID;
 	int32_t forceFail = op.forceFail ? 1 : 0;
-	SQLLEN paramLen[9] = { 0 };
+	SQLLEN paramLen[10] = { 0 };
+	// 줍기 고정 쿼리의 파라미터(없는 것은 0). Execute가 끝날 때까지 살아 있어야 한다.
+	int64_t fillDbId = 0;
+	int32_t fillExpect = 0, fillAdd = 0, newCount = 0, newSlot = -1;
 	dbConn->BindParam(1, &playerUID, &paramLen[0]);
 	dbConn->BindParam(2, &forceFail, &paramLen[1]);
 
@@ -245,6 +248,34 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 		dbConn->BindParam(5, &op.moveTo, &paramLen[4]);
 		dbConn->BindParam(6, &op.moveOtherDbId, &paramLen[5]);
 		query = DbQueries::ItemMove.c_str();
+		break;
+	case ItemOpKind::Pickup:
+		kindName = "Pickup";
+		if (op.fills.size() > 1 || op.newCounts.size() > 1)
+		{
+			// 스택 둘 이상·새 행 둘 이상(드묾)은 지급과 같은 조립식 쿼리로 한다.
+			built = DbQueries::BuildItemGive(op);
+			query = built.c_str();
+			break;
+		}
+		if (!op.fills.empty()) { fillDbId = op.fills[0].itemDbId; fillExpect = op.fills[0].expectCount; fillAdd = op.fills[0].add; }
+		if (!op.newCounts.empty()) { newCount = op.newCounts[0]; newSlot = op.newSlots[0]; }
+		dbConn->BindParam(3, &op.itemId, &paramLen[2]);
+		dbConn->BindParam(4, &fillDbId, &paramLen[3]);
+		dbConn->BindParam(5, &fillExpect, &paramLen[4]);
+		dbConn->BindParam(6, &fillAdd, &paramLen[5]);
+		dbConn->BindParam(7, &newCount, &paramLen[6]);
+		dbConn->BindParam(8, &newSlot, &paramLen[7]);
+		dbConn->BindParam(9, &op.goldDelta, &paramLen[8]);
+		dbConn->BindParam(10, &op.goldMax, &paramLen[9]);
+		query = DbQueries::ItemPickup.c_str();
+		break;
+	case ItemOpKind::Discard:
+		kindName = "Discard";
+		dbConn->BindParam(3, &op.discardDbId, &paramLen[2]);
+		dbConn->BindParam(4, &op.discardSlot, &paramLen[3]);
+		dbConn->BindParam(5, &op.discardCount, &paramLen[4]);
+		query = DbQueries::ItemDiscard.c_str();
 		break;
 	case ItemOpKind::Give:
 		kindName = "Give";
