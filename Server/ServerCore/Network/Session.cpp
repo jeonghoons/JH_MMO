@@ -67,6 +67,16 @@ void Session::Disconnect(const WCHAR* cause)
 	LOG_DEBUG("Session", "DisConnect :{}", Utils::WStringToUTF8(cause));
 }
 
+void Session::ForceClose(const WCHAR* cause)
+{
+	Disconnect(cause);
+
+	// 핸들은 소멸자에서 닫는다(다른 스레드가 같은 핸들로 WSARecv/WSASend를 부르는 중일 수 있어 여기서 closesocket하지 않는다).
+	// shutdown 뒤의 WSARecv는 실패하고, 이미 걸려 있던 수신은 CancelIoEx로 끝나 세션 참조가 풀린다.
+	::shutdown(_socket, SD_BOTH);
+	::CancelIoEx(reinterpret_cast<HANDLE>(_socket), nullptr);
+}
+
 
 void Session::Send(shared_ptr<SendBuffer> sendBuffer, bool pushOnly)
 {

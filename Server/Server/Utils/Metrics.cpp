@@ -76,7 +76,8 @@ namespace
 				"equipSave(total req/sent/coalesced/fail inflight)={}/{}/{}/{} {} equipSaveMs(n exec avg/p99/max total avg/p99/max)={} {:.1f}/{:.1f}/{:.1f} {:.1f}/{:.1f}/{:.1f} "
 				"progressSave(total sent/coalesced/fail inflight)={}/{}/{} {} progressSaveMs(n exec avg/p99/max total avg/p99/max)={} {:.1f}/{:.1f}/{:.1f} {:.1f}/{:.1f}/{:.1f} "
 				"aim(total on/reject/off/castClear/timeout)={}/{}/{}/{}/{} "
-				"revive(total deaths/ok/reject/deadMove)={}/{}/{}/{}",
+				"revive(total deaths/ok/reject/deadMove)={}/{}/{}/{} "
+				"login(total kick/busy/forced)={}/{}/{}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
@@ -93,7 +94,8 @@ namespace
 				Metrics::ProgressSaveInFlight.load(), pgExec.count,
 				pgExec.avg / 1000.0, pgExec.p99 / 1000.0, pgExec.max / 1000.0, pgTotal.avg / 1000.0, pgTotal.p99 / 1000.0, pgTotal.max / 1000.0,
 				Metrics::AimOn.load(), Metrics::AimReject.load(), Metrics::AimOff.load(), Metrics::AimCastClear.load(), Metrics::AimTimeout.load(),
-				Metrics::PlayerDeaths.load(), Metrics::Revives.load(), Metrics::ReviveReject.load(), Metrics::MoveDroppedDead.load());
+				Metrics::PlayerDeaths.load(), Metrics::Revives.load(), Metrics::ReviveReject.load(), Metrics::MoveDroppedDead.load(),
+				Metrics::LoginKicks.load(), Metrics::LoginBusy.load(), Metrics::LoginCloseForced.load());
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","

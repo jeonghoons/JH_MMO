@@ -140,7 +140,7 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 
 		if (loginSuccess)
 		{
-			GLobby->PushJob(&AuthLobby::OnLoginSuccess, session, outPlayerInfo, outPlayerData);
+			GLobby->PushJob(&AuthLobby::OnLoginSuccess, session, outPlayerInfo, outPlayerData, recvId, recvPw);
 		}
 		else if (isFirstRow) 
 		{
@@ -216,6 +216,9 @@ void DatabaseWorker::SaveEquipSnapshot(shared_ptr<Room> room, shared_ptr<Player>
 
 	const wstring query = DbQueries::BuildSaveEquipSnapshot(items);
 
+	// 시험용: 저장을 일부러 늦춘다([Debug] DbSaveDelayMs, A2.7 빠른 재접속 시험)
+	if (GServerConfig.dbSaveDelayMs > 0) ::Sleep(GServerConfig.dbSaveDelayMs);
+
 	const long long startUs = Metrics::NowUs();
 	const bool success = dbConn->Execute(query.c_str());
 	const long long endUs = Metrics::NowUs();
@@ -243,6 +246,8 @@ void DatabaseWorker::SavePlayerProgress(shared_ptr<Room> room, shared_ptr<Player
 	dbConn->BindParam(3, &progress.hp, &len[2]);
 	dbConn->BindParam(4, &progress.gold, &len[3]);
 	dbConn->BindParam(5, &playerUID, &len[4]);
+
+	if (GServerConfig.dbSaveDelayMs > 0) ::Sleep(GServerConfig.dbSaveDelayMs);
 
 	const long long startUs = Metrics::NowUs();
 	const bool success = dbConn->Execute(DbQueries::UpdatePlayerProgress);

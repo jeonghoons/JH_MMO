@@ -155,3 +155,9 @@ message SC_SKILL_AIM_PACKET {
 message SC_PONG_PACKET {
 	int64 client_time = 1;
 }
+
+// 서버가 이 연결을 끊기 직전에 본인에게 보낸다(A2.7). 받은 클라이언트는 스스로 연결을 닫고 로그인 화면으로 돌아간다.
+// 전송 중이던 패킷이 있으면 도착하지 않을 수 있으므로, 클라이언트는 이 패킷 없이 끊겨도 같은 처리를 해야 한다.
+message SC_KICK_PACKET {
+	KickReason reason = 1;
+}

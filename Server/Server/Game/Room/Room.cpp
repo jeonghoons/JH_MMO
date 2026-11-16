@@ -203,6 +203,7 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	if (enterSession == nullptr || false == enterSession->IsConnected()) {
 		LOG_DEBUG("Room", "Player[{}] Enter 취소: 세션 끊김", player->GetId());
 		ReleaseSlot();
+		NotifyClosedIfDone(player);
 		return;
 	}
 
@@ -245,6 +246,7 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 	// 입장 잡보다 퇴장 잡이 먼저 실행됐거나(입장 잡은 세션 끊김을 보고 취소됨) 중복 퇴장이면 정리할 것이 없다.
 	if (nullptr == Id2Player(playerId)) {
 		LOG_DEBUG("Room", "Player[{}] Leave: 방에 없음(입장 취소·중복 퇴장)", playerId);
+		NotifyClosedIfDone(player);
 		return;
 	}
 
@@ -271,6 +273,29 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 
 	// 나갈 때의 진행 상황을 저장한다(A2.5). 진행 중인 저장이 있으면 OnProgressSaved가 이어서 최신 값으로 저장한다.
 	RequestProgressSave(player);
+
+	// 보낸 저장이 없으면 바로, 있으면 결과가 올 때(OnEquipSaved·OnProgressSaved) 접속 목록에서 빼게 한다.
+	NotifyClosedIfDone(player);
+}
+
+void Room::NotifyClosedIfDone(const shared_ptr<Player>& player)
+{
+	if (player == nullptr || player->isDummy || player->GetPlayerUID() == 0) return;   // 접속 목록에 없는 플레이어
+	if (player->closedNotified) return;
+
+	// 아직 방에 있다(같은 id를 다른 플레이어가 다시 쓸 수 있으므로 포인터로 비교).
+	const auto it = _players.find(player->GetId());
+	if (it != _players.end() && it->second == player) return;
+
+	// 접속이 살아 있다(입장에 실패해 방 밖에 있는 경우 등). 끊길 때 퇴장 잡이 다시 부른다.
+	const shared_ptr<GameSession> session = player->GetSession();
+	if (session != nullptr && session->IsConnected()) return;
+
+	// DB에 가 있는 작업이 남았다. 결과를 받는 쪽이 다시 부른다.
+	if (player->equipSave.inFlight || player->progressSave.inFlight) return;
+
+	player->closedNotified = true;
+	GLobby->PushJob(&AuthLobby::OnPlayerClosed, player->GetPlayerUID(), player->GetId());
 }
 
 void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, uint32_t correctionSeq)
@@ -570,13 +595,12 @@ void Room::OnEquipSaved(shared_ptr<Player> player, bool success)
 
 	// 실패하면 dirty로 남겨 다음 변경·퇴장 때 다시 저장한다.
 	if (!success)
-	{
 		player->equipSave.dirty = true;
-		return;
-	}
 	// 저장하는 동안 다시 바뀌었으면 최신 값으로 한 번 더 저장한다.
-	if (player->equipSave.dirty)
+	else if (player->equipSave.dirty)
 		RequestEquipSave(player);
+
+	NotifyClosedIfDone(player);
 }
 
 void Room::UpdateSaves(long long nowMs)
@@ -630,23 +654,27 @@ void Room::OnProgressSaved(shared_ptr<Player> player, DB_PlayerProgress saved, b
 		// 저장하는 동안 다시 요청됐거나 그 사이 방을 나갔으면 최신 값으로 한 번 더 저장한다(값이 같으면 보내지 않는다).
 		if (state.dirty || !inRoom)
 			RequestProgressSave(player);
-		return;
 	}
-
 	// 실패: 방에 있으면 다음 주기에 다시 저장한다(lastSavedProgress가 그대로라 값이 다르면 다시 보낸다).
 	// 방을 나갔으면 다음 기회가 없으므로 몇 번 더 시도하고, 그래도 안 되면 값을 로그에 남긴다.
-	if (inRoom) return;
-
-	constexpr int MAX_LEAVE_SAVE_RETRIES = 3;
-	if (player->progressSaveRetries < MAX_LEAVE_SAVE_RETRIES)
+	else if (!inRoom)
 	{
-		++player->progressSaveRetries;
-		RequestProgressSave(player);
-		return;
+		constexpr int MAX_LEAVE_SAVE_RETRIES = 3;
+		if (player->progressSaveRetries < MAX_LEAVE_SAVE_RETRIES)
+		{
+			++player->progressSaveRetries;
+			RequestProgressSave(player);
+		}
+		else
+		{
+			const DB_PlayerProgress lost = player->MakeProgressSnapshot();
+			LOG_ERROR("Room", "퇴장 저장을 포기합니다 (PlayerId {}, Level {}, Exp {}, Hp {}, Gold {}) — DB에는 이전 값이 남습니다",
+				player->GetPlayerUID(), lost.level, lost.exp, lost.hp, lost.gold);
+		}
 	}
-	const DB_PlayerProgress lost = player->MakeProgressSnapshot();
-	LOG_ERROR("Room", "퇴장 저장을 포기합니다 (PlayerId {}, Level {}, Exp {}, Hp {}, Gold {}) — DB에는 이전 값이 남습니다",
-		player->GetPlayerUID(), lost.level, lost.exp, lost.hp, lost.gold);
+
+	// 방을 나간 플레이어의 마지막 저장이 끝났으면(다시 보낸 저장이 없으면) 접속 목록에서 빼게 한다.
+	NotifyClosedIfDone(player);
 }
 
 void Room::Broadcast(shared_ptr<SendBuffer> sendBuffer)

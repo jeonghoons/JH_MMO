@@ -26,11 +26,15 @@ void UNetworkManager::Tick(float DeltaTime)
 
 	Session->HandleRecvPackets();
 
-	// 워커가 연결 끊김을 알렸으면 받아 둔 패킷을 처리한 뒤 세션을 정리한다. 끊긴 뒤의 화면 처리는 추후 구현.
+	// 워커가 연결 끊김을 알렸으면 받아 둔 패킷을 처리한 뒤 세션을 정리한다.
 	if (Session->IsConnectionLost() && Packet_Session == Session)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Connection to server lost"));
-		DisconnectFromServer();
+		// 로그인한 뒤(게임 중)에 끊겼으면 로그인 화면으로 돌아간다. 서버가 SC_KICK을 보냈어도 도착하지 않을 수 있어 여기서도 처리한다(A2.7).
+		if (NetworkId != -1)
+			ReturnToLogin(FText::FromString(TEXT("서버와의 연결이 끊겼습니다.")));
+		else
+			DisconnectFromServer();
 	}
 }
 
@@ -195,6 +199,20 @@ void UNetworkManager::SendRevive()
 {
 	Protocol::CS_REVIVE_PACKET pkt;
 	SendProtocol(*this, pkt, Protocol::CS_REVIVE);
+}
+
+void UNetworkManager::ReturnToLogin(const FText& Message)
+{
+	DisconnectFromServer();
+
+	// 확인 메시지는 레벨 전환 뒤 새 레벨에서 다시 뜬다(UJMUIManager::ClearWidgets).
+	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+	{
+		UIManager->ShowSystemMessage(Message);
+	}
+
+	// 로그인 레벨 = 프로젝트 기본 맵(DefaultEngine.ini GameDefaultMap, LoginGameMode)
+	SwitchGameMapLevel(FName("DevMap"));
 }
 
 void UNetworkManager::EnterGame()

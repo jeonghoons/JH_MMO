@@ -16,7 +16,7 @@
 
 ## UE 클라이언트 아키텍처 (`UEClient/JM/Source/JM/`)
 
-- `Network/` — `NetworkManager`(소켓/연결 소유), `NetworkWorker`(수신 스레드), `NetworkSession`, `FPacketHandler`(수신되는 `SC_*` 패킷 디스패치, 서버의 `PacketHandler`와 대응되는 역할), `SendBuffer`.
+- `Network/` — `NetworkManager`(소켓/연결 소유), `NetworkWorker`(수신 스레드), `NetworkSession`, `FPacketHandler`(수신되는 `SC_*` 패킷 디스패치, 서버의 `PacketHandler`와 대응되는 역할), `SendBuffer`. `SC_KICK`(중복 접속, A2.7)을 받거나 로그인한 뒤 연결이 끊기면 `UNetworkManager::ReturnToLogin`이 연결을 닫고 로그인 레벨(`DevMap`)로 돌아가 사유를 시스템 메시지로 띄웁니다.
 - `Protocol/` — `GanPackets.bat`으로 복사되는 생성된 Protobuf 소스. 손으로 수정 금지.
 - `Game/` — `JMGameInstance`(최상위 영속 상태), `JMObjectManager`(서버 오브젝트 ID ↔ 클라이언트 액터 매핑), `IngameGameModeBase`, `LoginGameMode`.
 - `Character/`, `Animation/`, `Player/` — `JMCharacterBase`, `JMAnimInstance`, `JMPlayer`/`JMMyPlayer`(로컬 제어 vs 리모트), `JMPlayerController`, `NpcCharaceter`(서버 주도 NPC/몬스터).

@@ -104,6 +104,9 @@ public:
 	long long nextProgressSaveMs = 0;      // 다음 주기 저장 시각(steady_clock ms). 방에 들어올 때 정한다
 	int progressSaveRetries = 0;           // 방을 나간 뒤 마지막 저장이 실패해 다시 시도한 횟수
 
+	// 접속 목록에서 빼라는 신호(AuthLobby::OnPlayerClosed)를 이미 보냈다(A2.7). Room 잡 안에서만 읽고 쓴다.
+	bool closedNotified = false;
+
 	int64_t GetExp() const { return _dbPlayerData.exp; }
 	int64_t GetGold() const { return _dbPlayerData.gold; }
 

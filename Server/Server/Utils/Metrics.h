@@ -53,6 +53,11 @@ namespace Metrics
 	inline SampleStat ProgressSaveExecUs;    // DB 실행 시간(us)
 	inline SampleStat ProgressSaveTotalUs;   // 요청 → 완료(us, DB 큐 대기 포함)
 
+	// 중복 접속 차단(A2.7, AuthLobby)
+	inline std::atomic<long long> LoginKicks{ 0 };        // 새 로그인 때문에 기존 접속을 끊은(또는 끊긴 접속의 저장을 기다린) 횟수(누적)
+	inline std::atomic<long long> LoginBusy{ 0 };         // LOGIN_RESULT_BUSY 응답(대기 시간 초과·더 늦은 로그인에 밀림, 누적)
+	inline std::atomic<long long> LoginCloseForced{ 0 };  // 정리 신호가 오지 않아 접속 목록에서 강제로 뺀 횟수(누적, 0이어야 정상)
+
 	// 스킬 조준(MC4.2d-1, Room::PlayerSkillAim). 모두 누적
 	inline std::atomic<long long> AimOn{ 0 };         // 켜기 수락
 	inline std::atomic<long long> AimReject{ 0 };     // 켜기 거부

@@ -99,6 +99,16 @@ namespace
 				if (!ParseInt(e.value, 0, 256, cfg.workerThreads)) { err = where + "WorkerThreads must be 0~256: '" + e.value + "'"; return false; }
 				cfg.workerThreadsFrom = from;
 			}
+			else if (name == "Network.LoginWaitTimeoutSec")
+			{
+				if (!ParseInt(e.value, 1, 600, cfg.loginWaitTimeoutSec)) { err = where + "LoginWaitTimeoutSec must be 1~600: '" + e.value + "'"; return false; }
+				cfg.loginWaitTimeoutSecFrom = from;
+			}
+			else if (name == "Network.LoginCloseForceSec")
+			{
+				if (!ParseInt(e.value, 1, 3600, cfg.loginCloseForceSec)) { err = where + "LoginCloseForceSec must be 1~3600: '" + e.value + "'"; return false; }
+				cfg.loginCloseForceSecFrom = from;
+			}
 			else if (name == "Database.ConnectionString")
 			{
 				if (e.value.empty()) { err = where + "ConnectionString is empty"; return false; }
@@ -152,6 +162,11 @@ namespace
 				else if (e.value == "false" || e.value == "0" || e.value.empty()) cfg.viewAudit = false;
 				else { err = where + "ViewAudit must be true/false: '" + e.value + "'"; return false; }
 				cfg.viewAuditFrom = from;
+			}
+			else if (name == "Debug.DbSaveDelayMs")
+			{
+				if (!ParseInt(e.value, 0, 60000, cfg.dbSaveDelayMs)) { err = where + "DbSaveDelayMs must be 0~60000: '" + e.value + "'"; return false; }
+				cfg.dbSaveDelayMsFrom = from;
 			}
 			else
 			{
@@ -246,6 +261,8 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "Network.BindIp            = {}  ({})", bindIp, bindIpFrom);
 	LOG_INFO("Config", "Network.Port              = {}  ({})", port, portFrom);
 	LOG_INFO("Config", "Network.WorkerThreads     = {} -> {}  ({})", workerThreads, ResolvedWorkerThreads(), workerThreadsFrom);
+	LOG_INFO("Config", "Network.LoginWaitTimeoutSec = {}  ({})", loginWaitTimeoutSec, loginWaitTimeoutSecFrom);
+	LOG_INFO("Config", "Network.LoginCloseForceSec = {}  ({})", loginCloseForceSec, loginCloseForceSecFrom);
 	LOG_INFO("Config", "Database.ConnectionString = {}  ({})", MaskSecrets(dbConnectionString), dbConnectionStringFrom);
 	LOG_INFO("Config", "Database.Connections      = {}  ({})", dbConnections, dbConnectionsFrom);
 	LOG_INFO("Config", "Database.PlayerSaveIntervalSec = {}  ({})", playerSaveIntervalSec, playerSaveIntervalSecFrom);
@@ -256,4 +273,5 @@ void ServerConfig::Print() const
 	for (const DummyZone& z : dummyZones)
 		LOG_INFO("Config", "Debug.DummySpawnZone      = {},{},{} x {}  ({})", z.x, z.y, z.r, z.count == 0 ? std::string("나머지") : std::to_string(z.count), dummySpawnZoneFrom);
 	LOG_INFO("Config", "Debug.ViewAudit           = {}  ({})", viewAudit, viewAuditFrom);
+	LOG_INFO("Config", "Debug.DbSaveDelayMs       = {}  ({})", dbSaveDelayMs, dbSaveDelayMsFrom);
 }

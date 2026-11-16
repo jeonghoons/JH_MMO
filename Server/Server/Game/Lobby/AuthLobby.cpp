@@ -2,6 +2,10 @@
 #include "Game/Lobby/AuthLobby.h"
 #include "Network/Session.h"
 #include "Game/Object/Player.h"
+#include "DB/DatabaseWorker.h"
+#include "Utils/Metrics.h"
+
+extern shared_ptr<DatabaseWorker> GDBWorker;
 
 AuthLobby::AuthLobby(HANDLE iocpHandle) : _jobQueue(make_shared<JobQueue>(iocpHandle))
 {
@@ -9,7 +13,7 @@ AuthLobby::AuthLobby(HANDLE iocpHandle) : _jobQueue(make_shared<JobQueue>(iocpHa
 
 AuthLobby::~AuthLobby() = default;
 
-void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo info, DB_PlayerData data)
+void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo info, DB_PlayerData data, string accountId, string accountPw)
 {
     if (session->IsConnected() == false) return;
 
@@ -28,6 +32,20 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
         return;
     }
 
+    // 중복 접속 차단(A2.7, D-158): 이 캐릭터가 접속 목록에 있으면 기존 접속을 끊고, 그 접속의 마지막 저장이 끝날 때까지 기다린다.
+    // 방금 읽은 DB 값은 그 저장 전의 값일 수 있으므로 버리고, 목록에서 빠진 뒤 DB 조회부터 다시 한다.
+    wstring playerName(info.playerName);
+    const bool isDummy = (playerName == L"dummy");   // 더미 봇은 전원이 한 캐릭터라 제외
+    if (false == isDummy)
+    {
+        const auto it = _online.find(info.playerUID);
+        if (it != _online.end())
+        {
+            HoldLogin(info.playerUID, it->second, session, accountId, accountPw);
+            return;
+        }
+    }
+
     int objectId = session->GetId();
     shared_ptr<Player> player = make_shared<Player>(session, (Protocol::PlayerType)info.playerType);
 
@@ -39,10 +57,16 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
         return;
     }
 
-    wstring playerName(info.playerName);
     player->SetName(playerName);
-    if (playerName == L"dummy")
-        player->isDummy = true;
+    player->isDummy = isDummy;
+
+    if (false == isDummy)
+    {
+        OnlineEntry entry;
+        entry.sessionId = session->GetId();
+        entry.session = session;
+        _online.emplace(info.playerUID, std::move(entry));
+    }
 
     session->_currPlayer = player;
 
@@ -64,6 +88,106 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
     session->Send(sendBuffer);
 
     LOG_DEBUG("Lobby", "[{}] - 로그인 성공 및 객체 생성 완료", Utils::WStringToUTF8(playerName));
+
+    // 위의 IsConnected 확인 뒤에 끊겼다면 OnDisconnected는 _currPlayer를 못 보고 지나갔을 수 있다.
+    // _currPlayer를 넣은 뒤에 한 번 더 확인해, 어느 쪽이든 한 번은 정리(접속 목록에서 빼는 신호)가 되게 한다.
+    if (session->IsConnected() == false)
+        session->HandlePlayerGone();
+}
+
+void AuthLobby::HoldLogin(int64_t playerUID, OnlineEntry& entry, shared_ptr<GameSession> session, string accountId, string accountPw)
+{
+    // 대기 중인 연결이 로그인 요청을 또 보냈다: 계속 기다린다.
+    if (entry.waiter == session) return;
+
+    // 대기는 캐릭터당 1건. 먼저 기다리던 쪽을 거부하고 나중에 온 쪽을 대기시킨다.
+    if (entry.waiter != nullptr)
+    {
+        Metrics::LoginBusy.fetch_add(1);
+        OnLoginFailed(entry.waiter, Protocol::LOGIN_RESULT_BUSY);
+    }
+
+    if (false == entry.closing)
+    {
+        entry.closing = true;
+        Metrics::LoginKicks.fetch_add(1);
+
+        // 기존 접속을 끊는다. 이미 끊겨서 저장만 남은 접속(빠른 재접속)이면 보낼 곳이 없다.
+        shared_ptr<GameSession> old = entry.session.lock();
+        if (old != nullptr && old->IsConnected())
+        {
+            Protocol::SC_KICK_PACKET kick;
+            kick.set_reason(Protocol::KICK_REASON_DUPLICATE_LOGIN);
+            old->Send(PacketSerializer::MakeSendBuffer(kick, Protocol::SC_KICK));
+            old->ForceClose(L"Kick: duplicate login");
+        }
+        LOG_DEBUG("Lobby", "PlayerId {} 중복 접속: 세션 {} 을 끊고 세션 {} 의 로그인을 대기시킵니다", playerUID, entry.sessionId, session->GetId());
+
+        // 안전장치: 끝났다는 신호가 오지 않아도 이 시간이 지나면 목록에서 뺀다.
+        ReserveJob(static_cast<DWORD>(GServerConfig.loginCloseForceSec) * 1000, &AuthLobby::OnCloseForce, playerUID, entry.sessionId);
+    }
+
+    entry.waiter = session;
+    entry.waiterId = std::move(accountId);
+    entry.waiterPw = std::move(accountPw);
+    entry.waitSerial = ++_waitSerial;
+    ReserveJob(static_cast<DWORD>(GServerConfig.loginWaitTimeoutSec) * 1000, &AuthLobby::OnLoginWaitTimeout, playerUID, entry.waitSerial);
+}
+
+void AuthLobby::OnPlayerClosed(int64_t playerUID, int sessionId)
+{
+    const auto it = _online.find(playerUID);
+    if (it == _online.end() || it->second.sessionId != sessionId) return;   // 이미 뺐거나 새 접속의 항목
+
+    RemoveOnline(playerUID);
+}
+
+void AuthLobby::RemoveOnline(int64_t playerUID)
+{
+    const auto it = _online.find(playerUID);
+    if (it == _online.end()) return;
+
+    shared_ptr<GameSession> waiter = std::move(it->second.waiter);
+    string waiterId = std::move(it->second.waiterId);
+    string waiterPw = std::move(it->second.waiterPw);
+    _online.erase(it);
+
+    // 기다리던 로그인: 이전 접속의 저장이 끝났으므로 DB 조회부터 다시 한다. 결과는 OnLoginSuccess로 돌아온다.
+    if (waiter != nullptr && waiter->IsConnected())
+    {
+        LOG_DEBUG("Lobby", "PlayerId {} 이전 접속 정리 끝: 세션 {} 의 로그인을 다시 진행합니다", playerUID, waiter->GetId());
+        GDBWorker->PushDBJob(&DatabaseWorker::TryLogin, waiter, waiterId, waiterPw);
+    }
+}
+
+void AuthLobby::OnLoginWaitTimeout(int64_t playerUID, uint64_t waitSerial)
+{
+    const auto it = _online.find(playerUID);
+    if (it == _online.end()) return;
+
+    OnlineEntry& entry = it->second;
+    if (entry.waiter == nullptr || entry.waitSerial != waitSerial) return;   // 이미 진행됐거나 다른 대기로 바뀜
+
+    // 목록은 그대로 둔다(이전 접속의 저장이 아직 끝나지 않았다). 클라이언트가 잠시 후 다시 로그인한다.
+    LOG_WARN("Lobby", "PlayerId {} 로그인 대기 {}초 초과: 세션 {} 에 BUSY 응답 (이전 세션 {} 정리 중)",
+        playerUID, GServerConfig.loginWaitTimeoutSec, entry.waiter->GetId(), entry.sessionId);
+    Metrics::LoginBusy.fetch_add(1);
+    OnLoginFailed(entry.waiter, Protocol::LOGIN_RESULT_BUSY);
+    entry.waiter = nullptr;
+    entry.waiterId.clear();
+    entry.waiterPw.clear();
+}
+
+void AuthLobby::OnCloseForce(int64_t playerUID, int sessionId)
+{
+    const auto it = _online.find(playerUID);
+    if (it == _online.end() || it->second.sessionId != sessionId || false == it->second.closing) return;
+
+    // 여기 오면 끝났다는 신호를 내는 경로가 하나 빠진 것이다(또는 DB가 이 시간 넘게 멈춤).
+    LOG_ERROR("Lobby", "PlayerId {} 의 이전 접속(세션 {})이 {}초 안에 정리되지 않아 접속 목록에서 강제로 뺍니다",
+        playerUID, sessionId, GServerConfig.loginCloseForceSec);
+    Metrics::LoginCloseForced.fetch_add(1);
+    RemoveOnline(playerUID);
 }
 
 void AuthLobby::OnLoginFailed(shared_ptr<GameSession> session, Protocol::LoginResult result)

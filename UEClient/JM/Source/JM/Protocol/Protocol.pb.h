@@ -99,6 +99,9 @@ extern SC_DAMAGE_PACKETDefaultTypeInternal _SC_DAMAGE_PACKET_default_instance_;
 class SC_DEAD_PACKET;
 struct SC_DEAD_PACKETDefaultTypeInternal;
 extern SC_DEAD_PACKETDefaultTypeInternal _SC_DEAD_PACKET_default_instance_;
+class SC_KICK_PACKET;
+struct SC_KICK_PACKETDefaultTypeInternal;
+extern SC_KICK_PACKETDefaultTypeInternal _SC_KICK_PACKET_default_instance_;
 class SC_LOGIN_INFO_PACKET;
 struct SC_LOGIN_INFO_PACKETDefaultTypeInternal;
 extern SC_LOGIN_INFO_PACKETDefaultTypeInternal _SC_LOGIN_INFO_PACKET_default_instance_;
@@ -139,6 +142,7 @@ template<> ::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET* Arena::CreateMaybeMessage<
 template<> ::Protocol::SC_CHAT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHAT_PACKET>(Arena*);
 template<> ::Protocol::SC_DAMAGE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_DAMAGE_PACKET>(Arena*);
 template<> ::Protocol::SC_DEAD_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_DEAD_PACKET>(Arena*);
+template<> ::Protocol::SC_KICK_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_KICK_PACKET>(Arena*);
 template<> ::Protocol::SC_LOGIN_INFO_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_LOGIN_INFO_PACKET>(Arena*);
 template<> ::Protocol::SC_MOVE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_MOVE_PACKET>(Arena*);
 template<> ::Protocol::SC_PONG_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_PONG_PACKET>(Arena*);
@@ -4189,6 +4193,154 @@ class SC_PONG_PACKET final :
   union { Impl_ _impl_; };
   friend struct ::TableStruct_Protocol_2eproto;
 };
+// -------------------------------------------------------------------
+
+class SC_KICK_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_KICK_PACKET) */ {
+ public:
+  inline SC_KICK_PACKET() : SC_KICK_PACKET(nullptr) {}
+  ~SC_KICK_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_KICK_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_KICK_PACKET(const SC_KICK_PACKET& from);
+  SC_KICK_PACKET(SC_KICK_PACKET&& from) noexcept
+    : SC_KICK_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_KICK_PACKET& operator=(const SC_KICK_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_KICK_PACKET& operator=(SC_KICK_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_KICK_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_KICK_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_KICK_PACKET*>(
+               &_SC_KICK_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    24;
+
+  friend void swap(SC_KICK_PACKET& a, SC_KICK_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_KICK_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_KICK_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_KICK_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_KICK_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_KICK_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_KICK_PACKET& from) {
+    SC_KICK_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_KICK_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_KICK_PACKET";
+  }
+  protected:
+  explicit SC_KICK_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kReasonFieldNumber = 1,
+  };
+  // .Protocol.KickReason reason = 1;
+  void clear_reason();
+  ::Protocol::KickReason reason() const;
+  void set_reason(::Protocol::KickReason value);
+  private:
+  ::Protocol::KickReason _internal_reason() const;
+  void _internal_set_reason(::Protocol::KickReason value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_KICK_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int reason_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
 // ===================================================================
 
 
@@ -6132,9 +6284,35 @@ inline void SC_PONG_PACKET::set_client_time(int64_t value) {
   // @@protoc_insertion_point(field_set:Protocol.SC_PONG_PACKET.client_time)
 }
 
+// -------------------------------------------------------------------
+
+// SC_KICK_PACKET
+
+// .Protocol.KickReason reason = 1;
+inline void SC_KICK_PACKET::clear_reason() {
+  _impl_.reason_ = 0;
+}
+inline ::Protocol::KickReason SC_KICK_PACKET::_internal_reason() const {
+  return static_cast< ::Protocol::KickReason >(_impl_.reason_);
+}
+inline ::Protocol::KickReason SC_KICK_PACKET::reason() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_KICK_PACKET.reason)
+  return _internal_reason();
+}
+inline void SC_KICK_PACKET::_internal_set_reason(::Protocol::KickReason value) {
+  
+  _impl_.reason_ = value;
+}
+inline void SC_KICK_PACKET::set_reason(::Protocol::KickReason value) {
+  _internal_set_reason(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_KICK_PACKET.reason)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

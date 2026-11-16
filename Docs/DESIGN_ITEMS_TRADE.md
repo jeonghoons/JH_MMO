@@ -7,7 +7,7 @@
 - 서버·클라이언트·프로토콜에 인벤토리·드랍·줍기·거래·경매 코드가 없습니다. `OBJECT_TYPE_ITEM`(4)은 enum에만 있습니다.
 - 장착은 보유 검사 없이 "ItemTable에 있고 슬롯이 맞으면" 허용합니다(`Room::PlayerChangeEquip`). 저장은 7칸 스냅숏(`Player_Equipped`, D-120)이고 `ItemDbId`는 항상 0입니다.
 - `Player_Info.Gold` 열과 `Player::GetGold`는 있지만 값을 바꾸는 코드가 없습니다. 골드는 진행 상황 스냅숏(D-151)에 포함돼 저장됩니다.
-- 같은 캐릭터의 중복 접속은 막지 않습니다(다른 연결에서 로그인하면 둘 다 들어옴).
+- A2.7 완료(2026-11-16): 같은 캐릭터의 중복 접속은 기존 접속을 끊고 새 로그인을 받습니다(아래 "중복 접속 차단"). 인벤토리·아이템 작업을 추가할 때는 `Room::NotifyClosedIfDone`의 조건과 호출 지점에 함께 넣어야 합니다.
 - A3.2 완료(2026-11-16): `DropTable.csv`·`EconomyTable.csv`와 로더(`DataManager::GetDrops`·`RollDrops`·`GetEconomy`), `ItemTable` 새 열과 8001 HP 물약, UE `FItemTableRow`·`DT_ItemTable`이 들어갔습니다. 값을 쓰는 코드는 아직 없습니다(드랍 롤은 A3.4에서 `RollDrops`를 호출). 열별 허용 범위와 현재 행은 [DESIGN_DATA.md](DESIGN_DATA.md).
 
 ## 범위와 하지 않는 것
@@ -149,6 +149,7 @@
 - 안전장치: `Closing`이 `ServerConfig` `LoginCloseForceSec`(30)를 넘으면 ERROR 로그를 남기고 강제로 뺍니다.
 - 정상 종료도 같은 경로라, 빠른 재접속은 이전 저장이 끝날 때까지 기다립니다. 대기가 `ServerConfig` `LoginWaitTimeoutSec`(10)를 넘으면 `LOGIN_RESULT_BUSY`로 응답하고 목록은 그대로 둡니다(시각 비교, 예약 잡은 실행 때 다시 확인).
 - 더미 봇은 제외합니다(A5.1에서 개별 계정으로 바뀌면 자동으로 적용).
+- **구현 메모(2026-11-16)**: 신호는 `Room::NotifyClosedIfDone` 한 곳에서 판단합니다(방에 없음 + 세션 끊김 + DB에 가 있는 작업 0건, 플레이어당 한 번) — 위 ②~⑥의 지점은 모두 이 함수를 부르고, ①만 `GameSession::HandlePlayerGone`이 직접 보냅니다. 로그인 처리 도중에 끊긴 경우는 로비가 `_currPlayer`를 넣은 뒤 연결을 다시 확인해 같은 함수를 부릅니다. 끊기는 `Session::ForceClose`(`shutdown` + 걸린 수신 취소, 핸들은 소멸자에서 닫음)이고, `SC_KICK`은 그 직전에 보내므로 다른 전송이 진행 중이면 도착하지 않을 수 있습니다 — 클라이언트는 게임 중 연결이 끊기면 `SC_KICK` 없이도 로그인 화면으로 돌아갑니다. 설정 키는 `[Network] LoginWaitTimeoutSec`·`LoginCloseForceSec`, 시험용 `[Debug] DbSaveDelayMs`.
 
 ## 1:1 거래 (A4.1·A4.2, D-158)
 같은 Room의 두 플레이어만 거래하고, 모든 전이는 그 Room의 JobQueue에서 일어납니다. 거래 상태(`TradeSession`: 두 사람의 `PlayerId`·오브젝트 id, 상태, 제시 목록, 잠금·확정 표시, 시작·마지막 동작 시각)는 Room이 갖고 `Player`에는 거래 id만 둡니다.

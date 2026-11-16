@@ -24,6 +24,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_CHANGE_EQUIP_RESULT, &FPacketHandler::Handle_SC_CHANGE_EQUIP_RESULT);
 	RegisterHandler(Protocol::SC_SKILL_AIM, &FPacketHandler::Handle_SC_SKILL_AIM);
 	RegisterHandler(Protocol::SC_REVIVE, &FPacketHandler::Handle_SC_REVIVE);
+	RegisterHandler(Protocol::SC_KICK, &FPacketHandler::Handle_SC_KICK);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -87,6 +88,7 @@ namespace
 		case Protocol::LOGIN_RESULT_WRONG_PASSWORD:		return FText::FromString(TEXT("비밀번호가 틀렸습니다."));
 		case Protocol::LOGIN_RESULT_ALREADY_LOGGED_IN:	return FText::FromString(TEXT("이미 로그인되어 있습니다."));
 		case Protocol::LOGIN_RESULT_SERVER_ERROR:		return FText::FromString(TEXT("서버 오류로 로그인하지 못했습니다."));
+		case Protocol::LOGIN_RESULT_BUSY:				return FText::FromString(TEXT("이전 접속을 정리하는 중입니다. 잠시 후 다시 로그인해 주세요."));
 		default:										return FText::FromString(TEXT("로그인에 실패했습니다."));
 		}
 	}
@@ -166,6 +168,18 @@ void FPacketHandler::Handle_SC_DEAD(TSharedPtr<NetworkSession>& session, Protoco
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandleDead(pkt.object_id(), pkt.revive_delay_ms());
+}
+
+// 서버가 이 연결을 끊기 직전에 보낸다(A2.7). 연결을 닫고 로그인 화면으로 돌아가 사유를 보여준다.
+void FPacketHandler::Handle_SC_KICK(TSharedPtr<NetworkSession>& session, Protocol::SC_KICK_PACKET& pkt)
+{
+	UNetworkManager* NetManager = session ? session->OwnerNetwork.Get() : nullptr;
+	if (NetManager == nullptr) return;
+
+	const FText Message = (pkt.reason() == Protocol::KICK_REASON_DUPLICATE_LOGIN)
+		? FText::FromString(TEXT("다른 곳에서 같은 계정으로 로그인해 접속이 끊겼습니다."))
+		: FText::FromString(TEXT("서버가 접속을 끊었습니다."));
+	NetManager->ReturnToLogin(Message);
 }
 
 void FPacketHandler::Handle_SC_REVIVE(TSharedPtr<NetworkSession>& session, Protocol::SC_REVIVE_PACKET& pkt)

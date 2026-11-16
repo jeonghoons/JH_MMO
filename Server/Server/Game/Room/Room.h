@@ -75,6 +75,10 @@ public:
 	void OnProgressSaved(shared_ptr<Player> player, DB_PlayerProgress saved, bool success);
 	// 1초에 한 번: 주기 저장 시각(ServerConfig Database.PlayerSaveIntervalSec)이 된 플레이어를 저장한다.
 	void UpdateSaves(long long nowMs);
+	// 중복 접속 차단(A2.7): 끊긴 플레이어가 방에 없고 DB에 가 있는 작업이 0건이면 로비에 알려 접속 목록에서 빼게 한다(플레이어당 한 번).
+	// 플레이어가 방을 떠나는 경로와 그 플레이어의 DB 작업 결과를 받는 곳 **모두**에서 불러야 한다 — 빠지면 그 캐릭터는
+	// 다음 로그인이 LoginCloseForceSec만큼 막힌다. 새 저장 종류·아이템 작업을 추가하면 여기 조건과 결과 처리 끝에 함께 넣는다.
+	void NotifyClosedIfDone(const shared_ptr<Player>& player);
 	// 스킬 조준 켜기/끄기(MC4.2d-1, DECISIONS 2026-11-09). 켜기 성공 = AOI 전체(본인 포함) 방송, 거부 = 본인에게만 false + seq,
 	// 끄기 = 조준 중일 때만 해제하고 본인 제외 방송(본인 클라이언트는 이미 껐다).
 	void PlayerSkillAim(shared_ptr<Player> player, int slot, bool active, uint32_t seq);

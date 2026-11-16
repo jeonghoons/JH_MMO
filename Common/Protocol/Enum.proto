@@ -33,6 +33,7 @@ enum PacketId {
     SC_CHANGE_EQUIP_RESULT = 2013;   // 장착 거부 결과 (본인에게만)
     SC_SKILL_AIM = 2014;             // 스킬 조준 상태 (AOI 방송, 거부·시간 초과는 본인에게 seq 포함)
     SC_REVIVE = 2015;                // 플레이어 부활 (AOI 방송, 본인 포함)
+    SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2016~2026은 A3.3~A4.3 예약(DESIGN_ITEMS_TRADE)
 }
 
 enum MoveState {
@@ -95,4 +96,11 @@ enum LoginResult {
     LOGIN_RESULT_WRONG_PASSWORD = 3;
     LOGIN_RESULT_ALREADY_LOGGED_IN = 4; // 같은 연결에서 이미 로그인함
     LOGIN_RESULT_SERVER_ERROR = 5;      // DB 오류 등
+    LOGIN_RESULT_BUSY = 6;              // 같은 캐릭터의 이전 접속 정리를 기다리다 시간 초과, 또는 더 늦은 로그인에 밀림 (A2.7) — 잠시 후 다시 시도
+}
+
+// SC_KICK_PACKET.reason
+enum KickReason {
+    KICK_REASON_NONE = 0;
+    KICK_REASON_DUPLICATE_LOGIN = 1;    // 같은 캐릭터로 다른 연결이 로그인함 (A2.7, D-158)
 }

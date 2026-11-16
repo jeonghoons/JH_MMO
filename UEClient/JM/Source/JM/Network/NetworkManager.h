@@ -53,6 +53,9 @@ public:
 
 public:
 	void EnterGame();
+	// 연결을 닫고 로그인 화면(레벨)으로 돌아가 Message를 시스템 메시지로 보여준다(SC_KICK, 게임 중 연결 끊김 — A2.7).
+	// 로그인 레벨의 LoginGameMode가 서버에 다시 연결한다.
+	void ReturnToLogin(const FText& Message);
 	void SwitchGameMapLevel(FName LevelToLoad);
 
 public:

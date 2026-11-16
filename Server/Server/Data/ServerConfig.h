@@ -14,6 +14,9 @@ struct ServerConfig
 	std::string bindIp = "127.0.0.1";
 	int port = 8888;
 	int workerThreads = 0;          // 0이면 CPU 코어 수 / 2
+	// 중복 접속 차단(A2.7, D-158)
+	int loginWaitTimeoutSec = 10;   // 같은 캐릭터의 이전 접속 정리(퇴장·마지막 저장)를 기다리는 시간. 넘으면 LOGIN_RESULT_BUSY
+	int loginCloseForceSec = 30;    // 정리가 끝났다는 신호가 이 시간 안에 오지 않으면 오류 로그를 남기고 접속 목록에서 강제로 뺀다
 
 	// [Database]
 	std::string dbConnectionString = "Driver={ODBC Driver 17 for SQL Server};Server=.\\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;";
@@ -30,6 +33,7 @@ struct ServerConfig
 	struct DummyZone { float x = 0, y = 0, r = 0; int count = 0; };   // count 0 = 제한 없음
 	std::vector<DummyZone> dummyZones;
 	bool viewAudit = false;         // 방마다 1초에 한 번 시야 목록을 실제 거리(WorldTable.ViewRadiusCm/ViewHysteresisCm)와 비교
+	int dbSaveDelayMs = 0;          // 장비·진행 상황 저장을 실행하기 전에 이만큼 멈춘다(빠른 재접속·중복 접속 시험, A2.7). DB 작업 스레드를 막으므로 시험에만 쓴다
 
 	// 명령줄 --roll-drops <kills>: 0보다 크면 DataTable 로드 뒤 몬스터마다 그 횟수만큼 드랍을 굴려 빈도를 찍고 종료한다(DB·포트를 열지 않음)
 	int rollDropsKills = 0;
@@ -37,7 +41,8 @@ struct ServerConfig
 	// 값마다 어디서 왔는지(default / 파일 경로 / env / cli). 시작 로그에 함께 출력한다.
 	std::string bindIpFrom = "default", portFrom = "default", workerThreadsFrom = "default";
 	std::string dbConnectionStringFrom = "default", dbConnectionsFrom = "default", playerSaveIntervalSecFrom = "default", logLevelFrom = "default", logDirFrom = "default";
-	std::string dummySpawnZoneFrom = "default", viewAuditFrom = "default";
+	std::string dummySpawnZoneFrom = "default", viewAuditFrom = "default", dbSaveDelayMsFrom = "default";
+	std::string loginWaitTimeoutSecFrom = "default", loginCloseForceSecFrom = "default";
 
 	// 실제로 쓸 워커 스레드 수 (0이면 CPU 코어 수 / 2, 최소 1)
 	int ResolvedWorkerThreads() const;
