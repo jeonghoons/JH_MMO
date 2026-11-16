@@ -39,6 +39,22 @@ message ObjectInfo {
 }
 
 // 아이템 한 개(스택이면 한 묶음) = DB Player_Item 한 행 (A3.3, D-153)
+// 거래에 올린 아이템 하나 (A4.2). 스택의 일부만 올릴 수 있다
+message TradeOfferItem {
+	int64 item_db_id = 1;
+	int32 item_id = 2;        // 표시용(ItemTable ID). 요청(CS_TRADE_SET_OFFER)에서는 보지 않는다
+	int64 count = 3;          // 올린 수량 (1 ~ 그 행의 수량)
+}
+
+// 거래 한쪽의 제시 (A4.2)
+message TradeOffer {
+	int32 object_id = 1;                 // 이 제시를 올린 플레이어
+	repeated TradeOfferItem items = 2;
+	int64 gold = 3;
+	bool locked = 4;
+	bool confirmed = 5;
+}
+
 message ItemInfo {
 	int64 item_db_id = 1;
 	int32 item_id = 2;        // ItemTable ID

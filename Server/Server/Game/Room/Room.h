@@ -20,6 +20,36 @@ class Character;
 class Player;
 class Monster;
 class DropItem;
+
+// ---- 1:1 거래 상태 (A4.1, D-158, DESIGN_ITEMS_TRADE "1:1 거래") ----
+// 거래는 같은 방의 두 플레이어 사이에서만 하고, 상태는 Room이 갖는다(Player에는 tradeId만). 모든 전이는 Room 잡 안에서 일어난다.
+// 취소는 이 메모리 상태만 버리면 된다 — 확정 전에는 DB를 건드리지 않는다.
+struct TradeItem
+{
+	int64_t itemDbId = 0;
+	int32_t itemId = 0;
+	int64_t count = 0;    // 올린 수량(1 ~ 그 행의 수량)
+};
+
+struct TradeSide
+{
+	shared_ptr<class Player> player;   // 거래가 끝날 때까지 잡고 있는다(접속이 끊겨도 DB 결과를 반영할 대상을 안다)
+	int64_t playerUID = 0;
+	int objectId = 0;
+	vector<TradeItem> items;
+	int64_t gold = 0;
+	bool locked = false;
+	bool confirmed = false;
+};
+
+struct TradeSession
+{
+	int id = 0;
+	Protocol::TradePhase phase = Protocol::TRADE_PHASE_REQUESTING;
+	TradeSide sides[2];        // [0] = 요청한 쪽, [1] = 받은 쪽
+	long long requestedAtMs = 0;   // 요청 시각(응답 시간 초과 판정)
+	long long acceptedAtMs = 0;    // 수락 시각(전체 시간 초과 판정)
+};
 struct SkillData;
 
 class Room : public enable_shared_from_this<Room>
@@ -89,6 +119,19 @@ public:
 	// 액티브 칸 5칸을 DB에 저장한다. DB에 있는 값과 다를 때만 보내고, 진행 중이면 끝난 뒤 최신 값으로 한 번 더 저장한다(순서 보장).
 	void RequestQuickSlotSave(shared_ptr<Player> player);
 	void OnQuickSlotsSaved(shared_ptr<Player> player, QuickSlotArray saved, bool success);
+	// ---- 1:1 거래(A4.1·A4.2, D-158). 거부는 SC_TRADE_RESULT(본인), 진행은 SC_TRADE_STATE(두 사람), 끝은 SC_TRADE_END(두 사람) ----
+	void TradeRequest(shared_ptr<Player> player, int targetId);
+	void TradeRespond(shared_ptr<Player> player, bool accept);
+	// 내 제시 전체를 교체한다. 누가 제시를 바꾸면 양쪽의 잠금·확정이 풀린다. tooMany = 패킷의 목록이 너무 길어 잘렸다(거부).
+	void TradeSetOffer(shared_ptr<Player> player, vector<TradeItem> items, int64_t gold, bool tooMany);
+	void TradeLock(shared_ptr<Player> player, bool locked);
+	// 양쪽이 잠근 뒤에만 받는다. 양쪽이 확정하면 다시 검증하고 한 트랜잭션으로 교환한다(TryExecuteTrade).
+	void TradeConfirm(shared_ptr<Player> player);
+	void TradeCancel(shared_ptr<Player> player);
+	// 이 플레이어가 하던 거래를 사유와 함께 끝낸다(퇴장·사망·거리 이탈). 확정 중(DB 결과 대기)이면 건드리지 않는다.
+	void CancelTradeOf(const shared_ptr<Player>& player, Protocol::TradeResult reason);
+	// 그 행을 진행 중인 거래에 올려 두었는가(일부만 올렸어도). 올린 행은 장착·버리기·사용을 거부한다(IN_TRADE).
+	bool IsItemInTrade(const shared_ptr<Player>& player, int64_t itemDbId) const;
 	// 아이템 작업의 DB 결과(A3.3, D-153). 성공이고 플레이어가 아직 방에 있으면 메모리·패킷에 반영한다.
 	// 방을 나갔으면 반영을 건너뛴다(DB에는 이미 들어갔고 다음 로그인 때 읽는다). 끝에서 NotifyClosedIfDone을 부른다.
 	void OnItemOpDone(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult result);
@@ -180,6 +223,20 @@ private:
 	// AimMaxMs가 지난 조준을 해제한다(Update마다). 본인에게는 seq를 실어, 다른 사람에게는 seq 없이 보낸다.
 	void UpdateAims(long long nowMs);
 
+	// ---- 1:1 거래 내부(A4.1) ----
+	TradeSession* FindTrade(const shared_ptr<Player>& player);
+	const TradeSession* FindTrade(const shared_ptr<Player>& player) const;
+	void SendTradeState(const TradeSession& trade);
+	// 거래를 끝낸다: 두 사람에게 SC_TRADE_END(result), tradeId 해제, 상태 삭제.
+	void EndTrade(int tradeId, Protocol::TradeResult result);
+	// 양쪽 확정 뒤의 재검증. 통과하면 CONFIRMING으로 바꾸고 DB 트랜잭션을 보낸다. 실패하면 양쪽 잠금·확정을 풀고 사유를 두 사람에게 알린다.
+	void TryExecuteTrade(TradeSession& trade);
+	// 거래 DB 결과(OnItemOpDone의 Trade 분기)
+	void OnTradeDone(const DB_ItemOp& op, const DB_ItemOpResult& result);
+	// 요청 응답 시간·전체 시간 초과를 본다(1초마다).
+	void UpdateTrades(long long nowMs);
+	bool IsTradeRangeOk(const TradeSession& trade) const;
+
 	// ---- 아이템 작업 공통(A3.3) ----
 	// 이 플레이어 객체가 지금 이 방에 있는가(같은 id를 다른 플레이어가 다시 쓸 수 있으므로 포인터로 비교).
 	bool IsInRoom(const shared_ptr<Player>& player) const;
@@ -207,6 +264,10 @@ private:
 	unordered_map<int, shared_ptr<DropItem>> _drops;
 	deque<int> _dropOrder;   // 만든 순서(상한을 넘으면 앞에서부터 지운다). 이미 사라진 id는 앞에서 걷어 낸다
 	int _nextDropId = 0;
+
+	// 진행 중인 1:1 거래(A4.1). 키 = 거래 id(방 안에서만 유일)
+	unordered_map<int, TradeSession> _trades;
+	int _nextTradeId = 0;
 
 	GameMap				_gameMap;
 

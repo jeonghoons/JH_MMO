@@ -84,6 +84,31 @@ message CS_MOVE_ITEM_PACKET {
 	int32 to_slot = 2;      // 대상 칸 번호(0 ~ max_slots - 1)
 }
 
+// ---- 1:1 거래 (A4.2, D-158). 거부는 SC_TRADE_RESULT(request = 요청 패킷 id), 진행은 SC_TRADE_STATE, 끝은 SC_TRADE_END ----
+message CS_TRADE_REQUEST_PACKET {
+	int32 target_id = 1;                 // 거래할 플레이어의 오브젝트 id (같은 방, 거리 안)
+}
+
+message CS_TRADE_RESPOND_PACKET {
+	bool accept = 1;
+}
+
+// 내 제시 전체를 이 내용으로 바꾼다. 누가 제시를 바꾸면 양쪽의 잠금·확정이 풀린다.
+message CS_TRADE_SET_OFFER_PACKET {
+	repeated TradeOfferItem items = 1;   // (item_db_id, count). 인벤토리 위치의 내 아이템, 같은 행은 한 번만
+	int64 gold = 2;
+}
+
+message CS_TRADE_LOCK_PACKET {
+	bool locked = 1;                     // false = 풀기(양쪽의 잠금·확정이 모두 풀린다)
+}
+
+message CS_TRADE_CONFIRM_PACKET {
+}
+
+message CS_TRADE_CANCEL_PACKET {
+}
+
 // 스킬 조준(숫자키 → 범위 선택) 켜기/끄기. 상태가 바뀔 때만 보낸다.
 // 확정(CS_ATTACK)은 서버가 조준을 함께 해제하므로 끄기를 따로 보내지 않는다.
 message CS_SKILL_AIM_PACKET {
@@ -224,6 +249,30 @@ message SC_SKILL_AIM_PACKET {
 
 message SC_PONG_PACKET {
 	int64 client_time = 1;
+}
+
+// 거래 요청을 받았다(A4.2). timeout_sec 안에 CS_TRADE_RESPOND로 답하지 않으면 서버가 취소한다(SC_TRADE_END TIMEOUT).
+message SC_TRADE_REQUEST_PACKET {
+	int32 from_id = 1;                   // 요청한 플레이어의 오브젝트 id
+	string from_name = 2;
+	int32 timeout_sec = 3;               // EconomyTable.TradeRequestTimeoutSec
+}
+
+// 거래 상태 전체(A4.2). 두 사람에게 같은 내용을 보낸다. offers[0] = 요청한 쪽, offers[1] = 받은 쪽.
+message SC_TRADE_STATE_PACKET {
+	TradePhase phase = 1;
+	repeated TradeOffer offers = 2;
+}
+
+// 거래가 끝났다(A4.2). SUCCESS면 아이템·골드는 SC_INVENTORY_UPDATE로 따로 온다. 그 밖에는 바뀐 것이 없다.
+message SC_TRADE_END_PACKET {
+	TradeResult result = 1;
+}
+
+// 거래 요청이 거부됐다(본인에게). 확정 재검증 실패는 두 사람 모두에게 오고 거래는 제시 단계로 돌아간다.
+message SC_TRADE_RESULT_PACKET {
+	PacketId request = 1;                // 거부된 요청의 패킷 id
+	TradeResult result = 2;
 }
 
 // 서버가 이 연결을 끊기 직전에 본인에게 보낸다(A2.7). 받은 클라이언트는 스스로 연결을 닫고 로그인 화면으로 돌아간다.

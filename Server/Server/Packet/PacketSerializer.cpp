@@ -3,6 +3,7 @@
 #include "Game/Item/Inventory.h"
 #include "Data/ServerData.h"
 #include "Game/Object/Player.h"
+#include "Game/Room/Room.h"
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ADD_OBJECT(shared_ptr<GameObject> object)
 {
@@ -103,6 +104,52 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY(const Inventory& inve
 	for (const int32_t itemId : quickSlots)
 		packet.add_quick_slots(itemId);
 	return MakeSendBuffer(packet, Protocol::SC_INVENTORY);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_TRADE_REQUEST(int fromId, const wstring& fromName, int timeoutSec)
+{
+	Protocol::SC_TRADE_REQUEST_PACKET packet;
+	packet.set_from_id(fromId);
+	packet.set_from_name(Utils::WStringToUTF8(fromName));
+	packet.set_timeout_sec(timeoutSec);
+	return MakeSendBuffer(packet, Protocol::SC_TRADE_REQUEST);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_TRADE_STATE(const TradeSession& trade)
+{
+	Protocol::SC_TRADE_STATE_PACKET packet;
+	packet.set_phase(trade.phase);
+	for (const TradeSide& side : trade.sides)
+	{
+		Protocol::TradeOffer* offer = packet.add_offers();
+		offer->set_object_id(side.objectId);
+		for (const TradeItem& item : side.items)
+		{
+			Protocol::TradeOfferItem* out = offer->add_items();
+			out->set_item_db_id(item.itemDbId);
+			out->set_item_id(item.itemId);
+			out->set_count(item.count);
+		}
+		offer->set_gold(side.gold);
+		offer->set_locked(side.locked);
+		offer->set_confirmed(side.confirmed);
+	}
+	return MakeSendBuffer(packet, Protocol::SC_TRADE_STATE);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_TRADE_END(Protocol::TradeResult result)
+{
+	Protocol::SC_TRADE_END_PACKET packet;
+	packet.set_result(result);
+	return MakeSendBuffer(packet, Protocol::SC_TRADE_END);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_TRADE_RESULT(Protocol::PacketId request, Protocol::TradeResult result)
+{
+	Protocol::SC_TRADE_RESULT_PACKET packet;
+	packet.set_request(request);
+	packet.set_result(result);
+	return MakeSendBuffer(packet, Protocol::SC_TRADE_RESULT);
 }
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_USE_ITEM(int objectId, int itemId, int hp, int cooldownMs)

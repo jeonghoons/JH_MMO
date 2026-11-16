@@ -122,6 +122,9 @@ public:
 	SaveState progressSave;    // Player_Info 레벨·경험치·HP — 주기·퇴장 때, 값이 달라졌을 때만 (Room::RequestProgressSave)
 	SaveState quickSlotSave;   // Player_QuickSlot 5칸 — 배치를 바꿀 때·퇴장 때, 값이 달라졌을 때만 (Room::RequestQuickSlotSave)
 
+	// 진행 중인 1:1 거래의 id(Room::_trades의 키, 0 = 거래 중 아님). 거래 상태 자체는 Room이 갖는다 (A4.1, D-158). Room 잡 안에서만 읽고 쓴다.
+	int tradeId = 0;
+
 	// 액티브 칸 배치(A3.6, D-154): 칸 1~5에 올린 아이템 종류(빈 칸 0). 소유가 바뀌지 않는 설정값이라 메모리에 먼저 반영하고 저장한다.
 	// Room 잡 안에서만 읽고 쓴다.
 	QuickSlotArray quickSlots{};

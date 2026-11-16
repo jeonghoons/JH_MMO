@@ -12,7 +12,7 @@
 namespace DbQueries
 {
 	// 이 서버 코드가 기대하는 스키마 버전 = 마지막 마이그레이션 순번. DB의 Schema_Version과 다르면 서버가 시작하지 않는다.
-	constexpr int DB_SCHEMA_VERSION = 6;
+	constexpr int DB_SCHEMA_VERSION = 7;
 
 	// 결과: 열 1 = 적용된 마지막 마이그레이션 순번(행이 없으면 0). 테이블이 없으면 실행 실패.
 	inline const wchar_t* const SelectSchemaVersion = L"SELECT ISNULL(MAX([Version]), 0) FROM [Schema_Version]";
@@ -80,7 +80,7 @@ namespace DbQueries
 	// ---------------------------------------------------------------------------------------------------------------
 	// 아이템 트랜잭션(A3.3, D-153·D-165). 모든 쿼리가 같은 틀과 같은 결과 모양을 쓴다(DatabaseWorker::ExecItemOp가 읽는다).
 	//   - 틀: TRY 안에서 BEGIN TRAN → 문장들(@n에 바뀐 행 수 누적) → @n이 기대와 같으면 COMMIT, 아니면 ROLLBACK. 오류는 CATCH에서 ROLLBACK.
-	//   - 결과: 항상 결과 집합 하나. 열 = Ok(1 성공 / 0 실패), Kind(0 상태 행 · 1 새 ItemDbId · 2 골드 잔액), V(값).
+	//   - 결과: 항상 결과 집합 하나. 열 = Ok(1 성공 / 0 실패), Kind(0 상태 행 · 1 새 ItemDbId · 2 골드 잔액 · 3 거래 상대의 골드 잔액), V(값).
 	//     성공이면 상태 행 1개 + 새 행·골드 행, 실패면 (0, 0, 오류 번호 또는 0) 1행. 행을 하나도 못 읽으면 실패로 본다
 	//     (DBConnection::Execute는 배치 첫 문장의 성공만 알려 주므로 결과 행으로 판정한다).
 	//   - 모든 UPDATE는 기대 상태(OwnerId·Location·EquipSlot·Count)를 WHERE에 적는다.
@@ -200,6 +200,74 @@ namespace DbQueries
 				L"INSERT INTO @R (Kind, V) SELECT 2, Gold FROM [Player_Info] WHERE PlayerId = @P; ", op.goldDelta, op.goldMax);
 			++want;
 		}
+		return q + ItemOpTail(std::to_wstring(want));
+	}
+
+	// 1:1 거래 확정(조립식, A4.2·D-158). 파라미터: 1 PlayerId(A = 요청한 쪽), 2 Fail. 나머지는 Room이 검증한 정수라 쿼리에 그대로 넣는다.
+	//   ① 통째로 넘기는 행(넘기는 수량 = 행의 수량)은 **UPDATE 한 문장**으로 OwnerId·BagSlot을 바꾼다 — 받는 쪽이 방금 내놓은 칸을
+	//      다시 써도 칸 유니크 인덱스를 중간에 어기지 않는다(문장이 끝날 때 검사).
+	//   ② 일부만 넘기는 행은 원래 행의 수량을 줄이고 받는 쪽에 새 행을 넣는다(새 ItemDbId는 Kind 1 행으로, tradeMoves 순서대로).
+	//   ③ 골드는 양쪽을 각각 증감하고(차감 뒤 0 이상·상한 이하) 잔액을 Kind 2(A)·3(B) 행으로 돌려준다.
+	//   ④ Trade_Log 1행. 모든 UPDATE는 기대 상태(OwnerId·Location 1·Count)를 조건으로 하고 바뀐 행 수가 다르면 롤백한다.
+	inline std::wstring BuildItemTrade(const DB_ItemOp& op)
+	{
+		std::wstring q = std::format(L"SET NOCOUNT ON; SET XACT_ABORT ON; DECLARE @P BIGINT = ?, @Fail INT = ?; DECLARE @B BIGINT = {}; ", op.tradeOtherUID);
+		q += ItemOpHead;
+		int want = 0;
+		auto owner = [](int side) { return side == 0 ? L"@P" : L"@B"; };
+
+		// ① 통째로 넘기는 행
+		std::wstring ids, ownerCase, slotCase, cond;
+		int wholeCount = 0;
+		for (const DB_ItemOp::TradeMove& m : op.tradeMoves)
+		{
+			if (m.count != m.expectCount) continue;
+			if (wholeCount++ > 0) { ids += L", "; cond += L" OR "; }
+			ids += std::to_wstring(m.itemDbId);
+			ownerCase += std::format(L"WHEN {} THEN {} ", m.itemDbId, owner(1 - m.fromSide));
+			slotCase += std::format(L"WHEN {} THEN {} ", m.itemDbId, m.toSlot);
+			cond += std::format(L"(ItemDbId = {} AND OwnerId = {} AND ItemId = {} AND [Count] = {})", m.itemDbId, owner(m.fromSide), m.itemId, m.expectCount);
+		}
+		if (wholeCount > 0)
+		{
+			q += L"UPDATE [Player_Item] SET OwnerId = CASE ItemDbId " + ownerCase + L"END, BagSlot = CASE ItemDbId " + slotCase + L"END, UpdatedAt = SYSDATETIME() "
+				L"WHERE ItemDbId IN (" + ids + L") AND Location = 1 AND (" + cond + L"); SET @n += @@ROWCOUNT; ";
+			want += wholeCount;
+		}
+
+		// ② 일부만 넘기는 행
+		for (const DB_ItemOp::TradeMove& m : op.tradeMoves)
+		{
+			if (m.count == m.expectCount) continue;
+			q += std::format(L"UPDATE [Player_Item] SET [Count] = [Count] - {}, UpdatedAt = SYSDATETIME() "
+				L"WHERE ItemDbId = {} AND OwnerId = {} AND Location = 1 AND ItemId = {} AND [Count] = {}; SET @n += @@ROWCOUNT; ",
+				m.count, m.itemDbId, owner(m.fromSide), m.itemId, m.expectCount);
+			q += std::format(L"INSERT INTO [Player_Item] (OwnerId, ItemId, [Count], Location, EquipSlot, BagSlot) VALUES ({}, {}, {}, 1, 0, {}); "
+				L"INSERT INTO @R (Kind, V) VALUES (1, SCOPE_IDENTITY()); ", owner(1 - m.fromSide), m.itemId, m.count, m.toSlot);
+			++want;
+		}
+
+		// ③ 골드
+		if (op.tradeGoldA != 0 || op.tradeGoldB != 0)
+		{
+			q += std::format(L"UPDATE [Player_Info] SET Gold = Gold - ({0}) + ({1}) WHERE PlayerId = @P AND Gold - ({0}) >= 0 AND Gold - ({0}) + ({1}) <= {2}; SET @n += @@ROWCOUNT; "
+				L"UPDATE [Player_Info] SET Gold = Gold - ({1}) + ({0}) WHERE PlayerId = @B AND Gold - ({1}) >= 0 AND Gold - ({1}) + ({0}) <= {2}; SET @n += @@ROWCOUNT; "
+				L"INSERT INTO @R (Kind, V) SELECT 2, Gold FROM [Player_Info] WHERE PlayerId = @P; "
+				L"INSERT INTO @R (Kind, V) SELECT 3, Gold FROM [Player_Info] WHERE PlayerId = @B; ", op.tradeGoldA, op.tradeGoldB, op.goldMax);
+			want += 2;
+		}
+
+		// ④ 거래 로그
+		std::wstring itemsA, itemsB;
+		for (const DB_ItemOp::TradeMove& m : op.tradeMoves)
+		{
+			std::wstring& out = m.fromSide == 0 ? itemsA : itemsB;
+			if (!out.empty()) out += L",";
+			out += std::format(L"{}:{}:{}", m.itemDbId, m.itemId, m.count);
+		}
+		q += std::format(L"INSERT INTO [Trade_Log] (PlayerA, PlayerB, GoldA, GoldB, ItemsA, ItemsB) VALUES (@P, @B, {}, {}, N'{}', N'{}'); ",
+			op.tradeGoldA, op.tradeGoldB, itemsA, itemsB);
+
 		return q + ItemOpTail(std::to_wstring(want));
 	}
 

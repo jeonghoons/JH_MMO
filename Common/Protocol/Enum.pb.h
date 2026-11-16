@@ -64,6 +64,12 @@ enum PacketId : int {
   CS_USE_ITEM = 1015,
   CS_SET_QUICKSLOT = 1016,
   CS_DEV_GIVE = 1017,
+  CS_TRADE_REQUEST = 1018,
+  CS_TRADE_RESPOND = 1019,
+  CS_TRADE_SET_OFFER = 1020,
+  CS_TRADE_LOCK = 1021,
+  CS_TRADE_CONFIRM = 1022,
+  CS_TRADE_CANCEL = 1023,
   CS_MOVE_ITEM = 1030,
   SC_LOGIN = 2000,
   SC_SIGNUP = 2001,
@@ -83,6 +89,10 @@ enum PacketId : int {
   SC_INVENTORY_UPDATE = 2017,
   SC_ITEM_RESULT = 2018,
   SC_USE_ITEM = 2019,
+  SC_TRADE_REQUEST = 2020,
+  SC_TRADE_STATE = 2021,
+  SC_TRADE_END = 2022,
+  SC_TRADE_RESULT = 2023,
   SC_KICK = 2027,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
@@ -301,6 +311,73 @@ inline bool ItemResult_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ItemResult>(
     ItemResult_descriptor(), name, value);
 }
+enum TradeResult : int {
+  TRADE_RESULT_NONE = 0,
+  TRADE_RESULT_SUCCESS = 1,
+  TRADE_RESULT_NO_TARGET = 2,
+  TRADE_RESULT_TOO_FAR = 3,
+  TRADE_RESULT_TARGET_BUSY = 4,
+  TRADE_RESULT_DECLINED = 5,
+  TRADE_RESULT_TIMEOUT = 6,
+  TRADE_RESULT_CANCELLED = 7,
+  TRADE_RESULT_DEAD = 8,
+  TRADE_RESULT_DISCONNECTED = 9,
+  TRADE_RESULT_LOCKED = 10,
+  TRADE_RESULT_INVALID_OFFER = 11,
+  TRADE_RESULT_INVENTORY_FULL = 12,
+  TRADE_RESULT_GOLD_FULL = 13,
+  TRADE_RESULT_BUSY = 14,
+  TRADE_RESULT_NOT_ALLOWED = 15,
+  TRADE_RESULT_DB_ERROR = 16,
+  TradeResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  TradeResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool TradeResult_IsValid(int value);
+constexpr TradeResult TradeResult_MIN = TRADE_RESULT_NONE;
+constexpr TradeResult TradeResult_MAX = TRADE_RESULT_DB_ERROR;
+constexpr int TradeResult_ARRAYSIZE = TradeResult_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* TradeResult_descriptor();
+template<typename T>
+inline const std::string& TradeResult_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, TradeResult>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function TradeResult_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    TradeResult_descriptor(), enum_t_value);
+}
+inline bool TradeResult_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, TradeResult* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<TradeResult>(
+    TradeResult_descriptor(), name, value);
+}
+enum TradePhase : int {
+  TRADE_PHASE_NONE = 0,
+  TRADE_PHASE_REQUESTING = 1,
+  TRADE_PHASE_OFFERING = 2,
+  TRADE_PHASE_CONFIRMING = 3,
+  TradePhase_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  TradePhase_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool TradePhase_IsValid(int value);
+constexpr TradePhase TradePhase_MIN = TRADE_PHASE_NONE;
+constexpr TradePhase TradePhase_MAX = TRADE_PHASE_CONFIRMING;
+constexpr int TradePhase_ARRAYSIZE = TradePhase_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* TradePhase_descriptor();
+template<typename T>
+inline const std::string& TradePhase_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, TradePhase>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function TradePhase_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    TradePhase_descriptor(), enum_t_value);
+}
+inline bool TradePhase_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, TradePhase* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<TradePhase>(
+    TradePhase_descriptor(), name, value);
+}
 enum LoginResult : int {
   LOGIN_RESULT_NONE = 0,
   LOGIN_RESULT_SUCCESS = 1,
@@ -412,6 +489,16 @@ template <> struct is_proto_enum< ::Protocol::ItemResult> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::ItemResult>() {
   return ::Protocol::ItemResult_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::TradeResult> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::TradeResult>() {
+  return ::Protocol::TradeResult_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::TradePhase> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::TradePhase>() {
+  return ::Protocol::TradePhase_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::LoginResult> : ::std::true_type {};
 template <>

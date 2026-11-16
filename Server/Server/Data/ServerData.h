@@ -53,6 +53,7 @@ enum class ItemOpKind
 	Pickup,     // 바닥 드랍 줍기: Give와 같은 계획(fills·newCounts·goldDelta)을 쓴다 (고정 쿼리, A3.5)
 	Discard,    // 버리기: 인벤토리 행 DELETE, 성공 뒤 바닥 드랍 생성 (고정 쿼리, A3.5)
 	Use,        // 소비 아이템 사용: 수량 1 감소(1개였으면 DELETE), 성공 뒤 효과 적용 (고정 쿼리, A3.6)
+	Trade,      // 1:1 거래 확정: 양쪽 아이템 이동 + 골드 증감 + Trade_Log 1행 (조립식 쿼리, A4.2). playerUID = 요청한 쪽(A)
 };
 
 struct DB_ItemOp {
@@ -98,6 +99,21 @@ struct DB_ItemOp {
 	int32_t discardCount = 0;                 // 그 행의 수량(기대 상태, 바닥 드랍의 수량이 된다)
 	float discardX = 0.f, discardY = 0.f, discardZ = 0.f;   // 요청 때의 위치(결과가 왔을 때 방에 없으면 여기에 떨어뜨린다)
 
+	// Trade — Room::TryExecuteTrade가 채운다. 방의 거래 상태는 tradeId로 다시 찾는다
+	struct TradeMove
+	{
+		int fromSide = 0;          // 0 = A(요청한 쪽)가 내놓음, 1 = B가 내놓음
+		int64_t itemDbId = 0;
+		int32_t itemId = 0;
+		int32_t count = 0;         // 넘기는 수량
+		int32_t expectCount = 0;   // 그 행의 지금 수량(기대 상태). count와 같으면 행을 통째로 넘긴다(OwnerId 변경)
+		int32_t toSlot = -1;       // 받는 쪽 인벤토리 칸
+	};
+	int32_t tradeId = 0;
+	int64_t tradeOtherUID = 0;                // B의 PlayerId
+	std::vector<TradeMove> tradeMoves;        // A가 내놓은 것 먼저, 그다음 B가 내놓은 것
+	int64_t tradeGoldA = 0, tradeGoldB = 0;   // 각자 내놓은 골드
+
 	// Use — 쓰는 종류는 itemId에 담는다
 	int64_t useDbId = 0;                      // 1개를 쓸 행
 	int32_t useExpectCount = 0;               // 그 행의 지금 수량(기대 상태)
@@ -108,6 +124,7 @@ struct DB_ItemOpResult {
 	bool unknown = false;            // 실패인데 롤백됐는지 알 수 없다(실행 오류·결과 행 없음). DB에 반영됐을 수도 있다
 	std::vector<int64_t> newDbIds;   // Give: newCounts 순서대로 발급된 ItemDbId
 	int64_t gold = -1;               // 골드를 바꿨으면 바뀐 뒤 잔액, 아니면 -1
+	int64_t gold2 = -1;              // Trade: 상대(B)의 바뀐 뒤 잔액, 골드가 오가지 않았으면 -1
 };
 
 struct DB_PlayerData {

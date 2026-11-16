@@ -285,6 +285,11 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 		dbConn->BindParam(4, &op.useExpectCount, &paramLen[3]);
 		query = DbQueries::ItemUse.c_str();
 		break;
+	case ItemOpKind::Trade:
+		kindName = "Trade";
+		built = DbQueries::BuildItemTrade(op);
+		query = built.c_str();
+		break;
 	case ItemOpKind::Give:
 		kindName = "Give";
 		built = DbQueries::BuildItemGive(op);
@@ -325,6 +330,7 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 			if (outKind == 0) sawStatus = true;
 			else if (outKind == 1) result.newDbIds.push_back(outValue);
 			else if (outKind == 2) result.gold = outValue;
+			else if (outKind == 3) result.gold2 = outValue;
 		}
 	}
 	const long long endUs = Metrics::NowUs();
@@ -338,6 +344,7 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 	{
 		result.newDbIds.clear();
 		result.gold = -1;
+		result.gold2 = -1;
 		if (op.forceFail)
 			LOG_DEBUG("DB", "아이템 작업 강제 롤백 (PlayerId {}, {})", playerUID, kindName);
 		else

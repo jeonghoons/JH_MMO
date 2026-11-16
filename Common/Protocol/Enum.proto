@@ -22,7 +22,14 @@ enum PacketId {
     CS_USE_ITEM = 1015;    // 소비 아이템 사용 (A3.6, D-154)
     CS_SET_QUICKSLOT = 1016; // 액티브 칸에 아이템 종류 올리기·비우기 (A3.6)
     CS_DEV_GIVE = 1017;   // 개발 지급 명령 (ServerConfig [Debug] DevCommands=true일 때만)
-    CS_MOVE_ITEM = 1030;  // 인벤토리 칸 옮기기·맞바꾸기 (A6.1). 1018~1029는 A4.2·A4.3 예약
+    // 1:1 거래 (A4.2, D-158). 같은 방의 두 플레이어, 모든 전이는 서버가 판정한다
+    CS_TRADE_REQUEST = 1018;   // 거래 요청 (대상 오브젝트 id)
+    CS_TRADE_RESPOND = 1019;   // 받은 요청에 수락·거절
+    CS_TRADE_SET_OFFER = 1020; // 내 제시 전체를 교체 (아이템 목록 + 골드)
+    CS_TRADE_LOCK = 1021;      // 내 제시 잠금·풀기
+    CS_TRADE_CONFIRM = 1022;   // 확정 (양쪽 잠금 뒤에만)
+    CS_TRADE_CANCEL = 1023;    // 취소 (요청 중·제시·잠금 어느 때나)
+    CS_MOVE_ITEM = 1030;  // 인벤토리 칸 옮기기·맞바꾸기 (A6.1). 1024~1029는 A4.3 예약
 
     // Server -> Client
     SC_LOGIN = 2000;
@@ -43,7 +50,11 @@ enum PacketId {
     SC_INVENTORY_UPDATE = 2017;      // 본인에게: 바뀐 행·지워진 행·현재 골드 (A3.3)
     SC_ITEM_RESULT = 2018;           // 아이템 요청 거부 결과 (본인에게만, 거부일 때만)
     SC_USE_ITEM = 2019;              // 소비 아이템 사용 결과 (AOI, 본인 포함): 쓴 종류·사용 뒤 HP·재사용 시간 (A3.6)
-    SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2020~2026은 A4.2·A4.3 예약(DESIGN_ITEMS_TRADE)
+    SC_TRADE_REQUEST = 2020;         // 거래 요청을 받은 쪽에게 (A4.2)
+    SC_TRADE_STATE = 2021;           // 거래 상태 전체: 단계, 양쪽 제시·잠금·확정 (두 사람에게, 바뀔 때마다)
+    SC_TRADE_END = 2022;             // 거래가 끝났다: 성사 또는 취소 사유 (두 사람에게)
+    SC_TRADE_RESULT = 2023;          // 거래 요청 거부 결과 (본인에게, 거부일 때만. 확정 재검증 실패는 두 사람에게)
+    SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2024~2026은 A4.3 예약(DESIGN_ITEMS_TRADE)
 }
 
 enum MoveState {
@@ -126,6 +137,35 @@ enum ItemResult {
     ITEM_RESULT_LEVEL_TOO_LOW = 16;
     ITEM_RESULT_DB_ERROR = 17;       // DB 실패 — 바뀐 것 없음
     ITEM_RESULT_BAD_SLOT = 18;       // 칸 번호가 범위 밖이거나 쓸 수 없는 칸
+}
+
+// SC_TRADE_RESULT_PACKET.result(요청 거부)·SC_TRADE_END_PACKET.result(끝난 이유). (DESIGN_ITEMS_TRADE "1:1 거래")
+enum TradeResult {
+    TRADE_RESULT_NONE = 0;
+    TRADE_RESULT_SUCCESS = 1;          // 거래 성사 (SC_TRADE_END)
+    TRADE_RESULT_NO_TARGET = 2;        // 대상이 없음(방에 없음·자기 자신·사망·더미 봇)
+    TRADE_RESULT_TOO_FAR = 3;          // 거리(EconomyTable.TradeRangeCm) 밖
+    TRADE_RESULT_TARGET_BUSY = 4;      // 대상이 다른 거래 중
+    TRADE_RESULT_DECLINED = 5;         // 상대가 거절
+    TRADE_RESULT_TIMEOUT = 6;          // 요청 응답 시간·전체 시간 초과
+    TRADE_RESULT_CANCELLED = 7;        // 한쪽이 취소
+    TRADE_RESULT_DEAD = 8;             // 사망
+    TRADE_RESULT_DISCONNECTED = 9;     // 접속 해제·방 퇴장
+    TRADE_RESULT_LOCKED = 10;          // 잠근 상태에서 제시 변경
+    TRADE_RESULT_INVALID_OFFER = 11;   // 제시가 맞지 않음(없는 행·장착 중·수량·중복·개수 초과·골드 부족)
+    TRADE_RESULT_INVENTORY_FULL = 12;  // 받는 쪽 빈 칸 부족
+    TRADE_RESULT_GOLD_FULL = 13;       // 받는 쪽 골드 상한 초과
+    TRADE_RESULT_BUSY = 14;            // 이미 거래 중이거나 아이템 작업이 진행 중(다시 시도)
+    TRADE_RESULT_NOT_ALLOWED = 15;     // 더미 봇, 지금 단계에서 받을 수 없는 요청
+    TRADE_RESULT_DB_ERROR = 16;        // DB 실패 — 바뀐 것 없음
+}
+
+// SC_TRADE_STATE_PACKET.phase
+enum TradePhase {
+    TRADE_PHASE_NONE = 0;
+    TRADE_PHASE_REQUESTING = 1;   // 요청을 보내고 응답을 기다리는 중
+    TRADE_PHASE_OFFERING = 2;     // 제시·잠금·확정을 주고받는 중 (잠금·확정 여부는 TradeOffer에)
+    TRADE_PHASE_CONFIRMING = 3;   // 양쪽 확정 — DB 결과를 기다리는 중(모든 요청 거부)
 }
 
 // SC_LOGIN_INFO_PACKET.result. 성공일 때만 object_info가 채워진다.

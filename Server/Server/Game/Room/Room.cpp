@@ -131,6 +131,7 @@ void Room::Update(long long elapsedTime)
 	{
 		if (GServerConfig.viewAudit) AuditViews();
 		UpdateSaves(currentTick);
+		UpdateTrades(currentTick);
 
 		const int nodes = _gameMap.GetAoi().NodeCount(), depth = _gameMap.GetAoi().MaxDepth();
 		int prev = Metrics::AoiNodes.load();
@@ -289,6 +290,9 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 	if (_players.erase(playerId) > 0)
 		ReleaseSlot();
 
+	// 거래 중이었다면 취소한다(A4.1). 확정 중(DB 결과 대기)이면 그대로 두고 결과 처리가 남은 쪽에만 반영한다.
+	CancelTradeOf(player, Protocol::TRADE_RESULT_DISCONNECTED);
+
 	// 드랍 시야는 목록만 비운다(나가는 클라이언트에는 보낼 것이 없다).
 	player->dropView.clear();
 
@@ -422,6 +426,14 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 	}
 
 	UpdateDropView(player);
+
+	// 거래 중이면 상대와의 거리를 본다(A4.1): TradeRangeCm을 넘으면 취소. 거리 안 이동은 허용한다. 확정 중이면 DB 결과를 기다린다.
+	if (player->tradeId != 0)
+	{
+		const TradeSession* trade = FindTrade(player);
+		if (trade != nullptr && trade->phase != Protocol::TRADE_PHASE_CONFIRMING && !IsTradeRangeOk(*trade))
+			EndTrade(trade->id, Protocol::TRADE_RESULT_TOO_FAR);
+	}
 }
 
 void Room::PlayerPing(shared_ptr<Player> player, long long clientTime)
@@ -569,6 +581,7 @@ void Room::PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part
 		if (static_cast<int>(item->slot) != static_cast<int>(part)) { reject(Protocol::EQUIP_RESULT_WRONG_SLOT); return; }
 		alreadyEquipped = newItem->equipPart == static_cast<int>(part);
 		if (!alreadyEquipped && newItem->equipPart != 0) { reject(Protocol::EQUIP_RESULT_NOT_OWNED); return; }   // 인벤토리 위치의 행만 장착한다
+		if (IsItemInTrade(player, itemDbId)) { reject(Protocol::EQUIP_RESULT_IN_TRADE); return; }   // 거래에 올린 행 (A4.1)
 	}
 	// 보조손(방패)은 한손검을 든 상태에서만 착용한다 (MC4.2f, DECISIONS 2026-11-09). 해제는 언제나 허용.
 	if (part == Protocol::EQUIP_PART_OFFHAND && itemDbId != 0 && player->GetWeaponType() != WeaponType::Sword) { reject(Protocol::EQUIP_RESULT_NEED_SWORD); return; }
@@ -773,6 +786,8 @@ void Room::PlayerDropItem(shared_ptr<Player> player, int64_t itemDbId)
 	// 인벤토리 위치의 내 행만 버린다(장착 중인 것은 먼저 해제해야 한다). 스택은 통째로 버린다(D-155).
 	const ItemInstance* item = player->inventory.Find(itemDbId);
 	if (item == nullptr || item->equipPart != 0) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+	// 거래에 올린 행은 거래가 끝날 때까지 버릴 수 없다(일부만 올렸어도).
+	if (IsItemInTrade(player, itemDbId)) { reject(Protocol::ITEM_RESULT_IN_TRADE); return; }
 
 	const Protocol::PositionInfo& pos = player->GetPosition();
 	DB_ItemOp op;
@@ -787,6 +802,433 @@ void Room::PlayerDropItem(shared_ptr<Player> player, int64_t itemDbId)
 
 	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
 	StartItemOp(player, op);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// 1:1 거래 (A4.1·A4.2, D-158 — DESIGN_ITEMS_TRADE "1:1 거래")
+// ---------------------------------------------------------------------------------------------------------------
+namespace
+{
+	void SendTradeReject(const shared_ptr<Player>& player, Protocol::PacketId request, Protocol::TradeResult result)
+	{
+		LOG_DEBUG("Trade", "거부 player={} request={} result={}", player->GetId(), Protocol::PacketId_Name(request), Protocol::TradeResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_TRADE_RESULT(request, result));
+	}
+
+	long long TradeNowMs()
+	{
+		return chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	}
+}
+
+TradeSession* Room::FindTrade(const shared_ptr<Player>& player)
+{
+	if (player == nullptr || player->tradeId == 0) return nullptr;
+	const auto it = _trades.find(player->tradeId);
+	if (it == _trades.end()) return nullptr;
+	// 같은 id를 다른 거래가 쓰지 않지만, 포인터로 한 번 더 확인한다.
+	if (it->second.sides[0].player != player && it->second.sides[1].player != player) return nullptr;
+	return &it->second;
+}
+
+const TradeSession* Room::FindTrade(const shared_ptr<Player>& player) const
+{
+	return const_cast<Room*>(this)->FindTrade(player);
+}
+
+bool Room::IsItemInTrade(const shared_ptr<Player>& player, int64_t itemDbId) const
+{
+	const TradeSession* trade = FindTrade(player);
+	if (trade == nullptr) return false;
+	const TradeSide& mine = trade->sides[trade->sides[0].player == player ? 0 : 1];
+	for (const TradeItem& item : mine.items)
+		if (item.itemDbId == itemDbId) return true;
+	return false;
+}
+
+bool Room::IsTradeRangeOk(const TradeSession& trade) const
+{
+	const Protocol::PositionInfo& a = trade.sides[0].player->GetPosition();
+	const Protocol::PositionInfo& b = trade.sides[1].player->GetPosition();
+	const float dx = a.x() - b.x(), dy = a.y() - b.y();
+	const float range = static_cast<float>(DataManager::GetEconomy().tradeRangeCm);
+	return dx * dx + dy * dy <= range * range;
+}
+
+void Room::SendTradeState(const TradeSession& trade)
+{
+	const shared_ptr<SendBuffer> buffer = PacketSerializer::MAKE_SC_TRADE_STATE(trade);
+	for (const TradeSide& side : trade.sides)
+	{
+		if (!IsInRoom(side.player)) continue;
+		if (shared_ptr<Session> session = side.player->GetSession())
+			session->Send(buffer);
+	}
+}
+
+void Room::EndTrade(int tradeId, Protocol::TradeResult result)
+{
+	const auto it = _trades.find(tradeId);
+	if (it == _trades.end()) return;
+
+	LOG_DEBUG("Trade", "끝 id={} a={} b={} result={}", tradeId, it->second.sides[0].objectId, it->second.sides[1].objectId, Protocol::TradeResult_Name(result));
+	const shared_ptr<SendBuffer> buffer = PacketSerializer::MAKE_SC_TRADE_END(result);
+	for (TradeSide& side : it->second.sides)
+	{
+		if (side.player->tradeId == tradeId) side.player->tradeId = 0;
+		if (!IsInRoom(side.player)) continue;
+		if (shared_ptr<Session> session = side.player->GetSession())
+			session->Send(buffer);
+	}
+	_trades.erase(it);
+}
+
+void Room::CancelTradeOf(const shared_ptr<Player>& player, Protocol::TradeResult reason)
+{
+	TradeSession* trade = FindTrade(player);
+	if (trade == nullptr) return;
+	// 확정 중이면 DB 결과가 권위다. 결과 처리(OnTradeDone)가 남은 쪽에만 반영하고 끝낸다.
+	if (trade->phase == Protocol::TRADE_PHASE_CONFIRMING) return;
+	EndTrade(trade->id, reason);
+}
+
+void Room::TradeRequest(shared_ptr<Player> player, int targetId)
+{
+	if (player == nullptr) return;
+	const Protocol::PacketId req = Protocol::CS_TRADE_REQUEST;
+
+	if (false == IsInRoom(player)) { SendTradeReject(player, req, Protocol::TRADE_RESULT_NOT_ALLOWED); return; }
+	if (player->isDummy || player->GetPlayerUID() == 0) { SendTradeReject(player, req, Protocol::TRADE_RESULT_NOT_ALLOWED); return; }
+	if (player->GetStat().IsDead()) { SendTradeReject(player, req, Protocol::TRADE_RESULT_DEAD); return; }
+	if (player->tradeId != 0) { SendTradeReject(player, req, Protocol::TRADE_RESULT_BUSY); return; }
+	// 요청 도배 방지: 아이템 요청과 같은 최소 간격을 쓴다.
+	if (!player->itemOp.interval.IsReady()) { SendTradeReject(player, req, Protocol::TRADE_RESULT_BUSY); return; }
+
+	const shared_ptr<Player> target = Id2Player(targetId);
+	if (target == nullptr || target == player || target->isDummy || target->GetPlayerUID() == 0 || target->GetStat().IsDead())
+	{
+		SendTradeReject(player, req, Protocol::TRADE_RESULT_NO_TARGET);
+		return;
+	}
+	if (target->tradeId != 0) { SendTradeReject(player, req, Protocol::TRADE_RESULT_TARGET_BUSY); return; }
+
+	const EconomyData& economy = DataManager::GetEconomy();
+	TradeSession trade;
+	trade.sides[0].player = player; trade.sides[0].playerUID = player->GetPlayerUID(); trade.sides[0].objectId = player->GetId();
+	trade.sides[1].player = target; trade.sides[1].playerUID = target->GetPlayerUID(); trade.sides[1].objectId = target->GetId();
+	if (!IsTradeRangeOk(trade)) { SendTradeReject(player, req, Protocol::TRADE_RESULT_TOO_FAR); return; }
+
+	do { _nextTradeId = _nextTradeId >= INT_MAX ? 1 : _nextTradeId + 1; } while (_trades.count(_nextTradeId) > 0);
+	trade.id = _nextTradeId;
+	trade.phase = Protocol::TRADE_PHASE_REQUESTING;
+	trade.requestedAtMs = TradeNowMs();
+	player->tradeId = trade.id;
+	target->tradeId = trade.id;
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	const auto inserted = _trades.emplace(trade.id, std::move(trade));
+
+	LOG_DEBUG("Trade", "요청 id={} from={} to={}", inserted.first->first, player->GetId(), target->GetId());
+	if (shared_ptr<Session> session = target->GetSession())
+		session->Send(PacketSerializer::MAKE_SC_TRADE_REQUEST(player->GetId(), player->GetName(), economy.tradeRequestTimeoutSec));
+	SendTradeState(inserted.first->second);
+}
+
+void Room::TradeRespond(shared_ptr<Player> player, bool accept)
+{
+	if (player == nullptr) return;
+	TradeSession* trade = FindTrade(player);
+	// 받은 요청이 없거나(이미 취소·시간 초과), 내가 요청한 쪽이거나, 이미 수락한 거래다.
+	if (trade == nullptr || trade->phase != Protocol::TRADE_PHASE_REQUESTING || trade->sides[1].player != player)
+	{
+		SendTradeReject(player, Protocol::CS_TRADE_RESPOND, Protocol::TRADE_RESULT_NOT_ALLOWED);
+		return;
+	}
+
+	if (!accept) { EndTrade(trade->id, Protocol::TRADE_RESULT_DECLINED); return; }
+
+	trade->phase = Protocol::TRADE_PHASE_OFFERING;
+	trade->acceptedAtMs = TradeNowMs();
+	SendTradeState(*trade);
+}
+
+void Room::TradeSetOffer(shared_ptr<Player> player, vector<TradeItem> items, int64_t gold, bool tooMany)
+{
+	if (player == nullptr) return;
+	const Protocol::PacketId req = Protocol::CS_TRADE_SET_OFFER;
+	TradeSession* trade = FindTrade(player);
+	if (trade == nullptr || trade->phase != Protocol::TRADE_PHASE_OFFERING) { SendTradeReject(player, req, Protocol::TRADE_RESULT_NOT_ALLOWED); return; }
+
+	TradeSide& mine = trade->sides[trade->sides[0].player == player ? 0 : 1];
+	// 잠근 뒤에는 바꿀 수 없다. 바꾸려면 먼저 풀어야 한다(풀면 양쪽 잠금·확정이 풀린다).
+	if (mine.locked) { SendTradeReject(player, req, Protocol::TRADE_RESULT_LOCKED); return; }
+	// 내 아이템 작업이 진행 중이면 다른 경로로 빠져나가는 중인 아이템일 수 있다.
+	if (player->itemOp.inFlight) { SendTradeReject(player, req, Protocol::TRADE_RESULT_BUSY); return; }
+
+	const EconomyData& economy = DataManager::GetEconomy();
+	bool valid = !tooMany && static_cast<int>(items.size()) <= economy.tradeMaxItems && gold >= 0 && gold <= player->GetGold();
+	for (size_t i = 0; valid && i < items.size(); ++i)
+	{
+		const ItemInstance* owned = player->inventory.Find(items[i].itemDbId);
+		// 인벤토리 위치의 내 행, 수량 1 ~ 그 행의 수량, 같은 행은 한 번만
+		if (owned == nullptr || owned->equipPart != 0 || items[i].count < 1 || items[i].count > owned->count) { valid = false; break; }
+		for (size_t j = 0; j < i; ++j)
+			if (items[j].itemDbId == items[i].itemDbId) { valid = false; break; }
+		items[i].itemId = owned->itemId;
+	}
+	if (!valid) { SendTradeReject(player, req, Protocol::TRADE_RESULT_INVALID_OFFER); return; }
+
+	mine.items = std::move(items);
+	mine.gold = gold;
+	// 제시가 바뀌면 상대가 보고 잠근 내용이 달라진다. 양쪽의 잠금·확정을 모두 푼다.
+	for (TradeSide& side : trade->sides) { side.locked = false; side.confirmed = false; }
+	SendTradeState(*trade);
+}
+
+void Room::TradeLock(shared_ptr<Player> player, bool locked)
+{
+	if (player == nullptr) return;
+	TradeSession* trade = FindTrade(player);
+	if (trade == nullptr || trade->phase != Protocol::TRADE_PHASE_OFFERING) { SendTradeReject(player, Protocol::CS_TRADE_LOCK, Protocol::TRADE_RESULT_NOT_ALLOWED); return; }
+
+	TradeSide& mine = trade->sides[trade->sides[0].player == player ? 0 : 1];
+	if (locked)
+	{
+		if (mine.locked) return;   // 이미 잠갔다
+		mine.locked = true;
+	}
+	else
+	{
+		// 누가 풀면 양쪽의 잠금과 확정이 모두 풀린다(잠근 뒤 몰래 바꿀 수 없게).
+		for (TradeSide& side : trade->sides) { side.locked = false; side.confirmed = false; }
+	}
+	SendTradeState(*trade);
+}
+
+void Room::TradeConfirm(shared_ptr<Player> player)
+{
+	if (player == nullptr) return;
+	TradeSession* trade = FindTrade(player);
+	// 양쪽이 모두 잠근 뒤에만 확정할 수 있다.
+	if (trade == nullptr || trade->phase != Protocol::TRADE_PHASE_OFFERING || !trade->sides[0].locked || !trade->sides[1].locked)
+	{
+		SendTradeReject(player, Protocol::CS_TRADE_CONFIRM, Protocol::TRADE_RESULT_NOT_ALLOWED);
+		return;
+	}
+
+	TradeSide& mine = trade->sides[trade->sides[0].player == player ? 0 : 1];
+	if (mine.confirmed) return;   // 두 번째 확정은 무시한다
+	mine.confirmed = true;
+
+	if (trade->sides[0].confirmed && trade->sides[1].confirmed)
+		TryExecuteTrade(*trade);
+	else
+		SendTradeState(*trade);
+}
+
+void Room::TradeCancel(shared_ptr<Player> player)
+{
+	if (player == nullptr) return;
+	TradeSession* trade = FindTrade(player);
+	if (trade == nullptr) { SendTradeReject(player, Protocol::CS_TRADE_CANCEL, Protocol::TRADE_RESULT_NOT_ALLOWED); return; }
+	// 확정 중에는 DB 결과를 기다린다(되돌릴 수 없다).
+	if (trade->phase == Protocol::TRADE_PHASE_CONFIRMING) { SendTradeReject(player, Protocol::CS_TRADE_CANCEL, Protocol::TRADE_RESULT_BUSY); return; }
+	EndTrade(trade->id, Protocol::TRADE_RESULT_CANCELLED);
+}
+
+void Room::TryExecuteTrade(TradeSession& trade)
+{
+	const EconomyData& economy = DataManager::GetEconomy();
+	const shared_ptr<Player>& a = trade.sides[0].player;
+	const shared_ptr<Player>& b = trade.sides[1].player;
+
+	// 다시 검증한다: 확정 사이에 인벤토리·골드·위치·생존이 바뀌었을 수 있다.
+	Protocol::TradeResult fail = Protocol::TRADE_RESULT_SUCCESS;
+	DB_ItemOp op;
+	op.kind = ItemOpKind::Trade;
+	op.tradeId = trade.id;
+	op.tradeOtherUID = trade.sides[1].playerUID;
+	op.tradeGoldA = trade.sides[0].gold;
+	op.tradeGoldB = trade.sides[1].gold;
+	op.goldMax = economy.goldMax;
+
+	auto connected = [&](const shared_ptr<Player>& p) {
+		const shared_ptr<GameSession> session = p->GetSession();
+		return IsInRoom(p) && session != nullptr && session->IsConnected();
+	};
+
+	if (!connected(a) || !connected(b)) fail = Protocol::TRADE_RESULT_DISCONNECTED;
+	else if (a->GetStat().IsDead() || b->GetStat().IsDead()) fail = Protocol::TRADE_RESULT_DEAD;
+	else if (!IsTradeRangeOk(trade)) fail = Protocol::TRADE_RESULT_TOO_FAR;
+	else if (a->itemOp.inFlight || b->itemOp.inFlight) fail = Protocol::TRADE_RESULT_BUSY;
+
+	if (fail == Protocol::TRADE_RESULT_SUCCESS)
+	{
+		for (int s = 0; s < 2 && fail == Protocol::TRADE_RESULT_SUCCESS; ++s)
+		{
+			const TradeSide& giver = trade.sides[s];
+			const shared_ptr<Player>& receiver = trade.sides[1 - s].player;
+			const TradeSide& receiverSide = trade.sides[1 - s];
+
+			// 골드: 내놓을 만큼 있고, 받은 뒤 상대가 상한을 넘지 않는다.
+			if (giver.gold < 0 || giver.gold > giver.player->GetGold()) { fail = Protocol::TRADE_RESULT_INVALID_OFFER; break; }
+			if (receiver->GetGold() - receiverSide.gold + giver.gold > static_cast<int64_t>(economy.goldMax)) { fail = Protocol::TRADE_RESULT_GOLD_FULL; break; }
+
+			// 받는 쪽이 쓸 수 있는 칸 = 지금 빈 칸 + 받는 쪽이 통째로 내놓아 비게 될 칸. 받은 아이템은 기존 스택에 합치지 않고 한 칸씩 차지한다.
+			vector<int> slots = receiver->inventory.FreeSlots(economy.inventorySlots, economy.inventorySlots);
+			for (const TradeItem& out : receiverSide.items)
+			{
+				const ItemInstance* owned = receiver->inventory.Find(out.itemDbId);
+				if (owned != nullptr && owned->equipPart == 0 && out.count == owned->count && owned->slot >= 0 && owned->slot < economy.inventorySlots)
+					slots.push_back(owned->slot);
+			}
+			sort(slots.begin(), slots.end());
+			if (slots.size() < giver.items.size()) { fail = Protocol::TRADE_RESULT_INVENTORY_FULL; break; }
+
+			for (size_t i = 0; i < giver.items.size(); ++i)
+			{
+				const TradeItem& offered = giver.items[i];
+				const ItemInstance* owned = giver.player->inventory.Find(offered.itemDbId);
+				// 아직 인벤토리에 있고 수량이 제시 수량 이상이어야 한다(줍기로 늘어난 것은 괜찮다 — 넘어가는 것은 제시한 수량뿐).
+				if (owned == nullptr || owned->equipPart != 0 || owned->itemId != offered.itemId || owned->count < offered.count) { fail = Protocol::TRADE_RESULT_INVALID_OFFER; break; }
+				DB_ItemOp::TradeMove move;
+				move.fromSide = s;
+				move.itemDbId = offered.itemDbId;
+				move.itemId = offered.itemId;
+				move.count = static_cast<int32_t>(offered.count);
+				move.expectCount = owned->count;
+				move.toSlot = slots[i];
+				op.tradeMoves.push_back(move);
+			}
+		}
+	}
+
+	if (fail != Protocol::TRADE_RESULT_SUCCESS)
+	{
+		// 거래를 끝내지 않는다: 양쪽 잠금·확정을 풀어 제시 단계로 되돌리고 사유를 두 사람에게 알린다.
+		LOG_DEBUG("Trade", "확정 재검증 실패 id={} result={}", trade.id, Protocol::TradeResult_Name(fail));
+		for (TradeSide& side : trade.sides) { side.locked = false; side.confirmed = false; }
+		const shared_ptr<SendBuffer> buffer = PacketSerializer::MAKE_SC_TRADE_RESULT(Protocol::CS_TRADE_CONFIRM, fail);
+		for (const TradeSide& side : trade.sides)
+		{
+			if (!IsInRoom(side.player)) continue;
+			if (shared_ptr<Session> session = side.player->GetSession())
+				session->Send(buffer);
+		}
+		SendTradeState(trade);
+		return;
+	}
+
+	// 확정 중: DB 결과가 올 때까지 양쪽의 다른 아이템 요청은 BUSY, 거래 요청은 모두 거부한다.
+	trade.phase = Protocol::TRADE_PHASE_CONFIRMING;
+	SendTradeState(trade);
+	b->itemOp.inFlight = true;    // A는 StartItemOp가 켠다. B는 여기서 켜고 OnTradeDone에서 끈다.
+	StartItemOp(a, op);
+}
+
+void Room::OnTradeDone(const DB_ItemOp& op, const DB_ItemOpResult& result)
+{
+	const auto it = _trades.find(op.tradeId);
+	if (it == _trades.end())
+	{
+		LOG_ERROR("Trade", "DB 결과를 받았는데 거래 상태가 없습니다 (id {})", op.tradeId);
+		return;
+	}
+	TradeSession& trade = it->second;
+	const shared_ptr<Player> a = trade.sides[0].player;
+	const shared_ptr<Player> b = trade.sides[1].player;
+	b->itemOp.inFlight = false;   // A는 OnItemOpDone이 이미 껐다
+
+	if (result.success)
+	{
+		// DB가 권위다. 방에 남아 있는 쪽의 메모리에만 반영한다(나간 쪽은 다음 로그인 때 DB에서 읽는다).
+		vector<ItemInstance> changed[2];
+		vector<int64_t> removed[2];
+		size_t newIndex = 0;
+		for (const DB_ItemOp::TradeMove& m : op.tradeMoves)
+		{
+			const int from = m.fromSide, to = 1 - m.fromSide;
+			const shared_ptr<Player>& giver = trade.sides[from].player;
+			const shared_ptr<Player>& receiver = trade.sides[to].player;
+			const bool whole = m.count == m.expectCount;
+			int64_t receivedDbId = m.itemDbId;
+			if (!whole)
+			{
+				// 일부만 넘긴 행: 받는 쪽은 새 행(새 ItemDbId)
+				receivedDbId = newIndex < result.newDbIds.size() ? result.newDbIds[newIndex] : 0;
+				++newIndex;
+			}
+
+			if (IsInRoom(giver))
+			{
+				if (whole)
+				{
+					giver->inventory.Remove(m.itemDbId);
+					removed[from].push_back(m.itemDbId);
+				}
+				else if (const ItemInstance* owned = giver->inventory.Find(m.itemDbId))
+				{
+					ItemInstance left = *owned;
+					left.count = m.expectCount - m.count;
+					giver->inventory.Set(left);
+					changed[from].push_back(left);
+				}
+			}
+			if (IsInRoom(receiver) && receivedDbId != 0)
+			{
+				const ItemInstance received{ receivedDbId, m.itemId, m.count, 0, m.toSlot };
+				receiver->inventory.Set(received);
+				changed[to].push_back(received);
+			}
+		}
+		if (newIndex != result.newDbIds.size())
+			LOG_ERROR("Trade", "거래 결과의 새 행 수가 다릅니다 (id {}, 기대 {}, 받음 {}) — 다음 로그인 때 DB 값으로 맞춰집니다", op.tradeId, newIndex, result.newDbIds.size());
+
+		if (result.gold >= 0 && IsInRoom(a)) a->SetGold(result.gold);
+		if (result.gold2 >= 0 && IsInRoom(b)) b->SetGold(result.gold2);
+
+		for (int s = 0; s < 2; ++s)
+		{
+			const shared_ptr<Player>& p = trade.sides[s].player;
+			if (!IsInRoom(p)) continue;
+			if (shared_ptr<Session> session = p->GetSession())
+				session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed[s], removed[s], p->GetGold()));
+		}
+		Metrics::TradesDone.fetch_add(1);
+	}
+	else if (result.unknown)
+	{
+		// DB에 반영됐는지 알 수 없다. A는 OnItemOpDone이 끊었다. B도 끊어 다음 로그인 때 DB 값을 읽게 한다.
+		if (IsInRoom(b))
+		{
+			if (shared_ptr<GameSession> session = b->GetSession())
+				session->ForceClose(L"Trade: unknown DB result");
+		}
+	}
+
+	EndTrade(op.tradeId, result.success ? Protocol::TRADE_RESULT_SUCCESS : Protocol::TRADE_RESULT_DB_ERROR);
+	// B가 이미 방을 나갔으면 마지막 DB 작업이 끝났으니 접속 목록에서 빼게 한다(A는 OnItemOpDone 끝에서 한다).
+	NotifyClosedIfDone(b);
+}
+
+void Room::UpdateTrades(long long nowMs)
+{
+	if (_trades.empty()) return;
+	const EconomyData& economy = DataManager::GetEconomy();
+	vector<int> expired;
+	for (const auto& [id, trade] : _trades)
+	{
+		if (trade.phase == Protocol::TRADE_PHASE_REQUESTING)
+		{
+			if (nowMs - trade.requestedAtMs >= static_cast<long long>(economy.tradeRequestTimeoutSec) * 1000) expired.push_back(id);
+		}
+		else if (trade.phase == Protocol::TRADE_PHASE_OFFERING)
+		{
+			if (nowMs - trade.acceptedAtMs >= static_cast<long long>(economy.tradeTimeoutSec) * 1000) expired.push_back(id);
+		}
+	}
+	for (const int id : expired)
+		EndTrade(id, Protocol::TRADE_RESULT_TIMEOUT);
 }
 
 void Room::PlayerUseItem(shared_ptr<Player> player, int64_t itemDbId, int itemId)
@@ -808,12 +1250,15 @@ void Room::PlayerUseItem(shared_ptr<Player> player, int64_t itemDbId, int itemId
 	{
 		target = player->inventory.Find(itemDbId);
 		if (target != nullptr && target->equipPart != 0) target = nullptr;
+		// 거래에 올린 행은 쓸 수 없다.
+		if (target != nullptr && IsItemInTrade(player, itemDbId)) { reject(Protocol::ITEM_RESULT_IN_TRADE); return; }
 	}
 	else if (itemId != 0)
 	{
 		for (const auto& [dbId, item] : player->inventory.Items())
 		{
 			if (item.equipPart != 0 || item.itemId != itemId) continue;
+			if (IsItemInTrade(player, dbId)) continue;   // 거래에 올린 스택은 건너뛴다
 			if (target == nullptr || item.count < target->count) target = &item;
 		}
 	}
@@ -1154,6 +1599,12 @@ void Room::OnItemOpDone(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult
 		BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_CHANGE_EQUIP(player->GetId(), part, op.itemId, player->GetInfo().stat()), true);
 
 		if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, {}, player->GetGold()));
+		break;
+	}
+	case ItemOpKind::Trade:
+	{
+		// 두 사람의 결과를 함께 처리한다(이 함수의 player는 요청한 쪽 A).
+		OnTradeDone(op, result);
 		break;
 	}
 	case ItemOpKind::Use:

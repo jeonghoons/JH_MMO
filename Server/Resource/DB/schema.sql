@@ -4,6 +4,7 @@
 -- 2026-11-16: Player_Item(아이템 인스턴스 — 인벤토리·장착·경매 보관·수령함) 추가, Player_Equipped 삭제 (migrations/0004_2026-11-16_a33_player_item.sql)
 -- 2026-11-16: Player_Item.BagSlot(인벤토리 칸 번호) + UX_Player_Item_BagSlot 추가 (migrations/0005_2026-11-16_a61_bag_slot.sql)
 -- 2026-11-17: Player_QuickSlot(액티브 칸에 올린 아이템 종류) 추가 (migrations/0006_2026-11-17_a36_quick_slot.sql)
+-- 2026-11-17: Trade_Log(성사된 1:1 거래 기록) 추가 (migrations/0007_2026-11-17_a42_trade_log.sql)
 -- 이 파일은 새 DB 생성용이다. 기존 DB는 migrate.ps1로 올린다. 스키마를 바꾸면 마이그레이션 + 이 파일 + Server/DB/DbQueries.h의 DB_SCHEMA_VERSION을 함께 고친다.
 USE [master]
 GO
@@ -252,6 +253,19 @@ ALTER TABLE [dbo].[Player_QuickSlot]  WITH CHECK ADD  CONSTRAINT [CK_Player_Quic
 GO
 ALTER TABLE [dbo].[Player_QuickSlot]  WITH CHECK ADD  CONSTRAINT [CK_Player_QuickSlot_ItemId] CHECK  (([ItemId]>(0)))
 GO
+/****** 개체: Table [dbo].[Trade_Log] — 성사된 1:1 거래 1건 = 1행. ItemsA·ItemsB = "ItemDbId:ItemId:Count" 목록 (A4.2) ******/
+CREATE TABLE [dbo].[Trade_Log](
+	[TradeId] [bigint] IDENTITY(1,1) NOT NULL,
+	[PlayerA] [bigint] NOT NULL,
+	[PlayerB] [bigint] NOT NULL,
+	[GoldA] [bigint] NOT NULL,
+	[GoldB] [bigint] NOT NULL,
+	[ItemsA] [nvarchar](600) NOT NULL,
+	[ItemsB] [nvarchar](600) NOT NULL,
+	[CreatedAt] [datetime2](0) NOT NULL CONSTRAINT [DF_Trade_Log_CreatedAt] DEFAULT (sysdatetime()),
+ CONSTRAINT [PK_Trade_Log] PRIMARY KEY CLUSTERED ([TradeId] ASC)
+) ON [PRIMARY]
+GO
 /****** 개체: Table [dbo].[Schema_Version] — 적용한 마이그레이션(migrations/NNNN_*.sql) 1개 = 행 1개 ******/
 CREATE TABLE [dbo].[Schema_Version](
 	[Version] [int] NOT NULL,
@@ -267,7 +281,8 @@ INSERT INTO [dbo].[Schema_Version] ([Version], [Name]) VALUES
 	(3, N'0003_2026-11-16_a25_schema_version (schema.sql)'),
 	(4, N'0004_2026-11-16_a33_player_item (schema.sql)'),
 	(5, N'0005_2026-11-16_a61_bag_slot (schema.sql)'),
-	(6, N'0006_2026-11-17_a36_quick_slot (schema.sql)')
+	(6, N'0006_2026-11-17_a36_quick_slot (schema.sql)'),
+	(7, N'0007_2026-11-17_a42_trade_log (schema.sql)')
 GO
 USE [master]
 GO

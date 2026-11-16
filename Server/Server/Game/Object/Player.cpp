@@ -2,6 +2,7 @@
 #include "Game/Object/Player.h"
 #include "Data/ServerData.h"
 #include "Utils/Metrics.h"
+#include "Game/Room/Room.h"
 
 Player::Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type) 
 	: Character(Protocol::ObjectType::OBJECT_TYPE_PLAYER), _ownerSession(ownerSession)
@@ -89,6 +90,12 @@ void Player::OnDead(std::shared_ptr<Character> attacker)
 		SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
 	Metrics::PlayerDeaths.fetch_add(1);
 	deadAtMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	// 거래 중에 죽으면 거래를 취소한다(A4.1). 확정 중(DB 결과 대기)이면 그대로 둔다 — DB 결과가 권위다.
+	if (tradeId != 0)
+	{
+		if (shared_ptr<Room> room = GetCurrentRoom())
+			room->CancelTradeOf(static_pointer_cast<Player>(shared_from_this()), Protocol::TRADE_RESULT_DEAD);
+	}
 	Character::OnDead(attacker);
 }
 

@@ -76,6 +76,30 @@ void PacketHandler::Init()
     GPacketHandler[Protocol::CS_SET_QUICKSLOT] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_SET_QUICKSLOT_PACKET>(&PacketHandler::Handle_CS_SET_QUICKSLOT, session, buffer, len);
         };
+
+    GPacketHandler[Protocol::CS_TRADE_REQUEST] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_TRADE_REQUEST_PACKET>(&PacketHandler::Handle_CS_TRADE_REQUEST, session, buffer, len);
+        };
+
+    GPacketHandler[Protocol::CS_TRADE_RESPOND] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_TRADE_RESPOND_PACKET>(&PacketHandler::Handle_CS_TRADE_RESPOND, session, buffer, len);
+        };
+
+    GPacketHandler[Protocol::CS_TRADE_SET_OFFER] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_TRADE_SET_OFFER_PACKET>(&PacketHandler::Handle_CS_TRADE_SET_OFFER, session, buffer, len);
+        };
+
+    GPacketHandler[Protocol::CS_TRADE_LOCK] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_TRADE_LOCK_PACKET>(&PacketHandler::Handle_CS_TRADE_LOCK, session, buffer, len);
+        };
+
+    GPacketHandler[Protocol::CS_TRADE_CONFIRM] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_TRADE_CONFIRM_PACKET>(&PacketHandler::Handle_CS_TRADE_CONFIRM, session, buffer, len);
+        };
+
+    GPacketHandler[Protocol::CS_TRADE_CANCEL] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_TRADE_CANCEL_PACKET>(&PacketHandler::Handle_CS_TRADE_CANCEL, session, buffer, len);
+        };
 }
 
 void PacketHandler::ProcessPacket(shared_ptr<GameSession> session, BYTE* buffer, int len)
@@ -297,6 +321,78 @@ void PacketHandler::Handle_CS_SET_QUICKSLOT(shared_ptr<GameSession> session, Pro
     if (room == nullptr) return;
 
     room->PushJob(&Room::PlayerSetQuickSlot, player, static_cast<int>(pkt.slot()), static_cast<int>(pkt.item_id()));
+}
+
+void PacketHandler::Handle_CS_TRADE_REQUEST(shared_ptr<GameSession> session, Protocol::CS_TRADE_REQUEST_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::TradeRequest, player, static_cast<int>(pkt.target_id()));
+}
+
+void PacketHandler::Handle_CS_TRADE_RESPOND(shared_ptr<GameSession> session, Protocol::CS_TRADE_RESPOND_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::TradeRespond, player, pkt.accept());
+}
+
+void PacketHandler::Handle_CS_TRADE_SET_OFFER(shared_ptr<GameSession> session, Protocol::CS_TRADE_SET_OFFER_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    // 목록 길이는 여기서 먼저 자른다(검증은 Room 잡에서 — TradeMaxItems, 보유, 수량).
+    constexpr int MAX_PACKET_ITEMS = 64;
+    vector<TradeItem> items;
+    for (int i = 0; i < pkt.items_size() && i < MAX_PACKET_ITEMS; ++i)
+        items.push_back(TradeItem{ static_cast<int64_t>(pkt.items(i).item_db_id()), 0, static_cast<int64_t>(pkt.items(i).count()) });
+    const bool tooMany = pkt.items_size() > MAX_PACKET_ITEMS;
+    room->PushJob(&Room::TradeSetOffer, player, items, static_cast<int64_t>(pkt.gold()), tooMany);
+}
+
+void PacketHandler::Handle_CS_TRADE_LOCK(shared_ptr<GameSession> session, Protocol::CS_TRADE_LOCK_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::TradeLock, player, pkt.locked());
+}
+
+void PacketHandler::Handle_CS_TRADE_CONFIRM(shared_ptr<GameSession> session, Protocol::CS_TRADE_CONFIRM_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::TradeConfirm, player);
+}
+
+void PacketHandler::Handle_CS_TRADE_CANCEL(shared_ptr<GameSession> session, Protocol::CS_TRADE_CANCEL_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::TradeCancel, player);
 }
 
 void PacketHandler::Handle_CS_SKILL_AIM(shared_ptr<GameSession> session, Protocol::CS_SKILL_AIM_PACKET& pkt)
