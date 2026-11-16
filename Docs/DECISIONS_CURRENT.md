@@ -33,6 +33,8 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 ## 서버 기반
 
 - **D-016** (2026-10-20) DB는 SQL Server Express(ODBC) 유지, 설정 외부화·README 설치 절차로 재현성 보완
+- **D-150** (2026-11-16) DB 스키마 = `Schema_Version` + `migrations/NNNN_*.sql`(한 트랜잭션·재실행 안전·자기 버전 행 INSERT) + `migrate.ps1`(백업 후 순번대로) + 서버 시작 검사(`DB_SCHEMA_VERSION`과 다르면 시작 거부, 서버는 마이그레이션을 실행하지 않음). SQL은 저장 프로시저 없이 인라인, 문자열은 `Server/Server/DB/DbQueries.h`에만. 스키마를 바꾸면 마이그레이션 + `schema.sql` + `DB_SCHEMA_VERSION`을 함께
+- **D-151** (2026-11-16) 진행 상황(레벨·경험치·HP·골드) 저장 = `DB_PlayerProgress` 스냅숏이 DB 값과 다를 때만, 주기(`ServerConfig` `PlayerSaveIntervalSec` 60초, id로 분산) + 퇴장, 플레이어당 동시 1건(`Player::SaveState`), 더미 봇 제외. 로그인: DB 레벨로 `PlayerStatTable` 조회(없으면 `SERVER_ERROR`), HP = DB 값을 최대치 안으로(저장 이력 없으면 최대치, 0 이하면 부활 규칙 값). 죽은 채 끊으면 HP = 최대 × `ReviveHpPercent`로 저장. 중복 접속 차단은 A2.7, 위치 저장 없음
 - **D-048** (2026-10-30) `Server/ServerCore` 정적 lib(Network/Job/DB/Utils) + GameServer 도메인 폴더. Core는 Protocol·게임 헤더 금지, 가상 훅·`SessionFactory`로 연결, 같은 파일명 금지, `#include`는 프로젝트 루트 기준 (일부: 봇의 Core 재사용은 D-051로 대체)
 - **D-044** (2026-10-28) DummyClient 유지 = LoadTest와 같은 봇 엔진의 부하 테스트 시각화 프런트엔드 — 검증은 콘솔 LoadTest, 시연은 DummyClient
 - **D-051** (2026-10-30) 봇 네트워크는 논블로킹 + WSAPoll 루프를 `Server/BotEngine`(정적 lib)으로, LoadTest·DummyClient 공유
@@ -57,7 +59,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-003** (2026-10-16) 데이터 허브 = `Common/DataTable/` CSV + 정수 ID 규약, 서버도 같은 CSV를 읽음
 - **D-110** (2026-11-07) StatTable 폐지: 플레이어 `PlayerStatTable`(키 Level, 체형 공용), 몬스터 스탯은 `MonsterTable` 열
 - **D-065** (2026-11-04) 기본 스탯 체형 공용(MaxHp 500, AttackSpeed 1.0, MoveSpeed 500, AttackDamage 0), 보너스: 무기 = 공격력, 방어구 = MaxHp(서버 계산) (일부: StatTable은 D-110)
-- **D-113** (2026-11-07) 가입 때 DB Level·Hp는 PlayerStatTable 시작 레벨 값(SQL 하드코딩 제거), DB 레벨로 스탯 조회는 A2.5
+- **D-113** (2026-11-07) 가입 때 DB Level·Hp는 PlayerStatTable 시작 레벨 값(SQL 하드코딩 제거), 로그인은 DB 레벨로 스탯 조회(D-151). 가입 HP는 장비 보너스 전 값이라 저장 이력이 없으면 로그인 때 최대치
 - **D-111** (2026-11-07) MonsterTable ID 1001~, `ObjectInfo.template_id`로 전송·클라는 `object_type`으로 판별, `PlayerType`은 체형 전용(3·4·5 reserved), 맵 JSON에 없는 템플릿은 그 마커만 건너뜀
 - **D-109** (2026-11-07) itemId 4자리 [슬롯][티어][01~99](슬롯 Head1~Weapon6·Offhand7, 티어 Cloth1·Leather2·Plate3), 위반 시 시작 중단. 보너스 천/판금 방어구 +30/+80 HP, 무기 +10/+20 (일부: 6칸 → 7칸)
 - **D-118** (2026-11-07) 기본 장비 = `ItemTable.Starter` 열(슬롯당 최대 1), 가입 트랜잭션에서 지급, 마이그레이션 SQL 목록과 같아야 함을 명시
@@ -83,7 +85,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-133** (2026-11-09) `CS_SKILL_AIM`(1011){slot,active,seq}·`SC_SKILL_AIM`(2014), 늦게 본 사람은 `ObjectInfo.aim_skill_id`, SkillTable `AimMoveSpeedMul`·`AimMaxMs`, `ServerAimMinIntervalMs` 200
 - **D-133** (2026-11-09) `CS_ATTACK` 수신 시 검증 전 조준 해제, 내 조준 상태는 로컬 권위(서버 `false`는 seq가 같을 때만), 이동 예산 배수는 이전 배수로 정산 후 교체
 - **D-149** (2026-11-16) 플레이어 부활은 요청형: 사망 후 `WorldTable.ReviveDelaySec`가 지나면 `CS_REVIVE`(1012) → 서버가 사망·대기 시간 검증(사망 시각 비교, 타이머 없음) → 입장 때 배치된 자리(플레이어 = 첫 PlayerStart)에서 최대 HP × `ReviveHpPercent`로 부활, `SC_REVIVE`(2015: id·위치·HP·`correction_seq`) AOI 방송, 대기 시간은 `SC_DEAD.revive_delay_ms`로 전달, 패널티 없음. 사망 상태 = `stat.hp == 0`(전용 필드 없음, 늦게 본 사람은 스폰 때 hp 0이면 사망 자세)
-- **D-149** (2026-11-16) 사망 중 이동은 서버가 조용히 버리고 클라도 이동·공격 입력 차단, 채팅·핑·조준 끄기는 허용. 시체는 AOI에 남김, 사망 중 재접속은 살아서 입장(A2.5 때 재검토). 사망 연출은 몽타주 + 멈춤 유지·부활 때 해제(AnimBP `bIsDead` 전환은 백로그), 부활 UI = `WBP_Revive`, 봇은 자기 `SC_DEAD` 후 대기 → `CS_REVIVE`
+- **D-149** (2026-11-16) 사망 중 이동은 서버가 조용히 버리고 클라도 이동·공격 입력 차단, 채팅·핑·조준 끄기는 허용. 시체는 AOI에 남김, 사망 중 재접속은 살아서 입장(HP = 최대 × `ReviveHpPercent`로 저장, D-151). 사망 연출은 몽타주 + 멈춤 유지·부활 때 해제(AnimBP `bIsDead` 전환은 백로그), 부활 UI = `WBP_Revive`, 봇은 자기 `SC_DEAD` 후 대기 → `CS_REVIVE`
 
 ## 장비 시스템
 
@@ -93,7 +95,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-114·D-115** (2026-11-07) 거부는 본인 전용 `SC_CHANGE_EQUIP_RESULT`(`EquipResult`), 클라가 코드별 문구를 `ShowSystemMessage`로. `SC_CHANGE_EQUIP`은 성공 방송 전용
 - **D-067·D-114** (2026-11-07) 개발용 장비창 `WBP_Equipment`는 미제작, 콘솔 `Equip <part> <itemId>`가 대신(MC4.4 장비창이 생기면 삭제). 보유·레벨 제한은 A3 (일부: 기본 장비 지급은 D-118)
 - **D-067** (2026-11-04) 장비만 DB 저장(`Player_Equipped`), `ItemDbId`는 A3 전 0, 캐릭터 이름 = 로그인 ID
-- **D-119** (2026-11-07) 로그인 HP = 장비 반영 최대치(DB `Hp`는 A2.5까지 안 읽음), `Player_Equipped` 슬롯별 검증 후 `RecalcStat`, 체형이 아니면 `LOGIN_RESULT_SERVER_ERROR` (일부: 슬롯 6 → 7칸)
+- **D-119** (2026-11-07) 로그인 HP = DB `Hp`를 장비 반영 최대치 안으로(D-151), `Player_Equipped` 슬롯별 검증 후 `RecalcStat`, 체형이 아니면 `LOGIN_RESULT_SERVER_ERROR` (일부: 슬롯 6 → 7칸)
 - **D-120** (2026-11-07) 장비 저장 = 변경 즉시 7칸 스냅숏(한 트랜잭션), 플레이어당 동시 1건·진행 중 변경은 합침, 실패는 다음 변경·퇴장 때 재시도 — 측정: CPU +2%p 이내 (일부: 6 → 7칸)
 - **D-130** (2026-11-09) 방패 = 보조손 슬롯 `OFFHAND`(EquipPart 7) 정적 메시, 막기 동작·판정 없음, 스탯 효과 지금 0, 한손검 전용(아니면 거부, 다른 무기로 바꾸면 서버가 자동 해제)
 - **D-139** (2026-11-10) `EQUIP_RESULT_NEED_SWORD`(8), 자동 해제는 보조손 해제 패킷 먼저·무기 변경 다음, 로그인 때 어긋나면 보조손만 비움, 7101 천·7301 판금 방패(보너스 0), Sword끼리 교체는 방패 유지, 해제는 언제나 허용

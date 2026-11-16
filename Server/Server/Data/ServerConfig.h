@@ -18,6 +18,7 @@ struct ServerConfig
 	// [Database]
 	std::string dbConnectionString = "Driver={ODBC Driver 17 for SQL Server};Server=.\\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;";
 	int dbConnections = 4;
+	int playerSaveIntervalSec = 60; // 진행 상황(레벨·경험치·HP·골드) 주기 저장 간격(A2.5). 값이 달라진 플레이어만 저장한다
 
 	// [Log] — Logger(ServerCore Utils/Logger)에 넘긴다
 	LogLevel logLevel = LogLevel::Info;
@@ -32,7 +33,7 @@ struct ServerConfig
 
 	// 값마다 어디서 왔는지(default / 파일 경로 / env / cli). 시작 로그에 함께 출력한다.
 	std::string bindIpFrom = "default", portFrom = "default", workerThreadsFrom = "default";
-	std::string dbConnectionStringFrom = "default", dbConnectionsFrom = "default", logLevelFrom = "default", logDirFrom = "default";
+	std::string dbConnectionStringFrom = "default", dbConnectionsFrom = "default", playerSaveIntervalSecFrom = "default", logLevelFrom = "default", logDirFrom = "default";
 	std::string dummySpawnZoneFrom = "default", viewAuditFrom = "default";
 
 	// 실제로 쓸 워커 스레드 수 (0이면 CPU 코어 수 / 2, 최소 1)

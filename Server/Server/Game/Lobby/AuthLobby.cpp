@@ -23,7 +23,7 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
     // 체형은 MALE/FEMALE뿐이다(옛 4·5는 MC3.3 마이그레이션에서 1로 바꿨다). 다른 값이면 DB가 잘못된 것이다.
     if (info.playerType != Protocol::PLAYER_TYPE_MALE && info.playerType != Protocol::PLAYER_TYPE_FEMALE)
     {
-        LOG_ERROR("Lobby", "PlayerId {} 의 PlayerType {} 은 체형이 아닙니다 (migrations/2026-11-07_mc33_equip.sql 실행 여부 확인)", info.playerUID, info.playerType);
+        LOG_ERROR("Lobby", "PlayerId {} 의 PlayerType {} 은 체형이 아닙니다 (migrations/0002_2026-11-07_mc33_equip.sql 실행 여부 확인)", info.playerUID, info.playerType);
         OnLoginFailed(session, Protocol::LOGIN_RESULT_SERVER_ERROR);
         return;
     }
@@ -32,7 +32,12 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
     shared_ptr<Player> player = make_shared<Player>(session, (Protocol::PlayerType)info.playerType);
 
     player->SetId(objectId);
-    player->InitFromDb(info, data);   // PlayerUID·장비 (MC3.3)
+    // PlayerUID·장비(MC3.3)·레벨·HP(A2.5). DB 레벨이 PlayerStatTable에 없으면 거부한다.
+    if (false == player->InitFromDb(info, data))
+    {
+        OnLoginFailed(session, Protocol::LOGIN_RESULT_SERVER_ERROR);
+        return;
+    }
 
     wstring playerName(info.playerName);
     player->SetName(playerName);

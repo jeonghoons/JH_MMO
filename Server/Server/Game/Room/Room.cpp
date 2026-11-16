@@ -129,6 +129,7 @@ void Room::Update(long long elapsedTime)
 	if (++_tickCount % 10 == 0)
 	{
 		if (GServerConfig.viewAudit) AuditViews();
+		UpdateSaves(currentTick);
 
 		const int nodes = _gameMap.GetAoi().NodeCount(), depth = _gameMap.GetAoi().MaxDepth();
 		int prev = Metrics::AoiNodes.load();
@@ -219,6 +220,11 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	player->SetSkillAim(nullptr, player->moveGuard.lastAccrueMs);
 	player->deadAtMs = 0;
 	
+	// 주기 저장 시각(A2.5): 입장 시각 + 간격에 id로 흩어 같은 틱에 몰리지 않게 한다.
+	const long long saveIntervalMs = static_cast<long long>(GServerConfig.playerSaveIntervalSec) * 1000;
+	player->nextProgressSaveMs = player->moveGuard.lastAccrueMs + saveIntervalMs + (player->GetId() % GServerConfig.playerSaveIntervalSec) * 1000LL;
+	player->progressSaveRetries = 0;
+
 	LOG_DEBUG("Room", "Client[{}] Enter Room", player->GetId());
 
 	enterSession->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(player));
@@ -260,9 +266,11 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 		player->SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
 
 	// 저장에 실패해 남은 변경이 있으면 나갈 때 다시 저장한다. (진행 중인 저장은 OnEquipSaved에서 마무리된다)
-	if (player->equipSaveDirty && !player->equipSaveInFlight)
+	if (player->equipSave.dirty && !player->equipSave.inFlight)
 		RequestEquipSave(player);
 
+	// 나갈 때의 진행 상황을 저장한다(A2.5). 진행 중인 저장이 있으면 OnProgressSaved가 이어서 최신 값으로 저장한다.
+	RequestProgressSave(player);
 }
 
 void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, uint32_t correctionSeq)
@@ -539,15 +547,15 @@ void Room::RequestEquipSave(shared_ptr<Player> player)
 	if (player == nullptr || player->GetPlayerUID() == 0) return;   // DB 캐릭터가 아닌 경우(로그인 전 등)
 	Metrics::EquipSaveRequested.fetch_add(1);
 
-	if (player->equipSaveInFlight)
+	if (player->equipSave.inFlight)
 	{
-		player->equipSaveDirty = true;
+		player->equipSave.dirty = true;
 		Metrics::EquipSaveCoalesced.fetch_add(1);
 		return;
 	}
 
-	player->equipSaveInFlight = true;
-	player->equipSaveDirty = false;
+	player->equipSave.inFlight = true;
+	player->equipSave.dirty = false;
 	Metrics::EquipSaveSent.fetch_add(1);
 	Metrics::EquipSaveInFlight.fetch_add(1);
 
@@ -558,17 +566,87 @@ void Room::RequestEquipSave(shared_ptr<Player> player)
 void Room::OnEquipSaved(shared_ptr<Player> player, bool success)
 {
 	Metrics::EquipSaveInFlight.fetch_sub(1);
-	player->equipSaveInFlight = false;
+	player->equipSave.inFlight = false;
 
 	// 실패하면 dirty로 남겨 다음 변경·퇴장 때 다시 저장한다.
 	if (!success)
 	{
-		player->equipSaveDirty = true;
+		player->equipSave.dirty = true;
 		return;
 	}
 	// 저장하는 동안 다시 바뀌었으면 최신 값으로 한 번 더 저장한다.
-	if (player->equipSaveDirty)
+	if (player->equipSave.dirty)
 		RequestEquipSave(player);
+}
+
+void Room::UpdateSaves(long long nowMs)
+{
+	const long long intervalMs = static_cast<long long>(GServerConfig.playerSaveIntervalSec) * 1000;
+	for (const auto& [id, player] : _players)
+	{
+		if (nowMs < player->nextProgressSaveMs) continue;
+		player->nextProgressSaveMs = nowMs + intervalMs;
+		RequestProgressSave(player);
+	}
+}
+
+void Room::RequestProgressSave(shared_ptr<Player> player)
+{
+	if (player == nullptr || player->GetPlayerUID() == 0) return;   // DB 캐릭터가 아닌 경우(로그인 전 등)
+	if (player->isDummy) return;                                     // 더미 봇은 전원이 한 행을 쓴다
+
+	Player::SaveState& state = player->progressSave;
+	if (state.inFlight)
+	{
+		state.dirty = true;
+		Metrics::ProgressSaveCoalesced.fetch_add(1);
+		return;
+	}
+
+	// DB에 있는 값과 같으면 보내지 않는다.
+	const DB_PlayerProgress snapshot = player->MakeProgressSnapshot();
+	state.dirty = false;
+	if (snapshot == player->lastSavedProgress) return;
+
+	state.inFlight = true;
+	Metrics::ProgressSaveSent.fetch_add(1);
+	Metrics::ProgressSaveInFlight.fetch_add(1);
+	GDBWorker->PushDBJob(&DatabaseWorker::SavePlayerProgress, shared_from_this(), player, player->GetPlayerUID(), snapshot, Metrics::NowUs());
+}
+
+void Room::OnProgressSaved(shared_ptr<Player> player, DB_PlayerProgress saved, bool success)
+{
+	Metrics::ProgressSaveInFlight.fetch_sub(1);
+	Player::SaveState& state = player->progressSave;
+	state.inFlight = false;
+
+	// 같은 id를 다른 플레이어가 다시 쓸 수 있으므로 포인터로 비교한다.
+	const auto it = _players.find(player->GetId());
+	const bool inRoom = it != _players.end() && it->second == player;
+
+	if (success)
+	{
+		player->lastSavedProgress = saved;
+		// 저장하는 동안 다시 요청됐거나 그 사이 방을 나갔으면 최신 값으로 한 번 더 저장한다(값이 같으면 보내지 않는다).
+		if (state.dirty || !inRoom)
+			RequestProgressSave(player);
+		return;
+	}
+
+	// 실패: 방에 있으면 다음 주기에 다시 저장한다(lastSavedProgress가 그대로라 값이 다르면 다시 보낸다).
+	// 방을 나갔으면 다음 기회가 없으므로 몇 번 더 시도하고, 그래도 안 되면 값을 로그에 남긴다.
+	if (inRoom) return;
+
+	constexpr int MAX_LEAVE_SAVE_RETRIES = 3;
+	if (player->progressSaveRetries < MAX_LEAVE_SAVE_RETRIES)
+	{
+		++player->progressSaveRetries;
+		RequestProgressSave(player);
+		return;
+	}
+	const DB_PlayerProgress lost = player->MakeProgressSnapshot();
+	LOG_ERROR("Room", "퇴장 저장을 포기합니다 (PlayerId {}, Level {}, Exp {}, Hp {}, Gold {}) — DB에는 이전 값이 남습니다",
+		player->GetPlayerUID(), lost.level, lost.exp, lost.hp, lost.gold);
 }
 
 void Room::Broadcast(shared_ptr<SendBuffer> sendBuffer)

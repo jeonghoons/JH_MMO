@@ -36,6 +36,14 @@ public:
 	// 플레이어당 동시에 하나만 보내므로(Room::RequestEquipSave) 저장 순서가 뒤바뀌지 않는다.
 	void SaveEquipSnapshot(shared_ptr<class Room> room, shared_ptr<class Player> player, int64_t playerUID, vector<int32_t> items, long long requestUs);
 
+	// 진행 상황(레벨·경험치·HP·골드)을 저장한다(A2.5). 끝나면 room 잡(Room::OnProgressSaved)으로 저장한 값과 함께 돌아간다.
+	// 플레이어당 동시에 하나만 보낸다(Room::RequestProgressSave).
+	void SavePlayerProgress(shared_ptr<class Room> room, shared_ptr<class Player> player, int64_t playerUID, DB_PlayerProgress progress, long long requestUs);
+
+private:
+	// DB의 Schema_Version이 DbQueries::DB_SCHEMA_VERSION과 같은지 확인한다. 다르면 이유를 로그에 남기고 false.
+	bool CheckSchemaVersion();
+
 private:
 	ConcurrentQ<shared_ptr<Job>> _dbJobQueue;
 	vector<thread> _threads;

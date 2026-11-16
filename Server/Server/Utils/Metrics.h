@@ -45,6 +45,14 @@ namespace Metrics
 	inline SampleStat EquipSaveExecUs;    // DB 실행 시간(us)
 	inline SampleStat EquipSaveTotalUs;   // 요청 → 완료(us, DB 큐 대기 포함)
 
+	// 진행 상황 저장(A2.5, Room::RequestProgressSave → DatabaseWorker::SavePlayerProgress). 값이 달라진 것만 보낸다
+	inline std::atomic<long long> ProgressSaveSent{ 0 };       // DB 작업으로 보낸 수(누적)
+	inline std::atomic<long long> ProgressSaveCoalesced{ 0 };  // 진행 중인 저장이 있어 합쳐진 요청(누적)
+	inline std::atomic<long long> ProgressSaveFailed{ 0 };     // DB 실패(누적)
+	inline std::atomic<int>       ProgressSaveInFlight{ 0 };   // 지금 DB에 가 있는 저장 수
+	inline SampleStat ProgressSaveExecUs;    // DB 실행 시간(us)
+	inline SampleStat ProgressSaveTotalUs;   // 요청 → 완료(us, DB 큐 대기 포함)
+
 	// 스킬 조준(MC4.2d-1, Room::PlayerSkillAim). 모두 누적
 	inline std::atomic<long long> AimOn{ 0 };         // 켜기 수락
 	inline std::atomic<long long> AimReject{ 0 };     // 켜기 거부

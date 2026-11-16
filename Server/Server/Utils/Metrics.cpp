@@ -64,6 +64,8 @@ namespace
 			const int sendQueueMax = NetStats::SendQueueMax.exchange(0);
 			const Metrics::Percentiles eqExec = Metrics::EquipSaveExecUs.TakeAndReset();
 			const Metrics::Percentiles eqTotal = Metrics::EquipSaveTotalUs.TakeAndReset();
+			const Metrics::Percentiles pgExec = Metrics::ProgressSaveExecUs.TakeAndReset();
+			const Metrics::Percentiles pgTotal = Metrics::ProgressSaveTotalUs.TakeAndReset();
 
 			LOG_INFO("metrics",
 				"sessions={} rooms={} players={} monsters={} in/s={:.0f} out/s={:.0f} atk(req/ok per s)={:.1f}/{:.1f} zones(total created/hits)={}/{} "
@@ -72,6 +74,7 @@ namespace
 				"viewPlayers(avg/p99/max)={:.1f}/{:.0f}/{:.0f} viewObjects(avg/p99/max)={:.1f}/{:.0f}/{:.0f} sendQ(total/sessionMax)={}/{} logDrop={} "
 				"viewAudit(must/missing mustNot/extra)={}/{} {}/{} aoi(nodes/depth)={}/{} "
 				"equipSave(total req/sent/coalesced/fail inflight)={}/{}/{}/{} {} equipSaveMs(n exec avg/p99/max total avg/p99/max)={} {:.1f}/{:.1f}/{:.1f} {:.1f}/{:.1f}/{:.1f} "
+				"progressSave(total sent/coalesced/fail inflight)={}/{}/{} {} progressSaveMs(n exec avg/p99/max total avg/p99/max)={} {:.1f}/{:.1f}/{:.1f} {:.1f}/{:.1f}/{:.1f} "
 				"aim(total on/reject/off/castClear/timeout)={}/{}/{}/{}/{} "
 				"revive(total deaths/ok/reject/deadMove)={}/{}/{}/{}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
@@ -86,6 +89,9 @@ namespace
 				Metrics::EquipSaveRequested.load(), Metrics::EquipSaveSent.load(), Metrics::EquipSaveCoalesced.load(), Metrics::EquipSaveFailed.load(),
 				Metrics::EquipSaveInFlight.load(), eqExec.count,
 				eqExec.avg / 1000.0, eqExec.p99 / 1000.0, eqExec.max / 1000.0, eqTotal.avg / 1000.0, eqTotal.p99 / 1000.0, eqTotal.max / 1000.0,
+				Metrics::ProgressSaveSent.load(), Metrics::ProgressSaveCoalesced.load(), Metrics::ProgressSaveFailed.load(),
+				Metrics::ProgressSaveInFlight.load(), pgExec.count,
+				pgExec.avg / 1000.0, pgExec.p99 / 1000.0, pgExec.max / 1000.0, pgTotal.avg / 1000.0, pgTotal.p99 / 1000.0, pgTotal.max / 1000.0,
 				Metrics::AimOn.load(), Metrics::AimReject.load(), Metrics::AimOff.load(), Metrics::AimCastClear.load(), Metrics::AimTimeout.load(),
 				Metrics::PlayerDeaths.load(), Metrics::Revives.load(), Metrics::ReviveReject.load(), Metrics::MoveDroppedDead.load());
 

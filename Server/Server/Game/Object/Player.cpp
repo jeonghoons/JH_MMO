@@ -7,7 +7,7 @@ Player::Player(shared_ptr<GameSession> ownerSession, Protocol::PlayerType type)
 	: Character(Protocol::ObjectType::OBJECT_TYPE_PLAYER), _ownerSession(ownerSession)
 {
 	_objectInfo.set_player_type(type);
-	// 기본 스탯은 체형 공용, 레벨별(PlayerStatTable). 레벨 저장·성장은 A2.5·A2.3b — 그 전까지 시작 레벨. 로더가 시작 레벨 행을 보장한다.
+	// 기본 스탯은 체형 공용, 레벨별(PlayerStatTable). 여기서는 시작 레벨로 채우고, DB 레벨은 InitFromDb가 반영한다(A2.5).
 	_objectInfo.set_level(PLAYER_START_LEVEL);
 	if (const StatData* statData = DataManager::GetPlayerStatData(PLAYER_START_LEVEL)) {
 		_statInfo.InitFromData(_objectInfo.mutable_stat(), *statData);
@@ -47,8 +47,8 @@ void Player::SetEquippedItem(Protocol::EquipPart part, int itemId)
 
 void Player::RecalcStat()
 {
-	// 레벨 저장·성장은 A2.3·A2.5 — 그 전까지 시작 레벨. 로더가 시작 레벨 행을 보장한다.
-	const StatData* base = DataManager::GetPlayerStatData(PLAYER_START_LEVEL);
+	// 레벨은 DB에서 온다(InitFromDb, 그 전에는 시작 레벨). 행이 있는지는 InitFromDb가 확인했다. 성장은 A2.3b.
+	const StatData* base = DataManager::GetPlayerStatData(_objectInfo.level());
 	if (base == nullptr) return;
 
 	int bonusAttackDamage = 0;
@@ -133,13 +133,28 @@ bool Player::SetSkillAim(const SkillData* skill, long long nowMs)
 	return wasAiming;
 }
 
-void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
+// 부활 규칙의 HP(= StatComponent::Revive): 최대치 × WorldTable.ReviveHpPercent, 최소 1
+static int ReviveHp(int maxHp)
 {
+	const WorldData* world = DataManager::GetWorldData(ROOM_MAP_NAME);   // 서버 시작 때 존재를 확인했다
+	const int percent = world ? world->reviveHpPercent : 100;
+	return std::max(1, static_cast<int>(static_cast<long long>(maxHp) * percent / 100));
+}
+
+bool Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
+{
+	// 레벨(A2.5): DB 레벨의 기본 스탯 행이 없으면 들이지 않는다(스탯을 지어내지 않는다).
+	if (DataManager::GetPlayerStatData(data.level) == nullptr)
+	{
+		LOG_ERROR("Player", "PlayerId {} 의 Level {} 이 PlayerStatTable에 없습니다", info.playerUID, data.level);
+		return false;
+	}
+
 	_dbPlayerInfo = info;
 	_dbPlayerData = data;
+	_objectInfo.set_level(data.level);
 
-	// 장비만 불러온다(MC3.3). 레벨·HP는 A2.5 — 그 전까지 시작 레벨 스탯(생성자)을 쓴다.
-	// 잘못된 행(슬롯 범위 밖, 없는 아이템, 슬롯 불일치)은 경고 후 건너뛴다.
+	// 장비(MC3.3). 잘못된 행(슬롯 범위 밖, 없는 아이템, 슬롯 불일치)은 경고 후 건너뛴다.
 	for (const auto& [slot, itemId] : data.equipped)
 	{
 		const ItemData* item = DataManager::GetItemData(itemId);
@@ -160,8 +175,25 @@ void Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 		SetEquippedItem(Protocol::EQUIP_PART_OFFHAND, 0);
 	}
 
-	// 로그인 HP = 장비 반영 최대치 (DB HP를 읽는 것은 A2.5)
+	// 로그인 HP = DB 값(A2.5)을 장비 반영 최대치 안으로. 0 이하(죽은 채 저장된 옛 값)는 부활 규칙 값으로 살아서 입장한다(D-149).
+	// 저장한 적이 없는 캐릭터는 최대치 — 가입 때 넣는 HP는 장비 보너스 전 값(D-113)이라 그대로 쓰면 깎인 채 시작한다.
 	RecalcStat();
-	_objectInfo.mutable_stat()->set_hp(_statInfo.GetMaxHp());
+	const int maxHp = _statInfo.GetMaxHp();
+	const int hp = data.neverSaved ? maxHp : (data.hp > 0 ? std::min(data.hp, maxHp) : ReviveHp(maxHp));
+	_objectInfo.mutable_stat()->set_hp(hp);
+
+	// DB에 있는 값을 기억한다. 위에서 HP를 고쳤다면 스냅숏이 달라 다음 저장 때 DB에도 반영된다.
+	lastSavedProgress = DB_PlayerProgress{ data.level, data.exp, data.hp, data.gold };
+	return true;
+}
+
+DB_PlayerProgress Player::MakeProgressSnapshot() const
+{
+	DB_PlayerProgress snapshot;
+	snapshot.level = _objectInfo.level();
+	snapshot.exp = _dbPlayerData.exp;
+	snapshot.hp = _statInfo.IsDead() ? ReviveHp(_statInfo.GetMaxHp()) : _statInfo.GetHp();
+	snapshot.gold = _dbPlayerData.gold;
+	return snapshot;
 }
 

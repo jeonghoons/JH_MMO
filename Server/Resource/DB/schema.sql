@@ -1,5 +1,7 @@
-﻿-- 2026-10-28: Item_Meta/Player_Inventory/Trade_Log, Player_Info.Mp, User_Account.Status 삭제 반영 (migrations/2026-10-28_drop_unused.sql)
--- 2026-11-07: 스키마 변경 없음. Player_Info.PlayerType = 체형(1 MALE, 2 FEMALE)만, Player_Equipped.EquipSlot = Protocol::EquipPart(1~6), 가입 시 기본 장비 6행 (migrations/2026-11-07_mc33_equip.sql — 기존 DB의 옛 값 정리)
+﻿-- 2026-10-28: Item_Meta/Player_Inventory/Trade_Log, Player_Info.Mp, User_Account.Status 삭제 반영 (migrations/0001_2026-10-28_drop_unused.sql)
+-- 2026-11-07: 스키마 변경 없음. Player_Info.PlayerType = 체형(1 MALE, 2 FEMALE)만, Player_Equipped.EquipSlot = Protocol::EquipPart(1~6), 가입 시 기본 장비 6행 (migrations/0002_2026-11-07_mc33_equip.sql — 기존 DB의 옛 값 정리)
+-- 2026-11-16: Schema_Version(적용한 마이그레이션 기록, 서버가 시작할 때 DB_SCHEMA_VERSION과 비교), Player_Info.UpdatedAt, Player_Info CHECK 제약 (migrations/0003_2026-11-16_a25_schema_version.sql)
+-- 이 파일은 새 DB 생성용이다. 기존 DB는 migrate.ps1로 올린다. 스키마를 바꾸면 마이그레이션 + 이 파일 + Server/DB/DbQueries.h의 DB_SCHEMA_VERSION을 함께 고친다.
 USE [master]
 GO
 /****** 개체: Database [GameServer] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
@@ -119,6 +121,7 @@ CREATE TABLE [dbo].[Player_Info](
 	[Hp] [int] NOT NULL,
 	[Gold] [bigint] NOT NULL,
 	[CreateDate] [datetime] NOT NULL,
+	[UpdatedAt] [datetime2](0) NULL,
  CONSTRAINT [PK_Player_Info] PRIMARY KEY CLUSTERED 
 (
 	[PlayerId] ASC
@@ -208,6 +211,28 @@ REFERENCES [dbo].[User_Account] ([AccountId])
 ON DELETE CASCADE
 GO
 ALTER TABLE [dbo].[User_Info] CHECK CONSTRAINT [FK_User_Info_User_Account]
+GO
+ALTER TABLE [dbo].[Player_Info]  WITH CHECK ADD  CONSTRAINT [CK_Player_Info_Level] CHECK  (([Level]>=(1)))
+GO
+ALTER TABLE [dbo].[Player_Info]  WITH CHECK ADD  CONSTRAINT [CK_Player_Info_Exp] CHECK  (([Exp]>=(0)))
+GO
+ALTER TABLE [dbo].[Player_Info]  WITH CHECK ADD  CONSTRAINT [CK_Player_Info_Hp] CHECK  (([Hp]>=(0)))
+GO
+ALTER TABLE [dbo].[Player_Info]  WITH CHECK ADD  CONSTRAINT [CK_Player_Info_Gold] CHECK  (([Gold]>=(0)))
+GO
+/****** 개체: Table [dbo].[Schema_Version] — 적용한 마이그레이션(migrations/NNNN_*.sql) 1개 = 행 1개 ******/
+CREATE TABLE [dbo].[Schema_Version](
+	[Version] [int] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[AppliedAt] [datetime2](0) NOT NULL CONSTRAINT [DF_Schema_Version_AppliedAt] DEFAULT (sysdatetime()),
+ CONSTRAINT [PK_Schema_Version] PRIMARY KEY CLUSTERED ([Version] ASC)
+) ON [PRIMARY]
+GO
+-- 이 파일은 아래 버전까지의 변경을 이미 담고 있다. 마이그레이션을 추가하면 여기에도 행을 추가한다.
+INSERT INTO [dbo].[Schema_Version] ([Version], [Name]) VALUES
+	(1, N'0001_2026-10-28_drop_unused (schema.sql)'),
+	(2, N'0002_2026-11-07_mc33_equip (schema.sql)'),
+	(3, N'0003_2026-11-16_a25_schema_version (schema.sql)')
 GO
 USE [master]
 GO

@@ -8,12 +8,25 @@ struct DB_PlayerInfo {
 	int32_t playerType;
 };
 
+// 진행 상황 = Player_Info에 저장하는 값(A2.5). 저장할 필드가 늘면 여기에 추가한다 —
+// 비교(operator==)로 "바뀌었는가"를 판단하므로 값을 바꾸는 코드마다 표시를 넣을 필요가 없다.
+// 함께 고칠 곳: Player::MakeProgressSnapshot, DbQueries::UpdatePlayerProgress, DatabaseWorker::SavePlayerProgress.
+struct DB_PlayerProgress {
+	int32_t level = 0;
+	int64_t exp = 0;
+	int32_t hp = 0;
+	int64_t gold = 0;
+
+	bool operator==(const DB_PlayerProgress&) const = default;
+};
+
 struct DB_PlayerData {
 	int64_t playerUID;
-	int16_t level;
+	int32_t level;
 	int64_t exp;
 	int32_t hp;
 	int64_t gold;
+	int32_t neverSaved;   // 1 = 진행 상황을 저장한 적이 없다(Player_Info.UpdatedAt NULL) — 가입 직후, A2.5 전에 만든 캐릭터
 	
 	// Player_Equipped 행 (EquipSlot = Protocol::EquipPart, ItemId). 검증은 Player::InitFromDb가 한다.
 	std::vector<std::pair<int32_t, int32_t>> equipped;

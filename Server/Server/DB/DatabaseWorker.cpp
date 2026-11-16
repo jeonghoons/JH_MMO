@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "DB/DatabaseWorker.h"
+#include "DB/DbQueries.h"
 #include "Game/Object/Player.h"
 #include "Game/Room/Room.h"
 #include "Utils/Metrics.h"
@@ -15,6 +16,10 @@ DatabaseWorker::DatabaseWorker(HANDLE iocpHandle, int num_connections, const wst
 	}
 	LOG_INFO("DB", "DB 서버 Connected");
 
+	// 스키마가 코드와 맞지 않으면 시작하지 않는다(스레드를 만들기 전에 확인 — 시작 실패 시 exit()가 멈추지 않게).
+	if (false == CheckSchemaVersion())
+		exit(-1);
+
 	for (int i = 0; i < num_connections; ++i) {
 		_threads.emplace_back(&DatabaseWorker::Run, this);
 	}
@@ -25,6 +30,33 @@ DatabaseWorker::~DatabaseWorker()
 	for (auto& t : _threads) {
 		if (t.joinable()) t.join();
 	}
+}
+
+bool DatabaseWorker::CheckSchemaVersion()
+{
+	DBConnection* dbConn = _dbConnectionPool->Pop();
+	dbConn->Unbind();
+
+	int32_t dbVersion = -1;
+	SQLLEN versionLen = 0;
+	dbConn->BindCol(1, &dbVersion, &versionLen);
+	const bool read = dbConn->Execute(DbQueries::SelectSchemaVersion) && dbConn->Fetch();
+	dbConn->Unbind();
+	_dbConnectionPool->Push(dbConn);
+
+	if (!read)
+	{
+		LOG_ERROR("DB", "Schema_Version 테이블을 읽을 수 없습니다. Server/Resource/DB/migrate.ps1 을 실행해 DB를 버전 {}(으)로 올리세요.", DbQueries::DB_SCHEMA_VERSION);
+		return false;
+	}
+	if (dbVersion != DbQueries::DB_SCHEMA_VERSION)
+	{
+		LOG_ERROR("DB", "DB 스키마 버전이 서버와 다릅니다 (DB {}, 서버 {}). DB가 낮으면 Server/Resource/DB/migrate.ps1 을 실행하고, 높으면 서버 코드를 최신으로 받으세요.",
+			dbVersion, DbQueries::DB_SCHEMA_VERSION);
+		return false;
+	}
+	LOG_INFO("DB", "DB 스키마 버전 {}", dbVersion);
+	return true;
 }
 
 void DatabaseWorker::Run()
@@ -57,7 +89,7 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 	DB_PlayerData outPlayerData = {};
 	int32_t outEquipSlot = 0;
 	int32_t outItemId = 0;
-	SQLLEN len[11] = { 0 };
+	SQLLEN len[12] = { 0 };
 
 	dbConn->BindCol(1, outPassword, sizeof(outPassword), &len[0]);
 	dbConn->BindCol(2, &outPlayerInfo.playerUID, &len[1]);
@@ -72,17 +104,9 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 	
 	dbConn->BindCol(10, &outEquipSlot, &len[9]);
 	dbConn->BindCol(11, &outItemId, &len[10]);
+	dbConn->BindCol(12, &outPlayerData.neverSaved, &len[11]);
 
-	const WCHAR* query = L" \
-        SELECT A.LoginPassword, P.PlayerId, P.AccountId, P.Name, P.PlayerType, \
-               P.[Level], P.Exp, P.Hp, P.Gold, \
-               ISNULL(E.EquipSlot, 0) AS EquipSlot, ISNULL(E.ItemId, 0) AS ItemId \
-        FROM [User_Account] A \
-        INNER JOIN [Player_Info] P ON A.AccountId = P.AccountId \
-        LEFT JOIN [Player_Equipped] E ON P.PlayerId = E.PlayerId \
-        WHERE A.LoginId = ?";
-
-	if (dbConn->Execute(query))
+	if (dbConn->Execute(DbQueries::SelectLogin))
 	{
 		bool isFirstRow = true;
 		bool loginSuccess = false;
@@ -161,24 +185,11 @@ void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, s
 	SQLLEN hpLen = 0;
 	dbConn->BindParam(6, &startHp, &hpLen);
 
-	// 기본 장비(ItemTable.Starter)를 같은 트랜잭션에서 지급한다. 값은 로더가 검증한 정수라 쿼리에 그대로 넣는다. ItemDbId는 A3 전까지 0.
-	wstring starterInsert;
+	// 기본 장비(ItemTable.Starter)를 같은 트랜잭션에서 지급한다.
+	vector<pair<int, int>> starterItems;
 	for (const ItemData* item : DataManager::GetStarterItems())
-	{
-		starterInsert += std::format(L"INSERT INTO [Player_Equipped] (PlayerId, EquipSlot, ItemDbId, ItemId) VALUES (@PlayerID, {}, 0, {}); ",
-			static_cast<int>(item->slot), item->itemId);
-	}
-
-	const wstring query = wstring(L" \
-        SET NOCOUNT ON; SET XACT_ABORT ON; \
-        BEGIN TRAN; \
-        DECLARE @AccID BIGINT, @PlayerID BIGINT; \
-        INSERT INTO [User_Account] (LoginId, LoginPassword) VALUES (?, ?); \
-        SET @AccID = SCOPE_IDENTITY(); \
-        INSERT INTO [User_Info] (AccountId) VALUES (@AccID); \
-        INSERT INTO [Player_Info] (AccountId, Name, PlayerType, [Level], Exp, Hp, Gold) \
-        VALUES (@AccID, ?, ?, ?, 0, ?, 0); \
-        SET @PlayerID = SCOPE_IDENTITY(); ") + starterInsert + L"COMMIT TRAN;";
+		starterItems.emplace_back(static_cast<int>(item->slot), item->itemId);
+	const wstring query = DbQueries::BuildSignUp(starterItems);
 
 	const bool success = dbConn->Execute(query.c_str());
 	if (success)
@@ -203,15 +214,7 @@ void DatabaseWorker::SaveEquipSnapshot(shared_ptr<Room> room, shared_ptr<Player>
 	SQLLEN uidLen = 0;
 	dbConn->BindParam(1, &playerUID, &uidLen);
 
-	// 슬롯 = 인덱스 + 1 (Protocol::EquipPart). 값은 Room이 검증한 itemId라 쿼리에 그대로 넣는다. ItemDbId는 A3 전까지 0.
-	wstring inserts;
-	for (size_t i = 0; i < items.size(); ++i)
-	{
-		if (items[i] == 0) continue;
-		inserts += std::format(L"INSERT INTO [Player_Equipped] (PlayerId, EquipSlot, ItemDbId, ItemId) VALUES (@P, {}, 0, {}); ", i + 1, items[i]);
-	}
-	const wstring query = L"SET NOCOUNT ON; SET XACT_ABORT ON; DECLARE @P BIGINT = ?; BEGIN TRAN; "
-		L"DELETE FROM [Player_Equipped] WHERE PlayerId = @P; " + inserts + L"COMMIT TRAN;";
+	const wstring query = DbQueries::BuildSaveEquipSnapshot(items);
 
 	const long long startUs = Metrics::NowUs();
 	const bool success = dbConn->Execute(query.c_str());
@@ -227,4 +230,32 @@ void DatabaseWorker::SaveEquipSnapshot(shared_ptr<Room> room, shared_ptr<Player>
 	}
 
 	room->PushJob(&Room::OnEquipSaved, player, success);
+}
+
+void DatabaseWorker::SavePlayerProgress(shared_ptr<Room> room, shared_ptr<Player> player, int64_t playerUID, DB_PlayerProgress progress, long long requestUs)
+{
+	DBConnection* dbConn = _dbConnectionPool->Pop();
+	dbConn->Unbind();
+
+	SQLLEN len[5] = { 0 };
+	dbConn->BindParam(1, &progress.level, &len[0]);
+	dbConn->BindParam(2, &progress.exp, &len[1]);
+	dbConn->BindParam(3, &progress.hp, &len[2]);
+	dbConn->BindParam(4, &progress.gold, &len[3]);
+	dbConn->BindParam(5, &playerUID, &len[4]);
+
+	const long long startUs = Metrics::NowUs();
+	const bool success = dbConn->Execute(DbQueries::UpdatePlayerProgress);
+	const long long endUs = Metrics::NowUs();
+	_dbConnectionPool->Push(dbConn);
+
+	Metrics::ProgressSaveExecUs.Add(endUs - startUs);        // DB 실행 시간
+	Metrics::ProgressSaveTotalUs.Add(endUs - requestUs);     // 요청(주기·퇴장) → 저장 완료 (큐 대기 포함)
+	if (!success)
+	{
+		Metrics::ProgressSaveFailed.fetch_add(1);
+		LOG_ERROR("DB", "진행 상황 저장 실패 (PlayerId {}, Level {}, Exp {}, Hp {}, Gold {})", playerUID, progress.level, progress.exp, progress.hp, progress.gold);
+	}
+
+	room->PushJob(&Room::OnProgressSaved, player, progress, success);
 }

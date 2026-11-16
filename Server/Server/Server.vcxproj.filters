@@ -54,6 +54,9 @@
     <ClInclude Include="DB\DatabaseWorker.h">
       <Filter>DB</Filter>
     </ClInclude>
+    <ClInclude Include="DB\DbQueries.h">
+      <Filter>DB</Filter>
+    </ClInclude>
     <ClInclude Include="Data\ServerConfig.h">
       <Filter>Data</Filter>
     </ClInclude>

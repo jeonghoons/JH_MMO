@@ -22,7 +22,8 @@ public:
 	virtual int GetReviveDelayMs() const override;
 public:
 
-	void InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data);
+	// DB에서 읽은 값(레벨·HP·장비)을 반영한다(MC3.3·A2.5). DB 레벨의 PlayerStatTable 행이 없으면 false(로그인 거부).
+	bool InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data);
 	int64_t GetPlayerUID() const { return _dbPlayerInfo.playerUID; }
 
 	void SetPlayerType(Protocol::PlayerType type) { _objectInfo.set_player_type(type); }
@@ -85,10 +86,26 @@ public:
 	// 장착 요청 빈도 제한. Room 잡 안에서만 읽고 쓴다.
 	Cooldown equipCooldown;
 
-	// 장비 저장 상태(MC3.3). Room 잡 안에서만 읽고 쓴다. 저장은 플레이어당 동시에 하나만 보내고,
-	// 진행 중에 또 바뀌면 dirty만 표시했다가 끝난 뒤 최신 값으로 한 번 더 저장한다(순서 보장).
-	bool equipSaveInFlight = false;
-	bool equipSaveDirty = false;
+	// 저장 상태(MC3.3·A2.5). Room 잡 안에서만 읽고 쓴다. 저장은 종류마다 플레이어당 동시에 하나만 보내고,
+	// 진행 중에 또 요청되면 dirty만 표시했다가 끝난 뒤 최신 값으로 한 번 더 저장한다(순서 보장).
+	// 저장 종류가 늘면(인벤토리 A3.3) SaveState를 하나 더 둔다.
+	struct SaveState
+	{
+		bool inFlight = false;   // DB에 가 있는 저장이 있다
+		bool dirty = false;      // 진행 중에 또 요청됐거나 실패해 다시 저장해야 한다
+	};
+	SaveState equipSave;       // Player_Equipped — 바뀔 때마다 즉시 (Room::RequestEquipSave)
+	SaveState progressSave;    // Player_Info 레벨·경험치·HP·골드 — 주기·퇴장 때, 값이 달라졌을 때만 (Room::RequestProgressSave)
+
+	// 진행 상황 저장(A2.5). Room 잡 안에서만 읽고 쓴다.
+	// 지금 값의 스냅숏. 죽어 있으면 HP는 부활 규칙 값(최대치 × WorldTable.ReviveHpPercent) — 다음 접속은 살아서 입장한다.
+	DB_PlayerProgress MakeProgressSnapshot() const;
+	DB_PlayerProgress lastSavedProgress;   // DB에 있는 값(로그인 때 읽은 값 → 저장 성공 때마다 갱신)
+	long long nextProgressSaveMs = 0;      // 다음 주기 저장 시각(steady_clock ms). 방에 들어올 때 정한다
+	int progressSaveRetries = 0;           // 방을 나간 뒤 마지막 저장이 실패해 다시 시도한 횟수
+
+	int64_t GetExp() const { return _dbPlayerData.exp; }
+	int64_t GetGold() const { return _dbPlayerData.gold; }
 
 protected:
 	virtual const SkillData* GetSlotSkill(int slot) const override { return DataManager::GetSkillBySlot(GetWeaponType(), slot); }

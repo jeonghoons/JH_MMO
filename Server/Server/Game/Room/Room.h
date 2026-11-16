@@ -4,6 +4,7 @@
 #include "Network/ServerService.h"
 #include "Job/Timer.h"
 #include "Game/World/GameMap.h"
+#include "Data/ServerData.h"
 
 constexpr int MAX_ROOM_CAPACITY = 100;
 constexpr const char* ROOM_MAP_NAME = "ParagonSample"; // 모든 방이 쓰는 맵(맵 리소스 파일 이름 = WorldTable.MapName)
@@ -68,6 +69,12 @@ public:
 	// 장비 6칸을 DB에 저장한다(MC3.3). 플레이어당 동시에 하나만 보내고 나머지는 합친다. 방을 나간 플레이어도 받는다.
 	void RequestEquipSave(shared_ptr<Player> player);
 	void OnEquipSaved(shared_ptr<Player> player, bool success);
+	// 진행 상황(레벨·경험치·HP·골드)을 DB에 저장한다(A2.5). DB에 있는 값과 다를 때만 보낸다. 더미 봇은 저장하지 않는다
+	// (전원이 dummy 계정 한 행을 쓴다). 주기(UpdateSaves)와 퇴장 때 부르고, 방을 나간 플레이어도 받는다.
+	void RequestProgressSave(shared_ptr<Player> player);
+	void OnProgressSaved(shared_ptr<Player> player, DB_PlayerProgress saved, bool success);
+	// 1초에 한 번: 주기 저장 시각(ServerConfig Database.PlayerSaveIntervalSec)이 된 플레이어를 저장한다.
+	void UpdateSaves(long long nowMs);
 	// 스킬 조준 켜기/끄기(MC4.2d-1, DECISIONS 2026-11-09). 켜기 성공 = AOI 전체(본인 포함) 방송, 거부 = 본인에게만 false + seq,
 	// 끄기 = 조준 중일 때만 해제하고 본인 제외 방송(본인 클라이언트는 이미 껐다).
 	void PlayerSkillAim(shared_ptr<Player> player, int slot, bool active, uint32_t seq);

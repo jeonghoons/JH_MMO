@@ -109,6 +109,11 @@ namespace
 				if (!ParseInt(e.value, 1, 64, cfg.dbConnections)) { err = where + "Connections must be 1~64: '" + e.value + "'"; return false; }
 				cfg.dbConnectionsFrom = from;
 			}
+			else if (name == "Database.PlayerSaveIntervalSec")
+			{
+				if (!ParseInt(e.value, 1, 3600, cfg.playerSaveIntervalSec)) { err = where + "PlayerSaveIntervalSec must be 1~3600: '" + e.value + "'"; return false; }
+				cfg.playerSaveIntervalSecFrom = from;
+			}
 			else if (name == "Log.Level")
 			{
 				if (!ParseLogLevel(e.value, cfg.logLevel)) { err = where + "Level must be Debug/Info/Warn/Error: '" + e.value + "'"; return false; }
@@ -234,6 +239,7 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "Network.WorkerThreads     = {} -> {}  ({})", workerThreads, ResolvedWorkerThreads(), workerThreadsFrom);
 	LOG_INFO("Config", "Database.ConnectionString = {}  ({})", MaskSecrets(dbConnectionString), dbConnectionStringFrom);
 	LOG_INFO("Config", "Database.Connections      = {}  ({})", dbConnections, dbConnectionsFrom);
+	LOG_INFO("Config", "Database.PlayerSaveIntervalSec = {}  ({})", playerSaveIntervalSec, playerSaveIntervalSecFrom);
 	LOG_INFO("Config", "Log.Level                 = {}  ({})", LogLevelName(logLevel), logLevelFrom);
 	LOG_INFO("Config", "Log.Dir                   = {}  ({})", logDir.empty() ? "(파일 출력 안 함)" : logDir, logDirFrom);
 	if (dummyZones.empty())
