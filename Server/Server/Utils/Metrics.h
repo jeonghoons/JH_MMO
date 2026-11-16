@@ -36,14 +36,14 @@ namespace Metrics
 		return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 	}
 
-	// 장비 저장(MC3.3, Room::RequestEquipSave → DatabaseWorker::SaveEquipSnapshot)
-	inline std::atomic<long long> EquipSaveRequested{ 0 };  // 저장 요청(누적)
-	inline std::atomic<long long> EquipSaveSent{ 0 };       // DB 작업으로 보낸 수(누적)
-	inline std::atomic<long long> EquipSaveCoalesced{ 0 };  // 진행 중인 저장이 있어 합쳐진 요청(누적)
-	inline std::atomic<long long> EquipSaveFailed{ 0 };     // DB 실패(누적)
-	inline std::atomic<int>       EquipSaveInFlight{ 0 };   // 지금 DB에 가 있는 저장 수
-	inline SampleStat EquipSaveExecUs;    // DB 실행 시간(us)
-	inline SampleStat EquipSaveTotalUs;   // 요청 → 완료(us, DB 큐 대기 포함)
+	// 아이템 작업(A3.3, Room::StartItemOp → DatabaseWorker::ExecItemOp → Room::OnItemOpDone). 지급·장착·로그인 보정
+	inline std::atomic<long long> ItemOpSent{ 0 };       // DB 작업으로 보낸 수(누적)
+	inline std::atomic<long long> ItemOpFailed{ 0 };     // 롤백·DB 오류(누적, [Debug] DbItemFailEvery의 강제 롤백 포함)
+	inline std::atomic<long long> ItemOpBusy{ 0 };       // 진행 중인 작업이 있어 BUSY로 거부한 요청(누적)
+	inline std::atomic<int>       ItemOpInFlight{ 0 };   // 지금 DB에 가 있는 작업 수
+	inline SampleStat ItemOpExecUs;    // DB 실행 시간(us)
+	inline SampleStat ItemOpTotalUs;   // 요청 → 결과 적용(us, DB 큐 대기 + Room 잡 복귀 포함)
+	inline SampleStat EquipApplyUs;    // 장착 요청 → 적용(us) — 기준 p99 50ms(D-163)
 
 	// 진행 상황 저장(A2.5, Room::RequestProgressSave → DatabaseWorker::SavePlayerProgress). 값이 달라진 것만 보낸다
 	inline std::atomic<long long> ProgressSaveSent{ 0 };       // DB 작업으로 보낸 수(누적)

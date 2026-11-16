@@ -4,9 +4,9 @@
 (2026-11-16 A3.1 작성, 결정 D-152~D-159. 장비 외형·슬롯은 [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), CSV 규약은 [DESIGN_DATA.md](DESIGN_DATA.md), 동시성 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md))
 
 ## 현재 상태 (2026-11-16)
-- 서버·클라이언트·프로토콜에 인벤토리·드랍·줍기·거래·경매 코드가 없습니다. `OBJECT_TYPE_ITEM`(4)은 enum에만 있습니다.
-- 장착은 보유 검사 없이 "ItemTable에 있고 슬롯이 맞으면" 허용합니다(`Room::PlayerChangeEquip`). 저장은 7칸 스냅숏(`Player_Equipped`, D-120)이고 `ItemDbId`는 항상 0입니다.
-- `Player_Info.Gold` 열과 `Player::GetGold`는 있지만 값을 바꾸는 코드가 없습니다. 골드는 진행 상황 스냅숏(D-151)에 포함돼 저장됩니다.
+- 드랍·줍기·버리기·소비 아이템·거래·경매 코드는 아직 없습니다. `OBJECT_TYPE_ITEM`(4)은 enum에만 있습니다.
+- A3.3 완료(2026-11-16): `Player_Item`(마이그레이션 0004, `Player_Equipped` 이전·삭제), 서버 `Inventory`·아이템 작업 공통 경로(`itemOp`), 장착을 `item_db_id` 기준·DB 성공 뒤 반영으로 전환, 개발 지급 `CS_DEV_GIVE`, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`·`SC_ITEM_RESULT`, 클라이언트 `UJMInventoryManager`(데이터만 — 창은 A6.1)와 콘솔 `Give`. 구현 내용은 아래 "A3.3 구현 메모".
+- 골드는 진행 상황 스냅숏에서 빠졌고 아이템 트랜잭션에서만 증감합니다(지금 들어오는 경로는 개발 지급뿐, 골드 드랍은 A3.4).
 - A2.7 완료(2026-11-16): 같은 캐릭터의 중복 접속은 기존 접속을 끊고 새 로그인을 받습니다(아래 "중복 접속 차단"). 인벤토리·아이템 작업을 추가할 때는 `Room::NotifyClosedIfDone`의 조건과 호출 지점에 함께 넣어야 합니다.
 - A3.2 완료(2026-11-16): `DropTable.csv`·`EconomyTable.csv`와 로더(`DataManager::GetDrops`·`RollDrops`·`GetEconomy`), `ItemTable` 새 열과 8001 HP 물약, UE `FItemTableRow`·`DT_ItemTable`이 들어갔습니다. 값을 쓰는 코드는 아직 없습니다(드랍 롤은 A3.4에서 `RollDrops`를 호출). 열별 허용 범위와 현재 행은 [DESIGN_DATA.md](DESIGN_DATA.md).
 
@@ -82,7 +82,8 @@
 - **`Player_Item`** (A3.3, 마이그레이션 0004) — 아이템 한 개(스택이면 한 묶음) = 한 행.
   - `ItemDbId` bigint IDENTITY PK, `OwnerId`(→ `Player_Info.PlayerId`), `ItemId`, `Count`(≥ 1), `Location`, `EquipSlot`(장착 중이면 `EquipPart` 1~7, 아니면 0), `CreatedAt`, `UpdatedAt`.
   - `Location`: 1 인벤토리 · 2 장착 · 3 경매 보관(에스크로) · 4 수령함. 아이템은 **행을 지우지 않고 `OwnerId`·`Location`만 바꿔** 이동합니다. 예외: 버리기·소비로 0개가 되면 DELETE, 스택의 일부만 거래·경매에 올리면 원래 행의 `Count`를 줄이고 옮기는 수량으로 새 행을 INSERT(새 `ItemDbId`).
-  - 인덱스 (`OwnerId`, `Location`), 장착 슬롯 중복 방지용 필터 유니크 인덱스 (`OwnerId`, `EquipSlot`) WHERE `Location` = 2. 교체 트랜잭션은 옛 장비를 먼저 빼고 새 장비를 넣습니다.
+  - 인덱스 (`OwnerId`, `Location`), 장착 슬롯 중복 방지용 필터 유니크 인덱스 (`OwnerId`, `EquipSlot`) WHERE `Location` = 2.
+  - `BagSlot`(A6.1, 마이그레이션 0005, D-166): 인벤토리(`Location` 1) 행의 칸 번호(0부터), 그 밖의 위치는 -1. 필터 유니크 인덱스 (`OwnerId`, `BagSlot`) WHERE `Location` = 1로 한 칸에 두 행이 들어가지 못합니다. 장착 교체·칸 맞바꿈은 **UPDATE 한 문장**으로 합니다 — 두 유니크 인덱스는 문장이 끝날 때 검사하므로 중간 상태가 없고, 두 문장으로 나누면 어느 순서든 한쪽 인덱스를 어깁니다. 아이템을 인벤토리 밖(경매 보관·수령함·거래 상대)으로 옮기는 작업은 `BagSlot`을 -1로, 들여오는 작업은 받는 쪽의 빈 칸 번호로 함께 바꿔야 합니다(A3.5·A4.2·A4.3).
   - 마이그레이션: `Player_Equipped` 행을 `Location` 2로 옮긴 뒤 `Player_Equipped`를 삭제합니다. 가입 트랜잭션(`BuildSignUp`)의 기본 장비도 이 테이블에 넣습니다. `ItemTable.Starter` 목록과 마이그레이션 SQL이 같아야 한다는 규칙(D-118)은 유지합니다.
 - **`Player_QuickSlot`** (A3.6) — (`PlayerId`, `SlotIndex` 1~5) PK, `ItemId`. 액티브 칸에 올린 아이템 종류. 5칸 스냅숏으로 저장합니다.
 - **`Trade_Log`** (A4.2) — `TradeId` IDENTITY, `PlayerA`·`PlayerB`, `GoldA`·`GoldB`, `ItemsA`·`ItemsB`(`ItemDbId:ItemId:Count` 목록 문자열), `CreatedAt`.
@@ -112,11 +113,27 @@
 
 ## 인벤토리 (A3.3, D-155)
 - 서버 `Inventory`는 `Player`가 소유하는 컴포넌트입니다. 로그인 때 `Location` 1·2 행을 읽어 채우고(ItemTable에 없는 `ItemId` 행은 WARN 후 메모리에 올리지 않음, DB 행은 그대로 둠), 장착 7칸은 지금처럼 `ObjectInfo.equip_items`(itemId)에도 반영합니다. 장착 행이 맞지 않으면(슬롯 불일치, 검이 아닌데 방패 — D-119·D-139) 메모리에서 인벤토리로 내리고 DB도 `Location` 1로 고칩니다. 이 때문에 칸 수가 상한을 넘을 수 있으며, 넘은 동안에는 새로 들어오는 것만 거부합니다.
-- 칸 수 = 인벤토리 위치의 행 수이고 `InventorySlots`를 넘을 수 없습니다. **장착품은 칸을 차지하지 않습니다.** 칸 위치(몇 번째 칸)는 저장하지 않고 `ItemDbId` 순서로 보여 줍니다.
+- 칸 수 = 인벤토리 위치의 행 수이고 `InventorySlots`를 넘을 수 없습니다. **장착품은 칸을 차지하지 않습니다.**
+- **칸 위치(A6.1, D-166)**: 인벤토리 행은 칸 번호(`BagSlot`, 0 ~ `InventorySlots` - 1)를 갖고 서버가 DB에 저장합니다(`ItemInfo.slot`). 새로 들어오는 행(지급·줍기·장착 해제)은 가장 앞의 빈 칸에 넣고, 빈 칸이 없으면 가득 찬 것입니다. 장착 교체는 옛 장비가 새 장비가 있던 칸으로 내려옵니다(그래서 가득 차 있어도 됨). `CS_MOVE_ITEM(item_db_id, to_slot)`은 대상 칸이 비어 있으면 옮기고 다른 아이템이 있으면 맞바꿉니다 — 소유는 안 바뀌지만 칸도 DB가 권위라 `itemOp` 경로(검증 → DB → 성공 뒤 반영, `SC_INVENTORY_UPDATE`)를 탑니다. 거부: 내 인벤토리 행이 아님 `NO_ITEM`, 범위 밖·쓸 수 없는 칸 `BAD_SLOT`, 같은 칸은 응답 없음. 로그인 보정으로 내려오는 행만 칸 수를 넘는 번호를 받을 수 있고(버리지 않기 위해), 클라이언트는 넘친 칸도 그립니다. ItemTable에 없어 메모리에 올리지 않은 행의 칸은 비워 둡니다(`Inventory::ReserveSlot`).
 - 스택: 줍기·지급으로 들어올 때만 같은 종류의 덜 찬 스택에 먼저 채우고 남으면 새 행을 만듭니다. 전부 들어갈 자리가 없으면 통째로 거부합니다(`INVENTORY_FULL`).
 - **스택 나누기는 거래와 경매에서만** 합니다(D-158·D-159): 거래 제시와 경매 등록에 수량을 적어 스택의 일부만 올릴 수 있습니다. 인벤토리 안에서 나누거나 합치는 조작은 없고, 버리기는 스택 통째입니다. 거래·수령으로 받은 아이템은 기존 스택에 합치지 않고 한 칸(새 행)을 차지합니다.
 - 방 입장 직후 본인에게 `SC_INVENTORY`(전체 + 골드 + 칸 수 + 액티브 칸 + 줍기·거래 거리)를 보내고, 그 뒤로는 `SC_INVENTORY_UPDATE`(바뀐 행·지워진 `ItemDbId`·현재 골드)만 보냅니다.
 - **개발 지급 명령**: `CS_DEV_GIVE(item_id, count)`(item_id 0 = 골드). `ServerConfig` `[Debug] DevCommands=true`일 때만 받고 기본은 꺼 둡니다. 다른 아이템 작업과 같은 경로(`itemOp`, DB 성공 뒤 반영)를 탑니다. 클라이언트는 콘솔 `Give <itemId> <count>`.
+
+### A3.3 구현 메모 (2026-11-16, D-160~D-165)
+- **흐름**: 요청 → Room 잡 검증(`Room::CheckItemRequest`: 방 안 → 더미 봇 아님 → 요청 간격 → 진행 중인 작업 없음) → `Room::StartItemOp`(`itemOp.inFlight` 켬) → `DatabaseWorker::ExecItemOp`(한 트랜잭션) → `Room::OnItemOpDone`(끔 → 성공이고 방에 있으면 반영 → `NotifyClosedIfDone`). 계획과 결과는 `DB_ItemOp`·`DB_ItemOpResult`(`ServerData.h`)에 담겨 그대로 오갑니다. 새 작업(줍기·버리기·사용)은 `ItemOpKind`를 늘려 같은 경로에 넣습니다.
+- **SQL 틀**: 모든 아이템 트랜잭션은 `DbQueries.h`의 `ItemOpHead`/`ItemOpTail`을 씁니다 — TRY 안에서 `BEGIN TRAN`, 문장마다 바뀐 행 수를 `@n`에 더하고, 기대한 수와 다르면 롤백. 결과는 항상 결과 집합 하나(`Ok`, `Kind` 0 상태 · 1 새 `ItemDbId` · 2 골드 잔액, `V`)이고 성공 상태 행을 읽었을 때만 성공입니다.
+- **쿼리 모양(D-165)**: 장착 = 고정 파라미터 쿼리(`ItemEquip`), 지급·로그인 보정 = 조립식. 측정(봇 5명): 장착 DB 실행 p50 약 4ms, 조립식 지급은 평균 약 20ms(요청마다 컴파일). **줍기(A3.5)·물약 사용(A3.6)처럼 자주 오는 작업은 고정 쿼리로 만듭니다.**
+- **`Player_Item` 제약**: `Count` ≥ 1, `Location` 1~4, 장착(2)이면 `EquipSlot` 1~7·아니면 0(CHECK), `OwnerId` FK, 인덱스 (`OwnerId`, `Location`), 필터 유니크 `UX_Player_Item_Equip`(`OwnerId`, `EquipSlot`) WHERE `Location` = 2. 필터 인덱스 때문에 `QUOTED_IDENTIFIER`·`ANSI_NULLS`가 켜진 연결에서만 쓸 수 있습니다(`sqlcmd`는 `-I`). `Count` 열은 int(스택 상한 9999), 패킷의 수량은 int64입니다.
+- **장착 요청의 조용한 종료**: 이미 그 슬롯에 장착한 행을 다시 요청하거나 빈 슬롯을 해제하면 응답 없이 끝냅니다(빈도 제한 시간은 갱신). 검증 순서는 형식(슬롯·보유·아이템 슬롯·방패는 한손검) → 상태(사망·시전·레벨) → 빈도 → 진행 중인 작업(`BUSY`) → 빈 칸입니다.
+- **로그인 보정**: 대상은 슬롯이 맞지 않는 장착 행, 검이 아닌데 낀 방패, 그리고 ItemTable에 없는 종류의 장착 행(메모리에는 올리지 않지만 DB의 장착 슬롯을 계속 차지하지 않게 `Location` 1로 내림)입니다. `Player::InitFromDb`가 메모리에서 내리고 `pendingEquipFix`에 적으면 `Room::PlayerEnterRoom`이 `SC_INVENTORY`를 보낸 직후 `LoginFix` 작업으로 DB를 고칩니다. 실패하면 ERROR 로그만 남기고 다음 로그인 때 다시 합니다(그 사이 그 행의 장착 요청은 트랜잭션 조건 불일치로 롤백).
+- **더미 봇**: 장착은 `EQUIP_RESULT_NOT_ALLOWED`(15), 아이템 요청은 `ITEM_RESULT_NOT_ALLOWED`, `SC_INVENTORY`를 보내지 않습니다(D-161·D-164). 장비 외형은 지금처럼 공용 행에서 읽어 `ObjectInfo.equip_items`로 보입니다.
+- **장착 지연(D-163)**: 기준은 200명 램프에서 요청 → 적용 p99 50ms. 2026-11-16 측정에서 p50 3~5ms·p99 75~230ms로 기준을 넘었고, DB 실행은 p99 4~22ms라 나머지는 Room 잡 대기입니다(같은 구간 틱 지연 p99와 같은 값 — 개별 계정 봇 200명이 PlayerStart 한 곳에 몰린 시나리오, 50명이면 p99 14~53ms). 기록만 하고 마일스톤 2(P1b 송신 묶기) 뒤 다시 잽니다. 상세는 `TESTING.md` A3.3.
+- **결과를 알 수 없는 실패**: 트랜잭션 결과는 "성공"·"롤백 확인(결과 행 `Ok` 0)"·"불명(실행 오류, 결과 행 없음 — 예: COMMIT 뒤 연결 끊김)" 셋으로 나눕니다(`DB_ItemOpResult.unknown`). 롤백이 확인되면 메모리 = DB이므로 `DB_ERROR`만 알리고, 불명이면 DB에 반영됐을 수 있으므로 **그 플레이어의 접속을 끊어 다음 로그인 때 DB 값을 다시 읽게 합니다.** 줍기(A3.5)에서는 불명일 때 드랍을 바닥에 되돌리지 않습니다(되돌리면 복제 가능).
+- **잠금 대기**: 아이템 트랜잭션은 `SET LOCK_TIMEOUT 5000`으로 시작합니다. 넘으면 오류 1222로 CATCH에서 롤백되어 "롤백 확인" 실패가 됩니다(DB 작업 스레드와 `itemOp`가 끝없이 묶이지 않게). 연결에 남는 설정이라 같은 연결의 로그인·저장 쿼리에도 적용됩니다.
+- **수량 상한**: 지급 수량은 `MaxStack × InventorySlots`를 넘으면 계획을 세우기 전에 `INVENTORY_FULL`로 거부합니다(`Inventory::PlanAdd`와 `PlayerDevGive` 양쪽 — 큰 값의 계산 넘침 방어, 줍기도 같은 함수를 씀).
+- **시험용 설정**: `[Debug] DevCommands`(지급 허용), `DbItemFailEvery`(N번에 한 번 강제 롤백, D-162), `DbSaveDelayMs`(아이템 트랜잭션에도 적용).
+- **클라이언트**: `UJMInventoryManager`(GameInstance 서브시스템)가 `SC_INVENTORY`·`SC_INVENTORY_UPDATE`를 그대로 담고 `OnInventoryChanged`를 냅니다. `SC_ITEM_RESULT`·장착 거부는 시스템 메시지(`BUSY`·`TOO_FREQUENT`는 띄우지 않음). 콘솔 `Give <itemId> <count>`, `Equip <part> <itemId>`(인벤토리에서 그 종류의 `item_db_id`를 찾아 보냄).
 
 ## 드랍·줍기·버리기 (A3.4·A3.5, D-157)
 1. **드랍 롤**: `Monster::OnDead(attacker)`에서 방에 드랍 생성을 요청합니다. DropTable의 그 몬스터 행을 각각 굴려, 걸린 행마다 사망 지점 `DropScatterCm` 안(내비메시 위)에 드랍 오브젝트를 하나씩 만듭니다.
@@ -131,9 +148,9 @@
 ## 장착 검사 확장 (A3.3·MC4.4, D-156)
 - `CS_CHANGE_EQUIP`은 `item_id` 대신 **`item_db_id`**(0 = 해제)를 받습니다. 방송 `SC_CHANGE_EQUIP`과 `ObjectInfo.equip_items`는 지금처럼 itemId입니다.
 - 추가 검증: 내 인벤토리 위치의 행인지(`NOT_OWNED`), `RequiredLevel` ≤ 레벨(`LEVEL_TOO_LOW`), 거래에 올린 아이템이 아닌지(`IN_TRADE`), `itemOp` 없음(`BUSY`), 칸이 늘어나는 경우 빈 칸이 충분한지(`INVENTORY_FULL` — 해제 1칸, 무기 교체로 방패 자동 해제 1칸, 무기 해제와 방패 자동 해제가 겹치면 2칸). 같은 슬롯 교체는 칸 수가 그대로라 항상 가능합니다.
-- 순서가 바뀝니다: 지금은 메모리 반영 → 스냅숏 저장이지만, 이후에는 **DB 성공 → 메모리 반영·`RecalcStat`·스왑 잠금·방송**입니다. 장착 스냅숏 저장(`RequestEquipSave`, `Player::equipSave`, D-120)은 없어집니다. DB 왕복만큼 장착이 늦어지므로 A3.3에서 지연을 측정합니다. DB 결과를 적용할 때 사망·시전 여부는 다시 보지 않습니다(이미 DB에 반영됨 — 요청 직후 시전을 시작하면 시전 도중 장비가 바뀔 수 있고, 이는 "시전 중 거부"(D-066)의 알려진 예외로 둠).
+- 순서가 바뀝니다: 지금은 메모리 반영 → 스냅숏 저장이지만, 이후에는 **DB 성공 → 메모리 반영·`RecalcStat`·스왑 잠금·방송**입니다. 장착 스냅숏 저장(`RequestEquipSave`, `Player::equipSave`, D-120)은 없어집니다. DB 왕복만큼 장착이 늦어지므로 A3.3에서 지연을 측정합니다. DB 결과를 적용할 때 사망·시전 여부는 다시 보지 않습니다(이미 DB에 반영됨). 대신 **무기 슬롯 장착·해제가 DB에 가 있는 동안에는 그 플레이어의 시전 요청을 받지 않습니다**(`itemOp.weaponSwapPending`, `Room::CastSkill`) — 받으면 시전 도중 무기가 바뀌고 결과 적용 때 거는 스왑 잠금이 시전의 행동 잠금을 덮어써 짧아집니다(2026-11-16 구현 후 리뷰). 방어구 교체 중의 시전은 그대로 받습니다.
 - 기존 규칙과의 관계: 요청 빈도는 지금처럼 `ServerEquipMinIntervalMs`를 **요청 시점**에 적용하고(`ItemMinIntervalMs`는 장착에 쓰지 않음), 무기 스왑 잠금은 **결과 적용 시점**부터 겁니다. 방패 자동 해제는 한 트랜잭션으로 저장하고, 방송 순서(보조손 해제 먼저 → 무기 변경, D-139)는 그대로입니다. 거부 패킷 `SC_CHANGE_EQUIP_RESULT`에 `item_db_id`를 추가합니다.
-- **장비창(MC4.4)**: 목록 출처는 내 인벤토리의 장비입니다. 장착 7칸 + 인벤토리 장비를 보여 주고 클릭으로 장착·해제합니다. 콘솔 `Equip`은 삭제하고 시험용 아이템은 `Give`로 넣습니다.
+- **장비창(MC4.4)**: 목록 출처는 내 인벤토리의 장비입니다. 장착 7칸 + 인벤토리 장비를 보여 주고 클릭으로 장착·해제합니다. 콘솔 `Equip`은 개발용으로 남기고(D-160, A3.3부터 인벤토리에서 그 종류의 `item_db_id`를 찾아 보냄) 시험용 아이템은 `Give`로 넣습니다.
 
 ## 소비 아이템과 액티브 칸 (A3.6, D-154)
 - `CS_USE_ITEM(item_db_id, item_id)`: `item_db_id`가 0이면 서버가 그 종류(`item_id`) 중 거래에 올리지 않은 스택을 수량이 적은 것부터 고릅니다(액티브 칸은 이 방식). 검증(보유·인벤토리 위치, `UseEffect` ≠ `None`, `RequiredLevel`, 생존, HP가 최대치 미만 `HP_FULL`, 재사용 시간 `COOLDOWN`, `itemOp` 없음) → DB `Count` − 1 → 성공이면 HP 회복(최대치까지), `SC_USE_ITEM(object_id, item_id, hp, cooldown_ms)`를 AOI(본인 포함)에 방송 + `SC_INVENTORY_UPDATE`. 재사용 표시는 이 `cooldown_ms`로 합니다(서버 값 사용, D-029).
@@ -183,8 +200,7 @@
 
 ## 클라이언트 UI (A6.1·A6.2·MC4.4·A6.3a·A6.3b)
 - 창은 모두 `UJMUIManager::RegisterWidget`(`bIsWindow`, ZOrder는 크로스헤어 100보다 위)로 등록하고 키로 `ToggleWidget`합니다. 창이 열리면 커서가 보입니다(기존 동작). 키는 초기 제안이며 구현 때 조정합니다.
-- **인벤토리**(I 키, `WBP_Inventory`): 칸 격자(아이콘·수량, `USkillSlotWidget::SetItem` 재사용), 골드, 선택한 아이템의 버리기·사용·액티브 칸에 올리기.
-- **장비창**(`WBP_Equipment`, 인벤토리와 함께 열림): 장착 7칸. 인벤토리의 장비를 클릭하면 장착, 장착 칸을 클릭하면 해제.
+- **인벤토리 + 장비창**(I 키, `WBP_Inventory` 한 창 — A6.1, D-166): 장착 7칸, 칸 격자(서버 칸 수만큼, 빈 칸 표시, 아이콘·수량 — 칸 위젯 `UItemSlotWidget`/`WBP_ItemSlot`), 골드, 선택한 아이템 이름. 인벤토리의 장비 우클릭 = 장착, 장착 칸 우클릭 = 해제, 끌어다 놓기 = 칸 옮기기·맞바꾸기(인벤토리 ↔ 인벤토리)·장착(인벤토리 → 장착 칸)·해제 또는 교체(장착 칸 → 인벤토리). 창은 클라이언트 사본(`UJMInventoryManager`)을 그리며 여닫을 때 서버에 묻지 않습니다. 선택한 아이템의 버리기(A6.2)·사용·액티브 칸에 올리기(A3.6)는 그때 붙입니다.
 - **거래 창**: 양쪽 제시(아이템·수량·골드), 잠금·확정·취소 버튼, 상대의 잠금·확정 표시. 인벤토리에서 아이템을 골라 수량을 적어 올립니다.
 - **경매 창**(K 키): 검색(슬롯 필터, 쪽 넘기기)·구매, 등록(인벤토리에서 골라 수량·가격 입력), 내 등록(취소), 수령함(수령) 탭.
 - 거부·실패·성사 안내는 모두 시스템 메시지 창(D-050)입니다.
@@ -200,11 +216,12 @@
 | A4.2 | 1018 `TRADE_REQUEST`, 1019 `TRADE_RESPOND`, 1020 `TRADE_SET_OFFER`, 1021 `TRADE_LOCK`, 1022 `TRADE_CONFIRM`, 1023 `TRADE_CANCEL` | 2020 `TRADE_REQUEST`(상대), 2021 `TRADE_STATE`(두 사람), 2022 `TRADE_END`(두 사람), 2023 `TRADE_RESULT`(본인, 거부) |
 | A4.3 | 1024 `AUCTION_SEARCH`, 1025 `AUCTION_REGISTER`, 1026 `AUCTION_BUY`, 1027 `AUCTION_CANCEL`, 1028 `AUCTION_MY`, 1029 `MAIL_CLAIM` | 2024 `AUCTION_LIST`, 2025 `AUCTION_MY`, 2026 `AUCTION_RESULT`(본인: 요청 패킷 id + `AuctionResult` + `listing_id`) |
 | A2.7 | — | 2027 `KICK`(끊기 직전 본인, 사유) |
+| A6.1 | 1030 `MOVE_ITEM`(칸 옮기기·맞바꾸기) | (성공은 `INVENTORY_UPDATE`, 거부는 `ITEM_RESULT`) |
 
-- 구조체 `ItemInfo`(`item_db_id`, `item_id`, `count`, `equip_part` — 0 = 인벤토리), `ObjectInfo.item_count`(12번), `CS_CHANGE_EQUIP_PACKET`은 `item_id`(2번)를 `reserved`로 막고 `item_db_id`(3번)를 추가합니다. `item_db_id`·`listing_id`·`mail_id`·골드·가격·수량 필드는 int64입니다.
+- 구조체 `ItemInfo`(`item_db_id`, `item_id`, `count`, `equip_part` — 0 = 인벤토리, `slot` — 인벤토리 칸 번호·장착 중이면 -1), `ObjectInfo.item_count`(12번), `CS_CHANGE_EQUIP_PACKET`은 `item_id`(2번)를 `reserved`로 막고 `item_db_id`(3번)를 추가합니다. `item_db_id`·`listing_id`·`mail_id`·골드·가격·수량 필드는 int64입니다.
 - 결과 enum은 기능별로 둡니다(D-114 방식). 새 enum은 기존 관례대로 `*_NONE` = 0, `*_SUCCESS` = 1로 시작하고 아래 값이 2부터 이어집니다.
-  - `ItemResult`: `NOT_IN_ROOM`, `DEAD`, `BUSY`, `TOO_FREQUENT`, `NOT_ALLOWED`, `NO_ITEM`, `TOO_FAR`, `NOT_OWNER`, `INVENTORY_FULL`, `GOLD_FULL`, `IN_TRADE`, `NOT_USABLE`, `HP_FULL`, `COOLDOWN`, `LEVEL_TOO_LOW`, `DB_ERROR`.
-  - `EquipResult` 추가: `NOT_OWNED`(9), `LEVEL_TOO_LOW`(10), `INVENTORY_FULL`(11), `BUSY`(12), `IN_TRADE`(13), `DB_ERROR`(14).
+  - `ItemResult`: `NOT_IN_ROOM`, `DEAD`, `BUSY`, `TOO_FREQUENT`, `NOT_ALLOWED`, `NO_ITEM`, `TOO_FAR`, `NOT_OWNER`, `INVENTORY_FULL`, `GOLD_FULL`, `IN_TRADE`, `NOT_USABLE`, `HP_FULL`, `COOLDOWN`, `LEVEL_TOO_LOW`, `DB_ERROR`, `BAD_SLOT`(18, A6.1).
+  - `EquipResult` 추가: `NOT_OWNED`(9), `LEVEL_TOO_LOW`(10), `INVENTORY_FULL`(11), `BUSY`(12), `IN_TRADE`(13), `DB_ERROR`(14), `NOT_ALLOWED`(15, 더미 봇 — D-161).
   - `TradeResult`: `NO_TARGET`, `TOO_FAR`, `TARGET_BUSY`, `DECLINED`, `TIMEOUT`, `CANCELLED`, `DEAD`, `DISCONNECTED`, `LOCKED`, `INVALID_OFFER`, `INVENTORY_FULL`, `GOLD_FULL`, `BUSY`, `NOT_ALLOWED`, `DB_ERROR`.
   - `AuctionResult`: `NO_LISTING`, `SOLD`, `OWN_ITEM`, `NOT_ENOUGH_GOLD`, `LISTING_LIMIT`, `BAD_PRICE`, `NO_ITEM`, `IN_TRADE`, `INVENTORY_FULL`, `GOLD_FULL`, `BUSY`, `DEAD`, `NOT_ALLOWED`, `DB_ERROR`.
   - `LoginResult` 추가: `BUSY`(6, 이전 접속 정리 중).

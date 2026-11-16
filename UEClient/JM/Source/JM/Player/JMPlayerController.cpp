@@ -7,6 +7,7 @@
 #include "Player/GameplayInputMode.h"
 #include "UI/ChatWidget.h"
 #include "Game/DataManager.h"
+#include "Game/JMInventoryManager.h"
 
 void AJMPlayerController::BeginPlay()
 {
@@ -48,11 +49,34 @@ void AJMPlayerController::BeginPlay()
 
 void AJMPlayerController::Equip(int32 Part, int32 ItemId)
 {
-	// 요청만 보낸다. 슬롯·아이템 검증과 결과(성공 방송·거부 문구)는 서버가 정한다.
+	// 요청만 보낸다. 슬롯·보유 검증과 결과(성공 방송·거부 문구)는 서버가 정한다.
+	// 장착은 아이템 종류가 아니라 내 인벤토리의 아이템(item_db_id)으로 요청하므로(A3.3) 그 종류를 인벤토리에서 찾는다.
+	UGameInstance* GameInstance = GetGameInstance();
+	UNetworkManager* NetManager = GameInstance ? GameInstance->GetSubsystem<UNetworkManager>() : nullptr;
+	UJMInventoryManager* Inventory = GameInstance ? GameInstance->GetSubsystem<UJMInventoryManager>() : nullptr;
+	if (NetManager == nullptr || Inventory == nullptr) return;
+
+	int64 ItemDbId = 0;
+	if (ItemId != 0)
+	{
+		ItemDbId = Inventory->FindBagItemDbId(ItemId);
+		if (ItemDbId == 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Equip: 인벤토리에 item=%d 이(가) 없습니다. 먼저 Give %d 1 로 받으세요."), ItemId, ItemId);
+			return;
+		}
+	}
+	UE_LOG(LogTemp, Log, TEXT("Equip: part=%d item=%d dbId=%lld"), Part, ItemId, ItemDbId);
+	NetManager->SendChangeEquip(Part, ItemDbId);
+}
+
+void AJMPlayerController::Give(int32 ItemId, int32 Count)
+{
+	// 요청만 보낸다. 서버가 [Debug] DevCommands를 켜지 않았으면 거부 문구가 온다.
 	if (UNetworkManager* NetManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UNetworkManager>() : nullptr)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Equip: part=%d item=%d"), Part, ItemId);
-		NetManager->SendChangeEquip(Part, ItemId);
+		UE_LOG(LogTemp, Log, TEXT("Give: item=%d count=%d"), ItemId, Count);
+		NetManager->SendDevGive(ItemId, Count);
 	}
 }
 

@@ -26,10 +26,16 @@ public:
     UFUNCTION(BlueprintCallable, Category = "UI")
     void OnChatKeyPressed();
 
-    // Dev console command (MC3.2): "Equip <part 1~7> <itemId>" sends CS_CHANGE_EQUIP only (itemId 0 = unequip).
-    // The server validates and replies. Remove when WBP_Equipment exists (MC4.4).
+    // Dev console command (MC3.2, A3.3): "Equip <part 1~7> <itemId>" (itemId 0 = unequip).
+    // Finds an item of that kind in my inventory and sends CS_CHANGE_EQUIP with its item_db_id.
+    // The server validates and replies. Kept as a dev command even after WBP_Equipment exists (D-160).
     UFUNCTION(Exec)
     void Equip(int32 Part, int32 ItemId);
+
+    // Dev console command (A3.3): "Give <itemId> <count>" sends CS_DEV_GIVE (itemId 0 = gold).
+    // Works only when the server runs with [Debug] DevCommands=true.
+    UFUNCTION(Exec)
+    void Give(int32 ItemId, int32 Count = 1);
 
     // Dev console command (MC4.1b): "NetMoveStats [reset 0/1]" logs remote-player move display stats
     // (screen speed / move stat, packet-arrival position error). Default resets after printing.

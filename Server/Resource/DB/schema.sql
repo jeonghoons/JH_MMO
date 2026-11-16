@@ -1,6 +1,8 @@
 ﻿-- 2026-10-28: Item_Meta/Player_Inventory/Trade_Log, Player_Info.Mp, User_Account.Status 삭제 반영 (migrations/0001_2026-10-28_drop_unused.sql)
 -- 2026-11-07: 스키마 변경 없음. Player_Info.PlayerType = 체형(1 MALE, 2 FEMALE)만, Player_Equipped.EquipSlot = Protocol::EquipPart(1~6), 가입 시 기본 장비 6행 (migrations/0002_2026-11-07_mc33_equip.sql — 기존 DB의 옛 값 정리)
 -- 2026-11-16: Schema_Version(적용한 마이그레이션 기록, 서버가 시작할 때 DB_SCHEMA_VERSION과 비교), Player_Info.UpdatedAt, Player_Info CHECK 제약 (migrations/0003_2026-11-16_a25_schema_version.sql)
+-- 2026-11-16: Player_Item(아이템 인스턴스 — 인벤토리·장착·경매 보관·수령함) 추가, Player_Equipped 삭제 (migrations/0004_2026-11-16_a33_player_item.sql)
+-- 2026-11-16: Player_Item.BagSlot(인벤토리 칸 번호) + UX_Player_Item_BagSlot 추가 (migrations/0005_2026-11-16_a61_bag_slot.sql)
 -- 이 파일은 새 DB 생성용이다. 기존 DB는 migrate.ps1로 올린다. 스키마를 바꾸면 마이그레이션 + 이 파일 + Server/DB/DbQueries.h의 DB_SCHEMA_VERSION을 함께 고친다.
 USE [master]
 GO
@@ -88,23 +90,31 @@ ALTER DATABASE [GameServer] SET QUERY_STORE (OPERATION_MODE = READ_WRITE, CLEANU
 GO
 USE [GameServer]
 GO
-/****** 개체: Table [dbo].[Player_Equipped] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
+/****** 개체: Table [dbo].[Player_Item] — 아이템 한 개(스택이면 한 묶음) = 한 행. Location 1 인벤토리 · 2 장착 · 3 경매 보관 · 4 수령함 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[Player_Equipped](
-	[PlayerId] [bigint] NOT NULL,
-	[EquipSlot] [tinyint] NOT NULL,
-	[ItemDbId] [bigint] NOT NULL,
+CREATE TABLE [dbo].[Player_Item](
+	[ItemDbId] [bigint] IDENTITY(1,1) NOT NULL,
+	[OwnerId] [bigint] NOT NULL,
 	[ItemId] [int] NOT NULL,
-	[EquippedAt] [datetime] NULL,
- CONSTRAINT [PK_Player_Equipped] PRIMARY KEY CLUSTERED 
-(
-	[PlayerId] ASC,
-	[EquipSlot] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+	[Count] [int] NOT NULL,
+	[Location] [tinyint] NOT NULL,
+	[EquipSlot] [tinyint] NOT NULL CONSTRAINT [DF_Player_Item_EquipSlot] DEFAULT ((0)),
+	[BagSlot] [int] NOT NULL CONSTRAINT [DF_Player_Item_BagSlot] DEFAULT ((-1)),
+	[CreatedAt] [datetime2](0) NOT NULL CONSTRAINT [DF_Player_Item_CreatedAt] DEFAULT (sysdatetime()),
+	[UpdatedAt] [datetime2](0) NOT NULL CONSTRAINT [DF_Player_Item_UpdatedAt] DEFAULT (sysdatetime()),
+ CONSTRAINT [PK_Player_Item] PRIMARY KEY CLUSTERED ([ItemDbId] ASC)
 ) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [IX_Player_Item_Owner] ON [dbo].[Player_Item] ([OwnerId] ASC, [Location] ASC)
+GO
+-- 한 캐릭터의 같은 장착 슬롯에 두 행이 들어가지 못하게 한다. 필터 인덱스라 QUOTED_IDENTIFIER·ANSI_NULLS가 켜진 연결에서만 이 테이블에 쓸 수 있다.
+CREATE UNIQUE NONCLUSTERED INDEX [UX_Player_Item_Equip] ON [dbo].[Player_Item] ([OwnerId] ASC, [EquipSlot] ASC) WHERE [Location] = 2
+GO
+-- 인벤토리(Location 1) 행의 칸 번호(0부터), 그 밖의 위치는 -1. 한 캐릭터의 같은 칸에 두 행이 들어가지 못하게 한다.
+CREATE UNIQUE NONCLUSTERED INDEX [UX_Player_Item_BagSlot] ON [dbo].[Player_Item] ([OwnerId] ASC, [BagSlot] ASC) WHERE [Location] = 1
 GO
 /****** 개체: Table [dbo].[Player_Info] 스크립트 날짜: 2026-09-25 오후 4:44:56 ******/
 SET ANSI_NULLS ON
@@ -180,8 +190,6 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_User_Account_LoginId] ON [dbo].[User_Accoun
 	[LoginId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-ALTER TABLE [dbo].[Player_Equipped] ADD  DEFAULT (getdate()) FOR [EquippedAt]
-GO
 ALTER TABLE [dbo].[Player_Info] ADD  CONSTRAINT [DF_Player_Info_PlayerType]  DEFAULT ((0)) FOR [PlayerType]
 GO
 ALTER TABLE [dbo].[Player_Info] ADD  CONSTRAINT [DF__Player_In__Level__70DDC3D8]  DEFAULT ((1)) FOR [Level]
@@ -196,10 +204,18 @@ ALTER TABLE [dbo].[Player_Info] ADD  CONSTRAINT [DF__Player_In__Creat__76969D2E]
 GO
 ALTER TABLE [dbo].[User_Info] ADD  DEFAULT (getdate()) FOR [CreateDate]
 GO
-ALTER TABLE [dbo].[Player_Equipped]  WITH CHECK ADD  CONSTRAINT [FK_Player_Equipped_Player_Info] FOREIGN KEY([PlayerId])
+ALTER TABLE [dbo].[Player_Item]  WITH CHECK ADD  CONSTRAINT [FK_Player_Item_Player_Info] FOREIGN KEY([OwnerId])
 REFERENCES [dbo].[Player_Info] ([PlayerId])
 GO
-ALTER TABLE [dbo].[Player_Equipped] CHECK CONSTRAINT [FK_Player_Equipped_Player_Info]
+ALTER TABLE [dbo].[Player_Item] CHECK CONSTRAINT [FK_Player_Item_Player_Info]
+GO
+ALTER TABLE [dbo].[Player_Item]  WITH CHECK ADD  CONSTRAINT [CK_Player_Item_Count] CHECK  (([Count]>=(1)))
+GO
+ALTER TABLE [dbo].[Player_Item]  WITH CHECK ADD  CONSTRAINT [CK_Player_Item_Location] CHECK  (([Location]>=(1) AND [Location]<=(4)))
+GO
+ALTER TABLE [dbo].[Player_Item]  WITH CHECK ADD  CONSTRAINT [CK_Player_Item_EquipSlot] CHECK  (([Location]=(2) AND [EquipSlot]>=(1) AND [EquipSlot]<=(7) OR [Location]<>(2) AND [EquipSlot]=(0)))
+GO
+ALTER TABLE [dbo].[Player_Item]  WITH CHECK ADD  CONSTRAINT [CK_Player_Item_BagSlot] CHECK  (([Location]=(1) AND [BagSlot]>=(0) OR [Location]<>(1) AND [BagSlot]=(-1)))
 GO
 ALTER TABLE [dbo].[Player_Info]  WITH CHECK ADD  CONSTRAINT [FK_Player_Info_User_Account] FOREIGN KEY([AccountId])
 REFERENCES [dbo].[User_Account] ([AccountId])
@@ -232,7 +248,9 @@ GO
 INSERT INTO [dbo].[Schema_Version] ([Version], [Name]) VALUES
 	(1, N'0001_2026-10-28_drop_unused (schema.sql)'),
 	(2, N'0002_2026-11-07_mc33_equip (schema.sql)'),
-	(3, N'0003_2026-11-16_a25_schema_version (schema.sql)')
+	(3, N'0003_2026-11-16_a25_schema_version (schema.sql)'),
+	(4, N'0004_2026-11-16_a33_player_item (schema.sql)'),
+	(5, N'0005_2026-11-16_a61_bag_slot (schema.sql)')
 GO
 USE [master]
 GO

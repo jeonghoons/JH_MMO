@@ -9,15 +9,84 @@ struct DB_PlayerInfo {
 };
 
 // 진행 상황 = Player_Info에 저장하는 값(A2.5). 저장할 필드가 늘면 여기에 추가한다 —
+// 골드는 여기에 없다(A3.3, D-152): 아이템 트랜잭션 안에서 증감하고 스냅숏으로 덮어쓰지 않는다.
 // 비교(operator==)로 "바뀌었는가"를 판단하므로 값을 바꾸는 코드마다 표시를 넣을 필요가 없다.
 // 함께 고칠 곳: Player::MakeProgressSnapshot, DbQueries::UpdatePlayerProgress, DatabaseWorker::SavePlayerProgress.
 struct DB_PlayerProgress {
 	int32_t level = 0;
 	int64_t exp = 0;
 	int32_t hp = 0;
-	int64_t gold = 0;
 
 	bool operator==(const DB_PlayerProgress&) const = default;
+};
+
+// Player_Item.Location (DESIGN_ITEMS_TRADE "아이템 인스턴스와 DB")
+constexpr int ITEM_LOC_INVENTORY = 1;
+constexpr int ITEM_LOC_EQUIPPED = 2;
+constexpr int ITEM_LOC_AUCTION = 3;   // 경매 보관(에스크로, A4.3)
+constexpr int ITEM_LOC_MAIL = 4;      // 수령함(A4.3)
+
+// Player_Item 한 행 = 아이템 한 개(스택이면 한 묶음) (A3.3, D-153)
+struct DB_ItemRow {
+	int64_t itemDbId = 0;
+	int32_t itemId = 0;
+	int32_t count = 0;
+	int32_t location = 0;    // ITEM_LOC_*
+	int32_t equipSlot = 0;   // 장착 중이면 Protocol::EquipPart(1~7), 아니면 0
+	int32_t bagSlot = -1;    // 인벤토리 칸 번호(0부터), 인벤토리가 아니면 -1 (A6.1)
+};
+
+// 아이템·골드의 소유가 바뀌는 DB 작업 하나 = 한 트랜잭션(A3.3, D-153·D-165).
+// Room 잡이 검증하고 계획을 채워 DatabaseWorker::ExecItemOp로 보내면, 결과와 함께 Room::OnItemOpDone으로 그대로 돌아온다.
+// 모든 UPDATE는 기대 상태를 WHERE에 적고, 바뀐 행 수가 계획과 다르면 롤백한다(메모리 검증이 놓친 경우의 두 번째 방어선).
+enum class ItemOpKind
+{
+	Give,       // 개발 지급: 덜 찬 스택 채우기 + 새 행 + 골드 증액 (조립식 쿼리)
+	Equip,      // 장착·해제: 옛 장비·자동 해제 방패를 내리고 새 장비를 올린다 (고정 쿼리)
+	LoginFix,   // 로그인 때 맞지 않은 장착 행을 인벤토리로 내린다
+	Move,       // 인벤토리 칸 옮기기·맞바꾸기 (고정 쿼리, A6.1)
+};
+
+struct DB_ItemOp {
+	ItemOpKind kind = ItemOpKind::Give;
+	int64_t playerUID = 0;
+	long long requestUs = 0;      // 요청을 받은 시각(지표: 요청 → 적용)
+	bool forceFail = false;       // 시험용([Debug] DbItemFailEvery): 트랜잭션을 끝에서 일부러 롤백한다
+
+	// Give — Inventory::PlanAdd의 결과
+	int32_t itemId = 0;                       // Give: 지급하는 종류(0 = 골드만) / Equip: 새 장비의 종류(0 = 해제)
+	struct Fill { int64_t itemDbId; int32_t expectCount; int32_t add; };
+	std::vector<Fill> fills;                  // 덜 찬 스택에 더하기 (expectCount = 지금 메모리의 수량)
+	std::vector<int32_t> newCounts;           // 새 행의 수량 (행마다)
+	std::vector<int32_t> newSlots;            // 새 행이 들어갈 인벤토리 칸 (newCounts와 같은 순서)
+	int64_t goldDelta = 0;                    // 골드 증감(0 = 없음)
+	int64_t goldMax = 0;                      // 증액 뒤 상한(EconomyTable.GoldMax)
+
+	// Equip
+	int32_t equipPart = 0;                    // Protocol::EquipPart
+	int64_t newDbId = 0;                      // 올릴 행(0 = 해제만)
+	int64_t oldDbId = 0;                      // 그 슬롯에 있던 행(0 = 비어 있었음)
+	int64_t offhandDbId = 0;                  // 함께 내리는 방패(0 = 없음)
+	int32_t newSlot = -1;                     // 올릴 행이 지금 있는 인벤토리 칸(기대 상태)
+	int32_t oldSlot = -1;                     // 옛 장비가 내려갈 칸
+	int32_t offhandSlot = -1;                 // 방패가 내려갈 칸
+
+	// LoginFix
+	std::vector<int64_t> demoteDbIds;         // Location 2 → 1
+	std::vector<int32_t> demoteSlots;         // 내려갈 칸 (demoteDbIds와 같은 순서)
+
+	// Move
+	int64_t moveDbId = 0;                     // 옮길 행
+	int32_t moveFrom = -1;                    // 지금 칸(기대 상태)
+	int32_t moveTo = -1;                      // 대상 칸
+	int64_t moveOtherDbId = 0;                // 대상 칸에 있던 행(맞바꿈, 0 = 빈 칸)
+};
+
+struct DB_ItemOpResult {
+	bool success = false;
+	bool unknown = false;            // 실패인데 롤백됐는지 알 수 없다(실행 오류·결과 행 없음). DB에 반영됐을 수도 있다
+	std::vector<int64_t> newDbIds;   // Give: newCounts 순서대로 발급된 ItemDbId
+	int64_t gold = -1;               // 골드를 바꿨으면 바뀐 뒤 잔액, 아니면 -1
 };
 
 struct DB_PlayerData {
@@ -28,8 +97,8 @@ struct DB_PlayerData {
 	int64_t gold;
 	int32_t neverSaved;   // 1 = 진행 상황을 저장한 적이 없다(Player_Info.UpdatedAt NULL) — 가입 직후, A2.5 전에 만든 캐릭터
 	
-	// Player_Equipped 행 (EquipSlot = Protocol::EquipPart, ItemId). 검증은 Player::InitFromDb가 한다.
-	std::vector<std::pair<int32_t, int32_t>> equipped;
+	// Player_Item 행 중 인벤토리(Location 1)·장착(Location 2). ItemDbId 순. 검증은 Player::InitFromDb가 한다.
+	std::vector<struct DB_ItemRow> items;
 };
 
 enum class HitShape

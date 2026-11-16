@@ -21,4 +21,8 @@ protected:
 	// Revive window (WBP_Revive, parent UReviveWidget). Shown while my character is dead (A2.4).
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> ReviveWidgetClass;
+
+	// Inventory + equipment window (WBP_Inventory, parent UInventoryWidget). Toggled with IA_Inventory (A6.1).
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> InventoryWidgetClass;
 };

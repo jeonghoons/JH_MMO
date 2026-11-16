@@ -45,7 +45,12 @@ public:
 	void SendMove(const Protocol::PositionInfo& PosInfo, bool bForce, uint32 CorrectionSeq);
 	void SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY);
 	void SendChat(const FString& Message);   // 검증(길이·제어 문자·도배)은 서버가 한다
-	void SendChangeEquip(int32 Part, int32 ItemId);
+	// Part = Protocol::EquipPart(1~7), ItemDbId = 내 인벤토리의 아이템(UJMInventoryManager), 0 = 해제. 검증은 서버가 한다(A3.3)
+	void SendChangeEquip(int32 Part, int64 ItemDbId);
+	// 개발 지급 명령(A3.3). ItemId 0 = 골드. 서버 [Debug] DevCommands가 켜져 있을 때만 받는다
+	void SendDevGive(int32 ItemId, int64 Count);
+	// 인벤토리 칸 옮기기(A6.1). 대상 칸에 아이템이 있으면 서버가 맞바꾼다. 결과는 SC_INVENTORY_UPDATE.
+	void SendMoveItem(int64 ItemDbId, int32 ToSlot);
 	// 스킬 조준 켜기/끄기(MC4.2d-1). 상태가 바뀔 때만, Seq는 보낼 때마다 1씩 올린 값. 확정(공격)은 서버가 함께 해제하므로 끄기를 보내지 않는다
 	// 부활 요청(A2.4). 사망 여부·대기 시간은 서버가 검증하고, 받아들이면 SC_REVIVE가 온다
 	void SendRevive();

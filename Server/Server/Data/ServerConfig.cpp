@@ -163,6 +163,18 @@ namespace
 				else { err = where + "ViewAudit must be true/false: '" + e.value + "'"; return false; }
 				cfg.viewAuditFrom = from;
 			}
+			else if (name == "Debug.DevCommands")
+			{
+				if (e.value == "true" || e.value == "1") cfg.devCommands = true;
+				else if (e.value == "false" || e.value == "0" || e.value.empty()) cfg.devCommands = false;
+				else { err = where + "DevCommands must be true/false: '" + e.value + "'"; return false; }
+				cfg.devCommandsFrom = from;
+			}
+			else if (name == "Debug.DbItemFailEvery")
+			{
+				if (!ParseInt(e.value, 0, 1000000, cfg.dbItemFailEvery)) { err = where + "DbItemFailEvery must be 0~1000000: '" + e.value + "'"; return false; }
+				cfg.dbItemFailEveryFrom = from;
+			}
 			else if (name == "Debug.DbSaveDelayMs")
 			{
 				if (!ParseInt(e.value, 0, 60000, cfg.dbSaveDelayMs)) { err = where + "DbSaveDelayMs must be 0~60000: '" + e.value + "'"; return false; }
@@ -274,4 +286,6 @@ void ServerConfig::Print() const
 		LOG_INFO("Config", "Debug.DummySpawnZone      = {},{},{} x {}  ({})", z.x, z.y, z.r, z.count == 0 ? std::string("나머지") : std::to_string(z.count), dummySpawnZoneFrom);
 	LOG_INFO("Config", "Debug.ViewAudit           = {}  ({})", viewAudit, viewAuditFrom);
 	LOG_INFO("Config", "Debug.DbSaveDelayMs       = {}  ({})", dbSaveDelayMs, dbSaveDelayMsFrom);
+	LOG_INFO("Config", "Debug.DevCommands         = {}  ({})", devCommands, devCommandsFrom);
+	LOG_INFO("Config", "Debug.DbItemFailEvery     = {}  ({})", dbItemFailEvery, dbItemFailEveryFrom);
 }

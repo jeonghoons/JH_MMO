@@ -3,6 +3,7 @@
 #include "Game/Object/Character.h"
 #include "Session/GameSession.h"
 #include "Game/Room/Room.h"
+#include "Game/Item/Inventory.h"
 
 class Player : public Character
 {
@@ -22,7 +23,7 @@ public:
 	virtual int GetReviveDelayMs() const override;
 public:
 
-	// DB에서 읽은 값(레벨·HP·장비)을 반영한다(MC3.3·A2.5). DB 레벨의 PlayerStatTable 행이 없으면 false(로그인 거부).
+	// DB에서 읽은 값(레벨·HP·인벤토리·장비)을 반영한다(MC3.3·A2.5·A3.3). DB 레벨의 PlayerStatTable 행이 없으면 false(로그인 거부).
 	bool InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data);
 	int64_t GetPlayerUID() const { return _dbPlayerInfo.playerUID; }
 
@@ -86,16 +87,35 @@ public:
 	// 장착 요청 빈도 제한. Room 잡 안에서만 읽고 쓴다.
 	Cooldown equipCooldown;
 
-	// 저장 상태(MC3.3·A2.5). Room 잡 안에서만 읽고 쓴다. 저장은 종류마다 플레이어당 동시에 하나만 보내고,
+	// 가진 아이템(인벤토리 + 장착)의 메모리 사본(A3.3). 권위는 DB — DB 트랜잭션이 성공한 뒤에만 바꾼다(Room::OnItemOpDone).
+	// 장착 7칸의 itemId는 ObjectInfo.equip_items에도 있다(다른 플레이어에게 보이는 값, SetEquippedItem).
+	Inventory inventory;
+
+	// 아이템 작업 상태(A3.3, D-153). Room 잡 안에서만 읽고 쓴다.
+	// 아이템·골드의 소유가 바뀌는 DB 작업은 플레이어당 동시에 하나만 보낸다. 진행 중에 온 요청은 쌓지 않고 BUSY로 거부한다.
+	struct ItemOpState
+	{
+		bool inFlight = false;   // DB에 가 있는 아이템 작업이 있다
+		// 진행 중인 작업이 무기 슬롯 장착·해제다. 결과가 올 때까지 시전을 받지 않는다(Room::CastSkill) —
+		// 받으면 시전 도중 무기가 바뀌고, 결과 적용 때 거는 스왑 잠금이 시전의 행동 잠금을 덮어써 짧아진다.
+		bool weaponSwapPending = false;
+		Cooldown interval;       // 아이템 요청 최소 간격(EconomyTable.ItemMinIntervalMs). 장착은 equipCooldown을 쓴다
+	};
+	ItemOpState itemOp;
+
+	// 로그인 때 맞지 않아 메모리에서 인벤토리로 내린 장착 행(슬롯 불일치, 검이 아닌데 방패) = (ItemDbId, 내려갈 인벤토리 칸).
+	// 방에 들어올 때 DB도 고친다(Room::PlayerEnterRoom).
+	std::vector<std::pair<int64_t, int32_t>> pendingEquipFix;
+
+	// 저장 상태(A2.5). Room 잡 안에서만 읽고 쓴다. 저장은 플레이어당 동시에 하나만 보내고,
 	// 진행 중에 또 요청되면 dirty만 표시했다가 끝난 뒤 최신 값으로 한 번 더 저장한다(순서 보장).
-	// 저장 종류가 늘면(인벤토리 A3.3) SaveState를 하나 더 둔다.
+	// 아이템·골드는 스냅숏 저장이 아니라 itemOp(즉시 트랜잭션)로 저장한다. 장비 스냅숏 저장(MC3.3 equipSave)은 A3.3에서 없앴다.
 	struct SaveState
 	{
 		bool inFlight = false;   // DB에 가 있는 저장이 있다
 		bool dirty = false;      // 진행 중에 또 요청됐거나 실패해 다시 저장해야 한다
 	};
-	SaveState equipSave;       // Player_Equipped — 바뀔 때마다 즉시 (Room::RequestEquipSave)
-	SaveState progressSave;    // Player_Info 레벨·경험치·HP·골드 — 주기·퇴장 때, 값이 달라졌을 때만 (Room::RequestProgressSave)
+	SaveState progressSave;    // Player_Info 레벨·경험치·HP — 주기·퇴장 때, 값이 달라졌을 때만 (Room::RequestProgressSave)
 
 	// 진행 상황 저장(A2.5). Room 잡 안에서만 읽고 쓴다.
 	// 지금 값의 스냅숏. 죽어 있으면 HP는 부활 규칙 값(최대치 × WorldTable.ReviveHpPercent) — 다음 접속은 살아서 입장한다.
@@ -109,6 +129,8 @@ public:
 
 	int64_t GetExp() const { return _dbPlayerData.exp; }
 	int64_t GetGold() const { return _dbPlayerData.gold; }
+	// DB 트랜잭션이 돌려준 잔액으로만 바꾼다(D-152). 메모리에서 더하거나 빼지 않는다.
+	void SetGold(int64_t gold) { _dbPlayerData.gold = gold; }
 
 protected:
 	virtual const SkillData* GetSlotSkill(int slot) const override { return DataManager::GetSkillBySlot(GetWeaponType(), slot); }

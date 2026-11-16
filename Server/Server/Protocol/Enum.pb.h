@@ -59,6 +59,8 @@ enum PacketId : int {
   CS_PING = 1010,
   CS_SKILL_AIM = 1011,
   CS_REVIVE = 1012,
+  CS_DEV_GIVE = 1017,
+  CS_MOVE_ITEM = 1030,
   SC_LOGIN = 2000,
   SC_SIGNUP = 2001,
   SC_ADD_OBJECT = 2003,
@@ -73,6 +75,9 @@ enum PacketId : int {
   SC_CHANGE_EQUIP_RESULT = 2013,
   SC_SKILL_AIM = 2014,
   SC_REVIVE = 2015,
+  SC_INVENTORY = 2016,
+  SC_INVENTORY_UPDATE = 2017,
+  SC_ITEM_RESULT = 2018,
   SC_KICK = 2027,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
@@ -220,12 +225,19 @@ enum EquipResult : int {
   EQUIP_RESULT_TOO_FREQUENT = 6,
   EQUIP_RESULT_NOT_IN_ROOM = 7,
   EQUIP_RESULT_NEED_SWORD = 8,
+  EQUIP_RESULT_NOT_OWNED = 9,
+  EQUIP_RESULT_LEVEL_TOO_LOW = 10,
+  EQUIP_RESULT_INVENTORY_FULL = 11,
+  EQUIP_RESULT_BUSY = 12,
+  EQUIP_RESULT_IN_TRADE = 13,
+  EQUIP_RESULT_DB_ERROR = 14,
+  EQUIP_RESULT_NOT_ALLOWED = 15,
   EquipResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   EquipResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool EquipResult_IsValid(int value);
 constexpr EquipResult EquipResult_MIN = EQUIP_RESULT_NONE;
-constexpr EquipResult EquipResult_MAX = EQUIP_RESULT_NEED_SWORD;
+constexpr EquipResult EquipResult_MAX = EQUIP_RESULT_NOT_ALLOWED;
 constexpr int EquipResult_ARRAYSIZE = EquipResult_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EquipResult_descriptor();
@@ -241,6 +253,48 @@ inline bool EquipResult_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, EquipResult* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<EquipResult>(
     EquipResult_descriptor(), name, value);
+}
+enum ItemResult : int {
+  ITEM_RESULT_NONE = 0,
+  ITEM_RESULT_SUCCESS = 1,
+  ITEM_RESULT_NOT_IN_ROOM = 2,
+  ITEM_RESULT_DEAD = 3,
+  ITEM_RESULT_BUSY = 4,
+  ITEM_RESULT_TOO_FREQUENT = 5,
+  ITEM_RESULT_NOT_ALLOWED = 6,
+  ITEM_RESULT_NO_ITEM = 7,
+  ITEM_RESULT_TOO_FAR = 8,
+  ITEM_RESULT_NOT_OWNER = 9,
+  ITEM_RESULT_INVENTORY_FULL = 10,
+  ITEM_RESULT_GOLD_FULL = 11,
+  ITEM_RESULT_IN_TRADE = 12,
+  ITEM_RESULT_NOT_USABLE = 13,
+  ITEM_RESULT_HP_FULL = 14,
+  ITEM_RESULT_COOLDOWN = 15,
+  ITEM_RESULT_LEVEL_TOO_LOW = 16,
+  ITEM_RESULT_DB_ERROR = 17,
+  ITEM_RESULT_BAD_SLOT = 18,
+  ItemResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  ItemResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool ItemResult_IsValid(int value);
+constexpr ItemResult ItemResult_MIN = ITEM_RESULT_NONE;
+constexpr ItemResult ItemResult_MAX = ITEM_RESULT_BAD_SLOT;
+constexpr int ItemResult_ARRAYSIZE = ItemResult_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ItemResult_descriptor();
+template<typename T>
+inline const std::string& ItemResult_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, ItemResult>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function ItemResult_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    ItemResult_descriptor(), enum_t_value);
+}
+inline bool ItemResult_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ItemResult* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ItemResult>(
+    ItemResult_descriptor(), name, value);
 }
 enum LoginResult : int {
   LOGIN_RESULT_NONE = 0,
@@ -348,6 +402,11 @@ template <> struct is_proto_enum< ::Protocol::EquipResult> : ::std::true_type {}
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::EquipResult>() {
   return ::Protocol::EquipResult_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::ItemResult> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::ItemResult>() {
+  return ::Protocol::ItemResult_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::LoginResult> : ::std::true_type {};
 template <>

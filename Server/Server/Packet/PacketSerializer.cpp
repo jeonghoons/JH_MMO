@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "Packet/PacketSerializer.h"
+#include "Game/Item/Inventory.h"
+#include "Data/ServerData.h"
 #include "Game/Object/Player.h"
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ADD_OBJECT(shared_ptr<GameObject> object)
@@ -69,13 +71,55 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHANGE_EQUIP(int objectId, Prot
 	return MakeSendBuffer(packet, Protocol::SC_CHANGE_EQUIP);
 }
 
-shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHANGE_EQUIP_RESULT(Protocol::EquipResult result, Protocol::EquipPart part, int itemId)
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHANGE_EQUIP_RESULT(Protocol::EquipResult result, Protocol::EquipPart part, int itemId, int64_t itemDbId)
 {
 	Protocol::SC_CHANGE_EQUIP_RESULT_PACKET packet;
 	packet.set_result(result);
 	packet.set_part(part);
 	packet.set_item_id(itemId);
+	packet.set_item_db_id(itemDbId);
 	return MakeSendBuffer(packet, Protocol::SC_CHANGE_EQUIP_RESULT);
+}
+
+static void FillItemInfo(Protocol::ItemInfo* out, const ItemInstance& item)
+{
+	out->set_item_db_id(item.dbId);
+	out->set_item_id(item.itemId);
+	out->set_count(item.count);
+	out->set_equip_part(static_cast<Protocol::EquipPart>(item.equipPart));
+	out->set_slot(item.equipPart == 0 ? item.slot : -1);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY(const Inventory& inventory, int64_t gold)
+{
+	const EconomyData& economy = DataManager::GetEconomy();
+	Protocol::SC_INVENTORY_PACKET packet;
+	for (const auto& [dbId, item] : inventory.Items())
+		FillItemInfo(packet.add_items(), item);
+	packet.set_gold(gold);
+	packet.set_max_slots(economy.inventorySlots);
+	packet.set_pickup_range_cm(economy.pickupRangeCm);
+	packet.set_trade_range_cm(economy.tradeRangeCm);
+	return MakeSendBuffer(packet, Protocol::SC_INVENTORY);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY_UPDATE(const vector<ItemInstance>& changed, const vector<int64_t>& removed, int64_t gold)
+{
+	Protocol::SC_INVENTORY_UPDATE_PACKET packet;
+	for (const ItemInstance& item : changed)
+		FillItemInfo(packet.add_changed(), item);
+	for (const int64_t dbId : removed)
+		packet.add_removed(dbId);
+	packet.set_gold(gold);
+	return MakeSendBuffer(packet, Protocol::SC_INVENTORY_UPDATE);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::PacketId request, Protocol::ItemResult result)
+{
+	Protocol::SC_ITEM_RESULT_PACKET packet;
+	packet.set_request(request);
+	packet.set_result(result);
+	return MakeSendBuffer(packet, Protocol::SC_ITEM_RESULT);
 }
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_SKILL_AIM(int objectId, int skillId, bool active, uint32_t seq)

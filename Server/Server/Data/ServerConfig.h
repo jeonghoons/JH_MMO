@@ -33,7 +33,9 @@ struct ServerConfig
 	struct DummyZone { float x = 0, y = 0, r = 0; int count = 0; };   // count 0 = 제한 없음
 	std::vector<DummyZone> dummyZones;
 	bool viewAudit = false;         // 방마다 1초에 한 번 시야 목록을 실제 거리(WorldTable.ViewRadiusCm/ViewHysteresisCm)와 비교
-	int dbSaveDelayMs = 0;          // 장비·진행 상황 저장을 실행하기 전에 이만큼 멈춘다(빠른 재접속·중복 접속 시험, A2.7). DB 작업 스레드를 막으므로 시험에만 쓴다
+	bool devCommands = false;       // 개발 지급 명령(CS_DEV_GIVE)을 받는다(A3.3, D-152). 꺼져 있으면 NOT_ALLOWED
+	int dbItemFailEvery = 0;        // 0보다 크면 아이템 트랜잭션을 이 횟수마다 한 번 일부러 롤백한다(DB 실패 시험, D-162)
+	int dbSaveDelayMs = 0;          // 아이템 트랜잭션·진행 상황 저장을 실행하기 전에 이만큼 멈춘다(빠른 재접속·중복 접속 시험, A2.7). DB 작업 스레드를 막으므로 시험에만 쓴다
 
 	// 명령줄 --roll-drops <kills>: 0보다 크면 DataTable 로드 뒤 몬스터마다 그 횟수만큼 드랍을 굴려 빈도를 찍고 종료한다(DB·포트를 열지 않음)
 	int rollDropsKills = 0;
@@ -43,6 +45,7 @@ struct ServerConfig
 	std::string dbConnectionStringFrom = "default", dbConnectionsFrom = "default", playerSaveIntervalSecFrom = "default", logLevelFrom = "default", logDirFrom = "default";
 	std::string dummySpawnZoneFrom = "default", viewAuditFrom = "default", dbSaveDelayMsFrom = "default";
 	std::string loginWaitTimeoutSecFrom = "default", loginCloseForceSecFrom = "default";
+	std::string devCommandsFrom = "default", dbItemFailEveryFrom = "default";
 
 	// 실제로 쓸 워커 스레드 수 (0이면 CPU 코어 수 / 2, 최소 1)
 	int ResolvedWorkerThreads() const;

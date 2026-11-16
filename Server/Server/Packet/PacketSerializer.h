@@ -23,7 +23,11 @@ public:
 
 	static shared_ptr<SendBuffer> MAKE_SC_PONG(long long clientTime);
 	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_EQUIP(int objectId, Protocol::EquipPart part, int itemId, const Protocol::StatInfo& stat);
-	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_EQUIP_RESULT(Protocol::EquipResult result, Protocol::EquipPart part, int itemId);
+	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_EQUIP_RESULT(Protocol::EquipResult result, Protocol::EquipPart part, int itemId, int64_t itemDbId);
+	// 인벤토리(A3.3). 전체는 방 입장 직후 본인에게 한 번, 그 뒤로는 바뀐 행만.
+	static shared_ptr<SendBuffer> MAKE_SC_INVENTORY(const class Inventory& inventory, int64_t gold);
+	static shared_ptr<SendBuffer> MAKE_SC_INVENTORY_UPDATE(const vector<struct ItemInstance>& changed, const vector<int64_t>& removed, int64_t gold);
+	static shared_ptr<SendBuffer> MAKE_SC_ITEM_RESULT(Protocol::PacketId request, Protocol::ItemResult result);
 	// seq는 본인에게 보내는 거부·시간 초과에만 채운다 (그 밖은 0)
 	static shared_ptr<SendBuffer> MAKE_SC_SKILL_AIM(int objectId, int skillId, bool active, uint32_t seq);
 

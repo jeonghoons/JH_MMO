@@ -3,6 +3,7 @@
 #include "SendBuffer.h"
 #include "Network/NetworkSession.h"
 #include "Game/JMObjectManager.h"
+#include "Game/JMInventoryManager.h"
 #include "UI/JMUIManager.h"
 #include "UI/ChatWidget.h"
 #include "UI/WidgetNames.h"
@@ -25,6 +26,9 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_SKILL_AIM, &FPacketHandler::Handle_SC_SKILL_AIM);
 	RegisterHandler(Protocol::SC_REVIVE, &FPacketHandler::Handle_SC_REVIVE);
 	RegisterHandler(Protocol::SC_KICK, &FPacketHandler::Handle_SC_KICK);
+	RegisterHandler(Protocol::SC_INVENTORY, &FPacketHandler::Handle_SC_INVENTORY);
+	RegisterHandler(Protocol::SC_INVENTORY_UPDATE, &FPacketHandler::Handle_SC_INVENTORY_UPDATE);
+	RegisterHandler(Protocol::SC_ITEM_RESULT, &FPacketHandler::Handle_SC_ITEM_RESULT);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -105,8 +109,45 @@ namespace
 		case Protocol::EQUIP_RESULT_TOO_FREQUENT:	return FText::FromString(TEXT("장비를 너무 자주 바꾸고 있습니다. 잠시 후 다시 시도하세요."));
 		case Protocol::EQUIP_RESULT_NOT_IN_ROOM:	return FText::FromString(TEXT("게임에 들어간 뒤에 장비를 바꿀 수 있습니다."));
 		case Protocol::EQUIP_RESULT_NEED_SWORD:		return FText::FromString(TEXT("방패는 한손검을 들었을 때만 착용할 수 있습니다."));
+		case Protocol::EQUIP_RESULT_NOT_OWNED:		return FText::FromString(TEXT("인벤토리에 없는 아이템입니다."));
+		case Protocol::EQUIP_RESULT_LEVEL_TOO_LOW:	return FText::FromString(TEXT("레벨이 낮아 장착할 수 없습니다."));
+		case Protocol::EQUIP_RESULT_INVENTORY_FULL:	return FText::FromString(TEXT("인벤토리에 빈 칸이 없어 장비를 해제할 수 없습니다."));
+		case Protocol::EQUIP_RESULT_IN_TRADE:		return FText::FromString(TEXT("거래에 올린 아이템은 장착할 수 없습니다."));
+		case Protocol::EQUIP_RESULT_DB_ERROR:		return FText::FromString(TEXT("서버 오류로 장비를 바꾸지 못했습니다."));
+		case Protocol::EQUIP_RESULT_NOT_ALLOWED:	return FText::FromString(TEXT("이 계정은 장비를 바꿀 수 없습니다."));
 		default:									return FText::FromString(TEXT("장비를 바꾸지 못했습니다."));
 		}
+	}
+
+	// 아이템 요청 거부 결과(SC_ITEM_RESULT) 문구. BUSY·TOO_FREQUENT는 띄우지 않는다(호출하는 쪽에서 거른다).
+	FText ItemResultText(Protocol::ItemResult Result)
+	{
+		switch (Result)
+		{
+		case Protocol::ITEM_RESULT_NOT_IN_ROOM:		return FText::FromString(TEXT("게임에 들어간 뒤에 할 수 있습니다."));
+		case Protocol::ITEM_RESULT_DEAD:			return FText::FromString(TEXT("사망 중에는 할 수 없습니다."));
+		case Protocol::ITEM_RESULT_NOT_ALLOWED:		return FText::FromString(TEXT("허용되지 않은 요청입니다."));
+		case Protocol::ITEM_RESULT_NO_ITEM:			return FText::FromString(TEXT("존재하지 않는 아이템입니다."));
+		case Protocol::ITEM_RESULT_TOO_FAR:			return FText::FromString(TEXT("너무 멀리 있습니다."));
+		case Protocol::ITEM_RESULT_NOT_OWNER:		return FText::FromString(TEXT("아직 주울 수 없는 아이템입니다."));
+		case Protocol::ITEM_RESULT_INVENTORY_FULL:	return FText::FromString(TEXT("인벤토리에 빈 칸이 없습니다."));
+		case Protocol::ITEM_RESULT_GOLD_FULL:		return FText::FromString(TEXT("골드를 더 가질 수 없습니다."));
+		case Protocol::ITEM_RESULT_IN_TRADE:		return FText::FromString(TEXT("거래에 올린 아이템입니다."));
+		case Protocol::ITEM_RESULT_NOT_USABLE:		return FText::FromString(TEXT("사용할 수 없는 아이템입니다."));
+		case Protocol::ITEM_RESULT_HP_FULL:			return FText::FromString(TEXT("HP가 가득 차 있습니다."));
+		case Protocol::ITEM_RESULT_COOLDOWN:		return FText::FromString(TEXT("아직 다시 사용할 수 없습니다."));
+		case Protocol::ITEM_RESULT_LEVEL_TOO_LOW:	return FText::FromString(TEXT("레벨이 낮아 사용할 수 없습니다."));
+		case Protocol::ITEM_RESULT_DB_ERROR:		return FText::FromString(TEXT("서버 오류로 처리하지 못했습니다."));
+		case Protocol::ITEM_RESULT_BAD_SLOT:		return FText::FromString(TEXT("옮길 수 없는 칸입니다."));
+		default:									return FText::FromString(TEXT("요청을 처리하지 못했습니다."));
+		}
+	}
+
+	UJMInventoryManager* GetInventoryManager(const TSharedPtr<NetworkSession>& session)
+	{
+		UNetworkManager* NetManager = session ? session->OwnerNetwork.Get() : nullptr;
+		UGameInstance* GameInstance = NetManager ? NetManager->GetGameInstance() : nullptr;
+		return GameInstance ? GameInstance->GetSubsystem<UJMInventoryManager>() : nullptr;
 	}
 }
 
@@ -203,8 +244,30 @@ void FPacketHandler::Handle_SC_SKILL_AIM(TSharedPtr<NetworkSession>& session, Pr
 void FPacketHandler::Handle_SC_CHANGE_EQUIP_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_RESULT_PACKET& pkt)
 {
 	// 성공은 SC_CHANGE_EQUIP 방송으로 오므로 이 패킷은 거부일 때만 온다.
-	UE_LOG(LogTemp, Log, TEXT("ChangeEquip rejected: result=%d part=%d item=%d"), static_cast<int32>(pkt.result()), static_cast<int32>(pkt.part()), pkt.item_id());
+	UE_LOG(LogTemp, Log, TEXT("ChangeEquip rejected: result=%d part=%d item=%d dbId=%lld"), static_cast<int32>(pkt.result()), static_cast<int32>(pkt.part()), pkt.item_id(), static_cast<int64>(pkt.item_db_id()));
+	// 진행 중인 다른 아이템 작업 때문에 거부된 것(BUSY)은 다시 시도하면 되므로 문구를 띄우지 않는다.
+	if (pkt.result() == Protocol::EQUIP_RESULT_BUSY) return;
 	ShowSystemMessage(session, EquipResultText(pkt.result()));
+}
+
+void FPacketHandler::Handle_SC_INVENTORY(TSharedPtr<NetworkSession>& session, Protocol::SC_INVENTORY_PACKET& pkt)
+{
+	if (UJMInventoryManager* Inventory = GetInventoryManager(session))
+		Inventory->HandleInventory(pkt);
+}
+
+void FPacketHandler::Handle_SC_INVENTORY_UPDATE(TSharedPtr<NetworkSession>& session, Protocol::SC_INVENTORY_UPDATE_PACKET& pkt)
+{
+	if (UJMInventoryManager* Inventory = GetInventoryManager(session))
+		Inventory->HandleInventoryUpdate(pkt);
+}
+
+void FPacketHandler::Handle_SC_ITEM_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_ITEM_RESULT_PACKET& pkt)
+{
+	// 성공은 SC_INVENTORY_UPDATE로 오므로 이 패킷은 거부일 때만 온다.
+	UE_LOG(LogTemp, Log, TEXT("Item request rejected: request=%d result=%d"), static_cast<int32>(pkt.request()), static_cast<int32>(pkt.result()));
+	if (pkt.result() == Protocol::ITEM_RESULT_BUSY || pkt.result() == Protocol::ITEM_RESULT_TOO_FREQUENT) return;
+	ShowSystemMessage(session, ItemResultText(pkt.result()));
 }
 
 void FPacketHandler::Handle_SC_CHAT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHAT_PACKET& pkt)

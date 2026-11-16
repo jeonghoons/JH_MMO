@@ -29,6 +29,7 @@ protected:
 	// 숫자키 N(Index = N-1): 칸 내용이 스킬이면 조준 진입(조준 중에 같은 칸이면 취소), 빈 칸은 무시
 	void OnQuickSlotInput(int32 Index);
 	void OnCancelAimInput();
+	void OnInventoryInput();
 
 public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -76,6 +77,9 @@ protected:
 	TArray<TObjectPtr<UInputAction>> QuickSlotActions;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* CancelAimAction;
+	// 인벤토리·장비창 여닫기(I 키, A6.1)
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> InventoryAction;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))

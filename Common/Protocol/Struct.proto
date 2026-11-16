@@ -37,4 +37,13 @@ message ObjectInfo {
 	int32 level = 11;         // 플레이어 레벨(경험치 보상 전까지 시작 레벨 고정, A2.3b). 몬스터는 0
 }
 
+// 아이템 한 개(스택이면 한 묶음) = DB Player_Item 한 행 (A3.3, D-153)
+message ItemInfo {
+	int64 item_db_id = 1;
+	int32 item_id = 2;        // ItemTable ID
+	int64 count = 3;
+	EquipPart equip_part = 4; // 장착 중인 슬롯(1~7). 0 = 인벤토리
+	int32 slot = 5;           // 인벤토리 칸 번호(0부터). 장착 중이면 -1. 서버가 DB(Player_Item.BagSlot)에 저장한다 (A6.1)
+}
+
 

@@ -25,6 +25,9 @@
     <Filter Include="Game\Combat">
       <UniqueIdentifier>{9D5BFADA-BF3F-5A2F-8491-72DE6036E9A6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\Item">
+      <UniqueIdentifier>{7C1E2B54-3A0D-5E61-9F27-4B8D6A1C3E90}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Game\Lobby">
       <UniqueIdentifier>{54D25503-1BD6-58B5-9B3B-6050D2AB05D8}</UniqueIdentifier>
     </Filter>
@@ -77,6 +80,9 @@
     </ClInclude>
     <ClInclude Include="Game\Object\Monster.h">
       <Filter>Game\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Item\Inventory.h">
+      <Filter>Game\Item</Filter>
     </ClInclude>
     <ClInclude Include="Game\Object\Player.h">
       <Filter>Game\Object</Filter>
@@ -146,6 +152,9 @@
     </ClCompile>
     <ClCompile Include="Game\Object\Monster.cpp">
       <Filter>Game\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Item\Inventory.cpp">
+      <Filter>Game\Item</Filter>
     </ClCompile>
     <ClCompile Include="Game\Object\Player.cpp">
       <Filter>Game\Object</Filter>

@@ -32,11 +32,11 @@ public:
 	void TrySignUP(shared_ptr<GameSession> session, string recvId, string recvPw, int playerType);
 
 
-	// 장비 6칸 스냅숏을 한 트랜잭션으로 저장한다(DELETE 후 빈 칸을 뺀 INSERT). 끝나면 room 잡(Room::OnEquipSaved)으로 돌아간다.
-	// 플레이어당 동시에 하나만 보내므로(Room::RequestEquipSave) 저장 순서가 뒤바뀌지 않는다.
-	void SaveEquipSnapshot(shared_ptr<class Room> room, shared_ptr<class Player> player, int64_t playerUID, vector<int32_t> items, long long requestUs);
+	// 아이템 작업 하나를 한 트랜잭션으로 실행한다(A3.3, D-153). 끝나면 room 잡(Room::OnItemOpDone)으로 작업과 결과를 돌려준다.
+	// 플레이어당 동시에 하나만 보내므로(Player::itemOp) 같은 플레이어의 작업 순서가 뒤바뀌지 않는다.
+	void ExecItemOp(shared_ptr<class Room> room, shared_ptr<class Player> player, DB_ItemOp op);
 
-	// 진행 상황(레벨·경험치·HP·골드)을 저장한다(A2.5). 끝나면 room 잡(Room::OnProgressSaved)으로 저장한 값과 함께 돌아간다.
+	// 진행 상황(레벨·경험치·HP)을 저장한다(A2.5). 끝나면 room 잡(Room::OnProgressSaved)으로 저장한 값과 함께 돌아간다.
 	// 플레이어당 동시에 하나만 보낸다(Room::RequestProgressSave).
 	void SavePlayerProgress(shared_ptr<class Room> room, shared_ptr<class Player> player, int64_t playerUID, DB_PlayerProgress progress, long long requestUs);
 

@@ -17,7 +17,9 @@ enum PacketId {
     CS_PING = 1010;       // 부하 테스트/지연 측정용
     CS_SKILL_AIM = 1011;  // 스킬 조준 켜기/끄기 (상태가 바뀔 때만)
     CS_REVIVE = 1012;     // 부활 요청 (사망 후 대기 시간이 지나야 서버가 받는다)
-    
+    CS_DEV_GIVE = 1017;   // 개발 지급 명령 (ServerConfig [Debug] DevCommands=true일 때만). 1013~1016은 A3.5·A3.6 예약(DESIGN_ITEMS_TRADE)
+    CS_MOVE_ITEM = 1030;  // 인벤토리 칸 옮기기·맞바꾸기 (A6.1). 1018~1029는 A4.2·A4.3 예약
+
     // Server -> Client
     SC_LOGIN = 2000;
     SC_SIGNUP = 2001;
@@ -33,7 +35,10 @@ enum PacketId {
     SC_CHANGE_EQUIP_RESULT = 2013;   // 장착 거부 결과 (본인에게만)
     SC_SKILL_AIM = 2014;             // 스킬 조준 상태 (AOI 방송, 거부·시간 초과는 본인에게 seq 포함)
     SC_REVIVE = 2015;                // 플레이어 부활 (AOI 방송, 본인 포함)
-    SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2016~2026은 A3.3~A4.3 예약(DESIGN_ITEMS_TRADE)
+    SC_INVENTORY = 2016;             // 방 입장 직후 본인에게: 인벤토리·장착 전체 + 골드 + 칸 수 (A3.3)
+    SC_INVENTORY_UPDATE = 2017;      // 본인에게: 바뀐 행·지워진 행·현재 골드 (A3.3)
+    SC_ITEM_RESULT = 2018;           // 아이템 요청 거부 결과 (본인에게만, 거부일 때만)
+    SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2019~2026은 A3.6~A4.3 예약(DESIGN_ITEMS_TRADE)
 }
 
 enum MoveState {
@@ -86,6 +91,36 @@ enum EquipResult {
     EQUIP_RESULT_TOO_FREQUENT = 6;  // 교체 빈도 제한(MovementTable.EquipMinIntervalMs)
     EQUIP_RESULT_NOT_IN_ROOM = 7;   // 방에 들어가기 전
     EQUIP_RESULT_NEED_SWORD = 8;    // 보조손(방패)은 한손검을 든 상태에서만 착용
+    EQUIP_RESULT_NOT_OWNED = 9;       // 내 인벤토리 위치의 아이템이 아님 (A3.3, D-156)
+    EQUIP_RESULT_LEVEL_TOO_LOW = 10;  // ItemTable.RequiredLevel 미달
+    EQUIP_RESULT_INVENTORY_FULL = 11; // 해제·방패 자동 해제로 내려올 칸이 없음
+    EQUIP_RESULT_BUSY = 12;           // 이 플레이어의 다른 아이템 작업이 진행 중 (다시 시도)
+    EQUIP_RESULT_IN_TRADE = 13;       // 거래에 올린 아이템 (A4)
+    EQUIP_RESULT_DB_ERROR = 14;       // DB 실패 — 바뀐 것 없음
+    EQUIP_RESULT_NOT_ALLOWED = 15;    // 더미 봇 (D-161)
+}
+
+// SC_ITEM_RESULT_PACKET.result. 성공은 SC_INVENTORY_UPDATE로 알리므로 거부일 때만 보낸다. (DESIGN_ITEMS_TRADE "패킷")
+enum ItemResult {
+    ITEM_RESULT_NONE = 0;
+    ITEM_RESULT_SUCCESS = 1;
+    ITEM_RESULT_NOT_IN_ROOM = 2;
+    ITEM_RESULT_DEAD = 3;
+    ITEM_RESULT_BUSY = 4;            // 이 플레이어의 다른 아이템 작업이 진행 중 (클라는 문구를 띄우지 않음)
+    ITEM_RESULT_TOO_FREQUENT = 5;    // EconomyTable.ItemMinIntervalMs (클라는 문구를 띄우지 않음)
+    ITEM_RESULT_NOT_ALLOWED = 6;     // 더미 봇, DevCommands 꺼짐
+    ITEM_RESULT_NO_ITEM = 7;         // 없는 아이템·수량 오류
+    ITEM_RESULT_TOO_FAR = 8;
+    ITEM_RESULT_NOT_OWNER = 9;
+    ITEM_RESULT_INVENTORY_FULL = 10;
+    ITEM_RESULT_GOLD_FULL = 11;
+    ITEM_RESULT_IN_TRADE = 12;
+    ITEM_RESULT_NOT_USABLE = 13;
+    ITEM_RESULT_HP_FULL = 14;
+    ITEM_RESULT_COOLDOWN = 15;
+    ITEM_RESULT_LEVEL_TOO_LOW = 16;
+    ITEM_RESULT_DB_ERROR = 17;       // DB 실패 — 바뀐 것 없음
+    ITEM_RESULT_BAD_SLOT = 18;       // 칸 번호가 범위 밖이거나 쓸 수 없는 칸
 }
 
 // SC_LOGIN_INFO_PACKET.result. 성공일 때만 object_info가 채워진다.

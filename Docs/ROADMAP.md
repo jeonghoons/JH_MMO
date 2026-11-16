@@ -11,7 +11,7 @@
 - 콘텐츠 동결(D-147): 외형·애니메이션·이펙트는 "기능이 동작하면 통과"입니다. 어색한 점은 원인 조사 없이 백로그 "콘텐츠 다듬기"에 한 줄만 적습니다.
 
 ## 현재 위치 (2026-11-16)
-- 지금: 2026-11-16 로드맵 재설계(D-147). P0·A2.3a·A2.4(사망·부활) 완료, A2.5 DB 저장 연결은 구현·Claude 테스트 완료(사용자 PIE 확인 대기). A3.1 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) 완료(D-152~D-159, 사용자 승인), A3.2 데이터 테이블·A2.7 중복 접속 차단 완료. 다음 작업은 **A3.3 인벤토리**(`Player_Item`, 마이그레이션 0004). 골드는 드랍으로 먼저 들어오고(D-152) 경험치·레벨 보상은 A2.3b로 마일스톤 2 뒤.
+- 지금: 2026-11-16 로드맵 재설계(D-147). P0·A2.3a·A2.4(사망·부활) 완료, A2.5 DB 저장 연결은 구현·Claude 테스트 완료(사용자 PIE 확인 대기). A3.1 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) 완료(D-152~D-159, 사용자 승인), A3.2 데이터 테이블·A2.7 중복 접속 차단·**A3.3 인벤토리**(D-160~D-165) 완료. **A6.1 인벤토리 UI**(+ MC4.4 장착·해제, 칸 위치 서버 저장 — D-166) 완료(사용자 PIE 확인). 다음 작업은 **A3.4 사망 시 드랍 롤**. 골드는 드랍으로 먼저 들어오고(D-152) 경험치·레벨 보상은 A2.3b로 마일스톤 2 뒤.
 - 미뤄 둔 것: MC4.2 중간 테스트(2026-11-15~16 Claude가 일부 진행, 결과는 백로그 "콘텐츠 다듬기")·MC4.3·MC5.1·M3 Paragon Move·U8.
 - 참고: 동시성 감사 F1~F10·P1 설계 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md) — 코드가 바뀌었을 수 있으니 함수명으로 찾아 다시 확인. A1.3 병목 근거는 `TESTING.md` 2026-10-31. 기준선 재측정 방법·인자는 [PERF_BASELINE_2026-11-06.md](PERF_BASELINE_2026-11-06.md) §1.
 - 브랜치: 개발은 `Jeonghoon` 하나, `main`은 Phase·마일스톤 끝에 병합(+태그)하는 안정판, 시험은 짧은 `exp/…` 브랜치(`DECISIONS.md` 2026-11-12). `content/dev`는 사용 종료.
@@ -25,13 +25,10 @@
 - [확인 대기] A2.5 서버: DB 저장 연결 (2026-11-16 구현·Claude 테스트 통과, D-150·D-151) — 스키마 버전 관리(`Schema_Version`·`migrate.ps1`·서버 시작 검사), SQL 한 파일(`DbQueries.h`), 로그인 때 DB 레벨·HP 반영(`PLAYER_START_LEVEL` 고정 제거), 진행 상황 저장(값이 달라졌을 때만, 주기 60초 + 퇴장). 남은 확인(사용자, 다음 PIE 때): 로그인 → 몬스터에게 피해 → 종료 → 재접속 시 HUD HP·레벨 유지. 완료: 재접속 시 레벨·HP·골드 유지
 
 ### 1-3. 아이템·드랍·인벤토리
-- [예정] A3.3 `Inventory` 컴포넌트 + `Player_Item` 테이블(마이그레이션 0004 — `Player_Equipped` 이전·삭제, D-153): 로그인 로드, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`, 장착을 `item_db_id` 기준 + 보유·`RequiredLevel` 검사 + DB 성공 뒤 반영으로 전환(장비 스냅숏 저장 폐지, D-156), 골드를 진행 상황 스냅숏에서 빼고 증감 방식으로(D-152), 개발 지급 명령 `CS_DEV_GIVE`(`[Debug] DevCommands`)와 콘솔 `Give`. 범위가 커서 시작할 때 하위 단계로 나눕니다. 완료: 재접속·서버 재시작 후 인벤토리·장착·골드 유지, 저장 중 접속 해제·DB 실패 시 손실·중복 없음, 보유하지 않은 아이템 장착 거부, 장착 지연 측정 기록(Claude 테스트)
-- [예정] A6.1 인벤토리 UI(새로 만듦 — 옛 인벤토리 키·위젯은 C-1에서 삭제). 목록·아이콘·수량 표시, 골드 표시도 여기(HUD에는 두지 않음, D-148). 버리기 버튼은 A6.2에서 붙임(D-155). 완료: 서버 인벤토리 패킷대로 목록·아이콘·골드 표시, `Give`로 넣으면 갱신(사용자 PIE)
 - [예정] A3.4 사망 시 드랍 롤(아이템·골드, D-152·D-157) → `OBJECT_TYPE_ITEM` 월드 오브젝트(AOI 전파, 막타 소유권, 소멸 타이머, 방당 상한). 완료: 처치 시 `DropTable` 확률대로 드랍, 소유권 시간·소멸 타이머 경과 후 제거, AOI 진입·이탈 시 추가·제거 패킷(원시 소켓 Claude 테스트)
 - [예정] A3.5 줍기 `CS_PICKUP_ITEM`·버리기 `CS_DROP_ITEM`(바닥에 떨어뜨리기, D-155) 패킷 + 서버 재검증. 완료: 두 클라이언트가 같은 드랍을 경쟁해도 정확히 한 명만 획득, 버린 아이템을 다른 사람이 주움, 거리 밖·가득 참 거부(Claude 테스트)
 - [예정] A6.2 드랍 아이템 액터 표시(공용 메시)·줍기 입력(F 키 `IA_Interact`, D-157)·인벤토리 버리기 버튼. 완료: 드랍 표시·소멸, 줍기 입력 → 서버 획득 결과 반영, 버리기 → 바닥 표시, 2인 PIE 경쟁 시 한 명만 획득(사용자 PIE)
 - [예정] A3.6 소비 아이템 사용 + 액티브 칸(D-154): `CS_USE_ITEM`·`SC_USE_ITEM`(HP 물약, 재사용 시간), `CS_SET_QUICKSLOT` + `Player_QuickSlot` 저장, 클라 액티브 칸에 아이템 올리기·수량·재사용 표시(`RebuildQuickSlots` 확장). 완료: 물약 사용 시 HP·수량 반영, 사망·HP 최대·재사용 시간 중 거부(Claude 테스트) + 숫자키로 물약 사용, 칸 배치가 재접속 후 유지(사용자 PIE)
-- [예정] MC4.4 장비창 `WBP_Equipment`(스킬 슬롯 배열 HUD는 A2.3a로 옮김). 완료: 장비창(장착 7칸 + 내 인벤토리의 장비, D-156)에서 장착·해제가 서버를 거쳐 반영, 거부는 시스템 메시지(사용자 PIE) + 콘솔 `Equip` 삭제(D-067·D-114) — 2026-11-16: 주운 장비를 입는 데 필요해 여기로 당김, 목록 출처는 A3.1에서 인벤토리로 확정
 
 ### 1-4. 거래·경매장
 - [예정] A4.1 1:1 거래 상태기계(요청→수락→제시/잠금→양측 확정→원자적 교환), 타임아웃, 거리 이탈·사망·접속 해제 시 취소(D-158 — 거리 안 이동은 허용). 같은 Room의 JobQueue로 직렬화. 완료: 단계별 중간 접속 해제·타임아웃·이동·상태 불일치 요청(잠금 후 제시 변경, 중복 확정)에서 롤백 확인(Claude 테스트) — 패킷이 필요해 A4.2와 함께 판정
@@ -112,6 +109,8 @@ A5.4 램프에서 병목으로 확인된 것만 합니다(순서는 측정 결�
 - 죽은 플레이어만 시야에 있어도 몬스터가 잠들지 않음(`Monster::SleepIfNoPlayer`가 `_viewList`가 비었는지만 봄) — P4 몬스터 깨우기 범위 분리 때 함께 (A2.4 판독, 2026-11-16)
 - 서버를 창 닫기·강제 종료로 끄면 마지막 주기 저장 이후의 진행 상황(최대 `PlayerSaveIntervalSec`)이 사라짐 — 종료 시 전원 저장은 종료 처리(감사 F6~F10) 때 함께 (A2.5, 2026-11-16)
 - 200명 램프의 틱 지연 p99가 구간에 따라 30~80ms로 튐(틱 본문 p99는 17ms 이하, 변경 전 서버도 같음 — 2026-11-16 A2.4 A/B). 아래 "유휴 상태 틱 지연" 항목과 같은 원인인지 마일스톤 2 기준선 재측정 때 확인
+- 장착 지연 재측정(A3.3, D-163): 200명 램프(개별 계정 봇이 PlayerStart 한 곳에 몰림)에서 장착 요청 → 적용 p99가 75~230ms로 기준 50ms 초과. DB 실행은 p99 22ms 이하이고 같은 구간 틱 지연 p99와 같은 값이라 원인은 Room 잡 대기 — P1b(송신 묶기)와 A5.1(개별 계정 봇 흩어 배치) 뒤 같은 시나리오로 다시 잼 (`TESTING.md` 2026-11-16 A3.3)
+- DB 연결 실패를 시작 때 못 잡음: `DBConnection::Connect`의 반환식 `(ret == SQL_SUCCESS || SQL_SUCCESS_WITH_INFO)`가 항상 참(`ServerCore/DB/DBConnection.cpp`), 재연결도 없음 — 첫 연결만 스키마 버전 확인으로 걸러짐. A4.4 DB 지연·장애 시험 때 함께 (2026-11-16 A3.3 리뷰)
 - 스킬 판정 범위 재측정: 2001(반경 190·각도 180)·2002(각도 360) 수치의 측정 근거였던 Greystone 모션이 Downward Slash 등으로 바뀜 → 새 모션 기준으로 다시 재서 `SkillTable.csv` 확인 (DECISIONS D-034, 2026-11-12 W5)
 - 로딩 화면 이미지: 사용자가 이미지를 구해 오면 `WBP_SystemMessage` 대기(Waiting) 배경에 적용 (수동 작업 기록, 2026-11-06 예정이었음)
 - 연결 끊김 화면 처리(메시지·로그인 복귀): U1 시스템 메시지 창(`UJMUIManager::ShowSystemMessage`) 사용. 서버가 입장을 거부하거나 입장 중 끊기면 "방에 입장하는 중..." 창이 닫히지 않는 문제도 함께 (TODO, M0.5-1)
@@ -141,6 +140,8 @@ A5.4 램프에서 병목으로 확인된 것만 합니다(순서는 측정 결�
 - [완료] A2.4 플레이어 사망·부활 — 요청형 부활(`CS_REVIVE`/`SC_REVIVE`, `WorldTable` `ReviveDelaySec`·`ReviveHpPercent`), 사망 중 이동·공격 차단, 부활 창 `WBP_Revive`(MCP로 제작) (2026-11-16, D-149·T)
 - [완료] A3.1 아이템·거래 설계 문서 `DESIGN_ITEMS_TRADE.md` — 아이템 인스턴스(`Player_Item`)·인벤토리·드랍·소비 아이템·중복 접속·1:1 거래·경매(수령함)·패킷 번호, 사용자 승인 (2026-11-16, D-152~D-159)
 - [완료] A3.2 데이터 테이블 — `DropTable.csv`(12행)·`EconomyTable.csv` + 로더(`GetDrops`·`RollDrops`·`GetEconomy`), `ItemTable` 열 5개와 HP 물약 8001(임시 아이콘), 시험용 `--roll-drops <kills>`, UE `FItemTableRow`·`EItemUseEffect`·`DT_ItemTable` 재임포트, `item_table.export`가 `Slot` `None` 행 건너뜀 (2026-11-16, T)
+- [완료] A6.1 인벤토리 UI + MC4.4 장착·해제 + 인벤토리 칸 위치 — 한 창 `WBP_Inventory`(I 키, 장착 7칸 + 칸 격자 + 골드, 우클릭 장착·해제, 끌어다 놓기), `UItemSlotWidget`·`UInventoryWidget`, 칸 위치는 서버 저장(`Player_Item.BagSlot` 마이그레이션 0005, `CS_MOVE_ITEM`, 장착 교체는 옛 장비가 새 장비의 칸으로), 봇 `--slot-interval`. `WBP_Equipment`는 만들지 않음. 사용자 PIE 확인 완료 (2026-11-16, D-166·T)
+- [완료] A3.3 인벤토리 — `Player_Item`(마이그레이션 0004, `Player_Equipped` 이전·삭제), 서버 `Inventory`·아이템 작업 공통 경로(`itemOp`: Room 검증 → DB 한 트랜잭션 → 성공 뒤 반영), 장착을 `item_db_id` 기준 + 보유·`RequiredLevel`·빈 칸 검사로 전환(장비 스냅숏 저장 폐지), 골드 증감 방식, 개발 지급 `CS_DEV_GIVE`(`[Debug] DevCommands`)·콘솔 `Give`, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`·`SC_ITEM_RESULT`, 클라 `UJMInventoryManager`(빌드만, 화면 확인은 A6.1 때). 장착 지연 p99는 200명 램프에서 기준 50ms 초과(원인 = Room 잡 대기, 기록만 — 백로그) (2026-11-16, D-160~D-165·T)
 - [완료] A2.7 중복 접속 차단 — `AuthLobby` 접속 목록(기존 접속 `SC_KICK` + 소켓 닫기 → 새 로그인은 이전 접속의 마지막 저장이 끝날 때까지 대기, `LOGIN_RESULT_BUSY`), `Room::NotifyClosedIfDone`, `[Network] LoginWaitTimeoutSec`·`LoginCloseForceSec`, 시험용 `[Debug] DbSaveDelayMs`, 클라이언트 `SC_KICK`·게임 중 끊김 → 로그인 화면(빌드만, PIE 확인은 A2.5 확인 때 함께) (2026-11-16, D-158·T)
 
 ### Phase W

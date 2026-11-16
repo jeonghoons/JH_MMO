@@ -230,6 +230,25 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 
 	enterSession->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(player));
 
+	// 인벤토리(A3.3): 본인에게 전체를 한 번 보낸다. 더미 봇은 아이템 요청이 모두 거부되므로 보내지 않는다(D-164).
+	if (!player->isDummy)
+	{
+		enterSession->Send(PacketSerializer::MAKE_SC_INVENTORY(player->inventory, player->GetGold()));
+
+		// 로그인 때 메모리에서 인벤토리로 내린 장착 행을 DB에도 반영한다. 끝날 때까지 이 플레이어의 다른 아이템 요청은 BUSY.
+		if (!player->pendingEquipFix.empty())
+		{
+			DB_ItemOp fix;
+			fix.kind = ItemOpKind::LoginFix;
+			for (const auto& [dbId, slot] : player->pendingEquipFix)
+			{
+				fix.demoteDbIds.push_back(dbId);
+				fix.demoteSlots.push_back(slot);
+			}
+			StartItemOp(player, fix);
+		}
+	}
+
 	// 맵 등록 및 시야 동기화
 	ViewUpdate result = _gameMap.EnterMap(player->GetId(), player->GetPosition());
 	if (!result.entered.empty()) {
@@ -267,14 +286,10 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 	if (player->IsSkillAiming())
 		player->SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
 
-	// 저장에 실패해 남은 변경이 있으면 나갈 때 다시 저장한다. (진행 중인 저장은 OnEquipSaved에서 마무리된다)
-	if (player->equipSave.dirty && !player->equipSave.inFlight)
-		RequestEquipSave(player);
-
 	// 나갈 때의 진행 상황을 저장한다(A2.5). 진행 중인 저장이 있으면 OnProgressSaved가 이어서 최신 값으로 저장한다.
 	RequestProgressSave(player);
 
-	// 보낸 저장이 없으면 바로, 있으면 결과가 올 때(OnEquipSaved·OnProgressSaved) 접속 목록에서 빼게 한다.
+	// 보낸 DB 작업이 없으면 바로, 있으면 결과가 올 때(OnItemOpDone·OnProgressSaved) 접속 목록에서 빼게 한다.
 	NotifyClosedIfDone(player);
 }
 
@@ -292,7 +307,7 @@ void Room::NotifyClosedIfDone(const shared_ptr<Player>& player)
 	if (session != nullptr && session->IsConnected()) return;
 
 	// DB에 가 있는 작업이 남았다. 결과를 받는 쪽이 다시 부른다.
-	if (player->equipSave.inFlight || player->progressSave.inFlight) return;
+	if (player->itemOp.inFlight || player->progressSave.inFlight) return;
 
 	player->closedNotified = true;
 	GLobby->PushJob(&AuthLobby::OnPlayerClosed, player->GetPlayerUID(), player->GetId());
@@ -507,99 +522,345 @@ void Room::UpdateAims(long long nowMs)
 	}
 }
 
-void Room::PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part, int itemId)
+void Room::PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part, int64_t itemDbId)
 {
 	if (player == nullptr) return;
 
+	int itemId = 0;   // 요청한 행의 종류(찾은 뒤에 채운다)
 	auto reject = [&](Protocol::EquipResult result) {
-		LOG_DEBUG("Equip", "거부 player={} part={} item={} result={}", player->GetId(), static_cast<int>(part), itemId, Protocol::EquipResult_Name(result));
+		LOG_DEBUG("Equip", "거부 player={} part={} dbId={} item={} result={}", player->GetId(), static_cast<int>(part), itemDbId, itemId, Protocol::EquipResult_Name(result));
 		if (shared_ptr<Session> session = player->GetSession())
-			session->Send(PacketSerializer::MAKE_SC_CHANGE_EQUIP_RESULT(result, part, itemId));
+			session->Send(PacketSerializer::MAKE_SC_CHANGE_EQUIP_RESULT(result, part, itemId, itemDbId));
 	};
 
-	if (GetGameObject(player->GetId()) == nullptr) { reject(Protocol::EQUIP_RESULT_NOT_IN_ROOM); return; }
+	if (false == IsInRoom(player)) { reject(Protocol::EQUIP_RESULT_NOT_IN_ROOM); return; }
+	// 더미 봇은 전원이 DB 한 행을 써서 item_db_id 기준 장착을 할 수 없다(D-161).
+	if (player->isDummy || player->GetPlayerUID() == 0) { reject(Protocol::EQUIP_RESULT_NOT_ALLOWED); return; }
 
-	// 검증 순서: 형식(슬롯·아이템) → 상태(사망·시전) → 빈도. 빈도 제한은 통과한 요청만 시간을 갱신한다.
+	// 검증 순서: 형식(슬롯·보유·아이템 슬롯) → 상태(사망·시전·레벨) → 빈도 → 진행 중인 작업 → 빈 칸.
+	// 빈도 제한은 통과한 요청만 시간을 갱신한다.
 	if (part < Protocol::EQUIP_PART_HEAD || part > Protocol::EQUIP_PART_OFFHAND) { reject(Protocol::EQUIP_RESULT_WRONG_SLOT); return; }
+
+	const ItemInstance* newItem = nullptr;
 	const ItemData* item = nullptr;
-	if (itemId != 0)
+	bool alreadyEquipped = false;   // 요청한 행이 이미 그 슬롯에 있다(바뀌는 것이 없음)
+	if (itemDbId != 0)
 	{
-		item = DataManager::GetItemData(itemId);
+		newItem = player->inventory.Find(itemDbId);
+		if (newItem == nullptr) { reject(Protocol::EQUIP_RESULT_NOT_OWNED); return; }   // 없는 행, 다른 사람의 행
+		itemId = newItem->itemId;
+		item = DataManager::GetItemData(itemId);   // 로그인 때 ItemTable에 있는 것만 올렸다
 		if (item == nullptr) { reject(Protocol::EQUIP_RESULT_NO_ITEM); return; }
 		if (static_cast<int>(item->slot) != static_cast<int>(part)) { reject(Protocol::EQUIP_RESULT_WRONG_SLOT); return; }
+		alreadyEquipped = newItem->equipPart == static_cast<int>(part);
+		if (!alreadyEquipped && newItem->equipPart != 0) { reject(Protocol::EQUIP_RESULT_NOT_OWNED); return; }   // 인벤토리 위치의 행만 장착한다
 	}
 	// 보조손(방패)은 한손검을 든 상태에서만 착용한다 (MC4.2f, DECISIONS 2026-11-09). 해제는 언제나 허용.
-	if (part == Protocol::EQUIP_PART_OFFHAND && itemId != 0 && player->GetWeaponType() != WeaponType::Sword) { reject(Protocol::EQUIP_RESULT_NEED_SWORD); return; }
+	if (part == Protocol::EQUIP_PART_OFFHAND && itemDbId != 0 && player->GetWeaponType() != WeaponType::Sword) { reject(Protocol::EQUIP_RESULT_NEED_SWORD); return; }
 	if (player->GetStat().IsDead()) { reject(Protocol::EQUIP_RESULT_DEAD); return; }
 	if (player->IsCasting()) { reject(Protocol::EQUIP_RESULT_ACTING); return; }
+	if (item != nullptr && item->requiredLevel > player->GetInfo().level()) { reject(Protocol::EQUIP_RESULT_LEVEL_TOO_LOW); return; }
 
 	const MovementData* rule = DataManager::GetMovementData(PLAYER_MOVEMENT_ID);   // 서버 시작 때 존재를 확인했다
 	if (!player->equipCooldown.IsReady()) { reject(Protocol::EQUIP_RESULT_TOO_FREQUENT); return; }
 	player->equipCooldown.Reset(rule->equipMinIntervalMs);
 
-	// 같은 아이템이면 바뀌는 것이 없다 (잠금·방송 없이 끝낸다)
-	if (player->GetEquippedItem(part) == itemId) return;
+	// 바뀌는 것이 없으면(이미 장착한 행, 빈 슬롯 해제) 조용히 끝낸다 (잠금·방송·DB 없음)
+	const int64_t oldDbId = player->inventory.GetEquippedDbId(part);
+	if (alreadyEquipped || (itemDbId == 0 && oldDbId == 0)) return;
 
-	// 무기가 바뀌면 조준 중인 스킬도 바뀌므로 조준을 해제한다. 상태만 바꾼다 — 원격은 SC_CHANGE_EQUIP으로, 본인은 자기 무기 교체 처리로 끈다.
-	if (part == Protocol::EQUIP_PART_WEAPON && player->IsSkillAiming())
-		player->SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
+	if (player->itemOp.inFlight) { Metrics::ItemOpBusy.fetch_add(1); reject(Protocol::EQUIP_RESULT_BUSY); return; }
 
-	player->SetEquippedItem(part, itemId);
-
-	// 무기가 한손검이 아니게 되면(활·맨손 포함) 보조손(방패)을 서버가 비운다 (MC4.2f)
-	const bool offhandCleared = part == Protocol::EQUIP_PART_WEAPON &&
-		player->GetEquippedItem(Protocol::EQUIP_PART_OFFHAND) != 0 && player->GetWeaponType() != WeaponType::Sword;
-	if (offhandCleared)
-		player->SetEquippedItem(Protocol::EQUIP_PART_OFFHAND, 0);
-
-	player->RecalcStat();
-
-	// 무기 슬롯이 바뀌면 착용·해제 모두 행동 잠금 — 스왑으로 쿨타임을 우회하지 못하게 한다(DECISIONS 2026-11-04, 2026-11-07)
+	// 무기가 한손검이 아니게 되면(활·맨손 포함) 보조손(방패)을 함께 내린다 (MC4.2f)
+	int64_t offhandDbId = 0;
 	if (part == Protocol::EQUIP_PART_WEAPON)
-		player->LockActionForSwap(rule->weaponSwapLockMs);
-
-	// 보조손 해제를 먼저 보내 클라이언트가 "활 + 방패" 상태를 거치지 않게 한다. 두 패킷 모두 최종 스탯을 싣는다.
-	if (offhandCleared)
-		BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_CHANGE_EQUIP(player->GetId(), Protocol::EQUIP_PART_OFFHAND, 0, player->GetInfo().stat()), true);
-	BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_CHANGE_EQUIP(player->GetId(), part, itemId, player->GetInfo().stat()), true);
-
-	// 변경 즉시 저장(DECISIONS 2026-11-07, 측정: TESTING.md MC3.3)
-	RequestEquipSave(player);
-}
-
-void Room::RequestEquipSave(shared_ptr<Player> player)
-{
-	if (player == nullptr || player->GetPlayerUID() == 0) return;   // DB 캐릭터가 아닌 경우(로그인 전 등)
-	Metrics::EquipSaveRequested.fetch_add(1);
-
-	if (player->equipSave.inFlight)
 	{
-		player->equipSave.dirty = true;
-		Metrics::EquipSaveCoalesced.fetch_add(1);
-		return;
+		const WeaponType newWeaponType = item ? item->weaponType : WeaponType::Unarmed;
+		if (newWeaponType != WeaponType::Sword)
+			offhandDbId = player->inventory.GetEquippedDbId(Protocol::EQUIP_PART_OFFHAND);
 	}
 
-	player->equipSave.inFlight = true;
-	player->equipSave.dirty = false;
-	Metrics::EquipSaveSent.fetch_add(1);
-	Metrics::EquipSaveInFlight.fetch_add(1);
+	// 인벤토리 칸(A6.1): 내려오는 행(옛 장비·방패)이 들어갈 칸을 정한다. 올라가는 행이 비우는 칸을 먼저 쓰고(옛 장비와 자리 맞바꿈),
+	// 모자라면 앞의 빈 칸을 쓴다. 그래서 같은 슬롯 교체는 가득 차 있어도 되고, 칸이 더 필요한 요청만 빈 칸이 없으면 거부한다.
+	vector<int> landing;
+	if (newItem != nullptr) landing.push_back(newItem->slot);
+	const int needSlots = (oldDbId != 0 ? 1 : 0) + (offhandDbId != 0 ? 1 : 0);
+	if (static_cast<int>(landing.size()) < needSlots)
+	{
+		const vector<int> freeSlots = player->inventory.FreeSlots(DataManager::GetEconomy().inventorySlots, needSlots - static_cast<int>(landing.size()));
+		landing.insert(landing.end(), freeSlots.begin(), freeSlots.end());
+	}
+	if (static_cast<int>(landing.size()) < needSlots) { reject(Protocol::EQUIP_RESULT_INVENTORY_FULL); return; }
 
-	vector<int32_t> items(player->GetInfo().equip_items().begin(), player->GetInfo().equip_items().end());
-	GDBWorker->PushDBJob(&DatabaseWorker::SaveEquipSnapshot, shared_from_this(), player, player->GetPlayerUID(), items, Metrics::NowUs());
+	DB_ItemOp op;
+	op.kind = ItemOpKind::Equip;
+	op.itemId = itemId;
+	op.equipPart = static_cast<int32_t>(part);
+	op.newDbId = itemDbId;
+	op.oldDbId = oldDbId;
+	op.offhandDbId = offhandDbId;
+	op.newSlot = newItem != nullptr ? newItem->slot : -1;
+	size_t next = 0;
+	if (oldDbId != 0) op.oldSlot = landing[next++];
+	if (offhandDbId != 0) op.offhandSlot = landing[next++];
+	StartItemOp(player, op);
 }
 
-void Room::OnEquipSaved(shared_ptr<Player> player, bool success)
+void Room::PlayerDevGive(shared_ptr<Player> player, int itemId, int64_t count)
 {
-	Metrics::EquipSaveInFlight.fetch_sub(1);
-	player->equipSave.inFlight = false;
+	if (player == nullptr) return;
 
-	// 실패하면 dirty로 남겨 다음 변경·퇴장 때 다시 저장한다.
-	if (!success)
-		player->equipSave.dirty = true;
-	// 저장하는 동안 다시 바뀌었으면 최신 값으로 한 번 더 저장한다.
-	else if (player->equipSave.dirty)
-		RequestEquipSave(player);
+	auto reject = [&](Protocol::ItemResult result) {
+		LOG_DEBUG("Item", "지급 거부 player={} item={} count={} result={}", player->GetId(), itemId, count, Protocol::ItemResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_DEV_GIVE, result));
+	};
 
+	if (false == GServerConfig.devCommands) { reject(Protocol::ITEM_RESULT_NOT_ALLOWED); return; }
+	const Protocol::ItemResult check = CheckItemRequest(player);
+	if (check != Protocol::ITEM_RESULT_SUCCESS) { reject(check); return; }
+
+	const EconomyData& economy = DataManager::GetEconomy();
+	DB_ItemOp op;
+	op.kind = ItemOpKind::Give;
+	if (itemId == 0)
+	{
+		// 골드: 상한을 넘기는 지급은 거부한다. 실제 증액은 DB에서 조건부로 하고 잔액을 돌려받는다(D-152).
+		if (count < 1) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+		if (count > static_cast<int64_t>(economy.goldMax) - player->GetGold()) { reject(Protocol::ITEM_RESULT_GOLD_FULL); return; }
+		op.goldDelta = count;
+		op.goldMax = economy.goldMax;
+	}
+	else
+	{
+		const ItemData* item = DataManager::GetItemData(itemId);
+		if (item == nullptr || count < 1) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+		// 인벤토리 전체보다 많은 수량은 계획을 세우기 전에 거부한다(큰 값의 계산 넘침 방어).
+		if (count > static_cast<int64_t>(item->maxStack) * economy.inventorySlots) { reject(Protocol::ITEM_RESULT_INVENTORY_FULL); return; }
+		// 덜 찬 스택부터 채우고 남으면 새 칸. 전부 들어갈 자리가 없으면 통째로 거부한다(D-155).
+		if (false == player->inventory.PlanAdd(itemId, count, item->maxStack, economy.inventorySlots, op.fills, op.newCounts, op.newSlots)) { reject(Protocol::ITEM_RESULT_INVENTORY_FULL); return; }
+		op.itemId = itemId;
+	}
+
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+void Room::PlayerMoveItem(shared_ptr<Player> player, int64_t itemDbId, int toSlot)
+{
+	if (player == nullptr) return;
+
+	auto reject = [&](Protocol::ItemResult result) {
+		LOG_DEBUG("Item", "칸 옮기기 거부 player={} dbId={} to={} result={}", player->GetId(), itemDbId, toSlot, Protocol::ItemResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_MOVE_ITEM, result));
+	};
+
+	const Protocol::ItemResult check = CheckItemRequest(player);
+	if (check != Protocol::ITEM_RESULT_SUCCESS) { reject(check); return; }
+
+	const EconomyData& economy = DataManager::GetEconomy();
+	// 인벤토리 위치의 내 행만 옮긴다(장착 중인 행은 장착 해제로 내린다).
+	const ItemInstance* item = player->inventory.Find(itemDbId);
+	if (item == nullptr || item->equipPart != 0) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+	// 대상은 0 ~ 칸 수 - 1. 메모리에 올리지 않은 DB 행이 차지한 칸으로는 옮기지 못한다.
+	if (toSlot < 0 || toSlot >= economy.inventorySlots || player->inventory.IsSlotReserved(toSlot)) { reject(Protocol::ITEM_RESULT_BAD_SLOT); return; }
+	if (item->slot == toSlot) return;   // 바뀌는 것이 없다
+
+	const ItemInstance* other = player->inventory.FindBySlot(toSlot);
+
+	DB_ItemOp op;
+	op.kind = ItemOpKind::Move;
+	op.moveDbId = itemDbId;
+	op.moveFrom = item->slot;
+	op.moveTo = toSlot;
+	op.moveOtherDbId = other != nullptr ? other->dbId : 0;
+
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+bool Room::IsInRoom(const shared_ptr<Player>& player) const
+{
+	if (player == nullptr) return false;
+	const auto it = _players.find(player->GetId());
+	return it != _players.end() && it->second == player;
+}
+
+Protocol::ItemResult Room::CheckItemRequest(const shared_ptr<Player>& player)
+{
+	if (false == IsInRoom(player)) return Protocol::ITEM_RESULT_NOT_IN_ROOM;
+	// 더미 봇은 전원이 DB 한 행을 쓴다 — 아이템·골드 요청을 모두 거부한다.
+	if (player->isDummy || player->GetPlayerUID() == 0) return Protocol::ITEM_RESULT_NOT_ALLOWED;
+	if (!player->itemOp.interval.IsReady()) return Protocol::ITEM_RESULT_TOO_FREQUENT;
+	if (player->itemOp.inFlight)
+	{
+		Metrics::ItemOpBusy.fetch_add(1);
+		return Protocol::ITEM_RESULT_BUSY;
+	}
+	return Protocol::ITEM_RESULT_SUCCESS;
+}
+
+void Room::StartItemOp(const shared_ptr<Player>& player, DB_ItemOp op)
+{
+	op.playerUID = player->GetPlayerUID();
+	op.requestUs = Metrics::NowUs();
+
+	// 시험용: N번째 아이템 트랜잭션을 일부러 롤백시킨다([Debug] DbItemFailEvery, D-162)
+	static atomic<long long> opCounter{ 0 };
+	if (GServerConfig.dbItemFailEvery > 0 && (opCounter.fetch_add(1) + 1) % GServerConfig.dbItemFailEvery == 0)
+		op.forceFail = true;
+
+	player->itemOp.inFlight = true;
+	player->itemOp.weaponSwapPending = (op.kind == ItemOpKind::Equip && op.equipPart == Protocol::EQUIP_PART_WEAPON);
+	Metrics::ItemOpSent.fetch_add(1);
+	Metrics::ItemOpInFlight.fetch_add(1);
+	GDBWorker->PushDBJob(&DatabaseWorker::ExecItemOp, shared_from_this(), player, op);
+}
+
+void Room::OnItemOpDone(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult result)
+{
+	Metrics::ItemOpInFlight.fetch_sub(1);
+	player->itemOp.inFlight = false;
+	player->itemOp.weaponSwapPending = false;
+
+	const long long totalUs = Metrics::NowUs() - op.requestUs;
+	Metrics::ItemOpTotalUs.Add(totalUs);
+	if (!result.success)
+		Metrics::ItemOpFailed.fetch_add(1);
+
+	// 방을 나간 플레이어(접속 해제)는 메모리·패킷 반영을 건너뛴다. DB에는 이미 들어갔고 다음 로그인 때 읽는다.
+	const bool inRoom = IsInRoom(player);
+	const shared_ptr<GameSession> session = inRoom ? player->GetSession() : nullptr;
+
+	// 결과를 알 수 없는 실패(실행 오류·결과 행 없음 — 예: COMMIT 뒤 연결이 끊김)는 DB에 반영됐을 수도 있다.
+	// 메모리를 그대로 두면 DB와 어긋난 채 남으므로 접속을 끊어 다음 로그인 때 DB 값을 다시 읽게 한다.
+	// (롤백이 확인된 실패는 메모리 = DB라 끊지 않고 DB_ERROR만 알린다.)
+	if (result.unknown)
+	{
+		LOG_ERROR("Item", "아이템 작업 결과를 알 수 없어 접속을 끊습니다 (PlayerId {}) — 다음 로그인 때 DB 값을 다시 읽습니다", op.playerUID);
+		if (inRoom && session) session->ForceClose(L"ItemOp: unknown DB result");
+	}
+
+	// 행 하나의 메모리 값을 바꾸고 보낼 목록에 넣는다
+	vector<ItemInstance> changed;
+	// slot = 인벤토리 칸(장착하면 -1)
+	auto setEquipPart = [&](int64_t dbId, int equipPart, int slot) {
+		const ItemInstance* found = player->inventory.Find(dbId);
+		if (found == nullptr) return;
+		ItemInstance moved = *found;
+		moved.equipPart = equipPart;
+		moved.slot = slot;
+		player->inventory.Set(moved);
+		changed.push_back(moved);
+	};
+
+	switch (op.kind)
+	{
+	case ItemOpKind::Give:
+	{
+		if (!result.success)
+		{
+			if (session) session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_DEV_GIVE, Protocol::ITEM_RESULT_DB_ERROR));
+			break;
+		}
+		if (!inRoom) break;
+		if (result.newDbIds.size() != op.newCounts.size())
+		{
+			// 일어나면 안 된다(쿼리와 결과 읽기가 어긋남). DB에는 반영됐으므로 다음 로그인 때 맞춰진다.
+			LOG_ERROR("Item", "지급 결과의 새 행 수가 다릅니다 (PlayerId {}, 기대 {}, 받음 {})", op.playerUID, op.newCounts.size(), result.newDbIds.size());
+			break;
+		}
+		for (const DB_ItemOp::Fill& fill : op.fills)
+		{
+			const ItemInstance* found = player->inventory.Find(fill.itemDbId);
+			if (found == nullptr) continue;
+			ItemInstance filled = *found;
+			filled.count = fill.expectCount + fill.add;
+			player->inventory.Set(filled);
+			changed.push_back(filled);
+		}
+		for (size_t i = 0; i < op.newCounts.size(); ++i)
+		{
+			const ItemInstance created{ result.newDbIds[i], op.itemId, op.newCounts[i], 0, op.newSlots[i] };
+			player->inventory.Set(created);
+			changed.push_back(created);
+		}
+		if (result.gold >= 0)
+			player->SetGold(result.gold);
+		if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, {}, player->GetGold()));
+		break;
+	}
+	case ItemOpKind::Equip:
+	{
+		Metrics::EquipApplyUs.Add(totalUs);
+		const Protocol::EquipPart part = static_cast<Protocol::EquipPart>(op.equipPart);
+		if (!result.success)
+		{
+			if (session) session->Send(PacketSerializer::MAKE_SC_CHANGE_EQUIP_RESULT(Protocol::EQUIP_RESULT_DB_ERROR, part, op.itemId, op.newDbId));
+			break;
+		}
+		if (!inRoom) break;
+
+		// 여기서는 사망·시전 여부를 다시 보지 않는다 — 이미 DB에 반영됐다(DESIGN_ITEMS_TRADE "장착 검사 확장").
+		if (op.newDbId != 0) setEquipPart(op.newDbId, op.equipPart, -1);
+		if (op.oldDbId != 0) setEquipPart(op.oldDbId, 0, op.oldSlot);
+		if (op.offhandDbId != 0) setEquipPart(op.offhandDbId, 0, op.offhandSlot);
+
+		// 무기가 바뀌면 조준 중인 스킬도 바뀌므로 조준을 해제한다. 상태만 바꾼다 — 원격은 SC_CHANGE_EQUIP으로, 본인은 자기 무기 교체 처리로 끈다.
+		if (part == Protocol::EQUIP_PART_WEAPON && player->IsSkillAiming())
+			player->SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
+
+		player->SetEquippedItem(part, op.itemId);
+		const bool offhandCleared = op.offhandDbId != 0;
+		if (offhandCleared)
+			player->SetEquippedItem(Protocol::EQUIP_PART_OFFHAND, 0);
+
+		player->RecalcStat();
+
+		// 무기 슬롯이 바뀌면 착용·해제 모두 행동 잠금 — 스왑으로 쿨타임을 우회하지 못하게 한다(DECISIONS 2026-11-04, 2026-11-07).
+		// 잠금은 결과를 적용하는 지금부터 건다.
+		if (part == Protocol::EQUIP_PART_WEAPON)
+		{
+			const MovementData* rule = DataManager::GetMovementData(PLAYER_MOVEMENT_ID);
+			player->LockActionForSwap(rule->weaponSwapLockMs);
+		}
+
+		// 보조손 해제를 먼저 보내 클라이언트가 "활 + 방패" 상태를 거치지 않게 한다. 두 패킷 모두 최종 스탯을 싣는다.
+		if (offhandCleared)
+			BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_CHANGE_EQUIP(player->GetId(), Protocol::EQUIP_PART_OFFHAND, 0, player->GetInfo().stat()), true);
+		BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_CHANGE_EQUIP(player->GetId(), part, op.itemId, player->GetInfo().stat()), true);
+
+		if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, {}, player->GetGold()));
+		break;
+	}
+	case ItemOpKind::Move:
+	{
+		if (!result.success)
+		{
+			if (session) session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_MOVE_ITEM, Protocol::ITEM_RESULT_DB_ERROR));
+			break;
+		}
+		if (!inRoom) break;
+		// 장착 여부(0)는 그대로 두고 칸만 바꾼다.
+		setEquipPart(op.moveDbId, 0, op.moveTo);
+		if (op.moveOtherDbId != 0) setEquipPart(op.moveOtherDbId, 0, op.moveFrom);
+		if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, {}, player->GetGold()));
+		break;
+	}
+	case ItemOpKind::LoginFix:
+	{
+		// 메모리는 로그인 때 이미 내렸다. 실패하면 DB에는 장착으로 남아 다음 로그인 때 다시 시도한다
+		// (그 사이 그 행을 장착하려 하면 트랜잭션 조건 불일치로 롤백되어 DB_ERROR — 손실·중복은 없다).
+		if (result.success)
+			player->pendingEquipFix.clear();
+		else
+			LOG_ERROR("Item", "로그인 장착 보정 실패 (PlayerId {}, 행 {}개) — 다음 로그인 때 다시 시도합니다", op.playerUID, op.demoteDbIds.size());
+		break;
+	}
+	}
+
+	// 방을 나간 플레이어의 마지막 DB 작업이 끝났으면 접속 목록에서 빼게 한다(A2.7).
 	NotifyClosedIfDone(player);
 }
 
@@ -668,8 +929,8 @@ void Room::OnProgressSaved(shared_ptr<Player> player, DB_PlayerProgress saved, b
 		else
 		{
 			const DB_PlayerProgress lost = player->MakeProgressSnapshot();
-			LOG_ERROR("Room", "퇴장 저장을 포기합니다 (PlayerId {}, Level {}, Exp {}, Hp {}, Gold {}) — DB에는 이전 값이 남습니다",
-				player->GetPlayerUID(), lost.level, lost.exp, lost.hp, lost.gold);
+			LOG_ERROR("Room", "퇴장 저장을 포기합니다 (PlayerId {}, Level {}, Exp {}, Hp {}) — DB에는 이전 값이 남습니다",
+				player->GetPlayerUID(), lost.level, lost.exp, lost.hp);
 		}
 	}
 
@@ -749,6 +1010,8 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 			Metrics::AimCastClear.fetch_add(1);
 			aimNotice.pending = true;
 		}
+		// 무기 교체가 DB에 가 있는 동안에는 시전을 받지 않는다(A3.3). 결과가 오면 스왑 잠금이 걸리고 스킬 구성도 바뀐다.
+		if (player->itemOp.weaponSwapPending) return;
 	}
 
 	const SkillData* skill = caster->FindCastableSkill(slot);

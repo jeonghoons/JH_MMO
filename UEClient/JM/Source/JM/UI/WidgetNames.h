@@ -11,4 +11,5 @@ namespace WidgetNames
 	inline const FName Chatting(TEXT("Chatting"));
 	inline const FName SystemMessage(TEXT("SystemMessage"));
 	inline const FName Revive(TEXT("Revive"));
+	inline const FName Inventory(TEXT("Inventory"));
 }

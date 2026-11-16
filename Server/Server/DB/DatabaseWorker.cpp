@@ -87,9 +87,8 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 	WCHAR outPassword[50] = {};
 	DB_PlayerInfo outPlayerInfo = {};
 	DB_PlayerData outPlayerData = {};
-	int32_t outEquipSlot = 0;
-	int32_t outItemId = 0;
-	SQLLEN len[12] = { 0 };
+	DB_ItemRow outItem;
+	SQLLEN len[16] = { 0 };
 
 	dbConn->BindCol(1, outPassword, sizeof(outPassword), &len[0]);
 	dbConn->BindCol(2, &outPlayerInfo.playerUID, &len[1]);
@@ -102,9 +101,13 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 	dbConn->BindCol(8, &outPlayerData.hp, &len[7]);
 	dbConn->BindCol(9, &outPlayerData.gold, &len[8]);
 	
-	dbConn->BindCol(10, &outEquipSlot, &len[9]);
-	dbConn->BindCol(11, &outItemId, &len[10]);
-	dbConn->BindCol(12, &outPlayerData.neverSaved, &len[11]);
+	dbConn->BindCol(10, &outItem.itemDbId, &len[9]);
+	dbConn->BindCol(11, &outItem.itemId, &len[10]);
+	dbConn->BindCol(12, &outItem.count, &len[11]);
+	dbConn->BindCol(13, &outItem.location, &len[12]);
+	dbConn->BindCol(14, &outItem.equipSlot, &len[13]);
+	dbConn->BindCol(15, &outItem.bagSlot, &len[14]);
+	dbConn->BindCol(16, &outPlayerData.neverSaved, &len[15]);
 
 	if (dbConn->Execute(DbQueries::SelectLogin))
 	{
@@ -132,9 +135,10 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 				isFirstRow = false;
 			}
 
-			if (loginSuccess && outItemId != 0)
+			// 아이템이 없는 캐릭터는 LEFT JOIN의 빈 행(ItemDbId 0) 하나가 온다.
+			if (loginSuccess && outItem.itemDbId != 0)
 			{
-				outPlayerData.equipped.emplace_back(outEquipSlot, outItemId);
+				outPlayerData.items.push_back(outItem);
 			}
 		}
 
@@ -206,33 +210,104 @@ void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, s
 }
 
 
-void DatabaseWorker::SaveEquipSnapshot(shared_ptr<Room> room, shared_ptr<Player> player, int64_t playerUID, vector<int32_t> items, long long requestUs)
+void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player, DB_ItemOp op)
 {
 	DBConnection* dbConn = _dbConnectionPool->Pop();
 	dbConn->Unbind();
 
-	SQLLEN uidLen = 0;
-	dbConn->BindParam(1, &playerUID, &uidLen);
+	// 공통 파라미터: 1 PlayerId, 2 Fail(시험용 강제 롤백)
+	int64_t playerUID = op.playerUID;
+	int32_t forceFail = op.forceFail ? 1 : 0;
+	SQLLEN paramLen[9] = { 0 };
+	dbConn->BindParam(1, &playerUID, &paramLen[0]);
+	dbConn->BindParam(2, &forceFail, &paramLen[1]);
 
-	const wstring query = DbQueries::BuildSaveEquipSnapshot(items);
+	wstring built;
+	const wchar_t* query = nullptr;
+	const char* kindName = "";
+	switch (op.kind)
+	{
+	case ItemOpKind::Equip:
+		kindName = "Equip";
+		dbConn->BindParam(3, &op.equipPart, &paramLen[2]);
+		dbConn->BindParam(4, &op.newDbId, &paramLen[3]);
+		dbConn->BindParam(5, &op.oldDbId, &paramLen[4]);
+		dbConn->BindParam(6, &op.offhandDbId, &paramLen[5]);
+		dbConn->BindParam(7, &op.newSlot, &paramLen[6]);
+		dbConn->BindParam(8, &op.oldSlot, &paramLen[7]);
+		dbConn->BindParam(9, &op.offhandSlot, &paramLen[8]);
+		query = DbQueries::ItemEquip.c_str();
+		break;
+	case ItemOpKind::Move:
+		kindName = "Move";
+		dbConn->BindParam(3, &op.moveDbId, &paramLen[2]);
+		dbConn->BindParam(4, &op.moveFrom, &paramLen[3]);
+		dbConn->BindParam(5, &op.moveTo, &paramLen[4]);
+		dbConn->BindParam(6, &op.moveOtherDbId, &paramLen[5]);
+		query = DbQueries::ItemMove.c_str();
+		break;
+	case ItemOpKind::Give:
+		kindName = "Give";
+		built = DbQueries::BuildItemGive(op);
+		query = built.c_str();
+		break;
+	case ItemOpKind::LoginFix:
+		kindName = "LoginFix";
+		built = DbQueries::BuildItemLoginFix(op);
+		query = built.c_str();
+		break;
+	}
 
-	// 시험용: 저장을 일부러 늦춘다([Debug] DbSaveDelayMs, A2.7 빠른 재접속 시험)
+	// 결과 행: Ok, Kind(0 상태 · 1 새 ItemDbId · 2 골드 잔액), V  (DbQueries.h "아이템 트랜잭션")
+	int32_t outOk = 0;
+	int32_t outKind = 0;
+	int64_t outValue = 0;
+	SQLLEN colLen[3] = { 0 };
+	dbConn->BindCol(1, &outOk, &colLen[0]);
+	dbConn->BindCol(2, &outKind, &colLen[1]);
+	dbConn->BindCol(3, &outValue, &colLen[2]);
+
+	// 시험용: 실행을 일부러 늦춘다([Debug] DbSaveDelayMs — 결과 도착 전 접속 해제·빠른 재접속 시험)
 	if (GServerConfig.dbSaveDelayMs > 0) ::Sleep(GServerConfig.dbSaveDelayMs);
 
+	DB_ItemOpResult result;
+	bool sawStatus = false;   // 성공 상태 행(Ok 1, Kind 0)을 읽었다
+	bool sawFail = false;
+	int64_t errorCode = 0;
+
 	const long long startUs = Metrics::NowUs();
-	const bool success = dbConn->Execute(query.c_str());
+	const bool executed = query != nullptr && dbConn->Execute(query);
+	if (executed)
+	{
+		// 끝까지 읽는다(중간에 멈추면 배치의 나머지 결과가 연결에 남는다).
+		while (dbConn->Fetch())
+		{
+			if (outOk != 1) { sawFail = true; errorCode = outValue; continue; }
+			if (outKind == 0) sawStatus = true;
+			else if (outKind == 1) result.newDbIds.push_back(outValue);
+			else if (outKind == 2) result.gold = outValue;
+		}
+	}
 	const long long endUs = Metrics::NowUs();
 	_dbConnectionPool->Push(dbConn);
 
-	Metrics::EquipSaveExecUs.Add(endUs - startUs);        // DB 실행 시간
-	Metrics::EquipSaveTotalUs.Add(endUs - requestUs);     // 요청(장착 성공·퇴장) → 저장 완료 (큐 대기 포함)
-	if (!success)
+	// 성공 행을 읽었을 때만 성공이다. 실행 실패·행 없음·실패 행은 모두 "바뀐 것 없음"(롤백)으로 본다.
+	result.success = executed && sawStatus && !sawFail;
+	// 실패 행(Ok 0)을 읽었으면 롤백이 확인된 실패다. 실행 오류이거나 행을 하나도 못 읽었으면 COMMIT 여부를 알 수 없다.
+	result.unknown = !result.success && !sawFail;
+	if (!result.success)
 	{
-		Metrics::EquipSaveFailed.fetch_add(1);
-		LOG_ERROR("DB", "장비 저장 실패 (PlayerId {})", playerUID);
+		result.newDbIds.clear();
+		result.gold = -1;
+		if (op.forceFail)
+			LOG_DEBUG("DB", "아이템 작업 강제 롤백 (PlayerId {}, {})", playerUID, kindName);
+		else
+			LOG_ERROR("DB", "아이템 작업 실패 (PlayerId {}, {}, executed {}, 오류 번호 {} — 0이면 조건 불일치로 롤백)", playerUID, kindName, executed, errorCode);
 	}
 
-	room->PushJob(&Room::OnEquipSaved, player, success);
+	Metrics::ItemOpExecUs.Add(endUs - startUs);   // DB 실행 시간
+
+	room->PushJob(&Room::OnItemOpDone, player, op, result);
 }
 
 void DatabaseWorker::SavePlayerProgress(shared_ptr<Room> room, shared_ptr<Player> player, int64_t playerUID, DB_PlayerProgress progress, long long requestUs)
@@ -240,12 +315,11 @@ void DatabaseWorker::SavePlayerProgress(shared_ptr<Room> room, shared_ptr<Player
 	DBConnection* dbConn = _dbConnectionPool->Pop();
 	dbConn->Unbind();
 
-	SQLLEN len[5] = { 0 };
+	SQLLEN len[4] = { 0 };
 	dbConn->BindParam(1, &progress.level, &len[0]);
 	dbConn->BindParam(2, &progress.exp, &len[1]);
 	dbConn->BindParam(3, &progress.hp, &len[2]);
-	dbConn->BindParam(4, &progress.gold, &len[3]);
-	dbConn->BindParam(5, &playerUID, &len[4]);
+	dbConn->BindParam(4, &playerUID, &len[3]);
 
 	if (GServerConfig.dbSaveDelayMs > 0) ::Sleep(GServerConfig.dbSaveDelayMs);
 
@@ -259,7 +333,7 @@ void DatabaseWorker::SavePlayerProgress(shared_ptr<Room> room, shared_ptr<Player
 	if (!success)
 	{
 		Metrics::ProgressSaveFailed.fetch_add(1);
-		LOG_ERROR("DB", "진행 상황 저장 실패 (PlayerId {}, Level {}, Exp {}, Hp {}, Gold {})", playerUID, progress.level, progress.exp, progress.hp, progress.gold);
+		LOG_ERROR("DB", "진행 상황 저장 실패 (PlayerId {}, Level {}, Exp {}, Hp {})", playerUID, progress.level, progress.exp, progress.hp);
 	}
 
 	room->PushJob(&Room::OnProgressSaved, player, progress, success);

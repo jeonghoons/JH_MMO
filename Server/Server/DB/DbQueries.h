@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <format>
+#include "Data/ServerData.h"
 
 // GameServer가 실행하는 SQL을 모두 여기에 둔다(A2.5, DECISIONS 2026-11-16). DatabaseWorker는 바인딩·실행·결과 전달만 한다.
 // 규칙:
@@ -11,33 +12,36 @@
 namespace DbQueries
 {
 	// 이 서버 코드가 기대하는 스키마 버전 = 마지막 마이그레이션 순번. DB의 Schema_Version과 다르면 서버가 시작하지 않는다.
-	constexpr int DB_SCHEMA_VERSION = 3;
+	constexpr int DB_SCHEMA_VERSION = 5;
 
 	// 결과: 열 1 = 적용된 마지막 마이그레이션 순번(행이 없으면 0). 테이블이 없으면 실행 실패.
 	inline const wchar_t* const SelectSchemaVersion = L"SELECT ISNULL(MAX([Version]), 0) FROM [Schema_Version]";
 
 	// 로그인. 파라미터: 1 LoginId
-	// 결과(장착 아이템 수만큼 행, 없으면 1행): LoginPassword, PlayerId, AccountId, Name, PlayerType, Level, Exp, Hp, Gold, EquipSlot, ItemId,
+	// 결과(인벤토리·장착 아이템 수만큼 행, 없으면 1행, ItemDbId 순): LoginPassword, PlayerId, AccountId, Name, PlayerType, Level, Exp, Hp, Gold,
+	//   ItemDbId, ItemId, Count, Location, EquipSlot (아이템이 없으면 모두 0), BagSlot(없으면 -1),
 	//   NeverSaved(1 = 진행 상황을 저장한 적이 없는 캐릭터 = UpdatedAt NULL)
 	inline const wchar_t* const SelectLogin = L" \
         SELECT A.LoginPassword, P.PlayerId, P.AccountId, P.Name, P.PlayerType, \
                P.[Level], P.Exp, P.Hp, P.Gold, \
-               ISNULL(E.EquipSlot, 0) AS EquipSlot, ISNULL(E.ItemId, 0) AS ItemId, \
+               ISNULL(I.ItemDbId, 0) AS ItemDbId, ISNULL(I.ItemId, 0) AS ItemId, ISNULL(I.[Count], 0) AS ItemCount, \
+               ISNULL(I.Location, 0) AS Location, ISNULL(I.EquipSlot, 0) AS EquipSlot, ISNULL(I.BagSlot, -1) AS BagSlot, \
                CASE WHEN P.UpdatedAt IS NULL THEN 1 ELSE 0 END AS NeverSaved \
         FROM [User_Account] A \
         INNER JOIN [Player_Info] P ON A.AccountId = P.AccountId \
-        LEFT JOIN [Player_Equipped] E ON P.PlayerId = E.PlayerId \
-        WHERE A.LoginId = ?";
+        LEFT JOIN [Player_Item] I ON I.OwnerId = P.PlayerId AND I.Location IN (1, 2) \
+        WHERE A.LoginId = ? \
+        ORDER BY I.ItemDbId";
 
 	// 가입: 계정 + 계정 정보 + 캐릭터 + 기본 장비를 한 트랜잭션으로. 파라미터: 1 LoginId, 2 LoginPassword, 3 Name, 4 PlayerType, 5 Level, 6 Hp
-	// starterItems = (EquipSlot, ItemId). 로더가 검증한 정수(ItemTable.Starter)라 쿼리에 그대로 넣는다. ItemDbId는 A3 전까지 0.
+	// starterItems = (EquipSlot, ItemId). 로더가 검증한 정수(ItemTable.Starter)라 쿼리에 그대로 넣는다. 기본 장비는 장착한 채(Location 2)로 준다.
 	inline std::wstring BuildSignUp(const std::vector<std::pair<int, int>>& starterItems)
 	{
 		std::wstring starterInsert;
 		for (const auto& [slot, itemId] : starterItems)
 		{
-			starterInsert += std::format(L"INSERT INTO [Player_Equipped] (PlayerId, EquipSlot, ItemDbId, ItemId) VALUES (@PlayerID, {}, 0, {}); ",
-				slot, itemId);
+			starterInsert += std::format(L"INSERT INTO [Player_Item] (OwnerId, ItemId, [Count], Location, EquipSlot) VALUES (@PlayerID, {}, 1, 2, {}); ",
+				itemId, slot);
 		}
 
 		return std::wstring(L" \
@@ -52,22 +56,108 @@ namespace DbQueries
         SET @PlayerID = SCOPE_IDENTITY(); ") + starterInsert + L"COMMIT TRAN;";
 	}
 
-	// 장비 스냅숏 저장: 전부 지우고 빈 칸(0)을 뺀 나머지를 다시 넣는다(한 트랜잭션). 파라미터: 1 PlayerId
-	// items[i] = 슬롯 i + 1(Protocol::EquipPart)의 itemId. Room이 검증한 값이라 쿼리에 그대로 넣는다. ItemDbId는 A3 전까지 0.
-	inline std::wstring BuildSaveEquipSnapshot(const std::vector<int32_t>& items)
-	{
-		std::wstring inserts;
-		for (size_t i = 0; i < items.size(); ++i)
-		{
-			if (items[i] == 0) continue;
-			inserts += std::format(L"INSERT INTO [Player_Equipped] (PlayerId, EquipSlot, ItemDbId, ItemId) VALUES (@P, {}, 0, {}); ", i + 1, items[i]);
-		}
-		return L"SET NOCOUNT ON; SET XACT_ABORT ON; DECLARE @P BIGINT = ?; BEGIN TRAN; "
-			L"DELETE FROM [Player_Equipped] WHERE PlayerId = @P; " + inserts + L"COMMIT TRAN;";
-	}
-
-	// 진행 상황 저장(A2.5). 파라미터: 1 Level, 2 Exp, 3 Hp, 4 Gold, 5 PlayerId
+	// 진행 상황 저장(A2.5). 파라미터: 1 Level, 2 Exp, 3 Hp, 4 PlayerId. 골드는 여기서 쓰지 않는다(A3.3, D-152 — 아이템 트랜잭션에서 증감).
 	// 필드가 늘면(A2.3b 등) DB_PlayerProgress(ServerData.h)와 이 쿼리, DatabaseWorker::SavePlayerProgress의 바인딩을 함께 고친다.
 	inline const wchar_t* const UpdatePlayerProgress =
-		L"UPDATE [Player_Info] SET [Level] = ?, Exp = ?, Hp = ?, Gold = ?, UpdatedAt = SYSDATETIME() WHERE PlayerId = ?";
+		L"UPDATE [Player_Info] SET [Level] = ?, Exp = ?, Hp = ?, UpdatedAt = SYSDATETIME() WHERE PlayerId = ?";
+
+	// ---------------------------------------------------------------------------------------------------------------
+	// 아이템 트랜잭션(A3.3, D-153·D-165). 모든 쿼리가 같은 틀과 같은 결과 모양을 쓴다(DatabaseWorker::ExecItemOp가 읽는다).
+	//   - 틀: TRY 안에서 BEGIN TRAN → 문장들(@n에 바뀐 행 수 누적) → @n이 기대와 같으면 COMMIT, 아니면 ROLLBACK. 오류는 CATCH에서 ROLLBACK.
+	//   - 결과: 항상 결과 집합 하나. 열 = Ok(1 성공 / 0 실패), Kind(0 상태 행 · 1 새 ItemDbId · 2 골드 잔액), V(값).
+	//     성공이면 상태 행 1개 + 새 행·골드 행, 실패면 (0, 0, 오류 번호 또는 0) 1행. 행을 하나도 못 읽으면 실패로 본다
+	//     (DBConnection::Execute는 배치 첫 문장의 성공만 알려 주므로 결과 행으로 판정한다).
+	//   - 모든 UPDATE는 기대 상태(OwnerId·Location·EquipSlot·Count)를 WHERE에 적는다.
+	//   - 골드 UPDATE는 UpdatedAt을 건드리지 않는다(UpdatedAt NULL = 진행 상황을 저장한 적 없음, 로그인 HP 판단에 쓴다).
+	//   - @Fail = 1이면 끝에서 일부러 롤백한다(시험용 [Debug] DbItemFailEvery).
+	//   - 잠금 대기는 ITEM_LOCK_TIMEOUT_MS까지만 한다(넘으면 오류 1222 → CATCH에서 롤백). 누가 행을 잡고 있어도
+	//     DB 작업 스레드와 그 플레이어의 itemOp가 끝없이 묶이지 않게 한다. 연결에 남는 설정이라 같은 연결의 다른 쿼리에도 적용된다.
+	inline const wchar_t* const ItemOpHead =
+		L"SET LOCK_TIMEOUT 5000; DECLARE @n INT = 0; DECLARE @R TABLE (Seq INT IDENTITY(1,1), Kind INT, V BIGINT); "
+		L"BEGIN TRY BEGIN TRAN; INSERT INTO @R (Kind, V) VALUES (0, 0); ";
+
+	// want = 바뀌어야 하는 행 수의 합
+	inline std::wstring ItemOpTail(const std::wstring& want)
+	{
+		return L"IF @n <> " + want + L" OR @Fail = 1 BEGIN ROLLBACK TRAN; SELECT 0 AS Ok, 0 AS Kind, CAST(0 AS BIGINT) AS V; END "
+			L"ELSE BEGIN COMMIT TRAN; SELECT 1 AS Ok, Kind, V FROM @R ORDER BY Seq; END "
+			L"END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK TRAN; SELECT 0 AS Ok, 0 AS Kind, CAST(ERROR_NUMBER() AS BIGINT) AS V; END CATCH";
+	}
+
+	// 장착·해제(고정 쿼리 — 실행 계획 재사용).
+	// 파라미터: 1 PlayerId, 2 Fail, 3 EquipPart, 4 NewDbId, 5 OldDbId, 6 OffhandDbId (없는 것은 0),
+	//           7 NewSlot(올릴 행이 지금 있는 칸), 8 OldSlot(옛 장비가 내려갈 칸), 9 OffSlot(방패가 내려갈 칸)
+	// 올리는 행과 내리는 행을 UPDATE 한 문장으로 바꾼다. 유니크 인덱스(장착 슬롯 UX_Player_Item_Equip, 인벤토리 칸 UX_Player_Item_BagSlot)는
+	// 문장이 끝날 때 검사하므로, 옛 장비가 새 장비가 있던 칸으로 내려오는 맞바꿈도 중간 상태 없이 된다(두 문장으로 나누면 어느 순서든 한쪽 인덱스를 어긴다).
+	inline const std::wstring ItemEquip =
+		std::wstring(L"SET NOCOUNT ON; SET XACT_ABORT ON; "
+		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @Part INT = ?, @New BIGINT = ?, @Old BIGINT = ?, @Off BIGINT = ?, @NewSlot INT = ?, @OldSlot INT = ?, @OffSlot INT = ?; "
+		L"DECLARE @want INT = IIF(@New <> 0, 1, 0) + IIF(@Old <> 0, 1, 0) + IIF(@Off <> 0, 1, 0); ")
+		+ ItemOpHead +
+		L"UPDATE [Player_Item] SET "
+		L"Location = CASE WHEN ItemDbId = @New THEN 2 ELSE 1 END, "
+		L"EquipSlot = CASE WHEN ItemDbId = @New THEN @Part ELSE 0 END, "
+		L"BagSlot = CASE WHEN ItemDbId = @New THEN -1 WHEN ItemDbId = @Old THEN @OldSlot ELSE @OffSlot END, "
+		L"UpdatedAt = SYSDATETIME() "
+		L"WHERE ItemDbId IN (@New, @Old, @Off) AND OwnerId = @P AND ("
+		L"(ItemDbId = @New AND Location = 1 AND BagSlot = @NewSlot) OR "
+		L"(ItemDbId = @Old AND Location = 2 AND EquipSlot = @Part) OR "
+		L"(ItemDbId = @Off AND Location = 2 AND EquipSlot = 7)); "
+		L"SET @n += @@ROWCOUNT; "
+		+ ItemOpTail(L"@want");
+
+	// 인벤토리 칸 옮기기·맞바꾸기(고정 쿼리, A6.1). 파라미터: 1 PlayerId, 2 Fail, 3 DbId, 4 FromSlot, 5 ToSlot, 6 OtherDbId(대상 칸의 행, 빈 칸이면 0)
+	// 맞바꿈도 UPDATE 한 문장이라 칸 유니크 인덱스를 중간에 어기지 않는다.
+	inline const std::wstring ItemMove =
+		std::wstring(L"SET NOCOUNT ON; SET XACT_ABORT ON; "
+		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @A BIGINT = ?, @From INT = ?, @To INT = ?, @B BIGINT = ?; "
+		L"DECLARE @want INT = 1 + IIF(@B <> 0, 1, 0); ")
+		+ ItemOpHead +
+		L"UPDATE [Player_Item] SET BagSlot = CASE WHEN ItemDbId = @A THEN @To ELSE @From END, UpdatedAt = SYSDATETIME() "
+		L"WHERE ItemDbId IN (@A, @B) AND OwnerId = @P AND Location = 1 AND ("
+		L"(ItemDbId = @A AND BagSlot = @From) OR (ItemDbId = @B AND BagSlot = @To)); "
+		L"SET @n += @@ROWCOUNT; "
+		+ ItemOpTail(L"@want");
+
+	// 지급(조립식 — 채울 스택 수가 요청마다 다르다). 파라미터: 1 PlayerId, 2 Fail. 나머지는 Room이 검증한 정수라 쿼리에 그대로 넣는다.
+	// 새 행의 ItemDbId는 Kind 1 행으로(newCounts 순서대로), 골드를 바꿨으면 바뀐 뒤 잔액을 Kind 2 행으로 돌려준다.
+	inline std::wstring BuildItemGive(const DB_ItemOp& op)
+	{
+		std::wstring q = L"SET NOCOUNT ON; SET XACT_ABORT ON; DECLARE @P BIGINT = ?, @Fail INT = ?; ";
+		q += ItemOpHead;
+		int want = 0;
+		for (const DB_ItemOp::Fill& fill : op.fills)
+		{
+			q += std::format(L"UPDATE [Player_Item] SET [Count] = [Count] + {}, UpdatedAt = SYSDATETIME() "
+				L"WHERE ItemDbId = {} AND OwnerId = @P AND Location = 1 AND ItemId = {} AND [Count] = {}; SET @n += @@ROWCOUNT; ",
+				fill.add, fill.itemDbId, op.itemId, fill.expectCount);
+			++want;
+		}
+		// 새 행은 Room이 고른 빈 칸에 넣는다(칸이 이미 차 있으면 유니크 인덱스 위반 → CATCH에서 롤백).
+		for (size_t i = 0; i < op.newCounts.size(); ++i)
+		{
+			q += std::format(L"INSERT INTO [Player_Item] (OwnerId, ItemId, [Count], Location, EquipSlot, BagSlot) VALUES (@P, {}, {}, 1, 0, {}); "
+				L"INSERT INTO @R (Kind, V) VALUES (1, SCOPE_IDENTITY()); ", op.itemId, op.newCounts[i], op.newSlots[i]);
+		}
+		if (op.goldDelta != 0)
+		{
+			q += std::format(L"UPDATE [Player_Info] SET Gold = Gold + ({0}) WHERE PlayerId = @P AND Gold + ({0}) BETWEEN 0 AND {1}; SET @n += @@ROWCOUNT; "
+				L"INSERT INTO @R (Kind, V) SELECT 2, Gold FROM [Player_Info] WHERE PlayerId = @P; ", op.goldDelta, op.goldMax);
+			++want;
+		}
+		return q + ItemOpTail(std::to_wstring(want));
+	}
+
+	// 로그인 보정: 맞지 않는 장착 행(슬롯 불일치, 검이 아닌데 방패)을 인벤토리로 내린다. 파라미터: 1 PlayerId, 2 Fail
+	inline std::wstring BuildItemLoginFix(const DB_ItemOp& op)
+	{
+		std::wstring q = L"SET NOCOUNT ON; SET XACT_ABORT ON; DECLARE @P BIGINT = ?, @Fail INT = ?; ";
+		q += ItemOpHead;
+		for (size_t i = 0; i < op.demoteDbIds.size(); ++i)
+		{
+			q += std::format(L"UPDATE [Player_Item] SET Location = 1, EquipSlot = 0, BagSlot = {}, UpdatedAt = SYSDATETIME() "
+				L"WHERE ItemDbId = {} AND OwnerId = @P AND Location = 2; SET @n += @@ROWCOUNT; ", op.demoteSlots[i], op.demoteDbIds[i]);
+		}
+		return q + ItemOpTail(std::to_wstring(op.demoteDbIds.size()));
+	}
 }

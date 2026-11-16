@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "FPacketHandler.h"
 #include "Game/JMObjectManager.h"
+#include "Game/JMInventoryManager.h"
 #include "UI/JMUIManager.h"
 #include "SendBuffer.h"
 
@@ -178,12 +179,28 @@ void UNetworkManager::SendChat(const FString& Message)
 	SendProtocol(*this, pkt, Protocol::CS_CHAT);
 }
 
-void UNetworkManager::SendChangeEquip(int32 Part, int32 ItemId)
+void UNetworkManager::SendChangeEquip(int32 Part, int64 ItemDbId)
 {
 	Protocol::CS_CHANGE_EQUIP_PACKET pkt;
 	pkt.set_part(static_cast<Protocol::EquipPart>(Part));
-	pkt.set_item_id(ItemId);
+	pkt.set_item_db_id(ItemDbId);
 	SendProtocol(*this, pkt, Protocol::CS_CHANGE_EQUIP);
+}
+
+void UNetworkManager::SendDevGive(int32 ItemId, int64 Count)
+{
+	Protocol::CS_DEV_GIVE_PACKET pkt;
+	pkt.set_item_id(ItemId);
+	pkt.set_count(Count);
+	SendProtocol(*this, pkt, Protocol::CS_DEV_GIVE);
+}
+
+void UNetworkManager::SendMoveItem(int64 ItemDbId, int32 ToSlot)
+{
+	Protocol::CS_MOVE_ITEM_PACKET pkt;
+	pkt.set_item_db_id(ItemDbId);
+	pkt.set_to_slot(ToSlot);
+	SendProtocol(*this, pkt, Protocol::CS_MOVE_ITEM);
 }
 
 void UNetworkManager::SendSkillAim(int32 Slot, bool bActive, uint32 Seq)
@@ -225,6 +242,12 @@ void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad)
 	if (UJMObjectManager* ObjectManager = GetGameInstance()->GetSubsystem<UJMObjectManager>())
 	{
 		ObjectManager->ClearObjects();
+	}
+
+	// Inventory is re-sent by the server on room enter (SC_INVENTORY).
+	if (UJMInventoryManager* Inventory = GetGameInstance()->GetSubsystem<UJMInventoryManager>())
+	{
+		Inventory->Clear();
 	}
 
 	// 이전 레벨의 위젯 참조가 남지 않도록 UI 목록도 비운다.

@@ -89,6 +89,13 @@ struct Bot
 	long long nextMoveUs = 0;
 	long long nextPingUs = 0;
 	long long nextEquipUs = 0;
+	// 인벤토리(A3.3): item_db_id -> (item_id, equip_part). SC_INVENTORY·SC_INVENTORY_UPDATE로 채운다
+	unordered_map<long long, pair<int, int>> items;
+	bool inventoryKnown = false;
+	int gearGiveIndex = 0;        // --give-gear: 다음에 요청할 지급 목록 위치
+	long long nextGiveUs = 0;
+	long long nextSlotMoveUs = 0;
+	bool aimBowGiveSent = false;  // --aim: 활이 없어 지급을 요청했는지
 	int objectId = -1;
 	float x = 0, y = 0, z = 0;
 	vector<uint8_t> rbuf;   // 수신 누적 버퍼
@@ -467,8 +474,46 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		break;
 	}
 	case Protocol::SC_CHANGE_EQUIP_RESULT:
+	{
 		GStat.equipRejected.fetch_add(1);
+		Protocol::SC_CHANGE_EQUIP_RESULT_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		const int code = static_cast<int>(pkt.result());
+		if (code >= 0 && code < 16) GStat.equipRejectedBy[code].fetch_add(1);
 		break;
+	}
+	case Protocol::SC_INVENTORY:
+	{
+		Protocol::SC_INVENTORY_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		GStat.inventoryRecv.fetch_add(1);
+		b.items.clear();
+		for (const Protocol::ItemInfo& item : pkt.items())
+			b.items[item.item_db_id()] = { item.item_id(), static_cast<int>(item.equip_part()) };
+		b.inventoryKnown = true;
+		if (b.index == 0) printf("[bot] bot0 inventory: items=%d gold=%lld slots=%d\n", pkt.items_size(), static_cast<long long>(pkt.gold()), pkt.max_slots());
+		break;
+	}
+	case Protocol::SC_INVENTORY_UPDATE:
+	{
+		Protocol::SC_INVENTORY_UPDATE_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		GStat.inventoryUpdateRecv.fetch_add(1);
+		for (const Protocol::ItemInfo& item : pkt.changed())
+			b.items[item.item_db_id()] = { item.item_id(), static_cast<int>(item.equip_part()) };
+		for (const long long removed : pkt.removed())
+			b.items.erase(removed);
+		break;
+	}
+	case Protocol::SC_ITEM_RESULT:
+	{
+		Protocol::SC_ITEM_RESULT_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		GStat.itemRejected.fetch_add(1);
+		const int code = static_cast<int>(pkt.result());
+		if (code >= 0 && code < 20) GStat.itemRejectedBy[code].fetch_add(1);
+		break;
+	}
 	case Protocol::SC_SKILL_AIM:
 	{
 		Protocol::SC_SKILL_AIM_PACKET pkt;
@@ -757,19 +802,62 @@ static void WorkerMain(int workerIndex, int workerCount)
 					if (!skipAttack)
 						SendPacket(b, Protocol::CS_ATTACK, atk);
 				}
-				// --aim: 처음 한 번 활을 장착한다(조준할 수 있는 스킬 3002)
-				if (!b.dead && GConfig.aim && !b.aimBowSent)
+				// --aim: 처음 한 번 활을 장착한다(조준할 수 있는 스킬 3002). 장착은 내 인벤토리의 item_db_id로 요청하므로(A3.3)
+				// 활(6102)이 없으면 개발 지급 명령으로 먼저 받는다(서버 [Debug] DevCommands=true 필요).
+				if (!b.dead && GConfig.aim && !b.aimBowSent && b.inventoryKnown)
 				{
-					b.aimBowSent = true;
-					Protocol::CS_CHANGE_EQUIP_PACKET eq;
-					eq.set_part(Protocol::EQUIP_PART_WEAPON);
-					eq.set_item_id(6102);
-					SendPacket(b, Protocol::CS_CHANGE_EQUIP, eq);
-					GStat.equipSent.fetch_add(1);
+					long long bowDbId = 0;
+					for (const auto& [dbId, item] : b.items)
+						if (item.first == 6102 && item.second == 0) { bowDbId = dbId; break; }
+					if (bowDbId != 0)
+					{
+						b.aimBowSent = true;
+						Protocol::CS_CHANGE_EQUIP_PACKET eq;
+						eq.set_part(Protocol::EQUIP_PART_WEAPON);
+						eq.set_item_db_id(bowDbId);
+						SendPacket(b, Protocol::CS_CHANGE_EQUIP, eq);
+						GStat.equipSent.fetch_add(1);
+					}
+					else if (!b.aimBowGiveSent)
+					{
+						b.aimBowGiveSent = true;
+						Protocol::CS_DEV_GIVE_PACKET give;
+						give.set_item_id(6102);
+						give.set_count(1);
+						SendPacket(b, Protocol::CS_DEV_GIVE, give);
+						GStat.giveSent.fetch_add(1);
+					}
 				}
-				// 장비 교체(--equip-interval): 슬롯 무작위(1~7), 천(x1xx)·판금(x3xx)·해제 중 하나. 무기는 검/활도 섞는다.
-				// 보조손(7, 방패)은 무기가 검이 아니면 서버가 NEED_SWORD로 거부하고, 무기를 활·맨손으로 바꾸면 서버가 비운다(MC4.2f).
-				if (canAct && GConfig.equipIntervalMs > 0 && now >= b.nextEquipUs)
+				// --give-gear: 판금 세트(슬롯 1~7의 x301)와 활 두 종(6102·6302)을 하나씩 받는다. 서버 요청 간격(ItemMinIntervalMs)보다 넉넉히 띄운다.
+				if (GConfig.giveGear && b.inventoryKnown && b.gearGiveIndex < 9 && now >= b.nextGiveUs)
+				{
+					static const int GEAR[9] = { 1301, 2301, 3301, 4301, 5301, 6301, 7301, 6102, 6302 };
+					b.nextGiveUs = now + 300 * 1000LL;
+					Protocol::CS_DEV_GIVE_PACKET give;
+					give.set_item_id(GEAR[b.gearGiveIndex++]);
+					give.set_count(1);
+					SendPacket(b, Protocol::CS_DEV_GIVE, give);
+					GStat.giveSent.fetch_add(1);
+				}
+				// --give-interval: 물약(8001) 1~5개 또는 골드를 받는다. 10%는 바로 한 번 더 보낸다(요청 간격·BUSY 거부 시험).
+				else if (GConfig.giveIntervalMs > 0 && b.inventoryKnown && now >= b.nextGiveUs)
+				{
+					const int half = GConfig.giveIntervalMs / 2;
+					b.nextGiveUs = now + (GConfig.giveIntervalMs - half + rand() % (2 * half + 1)) * 1000LL;
+					const int repeat = (rand() % 10 == 0) ? 2 : 1;
+					for (int k = 0; k < repeat; ++k)
+					{
+						Protocol::CS_DEV_GIVE_PACKET give;
+						if (rand() % 3 == 0) { give.set_item_id(0); give.set_count(1 + rand() % 100); }
+						else { give.set_item_id(8001); give.set_count(1 + rand() % 5); }
+						SendPacket(b, Protocol::CS_DEV_GIVE, give);
+						GStat.giveSent.fetch_add(1);
+					}
+				}
+				// 장비 교체(--equip-interval): 슬롯 무작위(1~7), 내 인벤토리에서 그 슬롯의 장비 하나(itemId 첫째 자리 = 슬롯) 또는 해제.
+				// 장착은 item_db_id로 요청한다(A3.3). 고를 장비가 없으면 해제를 보낸다. --chaos면 5%는 없는 item_db_id를 보낸다(NOT_OWNED).
+				// 보조손(7, 방패)은 무기가 검이 아니면 서버가 NEED_SWORD로 거부하고, 무기를 활·맨손으로 바꾸면 서버가 내린다(MC4.2f).
+				if (canAct && GConfig.equipIntervalMs > 0 && b.inventoryKnown && now >= b.nextEquipUs)
 				{
 					const int half = GConfig.equipIntervalMs / 2;
 					b.nextEquipUs = now + (GConfig.equipIntervalMs - half + rand() % (2 * half + 1)) * 1000LL;
@@ -777,14 +865,44 @@ static void WorkerMain(int workerIndex, int workerCount)
 					for (int k = 0; k < repeat; ++k)
 					{
 						const int part = 1 + rand() % 7;
-						const int r = rand() % 3;
-						int itemId = (r == 2) ? 0 : part * 1000 + (r == 0 ? 100 : 300) + 1;
-						if (part == 6 && itemId != 0 && rand() % 2) itemId += 1;   // 6102 / 6302 = 활
+						long long dbId = 0;
+						if (rand() % 3 != 2)
+						{
+							// 인벤토리(장착하지 않은 행) 중 이 슬롯의 장비를 하나 고른다(저수지 표본)
+							int seen = 0;
+							for (const auto& [id, item] : b.items)
+							{
+								if (item.second != 0 || item.first / 1000 != part) continue;
+								if (rand() % ++seen == 0) dbId = id;
+							}
+						}
+						if (GConfig.chaos && rand() % 20 == 0) dbId = 900000000000LL + rand();
 						Protocol::CS_CHANGE_EQUIP_PACKET eq;
 						eq.set_part(static_cast<Protocol::EquipPart>(part));
-						eq.set_item_id(itemId);
+						eq.set_item_db_id(dbId);
 						SendPacket(b, Protocol::CS_CHANGE_EQUIP, eq);
 						GStat.equipSent.fetch_add(1);
+					}
+				}
+				// 칸 옮기기(--slot-interval): 인벤토리 행 하나를 무작위 칸으로. 대상에 다른 아이템이 있으면 서버가 맞바꾼다. --chaos면 5%는 범위 밖 칸(BAD_SLOT).
+				if (GConfig.slotIntervalMs > 0 && b.inventoryKnown && now >= b.nextSlotMoveUs)
+				{
+					const int half = GConfig.slotIntervalMs / 2;
+					b.nextSlotMoveUs = now + (GConfig.slotIntervalMs - half + rand() % (2 * half + 1)) * 1000LL;
+					long long dbId = 0;
+					int seen = 0;
+					for (const auto& [id, item] : b.items)
+					{
+						if (item.second != 0) continue;
+						if (rand() % ++seen == 0) dbId = id;
+					}
+					if (dbId != 0)
+					{
+						Protocol::CS_MOVE_ITEM_PACKET mv;
+						mv.set_item_db_id(dbId);
+						mv.set_to_slot((GConfig.chaos && rand() % 20 == 0) ? 30 + rand() % 100 : rand() % 30);
+						SendPacket(b, Protocol::CS_MOVE_ITEM, mv);
+						GStat.slotMoveSent.fetch_add(1);
 					}
 				}
 				if (now >= b.nextPingUs)
@@ -886,7 +1004,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 void BotEngine::Usage(const char* program)
 {
 	printf("%s --bots N --ramp-rate R --duration S [--host H] [--port P] [--threads T]\n"
-		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
+		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
 		"         [--zone x,y,r]   (hotspot: bots walk to (x,y) and stay within radius r cm)\n",
 		program);
 }
@@ -917,6 +1035,9 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--turn-interval") { if (!(v = next("--turn-interval"))) return false; GConfig.turnIntervalMs = max(200, atoi(v)); }
 		else if (a == "--aim") GConfig.aim = true;
 		else if (a == "--equip-interval") { if (!(v = next("--equip-interval"))) return false; GConfig.equipIntervalMs = atoi(v); }
+		else if (a == "--give-gear") GConfig.giveGear = true;
+		else if (a == "--slot-interval") { if (!(v = next("--slot-interval"))) return false; GConfig.slotIntervalMs = atoi(v); }
+		else if (a == "--give-interval") { if (!(v = next("--give-interval"))) return false; GConfig.giveIntervalMs = atoi(v); }
 		else if (a == "--map") { if (!(v = next("--map"))) return false; GConfig.mapLogic = v; }
 		else if (a == "--out") { if (!(v = next("--out"))) return false; GConfig.outFile = v; }
 		else if (a == "--server-proc") { if (!(v = next("--server-proc"))) return false; GConfig.serverProc = v; }

@@ -26,7 +26,10 @@ struct BotConfig
 	int turnIntervalMs = 1500;
 	bool turnSend = false;     // --turn-send: 꺾는 순간 모서리 위치를 바로 보내고 새 방향은 60ms 뒤부터(클라 '방향 바뀌면 즉시 송신' 모사, MC4.1b)
 	bool aim = false;          // --aim (MC4.2d-1): 활을 장착하고, 1번 스킬은 조준을 켜고 300~800ms 느리게 움직인 뒤 쏜다(10%는 취소). hunt와 함께
-	int equipIntervalMs = 0;   // >0이면 이 간격(±50%)마다 무작위 장비 교체 요청, 10%는 바로 한 번 더 보냄(빈도 제한 시험). 장비 저장 측정용(MC3.3)
+	int equipIntervalMs = 0;   // >0이면 이 간격(±50%)마다 무작위 장비 교체 요청(내 인벤토리의 item_db_id 기준, A3.3), 10%는 바로 한 번 더 보냄(빈도 제한 시험)
+	bool giveGear = false;     // --give-gear: 입장 후 판금 세트·활을 개발 지급 명령으로 받는다(서버 [Debug] DevCommands=true, 개별 계정 필요). 장착 시험 준비
+	int slotIntervalMs = 0;    // >0이면 이 간격(±50%)마다 인벤토리 아이템 하나를 무작위 칸(0~29)으로 옮긴다(CS_MOVE_ITEM, A6.1)
+	int giveIntervalMs = 0;    // >0이면 이 간격(±50%)마다 개발 지급 요청(물약 1~5개 또는 골드). 아이템 작업 부하·스택 시험(A3.3)
 	std::string outFile;
 	std::string serverProc = "GameServer.exe";
 	std::string mapLogic;          // 맵 로직 JSON(몬스터 스폰 위치). hunt 프로필의 봇이 가까운 스폰으로 이동하는 데 쓴다
@@ -44,6 +47,10 @@ struct BotCounters
 	std::atomic<long long> monsterDead{ 0 }, monsterRemoved{ 0 }, monsterAdded{ 0 }, damageRecv{ 0 }, objectAdded{ 0 };
 	std::atomic<long long> aimSent{ 0 }, aimRecv{ 0 }, aimOwnOff{ 0 };   // CS_SKILL_AIM / 받은 SC_SKILL_AIM / 내 조준의 거부·시간 초과
 	std::atomic<long long> equipSent{ 0 }, equipOk{ 0 }, equipRejected{ 0 };   // 장착 요청 / 내 SC_CHANGE_EQUIP / SC_CHANGE_EQUIP_RESULT
+	std::atomic<long long> equipRejectedBy[16]{};                              // SC_CHANGE_EQUIP_RESULT를 EquipResult 값별로
+	// 인벤토리(A3.3): 받은 SC_INVENTORY / SC_INVENTORY_UPDATE, 지급 요청 / SC_ITEM_RESULT(거부) / ItemResult 값별
+	std::atomic<long long> inventoryRecv{ 0 }, inventoryUpdateRecv{ 0 }, giveSent{ 0 }, itemRejected{ 0 }, slotMoveSent{ 0 };
+	std::atomic<long long> itemRejectedBy[20]{};
 	std::atomic<long long> selfDead{ 0 }, reviveSent{ 0 }, selfRevived{ 0 };   // 내 SC_DEAD / CS_REVIVE / 내 SC_REVIVE (A2.4)
 	std::atomic<int> connected{ 0 }, inGame{ 0 };
 	// 구간(리포트 간격) 동안 봇 한 명이 받은 최대 바이트. 리포터가 읽으며 0으로 되돌리고 windowEpoch를 올린다.

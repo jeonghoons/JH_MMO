@@ -64,12 +64,18 @@ public:
 
 	void PlayerChat(shared_ptr<Player> player, wstring msg);
 	void PlayerPing(shared_ptr<Player> player, long long clientTime);
-	// 장착 요청(MC3.2)을 검증해 반영한다. 성공은 SC_CHANGE_EQUIP을 AOI 전체(본인 포함)에, 거부는 SC_CHANGE_EQUIP_RESULT를 본인에게만.
-	void PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part, int itemId);
-	// 장비 6칸을 DB에 저장한다(MC3.3). 플레이어당 동시에 하나만 보내고 나머지는 합친다. 방을 나간 플레이어도 받는다.
-	void RequestEquipSave(shared_ptr<Player> player);
-	void OnEquipSaved(shared_ptr<Player> player, bool success);
-	// 진행 상황(레벨·경험치·HP·골드)을 DB에 저장한다(A2.5). DB에 있는 값과 다를 때만 보낸다. 더미 봇은 저장하지 않는다
+	// 장착 요청(MC3.2·A3.3)을 검증한다. itemDbId = 내 인벤토리의 행(0 = 해제). 통과하면 DB 트랜잭션을 보내고(StartItemOp),
+	// 성공 결과가 돌아온 뒤(OnItemOpDone) 메모리에 반영해 SC_CHANGE_EQUIP을 AOI 전체(본인 포함)에 보낸다.
+	// 거부·DB 실패는 SC_CHANGE_EQUIP_RESULT를 본인에게만.
+	void PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part, int64_t itemDbId);
+	// 개발 지급 명령(A3.3, [Debug] DevCommands). itemId 0 = 골드. 다른 아이템 작업과 같은 경로를 탄다.
+	void PlayerDevGive(shared_ptr<Player> player, int itemId, int64_t count);
+	// 인벤토리 칸 옮기기(A6.1): 대상 칸이 비어 있으면 옮기고, 다른 아이템이 있으면 맞바꾼다. 칸 위치도 DB가 권위라 itemOp 경로를 탄다.
+	void PlayerMoveItem(shared_ptr<Player> player, int64_t itemDbId, int toSlot);
+	// 아이템 작업의 DB 결과(A3.3, D-153). 성공이고 플레이어가 아직 방에 있으면 메모리·패킷에 반영한다.
+	// 방을 나갔으면 반영을 건너뛴다(DB에는 이미 들어갔고 다음 로그인 때 읽는다). 끝에서 NotifyClosedIfDone을 부른다.
+	void OnItemOpDone(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult result);
+	// 진행 상황(레벨·경험치·HP)을 DB에 저장한다(A2.5). 골드는 아이템 트랜잭션에서 증감한다(A3.3). DB에 있는 값과 다를 때만 보낸다. 더미 봇은 저장하지 않는다
 	// (전원이 dummy 계정 한 행을 쓴다). 주기(UpdateSaves)와 퇴장 때 부르고, 방을 나간 플레이어도 받는다.
 	void RequestProgressSave(shared_ptr<Player> player);
 	void OnProgressSaved(shared_ptr<Player> player, DB_PlayerProgress saved, bool success);
@@ -139,6 +145,14 @@ private:
 	void UpdateZones();
 	// AimMaxMs가 지난 조준을 해제한다(Update마다). 본인에게는 seq를 실어, 다른 사람에게는 seq 없이 보낸다.
 	void UpdateAims(long long nowMs);
+
+	// ---- 아이템 작업 공통(A3.3) ----
+	// 이 플레이어 객체가 지금 이 방에 있는가(같은 id를 다른 플레이어가 다시 쓸 수 있으므로 포인터로 비교).
+	bool IsInRoom(const shared_ptr<Player>& player) const;
+	// 아이템 요청의 공통 검사: 방 안 → 더미 봇 아님 → 요청 간격 → 진행 중인 작업 없음. 통과하면 ITEM_RESULT_SUCCESS.
+	Protocol::ItemResult CheckItemRequest(const shared_ptr<Player>& player);
+	// itemOp를 켜고 DB 작업을 보낸다. 결과는 OnItemOpDone으로 돌아온다.
+	void StartItemOp(const shared_ptr<Player>& player, DB_ItemOp op);
 
 	atomic<int> _playerCount = 0;
 	int _tickCount = 0;   // Update 횟수. 1초(10틱)마다 시야 인원 지표·시야 감사를 하는 데 쓴다

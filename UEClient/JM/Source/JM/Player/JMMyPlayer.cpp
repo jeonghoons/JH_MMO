@@ -16,6 +16,8 @@
 #include "Engine/World.h"
 #include "Data/SkillTableRow.h"
 #include "Character/NpcCharacter.h"
+#include "UI/JMUIManager.h"
+#include "UI/WidgetNames.h"
 
 AJMMyPlayer::AJMMyPlayer()
 {
@@ -125,6 +127,7 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 			if (QuickSlotActions[Index]) EnhancedInputComponent->BindAction(QuickSlotActions[Index].Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnQuickSlotInput, Index);
 		}
 		if (CancelAimAction) EnhancedInputComponent->BindAction(CancelAimAction, ETriggerEvent::Started, this, &AJMMyPlayer::OnCancelAimInput);
+		if (InventoryAction) EnhancedInputComponent->BindAction(InventoryAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnInventoryInput);
 		
 	}
 }
@@ -453,6 +456,15 @@ void AJMMyPlayer::RebuildQuickSlots()
 void AJMMyPlayer::OnCancelAimInput()
 {
 	EndLocalAim(true);
+}
+
+void AJMMyPlayer::OnInventoryInput()
+{
+	// 창을 여닫기만 한다. 내용은 UJMInventoryManager가 가진 값(서버가 보낸 사본)이라 서버에 묻지 않는다.
+	if (UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr)
+	{
+		UIManager->ToggleWidget(WidgetNames::Inventory);
+	}
 }
 
 void AJMMyPlayer::BeginLocalAim(int32 Slot)

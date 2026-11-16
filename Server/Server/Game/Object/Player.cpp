@@ -154,25 +154,83 @@ bool Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	_dbPlayerData = data;
 	_objectInfo.set_level(data.level);
 
-	// 장비(MC3.3). 잘못된 행(슬롯 범위 밖, 없는 아이템, 슬롯 불일치)은 경고 후 건너뛴다.
-	for (const auto& [slot, itemId] : data.equipped)
+	// 아이템(A3.3): Player_Item의 인벤토리·장착 행을 메모리에 올린다.
+	//  - ItemTable에 없는 종류·수량 0 이하는 경고 후 올리지 않는다(DB 행은 지우지 않는다. 장착 중이었다면 DB에서 인벤토리로만 내린다).
+	//  - 장착 행이 맞지 않으면(슬롯 범위 밖, 아이템 슬롯과 다름) 인벤토리로 내리고 pendingEquipFix에 적어 DB도 고치게 한다.
+	//  - 인벤토리 행은 DB의 칸 번호(BagSlot)를 그대로 쓴다. 내리는 행의 칸은 모든 행을 읽은 뒤 앞의 빈 칸으로 정한다(A6.1).
+	inventory = Inventory();
+	pendingEquipFix.clear();
+	std::vector<int64_t> demoted;          // 메모리에 올렸지만 인벤토리로 내리는 장착 행
+	std::vector<int64_t> demotedUnknown;   // 메모리에 올리지 않는 장착 행(DB에서만 내린다)
+	for (const DB_ItemRow& row : data.items)
 	{
-		const ItemData* item = DataManager::GetItemData(itemId);
-		if (slot < Protocol::EQUIP_PART_HEAD || slot > Protocol::EQUIP_PART_OFFHAND || item == nullptr || static_cast<int>(item->slot) != slot)
+		const ItemData* item = DataManager::GetItemData(row.itemId);
+		if (item == nullptr || row.count < 1)
 		{
-			LOG_WARN("Player", "Player_Equipped 행을 건너뜁니다 (PlayerId {}, EquipSlot {}, ItemId {}: 슬롯이 없거나 아이템이 없거나 슬롯이 다름)",
-				info.playerUID, slot, itemId);
+			LOG_WARN("Player", "Player_Item 행을 올리지 않습니다 (PlayerId {}, ItemDbId {}, ItemId {}, Count {}: ItemTable에 없거나 수량 오류)",
+				info.playerUID, row.itemDbId, row.itemId, row.count);
+			// 장착 중이던 행이면 DB에서는 인벤토리로 내린다. 그대로 두면 메모리에는 빈 슬롯인데 DB의 장착 슬롯
+			// (유니크 인덱스)을 계속 차지해, 그 슬롯에 다른 아이템을 장착하는 요청이 매번 DB_ERROR가 된다.
+			// 인벤토리에 있던 행은 그 칸을 계속 차지하므로 다른 행을 넣지 않게 표시해 둔다.
+			if (row.location == ITEM_LOC_EQUIPPED)
+				demotedUnknown.push_back(row.itemDbId);
+			else
+				inventory.ReserveSlot(row.bagSlot);
 			continue;
 		}
-		SetEquippedItem(static_cast<Protocol::EquipPart>(slot), itemId);
+
+		ItemInstance instance{ row.itemDbId, row.itemId, row.count, 0, row.location == ITEM_LOC_EQUIPPED ? -1 : row.bagSlot };
+		if (row.location == ITEM_LOC_EQUIPPED)
+		{
+			const int slot = row.equipSlot;
+			const bool valid = slot >= Protocol::EQUIP_PART_HEAD && slot <= Protocol::EQUIP_PART_OFFHAND &&
+				static_cast<int>(item->slot) == slot && GetEquippedItem(static_cast<Protocol::EquipPart>(slot)) == 0;
+			if (valid)
+			{
+				instance.equipPart = slot;
+				SetEquippedItem(static_cast<Protocol::EquipPart>(slot), row.itemId);
+			}
+			else
+			{
+				LOG_WARN("Player", "장착 행을 인벤토리로 내립니다 (PlayerId {}, ItemDbId {}, EquipSlot {}, ItemId {}: 슬롯이 없거나 아이템 슬롯과 다름)",
+					info.playerUID, row.itemDbId, slot, row.itemId);
+				demoted.push_back(row.itemDbId);
+			}
+		}
+		inventory.Set(instance);
 	}
 
-	// 보조손(방패)은 한손검 전용 (MC4.2f). 저장 값이 어긋나 있으면 보조손만 비운다(다음 저장 때 DB에도 반영).
+	// 보조손(방패)은 한손검 전용 (MC4.2f). 저장 값이 어긋나 있으면 방패만 인벤토리로 내린다(DB도 고친다).
 	if (GetEquippedItem(Protocol::EQUIP_PART_OFFHAND) != 0 && GetWeaponType() != WeaponType::Sword)
 	{
-		LOG_WARN("Player", "Player_Equipped 보조손을 비웁니다 (PlayerId {}, ItemId {}: 무기가 한손검이 아님)",
+		LOG_WARN("Player", "보조손을 인벤토리로 내립니다 (PlayerId {}, ItemId {}: 무기가 한손검이 아님)",
 			info.playerUID, GetEquippedItem(Protocol::EQUIP_PART_OFFHAND));
+		const int64_t offhandDbId = inventory.GetEquippedDbId(Protocol::EQUIP_PART_OFFHAND);
+		if (const ItemInstance* offhand = inventory.Find(offhandDbId))
+		{
+			ItemInstance moved = *offhand;
+			moved.equipPart = 0;
+			inventory.Set(moved);
+			demoted.push_back(offhandDbId);
+		}
 		SetEquippedItem(Protocol::EQUIP_PART_OFFHAND, 0);
+	}
+
+	// 내린 행에 칸을 준다. 버리지 않기 위해 가득 차 있어도 받는다(칸 수를 넘는 번호 — 새로 들어오는 아이템은 그 칸을 쓰지 못한다).
+	for (const int64_t dbId : demoted)
+	{
+		const ItemInstance* found = inventory.Find(dbId);
+		if (found == nullptr) continue;
+		ItemInstance moved = *found;
+		moved.slot = inventory.FirstFreeSlotUnbounded();
+		inventory.Set(moved);
+		pendingEquipFix.emplace_back(dbId, moved.slot);
+	}
+	for (const int64_t dbId : demotedUnknown)
+	{
+		const int slot = inventory.FirstFreeSlotUnbounded();
+		inventory.ReserveSlot(slot);
+		pendingEquipFix.emplace_back(dbId, slot);
 	}
 
 	// 로그인 HP = DB 값(A2.5)을 장비 반영 최대치 안으로. 0 이하(죽은 채 저장된 옛 값)는 부활 규칙 값으로 살아서 입장한다(D-149).
@@ -183,7 +241,7 @@ bool Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	_objectInfo.mutable_stat()->set_hp(hp);
 
 	// DB에 있는 값을 기억한다. 위에서 HP를 고쳤다면 스냅숏이 달라 다음 저장 때 DB에도 반영된다.
-	lastSavedProgress = DB_PlayerProgress{ data.level, data.exp, data.hp, data.gold };
+	lastSavedProgress = DB_PlayerProgress{ data.level, data.exp, data.hp };
 	return true;
 }
 
@@ -193,7 +251,6 @@ DB_PlayerProgress Player::MakeProgressSnapshot() const
 	snapshot.level = _objectInfo.level();
 	snapshot.exp = _dbPlayerData.exp;
 	snapshot.hp = _statInfo.IsDead() ? ReviveHp(_statInfo.GetMaxHp()) : _statInfo.GetHp();
-	snapshot.gold = _dbPlayerData.gold;
 	return snapshot;
 }
 

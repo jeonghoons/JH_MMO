@@ -44,7 +44,21 @@ message CS_ATTACK_PACKET {
 
 message CS_CHANGE_EQUIP_PACKET {
 	EquipPart part = 1;
-	int32 item_id = 2;   // 0 = 해제
+	reserved 2;              // item_id (A3.3에서 item_db_id로 대체, D-156)
+	int64 item_db_id = 3;    // 내 인벤토리의 아이템(Player_Item.ItemDbId). 0 = 해제
+}
+
+// 개발 지급 명령(A3.3). ServerConfig [Debug] DevCommands=true일 때만 받는다. 다른 아이템 작업과 같은 경로(DB 성공 뒤 반영)를 탄다.
+message CS_DEV_GIVE_PACKET {
+	int32 item_id = 1;   // ItemTable ID. 0 = 골드
+	int64 count = 2;     // 수량(골드는 금액). 1 이상
+}
+
+// 인벤토리 칸 옮기기(A6.1). 대상 칸이 비어 있으면 옮기고, 다른 아이템이 있으면 두 칸을 맞바꾼다.
+// 성공은 SC_INVENTORY_UPDATE(바뀐 행), 거부는 SC_ITEM_RESULT(request = CS_MOVE_ITEM).
+message CS_MOVE_ITEM_PACKET {
+	int64 item_db_id = 1;   // 옮길 행 (인벤토리 위치의 내 아이템)
+	int32 to_slot = 2;      // 대상 칸 번호(0 ~ max_slots - 1)
 }
 
 // 스킬 조준(숫자키 → 범위 선택) 켜기/끄기. 상태가 바뀔 때만 보낸다.
@@ -139,7 +153,31 @@ message SC_CHANGE_EQUIP_PACKET {
 message SC_CHANGE_EQUIP_RESULT_PACKET {
 	EquipResult result = 1;
 	EquipPart part = 2;
-	int32 item_id = 3;
+	int32 item_id = 3;       // 서버가 아는 경우에만(요청한 행의 종류). 모르면 0
+	int64 item_db_id = 4;    // 요청에 실린 값 그대로
+}
+
+// 방 입장 직후 본인에게 한 번(A3.3). 더미 봇에는 보내지 않는다(D-164).
+message SC_INVENTORY_PACKET {
+	repeated ItemInfo items = 1;        // 인벤토리 + 장착 전체 (item_db_id 순)
+	int64 gold = 2;
+	int32 max_slots = 3;                // EconomyTable.InventorySlots (장착품은 칸을 차지하지 않는다)
+	int32 pickup_range_cm = 4;          // EconomyTable.PickupRangeCm (A3.5·A6.2에서 사용)
+	int32 trade_range_cm = 5;           // EconomyTable.TradeRangeCm (A4·A6.3a에서 사용)
+	repeated int32 quick_slots = 6;     // 액티브 칸 1~5에 올린 item_id (A3.6에서 채움, 그 전에는 비어 있음)
+}
+
+// 아이템·골드가 바뀔 때마다 본인에게(A3.3). DB 성공 뒤의 값이다.
+message SC_INVENTORY_UPDATE_PACKET {
+	repeated ItemInfo changed = 1;      // 새로 생겼거나 값이 바뀐 행(최종 상태)
+	repeated int64 removed = 2;         // 지워진 item_db_id
+	int64 gold = 3;                     // 현재 골드(바뀌지 않았어도 항상 채움)
+}
+
+// 아이템 요청 거부를 요청한 본인에게만 보낸다(장착 거부는 SC_CHANGE_EQUIP_RESULT).
+message SC_ITEM_RESULT_PACKET {
+	PacketId request = 1;               // 거부된 요청의 패킷 id (CS_DEV_GIVE 등)
+	ItemResult result = 2;
 }
 
 // 스킬 조준 상태. 켜기 = AOI 방송(본인 포함), 클라 취소·시전 실패 해제 = 본인 제외 방송,

@@ -147,8 +147,22 @@ int main(int argc, char** argv)
 		printf("[summary] aim: sent=%lld recv(SC_SKILL_AIM)=%lld ownOff(reject/timeout)=%lld\n",
 			GStat.aimSent.load(), GStat.aimRecv.load(), GStat.aimOwnOff.load());
 	if (GConfig.equipIntervalMs > 0)
+	{
 		printf("[summary] equip: sent=%lld ok(own SC_CHANGE_EQUIP)=%lld rejected(SC_CHANGE_EQUIP_RESULT)=%lld\n",
 			GStat.equipSent.load(), GStat.equipOk.load(), GStat.equipRejected.load());
+		printf("[summary] equip rejected by EquipResult:");
+		for (int i = 0; i < 16; ++i)
+			if (GStat.equipRejectedBy[i].load() > 0) printf(" %d=%lld", i, GStat.equipRejectedBy[i].load());
+		printf("\n");
+	}
+	if (GStat.inventoryRecv.load() > 0 || GStat.giveSent.load() > 0)
+	{
+		printf("[summary] inventory: SC_INVENTORY=%lld SC_INVENTORY_UPDATE=%lld giveSent=%lld slotMoveSent=%lld itemRejected(SC_ITEM_RESULT)=%lld by ItemResult:",
+			GStat.inventoryRecv.load(), GStat.inventoryUpdateRecv.load(), GStat.giveSent.load(), GStat.slotMoveSent.load(), GStat.itemRejected.load());
+		for (int i = 0; i < 20; ++i)
+			if (GStat.itemRejectedBy[i].load() > 0) printf(" %d=%lld", i, GStat.itemRejectedBy[i].load());
+		printf("\n");
+	}
 
 	return 0;
 }

@@ -38,5 +38,7 @@ private:
     static void Handle_CS_CHANGE_EQUIP(shared_ptr<GameSession> session, Protocol::CS_CHANGE_EQUIP_PACKET& pkt);
     static void Handle_CS_SKILL_AIM(shared_ptr<GameSession> session, Protocol::CS_SKILL_AIM_PACKET& pkt);
     static void Handle_CS_REVIVE(shared_ptr<GameSession> session, Protocol::CS_REVIVE_PACKET& pkt);
+    static void Handle_CS_DEV_GIVE(shared_ptr<GameSession> session, Protocol::CS_DEV_GIVE_PACKET& pkt);
+    static void Handle_CS_MOVE_ITEM(shared_ptr<GameSession> session, Protocol::CS_MOVE_ITEM_PACKET& pkt);
 };
 
