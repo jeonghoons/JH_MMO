@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <unordered_map>
+#include <array>
 
 struct DB_PlayerInfo {
 	int64_t playerUID;
@@ -19,6 +20,10 @@ struct DB_PlayerProgress {
 
 	bool operator==(const DB_PlayerProgress&) const = default;
 };
+
+// 액티브 칸(숫자키 1~5) 수와 칸별 아이템 종류(ItemTable ID, 빈 칸 0). 인덱스 = 칸 번호 - 1 (A3.6, D-154)
+constexpr int QUICK_SLOT_COUNT = 5;
+using QuickSlotArray = std::array<int32_t, QUICK_SLOT_COUNT>;
 
 // Player_Item.Location (DESIGN_ITEMS_TRADE "아이템 인스턴스와 DB")
 constexpr int ITEM_LOC_INVENTORY = 1;
@@ -47,6 +52,7 @@ enum class ItemOpKind
 	Move,       // 인벤토리 칸 옮기기·맞바꾸기 (고정 쿼리, A6.1)
 	Pickup,     // 바닥 드랍 줍기: Give와 같은 계획(fills·newCounts·goldDelta)을 쓴다 (고정 쿼리, A3.5)
 	Discard,    // 버리기: 인벤토리 행 DELETE, 성공 뒤 바닥 드랍 생성 (고정 쿼리, A3.5)
+	Use,        // 소비 아이템 사용: 수량 1 감소(1개였으면 DELETE), 성공 뒤 효과 적용 (고정 쿼리, A3.6)
 };
 
 struct DB_ItemOp {
@@ -91,6 +97,10 @@ struct DB_ItemOp {
 	int32_t discardSlot = -1;                 // 그 행이 지금 있는 칸(기대 상태)
 	int32_t discardCount = 0;                 // 그 행의 수량(기대 상태, 바닥 드랍의 수량이 된다)
 	float discardX = 0.f, discardY = 0.f, discardZ = 0.f;   // 요청 때의 위치(결과가 왔을 때 방에 없으면 여기에 떨어뜨린다)
+
+	// Use — 쓰는 종류는 itemId에 담는다
+	int64_t useDbId = 0;                      // 1개를 쓸 행
+	int32_t useExpectCount = 0;               // 그 행의 지금 수량(기대 상태)
 };
 
 struct DB_ItemOpResult {
@@ -107,6 +117,7 @@ struct DB_PlayerData {
 	int32_t hp;
 	int64_t gold;
 	int32_t neverSaved;   // 1 = 진행 상황을 저장한 적이 없다(Player_Info.UpdatedAt NULL) — 가입 직후, A2.5 전에 만든 캐릭터
+	QuickSlotArray quickSlots{};   // Player_QuickSlot (빈 칸 0). 검증은 Player::InitFromDb가 한다 (A3.6)
 	
 	// Player_Item 행 중 인벤토리(Location 1)·장착(Location 2). ItemDbId 순. 검증은 Player::InitFromDb가 한다.
 	std::vector<struct DB_ItemRow> items;

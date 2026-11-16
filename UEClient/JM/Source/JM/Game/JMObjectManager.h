@@ -31,6 +31,8 @@ public:
 	void HandleChangeEquip(int32 ObjectId, Protocol::EquipPart Part, int32 ItemId, const Protocol::StatInfo& Stat);
 	// SC_SKILL_AIM(MC4.2d-1): 원격은 그대로 반영, 내 캐릭터는 해제(거부·시간 초과)만 Seq가 맞을 때 반영한다.
 	void HandleSkillAim(int32 ObjectId, int32 SkillId, bool bActive, uint32 Seq);
+	// SC_USE_ITEM(A3.6): 쓴 캐릭터의 HP 반영. 내 캐릭터면 HUD HP와 그 종류가 든 액티브 칸의 재사용 표시까지.
+	void HandleUseItem(int32 ObjectId, int32 ItemId, int32 Hp, int32 CooldownMs);
 
 	// From에서 수평 거리 RangeCm 안의 가장 가까운 바닥 드랍(A6.2). 없으면 nullptr. 서버도 수평 거리로 판정한다.
 	ADropItemActor* FindNearestDrop(const FVector& From, float RangeCm) const;

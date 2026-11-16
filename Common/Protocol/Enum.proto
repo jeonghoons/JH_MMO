@@ -19,7 +19,9 @@ enum PacketId {
     CS_REVIVE = 1012;     // 부활 요청 (사망 후 대기 시간이 지나야 서버가 받는다)
     CS_PICKUP_ITEM = 1013; // 바닥 드랍 줍기 (A3.5)
     CS_DROP_ITEM = 1014;   // 인벤토리 아이템을 바닥에 버리기 (A3.5, D-155)
-    CS_DEV_GIVE = 1017;   // 개발 지급 명령 (ServerConfig [Debug] DevCommands=true일 때만). 1015~1016은 A3.6 예약(DESIGN_ITEMS_TRADE)
+    CS_USE_ITEM = 1015;    // 소비 아이템 사용 (A3.6, D-154)
+    CS_SET_QUICKSLOT = 1016; // 액티브 칸에 아이템 종류 올리기·비우기 (A3.6)
+    CS_DEV_GIVE = 1017;   // 개발 지급 명령 (ServerConfig [Debug] DevCommands=true일 때만)
     CS_MOVE_ITEM = 1030;  // 인벤토리 칸 옮기기·맞바꾸기 (A6.1). 1018~1029는 A4.2·A4.3 예약
 
     // Server -> Client
@@ -40,7 +42,8 @@ enum PacketId {
     SC_INVENTORY = 2016;             // 방 입장 직후 본인에게: 인벤토리·장착 전체 + 골드 + 칸 수 (A3.3)
     SC_INVENTORY_UPDATE = 2017;      // 본인에게: 바뀐 행·지워진 행·현재 골드 (A3.3)
     SC_ITEM_RESULT = 2018;           // 아이템 요청 거부 결과 (본인에게만, 거부일 때만)
-    SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2019~2026은 A3.6~A4.3 예약(DESIGN_ITEMS_TRADE)
+    SC_USE_ITEM = 2019;              // 소비 아이템 사용 결과 (AOI, 본인 포함): 쓴 종류·사용 뒤 HP·재사용 시간 (A3.6)
+    SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2020~2026은 A4.2·A4.3 예약(DESIGN_ITEMS_TRADE)
 }
 
 enum MoveState {

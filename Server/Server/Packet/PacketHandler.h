@@ -42,5 +42,7 @@ private:
     static void Handle_CS_MOVE_ITEM(shared_ptr<GameSession> session, Protocol::CS_MOVE_ITEM_PACKET& pkt);
     static void Handle_CS_PICKUP_ITEM(shared_ptr<GameSession> session, Protocol::CS_PICKUP_ITEM_PACKET& pkt);
     static void Handle_CS_DROP_ITEM(shared_ptr<GameSession> session, Protocol::CS_DROP_ITEM_PACKET& pkt);
+    static void Handle_CS_USE_ITEM(shared_ptr<GameSession> session, Protocol::CS_USE_ITEM_PACKET& pkt);
+    static void Handle_CS_SET_QUICKSLOT(shared_ptr<GameSession> session, Protocol::CS_SET_QUICKSLOT_PACKET& pkt);
 };
 

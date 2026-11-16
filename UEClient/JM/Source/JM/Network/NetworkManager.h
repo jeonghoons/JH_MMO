@@ -54,6 +54,9 @@ public:
 	// A6.2: 바닥 드랍 줍기(ObjectId = 드랍 오브젝트 id), 인벤토리 아이템 버리기(스택 통째). 검증은 서버가 한다
 	void SendPickupItem(int32 ObjectId);
 	void SendDropItem(int64 ItemDbId);
+	// A3.6: 소비 아이템 사용(ItemDbId 0이면 서버가 ItemId 종류 중에서 고른다), 액티브 칸 배치(Slot 1~5, ItemId 0 = 비우기)
+	void SendUseItem(int64 ItemDbId, int32 ItemId);
+	void SendSetQuickSlot(int32 Slot, int32 ItemId);
 	// 스킬 조준 켜기/끄기(MC4.2d-1). 상태가 바뀔 때만, Seq는 보낼 때마다 1씩 올린 값. 확정(공격)은 서버가 함께 해제하므로 끄기를 보내지 않는다
 	// 부활 요청(A2.4). 사망 여부·대기 시간은 서버가 검증하고, 받아들이면 SC_REVIVE가 온다
 	void SendRevive();

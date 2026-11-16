@@ -80,6 +80,15 @@ public:
 	void PlayerPickupItem(shared_ptr<Player> player, int dropId);
 	// 버리기(A3.5, D-155): 인벤토리 위치의 행을 DB에서 지운 뒤, 그 자리 근처에 소유권 없는 드랍을 만든다(스택 통째).
 	void PlayerDropItem(shared_ptr<Player> player, int64_t itemDbId);
+	// 소비 아이템 사용(A3.6, D-154). itemDbId가 0이면 itemId 종류 중 수량이 적은 스택부터 고른다(액티브 칸).
+	// 검증(보유 → 사용 효과 → 레벨 → 생존 → HP 최대 → 재사용 시간 → 요청 간격·진행 중인 작업) 뒤 DB에서 1개를 줄이고,
+	// 성공하면 효과를 적용해 SC_USE_ITEM(AOI, 본인 포함) + SC_INVENTORY_UPDATE를 보낸다.
+	void PlayerUseItem(shared_ptr<Player> player, int64_t itemDbId, int itemId);
+	// 액티브 칸 배치(A3.6). slot 1~5, itemId 0 = 비우기. 메모리에 먼저 반영해 SC_INVENTORY_UPDATE(quick_slots)로 알리고 저장을 요청한다.
+	void PlayerSetQuickSlot(shared_ptr<Player> player, int slot, int itemId);
+	// 액티브 칸 5칸을 DB에 저장한다. DB에 있는 값과 다를 때만 보내고, 진행 중이면 끝난 뒤 최신 값으로 한 번 더 저장한다(순서 보장).
+	void RequestQuickSlotSave(shared_ptr<Player> player);
+	void OnQuickSlotsSaved(shared_ptr<Player> player, QuickSlotArray saved, bool success);
 	// 아이템 작업의 DB 결과(A3.3, D-153). 성공이고 플레이어가 아직 방에 있으면 메모리·패킷에 반영한다.
 	// 방을 나갔으면 반영을 건너뛴다(DB에는 이미 들어갔고 다음 로그인 때 읽는다). 끝에서 NotifyClosedIfDone을 부른다.
 	void OnItemOpDone(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult result);

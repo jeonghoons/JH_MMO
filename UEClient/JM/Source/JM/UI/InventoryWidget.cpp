@@ -184,10 +184,15 @@ void UInventoryWidget::OnSlotRightClicked(UItemSlotWidget* ItemSlot)
 		return;
 	}
 
-	// 인벤토리의 장비: 그 아이템의 슬롯에 장착. 장비가 아니면(소비 아이템) 아무것도 하지 않는다(사용은 A3.6).
+	// 인벤토리의 장비: 그 아이템의 슬롯에 장착. 소비 아이템: 그 행에서 하나 사용(A3.6).
 	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
 	const FItemTableRow* Row = DataManager ? DataManager->FindItemById(ItemSlot->GetItemId()) : nullptr;
-	if (Row == nullptr || Row->Slot == EEquipSlot::None) return;
+	if (Row == nullptr) return;
+	if (Row->Slot == EEquipSlot::None)
+	{
+		if (Row->UseEffect != EItemUseEffect::None) NetManager->SendUseItem(ItemSlot->GetItemDbId(), 0);
+		return;
+	}
 	NetManager->SendChangeEquip(static_cast<int32>(Row->Slot), ItemSlot->GetItemDbId());
 }
 

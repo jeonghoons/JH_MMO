@@ -444,8 +444,12 @@ void AJMMyPlayer::OnQuickSlotInput(int32 Index)
 		BeginLocalAim(QuickSlot.Value);
 		break;
 	case EQuickSlotKind::Item:
-		// 아이템 사용 패킷은 소비 아이템이 생길 때(A3.1 설계, D-148)
-		UE_LOG(LogTemp, Verbose, TEXT("QuickSlot %d: item %d use is not implemented yet"), Index + 1, QuickSlot.Value);
+		// 아이템 칸(A3.6): 그 종류를 하나 쓰겠다고 요청한다(서버가 수량이 적은 스택부터 고른다).
+		// 검증(보유·HP·재사용 시간·사망)은 서버가 하고 결과는 SC_USE_ITEM·SC_INVENTORY_UPDATE, 거부는 시스템 메시지로 온다.
+		if (UNetworkManager* NetManager = UNetworkManager::Get(this))
+		{
+			NetManager->SendUseItem(0, QuickSlot.Value);
+		}
 		break;
 	default:
 		break;
@@ -455,6 +459,7 @@ void AJMMyPlayer::OnQuickSlotInput(int32 Index)
 void AJMMyPlayer::RebuildQuickSlots()
 {
 	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const UJMInventoryManager* Inventory = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMInventoryManager>() : nullptr;
 	const EWeaponType WeaponType = GetWeaponType();
 
 	QuickSlots.Reset(QuickSlotActions.Num());
@@ -462,7 +467,11 @@ void AJMMyPlayer::RebuildQuickSlots()
 	{
 		const int32 SkillSlot = Index + 1;   // 칸 N = SkillTable 슬롯 N(0은 좌클릭 기본 공격)
 		const bool bHasSkill = DataManager && DataManager->FindSkillBySlot(WeaponType, SkillSlot) != nullptr;
-		QuickSlots.Add(bHasSkill ? FQuickSlot::MakeSkill(SkillSlot) : FQuickSlot());
+		// 스킬이 우선이고, 없으면 서버에 저장된 배치의 아이템 종류(D-154).
+		const int32 ItemId = Inventory ? Inventory->GetQuickSlotItem(Index) : 0;
+		if (bHasSkill) QuickSlots.Add(FQuickSlot::MakeSkill(SkillSlot));
+		else if (ItemId != 0) QuickSlots.Add(FQuickSlot::MakeItem(ItemId));
+		else QuickSlots.Add(FQuickSlot());
 	}
 }
 

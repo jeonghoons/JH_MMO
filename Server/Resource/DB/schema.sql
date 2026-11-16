@@ -3,6 +3,7 @@
 -- 2026-11-16: Schema_Version(적용한 마이그레이션 기록, 서버가 시작할 때 DB_SCHEMA_VERSION과 비교), Player_Info.UpdatedAt, Player_Info CHECK 제약 (migrations/0003_2026-11-16_a25_schema_version.sql)
 -- 2026-11-16: Player_Item(아이템 인스턴스 — 인벤토리·장착·경매 보관·수령함) 추가, Player_Equipped 삭제 (migrations/0004_2026-11-16_a33_player_item.sql)
 -- 2026-11-16: Player_Item.BagSlot(인벤토리 칸 번호) + UX_Player_Item_BagSlot 추가 (migrations/0005_2026-11-16_a61_bag_slot.sql)
+-- 2026-11-17: Player_QuickSlot(액티브 칸에 올린 아이템 종류) 추가 (migrations/0006_2026-11-17_a36_quick_slot.sql)
 -- 이 파일은 새 DB 생성용이다. 기존 DB는 migrate.ps1로 올린다. 스키마를 바꾸면 마이그레이션 + 이 파일 + Server/DB/DbQueries.h의 DB_SCHEMA_VERSION을 함께 고친다.
 USE [master]
 GO
@@ -236,6 +237,21 @@ ALTER TABLE [dbo].[Player_Info]  WITH CHECK ADD  CONSTRAINT [CK_Player_Info_Hp] 
 GO
 ALTER TABLE [dbo].[Player_Info]  WITH CHECK ADD  CONSTRAINT [CK_Player_Info_Gold] CHECK  (([Gold]>=(0)))
 GO
+/****** 개체: Table [dbo].[Player_QuickSlot] — 액티브 칸(1~5)에 올린 아이템 종류. 빈 칸은 행이 없다 (A3.6) ******/
+CREATE TABLE [dbo].[Player_QuickSlot](
+	[PlayerId] [bigint] NOT NULL,
+	[SlotIndex] [tinyint] NOT NULL,
+	[ItemId] [int] NOT NULL,
+ CONSTRAINT [PK_Player_QuickSlot] PRIMARY KEY CLUSTERED ([PlayerId] ASC, [SlotIndex] ASC)
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[Player_QuickSlot]  WITH CHECK ADD  CONSTRAINT [FK_Player_QuickSlot_Player_Info] FOREIGN KEY([PlayerId])
+REFERENCES [dbo].[Player_Info] ([PlayerId])
+GO
+ALTER TABLE [dbo].[Player_QuickSlot]  WITH CHECK ADD  CONSTRAINT [CK_Player_QuickSlot_SlotIndex] CHECK  (([SlotIndex]>=(1) AND [SlotIndex]<=(5)))
+GO
+ALTER TABLE [dbo].[Player_QuickSlot]  WITH CHECK ADD  CONSTRAINT [CK_Player_QuickSlot_ItemId] CHECK  (([ItemId]>(0)))
+GO
 /****** 개체: Table [dbo].[Schema_Version] — 적용한 마이그레이션(migrations/NNNN_*.sql) 1개 = 행 1개 ******/
 CREATE TABLE [dbo].[Schema_Version](
 	[Version] [int] NOT NULL,
@@ -250,7 +266,8 @@ INSERT INTO [dbo].[Schema_Version] ([Version], [Name]) VALUES
 	(2, N'0002_2026-11-07_mc33_equip (schema.sql)'),
 	(3, N'0003_2026-11-16_a25_schema_version (schema.sql)'),
 	(4, N'0004_2026-11-16_a33_player_item (schema.sql)'),
-	(5, N'0005_2026-11-16_a61_bag_slot (schema.sql)')
+	(5, N'0005_2026-11-16_a61_bag_slot (schema.sql)'),
+	(6, N'0006_2026-11-17_a36_quick_slot (schema.sql)')
 GO
 USE [master]
 GO

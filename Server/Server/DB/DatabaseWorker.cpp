@@ -88,7 +88,7 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 	DB_PlayerInfo outPlayerInfo = {};
 	DB_PlayerData outPlayerData = {};
 	DB_ItemRow outItem;
-	SQLLEN len[16] = { 0 };
+	SQLLEN len[16 + QUICK_SLOT_COUNT] = { 0 };
 
 	dbConn->BindCol(1, outPassword, sizeof(outPassword), &len[0]);
 	dbConn->BindCol(2, &outPlayerInfo.playerUID, &len[1]);
@@ -108,6 +108,8 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 	dbConn->BindCol(14, &outItem.equipSlot, &len[13]);
 	dbConn->BindCol(15, &outItem.bagSlot, &len[14]);
 	dbConn->BindCol(16, &outPlayerData.neverSaved, &len[15]);
+	for (int i = 0; i < QUICK_SLOT_COUNT; ++i)
+		dbConn->BindCol(17 + i, &outPlayerData.quickSlots[i], &len[16 + i]);
 
 	if (dbConn->Execute(DbQueries::SelectLogin))
 	{
@@ -277,6 +279,12 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 		dbConn->BindParam(5, &op.discardCount, &paramLen[4]);
 		query = DbQueries::ItemDiscard.c_str();
 		break;
+	case ItemOpKind::Use:
+		kindName = "Use";
+		dbConn->BindParam(3, &op.useDbId, &paramLen[2]);
+		dbConn->BindParam(4, &op.useExpectCount, &paramLen[3]);
+		query = DbQueries::ItemUse.c_str();
+		break;
 	case ItemOpKind::Give:
 		kindName = "Give";
 		built = DbQueries::BuildItemGive(op);
@@ -339,6 +347,28 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 	Metrics::ItemOpExecUs.Add(endUs - startUs);   // DB 실행 시간
 
 	room->PushJob(&Room::OnItemOpDone, player, op, result);
+}
+
+void DatabaseWorker::SaveQuickSlots(shared_ptr<Room> room, shared_ptr<Player> player, int64_t playerUID, QuickSlotArray slots)
+{
+	DBConnection* dbConn = _dbConnectionPool->Pop();
+	dbConn->Unbind();
+
+	// 파라미터: 1~5 칸별 ItemId, 6·7 PlayerId (DbQueries::SaveQuickSlots)
+	SQLLEN len[QUICK_SLOT_COUNT + 2] = { 0 };
+	for (int i = 0; i < QUICK_SLOT_COUNT; ++i)
+		dbConn->BindParam(1 + i, &slots[i], &len[i]);
+	dbConn->BindParam(QUICK_SLOT_COUNT + 1, &playerUID, &len[QUICK_SLOT_COUNT]);
+	dbConn->BindParam(QUICK_SLOT_COUNT + 2, &playerUID, &len[QUICK_SLOT_COUNT + 1]);
+
+	if (GServerConfig.dbSaveDelayMs > 0) ::Sleep(GServerConfig.dbSaveDelayMs);
+
+	const bool success = dbConn->Execute(DbQueries::SaveQuickSlots);
+	_dbConnectionPool->Push(dbConn);
+	if (!success)
+		LOG_ERROR("DB", "액티브 칸 저장 실패 (PlayerId {}, 칸 {} {} {} {} {})", playerUID, slots[0], slots[1], slots[2], slots[3], slots[4]);
+
+	room->PushJob(&Room::OnQuickSlotsSaved, player, slots, success);
 }
 
 void DatabaseWorker::SavePlayerProgress(shared_ptr<Room> room, shared_ptr<Player> player, int64_t playerUID, DB_PlayerProgress progress, long long requestUs)

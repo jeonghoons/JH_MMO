@@ -29,6 +29,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_INVENTORY, &FPacketHandler::Handle_SC_INVENTORY);
 	RegisterHandler(Protocol::SC_INVENTORY_UPDATE, &FPacketHandler::Handle_SC_INVENTORY_UPDATE);
 	RegisterHandler(Protocol::SC_ITEM_RESULT, &FPacketHandler::Handle_SC_ITEM_RESULT);
+	RegisterHandler(Protocol::SC_USE_ITEM, &FPacketHandler::Handle_SC_USE_ITEM);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -260,6 +261,12 @@ void FPacketHandler::Handle_SC_INVENTORY_UPDATE(TSharedPtr<NetworkSession>& sess
 {
 	if (UJMInventoryManager* Inventory = GetInventoryManager(session))
 		Inventory->HandleInventoryUpdate(pkt);
+}
+
+void FPacketHandler::Handle_SC_USE_ITEM(TSharedPtr<NetworkSession>& session, Protocol::SC_USE_ITEM_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleUseItem(pkt.object_id(), pkt.item_id(), pkt.hp(), pkt.cooldown_ms());
 }
 
 void FPacketHandler::Handle_SC_ITEM_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_ITEM_RESULT_PACKET& pkt)

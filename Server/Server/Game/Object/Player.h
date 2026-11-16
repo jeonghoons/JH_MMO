@@ -120,6 +120,16 @@ public:
 		bool dirty = false;      // 진행 중에 또 요청됐거나 실패해 다시 저장해야 한다
 	};
 	SaveState progressSave;    // Player_Info 레벨·경험치·HP — 주기·퇴장 때, 값이 달라졌을 때만 (Room::RequestProgressSave)
+	SaveState quickSlotSave;   // Player_QuickSlot 5칸 — 배치를 바꿀 때·퇴장 때, 값이 달라졌을 때만 (Room::RequestQuickSlotSave)
+
+	// 액티브 칸 배치(A3.6, D-154): 칸 1~5에 올린 아이템 종류(빈 칸 0). 소유가 바뀌지 않는 설정값이라 메모리에 먼저 반영하고 저장한다.
+	// Room 잡 안에서만 읽고 쓴다.
+	QuickSlotArray quickSlots{};
+	QuickSlotArray lastSavedQuickSlots{};   // DB에 있는 값(로그인 때 읽은 값 → 저장 성공 때마다 갱신)
+	int quickSlotSaveRetries = 0;           // 방을 나간 뒤 마지막 저장이 실패해 다시 시도한 횟수
+
+	// 소비 아이템 재사용 시간(A3.6): 아이템 종류 → 다음에 쓸 수 있는 시각(steady_clock ms). 저장하지 않는다(재접속하면 초기화).
+	std::unordered_map<int, long long> itemCooldownUntilMs;
 
 	// 진행 상황 저장(A2.5). Room 잡 안에서만 읽고 쓴다.
 	// 지금 값의 스냅숏. 죽어 있으면 HP는 부활 규칙 값(최대치 × WorldTable.ReviveHpPercent) — 다음 접속은 살아서 입장한다.

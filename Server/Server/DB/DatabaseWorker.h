@@ -39,6 +39,9 @@ public:
 	// 진행 상황(레벨·경험치·HP)을 저장한다(A2.5). 끝나면 room 잡(Room::OnProgressSaved)으로 저장한 값과 함께 돌아간다.
 	// 플레이어당 동시에 하나만 보낸다(Room::RequestProgressSave).
 	void SavePlayerProgress(shared_ptr<class Room> room, shared_ptr<class Player> player, int64_t playerUID, DB_PlayerProgress progress, long long requestUs);
+	// 액티브 칸 배치 5칸을 저장한다(A3.6). 끝나면 room 잡(Room::OnQuickSlotsSaved)으로 저장한 값과 함께 돌아간다.
+	// 플레이어당 동시에 하나만 보낸다(Room::RequestQuickSlotSave).
+	void SaveQuickSlots(shared_ptr<class Room> room, shared_ptr<class Player> player, int64_t playerUID, QuickSlotArray slots);
 
 private:
 	// DB의 Schema_Version이 DbQueries::DB_SCHEMA_VERSION과 같은지 확인한다. 다르면 이유를 로그에 남기고 false.

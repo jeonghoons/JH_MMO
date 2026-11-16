@@ -154,6 +154,21 @@ bool Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	_dbPlayerData = data;
 	_objectInfo.set_level(data.level);
 
+	// 액티브 칸(A3.6): DB 값을 그대로 기억하고(lastSavedQuickSlots), 쓸 수 없는 종류(ItemTable에 없음·사용 효과 없음)는 메모리에서만 비운다.
+	// 비운 칸은 다음 저장 때 DB에서도 지워진다.
+	lastSavedQuickSlots = data.quickSlots;
+	quickSlots = data.quickSlots;
+	for (int32_t& slotItem : quickSlots)
+	{
+		if (slotItem == 0) continue;
+		const ItemData* slotData = DataManager::GetItemData(slotItem);
+		if (slotData == nullptr || slotData->useEffect == ItemUseEffect::None)
+		{
+			LOG_WARN("Player", "액티브 칸의 아이템을 비웁니다 (PlayerId {}, ItemId {}: ItemTable에 없거나 사용할 수 없는 종류)", info.playerUID, slotItem);
+			slotItem = 0;
+		}
+	}
+
 	// 아이템(A3.3): Player_Item의 인벤토리·장착 행을 메모리에 올린다.
 	//  - ItemTable에 없는 종류·수량 0 이하는 경고 후 올리지 않는다(DB 행은 지우지 않는다. 장착 중이었다면 DB에서 인벤토리로만 내린다).
 	//  - 장착 행이 맞지 않으면(슬롯 범위 밖, 아이템 슬롯과 다름) 인벤토리로 내리고 pendingEquipFix에 적어 DB도 고치게 한다.

@@ -234,7 +234,9 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	// 인벤토리(A3.3): 본인에게 전체를 한 번 보낸다. 더미 봇은 아이템 요청이 모두 거부되므로 보내지 않는다(D-164).
 	if (!player->isDummy)
 	{
-		enterSession->Send(PacketSerializer::MAKE_SC_INVENTORY(player->inventory, player->GetGold()));
+		enterSession->Send(PacketSerializer::MAKE_SC_INVENTORY(player->inventory, player->GetGold(), player->quickSlots));
+		// 로그인 때 비운 액티브 칸(쓸 수 없는 종류)이 있으면 DB에서도 지운다.
+		RequestQuickSlotSave(player);
 
 		// 로그인 때 메모리에서 인벤토리로 내린 장착 행을 DB에도 반영한다. 끝날 때까지 이 플레이어의 다른 아이템 요청은 BUSY.
 		if (!player->pendingEquipFix.empty())
@@ -296,8 +298,10 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 
 	// 나갈 때의 진행 상황을 저장한다(A2.5). 진행 중인 저장이 있으면 OnProgressSaved가 이어서 최신 값으로 저장한다.
 	RequestProgressSave(player);
+	// 액티브 칸도 저장에 실패해 남은 것이 있으면 다시 보낸다(A3.6).
+	RequestQuickSlotSave(player);
 
-	// 보낸 DB 작업이 없으면 바로, 있으면 결과가 올 때(OnItemOpDone·OnProgressSaved) 접속 목록에서 빼게 한다.
+	// 보낸 DB 작업이 없으면 바로, 있으면 결과가 올 때(OnItemOpDone·OnProgressSaved·OnQuickSlotsSaved) 접속 목록에서 빼게 한다.
 	NotifyClosedIfDone(player);
 }
 
@@ -315,7 +319,7 @@ void Room::NotifyClosedIfDone(const shared_ptr<Player>& player)
 	if (session != nullptr && session->IsConnected()) return;
 
 	// DB에 가 있는 작업이 남았다. 결과를 받는 쪽이 다시 부른다.
-	if (player->itemOp.inFlight || player->progressSave.inFlight) return;
+	if (player->itemOp.inFlight || player->progressSave.inFlight || player->quickSlotSave.inFlight) return;
 
 	player->closedNotified = true;
 	GLobby->PushJob(&AuthLobby::OnPlayerClosed, player->GetPlayerUID(), player->GetId());
@@ -785,6 +789,157 @@ void Room::PlayerDropItem(shared_ptr<Player> player, int64_t itemDbId)
 	StartItemOp(player, op);
 }
 
+void Room::PlayerUseItem(shared_ptr<Player> player, int64_t itemDbId, int itemId)
+{
+	if (player == nullptr) return;
+
+	auto reject = [&](Protocol::ItemResult result) {
+		LOG_DEBUG("Item", "사용 거부 player={} dbId={} item={} result={}", player->GetId(), itemDbId, itemId, Protocol::ItemResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_USE_ITEM, result));
+	};
+
+	if (false == IsInRoom(player)) { reject(Protocol::ITEM_RESULT_NOT_IN_ROOM); return; }
+	if (player->isDummy || player->GetPlayerUID() == 0) { reject(Protocol::ITEM_RESULT_NOT_ALLOWED); return; }
+
+	// 쓸 행: 지정한 행(인벤토리 위치의 내 것) 또는 그 종류 중 수량이 가장 적은 스택(같으면 ItemDbId가 작은 것 — 덜 찬 스택부터 비운다).
+	const ItemInstance* target = nullptr;
+	if (itemDbId != 0)
+	{
+		target = player->inventory.Find(itemDbId);
+		if (target != nullptr && target->equipPart != 0) target = nullptr;
+	}
+	else if (itemId != 0)
+	{
+		for (const auto& [dbId, item] : player->inventory.Items())
+		{
+			if (item.equipPart != 0 || item.itemId != itemId) continue;
+			if (target == nullptr || item.count < target->count) target = &item;
+		}
+	}
+	if (target == nullptr || target->count < 1) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+
+	const ItemData* item = DataManager::GetItemData(target->itemId);
+	if (item == nullptr) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+	if (item->useEffect == ItemUseEffect::None) { reject(Protocol::ITEM_RESULT_NOT_USABLE); return; }
+	if (item->requiredLevel > player->GetInfo().level()) { reject(Protocol::ITEM_RESULT_LEVEL_TOO_LOW); return; }
+	if (player->GetStat().IsDead()) { reject(Protocol::ITEM_RESULT_DEAD); return; }
+	// 회복할 것이 없으면 쓰지 않는다(아이템을 버리지 않게).
+	if (item->useEffect == ItemUseEffect::HealHp && player->GetInfo().stat().hp() >= player->GetInfo().stat().max_hp()) { reject(Protocol::ITEM_RESULT_HP_FULL); return; }
+
+	// 재사용 시간: 종류별 다음 사용 가능 시각과 비교한다(타이머·저장 없음).
+	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	const auto cooldownIt = player->itemCooldownUntilMs.find(item->itemId);
+	if (cooldownIt != player->itemCooldownUntilMs.end() && nowMs < cooldownIt->second) { reject(Protocol::ITEM_RESULT_COOLDOWN); return; }
+
+	if (!player->itemOp.interval.IsReady()) { reject(Protocol::ITEM_RESULT_TOO_FREQUENT); return; }
+	if (player->itemOp.inFlight) { Metrics::ItemOpBusy.fetch_add(1); reject(Protocol::ITEM_RESULT_BUSY); return; }
+
+	DB_ItemOp op;
+	op.kind = ItemOpKind::Use;
+	op.itemId = item->itemId;
+	op.useDbId = target->dbId;
+	op.useExpectCount = target->count;
+
+	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+void Room::PlayerSetQuickSlot(shared_ptr<Player> player, int slot, int itemId)
+{
+	if (player == nullptr) return;
+
+	auto reject = [&](Protocol::ItemResult result) {
+		LOG_DEBUG("Item", "액티브 칸 거부 player={} slot={} item={} result={}", player->GetId(), slot, itemId, Protocol::ItemResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_SET_QUICKSLOT, result));
+	};
+
+	if (false == IsInRoom(player)) { reject(Protocol::ITEM_RESULT_NOT_IN_ROOM); return; }
+	if (player->isDummy || player->GetPlayerUID() == 0) { reject(Protocol::ITEM_RESULT_NOT_ALLOWED); return; }
+	if (!player->itemOp.interval.IsReady()) { reject(Protocol::ITEM_RESULT_TOO_FREQUENT); return; }
+	if (slot < 1 || slot > QUICK_SLOT_COUNT) { reject(Protocol::ITEM_RESULT_BAD_SLOT); return; }
+
+	if (itemId != 0)
+	{
+		// 칸에는 사용할 수 있는 종류만 올린다(보유 여부는 보지 않는다 — 다 써도 칸은 남고 수량 0으로 보인다).
+		const ItemData* item = DataManager::GetItemData(itemId);
+		if (item == nullptr) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+		if (item->useEffect == ItemUseEffect::None) { reject(Protocol::ITEM_RESULT_NOT_USABLE); return; }
+		// 지금 무기의 스킬이 있는 칸은 스킬이 우선이라 올릴 수 없다(D-154).
+		if (DataManager::GetSkillBySlot(player->GetWeaponType(), slot) != nullptr) { reject(Protocol::ITEM_RESULT_BAD_SLOT); return; }
+	}
+
+	QuickSlotArray& slots = player->quickSlots;
+	if (slots[slot - 1] == itemId) return;   // 바뀌는 것이 없다
+
+	// 한 종류는 한 칸에만 둔다: 다른 칸에 있던 것은 비운다(옮기기).
+	if (itemId != 0)
+	{
+		for (int32_t& other : slots)
+			if (other == itemId) other = 0;
+	}
+	slots[slot - 1] = itemId;
+	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+
+	// 소유가 바뀌지 않는 설정값이라 메모리에 먼저 반영하고 알린 뒤 저장한다(itemOp를 쓰지 않는다).
+	if (shared_ptr<Session> session = player->GetSession())
+		session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE({}, {}, player->GetGold(), &slots));
+	RequestQuickSlotSave(player);
+}
+
+void Room::RequestQuickSlotSave(shared_ptr<Player> player)
+{
+	if (player == nullptr || player->GetPlayerUID() == 0 || player->isDummy) return;
+
+	Player::SaveState& state = player->quickSlotSave;
+	if (state.inFlight)
+	{
+		// DB 작업 스레드가 여러 개라 연달아 보내면 순서가 뒤바뀔 수 있다. 끝난 뒤 최신 값으로 한 번 더 보낸다.
+		state.dirty = true;
+		return;
+	}
+
+	state.dirty = false;
+	if (player->quickSlots == player->lastSavedQuickSlots) return;   // DB에 있는 값과 같다
+
+	state.inFlight = true;
+	GDBWorker->PushDBJob(&DatabaseWorker::SaveQuickSlots, shared_from_this(), player, player->GetPlayerUID(), player->quickSlots);
+}
+
+void Room::OnQuickSlotsSaved(shared_ptr<Player> player, QuickSlotArray saved, bool success)
+{
+	Player::SaveState& state = player->quickSlotSave;
+	state.inFlight = false;
+	const bool inRoom = IsInRoom(player);
+
+	if (success)
+	{
+		player->lastSavedQuickSlots = saved;
+		// 저장하는 동안 또 바뀌었거나 그 사이 방을 나갔으면 최신 값으로 한 번 더(값이 같으면 보내지 않는다).
+		if (state.dirty || !inRoom)
+			RequestQuickSlotSave(player);
+	}
+	// 실패: 방에 있으면 다음 변경·퇴장 때 다시 저장한다(lastSavedQuickSlots가 그대로라 값이 다르면 다시 보낸다).
+	// 방을 나갔으면 다음 기회가 없으므로 몇 번 더 시도한다.
+	else if (!inRoom)
+	{
+		constexpr int MAX_LEAVE_SAVE_RETRIES = 3;
+		if (player->quickSlotSaveRetries < MAX_LEAVE_SAVE_RETRIES)
+		{
+			++player->quickSlotSaveRetries;
+			RequestQuickSlotSave(player);
+		}
+		else
+		{
+			LOG_ERROR("Room", "액티브 칸 퇴장 저장을 포기합니다 (PlayerId {}) — DB에는 이전 배치가 남습니다", player->GetPlayerUID());
+		}
+	}
+
+	// 방을 나간 플레이어의 마지막 저장이 끝났으면 접속 목록에서 빼게 한다(A2.7).
+	NotifyClosedIfDone(player);
+}
+
 bool Room::IsInRoom(const shared_ptr<Player>& player) const
 {
 	if (player == nullptr) return false;
@@ -999,6 +1154,49 @@ void Room::OnItemOpDone(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult
 		BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_CHANGE_EQUIP(player->GetId(), part, op.itemId, player->GetInfo().stat()), true);
 
 		if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, {}, player->GetGold()));
+		break;
+	}
+	case ItemOpKind::Use:
+	{
+		if (!result.success)
+		{
+			if (session) session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_USE_ITEM, Protocol::ITEM_RESULT_DB_ERROR));
+			break;
+		}
+		if (!inRoom) break;
+
+		// 수량: 1개였으면 행이 사라지고, 아니면 1 줄어든다.
+		vector<int64_t> removed;
+		if (const ItemInstance* found = player->inventory.Find(op.useDbId))
+		{
+			if (op.useExpectCount <= 1)
+			{
+				player->inventory.Remove(op.useDbId);
+				removed.push_back(op.useDbId);
+			}
+			else
+			{
+				ItemInstance used = *found;
+				used.count = op.useExpectCount - 1;
+				player->inventory.Set(used);
+				changed.push_back(used);
+			}
+		}
+
+		// 효과: DB에서는 이미 썼다. 그 사이 죽었으면 회복하지 않는다(OnHealed가 죽은 대상을 건너뛴다 — 부활은 CS_REVIVE로만).
+		const ItemData* item = DataManager::GetItemData(op.itemId);
+		int cooldownMs = 0;
+		if (item != nullptr)
+		{
+			if (item->useEffect == ItemUseEffect::HealHp)
+				player->GetStat().OnHealed(item->useValue);
+			cooldownMs = item->useCooldownMs;
+			const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+			player->itemCooldownUntilMs[op.itemId] = nowMs + cooldownMs;
+		}
+
+		BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_USE_ITEM(player->GetId(), op.itemId, player->GetInfo().stat().hp(), cooldownMs), true);
+		if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, removed, player->GetGold()));
 		break;
 	}
 	case ItemOpKind::Move:

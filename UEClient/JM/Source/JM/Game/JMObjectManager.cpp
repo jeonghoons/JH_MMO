@@ -276,6 +276,22 @@ void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTabl
 	}
 }
 
+void UJMObjectManager::HandleUseItem(int32 ObjectId, int32 ItemId, int32 Hp, int32 CooldownMs)
+{
+	TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(ObjectId);
+	if (FoundActor == nullptr || *FoundActor == nullptr) return;
+
+	(*FoundActor)->SetServerHp(Hp);
+	if (*FoundActor == MyPlayer)
+	{
+		if (UCombatHudWidget* Hud = GetCombatHud())
+		{
+			Hud->SetHp(Hp, MyPlayer->GetObjectInfo().stat().max_hp());
+			Hud->StartItemCooldown(ItemId, CooldownMs);
+		}
+	}
+}
+
 void UJMObjectManager::HandleDamage(int32 AttackerId, int32 TargetId, int32 Damage, int32 RemainHp)
 {
 	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(TargetId))

@@ -12,7 +12,7 @@
 namespace DbQueries
 {
 	// 이 서버 코드가 기대하는 스키마 버전 = 마지막 마이그레이션 순번. DB의 Schema_Version과 다르면 서버가 시작하지 않는다.
-	constexpr int DB_SCHEMA_VERSION = 5;
+	constexpr int DB_SCHEMA_VERSION = 6;
 
 	// 결과: 열 1 = 적용된 마지막 마이그레이션 순번(행이 없으면 0). 테이블이 없으면 실행 실패.
 	inline const wchar_t* const SelectSchemaVersion = L"SELECT ISNULL(MAX([Version]), 0) FROM [Schema_Version]";
@@ -20,13 +20,19 @@ namespace DbQueries
 	// 로그인. 파라미터: 1 LoginId
 	// 결과(인벤토리·장착 아이템 수만큼 행, 없으면 1행, ItemDbId 순): LoginPassword, PlayerId, AccountId, Name, PlayerType, Level, Exp, Hp, Gold,
 	//   ItemDbId, ItemId, Count, Location, EquipSlot (아이템이 없으면 모두 0), BagSlot(없으면 -1),
-	//   NeverSaved(1 = 진행 상황을 저장한 적이 없는 캐릭터 = UpdatedAt NULL)
+	//   NeverSaved(1 = 진행 상황을 저장한 적이 없는 캐릭터 = UpdatedAt NULL),
+	//   Q1~Q5(액티브 칸 1~5에 올린 ItemId, 빈 칸 0 — 모든 행에 같은 값, A3.6)
 	inline const wchar_t* const SelectLogin = L" \
         SELECT A.LoginPassword, P.PlayerId, P.AccountId, P.Name, P.PlayerType, \
                P.[Level], P.Exp, P.Hp, P.Gold, \
                ISNULL(I.ItemDbId, 0) AS ItemDbId, ISNULL(I.ItemId, 0) AS ItemId, ISNULL(I.[Count], 0) AS ItemCount, \
                ISNULL(I.Location, 0) AS Location, ISNULL(I.EquipSlot, 0) AS EquipSlot, ISNULL(I.BagSlot, -1) AS BagSlot, \
-               CASE WHEN P.UpdatedAt IS NULL THEN 1 ELSE 0 END AS NeverSaved \
+               CASE WHEN P.UpdatedAt IS NULL THEN 1 ELSE 0 END AS NeverSaved, \
+               ISNULL((SELECT Q.ItemId FROM [Player_QuickSlot] Q WHERE Q.PlayerId = P.PlayerId AND Q.SlotIndex = 1), 0) AS Q1, \
+               ISNULL((SELECT Q.ItemId FROM [Player_QuickSlot] Q WHERE Q.PlayerId = P.PlayerId AND Q.SlotIndex = 2), 0) AS Q2, \
+               ISNULL((SELECT Q.ItemId FROM [Player_QuickSlot] Q WHERE Q.PlayerId = P.PlayerId AND Q.SlotIndex = 3), 0) AS Q3, \
+               ISNULL((SELECT Q.ItemId FROM [Player_QuickSlot] Q WHERE Q.PlayerId = P.PlayerId AND Q.SlotIndex = 4), 0) AS Q4, \
+               ISNULL((SELECT Q.ItemId FROM [Player_QuickSlot] Q WHERE Q.PlayerId = P.PlayerId AND Q.SlotIndex = 5), 0) AS Q5 \
         FROM [User_Account] A \
         INNER JOIN [Player_Info] P ON A.AccountId = P.AccountId \
         LEFT JOIN [Player_Item] I ON I.OwnerId = P.PlayerId AND I.Location IN (1, 2) \
@@ -60,6 +66,16 @@ namespace DbQueries
 	// 필드가 늘면(A2.3b 등) DB_PlayerProgress(ServerData.h)와 이 쿼리, DatabaseWorker::SavePlayerProgress의 바인딩을 함께 고친다.
 	inline const wchar_t* const UpdatePlayerProgress =
 		L"UPDATE [Player_Info] SET [Level] = ?, Exp = ?, Hp = ?, UpdatedAt = SYSDATETIME() WHERE PlayerId = ?";
+
+	// 액티브 칸 배치 저장(A3.6, D-154): 5칸을 한 문장으로 맞춘다(빈 칸은 행 삭제, 바뀐 칸은 UPDATE, 새 칸은 INSERT).
+	// 한 문장이라 실행 성공 = 저장 성공이고 중간 상태가 없다. 파라미터: 1~5 칸 1~5의 ItemId(빈 칸 0), 6 PlayerId, 7 PlayerId
+	inline const wchar_t* const SaveQuickSlots =
+		L"MERGE [Player_QuickSlot] AS T "
+		L"USING (SELECT V.SlotIndex, V.ItemId FROM (VALUES (1, CAST(? AS INT)), (2, CAST(? AS INT)), (3, CAST(? AS INT)), (4, CAST(? AS INT)), (5, CAST(? AS INT))) V(SlotIndex, ItemId)) AS S "
+		L"ON T.PlayerId = ? AND T.SlotIndex = S.SlotIndex "
+		L"WHEN MATCHED AND S.ItemId = 0 THEN DELETE "
+		L"WHEN MATCHED AND T.ItemId <> S.ItemId THEN UPDATE SET ItemId = S.ItemId "
+		L"WHEN NOT MATCHED BY TARGET AND S.ItemId <> 0 THEN INSERT (PlayerId, SlotIndex, ItemId) VALUES (?, S.SlotIndex, S.ItemId);";
 
 	// ---------------------------------------------------------------------------------------------------------------
 	// 아이템 트랜잭션(A3.3, D-153·D-165). 모든 쿼리가 같은 틀과 같은 결과 모양을 쓴다(DatabaseWorker::ExecItemOp가 읽는다).
@@ -145,6 +161,17 @@ namespace DbQueries
 		+ ItemOpHead +
 		L"DELETE FROM [Player_Item] WHERE ItemDbId = @A AND OwnerId = @P AND Location = 1 AND BagSlot = @Slot AND [Count] = @Count; "
 		L"SET @n += @@ROWCOUNT; "
+		+ ItemOpTail(L"1");
+
+	// 소비 아이템 사용(고정 쿼리, A3.6): 수량 1 감소, 1개였으면 행 삭제. 파라미터: 1 PlayerId, 2 Fail, 3 DbId, 4 Count(지금 수량 = 기대 상태)
+	inline const std::wstring ItemUse =
+		std::wstring(L"SET NOCOUNT ON; SET XACT_ABORT ON; "
+		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @A BIGINT = ?, @Count INT = ?; ")
+		+ ItemOpHead +
+		L"IF @Count > 1 BEGIN "
+		L"UPDATE [Player_Item] SET [Count] = [Count] - 1, UpdatedAt = SYSDATETIME() WHERE ItemDbId = @A AND OwnerId = @P AND Location = 1 AND [Count] = @Count; SET @n += @@ROWCOUNT; END "
+		L"ELSE BEGIN "
+		L"DELETE FROM [Player_Item] WHERE ItemDbId = @A AND OwnerId = @P AND Location = 1 AND [Count] = @Count; SET @n += @@ROWCOUNT; END "
 		+ ItemOpTail(L"1");
 
 	// 지급(조립식 — 채울 스택 수가 요청마다 다르다). 파라미터: 1 PlayerId, 2 Fail. 나머지는 Room이 검증한 정수라 쿼리에 그대로 넣는다.

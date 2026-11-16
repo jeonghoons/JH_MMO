@@ -51,6 +51,10 @@ public:
 	TArray<FJMInventoryItem> GetSortedItems(bool bEquipped) const;
 	// 인벤토리 칸에 있는(장착하지 않은) 그 종류의 아이템 중 ItemDbId가 가장 작은 것. 없으면 0
 	int64 FindBagItemDbId(int32 ItemId) const;
+	// 인벤토리 칸에 있는 그 종류의 수량 합계(액티브 칸의 수량 표시, A3.6)
+	int64 GetBagItemCount(int32 ItemId) const;
+	// 액티브 칸 Index(0부터)에 올린 아이템 종류. 없으면 0. 서버가 저장하는 배치다(SC_INVENTORY·SC_INVENTORY_UPDATE의 quick_slots)
+	int32 GetQuickSlotItem(int32 Index) const { return QuickSlotItems.IsValidIndex(Index) ? QuickSlotItems[Index] : 0; }
 
 	int64 GetGold() const { return Gold; }
 	int32 GetMaxSlots() const { return MaxSlots; }
@@ -64,6 +68,8 @@ public:
 private:
 	UPROPERTY()
 	TMap<int64, FJMInventoryItem> Items;
+
+	TArray<int32> QuickSlotItems;
 
 	int64 Gold = 0;
 	int32 MaxSlots = 0;

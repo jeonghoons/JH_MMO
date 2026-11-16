@@ -4,7 +4,8 @@
 (2026-11-16 A3.1 작성, 결정 D-152~D-159. 장비 외형·슬롯은 [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), CSV 규약은 [DESIGN_DATA.md](DESIGN_DATA.md), 동시성 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md))
 
 ## 현재 상태 (2026-11-17)
-- A3.5 완료(2026-11-17): 줍기 `CS_PICKUP_ITEM`·버리기 `CS_DROP_ITEM`(서버). 구현 내용은 아래 "A3.5 구현 메모". 클라이언트 표시·입력(A6.2)도 완료(사용자 PIE 확인)했습니다. 소비 아이템·거래·경매 코드는 아직 없습니다.
+- A3.6 구현(2026-11-17, 사용자 PIE 확인 대기): 소비 아이템 사용 `CS_USE_ITEM`·`SC_USE_ITEM`, 액티브 칸 배치 `CS_SET_QUICKSLOT` + `Player_QuickSlot`(마이그레이션 0006). 구현 내용은 아래 "A3.6 구현 메모". 거래·경매 코드는 아직 없습니다.
+- A3.5 완료(2026-11-17): 줍기 `CS_PICKUP_ITEM`·버리기 `CS_DROP_ITEM`(서버). 구현 내용은 아래 "A3.5 구현 메모". 클라이언트 표시·입력(A6.2)도 완료(사용자 PIE 확인)했습니다.
 - A3.4 완료(2026-11-16): 몬스터 처치 시 드랍 롤 → 바닥 드랍(`DropItem`, `OBJECT_TYPE_ITEM`) 생성·소유권 기록·드랍 전용 시야·소멸·방당 상한. 구현 내용은 아래 "A3.4 구현 메모".
 - A3.3 완료(2026-11-16): `Player_Item`(마이그레이션 0004, `Player_Equipped` 이전·삭제), 서버 `Inventory`·아이템 작업 공통 경로(`itemOp`), 장착을 `item_db_id` 기준·DB 성공 뒤 반영으로 전환, 개발 지급 `CS_DEV_GIVE`, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`·`SC_ITEM_RESULT`, 클라이언트 `UJMInventoryManager`(데이터만 — 창은 A6.1)와 콘솔 `Give`. 구현 내용은 아래 "A3.3 구현 메모".
 - 골드는 진행 상황 스냅숏에서 빠졌고 아이템 트랜잭션에서만 증감합니다(지금 들어오는 경로는 개발 지급뿐, 골드 드랍은 A3.4).
@@ -184,6 +185,17 @@
 - **액티브 칸**: 칸에는 아이템 **종류(itemId)**를 올립니다. 사용하면 그 종류의 스택 하나에서 1개를 쓰고, 칸에는 보유 합계를 표시합니다. 칸 N에 현재 무기의 스킬(슬롯 N)이 있으면 스킬이 우선이고, 없을 때 올려 둔 아이템이 보입니다(`AJMMyPlayer::RebuildQuickSlots` 확장, `EQuickSlotKind::Item`). 지금 검·활은 칸 1만 스킬이라 칸 2~5가 아이템 자리입니다. 현재 무기에 스킬이 있는 칸에 올리려는 요청은 거부합니다.
 - 배치는 `CS_SET_QUICKSLOT(slot, item_id)`(0 = 비우기)로 서버에 저장합니다. 소유가 바뀌지 않는 설정값이라 `itemOp` 없이 메모리에 먼저 반영하고, 저장은 기존 `Player::SaveState` 방식(플레이어당 동시 1건, 진행 중 변경은 합쳐 끝난 뒤 최신 5칸을 한 번 더, 실패는 다음 변경·퇴장 때 재시도)으로 합니다. DB 작업 스레드가 여러 개라 따로따로 보내면 순서가 뒤바뀔 수 있기 때문입니다.
 
+### A3.6 구현 메모 (2026-11-17)
+- **사용** `Room::PlayerUseItem`: 검증 순서는 방 안 → 더미 봇 아님 → 쓸 행 찾기(`NO_ITEM`) → `UseEffect`(`NOT_USABLE`) → `RequiredLevel`(`LEVEL_TOO_LOW`) → 생존(`DEAD`) → HP 최대(`HP_FULL`) → 재사용 시간(`COOLDOWN`) → 요청 간격·진행 중인 작업. `item_db_id` 0이면 그 종류의 인벤토리 행 중 수량이 가장 적은 것(같으면 `ItemDbId`가 작은 것). `ItemOpKind::Use`(고정 쿼리 `ItemUse`: 수량 − 1, 1개였으면 DELETE).
+- **사용 결과**(`Room::OnItemOpDone`): 성공이고 방에 있으면 수량 반영 → `OnHealed(UseValue)`(최대치까지, 그 사이 죽었으면 회복 없음) → 재사용 시각 기록(`Player::itemCooldownUntilMs`, 결과 적용 시점부터 `UseCooldownMs`) → `SC_USE_ITEM`(AOI, 본인 포함) + `SC_INVENTORY_UPDATE`. 실패는 `DB_ERROR`.
+- **액티브 칸** `Room::PlayerSetQuickSlot`: 칸 1~5(`QUICK_SLOT_COUNT`), 종류는 ItemTable에 있고 `UseEffect`가 있어야 합니다. 지금 무기의 스킬이 있는 칸은 `BAD_SLOT`. `itemOp`를 쓰지 않고 메모리(`Player::quickSlots`)에 먼저 반영한 뒤 저장합니다. 요청 간격은 아이템 요청과 같은 것을 씁니다.
+- **구현하면서 정한 것(설계에 없던 세부 — 바꾸려면 알려 주세요)**: ① 배치 응답은 새 패킷 대신 `SC_INVENTORY_UPDATE`에 `quick_slots`(4번, 바뀌었을 때만 5칸 전체)를 실어 보냅니다. ② 한 종류는 한 칸에만 둡니다(다른 칸에 올리면 옮겨짐). ③ 올릴 때 보유 여부는 보지 않습니다(다 써도 칸은 남고 수량 0으로 흐리게 보임).
+- **저장**: `Room::RequestQuickSlotSave` → `DatabaseWorker::SaveQuickSlots`(MERGE 한 문장으로 5칸을 맞춤) → `Room::OnQuickSlotsSaved`. `Player::quickSlotSave`(`SaveState`)로 플레이어당 동시 1건, 진행 중 변경은 끝난 뒤 최신 값으로 한 번 더, DB 값(`lastSavedQuickSlots`)과 같으면 보내지 않습니다. 퇴장 때도 부르고 `NotifyClosedIfDone`이 이 저장이 끝나기를 기다립니다. 로그인 때 쓸 수 없는 종류가 든 칸은 메모리에서 비우고 입장 직후 DB에서도 지웁니다.
+- **로그인**: `SelectLogin`에 칸 1~5 열(Q1~Q5)을 더해 `DB_PlayerData.quickSlots`로 읽고, `SC_INVENTORY.quick_slots`에 5칸을 싣습니다.
+- **클라이언트**: `UJMInventoryManager`가 배치를 담고(`GetQuickSlotItem`·`GetBagItemCount`), `AJMMyPlayer::RebuildQuickSlots`가 스킬 우선 → 아이템 → 빈 칸으로 채웁니다. HUD는 인벤토리가 바뀔 때마다 칸을 다시 그립니다(수량, 0이면 흐리게). 숫자키 = `CS_USE_ITEM(0, 종류)`, 인벤토리의 소비 아이템 우클릭 = `CS_USE_ITEM(그 행)`. 배치는 인벤토리 창을 연 상태에서 아이템을 칸에 끌어다 놓기(`USkillSlotWidget::NativeOnDrop`), 칸 우클릭 = 비우기. 재사용 표시는 `SC_USE_ITEM.cooldown_ms`(서버 값)로 그 종류가 든 칸에 합니다.
+- **알아둘 간극**: 사용 요청의 DB 결과가 오기 전에 접속이 끊기면 수량은 줄고 회복은 적용되지 않습니다(DB 성공 뒤 메모리 반영 원칙 — HP는 메모리 값이라 방에 없으면 반영할 곳이 없음). 재사용 시간은 저장하지 않아 재접속하면 초기화됩니다.
+- **시험(TESTING 2026-11-17 A3.6)**: 사망 중 거부(`DEAD`)는 원시 소켓으로 확인하지 못했습니다(사용자 PIE에서 확인).
+
 ## 중복 접속 차단 (A2.7, D-158)
 - **기존 접속을 끊고 새 로그인을 받습니다.** `AuthLobby`가 접속 중 캐릭터 목록(`PlayerId` → 세션 id·상태 `Online`/`Closing`)을 갖고, 로비 잡 안에서만 읽고 씁니다(감사 F3).
 - 로그인 DB 조회가 성공했는데 목록에 있으면: 기존 세션에 `SC_KICK`을 보내고 **소켓을 닫아** 끊은 뒤 상태를 `Closing`으로 바꾸고(지금 `Session::Disconnect`는 소켓을 닫지 않아 가만히 있는 클라이언트는 끊기지 않으므로, 감사 F4의 소켓 닫기를 A2.7에서 먼저 넣음 — 클라이언트도 `SC_KICK`을 받으면 스스로 닫고 로그인 화면으로 돌아감), 새 로그인은 대기시킵니다(캐릭터당 대기 1건, 이미 대기가 있으면 먼저 온 쪽을 `LOGIN_RESULT_BUSY`로 거부). 방금 읽은 DB 값은 낡았을 수 있으므로 버립니다.
@@ -238,7 +250,7 @@
 |---|---|---|
 | A3.3 | 1017 `DEV_GIVE` | 2016 `INVENTORY`(본인), 2017 `INVENTORY_UPDATE`(본인), 2018 `ITEM_RESULT`(본인, 거부일 때만: 요청 패킷 id + `ItemResult`) |
 | A3.5 | 1013 `PICKUP_ITEM`, 1014 `DROP_ITEM` | (드랍 표시는 기존 `ADD_OBJECT`·`REMOVE_OBJECT`) |
-| A3.6 | 1015 `USE_ITEM`, 1016 `SET_QUICKSLOT` | 2019 `USE_ITEM`(AOI) |
+| A3.6 | 1015 `USE_ITEM`, 1016 `SET_QUICKSLOT` | 2019 `USE_ITEM`(AOI). 배치 응답은 `INVENTORY_UPDATE.quick_slots` |
 | A4.2 | 1018 `TRADE_REQUEST`, 1019 `TRADE_RESPOND`, 1020 `TRADE_SET_OFFER`, 1021 `TRADE_LOCK`, 1022 `TRADE_CONFIRM`, 1023 `TRADE_CANCEL` | 2020 `TRADE_REQUEST`(상대), 2021 `TRADE_STATE`(두 사람), 2022 `TRADE_END`(두 사람), 2023 `TRADE_RESULT`(본인, 거부) |
 | A4.3 | 1024 `AUCTION_SEARCH`, 1025 `AUCTION_REGISTER`, 1026 `AUCTION_BUY`, 1027 `AUCTION_CANCEL`, 1028 `AUCTION_MY`, 1029 `MAIL_CLAIM` | 2024 `AUCTION_LIST`, 2025 `AUCTION_MY`, 2026 `AUCTION_RESULT`(본인: 요청 패킷 id + `AuctionResult` + `listing_id`) |
 | A2.7 | — | 2027 `KICK`(끊기 직전 본인, 사유) |

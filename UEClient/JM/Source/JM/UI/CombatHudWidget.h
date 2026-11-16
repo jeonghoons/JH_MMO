@@ -28,6 +28,8 @@ public:
 
 	// 서버가 확정한 시전(SC_ATTACK)의 쿨타임을 그 스킬이 든 칸에 표시한다. SkillSlot = SkillTable의 Slot.
 	void StartCooldown(int32 SkillSlot, int32 CooldownMs);
+	// 서버가 확정한 아이템 사용(SC_USE_ITEM)의 재사용 시간을 그 종류가 든 칸에 표시한다 (A3.6)
+	void StartItemCooldown(int32 ItemId, int32 CooldownMs);
 
 	// 상호작용 안내(A6.2): 주울 수 있는 드랍이 가까이 있으면 "[F] 줍기: 이름". 빈 글이면 숨긴다.
 	void SetInteractPrompt(const FText& Prompt);
@@ -35,6 +37,7 @@ public:
 protected:
 	// HUD가 내 캐릭터보다 늦게 만들어져도 현재 값으로 시작한다.
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> TxtName;
@@ -71,6 +74,14 @@ protected:
 
 private:
 	TArray<USkillSlotWidget*, TInlineAllocator<5>> GetSlotWidgets() const;
+
+	// 인벤토리·액티브 칸 배치가 바뀌면(UJMInventoryManager::OnInventoryChanged) 내 캐릭터의 칸 내용을 다시 만들어 그린다(수량·배치).
+	void OnInventoryChanged();
+	// 칸에 인벤토리 아이템을 끌어다 놓음 = 그 종류를 올리기, 칸 우클릭 = 비우기 (CS_SET_QUICKSLOT, 결과는 SC_INVENTORY_UPDATE)
+	void OnSlotItemDropped(USkillSlotWidget* SlotWidget, int32 ItemId);
+	void OnSlotRightClicked(USkillSlotWidget* SlotWidget);
+
+	FDelegateHandle InventoryChangedHandle;
 
 	// 마지막으로 받은 칸 내용(쿨타임을 어느 칸에 표시할지 찾는 데 쓴다)
 	TArray<FQuickSlot> CurrentQuickSlots;

@@ -217,6 +217,22 @@ void UNetworkManager::SendDropItem(int64 ItemDbId)
 	SendProtocol(*this, pkt, Protocol::CS_DROP_ITEM);
 }
 
+void UNetworkManager::SendUseItem(int64 ItemDbId, int32 ItemId)
+{
+	Protocol::CS_USE_ITEM_PACKET pkt;
+	pkt.set_item_db_id(ItemDbId);
+	pkt.set_item_id(ItemId);
+	SendProtocol(*this, pkt, Protocol::CS_USE_ITEM);
+}
+
+void UNetworkManager::SendSetQuickSlot(int32 Slot, int32 ItemId)
+{
+	Protocol::CS_SET_QUICKSLOT_PACKET pkt;
+	pkt.set_slot(Slot);
+	pkt.set_item_id(ItemId);
+	SendProtocol(*this, pkt, Protocol::CS_SET_QUICKSLOT);
+}
+
 void UNetworkManager::SendSkillAim(int32 Slot, bool bActive, uint32 Seq)
 {
 	Protocol::CS_SKILL_AIM_PACKET pkt;

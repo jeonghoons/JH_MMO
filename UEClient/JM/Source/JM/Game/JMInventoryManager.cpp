@@ -25,6 +25,8 @@ void UJMInventoryManager::HandleInventory(const Protocol::SC_INVENTORY_PACKET& P
 	MaxSlots = Pkt.max_slots();
 	PickupRangeCm = Pkt.pickup_range_cm();
 	TradeRangeCm = Pkt.trade_range_cm();
+	QuickSlotItems.Reset();
+	for (const int32 ItemId : Pkt.quick_slots()) QuickSlotItems.Add(ItemId);
 	bReceived = true;
 
 	UE_LOG(LogTemp, Log, TEXT("Inventory: items=%d gold=%lld slots=%d"), Items.Num(), Gold, MaxSlots);
@@ -42,6 +44,12 @@ void UJMInventoryManager::HandleInventoryUpdate(const Protocol::SC_INVENTORY_UPD
 		Items.Remove(Removed);
 	}
 	Gold = Pkt.gold();
+	// 액티브 칸 배치는 바뀌었을 때만 실려 온다(5칸 전체).
+	if (Pkt.quick_slots_size() > 0)
+	{
+		QuickSlotItems.Reset();
+		for (const int32 ItemId : Pkt.quick_slots()) QuickSlotItems.Add(ItemId);
+	}
 
 	UE_LOG(LogTemp, Log, TEXT("InventoryUpdate: changed=%d removed=%d gold=%lld (items=%d)"), Pkt.changed_size(), Pkt.removed_size(), Gold, Items.Num());
 	OnInventoryChanged.Broadcast();
@@ -50,6 +58,7 @@ void UJMInventoryManager::HandleInventoryUpdate(const Protocol::SC_INVENTORY_UPD
 void UJMInventoryManager::Clear()
 {
 	Items.Reset();
+	QuickSlotItems.Reset();
 	Gold = 0;
 	bReceived = false;
 	OnInventoryChanged.Broadcast();
@@ -67,6 +76,16 @@ TArray<FJMInventoryItem> UJMInventoryManager::GetSortedItems(bool bEquipped) con
 	}
 	Result.Sort([](const FJMInventoryItem& A, const FJMInventoryItem& B) { return A.ItemDbId < B.ItemDbId; });
 	return Result;
+}
+
+int64 UJMInventoryManager::GetBagItemCount(int32 ItemId) const
+{
+	int64 Total = 0;
+	for (const TPair<int64, FJMInventoryItem>& Pair : Items)
+	{
+		if (Pair.Value.ItemId == ItemId && Pair.Value.EquipPart == 0) Total += Pair.Value.Count;
+	}
+	return Total;
 }
 
 int64 UJMInventoryManager::FindBagItemDbId(int32 ItemId) const

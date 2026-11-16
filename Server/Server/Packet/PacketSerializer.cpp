@@ -90,7 +90,7 @@ static void FillItemInfo(Protocol::ItemInfo* out, const ItemInstance& item)
 	out->set_slot(item.equipPart == 0 ? item.slot : -1);
 }
 
-shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY(const Inventory& inventory, int64_t gold)
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY(const Inventory& inventory, int64_t gold, const QuickSlotArray& quickSlots)
 {
 	const EconomyData& economy = DataManager::GetEconomy();
 	Protocol::SC_INVENTORY_PACKET packet;
@@ -100,10 +100,22 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY(const Inventory& inve
 	packet.set_max_slots(economy.inventorySlots);
 	packet.set_pickup_range_cm(economy.pickupRangeCm);
 	packet.set_trade_range_cm(economy.tradeRangeCm);
+	for (const int32_t itemId : quickSlots)
+		packet.add_quick_slots(itemId);
 	return MakeSendBuffer(packet, Protocol::SC_INVENTORY);
 }
 
-shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY_UPDATE(const vector<ItemInstance>& changed, const vector<int64_t>& removed, int64_t gold)
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_USE_ITEM(int objectId, int itemId, int hp, int cooldownMs)
+{
+	Protocol::SC_USE_ITEM_PACKET packet;
+	packet.set_object_id(objectId);
+	packet.set_item_id(itemId);
+	packet.set_hp(hp);
+	packet.set_cooldown_ms(cooldownMs);
+	return MakeSendBuffer(packet, Protocol::SC_USE_ITEM);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY_UPDATE(const vector<ItemInstance>& changed, const vector<int64_t>& removed, int64_t gold, const QuickSlotArray* quickSlots)
 {
 	Protocol::SC_INVENTORY_UPDATE_PACKET packet;
 	for (const ItemInstance& item : changed)
@@ -111,6 +123,11 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY_UPDATE(const vector<I
 	for (const int64_t dbId : removed)
 		packet.add_removed(dbId);
 	packet.set_gold(gold);
+	if (quickSlots != nullptr)
+	{
+		for (const int32_t itemId : *quickSlots)
+			packet.add_quick_slots(itemId);
+	}
 	return MakeSendBuffer(packet, Protocol::SC_INVENTORY_UPDATE);
 }
 

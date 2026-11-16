@@ -61,6 +61,8 @@ enum PacketId : int {
   CS_REVIVE = 1012,
   CS_PICKUP_ITEM = 1013,
   CS_DROP_ITEM = 1014,
+  CS_USE_ITEM = 1015,
+  CS_SET_QUICKSLOT = 1016,
   CS_DEV_GIVE = 1017,
   CS_MOVE_ITEM = 1030,
   SC_LOGIN = 2000,
@@ -80,6 +82,7 @@ enum PacketId : int {
   SC_INVENTORY = 2016,
   SC_INVENTORY_UPDATE = 2017,
   SC_ITEM_RESULT = 2018,
+  SC_USE_ITEM = 2019,
   SC_KICK = 2027,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()

@@ -65,6 +65,18 @@ message CS_DROP_ITEM_PACKET {
 	int64 item_db_id = 1;   // 버릴 행 (인벤토리 위치의 내 아이템, 장착 중인 것은 안 됨)
 }
 
+// 소비 아이템 사용(A3.6, D-154). 성공은 SC_USE_ITEM(AOI) + SC_INVENTORY_UPDATE(본인), 거부는 SC_ITEM_RESULT(request = CS_USE_ITEM).
+message CS_USE_ITEM_PACKET {
+	int64 item_db_id = 1;   // 쓸 행(인벤토리 위치의 내 아이템). 0이면 서버가 item_id 종류 중 수량이 적은 스택부터 고른다(액티브 칸)
+	int32 item_id = 2;      // item_db_id가 0일 때만 본다
+}
+
+// 액티브 칸 배치(A3.6). 칸에는 아이템 종류를 올린다. 성공은 SC_INVENTORY_UPDATE(quick_slots), 거부는 SC_ITEM_RESULT(request = CS_SET_QUICKSLOT).
+message CS_SET_QUICKSLOT_PACKET {
+	int32 slot = 1;         // 칸 번호 1~5 (숫자키)
+	int32 item_id = 2;      // 올릴 아이템 종류(ItemTable ID, UseEffect가 있는 것). 0 = 비우기
+}
+
 // 인벤토리 칸 옮기기(A6.1). 대상 칸이 비어 있으면 옮기고, 다른 아이템이 있으면 두 칸을 맞바꾼다.
 // 성공은 SC_INVENTORY_UPDATE(바뀐 행), 거부는 SC_ITEM_RESULT(request = CS_MOVE_ITEM).
 message CS_MOVE_ITEM_PACKET {
@@ -175,7 +187,7 @@ message SC_INVENTORY_PACKET {
 	int32 max_slots = 3;                // EconomyTable.InventorySlots (장착품은 칸을 차지하지 않는다)
 	int32 pickup_range_cm = 4;          // EconomyTable.PickupRangeCm (A3.5·A6.2에서 사용)
 	int32 trade_range_cm = 5;           // EconomyTable.TradeRangeCm (A4·A6.3a에서 사용)
-	repeated int32 quick_slots = 6;     // 액티브 칸 1~5에 올린 item_id (A3.6에서 채움, 그 전에는 비어 있음)
+	repeated int32 quick_slots = 6;     // 액티브 칸 1~5에 올린 item_id 5개(빈 칸 0) (A3.6)
 }
 
 // 아이템·골드가 바뀔 때마다 본인에게(A3.3). DB 성공 뒤의 값이다.
@@ -183,6 +195,15 @@ message SC_INVENTORY_UPDATE_PACKET {
 	repeated ItemInfo changed = 1;      // 새로 생겼거나 값이 바뀐 행(최종 상태)
 	repeated int64 removed = 2;         // 지워진 item_db_id
 	int64 gold = 3;                     // 현재 골드(바뀌지 않았어도 항상 채움)
+	repeated int32 quick_slots = 4;     // 액티브 칸 배치가 바뀌었을 때만: 칸 1~5의 item_id 5개(빈 칸 0). 비어 있으면 바뀌지 않음 (A3.6)
+}
+
+// 소비 아이템을 썼다(A3.6). AOI 방송(본인 포함). 수량은 본인에게 SC_INVENTORY_UPDATE로 따로 간다.
+message SC_USE_ITEM_PACKET {
+	int32 object_id = 1;                // 쓴 플레이어
+	int32 item_id = 2;                  // 쓴 아이템 종류
+	int32 hp = 3;                       // 사용 뒤 HP
+	int32 cooldown_ms = 4;              // 그 종류의 재사용 시간(ItemTable.UseCooldownMs, 서버 값). 본인의 칸 표시에 쓴다
 }
 
 // 아이템 요청 거부를 요청한 본인에게만 보낸다(장착 거부는 SC_CHANGE_EQUIP_RESULT).
