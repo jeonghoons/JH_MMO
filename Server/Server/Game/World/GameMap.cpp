@@ -81,6 +81,7 @@ bool GameMap::LoadMapData(const string& fileName)
         _maxY += _cellSize;
 
         _aoi.Init(_minX, _minY, _maxX, _maxY, _cellSize, _quadSplitCount, _quadMinSize);
+        _dropAoi.Init(_minX, _minY, _maxX, _maxY, _cellSize, _quadSplitCount, _quadMinSize);
     }
 
     

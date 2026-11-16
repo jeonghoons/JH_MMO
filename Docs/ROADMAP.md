@@ -11,7 +11,7 @@
 - 콘텐츠 동결(D-147): 외형·애니메이션·이펙트는 "기능이 동작하면 통과"입니다. 어색한 점은 원인 조사 없이 백로그 "콘텐츠 다듬기"에 한 줄만 적습니다.
 
 ## 현재 위치 (2026-11-16)
-- 지금: 2026-11-16 로드맵 재설계(D-147). P0·A2.3a·A2.4(사망·부활) 완료, A2.5 DB 저장 연결은 구현·Claude 테스트 완료(사용자 PIE 확인 대기). A3.1 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) 완료(D-152~D-159, 사용자 승인), A3.2 데이터 테이블·A2.7 중복 접속 차단·**A3.3 인벤토리**(D-160~D-165) 완료. **A6.1 인벤토리 UI**(+ MC4.4 장착·해제, 칸 위치 서버 저장 — D-166) 완료(사용자 PIE 확인). 다음 작업은 **A3.4 사망 시 드랍 롤**. 골드는 드랍으로 먼저 들어오고(D-152) 경험치·레벨 보상은 A2.3b로 마일스톤 2 뒤.
+- 지금: 2026-11-16 로드맵 재설계(D-147). P0·A2.3a·A2.4(사망·부활) 완료, A2.5 DB 저장 연결은 구현·Claude 테스트 완료(사용자 PIE 확인 대기). A3.1 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) 완료(D-152~D-159, 사용자 승인), A3.2 데이터 테이블·A2.7 중복 접속 차단·**A3.3 인벤토리**(D-160~D-165) 완료. **A6.1 인벤토리 UI**(+ MC4.4 장착·해제, 칸 위치 서버 저장 — D-166) 완료(사용자 PIE 확인). **A3.4 사망 시 드랍 롤** 완료(Claude 테스트 — 소유권은 기록까지, 거부·개방 동작은 A3.5에서 줍기와 함께 확인). 다음 작업은 **A3.5 줍기·버리기**. 골드는 드랍으로 먼저 들어오고(D-152) 경험치·레벨 보상은 A2.3b로 마일스톤 2 뒤.
 - 미뤄 둔 것: MC4.2 중간 테스트(2026-11-15~16 Claude가 일부 진행, 결과는 백로그 "콘텐츠 다듬기")·MC4.3·MC5.1·M3 Paragon Move·U8.
 - 참고: 동시성 감사 F1~F10·P1 설계 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md) — 코드가 바뀌었을 수 있으니 함수명으로 찾아 다시 확인. A1.3 병목 근거는 `TESTING.md` 2026-10-31. 기준선 재측정 방법·인자는 [PERF_BASELINE_2026-11-06.md](PERF_BASELINE_2026-11-06.md) §1.
 - 브랜치: 개발은 `Jeonghoon` 하나, `main`은 Phase·마일스톤 끝에 병합(+태그)하는 안정판, 시험은 짧은 `exp/…` 브랜치(`DECISIONS.md` 2026-11-12). `content/dev`는 사용 종료.
@@ -25,7 +25,6 @@
 - [확인 대기] A2.5 서버: DB 저장 연결 (2026-11-16 구현·Claude 테스트 통과, D-150·D-151) — 스키마 버전 관리(`Schema_Version`·`migrate.ps1`·서버 시작 검사), SQL 한 파일(`DbQueries.h`), 로그인 때 DB 레벨·HP 반영(`PLAYER_START_LEVEL` 고정 제거), 진행 상황 저장(값이 달라졌을 때만, 주기 60초 + 퇴장). 남은 확인(사용자, 다음 PIE 때): 로그인 → 몬스터에게 피해 → 종료 → 재접속 시 HUD HP·레벨 유지. 완료: 재접속 시 레벨·HP·골드 유지
 
 ### 1-3. 아이템·드랍·인벤토리
-- [예정] A3.4 사망 시 드랍 롤(아이템·골드, D-152·D-157) → `OBJECT_TYPE_ITEM` 월드 오브젝트(AOI 전파, 막타 소유권, 소멸 타이머, 방당 상한). 완료: 처치 시 `DropTable` 확률대로 드랍, 소유권 시간·소멸 타이머 경과 후 제거, AOI 진입·이탈 시 추가·제거 패킷(원시 소켓 Claude 테스트)
 - [예정] A3.5 줍기 `CS_PICKUP_ITEM`·버리기 `CS_DROP_ITEM`(바닥에 떨어뜨리기, D-155) 패킷 + 서버 재검증. 완료: 두 클라이언트가 같은 드랍을 경쟁해도 정확히 한 명만 획득, 버린 아이템을 다른 사람이 주움, 거리 밖·가득 참 거부(Claude 테스트)
 - [예정] A6.2 드랍 아이템 액터 표시(공용 메시)·줍기 입력(F 키 `IA_Interact`, D-157)·인벤토리 버리기 버튼. 완료: 드랍 표시·소멸, 줍기 입력 → 서버 획득 결과 반영, 버리기 → 바닥 표시, 2인 PIE 경쟁 시 한 명만 획득(사용자 PIE)
 - [예정] A3.6 소비 아이템 사용 + 액티브 칸(D-154): `CS_USE_ITEM`·`SC_USE_ITEM`(HP 물약, 재사용 시간), `CS_SET_QUICKSLOT` + `Player_QuickSlot` 저장, 클라 액티브 칸에 아이템 올리기·수량·재사용 표시(`RebuildQuickSlots` 확장). 완료: 물약 사용 시 HP·수량 반영, 사망·HP 최대·재사용 시간 중 거부(Claude 테스트) + 숫자키로 물약 사용, 칸 배치가 재접속 후 유지(사용자 PIE)
@@ -51,7 +50,7 @@
 
 ### 2-2. 본 부하 테스트 (동접 1,000 → 2,500 → 5,000)
 - [예정] A5.0 연결 정리(2026-11-06 감사 F4·F3): `Disconnect`에서 `CancelIoEx`/소켓 닫기, 유휴 세션 타임아웃, `_currPlayer` 동기화(`atomic<shared_ptr>` 또는 `Session::_lock`). 종료 시 문제 F6~F10은 정리 단계 후보. 완료: 수신을 멈춘 클라이언트를 서버가 끊은 뒤 핸들 수·송신 큐 감소, 유휴 타임아웃 후 세션·플레이어 0, 로그인+입장 연속 500회와 chaos 램프 강제 종료 10회 후 잔류·크래시 0(Claude 테스트) + `_currPlayer` 코드 리뷰(재현 절차는 감사 문서 F3·F4)
-- [예정] A5.1 봇 `is_dummy` 로그인 우회 제거(별도 계정 대량 생성 또는 서버 설정 플래그로 제한). 완료: 기본 설정에서 `is_dummy` 우회 로그인 거부 + 정한 방식으로 봇 1,000명 로그인 램프 통과(Claude 테스트) — 2026-11-16 메모(A2.5 시험): 개별 계정 봇은 전원 PlayerStart에서 시작하는데 직선 이동이 내비메시 검증에 막혀 47m 밖 몬스터에 닿지 못함(피해 패킷 0). 더미 봇처럼 흩어 배치하는 방법을 함께 정해야 hunt 프로필이 동작
+- [예정] A5.1 봇 `is_dummy` 로그인 우회 제거(별도 계정 대량 생성 또는 서버 설정 플래그로 제한). 완료: 기본 설정에서 `is_dummy` 우회 로그인 거부 + 정한 방식으로 봇 1,000명 로그인 램프 통과(Claude 테스트) — 2026-11-16 메모(A2.5 시험): 개별 계정 봇은 전원 PlayerStart에서 시작하는데 직선 이동이 내비메시 검증에 막혀 47m 밖 몬스터에 닿지 못함(피해 패킷 0). 더미 봇처럼 흩어 배치하는 방법을 함께 정해야 hunt 프로필이 동작. 2026-11-16 메모(A3.4 시험): 원시 소켓 클라이언트는 z를 바닥 높이에 맞춰 낮춰 보내자 PlayerStart에서 몬스터 6m 앞까지 갔음 — 서버 `CanMove`가 보낸 z 위아래 3m의 내비메시만 찾으므로, 봇이 z를 시작 높이(290)로 고정해 보내는 것이 막히는 원인일 수 있음(미확인)
 - [예정] A5.2 봇 행동 프로파일: 이동, 몬스터 공격, 줍기, 거래/경매. 완료: 프로파일(이동·사냥·줍기·거래·경매)별 짧은 램프에서 실패·`logDrop` 0(Claude 테스트)
 - [예정] A5.3 클라이언트 지표: RTT p50/p95/p99, 접속 성공/실패, packets/s, CPU/메모리 CSV. 완료: 램프 1회의 CSV 생성(Claude 테스트)
 - [예정] A5.4 단계 램프(1,000 → 2,500 → 5,000), 병목 발견→수정→재측정 기록. 시나리오: 다수의 작은 Room vs 한 Room 밀집. 필요 시 `TCP_NODELAY`, 다중 AcceptEx, 레이트 리밋, 송신 큐 상한. 완료: 단계별 결과와 개선 서사가 `TESTING.md`에 기록(Claude 테스트) + 사용자 승인
@@ -142,6 +141,7 @@ A5.4 램프에서 병목으로 확인된 것만 합니다(순서는 측정 결�
 - [완료] A3.2 데이터 테이블 — `DropTable.csv`(12행)·`EconomyTable.csv` + 로더(`GetDrops`·`RollDrops`·`GetEconomy`), `ItemTable` 열 5개와 HP 물약 8001(임시 아이콘), 시험용 `--roll-drops <kills>`, UE `FItemTableRow`·`EItemUseEffect`·`DT_ItemTable` 재임포트, `item_table.export`가 `Slot` `None` 행 건너뜀 (2026-11-16, T)
 - [완료] A6.1 인벤토리 UI + MC4.4 장착·해제 + 인벤토리 칸 위치 — 한 창 `WBP_Inventory`(I 키, 장착 7칸 + 칸 격자 + 골드, 우클릭 장착·해제, 끌어다 놓기), `UItemSlotWidget`·`UInventoryWidget`, 칸 위치는 서버 저장(`Player_Item.BagSlot` 마이그레이션 0005, `CS_MOVE_ITEM`, 장착 교체는 옛 장비가 새 장비의 칸으로), 봇 `--slot-interval`. `WBP_Equipment`는 만들지 않음. 사용자 PIE 확인 완료 (2026-11-16, D-166·T)
 - [완료] A3.3 인벤토리 — `Player_Item`(마이그레이션 0004, `Player_Equipped` 이전·삭제), 서버 `Inventory`·아이템 작업 공통 경로(`itemOp`: Room 검증 → DB 한 트랜잭션 → 성공 뒤 반영), 장착을 `item_db_id` 기준 + 보유·`RequiredLevel`·빈 칸 검사로 전환(장비 스냅숏 저장 폐지), 골드 증감 방식, 개발 지급 `CS_DEV_GIVE`(`[Debug] DevCommands`)·콘솔 `Give`, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`·`SC_ITEM_RESULT`, 클라 `UJMInventoryManager`(빌드만, 화면 확인은 A6.1 때). 장착 지연 p99는 200명 램프에서 기준 50ms 초과(원인 = Room 잡 대기, 기록만 — 백로그) (2026-11-16, D-160~D-165·T)
+- [완료] A3.4 사망 시 드랍 롤 — `ObjectInfo.item_count`(12), 서버 `DropItem`(`OBJECT_TYPE_ITEM`, `Room::_drops`·id 1,000,000,000~), `Monster::OnDead` → `Room::SpawnMonsterDrops`(막타 소유권 기록, 더미 봇·공격자 없음은 소유권 없음), 드랍 전용 AOI(`GameMap::_dropAoi` + `Player::dropView`, `UpdateDropView`), 소멸(`ExpireDrop`)·방당 상한, 지표 `drops(...)`, 클라는 ITEM 스폰 무시(표시는 A6.2). 소유권 거부·개방은 A3.5에서 확인 (2026-11-16, T)
 - [완료] A2.7 중복 접속 차단 — `AuthLobby` 접속 목록(기존 접속 `SC_KICK` + 소켓 닫기 → 새 로그인은 이전 접속의 마지막 저장이 끝날 때까지 대기, `LOGIN_RESULT_BUSY`), `Room::NotifyClosedIfDone`, `[Network] LoginWaitTimeoutSec`·`LoginCloseForceSec`, 시험용 `[Debug] DbSaveDelayMs`, 클라이언트 `SC_KICK`·게임 중 끊김 → 로그인 화면(빌드만, PIE 확인은 A2.5 확인 때 함께) (2026-11-16, D-158·T)
 
 ### Phase W

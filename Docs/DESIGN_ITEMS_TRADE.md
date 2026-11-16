@@ -4,11 +4,11 @@
 (2026-11-16 A3.1 작성, 결정 D-152~D-159. 장비 외형·슬롯은 [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), CSV 규약은 [DESIGN_DATA.md](DESIGN_DATA.md), 동시성 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md))
 
 ## 현재 상태 (2026-11-16)
-- 드랍·줍기·버리기·소비 아이템·거래·경매 코드는 아직 없습니다. `OBJECT_TYPE_ITEM`(4)은 enum에만 있습니다.
+- A3.4 완료(2026-11-16): 몬스터 처치 시 드랍 롤 → 바닥 드랍(`DropItem`, `OBJECT_TYPE_ITEM`) 생성·소유권 기록·드랍 전용 시야·소멸·방당 상한. 구현 내용은 아래 "A3.4 구현 메모". 줍기·버리기·소비 아이템·거래·경매 코드는 아직 없습니다.
 - A3.3 완료(2026-11-16): `Player_Item`(마이그레이션 0004, `Player_Equipped` 이전·삭제), 서버 `Inventory`·아이템 작업 공통 경로(`itemOp`), 장착을 `item_db_id` 기준·DB 성공 뒤 반영으로 전환, 개발 지급 `CS_DEV_GIVE`, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`·`SC_ITEM_RESULT`, 클라이언트 `UJMInventoryManager`(데이터만 — 창은 A6.1)와 콘솔 `Give`. 구현 내용은 아래 "A3.3 구현 메모".
 - 골드는 진행 상황 스냅숏에서 빠졌고 아이템 트랜잭션에서만 증감합니다(지금 들어오는 경로는 개발 지급뿐, 골드 드랍은 A3.4).
 - A2.7 완료(2026-11-16): 같은 캐릭터의 중복 접속은 기존 접속을 끊고 새 로그인을 받습니다(아래 "중복 접속 차단"). 인벤토리·아이템 작업을 추가할 때는 `Room::NotifyClosedIfDone`의 조건과 호출 지점에 함께 넣어야 합니다.
-- A3.2 완료(2026-11-16): `DropTable.csv`·`EconomyTable.csv`와 로더(`DataManager::GetDrops`·`RollDrops`·`GetEconomy`), `ItemTable` 새 열과 8001 HP 물약, UE `FItemTableRow`·`DT_ItemTable`이 들어갔습니다. 값을 쓰는 코드는 아직 없습니다(드랍 롤은 A3.4에서 `RollDrops`를 호출). 열별 허용 범위와 현재 행은 [DESIGN_DATA.md](DESIGN_DATA.md).
+- A3.2 완료(2026-11-16): `DropTable.csv`·`EconomyTable.csv`와 로더(`DataManager::GetDrops`·`RollDrops`·`GetEconomy`), `ItemTable` 새 열과 8001 HP 물약, UE `FItemTableRow`·`DT_ItemTable`이 들어갔습니다. 드랍 롤은 A3.4에서 `RollDrops`를 호출합니다. 열별 허용 범위와 현재 행은 [DESIGN_DATA.md](DESIGN_DATA.md).
 
 ## 범위와 하지 않는 것
 - **범위**: DropTable, 아이템 인스턴스와 DB, 인벤토리, 드랍·줍기·버리기, 장착 검사 확장, 소비 아이템(HP 물약 1종)과 액티브 칸 저장, 골드, 중복 접속 차단(A2.7), 1:1 거래, 경매장(즉시 구매), 패킷, 시험 항목.
@@ -144,6 +144,16 @@
 6. **줍기** `CS_PICKUP_ITEM(object_id)`: 검증(방 안, 생존, 요청 간격, `itemOp` 없음, 드랍 존재, 줍는 중 아님, 거리 ≤ `PickupRangeCm`, 소유자이거나 소유 시간 경과, 칸·골드 상한) → 드랍에 **줍는 중** 표시 + `itemOp` 켬 → DB → 성공이면 드랍 제거(`SC_REMOVE_OBJECT`) + `SC_INVENTORY_UPDATE`, 실패면 표시를 풀고 `DB_ERROR`. 줍는 중인 드랍에 온 다른 요청은 `BUSY`이므로 **경쟁해도 한 명만 얻습니다.**
 7. **버리기** `CS_DROP_ITEM(item_db_id)`: 생존 중, 인벤토리 위치의 행만(장착 중·거래에 올린 것 제외) → DB DELETE → 성공 뒤 내 위치에 소유권 없는 드랍 생성. 바닥에서 다시 주우면 새 `ItemDbId`를 받습니다.
 - 클라이언트(A6.2): `UJMObjectManager::HandleSpawn`에 ITEM 분기와 드랍 전용 맵(`Objects`는 캐릭터 전용이라 따로 둠)을 추가합니다. 표시는 공용 메시 하나(아이템·골드 구분만)로 하고, 거리 안에서 가장 가까운 드랍에 줍기 안내를 띄워 **F 키**(`IA_Interact` 신규)로 줍습니다. 소유권은 클라이언트에 알리지 않고 거부 문구(`NOT_OWNER`)로 안내합니다.
+
+### A3.4 구현 메모 (2026-11-16)
+- **보관**: 드랍은 `Room::_drops`(id → `DropItem`)에만 두고 `_objects`에는 넣지 않습니다. `_objects`의 대상을 `Character`로 바로 캐스팅하는 전투·시야 코드(`ExecuteSkillHit`·`ApplyDelayedDamage`·`AuditViews` 등)가 있어, 섞으면 드랍 id를 대상으로 한 요청이 위험해집니다. 틱 `Update` 순회에도 들어가지 않습니다.
+- **id**: 방마다 `DROP_ID_BEGIN`(1,000,000,000)부터 증가(`Room::NextDropId`), int32 끝에서 처음으로 돌아가며 쓰는 중인 id는 건너뜁니다. 클라이언트는 한 방만 보므로 방 사이에 겹쳐도 됩니다.
+- **생성**: `Monster::OnDead` → `Room::SpawnMonsterDrops`(같은 Room 잡 안에서 바로) → 걸린 행마다 `GameMap::GetRandomPosNear(사망 지점, DropScatterCm)` → `Room::CreateDrop`. 소유권은 막타가 개별 계정 플레이어일 때만 `ownerUID`(= `PlayerId`)·`ownerUntilMs`를 적고, 판정은 `DropItem::CanPickup`(줍기 요청 때 시각 비교, A3.5에서 사용)입니다.
+- **드랍 시야**: `GameMap::_dropAoi`(드랍 전용 `AoiIndex`) + `Player::dropView`(지금 보이는 드랍 id 집합). 맞추는 곳은 `Room::UpdateDropView`(입장·`PlayerMove`·`PlayerRevive`의 `UpdateMap` 뒤 — 들어옴 ≤ R, 나감 > R+H), `CreateDrop`(R 안 플레이어에게 ADD), `RemoveDrop`(R+H+1m 안에서 `dropView`에 그 id가 있는 플레이어에게 REMOVE). 방에 드랍이 없고 보는 것도 없으면 `UpdateDropView`는 바로 돌아옵니다. **플레이어 위치를 바꾸는 경로를 추가하면 `UpdateMap` 뒤에 `UpdateDropView`도 불러야 합니다.**
+- **제거 경로**: 소멸 = `ReserveJob(DropLifeSec)` → `Room::ExpireDrop`(없으면 끝, `expireAtMs`가 아직 멀면 같은 id의 새 드랍이라 끝, `picking`이면 건너뜀). 상한 = `CreateDrop`이 만들기 전에 `_dropOrder`(만든 순서) 앞에서부터 `picking`이 아닌 것을 지움. 줍기(A3.5)도 `Room::RemoveDrop`을 씁니다.
+- **지표**: `[metrics] drops(now kills/created/expired/evicted)`, `Log.Level=Debug`에서 `[Drop] 생성 id= item= count= owner= pos=`.
+- **부하(TESTING 2026-11-16 A3.4)**: 기본 `DropTable`에서는 드랍이 없을 때와 틱 지연·틱 본문이 같은 수준입니다. 전 행 100%(처치당 12개) + 상한 지속 제거라는 최악 조건에서는 틱 본문 p99가 약 3배(15 → 44ms)로 늘었는데, 드랍마다 ADD·REMOVE 패킷을 시야 안 전원에게 따로 보내기 때문입니다. 송신 묶기(P1b) 뒤에 다시 잽니다.
+- **클라이언트**: `UJMObjectManager::HandleSpawn`은 `OBJECT_TYPE_ITEM`을 무시합니다(A6.2에서 표시 액터로 교체). 봇은 ITEM을 몬스터 목록에 넣지 않습니다.
 
 ## 장착 검사 확장 (A3.3·MC4.4, D-156)
 - `CS_CHANGE_EQUIP`은 `item_id` 대신 **`item_db_id`**(0 = 해제)를 받습니다. 방송 `SC_CHANGE_EQUIP`과 `ObjectInfo.equip_items`는 지금처럼 itemId입니다.

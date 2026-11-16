@@ -78,6 +78,9 @@
     <ClInclude Include="Game\Object\GameObject.h">
       <Filter>Game\Object</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Object\DropItem.h">
+      <Filter>Game\Object</Filter>
+    </ClInclude>
     <ClInclude Include="Game\Object\Monster.h">
       <Filter>Game\Object</Filter>
     </ClInclude>

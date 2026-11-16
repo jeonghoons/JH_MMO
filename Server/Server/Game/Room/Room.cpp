@@ -4,6 +4,7 @@
 #include "Packet/PacketHandler.h"
 #include "Game/Object/Player.h"
 #include "Game/Object/Monster.h"
+#include "Game/Object/DropItem.h"
 #include "Game/Combat/CombatProcessor.h"
 #include "Data/ServerData.h"
 #include "Utils/Metrics.h"
@@ -254,6 +255,10 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	if (!result.entered.empty()) {
 		UpdateView(player, result);
 	}
+
+	// 주변 바닥 드랍(A3.4)
+	player->dropView.clear();
+	UpdateDropView(player);
 }
 
 void Room::PlayerLeaveRoom(shared_ptr<Player> player)
@@ -281,6 +286,9 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 
 	if (_players.erase(playerId) > 0)
 		ReleaseSlot();
+
+	// 드랍 시야는 목록만 비운다(나가는 클라이언트에는 보낼 것이 없다).
+	player->dropView.clear();
 
 	// 조준 중이었다면 상태만 지운다(SC_REMOVE_OBJECT로 다른 사람의 표시는 사라진다).
 	if (player->IsSkillAiming())
@@ -409,6 +417,7 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 		UpdateView(player, result);
 	}
 
+	UpdateDropView(player);
 }
 
 void Room::PlayerPing(shared_ptr<Player> player, long long clientTime)
@@ -506,6 +515,8 @@ void Room::PlayerRevive(shared_ptr<Player> player)
 	ViewUpdate result = _gameMap.UpdateMap(player->GetId(), player->GetPosition(), player->_viewList);
 	if (!result.entered.empty() || !result.leaved.empty())
 		UpdateView(player, result);
+
+	UpdateDropView(player);
 }
 
 void Room::UpdateAims(long long nowMs)
@@ -1362,6 +1373,175 @@ void Room::UpdateView(shared_ptr<Character> subjectChar, const ViewUpdate& resul
 				}
 			}
 		}
+	}
+}
+
+// ---- 바닥 드랍(A3.4, D-157) ----
+
+int Room::NextDropId()
+{
+	// DROP_ID_BEGIN부터 올라가다 int32 끝에 닿으면 처음으로 돌아간다. 쓰는 중인 id는 건너뛴다.
+	for (;;)
+	{
+		if (_nextDropId < DROP_ID_BEGIN || _nextDropId == INT_MAX) _nextDropId = DROP_ID_BEGIN;
+		else ++_nextDropId;
+		if (_drops.find(_nextDropId) == _drops.end()) return _nextDropId;
+	}
+}
+
+void Room::SpawnMonsterDrops(int monsterTemplateId, Protocol::PositionInfo pos, shared_ptr<Character> attacker)
+{
+	Metrics::MonsterKills.fetch_add(1);
+
+	vector<DropResult> rolled;
+	DataManager::RollDrops(monsterTemplateId, rolled);
+	if (rolled.empty()) return;
+
+	// 소유권 = 막타 플레이어. 공격자를 알 수 없거나(투사체가 날아가는 동안 퇴장) 더미 봇(전원이 DB 한 행)이면 소유권 없이 만든다.
+	int64_t ownerUID = 0;
+	if (attacker != nullptr && attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER)
+	{
+		const shared_ptr<Player> killer = static_pointer_cast<Player>(attacker);
+		if (!killer->isDummy) ownerUID = killer->GetPlayerUID();
+	}
+
+	const float scatter = static_cast<float>(DataManager::GetEconomy().dropScatterCm);
+	for (const DropResult& r : rolled)
+	{
+		// 사망 지점 둘레의 갈 수 있는 자리(내비메시 위). 못 찾으면 사망 지점 그대로.
+		const Protocol::PositionInfo dropPos = scatter > 0.f ? _gameMap.GetRandomPosNear(pos, scatter) : pos;
+		CreateDrop(r.itemId, r.count, dropPos, ownerUID);
+	}
+}
+
+shared_ptr<DropItem> Room::CreateDrop(int itemId, int64_t count, const Protocol::PositionInfo& pos, int64_t ownerUID)
+{
+	const EconomyData& economy = DataManager::GetEconomy();
+	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+
+	// 방의 드랍 상한: 가장 오래된 것부터 지운다. 줍는 중인 것은 건너뛴다(DB 결과가 그 드랍을 다시 찾는다).
+	while (!_dropOrder.empty() && _drops.find(_dropOrder.front()) == _drops.end())
+		_dropOrder.pop_front();
+	for (auto it = _dropOrder.begin(); it != _dropOrder.end() && static_cast<int>(_drops.size()) >= economy.maxDropsPerRoom;)
+	{
+		const shared_ptr<DropItem> old = GetDrop(*it);
+		if (old != nullptr && old->picking) { ++it; continue; }
+		if (old != nullptr)
+		{
+			RemoveDrop(*it);
+			Metrics::DropsEvicted.fetch_add(1);
+		}
+		it = _dropOrder.erase(it);
+	}
+
+	const shared_ptr<DropItem> drop = make_shared<DropItem>(NextDropId(), itemId, count, pos);
+	drop->SetOwnerRoom(shared_from_this());
+	drop->ownerUID = ownerUID;
+	drop->ownerUntilMs = ownerUID != 0 ? nowMs + static_cast<long long>(economy.dropOwnerSec) * 1000 : 0;
+	drop->expireAtMs = nowMs + static_cast<long long>(economy.dropLifeSec) * 1000;
+
+	const int dropId = drop->GetId();
+	_drops.emplace(dropId, drop);
+	_dropOrder.push_back(dropId);
+	_gameMap.GetDropAoi().Insert(dropId, pos.x(), pos.y());
+	Metrics::Drops.fetch_add(1);
+	Metrics::DropsCreated.fetch_add(1);
+	LOG_DEBUG("Drop", "생성 id={} item={} count={} owner={} pos=({:.0f},{:.0f},{:.0f})", dropId, itemId, count, ownerUID, pos.x(), pos.y(), pos.z());
+
+	// 반경 R 안의 플레이어에게 보인다(캐릭터 색인에는 몬스터도 있으므로 플레이어만 거른다).
+	vector<int> nearby;
+	_gameMap.GetAoi().QueryCircle(pos.x(), pos.y(), _gameMap.GetViewRadius(), nearby);
+	shared_ptr<SendBuffer> addBuffer;
+	for (int id : nearby)
+	{
+		const shared_ptr<Player> viewer = Id2Player(id);
+		if (viewer == nullptr || !viewer->dropView.insert(dropId).second) continue;
+		if (addBuffer == nullptr) addBuffer = PacketSerializer::MAKE_SC_ADD_OBJECT(drop);
+		if (shared_ptr<Session> session = viewer->GetSession())
+			session->Send(addBuffer);
+	}
+
+	// 소멸 예약. 예약은 취소할 수 없으므로 실행 때 id로 다시 찾아 확인한다(ExpireDrop).
+	ReserveJob(static_cast<DWORD>(economy.dropLifeSec) * 1000, &Room::ExpireDrop, dropId);
+	return drop;
+}
+
+bool Room::RemoveDrop(int dropId)
+{
+	const auto it = _drops.find(dropId);
+	if (it == _drops.end()) return false;
+
+	const Protocol::PositionInfo pos = it->second->GetPosition();
+	_drops.erase(it);
+	_gameMap.GetDropAoi().Remove(dropId);
+	Metrics::Drops.fetch_sub(1);
+
+	// 보고 있던 플레이어 = R+H 안에서 드랍 시야에 이 id가 있는 사람. 시야는 플레이어가 움직일 때만 갱신되므로
+	// 그 뒤로 위치가 바뀌지 않은 사람은 모두 이 범위 안에 있다(경계 오차를 덮으려고 1m 넓게 찾는다).
+	vector<int> nearby;
+	_gameMap.GetAoi().QueryCircle(pos.x(), pos.y(), _gameMap.GetViewRadius() + _gameMap.GetViewHysteresis() + 100.f, nearby);
+	shared_ptr<SendBuffer> removeBuffer;
+	for (int id : nearby)
+	{
+		const shared_ptr<Player> viewer = Id2Player(id);
+		if (viewer == nullptr || viewer->dropView.erase(dropId) == 0) continue;
+		if (removeBuffer == nullptr) removeBuffer = PacketSerializer::MAKE_SC_REMOVE_OBJECT(dropId);
+		if (shared_ptr<Session> session = viewer->GetSession())
+			session->Send(removeBuffer);
+	}
+	return true;
+}
+
+void Room::ExpireDrop(int dropId)
+{
+	const shared_ptr<DropItem> drop = GetDrop(dropId);
+	if (drop == nullptr) return;   // 이미 주웠거나 상한으로 지워졌다
+
+	// 같은 id로 나중에 만든 드랍이면 그 드랍의 예약이 따로 있다(타이머 오차 0.5초는 허용).
+	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	if (nowMs + 500 < drop->expireAtMs) return;
+	// 줍는 중이면 DB 결과 처리가 수명을 다시 본다(A3.5).
+	if (drop->picking) return;
+
+	RemoveDrop(dropId);
+	Metrics::DropsExpired.fetch_add(1);
+}
+
+void Room::UpdateDropView(const shared_ptr<Player>& player)
+{
+	// 방에 드랍이 없고 보고 있는 것도 없으면 할 일이 없다(대부분의 이동 패킷).
+	if (_drops.empty() && player->dropView.empty()) return;
+
+	shared_ptr<Session> session = player->GetSession();
+	const Protocol::PositionInfo& pos = player->GetPosition();
+	const AoiIndex& dropAoi = _gameMap.GetDropAoi();
+
+	// 나감: 보고 있는데 R+H 밖으로 멀어진 것(R ~ R+H 사이는 그대로 둔다 — 경계 깜빡임 방지). 사라진 드랍은 RemoveDrop이 이미 뺐다.
+	const float rOut = _gameMap.GetViewRadius() + _gameMap.GetViewHysteresis();
+	for (auto it = player->dropView.begin(); it != player->dropView.end();)
+	{
+		float x = 0.f, y = 0.f;
+		bool gone = !dropAoi.TryGetPos(*it, x, y);
+		if (!gone)
+		{
+			const float dx = x - pos.x(), dy = y - pos.y();
+			gone = dx * dx + dy * dy > rOut * rOut;
+		}
+		if (!gone) { ++it; continue; }
+		if (session) session->Send(PacketSerializer::MAKE_SC_REMOVE_OBJECT(*it));
+		it = player->dropView.erase(it);
+	}
+
+	// 들어옴: 반경 R 안인데 아직 보고 있지 않은 것
+	if (_drops.empty()) return;
+	vector<int> nearby;
+	dropAoi.QueryCircle(pos.x(), pos.y(), _gameMap.GetViewRadius(), nearby);
+	for (int dropId : nearby)
+	{
+		if (!player->dropView.insert(dropId).second) continue;
+		const shared_ptr<DropItem> drop = GetDrop(dropId);
+		if (drop == nullptr) { player->dropView.erase(dropId); continue; }
+		if (session) session->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(drop));
 	}
 }
 

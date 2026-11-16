@@ -77,10 +77,15 @@ public:
     // pos에서 반경 radius 안의 갈 수 있는 임의 지점(몬스터 배회). 못 찾으면 pos
     Protocol::PositionInfo GetRandomPosNear(const Protocol::PositionInfo& pos, float radius) const;
     const AoiIndex& GetAoi() const { return _aoi; }
+    // 바닥 드랍 전용 색인(A3.4). 캐릭터 시야(_aoi·_viewList)와 분리해 몬스터 이동·시야 감사·시야 지표에 영향을 주지 않는다.
+    // 넣고 빼기와 플레이어별 드랍 시야는 Room이 맡는다(Room::CreateDrop/RemoveDrop/UpdateDropView).
+    AoiIndex& GetDropAoi() { return _dropAoi; }
+    const AoiIndex& GetDropAoi() const { return _dropAoi; }
 
 private:
     weak_ptr<Room>             _ownerRoom;
     AoiIndex                   _aoi;
+    AoiIndex                   _dropAoi;   // 바닥 드랍(OBJECT_TYPE_ITEM) 전용
 
     float _minX = 0.f;
     float _maxX = 0.f;

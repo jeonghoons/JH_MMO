@@ -35,6 +35,7 @@ message ObjectInfo {
 	int32 aim_skill_id = 9;   // 스킬 조준 중인 스킬 ID(0 = 조준 안 함). 클라는 스폰(SC_ADD_OBJECT) 때만 읽는다
 	string name = 10;         // 플레이어 캐릭터 이름(UTF-8). 몬스터는 빈 문자열
 	int32 level = 11;         // 플레이어 레벨(경험치 보상 전까지 시작 레벨 고정, A2.3b). 몬스터는 0
+	int64 item_count = 12;    // 바닥 드랍(OBJECT_TYPE_ITEM)의 수량. template_id = ItemTable ID(0 = 골드, 이때는 금액). 그 밖은 0 (A3.4)
 }
 
 // 아이템 한 개(스택이면 한 묶음) = DB Player_Item 한 행 (A3.3, D-153)

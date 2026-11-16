@@ -168,6 +168,7 @@
     <ClInclude Include="Game\Item\Inventory.h" />
     <ClInclude Include="Game\Lobby\AuthLobby.h" />
     <ClInclude Include="Game\Object\Character.h" />
+    <ClInclude Include="Game\Object\DropItem.h" />
     <ClInclude Include="Game\Object\GameObject.h" />
     <ClInclude Include="Game\Object\Monster.h" />
     <ClInclude Include="Game\Object\Player.h" />

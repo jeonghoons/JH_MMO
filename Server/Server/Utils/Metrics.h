@@ -65,6 +65,13 @@ namespace Metrics
 	inline std::atomic<long long> AimCastClear{ 0 };  // CS_ATTACK으로 해제 (시전 성공·실패 모두)
 	inline std::atomic<long long> AimTimeout{ 0 };    // AimMaxMs 초과로 서버가 해제
 
+	// 바닥 드랍(A3.4, Room::CreateDrop/RemoveDrop)
+	inline std::atomic<int>       Drops{ 0 };            // 지금 바닥에 있는 드랍 수(모든 방)
+	inline std::atomic<long long> MonsterKills{ 0 };     // 드랍을 굴린 몬스터 처치 수(누적)
+	inline std::atomic<long long> DropsCreated{ 0 };     // 만든 드랍 수(누적)
+	inline std::atomic<long long> DropsExpired{ 0 };     // DropLifeSec가 지나 지운 수(누적)
+	inline std::atomic<long long> DropsEvicted{ 0 };     // MaxDropsPerRoom을 넘어 오래된 것부터 지운 수(누적)
+
 	inline std::atomic<int>       Monsters{ 0 };      // 현재 월드에 살아 있거나 시체로 남아 있는 몬스터 수
 	inline std::atomic<long long> AttackRequests{ 0 };  // CS_ATTACK 수신 수(누적)
 	inline std::atomic<long long> AttackAccepted{ 0 };  // 쿨타임·상태 검사를 통과한 플레이어 공격 수(누적)

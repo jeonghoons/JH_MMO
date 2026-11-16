@@ -31,6 +31,10 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	int ObjectId = ObjInfo.id();
 	if (Objects.Contains(ObjectId)) return;
 
+	// 바닥 드랍(OBJECT_TYPE_ITEM, 서버 A3.4)은 캐릭터가 아니다. 표시 액터·줍기는 A6.2에서 넣고, 그때까지는 무시한다.
+	// (아래 분기에 들어가면 원격 플레이어로 스폰된다). 드랍의 SC_REMOVE_OBJECT는 Objects에 없는 id라 HandleDespawn이 그냥 넘긴다.
+	if (ObjInfo.object_type() == Protocol::OBJECT_TYPE_ITEM) return;
+
 	UJMGameInstance* GameInst = Cast<UJMGameInstance>(GetGameInstance());
 	UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>();
 	if (GameInst == nullptr || NetManager == nullptr) return;

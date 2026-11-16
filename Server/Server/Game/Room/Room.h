@@ -5,9 +5,11 @@
 #include "Job/Timer.h"
 #include "Game/World/GameMap.h"
 #include "Data/ServerData.h"
+#include <deque>
 
 constexpr int MAX_ROOM_CAPACITY = 100;
 constexpr const char* ROOM_MAP_NAME = "ParagonSample"; // 모든 방이 쓰는 맵(맵 리소스 파일 이름 = WorldTable.MapName)
+constexpr int DROP_ID_BEGIN = 1000000000;      // 드랍 오브젝트 id 시작(방마다 따로 증가, int32 끝에 닿으면 처음으로)
 constexpr int MAX_CHAT_LEN = 100;               // 채팅 한 줄 최대 글자 수(UTF-16 문자 기준)
 constexpr long long CHAT_MIN_INTERVAL_MS = 500;  // 같은 플레이어의 채팅 최소 간격(도배 방지)
 
@@ -17,6 +19,7 @@ class GameObject;
 class Character;
 class Player;
 class Monster;
+class DropItem;
 struct SkillData;
 
 class Room : public enable_shared_from_this<Room>
@@ -110,6 +113,23 @@ public:
 		static atomic<int> _midGenerator = 100000;
 		return ++_midGenerator;
 	}
+	// ---- 바닥 드랍(A3.4, D-157) ----
+	// 몬스터가 죽었을 때 DropTable을 굴려 걸린 행마다 사망 지점 DropScatterCm 안(내비메시 위)에 드랍을 하나씩 만든다.
+	// attacker(막타)가 개별 계정 플레이어면 DropOwnerSec 동안 소유권을 준다. nullptr(투사체가 날아가는 동안 퇴장)·더미 봇이면 소유권 없음.
+	void SpawnMonsterDrops(int monsterTemplateId, Protocol::PositionInfo pos, shared_ptr<Character> attacker);
+	// 드랍 하나를 만들어 주변 플레이어에게 SC_ADD_OBJECT를 보낸다. itemId 0 = 골드. ownerUID 0 = 소유권 없음.
+	// MaxDropsPerRoom에 닿으면 가장 오래된 것부터 지운 뒤 만든다. DropLifeSec 뒤 소멸을 예약한다.
+	shared_ptr<DropItem> CreateDrop(int itemId, int64_t count, const Protocol::PositionInfo& pos, int64_t ownerUID);
+	// 드랍을 지우고 보고 있던 플레이어에게 SC_REMOVE_OBJECT를 보낸다(소멸·상한·줍기 공용). 없는 id면 false.
+	bool RemoveDrop(int dropId);
+	// 소멸 예약(ReserveJob)이 부른다. 이미 없거나(주움), 그 id의 새 드랍이거나, 줍는 중이면 아무것도 하지 않는다.
+	void ExpireDrop(int dropId);
+	shared_ptr<DropItem> GetDrop(int dropId) const
+	{
+		auto it = _drops.find(dropId);
+		return it != _drops.end() ? it->second : nullptr;
+	}
+
 	NavmeshManager* GetNavManager() { return _gameMap.GetNavManager(); }
 	const GameMap& GetGameMap() const { return _gameMap; }
 	shared_ptr<Player> Id2Player(int pId);
@@ -154,6 +174,11 @@ private:
 	// itemOp를 켜고 DB 작업을 보낸다. 결과는 OnItemOpDone으로 돌아온다.
 	void StartItemOp(const shared_ptr<Player>& player, DB_ItemOp op);
 
+	// 플레이어의 드랍 시야(Player::dropView)를 지금 위치 기준으로 맞춘다: 반경 R 안에 새로 들어온 드랍은 SC_ADD_OBJECT,
+	// R+H 밖으로 멀어진 드랍은 SC_REMOVE_OBJECT. 플레이어 위치가 바뀌는 곳(PlayerMove·PlayerRevive)과 입장 때 부른다.
+	void UpdateDropView(const shared_ptr<Player>& player);
+	int NextDropId();
+
 	atomic<int> _playerCount = 0;
 	int _tickCount = 0;   // Update 횟수. 1초(10틱)마다 시야 인원 지표·시야 감사를 하는 데 쓴다
 
@@ -164,6 +189,10 @@ private:
 	unordered_map<int, shared_ptr<GameObject>> _objects;
 	unordered_map<int, shared_ptr<Player>> _players;
 	unordered_map<int, shared_ptr<Monster>> _monsters;
+	// 바닥 드랍. _objects에는 넣지 않는다(DropItem.h). id = DROP_ID_BEGIN부터(플레이어 = 세션 번호, 몬스터 = 100001~ 과 겹치지 않음)
+	unordered_map<int, shared_ptr<DropItem>> _drops;
+	deque<int> _dropOrder;   // 만든 순서(상한을 넘으면 앞에서부터 지운다). 이미 사라진 id는 앞에서 걷어 낸다
+	int _nextDropId = 0;
 
 	GameMap				_gameMap;
 

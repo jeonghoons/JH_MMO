@@ -103,6 +103,10 @@ public:
 	};
 	ItemOpState itemOp;
 
+	// 지금 클라이언트에 보이는 바닥 드랍 id(A3.4). 캐릭터 시야(_viewList)와 따로 관리한다(Room::UpdateDropView).
+	// Room 잡 안에서만 읽고 쓴다. 방에 들어올 때·나갈 때 비운다.
+	std::unordered_set<int> dropView;
+
 	// 로그인 때 맞지 않아 메모리에서 인벤토리로 내린 장착 행(슬롯 불일치, 검이 아닌데 방패) = (ItemDbId, 내려갈 인벤토리 칸).
 	// 방에 들어올 때 DB도 고친다(Room::PlayerEnterRoom).
 	std::vector<std::pair<int64_t, int32_t>> pendingEquipFix;

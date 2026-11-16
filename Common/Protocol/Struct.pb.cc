@@ -71,6 +71,7 @@ PROTOBUF_CONSTEXPR ObjectInfo::ObjectInfo(
   , /*decltype(_impl_.template_id_)*/0
   , /*decltype(_impl_.aim_skill_id_)*/0
   , /*decltype(_impl_.level_)*/0
+  , /*decltype(_impl_.item_count_)*/int64_t{0}
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct ObjectInfoDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ObjectInfoDefaultTypeInternal()
@@ -145,6 +146,7 @@ const uint32_t TableStruct_Struct_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
   PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.aim_skill_id_),
   PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.name_),
   PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.level_),
+  PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.item_count_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Protocol::ItemInfo, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -161,7 +163,7 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 0, -1, -1, sizeof(::Protocol::PositionInfo)},
   { 14, -1, -1, sizeof(::Protocol::StatInfo)},
   { 25, -1, -1, sizeof(::Protocol::ObjectInfo)},
-  { 41, -1, -1, sizeof(::Protocol::ItemInfo)},
+  { 42, -1, -1, sizeof(::Protocol::ItemInfo)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -179,24 +181,24 @@ const char descriptor_table_protodef_Struct_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "ocol.MoveState\"g\n\010StatInfo\022\016\n\006max_hp\030\001 \001"
   "(\005\022\n\n\002hp\030\002 \001(\005\022\025\n\rattack_damage\030\003 \001(\005\022\024\n"
   "\014attack_speed\030\004 \001(\002\022\022\n\nmove_speed\030\005 \001(\002\""
-  "\235\002\n\nObjectInfo\022\n\n\002id\030\001 \001(\005\022)\n\013object_typ"
+  "\261\002\n\nObjectInfo\022\n\n\002id\030\001 \001(\005\022)\n\013object_typ"
   "e\030\002 \001(\0162\024.Protocol.ObjectType\022)\n\013player_"
   "type\030\003 \001(\0162\024.Protocol.PlayerType\022(\n\010posi"
   "tion\030\004 \001(\0132\026.Protocol.PositionInfo\022 \n\004st"
   "at\030\005 \001(\0132\022.Protocol.StatInfo\022\023\n\013template"
   "_id\030\006 \001(\005\022\023\n\013equip_items\030\010 \003(\005\022\024\n\014aim_sk"
   "ill_id\030\t \001(\005\022\014\n\004name\030\n \001(\t\022\r\n\005level\030\013 \001("
-  "\005J\004\010\007\020\010\"u\n\010ItemInfo\022\022\n\nitem_db_id\030\001 \001(\003\022"
-  "\017\n\007item_id\030\002 \001(\005\022\r\n\005count\030\003 \001(\003\022\'\n\nequip"
-  "_part\030\004 \001(\0162\023.Protocol.EquipPart\022\014\n\004slot"
-  "\030\005 \001(\005b\006proto3"
+  "\005\022\022\n\nitem_count\030\014 \001(\003J\004\010\007\020\010\"u\n\010ItemInfo\022"
+  "\022\n\nitem_db_id\030\001 \001(\003\022\017\n\007item_id\030\002 \001(\005\022\r\n\005"
+  "count\030\003 \001(\003\022\'\n\nequip_part\030\004 \001(\0162\023.Protoc"
+  "ol.EquipPart\022\014\n\004slot\030\005 \001(\005b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_Struct_2eproto_deps[1] = {
   &::descriptor_table_Enum_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_Struct_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Struct_2eproto = {
-    false, false, 694, descriptor_table_protodef_Struct_2eproto,
+    false, false, 714, descriptor_table_protodef_Struct_2eproto,
     "Struct.proto",
     &descriptor_table_Struct_2eproto_once, descriptor_table_Struct_2eproto_deps, 1, 4,
     schemas, file_default_instances, TableStruct_Struct_2eproto::offsets,
@@ -997,6 +999,7 @@ ObjectInfo::ObjectInfo(const ObjectInfo& from)
     , decltype(_impl_.template_id_){}
     , decltype(_impl_.aim_skill_id_){}
     , decltype(_impl_.level_){}
+    , decltype(_impl_.item_count_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -1015,8 +1018,8 @@ ObjectInfo::ObjectInfo(const ObjectInfo& from)
     _this->_impl_.stat_ = new ::Protocol::StatInfo(*from._impl_.stat_);
   }
   ::memcpy(&_impl_.id_, &from._impl_.id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.level_) -
-    reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.level_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.item_count_) -
+    reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.item_count_));
   // @@protoc_insertion_point(copy_constructor:Protocol.ObjectInfo)
 }
 
@@ -1036,6 +1039,7 @@ inline void ObjectInfo::SharedCtor(
     , decltype(_impl_.template_id_){0}
     , decltype(_impl_.aim_skill_id_){0}
     , decltype(_impl_.level_){0}
+    , decltype(_impl_.item_count_){int64_t{0}}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.name_.InitDefault();
@@ -1082,8 +1086,8 @@ void ObjectInfo::Clear() {
   }
   _impl_.stat_ = nullptr;
   ::memset(&_impl_.id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.level_) -
-      reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.level_));
+      reinterpret_cast<char*>(&_impl_.item_count_) -
+      reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.item_count_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1176,6 +1180,14 @@ const char* ObjectInfo::_InternalParse(const char* ptr, ::_pbi::ParseContext* ct
       case 11:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 88)) {
           _impl_.level_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int64 item_count = 12;
+      case 12:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 96)) {
+          _impl_.item_count_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1280,6 +1292,12 @@ uint8_t* ObjectInfo::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(11, this->_internal_level(), target);
   }
 
+  // int64 item_count = 12;
+  if (this->_internal_item_count() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt64ToArray(12, this->_internal_item_count(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1363,6 +1381,11 @@ size_t ObjectInfo::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_level());
   }
 
+  // int64 item_count = 12;
+  if (this->_internal_item_count() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_item_count());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -1411,6 +1434,9 @@ void ObjectInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PRO
   if (from._internal_level() != 0) {
     _this->_internal_set_level(from._internal_level());
   }
+  if (from._internal_item_count() != 0) {
+    _this->_internal_set_item_count(from._internal_item_count());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -1436,8 +1462,8 @@ void ObjectInfo::InternalSwap(ObjectInfo* other) {
       &other->_impl_.name_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ObjectInfo, _impl_.level_)
-      + sizeof(ObjectInfo::_impl_.level_)
+      PROTOBUF_FIELD_OFFSET(ObjectInfo, _impl_.item_count_)
+      + sizeof(ObjectInfo::_impl_.item_count_)
       - PROTOBUF_FIELD_OFFSET(ObjectInfo, _impl_.position_)>(
           reinterpret_cast<char*>(&_impl_.position_),
           reinterpret_cast<char*>(&other->_impl_.position_));

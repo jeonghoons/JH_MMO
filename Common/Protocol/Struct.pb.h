@@ -617,6 +617,7 @@ class ObjectInfo final :
     kTemplateIdFieldNumber = 6,
     kAimSkillIdFieldNumber = 9,
     kLevelFieldNumber = 11,
+    kItemCountFieldNumber = 12,
   };
   // repeated int32 equip_items = 8;
   int equip_items_size() const;
@@ -744,6 +745,15 @@ class ObjectInfo final :
   void _internal_set_level(int32_t value);
   public:
 
+  // int64 item_count = 12;
+  void clear_item_count();
+  int64_t item_count() const;
+  void set_item_count(int64_t value);
+  private:
+  int64_t _internal_item_count() const;
+  void _internal_set_item_count(int64_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.ObjectInfo)
  private:
   class _Internal;
@@ -763,6 +773,7 @@ class ObjectInfo final :
     int32_t template_id_;
     int32_t aim_skill_id_;
     int32_t level_;
+    int64_t item_count_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1634,6 +1645,26 @@ inline void ObjectInfo::_internal_set_level(int32_t value) {
 inline void ObjectInfo::set_level(int32_t value) {
   _internal_set_level(value);
   // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.level)
+}
+
+// int64 item_count = 12;
+inline void ObjectInfo::clear_item_count() {
+  _impl_.item_count_ = int64_t{0};
+}
+inline int64_t ObjectInfo::_internal_item_count() const {
+  return _impl_.item_count_;
+}
+inline int64_t ObjectInfo::item_count() const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.item_count)
+  return _internal_item_count();
+}
+inline void ObjectInfo::_internal_set_item_count(int64_t value) {
+  
+  _impl_.item_count_ = value;
+}
+inline void ObjectInfo::set_item_count(int64_t value) {
+  _internal_set_item_count(value);
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.item_count)
 }
 
 // -------------------------------------------------------------------
