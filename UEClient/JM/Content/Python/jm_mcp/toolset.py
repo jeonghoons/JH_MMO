@@ -12,7 +12,7 @@ import unreal
 import toolset_registry
 from toolset_registry.registration import Registration
 
-from jm_kit import body_mask, fx_fix, fx_sheet, garment, glove_paint, icon, item_table, posed, preview, profiles, refs, retarget, skeleton_check, testbed
+from jm_kit import body_mask, fx_fix, fx_sheet, garment, glove_paint, icon, item_table, monster, posed, preview, profiles, refs, retarget, skeleton_check, testbed
 
 
 def _reload():
@@ -977,4 +977,55 @@ class RetargetTools(unreal.ToolsetDefinition):
         return _dump([retarget.strip_linear_drift(p, bone or "pelvis") for p in _csv_list(sequence_paths)])
 
 
-registration = Registration([KitTools, DataTableReimportTools, AnimBuilderTools, RetargetTools])
+@unreal.uclass()
+class MonsterTools(unreal.ToolsetDefinition):
+    """MN1 몬스터 가져오기(jm_kit.monster): 리깅된 FBX → 스켈레탈 메시·스켈레톤, 동작 FBX → 애니메이션 시퀀스."""
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def monster_import_mesh(fbx_path: str, name: str, uniform_scale: float | None = None) -> str:
+        """리깅된 FBX를 /Game/Character/Monster/<name>/SKM_<name>으로 가져온다(스켈레톤·머티리얼·텍스처 포함).
+
+        Args:
+            fbx_path: FBX 절대 경로(짧은 경로, 예 C:/.../UEClient/JM/SourceArt/Monster/Wolf/wolf_rigged.fbx).
+            name: 몬스터 이름(폴더·에셋 이름, 예 Wolf).
+            uniform_scale: 가져오기 배율(기본 1).
+
+        Returns:
+            JSON {mesh, skeleton, size_cm, origin_cm, materials, imported}.
+        """
+        importlib.reload(monster)
+        return _dump(monster.import_mesh(fbx_path, name, uniform_scale or 1.0))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def monster_import_anims(fbx_paths: str, name: str, uniform_scale: float | None = None) -> str:
+        """동작 FBX들에서 애니메이션만 가져온다 → /Game/Character/Monster/<name>/Anims/AS_<name>_<파일 이름>.
+
+        Args:
+            fbx_paths: FBX 절대 경로를 쉼표로.
+            name: 몬스터 이름(monster_import_mesh와 같은 값).
+            uniform_scale: 가져오기 배율(기본 1, 메시와 같은 값).
+
+        Returns:
+            JSON [{sequence, seconds, frames}].
+        """
+        importlib.reload(monster)
+        return _dump(monster.import_anims(_csv_list(fbx_paths), name, uniform_scale or 1.0))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def monster_info(name: str) -> str:
+        """가져온 몬스터의 메시 크기·뼈 목록·시퀀스 길이.
+
+        Args:
+            name: 몬스터 이름.
+
+        Returns:
+            JSON {mesh, skeleton, size_cm, origin_cm, materials, bones, anims}.
+        """
+        importlib.reload(monster)
+        return _dump(monster.info(name))
+
+
+registration = Registration([KitTools, DataTableReimportTools, AnimBuilderTools, RetargetTools, MonsterTools])
