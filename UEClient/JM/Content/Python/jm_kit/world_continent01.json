@@ -1,0 +1,1973 @@
+{
+  "_comment": "첫 대륙 레벨 Continent01 지형 정의(Docs/DESIGN_WORLD.md §15, D-178·D-179 — 한 변 504m). 단위 m, x = 북(+)·남(-), y = 동(+)·서(-). 걸을 곳 30° 이하, 막을 곳 60° 이상(D-172). zones·roads는 배치도용, 도구는 flats·mounds·border·blockout·markers를 읽는다. 생성 스크립트로 만든 파일이라 손으로 고쳐도 된다.",
+  "level": "/Game/Maps/Continent01",
+  "size": 505,
+  "spacing_cm": 100.0,
+  "z_scale": 100.0,
+  "rolling": [
+    {
+      "amp_m": 0.8,
+      "wave_m": 140.0,
+      "dir_deg": 35.0,
+      "phase": 0.9
+    },
+    {
+      "amp_m": 0.6,
+      "wave_m": 70.0,
+      "dir_deg": 20.0,
+      "phase": 0.3
+    },
+    {
+      "amp_m": 0.4,
+      "wave_m": 45.0,
+      "dir_deg": 110.0,
+      "phase": 1.7
+    },
+    {
+      "amp_m": 0.2,
+      "wave_m": 28.0,
+      "dir_deg": 65.0,
+      "phase": 4.1
+    }
+  ],
+  "border": {
+    "inner_m": 226.0,
+    "width_m": 14.0,
+    "height_m": 32.0,
+    "wobble_m": 5.0,
+    "wobble_wave_m": 55.0
+  },
+  "flats": [
+    {
+      "name": "village",
+      "x": -150.0,
+      "y": 0.0,
+      "r": 68.0,
+      "blend": 16.0,
+      "h": 0.0
+    },
+    {
+      "name": "road_n",
+      "x": -64.0,
+      "y": 0.0,
+      "r": 8.0,
+      "blend": 14.0,
+      "h": -0.82
+    },
+    {
+      "name": "road_e",
+      "x": -150.0,
+      "y": 86.0,
+      "r": 8.0,
+      "blend": 14.0,
+      "h": 0.19
+    },
+    {
+      "name": "road_w",
+      "x": -150.0,
+      "y": -86.0,
+      "r": 8.0,
+      "blend": 14.0,
+      "h": -1.2
+    },
+    {
+      "name": "dungeon_gate",
+      "x": 185.0,
+      "y": -185.0,
+      "r": 12.0,
+      "blend": 18.0,
+      "h": -0.21
+    },
+    {
+      "name": "station",
+      "x": 185.0,
+      "y": 185.0,
+      "r": 14.0,
+      "blend": 18.0,
+      "h": -0.16
+    }
+  ],
+  "mounds": [
+    {
+      "name": "forest_w_rise",
+      "x": 140.0,
+      "y": -120.0,
+      "r": 75.0,
+      "h": 3.0
+    },
+    {
+      "name": "forest_e_rise",
+      "x": 145.0,
+      "y": 120.0,
+      "r": 75.0,
+      "h": 3.5
+    },
+    {
+      "name": "north_rise",
+      "x": 150.0,
+      "y": 0.0,
+      "r": 60.0,
+      "h": 2.0
+    }
+  ],
+  "zones": [
+    {
+      "name": "village",
+      "label": "마을(안전 구역)",
+      "kind": "town",
+      "x": -150.0,
+      "y": 0.0,
+      "r": 72.0
+    },
+    {
+      "name": "meadow_w",
+      "label": "서쪽 초원",
+      "kind": "meadow",
+      "x": -75.0,
+      "y": -150.0,
+      "half_x": 140.0,
+      "half_y": 65.0
+    },
+    {
+      "name": "meadow_e",
+      "label": "동쪽 초원",
+      "kind": "meadow",
+      "x": -75.0,
+      "y": 150.0,
+      "half_x": 140.0,
+      "half_y": 65.0
+    },
+    {
+      "name": "meadow_n",
+      "label": "북쪽 초원",
+      "kind": "meadow",
+      "x": 5.0,
+      "y": 0.0,
+      "half_x": 60.0,
+      "half_y": 85.0
+    },
+    {
+      "name": "forest_n",
+      "label": "북쪽 숲",
+      "kind": "forest",
+      "x": 140.0,
+      "y": 0.0,
+      "half_x": 75.0,
+      "half_y": 215.0
+    },
+    {
+      "name": "dungeon_gate",
+      "label": "던전 입구",
+      "kind": "gate",
+      "x": 185.0,
+      "y": -185.0,
+      "r": 12.0
+    },
+    {
+      "name": "station",
+      "label": "정거장(다른 대륙)",
+      "kind": "gate",
+      "x": 185.0,
+      "y": 185.0,
+      "r": 14.0
+    }
+  ],
+  "roads": [
+    {
+      "name": "north",
+      "label": "북쪽길",
+      "points": [
+        [
+          -64.0,
+          0
+        ],
+        [
+          60,
+          0
+        ],
+        [
+          140,
+          0
+        ]
+      ]
+    },
+    {
+      "name": "west",
+      "label": "서쪽길",
+      "points": [
+        [
+          -150.0,
+          -86.0
+        ],
+        [
+          -120,
+          -150
+        ],
+        [
+          60,
+          -172
+        ],
+        [
+          172,
+          -178
+        ]
+      ]
+    },
+    {
+      "name": "east",
+      "label": "동쪽길",
+      "points": [
+        [
+          -150.0,
+          86.0
+        ],
+        [
+          -120,
+          150
+        ],
+        [
+          60,
+          172
+        ],
+        [
+          172,
+          178
+        ]
+      ]
+    }
+  ],
+  "ground": {
+    "_comment": "지면(L2c): 레이어 = 맵(분위기) 단위. zone 레이어끼리 나눈 뒤 목록 순서대로 pad(원)·road(roads + links 선, pads 원)·slope(경사 deg 시작~끝)를 덮는다. textures의 rough는 숫자 또는 alpha(_D_R 텍스처의 알파), vertical은 옆면 투영(능선). grass의 density는 10m × 10m당 개수. grass의 patch = 잡음 얼룩으로 무리 지어 나게(wave_m 얼룩 크기, threshold 0~1 높을수록 드묾, sharp 가장자리).",
+    "asset_dir": "/Game/World/Continent01",
+    "material": "M_Ground_Continent01",
+    "biome_blend_m": 5.0,
+    "warp_m": 7.0,
+    "warp_wave_m": 38.0,
+    "edge_noise_m": 0.8,
+    "specular": 0.25,
+    "macro": {
+      "tex": "grass",
+      "tile_m": 67.0,
+      "min": 0.7,
+      "max": 1.35
+    },
+    "textures": {
+      "grass": {
+        "d": "/Game/KiteDemo/Environments/GroundTiles/Grass/T_ground_Moss_D",
+        "tile_m": 5.0,
+        "rough": 0.9,
+        "desat": 0.35,
+        "tint": [
+          0.5,
+          0.68,
+          0.42
+        ]
+      },
+      "leaf": {
+        "d": "/Game/KiteDemo/Environments/GroundTiles/LeafyPath/T_GDC_Tiling_LeafPathStones_D_R",
+        "n": "/Game/KiteDemo/Environments/GroundTiles/LeafyPath/T_GDC_Tiling_LeafpathStones_N",
+        "tile_m": 4.0
+      },
+      "stone": {
+        "d": "/Game/KiteDemo/Environments/GroundTiles/RockyPath/T_GDC_StonePath_Tile_D_R",
+        "n": "/Game/KiteDemo/Environments/GroundTiles/RockyPath/T_GDC_StonePath_Tile_N",
+        "tile_m": 4.0
+      },
+      "gravel": {
+        "d": "/Game/KiteDemo/Environments/GroundTiles/PebblyRiverbank/T_Tile_PebblyRiverbank_D_R",
+        "n": "/Game/KiteDemo/Environments/GroundTiles/PebblyRiverbank/T_Tile_PebblyRiverbank_N",
+        "tile_m": 4.0
+      },
+      "rock": {
+        "d": "/Game/ParagonProps/Monolith/Rocks/Textures/T_NordicRockTile02b",
+        "tile_m": 14.0,
+        "rough": 0.85,
+        "vertical": true,
+        "tint": [
+          0.62,
+          0.6,
+          0.57
+        ]
+      }
+    },
+    "layers": [
+      {
+        "name": "MeadowN",
+        "kind": "zone",
+        "zone": "meadow_n",
+        "tex": "grass",
+        "tint": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "MeadowW",
+        "kind": "zone",
+        "zone": "meadow_w",
+        "tex": "grass",
+        "tint": [
+          0.92,
+          0.9,
+          0.78
+        ]
+      },
+      {
+        "name": "MeadowE",
+        "kind": "zone",
+        "zone": "meadow_e",
+        "tex": "grass",
+        "tint": [
+          1.05,
+          1.1,
+          0.9
+        ]
+      },
+      {
+        "name": "Forest",
+        "kind": "zone",
+        "zone": "forest_n",
+        "tex": "leaf"
+      },
+      {
+        "name": "Stone",
+        "kind": "pad",
+        "tex": "stone",
+        "pads": [
+          {
+            "x": -150.0,
+            "y": 0.0,
+            "r": 72.0,
+            "blend": 3.0
+          },
+          {
+            "x": 185.0,
+            "y": 185.0,
+            "r": 13.0,
+            "blend": 5.0
+          }
+        ]
+      },
+      {
+        "name": "Road",
+        "kind": "road",
+        "tex": "gravel",
+        "half_m": 2.2,
+        "blend_m": 2.5,
+        "links": [
+          [
+            [
+              -84.0,
+              0.0
+            ],
+            [
+              -64.0,
+              0.0
+            ]
+          ],
+          [
+            [
+              -150.0,
+              68.0
+            ],
+            [
+              -150.0,
+              86.0
+            ]
+          ],
+          [
+            [
+              -150.0,
+              -68.0
+            ],
+            [
+              -150.0,
+              -86.0
+            ]
+          ],
+          [
+            [
+              172.0,
+              178.0
+            ],
+            [
+              183.0,
+              184.0
+            ]
+          ]
+        ],
+        "pads": [
+          {
+            "x": 185.0,
+            "y": -185.0,
+            "r": 11.0,
+            "blend": 5.0
+          }
+        ]
+      },
+      {
+        "name": "Rock",
+        "kind": "slope",
+        "tex": "rock",
+        "deg": [
+          30.0,
+          42.0
+        ]
+      }
+    ],
+    "grass": [
+      {
+        "name": "MeadowN",
+        "layer": "MeadowN",
+        "varieties": [
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "density": 220
+          }
+        ]
+      },
+      {
+        "name": "MeadowNFlowers",
+        "layer": "MeadowN",
+        "patch": {
+          "wave_m": 26.0,
+          "threshold": 0.56,
+          "sharp": 8.0
+        },
+        "varieties": [
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Flowers/Buttercup/SM_Buttercup_Patch_01",
+            "density": 30
+          }
+        ]
+      },
+      {
+        "name": "MeadowW",
+        "layer": "MeadowW",
+        "varieties": [
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "density": 150
+          }
+        ]
+      },
+      {
+        "name": "MeadowWBush",
+        "layer": "MeadowW",
+        "patch": {
+          "wave_m": 31.0,
+          "threshold": 0.54,
+          "sharp": 8.0
+        },
+        "varieties": [
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Flowers/Heather/SM_Heather_Mesh_Clumps2",
+            "density": 22
+          },
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/BogMyrtleBush_02/BogMyrtleBush_02",
+            "density": 10,
+            "scale": [
+              1.0,
+              1.6
+            ]
+          }
+        ]
+      },
+      {
+        "name": "MeadowE",
+        "layer": "MeadowE",
+        "varieties": [
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "density": 220
+          }
+        ]
+      },
+      {
+        "name": "MeadowEFlowers",
+        "layer": "MeadowE",
+        "patch": {
+          "wave_m": 23.0,
+          "threshold": 0.5,
+          "sharp": 8.0
+        },
+        "varieties": [
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Flowers/Yarrow/SM_Yarrow",
+            "density": 30
+          },
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Flowers/FieldScabious/SM_FieldScabious_01",
+            "density": 30
+          },
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Flowers/Buttercup/SM_Buttercup_Patch_01",
+            "density": 22
+          }
+        ]
+      },
+      {
+        "name": "Forest",
+        "layer": "Forest",
+        "varieties": [
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "density": 40
+          },
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Leaves/SM_DeadLeaves",
+            "density": 8,
+            "align": true
+          }
+        ]
+      },
+      {
+        "name": "ForestFern",
+        "layer": "Forest",
+        "patch": {
+          "wave_m": 19.0,
+          "threshold": 0.5,
+          "sharp": 8.0
+        },
+        "varieties": [
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Ferns/SM_Fern_01",
+            "density": 9
+          },
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Ferns/SM_Fern_02",
+            "density": 9
+          },
+          {
+            "mesh": "/Game/KiteDemo/Environments/Foliage/Ferns/SM_Fern_03",
+            "density": 9
+          }
+        ]
+      }
+    ]
+  },
+  "dress": {
+    "_comment": "자연물(L2c, D-181): blockout 항목(from)을 메시로 바꾼다. 보이는 메시는 충돌 없음, 충돌은 숨긴 도형 NA_*_Col(블록아웃과 같은 크기). kind: tree / rock / ring_rock / scatter(충돌 없는 잔돌) / place(메시 하나, collide면 메시 자체 충돌, replaces = 지울 blockout 라벨). sets = 메시 묶음(weight 비율, scale 범위, trunk_r_m 줄기 충돌 반지름). sets의 sink = 묻는 깊이(메시 높이 비율). avoid = 나무를 놓지 않을 원. col_fit = 충돌 타원 기둥의 크기(메시 경계 상자 가로 대비, 기본 0.8). 마을 소품(L2d, group village): ring_prop(blockout ring을 따라 한 칸씩), gate_prop(arch 자리의 문틀 — 충돌은 기둥 둘, post_off·post_w = 메시 비율), prop(from 블록아웃 box 자리 또는 x·y·yaw, 크기 width_m·height_m, 충돌 col_fit [가로X, 가로Y, 높이]·col_shape·col_max_h·collide).",
+    "sets": {
+      "pines": [
+        {
+          "mesh": "/Game/KiteDemo/Environments/Trees/ScotsPineTall_01/ScotsPineTall_01",
+          "weight": 5,
+          "scale": [
+            0.8,
+            1.1
+          ],
+          "trunk_r_m": 0.3
+        },
+        {
+          "mesh": "/Game/KiteDemo/Environments/Trees/ScotsPine_01/ScotsPine_01",
+          "weight": 2,
+          "scale": [
+            0.8,
+            1.05
+          ],
+          "trunk_r_m": 0.45
+        },
+        {
+          "mesh": "/Game/KiteDemo/Environments/Trees/HillTree_Tall_02/HillTree_Tall_02",
+          "weight": 2,
+          "scale": [
+            0.8,
+            1.1
+          ],
+          "trunk_r_m": 0.17
+        }
+      ],
+      "boulders": [
+        {
+          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_03",
+          "weight": 3,
+          "sink": 0.45,
+          "col_fit": 0.6
+        },
+        {
+          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_Corner_01",
+          "weight": 2,
+          "sink": 0.25,
+          "col_fit": 0.6
+        },
+        {
+          "mesh": "/Game/KiteDemo/Environments/Rocks/Mountain_RockFace_002/SM_MountainRock_Closed",
+          "weight": 3,
+          "sink": 0.2,
+          "col_fit": 0.6
+        },
+        {
+          "mesh": "/Game/KiteDemo/Environments/Rocks/Large_Volcanic_Rock_001/LargeVolcanicRock_001",
+          "weight": 2,
+          "sink": 0.2,
+          "col_fit": 0.75
+        },
+        {
+          "mesh": "/Game/KiteDemo/Environments/Rocks/Large_Volcanic_Rock_001/LargeVolcanicRock_004",
+          "weight": 2,
+          "sink": 0.2,
+          "col_fit": 0.75
+        }
+      ],
+      "big": [
+        {
+          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_03",
+          "weight": 3,
+          "sink": 0.45,
+          "col_fit": 0.6
+        },
+        {
+          "mesh": "/Game/KiteDemo/Environments/Rocks/Mountain_RockFace_002/SM_MountainRock_Closed",
+          "weight": 2,
+          "sink": 0.2,
+          "col_fit": 0.6
+        }
+      ],
+      "stones": [
+        {
+          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_04"
+        },
+        {
+          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_05"
+        },
+        {
+          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_06"
+        },
+        {
+          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_07"
+        },
+        {
+          "mesh": "/Game/KiteDemo/Environments/Rocks/Medium_Boulder_001/Medium_Boulder_001",
+          "weight": 2
+        },
+        {
+          "mesh": "/Game/KiteDemo/Environments/Rocks/Medium_Boulder_002/Medium_Boulder_LowPoly",
+          "weight": 2
+        }
+      ]
+    },
+    "items": [
+      {
+        "kind": "tree",
+        "from": "TreeNW",
+        "set": "pines",
+        "seed": 31,
+        "road_clear_m": 4.5
+      },
+      {
+        "kind": "tree",
+        "from": "TreeNE",
+        "set": "pines",
+        "seed": 32,
+        "road_clear_m": 4.5
+      },
+      {
+        "kind": "rock",
+        "from": "MeadowRockW",
+        "set": "boulders",
+        "seed": 41
+      },
+      {
+        "kind": "rock",
+        "from": "MeadowRockE",
+        "set": "boulders",
+        "seed": 42
+      },
+      {
+        "kind": "rock",
+        "from": "MeadowRockN",
+        "set": "boulders",
+        "seed": 43
+      },
+      {
+        "kind": "rock",
+        "from": "ForestRock",
+        "set": "boulders",
+        "seed": 44
+      },
+      {
+        "kind": "ring_rock",
+        "from": "GateRock",
+        "set": "big",
+        "seed": 45,
+        "cover": 1.3
+      },
+      {
+        "kind": "place",
+        "label": "DungeonCliff",
+        "mesh": "/Game/KiteDemo/Environments/Cliffs/Cliff01/SM_Cliff01",
+        "x": 199.0,
+        "y": -193.0,
+        "yaw": 60.0,
+        "scale": 1.0,
+        "sink_m": 1.0,
+        "collide": true
+      },
+      {
+        "kind": "scatter",
+        "label": "WestStones",
+        "set": "stones",
+        "x": -75,
+        "y": -150,
+        "half_x": 136,
+        "half_y": 62,
+        "count": 90,
+        "min_gap_m": 7.0,
+        "seed": 51,
+        "size": [
+          0.5,
+          1.3
+        ]
+      },
+      {
+        "kind": "ring_prop",
+        "from": "VillageWall",
+        "mesh": "/Game/World/Props/Palisade/SM_Palisade",
+        "cover": 1.04,
+        "col_fit": [
+          1.0,
+          0.8,
+          0.9
+        ],
+        "sink_m": 0.25,
+        "group": "village"
+      },
+      {
+        "kind": "gate_prop",
+        "from": "GateN",
+        "mesh": "/Game/World/Props/GateFrame/SM_GateFrame",
+        "cover": 1.25,
+        "post_off": 0.29,
+        "post_w": 0.17,
+        "group": "village"
+      },
+      {
+        "kind": "gate_prop",
+        "from": "GateE",
+        "mesh": "/Game/World/Props/GateFrame/SM_GateFrame",
+        "cover": 1.25,
+        "post_off": 0.29,
+        "post_w": 0.17,
+        "group": "village"
+      },
+      {
+        "kind": "gate_prop",
+        "from": "GateW",
+        "mesh": "/Game/World/Props/GateFrame/SM_GateFrame",
+        "cover": 1.25,
+        "post_off": 0.29,
+        "post_w": 0.17,
+        "group": "village"
+      },
+      {
+        "kind": "gate_prop",
+        "from": "StationGate",
+        "mesh": "/Game/World/Props/GateFrame/SM_GateFrame",
+        "cover": 1.25,
+        "post_off": 0.29,
+        "post_w": 0.17,
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "Campfire",
+        "mesh": "/Game/World/Props/Campfire/SM_Campfire",
+        "width_m": 3.4,
+        "col_shape": "Cylinder",
+        "col_fit": [
+          0.85,
+          0.85,
+          0.5
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "BannerN_L",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "yaw_off": 90.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "BannerN_R",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "yaw_off": 90.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "BannerE_L",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "x": -143.5,
+        "y": 67.5,
+        "yaw": 180.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "BannerE_R",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "x": -156.5,
+        "y": 67.5,
+        "yaw": 180.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "BannerW_L",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "x": -143.5,
+        "y": -67.5,
+        "yaw": 0.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "BannerW_R",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "x": -156.5,
+        "y": -67.5,
+        "yaw": 0.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "StationPost_L",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "yaw_off": -60.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "StationPost_R",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "yaw_off": -60.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "MarketStall_5",
+        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "x": -138.0,
+        "y": -22.0,
+        "yaw": 95.0,
+        "width_m": 4.8,
+        "col_fit": [
+          0.95,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "MarketStall_6",
+        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "x": -138.0,
+        "y": -58.0,
+        "yaw": 82.0,
+        "width_m": 4.8,
+        "col_fit": [
+          0.95,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "MarketStall_7",
+        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "x": -162.0,
+        "y": -22.0,
+        "yaw": -96.0,
+        "width_m": 4.8,
+        "col_fit": [
+          0.95,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "MarketStall_8",
+        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "x": -162.0,
+        "y": -58.0,
+        "yaw": -84.0,
+        "width_m": 4.8,
+        "col_fit": [
+          0.95,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "MarketCrates_1",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "x": -131.5,
+        "y": -40.0,
+        "yaw": 30.0,
+        "width_m": 2.6,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "MarketCrates_2",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "x": -168.5,
+        "y": -40.0,
+        "yaw": 210.0,
+        "width_m": 2.6,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "MarketCart",
+        "mesh": "/Game/World/Props/Cart/SM_Cart",
+        "x": -156.0,
+        "y": -51.0,
+        "yaw": 80.0,
+        "width_m": 3.2,
+        "col_fit": [
+          0.8,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "PlazaBanner_1",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "x": -138.0,
+        "y": -12.0,
+        "yaw": 135.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "PlazaBanner_2",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "x": -138.0,
+        "y": 12.0,
+        "yaw": 45.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "PlazaBanner_3",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "x": -162.0,
+        "y": -12.0,
+        "yaw": 225.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "PlazaBanner_4",
+        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "x": -162.0,
+        "y": 12.0,
+        "yaw": -45.0,
+        "height_m": 6.5,
+        "col_fit": [
+          0.3,
+          0.55,
+          0.3
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "GateNCart",
+        "mesh": "/Game/World/Props/Cart/SM_Cart",
+        "x": -87.0,
+        "y": -10.0,
+        "yaw": 200.0,
+        "width_m": 3.4,
+        "col_fit": [
+          0.8,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "GateNCrates",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "x": -86.0,
+        "y": 10.5,
+        "yaw": 60.0,
+        "width_m": 2.8,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "GateECrates",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "x": -140.0,
+        "y": 60.0,
+        "yaw": 150.0,
+        "width_m": 2.8,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "GateWCrates",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "x": -160.0,
+        "y": -60.0,
+        "yaw": -20.0,
+        "width_m": 2.8,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "TradeAwning_2",
+        "mesh": "/Game/World/Props/TradeAwning/SM_TradeAwning",
+        "x": -172.0,
+        "y": 40.0,
+        "yaw": 180.0,
+        "width_m": 9.0,
+        "col_fit": [
+          0.8,
+          0.2,
+          0.3
+        ],
+        "col_max_h": 1.2,
+        "col_off": [
+          0.0,
+          -0.55
+        ],
+        "col_extra": [
+          [
+            -0.9,
+            -0.86,
+            0.6
+          ],
+          [
+            0.9,
+            -0.86,
+            0.6
+          ],
+          [
+            -0.9,
+            0.86,
+            0.6
+          ],
+          [
+            0.9,
+            0.86,
+            0.6
+          ]
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "TradeCrates_3",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "x": -166.0,
+        "y": 31.0,
+        "yaw": 300.0,
+        "width_m": 2.4,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "MarketStall_1",
+        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "yaw_off": 90.0,
+        "width_m": 4.8,
+        "col_fit": [
+          0.95,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "MarketStall_2",
+        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "yaw_off": 90.0,
+        "width_m": 4.8,
+        "col_fit": [
+          0.95,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "MarketStall_3",
+        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "yaw_off": -90.0,
+        "width_m": 4.8,
+        "col_fit": [
+          0.95,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "MarketStall_4",
+        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "yaw_off": -90.0,
+        "width_m": 4.8,
+        "col_fit": [
+          0.95,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "TradeHall",
+        "mesh": "/Game/World/Props/TradeAwning/SM_TradeAwning",
+        "width_m": 12.0,
+        "yaw_off": 180.0,
+        "col_fit": [
+          0.8,
+          0.2,
+          0.3
+        ],
+        "col_max_h": 1.2,
+        "col_off": [
+          0.0,
+          -0.55
+        ],
+        "col_extra": [
+          [
+            -0.9,
+            -0.86,
+            0.6
+          ],
+          [
+            0.9,
+            -0.86,
+            0.6
+          ],
+          [
+            -0.9,
+            0.86,
+            0.6
+          ],
+          [
+            0.9,
+            0.86,
+            0.6
+          ]
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "Storage",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "width_m": 3.4,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "StorageCrates_2",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "x": -131.0,
+        "y": 42.5,
+        "yaw": 110.0,
+        "width_m": 2.8,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "StorageCrates_3",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "x": -137.5,
+        "y": 42.0,
+        "yaw": 200.0,
+        "width_m": 2.4,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "StorageCart",
+        "mesh": "/Game/World/Props/Cart/SM_Cart",
+        "x": -136.0,
+        "y": 33.0,
+        "yaw": -35.0,
+        "width_m": 3.4,
+        "col_fit": [
+          0.8,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "TradeCrates_1",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "width_m": 2.2,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "TradeCrates_2",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "width_m": 1.8,
+        "yaw_off": 140.0,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "Inn",
+        "mesh": "/Game/World/Props/InnTent/SM_InnTent",
+        "width_m": 11.0,
+        "yaw_off": -90.0,
+        "col_fit": [
+          0.85,
+          0.85,
+          0.5
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "InnTent_2",
+        "mesh": "/Game/World/Props/InnTent/SM_InnTent",
+        "x": -192.0,
+        "y": 13.0,
+        "yaw": -75.0,
+        "width_m": 8.0,
+        "col_fit": [
+          0.85,
+          0.85,
+          0.5
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "InnTent_3",
+        "mesh": "/Game/World/Props/InnTent/SM_InnTent",
+        "x": -192.0,
+        "y": -25.0,
+        "yaw": -105.0,
+        "width_m": 8.0,
+        "col_fit": [
+          0.85,
+          0.85,
+          0.5
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "from": "InnCrates",
+        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "width_m": 2.0,
+        "yaw_off": 70.0,
+        "col_fit": [
+          0.75,
+          0.75,
+          0.6
+        ],
+        "group": "village"
+      },
+      {
+        "kind": "prop",
+        "label": "InnCart",
+        "mesh": "/Game/World/Props/Cart/SM_Cart",
+        "x": -190.0,
+        "y": -17.0,
+        "yaw": 20.0,
+        "width_m": 3.2,
+        "col_fit": [
+          0.8,
+          0.8,
+          0.6
+        ],
+        "group": "village"
+      }
+    ],
+    "avoid": [
+      {
+        "x": 185.0,
+        "y": -185.0,
+        "r": 27.0
+      },
+      {
+        "x": 185.0,
+        "y": 185.0,
+        "r": 20.0
+      }
+    ]
+  },
+  "blockout": [
+    {
+      "kind": "ring",
+      "label": "VillageWall",
+      "shape": "Cube",
+      "x": -150.0,
+      "y": 0.0,
+      "r": 72.0,
+      "step_m": 6.0,
+      "size": [
+        1.5,
+        6.3,
+        5.0
+      ],
+      "gaps": [
+        {
+          "deg": 0,
+          "width_m": 10
+        },
+        {
+          "deg": 90,
+          "width_m": 10
+        },
+        {
+          "deg": 270,
+          "width_m": 10
+        },
+        {
+          "deg": 180,
+          "width_m": 70
+        }
+      ]
+    },
+    {
+      "kind": "arch",
+      "label": "GateN",
+      "x": -78.0,
+      "y": 0.0,
+      "yaw": 0,
+      "width_m": 7.0,
+      "height_m": 6.0,
+      "thick_m": 1.5
+    },
+    {
+      "kind": "arch",
+      "label": "GateE",
+      "x": -150.0,
+      "y": 72.0,
+      "yaw": 90,
+      "width_m": 7.0,
+      "height_m": 6.0,
+      "thick_m": 1.5
+    },
+    {
+      "kind": "arch",
+      "label": "GateW",
+      "x": -150.0,
+      "y": -72.0,
+      "yaw": 90,
+      "width_m": 7.0,
+      "height_m": 6.0,
+      "thick_m": 1.5
+    },
+    {
+      "kind": "box",
+      "label": "Campfire",
+      "shape": "Cone",
+      "x": -150.0,
+      "y": 0.0,
+      "size": [
+        1.8,
+        1.8,
+        1.3
+      ]
+    },
+    {
+      "kind": "box",
+      "label": "BannerN_L",
+      "shape": "Cylinder",
+      "x": -81.0,
+      "y": -6.5,
+      "size": [
+        0.25,
+        0.25,
+        6.0
+      ]
+    },
+    {
+      "kind": "box",
+      "label": "BannerN_R",
+      "shape": "Cylinder",
+      "x": -81.0,
+      "y": 6.5,
+      "size": [
+        0.25,
+        0.25,
+        6.0
+      ]
+    },
+    {
+      "kind": "box",
+      "label": "MarketStall_1",
+      "shape": "Cube",
+      "x": -138.0,
+      "y": -34,
+      "size": [
+        2.5,
+        4.5,
+        2.8
+      ],
+      "yaw": 10
+    },
+    {
+      "kind": "box",
+      "label": "MarketStall_2",
+      "shape": "Cube",
+      "x": -138.0,
+      "y": -46,
+      "size": [
+        2.5,
+        4.5,
+        2.8
+      ],
+      "yaw": -10
+    },
+    {
+      "kind": "box",
+      "label": "MarketStall_3",
+      "shape": "Cube",
+      "x": -162.0,
+      "y": -34,
+      "size": [
+        2.5,
+        4.5,
+        2.8
+      ],
+      "yaw": -15
+    },
+    {
+      "kind": "box",
+      "label": "MarketStall_4",
+      "shape": "Cube",
+      "x": -162.0,
+      "y": -46,
+      "size": [
+        2.5,
+        4.5,
+        2.8
+      ],
+      "yaw": 15
+    },
+    {
+      "kind": "box",
+      "label": "TradeHall",
+      "shape": "Cube",
+      "x": -156.0,
+      "y": 42,
+      "size": [
+        10.0,
+        14.0,
+        6.5
+      ]
+    },
+    {
+      "kind": "box",
+      "label": "Storage",
+      "shape": "Cube",
+      "x": -134.0,
+      "y": 38,
+      "size": [
+        6.0,
+        8.0,
+        4.5
+      ],
+      "yaw": 15
+    },
+    {
+      "kind": "box",
+      "label": "TradeCrates_1",
+      "shape": "Cube",
+      "x": -144.0,
+      "y": 28,
+      "size": [
+        1.4,
+        1.4,
+        1.4
+      ],
+      "yaw": 25
+    },
+    {
+      "kind": "box",
+      "label": "TradeCrates_2",
+      "shape": "Cube",
+      "x": -142.0,
+      "y": 31,
+      "size": [
+        1.1,
+        1.1,
+        1.1
+      ],
+      "yaw": 60
+    },
+    {
+      "kind": "box",
+      "label": "Inn",
+      "shape": "Cube",
+      "x": -196.0,
+      "y": -6,
+      "size": [
+        9.0,
+        14.0,
+        7.0
+      ]
+    },
+    {
+      "kind": "box",
+      "label": "InnCrates",
+      "shape": "Cube",
+      "x": -188.0,
+      "y": 8,
+      "size": [
+        1.3,
+        1.3,
+        1.3
+      ],
+      "yaw": 40
+    },
+    {
+      "kind": "scatter",
+      "label": "TreeNW",
+      "shape": "Tree",
+      "x": 140,
+      "y": -110,
+      "half_x": 73,
+      "half_y": 103,
+      "count": 120,
+      "min_gap_m": 9.0,
+      "seed": 3
+    },
+    {
+      "kind": "scatter",
+      "label": "TreeNE",
+      "shape": "Tree",
+      "x": 140,
+      "y": 110,
+      "half_x": 73,
+      "half_y": 103,
+      "count": 120,
+      "min_gap_m": 9.0,
+      "seed": 4
+    },
+    {
+      "kind": "scatter",
+      "label": "MeadowRockW",
+      "shape": "Rock",
+      "x": -75,
+      "y": -150,
+      "half_x": 138,
+      "half_y": 63,
+      "count": 9,
+      "min_gap_m": 36.0,
+      "seed": 11,
+      "size": [
+        3.0,
+        5.0
+      ]
+    },
+    {
+      "kind": "scatter",
+      "label": "MeadowRockE",
+      "shape": "Rock",
+      "x": -75,
+      "y": 150,
+      "half_x": 138,
+      "half_y": 63,
+      "count": 9,
+      "min_gap_m": 36.0,
+      "seed": 12,
+      "size": [
+        3.0,
+        5.0
+      ]
+    },
+    {
+      "kind": "scatter",
+      "label": "MeadowRockN",
+      "shape": "Rock",
+      "x": 5,
+      "y": 0,
+      "half_x": 58,
+      "half_y": 83,
+      "count": 5,
+      "min_gap_m": 34.0,
+      "seed": 13,
+      "size": [
+        3.0,
+        5.0
+      ]
+    },
+    {
+      "kind": "scatter",
+      "label": "ForestRock",
+      "shape": "Rock",
+      "x": 140,
+      "y": 0,
+      "half_x": 73,
+      "half_y": 213,
+      "count": 12,
+      "min_gap_m": 30.0,
+      "seed": 5,
+      "size": [
+        3.0,
+        6.0
+      ]
+    },
+    {
+      "kind": "ring",
+      "label": "GateRock",
+      "shape": "Cube",
+      "x": 185.0,
+      "y": -185.0,
+      "r": 18,
+      "step_m": 6.5,
+      "size": [
+        7.0,
+        6.0,
+        8.0
+      ],
+      "jitter": 0.35,
+      "gaps": [
+        {
+          "deg": 150,
+          "width_m": 12
+        }
+      ]
+    },
+    {
+      "kind": "arch",
+      "label": "DungeonGate",
+      "x": 191.9,
+      "y": -189.0,
+      "yaw": 150,
+      "width_m": 6.0,
+      "height_m": 6.0,
+      "thick_m": 1.5
+    },
+    {
+      "kind": "box",
+      "label": "StationPlatform",
+      "shape": "Cube",
+      "x": 185.0,
+      "y": 185.0,
+      "size": [
+        12.0,
+        8.0,
+        0.6
+      ],
+      "yaw": 30
+    },
+    {
+      "kind": "arch",
+      "label": "StationGate",
+      "x": 191.9,
+      "y": 189.0,
+      "yaw": 210,
+      "width_m": 6.0,
+      "height_m": 6.0,
+      "thick_m": 1.5
+    },
+    {
+      "kind": "box",
+      "label": "StationPost_L",
+      "shape": "Cylinder",
+      "x": 177.2,
+      "y": 189.5,
+      "size": [
+        0.3,
+        0.3,
+        5.0
+      ]
+    },
+    {
+      "kind": "box",
+      "label": "StationPost_R",
+      "shape": "Cylinder",
+      "x": 185.0,
+      "y": 176.0,
+      "size": [
+        0.3,
+        0.3,
+        5.0
+      ]
+    }
+  ],
+  "markers": {
+    "player_start": {
+      "x": -142.0,
+      "y": 0,
+      "yaw": 0
+    },
+    "monster": [
+      {
+        "zone": "meadow_w",
+        "x": -75,
+        "y": -150,
+        "half_x": 127,
+        "half_y": 52,
+        "count": 11,
+        "min_gap_m": 38.0,
+        "seed": 21,
+        "flat_margin_m": 22.0,
+        "template_id": 1001,
+        "radius_cm": 1200,
+        "max_count": 5
+      },
+      {
+        "zone": "meadow_e",
+        "x": -75,
+        "y": 150,
+        "half_x": 127,
+        "half_y": 52,
+        "count": 11,
+        "min_gap_m": 38.0,
+        "seed": 23,
+        "flat_margin_m": 22.0,
+        "template_id": 1001,
+        "radius_cm": 1200,
+        "max_count": 5
+      },
+      {
+        "zone": "meadow_n",
+        "x": 5,
+        "y": 0,
+        "half_x": 47,
+        "half_y": 72,
+        "count": 6,
+        "min_gap_m": 38.0,
+        "seed": 25,
+        "flat_margin_m": 22.0,
+        "template_id": 1001,
+        "radius_cm": 1200,
+        "max_count": 5
+      },
+      {
+        "zone": "forest_n",
+        "x": 140,
+        "y": 0,
+        "half_x": 62,
+        "half_y": 202,
+        "count": 20,
+        "min_gap_m": 40.0,
+        "seed": 22,
+        "flat_margin_m": 22.0,
+        "template_id": 1001,
+        "radius_cm": 1200,
+        "max_count": 5
+      }
+    ],
+    "portals": [
+      {
+        "id": 100,
+        "label": "Dungeon",
+        "x": 190.2,
+        "y": -188.0,
+        "radius_cm": 400,
+        "target_map": "Continent01_Dungeon",
+        "target_point": 0
+      },
+      {
+        "id": 110,
+        "label": "Station",
+        "x": 189.3,
+        "y": 187.5,
+        "radius_cm": 400,
+        "target_map": "Continent02",
+        "target_point": 0
+      },
+      {
+        "id": 101,
+        "label": "VillageN_In",
+        "x": -84.0,
+        "y": 0.0,
+        "radius_cm": 300,
+        "target_map": "Continent01",
+        "target_point": 201
+      },
+      {
+        "id": 201,
+        "label": "VillageN_Out",
+        "x": -64.0,
+        "y": 0.0,
+        "radius_cm": 300,
+        "target_map": "Continent01",
+        "target_point": 101
+      },
+      {
+        "id": 102,
+        "label": "VillageE_In",
+        "x": -150.0,
+        "y": 66.0,
+        "radius_cm": 300,
+        "target_map": "Continent01",
+        "target_point": 202
+      },
+      {
+        "id": 202,
+        "label": "VillageE_Out",
+        "x": -150.0,
+        "y": 86.0,
+        "radius_cm": 300,
+        "target_map": "Continent01",
+        "target_point": 102
+      },
+      {
+        "id": 103,
+        "label": "VillageW_In",
+        "x": -150.0,
+        "y": -66.0,
+        "radius_cm": 300,
+        "target_map": "Continent01",
+        "target_point": 203
+      },
+      {
+        "id": 203,
+        "label": "VillageW_Out",
+        "x": -150.0,
+        "y": -86.0,
+        "radius_cm": 300,
+        "target_map": "Continent01",
+        "target_point": 103
+      }
+    ]
+  }
+}

@@ -4,9 +4,9 @@
 (2026-11-16 A3.1 작성, 결정 D-152~D-159. 장비 외형·슬롯은 [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), CSV 규약은 [DESIGN_DATA.md](DESIGN_DATA.md), 동시성 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md))
 
 ## 현재 상태 (2026-11-17)
-- A6.3a 구현(2026-11-17, 사용자 2인 PIE 확인 대기): 거래 UI(`UJMTradeManager`·`UTradeWidget`/`WBP_Trade`, T 키). 구현 내용은 아래 "A6.3a 구현 메모".
+- A6.3a 완료(2026-11-17, 사용자 PIE 확인): 거래 UI(`UJMTradeManager`·`UTradeWidget`/`WBP_Trade`, T 키). 구현 내용은 아래 "A6.3a 구현 메모".
 - A4.1·A4.2 완료(2026-11-17): 1:1 거래 서버(상태기계·패킷·한 트랜잭션 교환·`Trade_Log`, 마이그레이션 0007). 구현 내용은 아래 "A4.1·A4.2 구현 메모". 거래 UI(A6.3a)와 경매 코드는 아직 없습니다.
-- A3.6 구현(2026-11-17, 사용자 PIE 확인 대기): 소비 아이템 사용 `CS_USE_ITEM`·`SC_USE_ITEM`, 액티브 칸 배치 `CS_SET_QUICKSLOT` + `Player_QuickSlot`(마이그레이션 0006). 구현 내용은 아래 "A3.6 구현 메모".
+- A3.6 완료(2026-11-17, 사용자 PIE 확인): 소비 아이템 사용 `CS_USE_ITEM`·`SC_USE_ITEM`, 액티브 칸 배치 `CS_SET_QUICKSLOT` + `Player_QuickSlot`(마이그레이션 0006). 구현 내용은 아래 "A3.6 구현 메모".
 - A3.5 완료(2026-11-17): 줍기 `CS_PICKUP_ITEM`·버리기 `CS_DROP_ITEM`(서버). 구현 내용은 아래 "A3.5 구현 메모". 클라이언트 표시·입력(A6.2)도 완료(사용자 PIE 확인)했습니다.
 - A3.4 완료(2026-11-16): 몬스터 처치 시 드랍 롤 → 바닥 드랍(`DropItem`, `OBJECT_TYPE_ITEM`) 생성·소유권 기록·드랍 전용 시야·소멸·방당 상한. 구현 내용은 아래 "A3.4 구현 메모".
 - A3.3 완료(2026-11-16): `Player_Item`(마이그레이션 0004, `Player_Equipped` 이전·삭제), 서버 `Inventory`·아이템 작업 공통 경로(`itemOp`), 장착을 `item_db_id` 기준·DB 성공 뒤 반영으로 전환, 개발 지급 `CS_DEV_GIVE`, `SC_INVENTORY`·`SC_INVENTORY_UPDATE`·`SC_ITEM_RESULT`, 클라이언트 `UJMInventoryManager`(데이터만 — 창은 A6.1)와 콘솔 `Give`. 구현 내용은 아래 "A3.3 구현 메모".

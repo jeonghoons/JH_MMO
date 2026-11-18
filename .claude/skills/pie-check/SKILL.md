@@ -25,4 +25,6 @@ description: 기능을 PIE/에디터에서 눈으로 확인할 준비를 할 때
 
 ## 4. 실제 PIE
 
-MCP `EditorApp`의 `StartPIE`/`StopPIE`로 시작·종료하고, 로그인 입력은 사용자가 한다. Claude는 애니메이션·이펙트 모양을 직접 볼 수 없으므로 `CaptureViewport` 스크린샷이나 사용자 확인으로 판단한다.
+MCP `EditorApp`의 `StartPIE`/`StopPIE`로 시작·종료한다. Claude는 애니메이션·이펙트 모양을 직접 볼 수 없으므로 스크린샷이나 사용자 확인으로 판단한다.
+
+**Claude가 직접 로그인해 확인할 때(D-188)**: 서버를 띄우고(`run-server`) `UEClient/JM/Saved/TestLogin.txt`에 줄마다 `Test1 1234`, `Test2 1234`(PIE 창 번호 순서)를 쓴 뒤, 에디터에서 로그인 레벨 `DevMap`이 열린 상태로 `StartPIE`(`warmupSeconds` 15 안팎) → 로그인 화면이 1초 뒤 자동 로그인하고 서버가 알려 준 레벨로 들어간다. 확인: `WorldTools.world_step`의 `pie_chars`(캐릭터 위치·발 높이 − 지면), 화면은 `python -I -X utf8 Saved/World/shot.py <out.png> editor`(에디터 창 전체 캡처를 파일로 — base64가 대화에 들어오지 않게) → `Read`. 끝나면 `StopPIE`, **`TestLogin.txt`를 지운다**(남겨 두면 사용자의 PIE도 Test 계정으로 들어감). 에디터 PIE 설정이 2인이면 두 번째 창은 둘째 줄 계정으로 들어간다. 시험 계정 상태(HP·인벤토리)가 이전 시험의 영향을 받았는지 먼저 본다.

@@ -12,7 +12,7 @@ import unreal
 import toolset_registry
 from toolset_registry.registration import Registration
 
-from jm_kit import body_mask, fx_fix, fx_sheet, garment, glove_paint, icon, item_table, posed, preview, profiles, refs, retarget, skeleton_check, testbed
+from jm_kit import body_mask, fx_fix, fx_sheet, garment, glove_paint, icon, item_table, posed, preview, profiles, refs, retarget, skeleton_check, testbed, world
 
 
 def _reload():
@@ -977,4 +977,157 @@ class RetargetTools(unreal.ToolsetDefinition):
         return _dump([retarget.strip_linear_drift(p, bone or "pelvis") for p in _csv_list(sequence_paths)])
 
 
-registration = Registration([KitTools, DataTableReimportTools, AnimBuilderTools, RetargetTools])
+@unreal.uclass()
+class WorldTools(unreal.ToolsetDefinition):
+    """L2 map building (jm_kit.world + C++ ULandscapeBuildLibrary): new level, heightmap landscape from world_<name>.json, ground height lookup."""
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_new_level(level_path: str) -> str:
+        """Create and open an empty non-World-Partition level (opens it if it already exists). Save the current level first.
+
+        Args:
+            level_path: e.g. /Game/Maps/Continent01.
+
+        Returns:
+            Result text.
+        """
+        return world.new_level(level_path)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_basic_lighting() -> str:
+        """Add basic outdoor daylight actors (sun, sky light, atmosphere, fog) to the open level if missing.
+
+        Returns:
+            JSON list of added actor labels.
+        """
+        return _dump(world.basic_lighting())
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_build_landscape(name: str, material_path: str = "", replace: bool = True) -> str:
+        """Generate the heightmap from Content/Python/jm_kit/world_<name>.json and create the Landscape in the open level.
+
+        Args:
+            name: definition name (e.g. continent01).
+            material_path: landscape material asset path; empty keeps the old material when replacing.
+            replace: delete an existing Landscape first.
+
+        Returns:
+            JSON stats (height range, max walkable slope, 30-60 degree share) + result ("ERROR:" prefix = failed).
+        """
+        importlib.reload(world)
+        return _dump(world.build_landscape(name, material_path or None, replace))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_describe_landscape() -> str:
+        """Summarize Landscape actors in the open level (count, components, bounds, material).
+
+        Returns:
+            JSON text.
+        """
+        return unreal.LandscapeBuildLibrary.describe_landscape()
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_height_at(name: str, points_json: str) -> str:
+        """Ground height (cm) from the terrain definition, for placing markers and props.
+
+        Args:
+            name: definition name (e.g. continent01).
+            points_json: JSON [[x_cm, y_cm], ...].
+
+        Returns:
+            JSON list of heights in cm.
+        """
+        importlib.reload(world)
+        return _dump(world.height_at(name, json.loads(points_json)))
+
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_blockout(name: str) -> str:
+        """Place blockout shapes (labels BO_*, folder Blockout) from the definition's "blockout" list; existing BO_ actors are removed first.
+
+        Args:
+            name: definition name (e.g. continent01).
+
+        Returns:
+            JSON {removed, placed:{label: count}}.
+        """
+        importlib.reload(world)
+        return _dump(world.blockout(name))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_clear_blockout() -> str:
+        """Remove all BO_* blockout actors from the open level.
+
+        Returns:
+            Count removed.
+        """
+        importlib.reload(world)
+        return str(world.clear_blockout())
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_place_markers(name: str) -> str:
+        """Place ALevelMarker actors (PlayerStart, MonsterSpawn, PortalTrigger) and a PIE PlayerStart from the definition's "markers"; existing markers are removed first.
+
+        Args:
+            name: definition name (e.g. continent01).
+
+        Returns:
+            JSON {removed, placed, errors}.
+        """
+        importlib.reload(world)
+        return _dump(world.place_markers(name))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_list_markers() -> str:
+        """List ALevelMarker actors in the open level.
+
+        Returns:
+            JSON [{label, pointId, type, x, y, z}].
+        """
+        return unreal.LandscapeBuildLibrary.list_level_markers()
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_set_game_mode(game_mode_bp: str) -> str:
+        """Set the open level's GameMode Override (empty string clears it).
+
+        Args:
+            game_mode_bp: blueprint asset path, e.g. the test game mode used for server-less walking.
+
+        Returns:
+            Class name set.
+        """
+        importlib.reload(world)
+        return world.set_game_mode(game_mode_bp)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def world_step(name: str, step: str, args_json: str = "") -> str:
+        """Run a jm_kit.world step by name (world.run_step). New steps are added in jm_kit/world.py and need no editor restart.
+
+        Steps (L2c ground): weights (layer weight file + coverage), grass (Landscape Grass Type assets), material (landscape material),
+        apply_material (assign it to the Landscape), ground (grass + material + apply_material), audit (static mesh / texture stats).
+        Layer weights are imported by world_build_landscape when the definition has "ground".
+
+        Args:
+            name: definition name (e.g. continent01).
+            step: step name.
+            args_json: JSON object of step arguments, e.g. {"paths": ["/Game/..."], "dirs": ["/Game/..."]} for audit; empty for none.
+
+        Returns:
+            JSON result of the step.
+        """
+        importlib.reload(world)
+        return _dump(world.run_step(name, step, json.loads(args_json) if args_json else {}))
+
+
+registration = Registration([KitTools, DataTableReimportTools, AnimBuilderTools, RetargetTools, WorldTools])
