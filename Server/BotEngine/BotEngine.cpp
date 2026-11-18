@@ -95,6 +95,9 @@ struct Bot
 	int gearGiveIndex = 0;        // --give-gear: 다음에 요청할 지급 목록 위치
 	long long nextGiveUs = 0;
 	long long nextSlotMoveUs = 0;
+	long long nextShopUs = 0;
+	int shopNpcId = 0;            // 시야 안의 상점 NPC(OBJECT_TYPE_NPC) id. 없으면 0 (--shop-interval)
+	bool shopBuyNext = true;      // 다음 상점 요청이 구매인지(구매·판매를 번갈아 보낸다)
 	bool aimBowGiveSent = false;  // --aim: 활이 없어 지급을 요청했는지
 	int objectId = -1;
 	float x = 0, y = 0, z = 0;
@@ -393,7 +396,8 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 	case Protocol::SC_ADD_OBJECT:
 	{
 		// 몬스터 목록은 hunt 프로필과 시각화에서만 추적한다. 그 외에는 내 시작 위치를 받을 때까지만 본다.
-		if (!GConfig.hunt && !GConfig.trackWorld && b.spawnKnown) return;
+		// --shop-interval이면 상점 NPC id를 알아야 하므로 계속 읽는다(L4).
+		if (!GConfig.hunt && !GConfig.trackWorld && GConfig.shopIntervalMs <= 0 && b.spawnKnown) return;
 		Protocol::SC_ADD_OBJECT_PACKET pkt;
 		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
 		GStat.objectAdded.fetch_add(1);
@@ -410,6 +414,8 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 			b.y = pkt.object_info().position().y();
 			b.z = pkt.object_info().position().z();
 		}
+		if (pkt.object_info().object_type() == Protocol::OBJECT_TYPE_NPC)
+			b.shopNpcId = pkt.object_info().id();
 		if (pkt.object_info().object_type() == Protocol::OBJECT_TYPE_MONSTER)
 		{
 			GStat.monsterAdded.fetch_add(1);
@@ -422,6 +428,7 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		Protocol::SC_REMOVE_OBJECT_PACKET pkt;
 		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
 		if (b.monsters.erase(pkt.object_id()) > 0) GStat.monsterRemoved.fetch_add(1);
+		if (pkt.object_id() == b.shopNpcId) b.shopNpcId = 0;
 		b.deadMonsters.erase(pkt.object_id());
 		break;
 	}
@@ -511,7 +518,7 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
 		GStat.itemRejected.fetch_add(1);
 		const int code = static_cast<int>(pkt.result());
-		if (code >= 0 && code < 20) GStat.itemRejectedBy[code].fetch_add(1);
+		if (code >= 0 && code < 24) GStat.itemRejectedBy[code].fetch_add(1);
 		break;
 	}
 	case Protocol::SC_SKILL_AIM:
@@ -884,6 +891,42 @@ static void WorkerMain(int workerIndex, int workerCount)
 						GStat.equipSent.fetch_add(1);
 					}
 				}
+				// 상점(--shop-interval, L4): 시야 안의 상점 NPC에 구매(물약 1~3개)와 판매(인벤토리 행 하나에서 1개)를 번갈아 보낸다.
+				// 거리 밖이면 TOO_FAR, 골드가 모자라면 NOT_ENOUGH_GOLD로 거부된다(--zone으로 NPC 앞에 세우고 --give-interval로 골드를 준다). --chaos면 5%는 없는 품목·없는 행.
+				if (GConfig.shopIntervalMs > 0 && b.inventoryKnown && b.shopNpcId != 0 && now >= b.nextShopUs)
+				{
+					const int half = GConfig.shopIntervalMs / 2;
+					b.nextShopUs = now + (GConfig.shopIntervalMs - half + rand() % (2 * half + 1)) * 1000LL;
+					long long sellDbId = 0;
+					if (!b.shopBuyNext)
+					{
+						int seen = 0;
+						for (const auto& [id, item] : b.items)
+						{
+							if (item.second != 0) continue;
+							if (rand() % ++seen == 0) sellDbId = id;
+						}
+					}
+					if (b.shopBuyNext || sellDbId == 0)
+					{
+						Protocol::CS_SHOP_BUY_PACKET buy;
+						buy.set_npc_id(b.shopNpcId);
+						buy.set_item_id((GConfig.chaos && rand() % 20 == 0) ? 6301 : 8001);
+						buy.set_count(1 + rand() % 3);
+						SendPacket(b, Protocol::CS_SHOP_BUY, buy);
+						GStat.shopBuySent.fetch_add(1);
+					}
+					else
+					{
+						Protocol::CS_SHOP_SELL_PACKET sell;
+						sell.set_npc_id(b.shopNpcId);
+						sell.set_item_db_id((GConfig.chaos && rand() % 20 == 0) ? 900000000000LL + rand() : sellDbId);
+						sell.set_count(1);
+						SendPacket(b, Protocol::CS_SHOP_SELL, sell);
+						GStat.shopSellSent.fetch_add(1);
+					}
+					b.shopBuyNext = !b.shopBuyNext;
+				}
 				// 칸 옮기기(--slot-interval): 인벤토리 행 하나를 무작위 칸으로. 대상에 다른 아이템이 있으면 서버가 맞바꾼다. --chaos면 5%는 범위 밖 칸(BAD_SLOT).
 				if (GConfig.slotIntervalMs > 0 && b.inventoryKnown && now >= b.nextSlotMoveUs)
 				{
@@ -1004,7 +1047,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 void BotEngine::Usage(const char* program)
 {
 	printf("%s --bots N --ramp-rate R --duration S [--host H] [--port P] [--threads T]\n"
-		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
+		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--shop-interval ms] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
 		"         [--zone x,y,r]   (hotspot: bots walk to (x,y) and stay within radius r cm)\n",
 		program);
 }
@@ -1037,6 +1080,7 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--equip-interval") { if (!(v = next("--equip-interval"))) return false; GConfig.equipIntervalMs = atoi(v); }
 		else if (a == "--give-gear") GConfig.giveGear = true;
 		else if (a == "--slot-interval") { if (!(v = next("--slot-interval"))) return false; GConfig.slotIntervalMs = atoi(v); }
+		else if (a == "--shop-interval") { if (!(v = next("--shop-interval"))) return false; GConfig.shopIntervalMs = atoi(v); }
 		else if (a == "--give-interval") { if (!(v = next("--give-interval"))) return false; GConfig.giveIntervalMs = atoi(v); }
 		else if (a == "--map") { if (!(v = next("--map"))) return false; GConfig.mapLogic = v; }
 		else if (a == "--out") { if (!(v = next("--out"))) return false; GConfig.outFile = v; }

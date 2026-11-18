@@ -30,6 +30,9 @@ enum PacketId {
     CS_TRADE_CONFIRM = 1022;   // 확정 (양쪽 잠금 뒤에만)
     CS_TRADE_CANCEL = 1023;    // 취소 (요청 중·제시·잠금 어느 때나)
     CS_MOVE_ITEM = 1030;  // 인벤토리 칸 옮기기·맞바꾸기 (A6.1). 1024~1029는 A4.3 예약
+    CS_SHOP_OPEN = 1031;  // 상점 NPC 품목 요청 (L4, D-202)
+    CS_SHOP_BUY = 1032;   // 상점 구매
+    CS_SHOP_SELL = 1033;  // 상점 판매
 
     // Server -> Client
     SC_LOGIN = 2000;
@@ -56,6 +59,7 @@ enum PacketId {
     SC_TRADE_RESULT = 2023;          // 거래 요청 거부 결과 (본인에게, 거부일 때만. 확정 재검증 실패는 두 사람에게)
     SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2024~2026은 A4.3 예약(DESIGN_ITEMS_TRADE)
     SC_CHANGE_HP = 2028;             // 피해·아이템 사용이 아닌 HP 변화 (AOI): 몬스터가 홈으로 돌아가 회복 (L3, D-193)
+    SC_SHOP_OPEN = 2029;             // 상점 품목·구매가 (본인, L4)
 }
 
 enum MoveState {
@@ -138,6 +142,8 @@ enum ItemResult {
     ITEM_RESULT_LEVEL_TOO_LOW = 16;
     ITEM_RESULT_DB_ERROR = 17;       // DB 실패 — 바뀐 것 없음
     ITEM_RESULT_BAD_SLOT = 18;       // 칸 번호가 범위 밖이거나 쓸 수 없는 칸
+    ITEM_RESULT_NOT_ENOUGH_GOLD = 19; // 상점 구매: 골드 부족 (L4)
+    ITEM_RESULT_NOT_SELLABLE = 20;   // 상점 판매: ItemTable.SellPrice 0 (L4)
 }
 
 // SC_TRADE_RESULT_PACKET.result(요청 거부)·SC_TRADE_END_PACKET.result(끝난 이유). (DESIGN_ITEMS_TRADE "1:1 거래")

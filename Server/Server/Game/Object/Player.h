@@ -112,6 +112,8 @@ public:
 	// 지금 클라이언트에 보이는 바닥 드랍 id(A3.4). 캐릭터 시야(_viewList)와 따로 관리한다(Room::UpdateDropView).
 	// Room 잡 안에서만 읽고 쓴다. 방에 들어올 때·나갈 때 비운다.
 	std::unordered_set<int> dropView;
+	// 지금 클라이언트에 보이는 마을 NPC id(L4). 드랍 시야와 같은 규칙으로 따로 관리한다(Room::UpdateNpcView).
+	std::unordered_set<int> npcView;
 
 	// 로그인 때 맞지 않아 메모리에서 인벤토리로 내린 장착 행(슬롯 불일치, 검이 아닌데 방패) = (ItemDbId, 내려갈 인벤토리 칸).
 	// 방에 들어올 때 DB도 고친다(Room::PlayerEnterRoom).

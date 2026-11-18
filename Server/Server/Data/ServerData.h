@@ -54,6 +54,8 @@ enum class ItemOpKind
 	Discard,    // 버리기: 인벤토리 행 DELETE, 성공 뒤 바닥 드랍 생성 (고정 쿼리, A3.5)
 	Use,        // 소비 아이템 사용: 수량 1 감소(1개였으면 DELETE), 성공 뒤 효과 적용 (고정 쿼리, A3.6)
 	Trade,      // 1:1 거래 확정: 양쪽 아이템 이동 + 골드 증감 + Trade_Log 1행 (조립식 쿼리, A4.2). playerUID = 요청한 쪽(A)
+	ShopBuy,    // 상점 구매: Pickup과 같은 계획·쿼리(fills·newCounts)에 goldDelta = -총액 (L4, D-202)
+	ShopSell,   // 상점 판매: 행 DELETE(전량) 또는 수량 감소(일부) + 골드 증액 (고정 쿼리, L4)
 };
 
 struct DB_ItemOp {
@@ -117,6 +119,11 @@ struct DB_ItemOp {
 	// Use — 쓰는 종류는 itemId에 담는다
 	int64_t useDbId = 0;                      // 1개를 쓸 행
 	int32_t useExpectCount = 0;               // 그 행의 지금 수량(기대 상태)
+
+	// ShopSell — 파는 종류는 itemId, 받는 골드는 goldDelta·goldMax에 담는다. ShopBuy는 Pickup과 같은 필드(goldDelta는 음수)
+	int64_t sellDbId = 0;                     // 팔 행
+	int32_t sellExpectCount = 0;              // 그 행의 지금 수량(기대 상태)
+	int32_t sellCount = 0;                    // 파는 수량(1 ~ sellExpectCount, 같으면 행을 지운다)
 };
 
 struct DB_ItemOpResult {
@@ -217,6 +224,27 @@ struct ItemData
 	ItemUseEffect useEffect; // 장비는 None
 	int useValue;          // HealHp: 회복량
 	int useCooldownMs;     // 같은 아이템 종류의 재사용 시간
+	int sellPrice;         // 상점에 팔 때 1개당 받는 골드. 0 = 팔 수 없음 (L4, D-201)
+};
+
+// ShopTable 한 행 = 상점 하나가 파는 품목 하나 (L4, D-201). 서버 전용 — 구매가는 SC_SHOP_OPEN으로 알린다.
+struct ShopData
+{
+	int id;
+	int shopId;
+	int itemId;
+	int buyPrice;    // 1개 값. 그 아이템의 sellPrice 이상(사서 되팔아 골드가 늘지 않게)
+};
+
+// NpcTable 한 행 = NPC 종류 하나 (L4, D-202). Npc 마커의 npcTemplateId = ObjectInfo.template_id. 서버 전용 — 이름·외형은 ObjectInfo로 보낸다.
+constexpr int NPC_EQUIP_SLOTS = 7;   // Protocol::EquipPart 1~7 = ItemSlot 1~7
+struct NpcData
+{
+	int templateId;
+	std::string displayName;   // UTF-8
+	int shopId;                // 0 = 상점 없음
+	int body;                  // Protocol::PlayerType (1 MALE, 2 FEMALE)
+	int equip[NPC_EQUIP_SLOTS]; // 슬롯 순서(Head·Top·Bottom·Gloves·Boots·Weapon·Offhand)의 itemId, 0 = 없음
 };
 
 // DropTable 한 행 = 몬스터 한 종류가 떨어뜨릴 수 있는 것 하나. 처치 때 그 몬스터의 모든 행을 각각 독립으로 굴린다 (D-157). 서버 전용.
@@ -258,6 +286,7 @@ struct EconomyData
 	int auctionMaxPrice;
 	int auctionPageSize;         // 목록 한 쪽
 	int auctionExpireCheckSec;   // 만료 검사 주기
+	int shopRangeCm;             // 상점 NPC 이용 거리 (L4)
 };
 
 // EconomyTable의 유일한 행
@@ -367,7 +396,7 @@ struct WorldData
 class DataManager
 {
 public:
-	// Common/DataTable/PlayerStatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv, EconomyTable.csv, DropTable.csv, SpawnTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
+	// Common/DataTable/PlayerStatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv, EconomyTable.csv, DropTable.csv, SpawnTable.csv, ShopTable.csv, NpcTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
 	static bool Init();
 
 	// 몬스터 한 종류의 DropTable 행들. 드랍이 없는 몬스터는 빈 목록
@@ -427,6 +456,28 @@ public:
 		return it != _spawnTable.end() ? it->second : kEmpty;
 	}
 
+	// 상점 하나의 품목(ShopTable 행 순서). 없는 상점은 빈 목록 (L4)
+	static const std::vector<ShopData>& GetShopItems(int shopId)
+	{
+		static const std::vector<ShopData> kEmpty;
+		auto it = _shopTable.find(shopId);
+		return it != _shopTable.end() ? it->second : kEmpty;
+	}
+
+	static const ShopData* FindShopItem(int shopId, int itemId)
+	{
+		for (const ShopData& row : GetShopItems(shopId))
+			if (row.itemId == itemId) return &row;
+		return nullptr;
+	}
+
+	static const NpcData* GetNpcData(int templateId)
+	{
+		auto it = _npcTable.find(templateId);
+		if (it != _npcTable.end()) return &it->second;
+		return nullptr;
+	}
+
 	static const MovementData* GetMovementData(int id)
 	{
 		auto it = _movementTable.find(id);
@@ -459,6 +510,8 @@ private:
 	static inline std::vector<const ItemData*> _starterItems;
 	static inline std::unordered_map<int, std::vector<DropData>> _dropTable; // key = monsterId
 	static inline std::unordered_map<std::string, std::vector<SpawnData>> _spawnTable; // key = mapName + "/" + zone
+	static inline std::unordered_map<int, std::vector<ShopData>> _shopTable; // key = shopId
+	static inline std::unordered_map<int, NpcData> _npcTable; // key = templateId
 	static inline EconomyData _economy{};
 	static inline std::unordered_map<int, int> _skillBySlot; // key = (int)WeaponType*100 + slot -> skillId (플레이어 무기 타입만)
 };

@@ -23,6 +23,7 @@
 #include "Game/JMInventoryManager.h"
 #include "Game/JMObjectManager.h"
 #include "Game/JMTradeManager.h"
+#include "Game/JMShopManager.h"
 
 AJMMyPlayer::AJMMyPlayer()
 {
@@ -525,23 +526,44 @@ void AJMMyPlayer::UpdateInteractPrompt()
 	if (GameInstance == nullptr) return;
 
 	// 줍기 거리는 서버 값(SC_INVENTORY.pickup_range_cm)이다. 사망 중에는 주울 수 없다(서버도 거부).
+	// 상점 NPC(L4)도 같은 F 키다: 이용 거리(SC_INVENTORY.shop_range_cm) 안의 가장 가까운 NPC와 드랍 중 가까운 쪽 하나만 안내한다.
 	ADropItemActor* Nearest = nullptr;
+	int32 NearestNpcId = 0;
+	const UJMObjectManager* ObjectManager = GameInstance->GetSubsystem<UJMObjectManager>();
+	UJMShopManager* Shop = GameInstance->GetSubsystem<UJMShopManager>();
 	if (!bIsDead)
 	{
 		const UJMInventoryManager* Inventory = GameInstance->GetSubsystem<UJMInventoryManager>();
-		const UJMObjectManager* ObjectManager = GameInstance->GetSubsystem<UJMObjectManager>();
 		const float Range = Inventory ? static_cast<float>(Inventory->GetPickupRangeCm()) : 0.f;
 		if (ObjectManager && Range > 0.f) Nearest = ObjectManager->FindNearestDrop(GetActorLocation(), Range);
+
+		// 경계에서 서버가 TOO_FAR로 거부하지 않게 안내는 이용 거리보다 조금 안쪽에서만 띄운다.
+		const float ShopRange = Inventory ? static_cast<float>(Inventory->GetShopRangeCm()) - 30.f : 0.f;
+		float NpcDistSq = 0.f;
+		if (ObjectManager && ShopRange > 0.f) NearestNpcId = ObjectManager->FindNearestNpc(GetActorLocation(), ShopRange, NpcDistSq);
+		if (NearestNpcId != 0 && Nearest != nullptr)
+		{
+			if (FVector::DistSquared2D(GetActorLocation(), Nearest->GetActorLocation()) <= NpcDistSq) NearestNpcId = 0;
+			else Nearest = nullptr;
+		}
 	}
 
-	if (Nearest == InteractTarget.Get() && bInteractPromptShown == (Nearest != nullptr)) return;
+	// 열려 있는 상점 창: 멀어지거나 죽거나 거래가 시작되면 닫는다.
+	if (Shop) Shop->UpdateFromPlayer(GetActorLocation(), bIsDead);
+
+	const bool bShown = Nearest != nullptr || NearestNpcId != 0;
+	if (Nearest == InteractTarget.Get() && NearestNpcId == InteractNpcId && bInteractPromptShown == bShown) return;
 	InteractTarget = Nearest;
-	bInteractPromptShown = Nearest != nullptr;
+	InteractNpcId = NearestNpcId;
+	bInteractPromptShown = bShown;
 
 	UJMUIManager* UIManager = GameInstance->GetSubsystem<UJMUIManager>();
 	if (UCombatHudWidget* Hud = UIManager ? Cast<UCombatHudWidget>(UIManager->GetWidget(WidgetNames::HUD)) : nullptr)
 	{
-		Hud->SetInteractPrompt(Nearest ? FText::FromString(FString::Printf(TEXT("[F] 줍기: %s"), *Nearest->GetDisplayText().ToString())) : FText::GetEmpty());
+		FText Prompt;
+		if (Nearest) Prompt = FText::FromString(FString::Printf(TEXT("[F] 줍기: %s"), *Nearest->GetDisplayText().ToString()));
+		else if (NearestNpcId != 0 && ObjectManager) Prompt = FText::FromString(FString::Printf(TEXT("[F] 상점: %s"), *ObjectManager->GetNpcName(NearestNpcId)));
+		Hud->SetInteractPrompt(Prompt);
 	}
 }
 
@@ -550,6 +572,16 @@ void AJMMyPlayer::OnInteractInput()
 	if (bIsDead) return;
 	// 누르는 순간의 위치로 다시 고른다(안내는 0.1초 전 것일 수 있다). 거리·소유권·빈 칸 검증은 서버가 하고 거부는 시스템 메시지로 온다.
 	UpdateInteractPrompt();
+	// 상점 NPC(L4): 닫혀 있으면 품목을 요청하고(SC_SHOP_OPEN이 오면 창이 뜬다), 열려 있으면 닫는다. 거리·거래 중 검증은 서버가 한다.
+	if (InteractNpcId != 0)
+	{
+		if (UJMShopManager* Shop = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMShopManager>() : nullptr)
+		{
+			if (Shop->IsOpen()) Shop->Close();
+			else Shop->RequestOpen(InteractNpcId);
+		}
+		return;
+	}
 	const ADropItemActor* Target = InteractTarget.Get();
 	if (Target == nullptr) return;
 	if (UNetworkManager* NetManager = UNetworkManager::Get(this))

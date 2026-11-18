@@ -11,6 +11,7 @@
 #include "Game/DataManager.h"
 #include "Game/JMInventoryManager.h"
 #include "Game/JMTradeManager.h"
+#include "Game/JMShopManager.h"
 #include "Network/NetworkManager.h"
 
 namespace
@@ -183,6 +184,16 @@ void UInventoryWidget::OnSlotRightClicked(UItemSlotWidget* ItemSlot)
 	{
 		NetManager->SendChangeEquip(ItemSlot->GetEquipPart(), 0);   // 해제
 		return;
+	}
+
+	// 상점이 열려 있으면 인벤토리 아이템 우클릭 = 판매 후보로 고르기(L4). 판매는 상점 창의 [판매]로 확정한다(되사기가 없어 바로 팔지 않는다).
+	if (UJMShopManager* Shop = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMShopManager>() : nullptr)
+	{
+		if (Shop->IsOpen())
+		{
+			Shop->SetSellCandidate(ItemSlot->GetItemDbId());
+			return;
+		}
 	}
 
 	// 거래의 제시 단계에서는 인벤토리 아이템 우클릭 = 내 제시에 올리기(행 전부, A6.3a). 장착·사용은 거래가 끝난 뒤에 한다.

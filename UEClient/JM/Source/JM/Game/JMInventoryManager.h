@@ -60,6 +60,8 @@ public:
 	int32 GetMaxSlots() const { return MaxSlots; }
 	int32 GetPickupRangeCm() const { return PickupRangeCm; }
 	int32 GetTradeRangeCm() const { return TradeRangeCm; }
+	// 상점 NPC 이용 거리(서버 EconomyTable.ShopRangeCm, L4)
+	int32 GetShopRangeCm() const { return ShopRangeCm; }
 	bool HasInventory() const { return bReceived; }
 
 	// 아이템·골드가 바뀔 때마다(전체 수신 포함)
@@ -75,5 +77,6 @@ private:
 	int32 MaxSlots = 0;
 	int32 PickupRangeCm = 0;
 	int32 TradeRangeCm = 0;
+	int32 ShopRangeCm = 0;
 	bool bReceived = false;
 };

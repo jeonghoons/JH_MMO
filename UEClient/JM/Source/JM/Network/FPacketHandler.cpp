@@ -5,6 +5,7 @@
 #include "Game/JMObjectManager.h"
 #include "Game/JMInventoryManager.h"
 #include "Game/JMTradeManager.h"
+#include "Game/JMShopManager.h"
 #include "UI/JMUIManager.h"
 #include "UI/ChatWidget.h"
 #include "UI/WidgetNames.h"
@@ -36,6 +37,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_TRADE_STATE, &FPacketHandler::Handle_SC_TRADE_STATE);
 	RegisterHandler(Protocol::SC_TRADE_END, &FPacketHandler::Handle_SC_TRADE_END);
 	RegisterHandler(Protocol::SC_TRADE_RESULT, &FPacketHandler::Handle_SC_TRADE_RESULT);
+	RegisterHandler(Protocol::SC_SHOP_OPEN, &FPacketHandler::Handle_SC_SHOP_OPEN);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -146,6 +148,8 @@ namespace
 		case Protocol::ITEM_RESULT_LEVEL_TOO_LOW:	return FText::FromString(TEXT("레벨이 낮아 사용할 수 없습니다."));
 		case Protocol::ITEM_RESULT_DB_ERROR:		return FText::FromString(TEXT("서버 오류로 처리하지 못했습니다."));
 		case Protocol::ITEM_RESULT_BAD_SLOT:		return FText::FromString(TEXT("옮길 수 없는 칸입니다."));
+		case Protocol::ITEM_RESULT_NOT_ENOUGH_GOLD:	return FText::FromString(TEXT("골드가 부족합니다."));
+		case Protocol::ITEM_RESULT_NOT_SELLABLE:	return FText::FromString(TEXT("팔 수 없는 아이템입니다."));
 		default:									return FText::FromString(TEXT("요청을 처리하지 못했습니다."));
 		}
 	}
@@ -286,7 +290,27 @@ void FPacketHandler::Handle_SC_ITEM_RESULT(TSharedPtr<NetworkSession>& session, 
 	// 성공은 SC_INVENTORY_UPDATE로 오므로 이 패킷은 거부일 때만 온다.
 	UE_LOG(LogTemp, Log, TEXT("Item request rejected: request=%d result=%d"), static_cast<int32>(pkt.request()), static_cast<int32>(pkt.result()));
 	if (pkt.result() == Protocol::ITEM_RESULT_BUSY || pkt.result() == Protocol::ITEM_RESULT_TOO_FREQUENT) return;
+	// 상점 요청(L4)은 같은 결과 코드라도 뜻이 다른 것이 있다: IN_TRADE = 1:1 거래 중에는 상점 전체를 쓸 수 없음(D-201), NO_ITEM = 상점·품목·수량 오류.
+	const bool bShopRequest = pkt.request() == Protocol::CS_SHOP_OPEN || pkt.request() == Protocol::CS_SHOP_BUY || pkt.request() == Protocol::CS_SHOP_SELL;
+	if (bShopRequest && pkt.result() == Protocol::ITEM_RESULT_IN_TRADE)
+	{
+		ShowSystemMessage(session, FText::FromString(TEXT("거래 중에는 상점을 이용할 수 없습니다.")));
+		return;
+	}
+	if (bShopRequest && pkt.result() == Protocol::ITEM_RESULT_NO_ITEM)
+	{
+		ShowSystemMessage(session, FText::FromString(TEXT("상점에서 처리할 수 없는 요청입니다.")));
+		return;
+	}
 	ShowSystemMessage(session, ItemResultText(pkt.result()));
+}
+
+// ---- 상점 NPC(L4): 품목을 받아 창을 띄우는 일은 UJMShopManager가 맡는다 ----
+void FPacketHandler::Handle_SC_SHOP_OPEN(TSharedPtr<NetworkSession>& session, Protocol::SC_SHOP_OPEN_PACKET& pkt)
+{
+	UNetworkManager* NetManager = session ? session->OwnerNetwork.Get() : nullptr;
+	UGameInstance* GameInstance = NetManager ? NetManager->GetGameInstance() : nullptr;
+	if (UJMShopManager* Shop = GameInstance ? GameInstance->GetSubsystem<UJMShopManager>() : nullptr) Shop->HandleOpen(pkt);
 }
 
 // ---- 1:1 거래(A6.3a): 상태·안내는 UJMTradeManager가 맡는다 ----

@@ -8,6 +8,8 @@
 #include "UI/ChatWidget.h"
 #include "Game/DataManager.h"
 #include "Game/JMInventoryManager.h"
+#include "Game/JMObjectManager.h"
+#include "Game/JMShopManager.h"
 
 void AJMPlayerController::BeginPlay()
 {
@@ -45,6 +47,68 @@ void AJMPlayerController::BeginPlay()
 	{
 		SendEnterRoom();
 	}
+}
+
+// ---- 개발용 상점 명령(L4): 상점 창이 보내는 것과 같은 요청을 콘솔로 보낸다(마우스 없이 확인할 때). 검증은 모두 서버가 한다. ----
+void AJMPlayerController::ShopOpen()
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	const UJMObjectManager* ObjectManager = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
+	UJMShopManager* Shop = GameInstance ? GameInstance->GetSubsystem<UJMShopManager>() : nullptr;
+	const APawn* MyPawn = GetPawn();
+	if (ObjectManager == nullptr || Shop == nullptr || MyPawn == nullptr) return;
+
+	// 시야 안의 가장 가까운 NPC(거리 제한 없이 고른다 — 멀면 서버가 TOO_FAR로 거부한다).
+	float DistSq = 0.f;
+	const int32 NpcId = ObjectManager->FindNearestNpc(MyPawn->GetActorLocation(), 1000000.f, DistSq);
+	if (NpcId == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ShopOpen: 시야 안에 NPC가 없습니다."));
+		return;
+	}
+	UE_LOG(LogTemp, Log, TEXT("ShopOpen: npc=%d dist=%.0fcm"), NpcId, FMath::Sqrt(DistSq));
+	Shop->RequestOpen(NpcId);
+}
+
+void AJMPlayerController::ShopBuy(int32 ItemId, int32 Count)
+{
+	UJMShopManager* Shop = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMShopManager>() : nullptr;
+	if (Shop == nullptr) return;
+	if (!Shop->IsOpen())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ShopBuy: 상점이 열려 있지 않습니다. 먼저 ShopOpen"));
+		return;
+	}
+	UE_LOG(LogTemp, Log, TEXT("ShopBuy: item=%d count=%d"), ItemId, Count);
+	Shop->Buy(ItemId, Count);
+}
+
+void AJMPlayerController::ShopSell(int32 ItemId, int32 Count)
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	UJMShopManager* Shop = GameInstance ? GameInstance->GetSubsystem<UJMShopManager>() : nullptr;
+	const UJMInventoryManager* Inventory = GameInstance ? GameInstance->GetSubsystem<UJMInventoryManager>() : nullptr;
+	if (Shop == nullptr || Inventory == nullptr) return;
+	if (!Shop->IsOpen())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ShopSell: 상점이 열려 있지 않습니다. 먼저 ShopOpen"));
+		return;
+	}
+	const int64 ItemDbId = Inventory->FindBagItemDbId(ItemId);
+	if (ItemDbId == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ShopSell: 인벤토리에 item=%d 이(가) 없습니다."), ItemId);
+		return;
+	}
+	UE_LOG(LogTemp, Log, TEXT("ShopSell: item=%d dbId=%lld count=%d"), ItemId, ItemDbId, Count);
+	// 창에서 하는 것과 같은 순서: 판매 후보로 고른 뒤 판다.
+	Shop->SetSellCandidate(ItemDbId);
+	Shop->SellSelected(Count);
+}
+
+void AJMPlayerController::ShopClose()
+{
+	if (UJMShopManager* Shop = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMShopManager>() : nullptr) Shop->Close();
 }
 
 void AJMPlayerController::Equip(int32 Part, int32 ItemId)

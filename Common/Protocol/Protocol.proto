@@ -84,6 +84,26 @@ message CS_MOVE_ITEM_PACKET {
 	int32 to_slot = 2;      // 대상 칸 번호(0 ~ max_slots - 1)
 }
 
+// ---- 상점 NPC (L4, D-201·D-202). 요청마다 서버가 거리·거래 중·사망을 다시 검증한다. 거부는 SC_ITEM_RESULT(request = 요청 패킷 id) ----
+// 품목 요청. 성공은 SC_SHOP_OPEN.
+message CS_SHOP_OPEN_PACKET {
+	int32 npc_id = 1;       // 상점 NPC의 오브젝트 id (SC_ADD_OBJECT로 받은 OBJECT_TYPE_NPC)
+}
+
+// 구매. 성공은 SC_INVENTORY_UPDATE(바뀐 행 + 골드).
+message CS_SHOP_BUY_PACKET {
+	int32 npc_id = 1;
+	int32 item_id = 2;      // 그 상점의 품목(ShopTable)
+	int32 count = 3;        // 1 이상
+}
+
+// 판매. 성공은 SC_INVENTORY_UPDATE(바뀐 행 또는 removed + 골드). 판 아이템은 사라진다(되사기 없음).
+message CS_SHOP_SELL_PACKET {
+	int32 npc_id = 1;
+	int64 item_db_id = 2;   // 팔 행 (인벤토리 위치의 내 아이템, 장착 중인 것은 안 됨)
+	int32 count = 3;        // 1 ~ 그 행의 수량 (스택 일부만 팔 수 있다)
+}
+
 // ---- 1:1 거래 (A4.2, D-158). 거부는 SC_TRADE_RESULT(request = 요청 패킷 id), 진행은 SC_TRADE_STATE, 끝은 SC_TRADE_END ----
 message CS_TRADE_REQUEST_PACKET {
 	int32 target_id = 1;                 // 거래할 플레이어의 오브젝트 id (같은 방, 거리 안)
@@ -213,6 +233,7 @@ message SC_INVENTORY_PACKET {
 	int32 max_slots = 3;                // EconomyTable.InventorySlots (장착품은 칸을 차지하지 않는다)
 	int32 pickup_range_cm = 4;          // EconomyTable.PickupRangeCm (A3.5·A6.2에서 사용)
 	int32 trade_range_cm = 5;           // EconomyTable.TradeRangeCm (A4·A6.3a에서 사용)
+	int32 shop_range_cm = 7;            // EconomyTable.ShopRangeCm (L4)
 	repeated int32 quick_slots = 6;     // 액티브 칸 1~5에 올린 item_id 5개(빈 칸 0) (A3.6)
 }
 
@@ -242,6 +263,18 @@ message SC_CHANGE_HP_PACKET {
 message SC_ITEM_RESULT_PACKET {
 	PacketId request = 1;               // 거부된 요청의 패킷 id (CS_DEV_GIVE 등)
 	ItemResult result = 2;
+}
+
+// 상점 품목 한 줄 (L4). 판매가는 클라이언트가 ItemTable.SellPrice로 표시한다(계산은 서버).
+message ShopItem {
+	int32 item_id = 1;
+	int64 buy_price = 2;                // 1개 값 (ShopTable.BuyPrice)
+}
+
+// CS_SHOP_OPEN의 응답(본인). 받은 클라이언트가 상점 창을 연다.
+message SC_SHOP_OPEN_PACKET {
+	int32 npc_id = 1;
+	repeated ShopItem items = 2;        // ShopTable 행 순서
 }
 
 // 스킬 조준 상태. 켜기 = AOI 방송(본인 포함), 클라 취소·시전 실패 해제 = 본인 제외 방송,

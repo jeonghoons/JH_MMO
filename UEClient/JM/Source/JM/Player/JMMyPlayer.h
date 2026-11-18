@@ -97,6 +97,8 @@ protected:
 	TWeakObjectPtr<class ADropItemActor> InteractTarget;
 	float InteractCheckTimer = 0.f;
 	bool bInteractPromptShown = false;
+	// 안내 중인 상점 NPC의 오브젝트 id(0 = 없음). 드랍과 NPC 중 가까운 쪽 하나만 안내한다 (L4)
+	int32 InteractNpcId = 0;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))

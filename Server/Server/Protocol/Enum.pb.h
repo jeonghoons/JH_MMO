@@ -71,6 +71,9 @@ enum PacketId : int {
   CS_TRADE_CONFIRM = 1022,
   CS_TRADE_CANCEL = 1023,
   CS_MOVE_ITEM = 1030,
+  CS_SHOP_OPEN = 1031,
+  CS_SHOP_BUY = 1032,
+  CS_SHOP_SELL = 1033,
   SC_LOGIN = 2000,
   SC_SIGNUP = 2001,
   SC_ADD_OBJECT = 2003,
@@ -95,12 +98,13 @@ enum PacketId : int {
   SC_TRADE_RESULT = 2023,
   SC_KICK = 2027,
   SC_CHANGE_HP = 2028,
+  SC_SHOP_OPEN = 2029,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_CHANGE_HP;
+constexpr PacketId PacketId_MAX = SC_SHOP_OPEN;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();
@@ -290,12 +294,14 @@ enum ItemResult : int {
   ITEM_RESULT_LEVEL_TOO_LOW = 16,
   ITEM_RESULT_DB_ERROR = 17,
   ITEM_RESULT_BAD_SLOT = 18,
+  ITEM_RESULT_NOT_ENOUGH_GOLD = 19,
+  ITEM_RESULT_NOT_SELLABLE = 20,
   ItemResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   ItemResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool ItemResult_IsValid(int value);
 constexpr ItemResult ItemResult_MIN = ITEM_RESULT_NONE;
-constexpr ItemResult ItemResult_MAX = ITEM_RESULT_BAD_SLOT;
+constexpr ItemResult ItemResult_MAX = ITEM_RESULT_NOT_SELLABLE;
 constexpr int ItemResult_ARRAYSIZE = ItemResult_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ItemResult_descriptor();

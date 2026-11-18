@@ -37,6 +37,21 @@ public:
     UFUNCTION(Exec)
     void Give(int32 ItemId, int32 Count = 1);
 
+    // Dev console commands (L4 shop): the same requests the shop window sends, for checks without mouse input.
+    //   "ShopOpen"                 asks the nearest shop NPC in view for its item list (the window opens on SC_SHOP_OPEN).
+    //   "ShopBuy <itemId> <count>"  buys from the open shop.
+    //   "ShopSell <itemId> <count>" picks an item of that kind in my bag as the sell candidate and sells it.
+    //   "ShopClose"                closes the window.
+    // Distance, trade state, gold and free slots are validated by the server.
+    UFUNCTION(Exec)
+    void ShopOpen();
+    UFUNCTION(Exec)
+    void ShopBuy(int32 ItemId, int32 Count = 1);
+    UFUNCTION(Exec)
+    void ShopSell(int32 ItemId, int32 Count = 1);
+    UFUNCTION(Exec)
+    void ShopClose();
+
     // Dev console command (MC4.1b): "NetMoveStats [reset 0/1]" logs remote-player move display stats
     // (screen speed / move stat, packet-arrival position error). Default resets after printing.
     UFUNCTION(Exec)

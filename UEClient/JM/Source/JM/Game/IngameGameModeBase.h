@@ -29,4 +29,8 @@ protected:
 	// 1:1 trade window (WBP_Trade, parent UTradeWidget). Shown and hidden by UJMTradeManager (A6.3a).
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> TradeWidgetClass;
+
+	// Shop NPC window (WBP_Shop, parent UShopWidget). Shown and hidden by UJMShopManager (L4).
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> ShopWidgetClass;
 };

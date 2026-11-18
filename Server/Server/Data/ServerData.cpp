@@ -335,7 +335,7 @@ bool DataManager::Init()
 	}
 
 	// ItemTable: Name(=itemId), Slot, Grade, Tier, WeaponType, BonusAttackDamage, BonusMaxHp, Starter,
-	//            RequiredLevel, MaxStack, UseEffect, UseValue, UseCooldownMs
+	//            RequiredLevel, MaxStack, UseEffect, UseValue, UseCooldownMs, SellPrice
 	// (DisplayName, Icon, MeshM, MeshF, StaticMesh 등 외형 열은 클라이언트 전용이라 읽지 않는다)
 	CsvFile item;
 	if (!item.Load((dir / "ItemTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
@@ -352,7 +352,7 @@ bool DataManager::Init()
 			!row.GetInt("Starter", starter, err) ||
 			!row.GetInt("RequiredLevel", d.requiredLevel, err) || !row.GetInt("MaxStack", d.maxStack, err) ||
 			!row.GetString("UseEffect", useEffect, err) || !row.GetInt("UseValue", d.useValue, err) ||
-			!row.GetInt("UseCooldownMs", d.useCooldownMs, err))
+			!row.GetInt("UseCooldownMs", d.useCooldownMs, err) || !row.GetInt("SellPrice", d.sellPrice, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
@@ -425,9 +425,9 @@ bool DataManager::Init()
 			LOG_ERROR("Data", "{}보너스가 허용 범위를 벗어났습니다 (음수 불가, 무기는 BonusAttackDamage만, 방어구는 BonusMaxHp만)", where);
 			return false;
 		}
-		if (d.requiredLevel < 1 || d.maxStack < 1 || d.maxStack > 9999 || d.useValue < 0 || d.useCooldownMs < 0 || d.useCooldownMs > 600000)
+		if (d.requiredLevel < 1 || d.maxStack < 1 || d.maxStack > 9999 || d.useValue < 0 || d.useCooldownMs < 0 || d.useCooldownMs > 600000 || d.sellPrice < 0)
 		{
-			LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (RequiredLevel >= 1, 1 <= MaxStack <= 9999, UseValue >= 0, 0 <= UseCooldownMs <= 600000)", where);
+			LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (RequiredLevel >= 1, 1 <= MaxStack <= 9999, UseValue >= 0, 0 <= UseCooldownMs <= 600000, SellPrice >= 0)", where);
 			return false;
 		}
 		if (isEquip && (d.maxStack != 1 || d.useEffect != ItemUseEffect::None))
@@ -580,6 +580,7 @@ bool DataManager::Init()
 			{ "AuctionMaxPrice", &e.auctionMaxPrice, 1, 2000000000 },
 			{ "AuctionPageSize", &e.auctionPageSize, 1, 100 },
 			{ "AuctionExpireCheckSec", &e.auctionExpireCheckSec, 1, 3600 },
+			{ "ShopRangeCm", &e.shopRangeCm, 1, 5000 },
 		};
 
 		int economyId = 0;
@@ -724,6 +725,126 @@ bool DataManager::Init()
 			++spawnRows;
 		}
 	}
+
+	// ShopTable(서버 전용, L4·D-201): Name(=행 ID, 1001~), ShopId, ItemId, BuyPrice
+	CsvFile shop;
+	if (!shop.Load((dir / "ShopTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
+
+	size_t shopRows = 0;
+	{
+		// 판매가는 골드 상한을 넘을 수 없다(EconomyTable을 ItemTable 뒤에 읽으므로 여기서 본다).
+		for (const auto& [itemId, itemData] : _itemTable)
+		{
+			if (itemData.sellPrice > _economy.goldMax)
+			{
+				LOG_ERROR("Data", "{}: 아이템 {} 의 SellPrice {} 가 EconomyTable.GoldMax {} 를 넘습니다", item.Path(), itemId, itemData.sellPrice, _economy.goldMax);
+				return false;
+			}
+		}
+
+		std::unordered_set<int> shopIds;
+		std::set<std::pair<int, int>> shopPairs;   // (ShopId, ItemId)
+		for (const CsvRow& row : shop.Rows())
+		{
+			ShopData d{};
+			if (!row.GetInt("Name", d.id, err) || !row.GetInt("ShopId", d.shopId, err) ||
+				!row.GetInt("ItemId", d.itemId, err) || !row.GetInt("BuyPrice", d.buyPrice, err))
+			{
+				LOG_ERROR("Data", "{}", err);
+				return false;
+			}
+
+			const std::string where = shop.Path() + " line " + std::to_string(row.Line()) + ": ";
+
+			if (d.id < 1001 || !shopIds.insert(d.id).second)
+			{
+				LOG_ERROR("Data", "{}행 ID {} 는 1001 이상이고 중복되지 않아야 합니다", where, d.id);
+				return false;
+			}
+			const ItemData* shopItem = GetItemData(d.itemId);
+			if (shopItem == nullptr)
+			{
+				LOG_ERROR("Data", "{}ItemId {} 가 ItemTable에 없습니다", where, d.itemId);
+				return false;
+			}
+			if (d.shopId < 1 || d.buyPrice < 1 || d.buyPrice > _economy.goldMax)
+			{
+				LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (ShopId >= 1, 1 <= BuyPrice <= EconomyTable.GoldMax)", where);
+				return false;
+			}
+			// 사서 되팔아 골드가 늘어나면 안 된다.
+			if (d.buyPrice < shopItem->sellPrice)
+			{
+				LOG_ERROR("Data", "{}BuyPrice {} 가 아이템 {} 의 ItemTable.SellPrice {} 보다 작습니다 (사서 되팔면 골드가 늘어남)", where, d.buyPrice, d.itemId, shopItem->sellPrice);
+				return false;
+			}
+			if (!shopPairs.insert({ d.shopId, d.itemId }).second)
+			{
+				LOG_ERROR("Data", "{}(ShopId {}, ItemId {}) 조합이 중복되었습니다", where, d.shopId, d.itemId);
+				return false;
+			}
+			_shopTable[d.shopId].push_back(d);
+			++shopRows;
+		}
+	}
+
+	// NpcTable(서버 전용, L4·D-202): Name(=npcTemplateId, 1001~), DisplayName, ShopId(0 = 상점 없음), Body(Male/Female),
+	//                               Head, Top, Bottom, Gloves, Boots, Weapon, Offhand (장착 외형 itemId, 0 = 없음)
+	CsvFile npc;
+	if (!npc.Load((dir / "NpcTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
+	{
+		static const char* const kEquipColumns[NPC_EQUIP_SLOTS] = { "Head", "Top", "Bottom", "Gloves", "Boots", "Weapon", "Offhand" };
+		for (const CsvRow& row : npc.Rows())
+		{
+			NpcData d{};
+			std::string body;
+			if (!row.GetInt("Name", d.templateId, err) || !row.GetString("DisplayName", d.displayName, err) ||
+				!row.GetInt("ShopId", d.shopId, err) || !row.GetString("Body", body, err))
+			{
+				LOG_ERROR("Data", "{}", err);
+				return false;
+			}
+
+			const std::string where = npc.Path() + " line " + std::to_string(row.Line()) + ": ";
+
+			if (d.templateId < 1001 || _npcTable.count(d.templateId))
+			{
+				LOG_ERROR("Data", "{}종류 ID {} 는 1001 이상이고 중복되지 않아야 합니다", where, d.templateId);
+				return false;
+			}
+			if (d.displayName.empty())
+			{
+				LOG_ERROR("Data", "{}DisplayName 이 비어 있습니다", where);
+				return false;
+			}
+			if (d.shopId < 0 || (d.shopId != 0 && _shopTable.find(d.shopId) == _shopTable.end()))
+			{
+				LOG_ERROR("Data", "{}ShopId {} 가 ShopTable에 없습니다 (상점이 없으면 0)", where, d.shopId);
+				return false;
+			}
+			if (body == "Male") d.body = 1;
+			else if (body == "Female") d.body = 2;
+			else
+			{
+				LOG_ERROR("Data", "{}Body 는 Male/Female 중 하나여야 합니다 ('{}')", where, body);
+				return false;
+			}
+			for (int i = 0; i < NPC_EQUIP_SLOTS; ++i)
+			{
+				if (!row.GetInt(kEquipColumns[i], d.equip[i], err)) { LOG_ERROR("Data", "{}", err); return false; }
+				if (d.equip[i] == 0) continue;
+				const ItemData* equipItem = GetItemData(d.equip[i]);
+				if (equipItem == nullptr || static_cast<int>(equipItem->slot) != i + 1)
+				{
+					LOG_ERROR("Data", "{}{} = {} 는 ItemTable에 있는 그 슬롯의 아이템이어야 합니다 (없으면 0)", where, kEquipColumns[i], d.equip[i]);
+					return false;
+				}
+			}
+			_npcTable[d.templateId] = d;
+		}
+	}
+
+	LOG_INFO("Data", "상점·NPC 로드 완료 (ShopTable {}행·상점 {}곳, NpcTable {}행, 상점 이용 거리 {}cm)", shopRows, _shopTable.size(), _npcTable.size(), _economy.shopRangeCm);
 
 	LOG_INFO("Data", "로드 완료 (PlayerStatTable {}행, SkillTable {}행, MonsterTable {}행, ItemTable {}행, MovementTable {}행, WorldTable {}행, DropTable {}행, SpawnTable {}행, EconomyTable: 인벤토리 {}칸·골드 상한 {}·드랍 소유 {}초/소멸 {}초)",
 		_playerStatTable.size(), _skillTable.size(), _monsterTable.size(), _itemTable.size(), _movementTable.size(), _worldTable.size(), dropRows, spawnRows,

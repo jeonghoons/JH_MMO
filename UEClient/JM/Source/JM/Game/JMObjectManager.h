@@ -39,6 +39,11 @@ public:
 	// From에서 수평 거리 RangeCm 안의 가장 가까운 바닥 드랍(A6.2). 없으면 nullptr. 서버도 수평 거리로 판정한다.
 	ADropItemActor* FindNearestDrop(const FVector& From, float RangeCm) const;
 
+	// 마을 NPC(L4). From에서 RangeCm 안(수평 거리 — 서버와 같은 기준)의 가장 가까운 NPC. 없으면 0
+	int32 FindNearestNpc(const FVector& From, float RangeCm, float& OutDistSq) const;
+	FString GetNpcName(int32 NpcId) const;
+	bool GetNpcLocation(int32 NpcId, FVector& OutLocation) const;
+
 private:
 	// 전투 HUD(UIManager에 HUD 이름으로 등록된 위젯). 로그인 화면처럼 HUD가 없으면 nullptr
 	class UCombatHudWidget* GetCombatHud() const;
@@ -54,4 +59,8 @@ public:
 	// 바닥 드랍(OBJECT_TYPE_ITEM). Objects는 캐릭터 전용이라 따로 둔다 (A6.2, D-157)
 	UPROPERTY()
 	TMap<int32, TObjectPtr<ADropItemActor>> Drops;
+	// 마을 NPC(OBJECT_TYPE_NPC, L4·D-202). 서버가 준 체형·장비 외형을 플레이어 액터 클래스로 그린다(매니퀸 + 기존 장비, D-170).
+	// Objects(전투·거래 대상 탐색에 쓰는 캐릭터 목록)에는 넣지 않는다 — NPC는 공격·거래 대상이 아니다.
+	UPROPERTY()
+	TMap<int32, TObjectPtr<AJMCharacterBase>> Npcs;
 };

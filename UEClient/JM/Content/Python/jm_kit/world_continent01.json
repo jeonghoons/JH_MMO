@@ -1996,6 +1996,16 @@
         "max_count": 1
       }
     ],
+    "npcs": [
+      {
+        "id": 400,
+        "label": "Shop_General",
+        "x": -141.5,
+        "y": -22.0,
+        "yaw": 180.0,
+        "template_id": 1001
+      }
+    ],
     "safe_zones": [
       {
         "id": 300,

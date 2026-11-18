@@ -100,6 +100,7 @@ struct FItemTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) EItemUseEffect UseEffect = EItemUseEffect::None;   // 장비는 None
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 UseValue = 0;                           // HealHp 회복량
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 UseCooldownMs = 0;                      // 같은 아이템 종류의 재사용 시간
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 SellPrice = 0;                          // 상점에 팔 때 1개당 골드, 0 = 팔 수 없음 (L4 — 표시용, 금액 계산은 서버)
 
 	// 이하 클라이언트 전용(서버 로더는 읽지 않음)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) FText DisplayName;

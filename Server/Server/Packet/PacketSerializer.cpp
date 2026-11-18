@@ -101,9 +101,23 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY(const Inventory& inve
 	packet.set_max_slots(economy.inventorySlots);
 	packet.set_pickup_range_cm(economy.pickupRangeCm);
 	packet.set_trade_range_cm(economy.tradeRangeCm);
+	packet.set_shop_range_cm(economy.shopRangeCm);
 	for (const int32_t itemId : quickSlots)
 		packet.add_quick_slots(itemId);
 	return MakeSendBuffer(packet, Protocol::SC_INVENTORY);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_SHOP_OPEN(int npcId, const vector<ShopData>& items)
+{
+	Protocol::SC_SHOP_OPEN_PACKET packet;
+	packet.set_npc_id(npcId);
+	for (const ShopData& row : items)
+	{
+		Protocol::ShopItem* out = packet.add_items();
+		out->set_item_id(row.itemId);
+		out->set_buy_price(row.buyPrice);
+	}
+	return MakeSendBuffer(packet, Protocol::SC_SHOP_OPEN);
 }
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_TRADE_REQUEST(int fromId, const wstring& fromName, int timeoutSec)

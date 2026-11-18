@@ -28,6 +28,8 @@ public:
 	static shared_ptr<SendBuffer> MAKE_SC_INVENTORY(const class Inventory& inventory, int64_t gold, const QuickSlotArray& quickSlots);
 	// quickSlots: 액티브 칸 배치가 바뀌었을 때만 넘긴다(nullptr = 바뀌지 않음)
 	static shared_ptr<SendBuffer> MAKE_SC_INVENTORY_UPDATE(const vector<struct ItemInstance>& changed, const vector<int64_t>& removed, int64_t gold, const QuickSlotArray* quickSlots = nullptr);
+	// 상점 품목(L4): ShopTable의 그 상점 행들
+	static shared_ptr<SendBuffer> MAKE_SC_SHOP_OPEN(int npcId, const vector<struct ShopData>& items);
 	// 1:1 거래(A4.2)
 	static shared_ptr<SendBuffer> MAKE_SC_TRADE_REQUEST(int fromId, const wstring& fromName, int timeoutSec);
 	static shared_ptr<SendBuffer> MAKE_SC_TRADE_STATE(const struct TradeSession& trade);

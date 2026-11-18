@@ -28,6 +28,8 @@ void AIngameGameModeBase::BeginPlay()
 			if (InventoryWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Inventory, InventoryWidgetClass, true, 120, false);
 			// 거래 창(A6.3a): 숨겨 두었다가 거래 상태가 오면 UJMTradeManager가 띄운다. 인벤토리(120)와 나란히 쓰므로 같은 층 바로 위.
 			if (TradeWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Trade, TradeWidgetClass, true, 125, false);
+			// 상점 창(L4): 숨겨 두었다가 SC_SHOP_OPEN이 오면 UJMShopManager가 띄운다. 거래 창과 같은 자리·같은 층(거래 중에는 상점을 쓸 수 없어 함께 뜨지 않는다).
+			if (ShopWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Shop, ShopWidgetClass, true, 126, false);
 
 			// 전투 입력 모드. 시스템 메시지 창(방 입장 대기 등)이 떠 있으면 커서를 유지한다.
 			UIManager->SetGameplayInput(true);

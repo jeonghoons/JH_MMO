@@ -9,6 +9,7 @@
 #include "Game/JMObjectManager.h"
 #include "Game/JMInventoryManager.h"
 #include "Game/JMTradeManager.h"
+#include "Game/JMShopManager.h"
 #include "UI/JMUIManager.h"
 #include "SendBuffer.h"
 
@@ -235,6 +236,31 @@ void UNetworkManager::SendSetQuickSlot(int32 Slot, int32 ItemId)
 	SendProtocol(*this, pkt, Protocol::CS_SET_QUICKSLOT);
 }
 
+void UNetworkManager::SendShopOpen(int32 NpcId)
+{
+	Protocol::CS_SHOP_OPEN_PACKET pkt;
+	pkt.set_npc_id(NpcId);
+	SendProtocol(*this, pkt, Protocol::CS_SHOP_OPEN);
+}
+
+void UNetworkManager::SendShopBuy(int32 NpcId, int32 ItemId, int32 Count)
+{
+	Protocol::CS_SHOP_BUY_PACKET pkt;
+	pkt.set_npc_id(NpcId);
+	pkt.set_item_id(ItemId);
+	pkt.set_count(Count);
+	SendProtocol(*this, pkt, Protocol::CS_SHOP_BUY);
+}
+
+void UNetworkManager::SendShopSell(int32 NpcId, int64 ItemDbId, int32 Count)
+{
+	Protocol::CS_SHOP_SELL_PACKET pkt;
+	pkt.set_npc_id(NpcId);
+	pkt.set_item_db_id(ItemDbId);
+	pkt.set_count(Count);
+	SendProtocol(*this, pkt, Protocol::CS_SHOP_SELL);
+}
+
 void UNetworkManager::SendTradeRequest(int32 TargetId)
 {
 	Protocol::CS_TRADE_REQUEST_PACKET pkt;
@@ -342,6 +368,12 @@ void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad)
 	if (UJMTradeManager* Trade = GetGameInstance()->GetSubsystem<UJMTradeManager>())
 	{
 		Trade->Clear();
+	}
+
+	// The shop window state is client-only; drop it with the level.
+	if (UJMShopManager* Shop = GetGameInstance()->GetSubsystem<UJMShopManager>())
+	{
+		Shop->Clear();
 	}
 
 	// 이전 레벨의 위젯 참조가 남지 않도록 UI 목록도 비운다.

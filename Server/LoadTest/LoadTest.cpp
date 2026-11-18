@@ -159,9 +159,11 @@ int main(int argc, char** argv)
 	{
 		printf("[summary] inventory: SC_INVENTORY=%lld SC_INVENTORY_UPDATE=%lld giveSent=%lld slotMoveSent=%lld itemRejected(SC_ITEM_RESULT)=%lld by ItemResult:",
 			GStat.inventoryRecv.load(), GStat.inventoryUpdateRecv.load(), GStat.giveSent.load(), GStat.slotMoveSent.load(), GStat.itemRejected.load());
-		for (int i = 0; i < 20; ++i)
+		for (int i = 0; i < 24; ++i)
 			if (GStat.itemRejectedBy[i].load() > 0) printf(" %d=%lld", i, GStat.itemRejectedBy[i].load());
 		printf("\n");
+		if (GStat.shopBuySent.load() > 0 || GStat.shopSellSent.load() > 0)
+			printf("[summary] shop: buySent=%lld sellSent=%lld\n", GStat.shopBuySent.load(), GStat.shopSellSent.load());
 	}
 
 	return 0;

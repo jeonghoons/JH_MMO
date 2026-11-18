@@ -348,6 +348,9 @@ def place_markers(name):
     # safe_zones(L3): {"id", "label", "x", "y", "radius_cm"}
     for sz in m.get("safe_zones", []):
         out.append(lib.spawn_level_marker("SafeZone", int(sz["id"]), loc(sz["x"], sz["y"], 100.0), 0.0, 0, float(sz["radius_cm"]), 0, "", f"Marker_SafeZone_{sz['label']}", ""))
+    # npcs(L4): {"id", "label", "x", "y", "yaw", "template_id"} — 종류(NpcTable ID)만 적는다. 이름·상점·외형은 서버 NpcTable.csv (D-202)
+    for npc in m.get("npcs", []):
+        out.append(lib.spawn_level_marker("Npc", int(npc["id"]), loc(npc["x"], npc["y"], 100.0), float(npc.get("yaw", 0.0)), int(npc["template_id"]), 0.0, 0, "", f"Marker_Npc_{npc['label']}", ""))
     errors = [o for o in out if o.startswith("ERROR")]
     return {"removed": removed, "placed": len(out) - len(errors), "errors": errors}
 
@@ -1370,8 +1373,9 @@ def apply_lighting(name, dump=False, actors=None, pie=False):
     return out
 
 
-# pie_exec가 받는 콘솔 명령(첫 단어, 소문자): 측정과 렌더 설정만
-_PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen"}
+# pie_exec가 받는 콘솔 명령(첫 단어, 소문자): 측정과 렌더 설정,
+# 그리고 게임의 개발용 콘솔 명령(AJMPlayerController — 서버가 검증하는 요청만 보냄: Give·Equip·Shop*, L4에서 추가)
+_PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen", "give", "equip", "shopopen", "shopbuy", "shopsell", "shopclose"}
 _PIE_EXEC_PREFIX = ("t.", "r.", "sg.", "grass.", "foliage.")
 
 

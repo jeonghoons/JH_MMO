@@ -174,6 +174,21 @@ namespace DbQueries
 		L"DELETE FROM [Player_Item] WHERE ItemDbId = @A AND OwnerId = @P AND Location = 1 AND [Count] = @Count; SET @n += @@ROWCOUNT; END "
 		+ ItemOpTail(L"1");
 
+	// 상점 판매(고정 쿼리, L4·D-202): 전량이면 행 삭제, 일부면 수량 감소 + 골드 증액(상한 안). 잔액은 Kind 2 행으로 돌려준다.
+	// 파라미터: 1 PlayerId, 2 Fail, 3 DbId, 4 Expect(그 행의 지금 수량 = 기대 상태), 5 Sell(파는 수량), 6 Gold(받는 골드), 7 GoldMax
+	// 상점 구매는 줍기와 같은 모양이라 ItemPickup을 그대로 쓴다(@Gold가 음수 — "Gold + @Gold BETWEEN 0 AND @GoldMax"가 잔액 부족을 막는다).
+	inline const std::wstring ItemShopSell =
+		std::wstring(L"SET NOCOUNT ON; SET XACT_ABORT ON; "
+		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @A BIGINT = ?, @Expect INT = ?, @Sell INT = ?, @Gold BIGINT = ?, @GoldMax BIGINT = ?; ")
+		+ ItemOpHead +
+		L"IF @Sell >= @Expect BEGIN "
+		L"DELETE FROM [Player_Item] WHERE ItemDbId = @A AND OwnerId = @P AND Location = 1 AND [Count] = @Expect; SET @n += @@ROWCOUNT; END "
+		L"ELSE BEGIN "
+		L"UPDATE [Player_Item] SET [Count] = [Count] - @Sell, UpdatedAt = SYSDATETIME() WHERE ItemDbId = @A AND OwnerId = @P AND Location = 1 AND [Count] = @Expect AND @Sell > 0; SET @n += @@ROWCOUNT; END "
+		L"UPDATE [Player_Info] SET Gold = Gold + @Gold WHERE PlayerId = @P AND @Gold > 0 AND Gold + @Gold BETWEEN 0 AND @GoldMax; SET @n += @@ROWCOUNT; "
+		L"INSERT INTO @R (Kind, V) SELECT 2, Gold FROM [Player_Info] WHERE PlayerId = @P; "
+		+ ItemOpTail(L"2");
+
 	// 지급(조립식 — 채울 스택 수가 요청마다 다르다). 파라미터: 1 PlayerId, 2 Fail. 나머지는 Room이 검증한 정수라 쿼리에 그대로 넣는다.
 	// 새 행의 ItemDbId는 Kind 1 행으로(newCounts 순서대로), 골드를 바꿨으면 바뀐 뒤 잔액을 Kind 2 행으로 돌려준다.
 	inline std::wstring BuildItemGive(const DB_ItemOp& op)

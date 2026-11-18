@@ -3,7 +3,8 @@
 목표 구조만 기록합니다. 구현 순서는 [ROADMAP.md](ROADMAP.md) 마일스톤 1(1-3·1-4)을 따르고, 이 문서의 테이블·패킷은 해당 항목을 구현할 때 만듭니다.
 (2026-11-16 A3.1 작성, 결정 D-152~D-159. 장비 외형·슬롯은 [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), CSV 규약은 [DESIGN_DATA.md](DESIGN_DATA.md), 동시성 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md))
 
-## 현재 상태 (2026-11-17)
+## 현재 상태 (2026-11-18)
+- L4 완료(2026-11-19, Claude 테스트 + 사용자 PIE 확인): 상점 NPC(구매·판매, D-201·D-202). 설계와 구현 메모는 아래 "상점 NPC (L4)". A3.1 때는 범위 밖이었으나 D-167로 마일스톤 1에 들어왔습니다.
 - A6.3a 완료(2026-11-17, 사용자 PIE 확인): 거래 UI(`UJMTradeManager`·`UTradeWidget`/`WBP_Trade`, T 키). 구현 내용은 아래 "A6.3a 구현 메모".
 - A4.1·A4.2 완료(2026-11-17): 1:1 거래 서버(상태기계·패킷·한 트랜잭션 교환·`Trade_Log`, 마이그레이션 0007). 구현 내용은 아래 "A4.1·A4.2 구현 메모". 거래 UI(A6.3a)와 경매 코드는 아직 없습니다.
 - A3.6 완료(2026-11-17, 사용자 PIE 확인): 소비 아이템 사용 `CS_USE_ITEM`·`SC_USE_ITEM`, 액티브 칸 배치 `CS_SET_QUICKSLOT` + `Player_QuickSlot`(마이그레이션 0006). 구현 내용은 아래 "A3.6 구현 메모".
@@ -15,8 +16,8 @@
 - A3.2 완료(2026-11-16): `DropTable.csv`·`EconomyTable.csv`와 로더(`DataManager::GetDrops`·`RollDrops`·`GetEconomy`), `ItemTable` 새 열과 8001 HP 물약, UE `FItemTableRow`·`DT_ItemTable`이 들어갔습니다. 드랍 롤은 A3.4에서 `RollDrops`를 호출합니다. 열별 허용 범위와 현재 행은 [DESIGN_DATA.md](DESIGN_DATA.md).
 
 ## 범위와 하지 않는 것
-- **범위**: DropTable, 아이템 인스턴스와 DB, 인벤토리, 드랍·줍기·버리기, 장착 검사 확장, 소비 아이템(HP 물약 1종)과 액티브 칸 저장, 골드, 중복 접속 차단(A2.7), 1:1 거래, 경매장(즉시 구매), 패킷, 시험 항목.
-- **하지 않는 것**: 경매 입찰, 수수료, 파티·분배, 피해 기여 소유권, 인벤토리 안에서 스택을 나누거나 합치는 조작, 경매 등록의 일부만 사는 구매, 인벤토리 정렬·칸 이동, 강화·옵션, NPC 상점, 귀속(거래 불가) 아이템, 다른 Room 플레이어와의 1:1 거래, 바닥 아이템의 DB 저장, 골드 버리기.
+- **범위**: DropTable, 아이템 인스턴스와 DB, 인벤토리, 드랍·줍기·버리기, 장착 검사 확장, 소비 아이템(HP 물약 1종)과 액티브 칸 저장, 골드, 중복 접속 차단(A2.7), 1:1 거래, 경매장(즉시 구매), NPC 상점(구매·판매 — L4, D-167), 패킷, 시험 항목.
+- **하지 않는 것**: 경매 입찰, 수수료, 파티·분배, 피해 기여 소유권, 인벤토리 안에서 스택을 나누거나 합치는 조작, 경매 등록의 일부만 사는 구매, 인벤토리 정렬·칸 이동, 강화·옵션, 상점 되사기·상점 재고·이용 기록 테이블, 귀속(거래 불가) 아이템, 다른 Room 플레이어와의 1:1 거래, 바닥 아이템의 DB 저장, 골드 버리기.
 
 ## 공통 원칙
 - **DB가 권위, DB 성공 뒤 메모리 반영 (D-153)**: 아이템·골드의 소유가 바뀌는 모든 동작은 ① Room 잡에서 검증 ② `DatabaseWorker`에서 한 트랜잭션 ③ 결과를 Room 잡으로 돌려받아 메모리·패킷 반영 순서로 합니다. 주기 저장·퇴장 저장에 기대지 않으므로 서버가 강제 종료돼도 손실·복제가 없습니다(감사 F6).
@@ -41,6 +42,7 @@
 - **장착할 수 없는 아이템**: `Slot` = `None`, `Tier` = `None`(서버 `ItemSlot`·`ItemTier`에 `None` 추가, UE enum에는 이미 있음). itemId 첫째 자리 8 = 소비, 둘째 자리 0 = 티어 없음. 첫 행 `8001` HP 물약(`UseEffect` `HealHp`).
 - 추가 검증(어기면 서버 시작 중단): 장비는 `MaxStack` 1·`UseEffect` `None`, `Slot` `None`은 ID 첫째 자리 8·`WeaponType` `None`·보너스 0·`Starter` 0·`UseEffect`가 `None`이 아님. 구현하면서 더한 것(A3.2): `Slot` `None`과 `Tier` `None`은 항상 함께, `HealHp`는 `UseValue` > 0.
 - 기본 장비도 거래·경매·버리기를 허용합니다(거래 불가 열 없음, D-155).
+- **`SellPrice`(L4, D-201, `UseCooldownMs` 뒤, 서버·클라)**: 상점에 팔 때 1개당 받는 골드. 0 = 팔 수 없음, 0 ~ `EconomyTable.GoldMax`. 기본 장비(`Starter` 1)도 값을 줍니다. 클라이언트는 표시에만 쓰고 금액은 서버가 계산합니다. 초안: 천 장비 20, 판금 장비 60, HP 물약 5.
 - UE: `FItemTableRow`에 같은 이름의 필드를 추가하고(`UseEffect`는 새 UENUM `EItemUseEffect`) `DT_ItemTable`을 다시 임포트합니다. 물약 아이콘 1개가 필요합니다(콘텐츠 동결 중이라 임시 아이콘 허용). 외형 열을 만드는 `jm_kit.item_table.export`는 `items.json`에 없는 행이 있으면 실패하므로 **메시가 없는 행(`Slot` `None`)은 건너뛰도록** 함께 고칩니다. `Slot`·`Tier`의 `None`은 UE enum에서 숨김(`UMETA(Hidden)`) 값이지만 CSV 임포트가 됩니다(A3.2에서 확인 — 8001 행 `0 Problems`). 물약 초기값: `MaxStack` 20, `UseValue` 200, `UseCooldownMs` 5000, 아이콘 `Content/UI/Icons/Item/T_Icon_Potion_Hp`(임시).
 
 ### DropTable (서버 전용, A3.2, D-157)
@@ -79,6 +81,7 @@
 | `AuctionMinPrice`·`AuctionMaxPrice` | 1 · 100000000 | 가격 범위 |
 | `AuctionPageSize` | 20 | 목록 한 쪽 |
 | `AuctionExpireCheckSec` | 60 | 만료 검사 주기 |
+| `ShopRangeCm` | 400 | 상점 NPC 이용 거리(L4, D-202). 클라이언트에는 `SC_INVENTORY.shop_range_cm` |
 
 ## 아이템 인스턴스와 DB (D-153)
 
@@ -98,7 +101,7 @@
 ### 골드 (D-152)
 - 값은 `Player_Info.Gold` 그대로입니다. 바꿀 때는 `UPDATE … SET Gold = Gold + ?`(차감은 `AND Gold >= ?` 조건)로 **증감**하고, 바뀐 잔액을 결과로 돌려받아 메모리에 씁니다. 메모리 값으로 덮어쓰지 않습니다.
 - 진행 상황 스냅숏(`DB_PlayerProgress`, D-151)에서 골드를 뺍니다. 레벨·경험치·HP는 그대로 주기·퇴장 저장입니다.
-- 얻는 곳: 몬스터 골드 드랍(DropTable `ItemId` 0), 거래, 경매 판매 대금, 개발 지급 명령. 경험치·레벨 보상은 A2.3b에 남습니다.
+- 얻는 곳: 몬스터 골드 드랍(DropTable `ItemId` 0), 거래, 경매 판매 대금, 상점 판매(L4), 개발 지급 명령. 쓰는 곳: 상점 구매(L4). 경험치·레벨 보상은 A2.3b에 남습니다.
 
 ### 트랜잭션 범위
 | 동작 | 한 트랜잭션에 넣는 것 |
@@ -107,6 +110,8 @@
 | 버리기 | 행 DELETE(그 뒤 메모리에서 바닥 드랍 생성) |
 | 장착·해제 | 관련 행(새 장비·옛 장비·자동 해제되는 방패, 최대 3행)의 `Location`·`EquipSlot` |
 | 물약 사용 | `Count` − 1(0이면 DELETE) |
+| 상점 구매 | 같은 종류 스택에 `Count` 더하기 또는 행 INSERT + 골드 차감(`Gold >= 총액` 조건) |
+| 상점 판매 | 행 DELETE(전량) 또는 `Count` 감소(일부, 기대 수량을 조건으로) + 골드 증액(상한 조건) |
 | 거래 확정 | 양쪽 아이템 이동(통째면 `OwnerId` 변경, 일부면 원래 행 `Count` 감소 + 상대 소유 새 행 — 어느 쪽이든 `Count >= 제시 수량` 조건) + 양쪽 골드 증감 + `Trade_Log` 1행 |
 | 경매 등록 | 아이템을 에스크로로(통째면 `Location` 1 → 3, 일부면 원래 행 `Count` 감소 + `Location` 3 새 행) + `Auction_Listing` INSERT |
 | 경매 구매 | 등록 `State` 1 → 2 + 구매자 골드 차감 + 아이템 `OwnerId` = 구매자·`Location` 4 + `Player_Mail` 2행(구매품, 판매 대금) |
@@ -249,6 +254,45 @@
 - **조회**: `CS_AUCTION_SEARCH(slot, page)` → 서비스 목록에서 슬롯 필터(0 = 전체), 가격 오름차순, `AuctionPageSize`개씩 `SC_AUCTION_LIST`(패킷 상한 8192바이트 안). `CS_AUCTION_MY` → 내 등록(서비스 목록) + 수령함 `SC_AUCTION_MY`. 수령함은 메모리에 두지 않고 요청 때 DB에서 오래된 것부터 `AuctionPageSize`개를 읽습니다(Room → 서비스 → DB → 서비스 → Room). 수령하면 다음 것이 보입니다.
 - **수령** `CS_MAIL_CLAIM(mail_id)`: 한 건씩. 서비스를 거치지 않고 Room → DB → Room. 아이템은 빈 칸, 골드는 상한을 확인합니다.
 
+## 상점 NPC (L4, D-201·D-202)
+마을의 상점 NPC에게서 골드로 아이템을 사고, 가진 아이템을 골드로 팝니다. 다른 아이템 작업과 같은 `itemOp` 경로(검증 → DB 한 트랜잭션 → 성공 뒤 반영)를 탑니다.
+
+### 데이터
+- **`ShopTable.csv`**(서버 전용): 한 행 = 상점 하나가 파는 품목 하나. `Name`(행 ID 1001~), `ShopId`(1 이상), `ItemId`(ItemTable ID), `BuyPrice`(1개 값, 1 ~ `GoldMax`). (`ShopId`, `ItemId`) 중복·없는 `ItemId`는 시작 중단. **`BuyPrice`는 그 아이템의 `SellPrice` 이상**이어야 합니다(사서 되팔아 골드를 불리는 경로 차단 — 어기면 시작 중단). 품목을 늘릴 때는 행만 추가합니다. 초안(`ShopId` 1): HP 물약 30, 천 장비 8종(1101·2101·3101·4101·5101·6101·6102·7101) 각 100.
+- **`NpcTable.csv`**(서버 전용): 한 행 = NPC 종류 하나. `Name`(= 마커의 `npcTemplateId` = `ObjectInfo.template_id`, 1001~), `DisplayName`, `ShopId`(0 = 상점 없음, 아니면 ShopTable에 있는 값), `Body`(`Male`/`Female`), 장착 외형 7열 `Head`·`Top`·`Bottom`·`Gloves`·`Boots`·`Weapon`·`Offhand`(ItemTable ID 또는 0, 슬롯이 맞아야 함). 외형은 매니퀸 + 기존 장비입니다(D-170).
+- `ItemTable.SellPrice`, `EconomyTable.ShopRangeCm`은 위 "데이터" 절.
+- 열별 허용 범위와 현재 행은 [DESIGN_DATA.md](DESIGN_DATA.md).
+
+### NPC 객체
+- 서버 객체입니다(`OBJECT_TYPE_NPC`). 레벨의 `ALevelMarker`(타입 `Npc`, `npcTemplateId`) → `MapExport` Logic JSON → `GameMap::GetNpcSpawns()` → `Room::InitRoom`이 `NpcTable` 행과 함께 배치합니다. 마커의 종류가 `NpcTable`에 없으면 그 마커는 배치하지 않고 ERROR를 남깁니다(몬스터 스폰과 같은 규칙).
+- 드랍처럼 `Room`의 전용 목록(`_npcs`)에 두고 `_objects`(캐릭터 전용)·틱 순회에는 넣지 않습니다. id는 플레이어·몬스터·드랍과 겹치지 않는 전용 대역입니다.
+- **시야**: 움직이지 않고 수가 적으므로 색인 없이 거리로 판정합니다(들어옴 ≤ R, 나감 > R+H — 드랍과 같은 반경). 맞추는 곳은 `UpdateDropView`와 같은 세 곳(입장·`PlayerMove`·`PlayerRevive`)이고 `SC_ADD_OBJECT`/`SC_REMOVE_OBJECT`를 본인에게 보냅니다. `ObjectInfo`에는 `template_id`·`name`·`player_type`(체형)·`equip_items`(외형)를 싣습니다.
+- NPC는 대상이 되지 않습니다(공격·거래 요청 불가 — `_objects`에 없으므로 기존 검사에서 "대상 없음").
+
+### 요청
+- 공통 검증 순서: 방 안 → 더미 봇 아님(`NOT_ALLOWED`) → 생존(`DEAD`) → 요청 간격·진행 중인 작업(`TOO_FREQUENT`·`BUSY`) → **1:1 거래 중이 아님**(`tradeId` ≠ 0이면 `IN_TRADE` — 올린 아이템만이 아니라 상점 전체, D-201) → NPC 존재·상점 있음(`NO_ITEM`) → 수평 거리 ≤ `ShopRangeCm`(`TOO_FAR`).
+- **열기** `CS_SHOP_OPEN(npc_id)` → `SC_SHOP_OPEN(npc_id, items[item_id, buy_price])`. DB를 쓰지 않습니다. 구매가는 이 패킷으로만 알립니다(ShopTable은 서버 전용). 열기는 편의 기능이고 **구매·판매 요청마다 위 검증을 다시 합니다**(서버에 "상점을 연 상태"를 두지 않음).
+- **구매** `CS_SHOP_BUY(npc_id, item_id, count)`: 그 상점의 품목(`NO_ITEM`) → 수량 1 이상이고 `MaxStack × InventorySlots` 이하(`INVENTORY_FULL`) → 총액(`BuyPrice` × 수량) ≤ 가진 골드(`NOT_ENOUGH_GOLD`) → `Inventory::PlanAdd`(덜 찬 스택 먼저, 자리가 없으면 통째로 `INVENTORY_FULL`) → `ItemOpKind::ShopBuy`. 성공하면 `SC_INVENTORY_UPDATE`(바뀐 행 + 골드).
+- **판매** `CS_SHOP_SELL(npc_id, item_db_id, count)`: 내 인벤토리 위치의 행(`NO_ITEM` — 장착 중인 것은 팔 수 없음) → 수량 1 ~ 그 행의 `Count`(`NO_ITEM`) → `SellPrice` > 0(`NOT_SELLABLE`) → 골드 상한(`GOLD_FULL`) → `ItemOpKind::ShopSell`. 스택은 일부만 팔 수 있습니다. 성공하면 `SC_INVENTORY_UPDATE`(바뀐 행 또는 지워진 `ItemDbId` + 골드). 판 아이템은 사라집니다(되사기 없음).
+- 거부는 `SC_ITEM_RESULT(요청 패킷 id, ItemResult)`, DB 롤백은 `DB_ERROR`, 결과 불명은 공통 경로가 접속을 끊습니다.
+- 쿼리는 고정 쿼리(D-165)입니다. 조건(골드 잔액·기대 수량·칸)이 맞지 않으면 롤백합니다.
+
+### 클라이언트
+- NPC 액터: `UJMObjectManager::HandleSpawn`의 `OBJECT_TYPE_NPC` 분기가 플레이어 액터 클래스(`BP_Player`)로 만들어 `UEquipmentComponent::SetLoadout`으로 외형을 입히고 `Npcs`에 따로 둡니다(새 클래스를 만들지 않음 — 구현 메모). 기존 `ANpcCharacter`/`BP_Npc`는 이름과 달리 몬스터입니다.
+- 상호작용은 줍기와 같은 **F 키**입니다: `ShopRangeCm`(`SC_INVENTORY.shop_range_cm`) 안의 가장 가까운 상점 NPC와 줍기 거리 안의 가장 가까운 드랍 중 가까운 쪽에 안내("[F] 상점: 이름")를 띄우고 `CS_SHOP_OPEN`을 보냅니다.
+- `UJMShopManager`(GameInstanceSubsystem) + `UShopWidget`/`WBP_Shop`: `SC_SHOP_OPEN`을 받으면 상점 창과 인벤토리 창을 함께 엽니다. 구매 = 품목 선택 → 수량 → [구매]. 판매 = 상점이 열린 동안 인벤토리 아이템 우클릭으로 **선택만** 하고 상점 창의 [판매]로 확정합니다(되사기가 없어 잘못 누르는 것을 막음). NPC에서 멀어지거나 거래가 시작되거나 죽으면 창을 닫습니다.
+
+### L4 구현 메모 (2026-11-19)
+- **데이터**: `ShopTable.csv` 9행(`ShopId` 1), `NpcTable.csv` 1행(1001 "잡화 상인"), `ItemTable.SellPrice`, `EconomyTable.ShopRangeCm` 400. 로더(`DataManager::Init`, Spawn 뒤)는 `GetShopItems`·`FindShopItem`·`GetNpcData`를 제공하고, `BuyPrice` < `SellPrice`를 포함한 오류에서 시작을 멈춥니다.
+- **NPC**: `TownNpc`(`Game/Object/TownNpc.h`, `StaticObject`) — `Room::SpawnTownNpcs`(InitRoom)가 마커 위치를 내비메시 위로 맞춰 `Room::_npcs`에 둡니다. id는 `NPC_ID_BEGIN`(900,000,000)부터 마커 순서. 시야는 `Room::UpdateNpcView`(`Player::npcView`, 거리 판정)이고 **`UpdateDropView`를 부르는 세 곳에서 함께 부릅니다.** 이름이 비슷한 `Room::NpcEnterRoom`·`NPCMove`는 몬스터용입니다.
+- **요청**: `Room::CheckShopRequest`(공통 검증) → `PlayerShopOpen`·`PlayerShopBuy`·`PlayerShopSell`. 열기는 진행 중인 작업(`BUSY`)을 보지 않고 요청 간격만 봅니다.
+- **쿼리**: 구매(`ItemOpKind::ShopBuy`)는 줍기와 같은 계획·쿼리(`ItemPickup`, 스택 둘 이상·새 행 둘 이상이면 `BuildItemGive`)에 `goldDelta` = -총액을 넣습니다 — `Gold + @Gold BETWEEN 0 AND @GoldMax` 조건이 잔액 부족을 막습니다. 판매(`ItemOpKind::ShopSell`)는 새 고정 쿼리 `ItemShopSell`(전량이면 DELETE, 일부면 수량 감소 + 골드 증액, 잔액 반환).
+- **클라이언트**: NPC는 새 액터 클래스 없이 플레이어 액터 클래스(`BP_Player`)로 만들어 서버가 준 체형·장비 외형을 입히고 `UJMObjectManager::Npcs`에 따로 둡니다(`Objects`의 거래·전투 대상 탐색에서 빠짐). 서버 높이는 지면이라 캡슐 반높이만큼 올려 놓습니다. `UJMShopManager`(상태·열고 닫기) + `UShopWidget`/`WBP_Shop`(`BP_GameMode.ShopWidgetClass`, ZOrder 126, 거래 창과 같은 자리). 품목 칸은 `UItemSlotWidget`을 쓰고 칸의 숫자 자리에 1개 값을 보입니다. 안내는 이용 거리보다 30cm 안쪽에서 띄우고, 창은 이용 거리를 벗어나거나 죽거나 거래가 시작되면 닫습니다(`AJMMyPlayer::UpdateInteractPrompt` → `UJMShopManager::UpdateFromPlayer`, 0.1초마다). 열린 상태에서 F를 다시 누르면 닫습니다. 상점 창이 닫히면(닫기 버튼·F·멀어짐·사망·거래 시작) 함께 연 인벤토리 창도 닫습니다(사용자 PIE 의견, 2026-11-19). 같은 기준으로 1:1 거래도 제시 단계까지 갔다가 끝나면(성사·취소·거리 이탈·시간 초과) 인벤토리 창을 함께 닫습니다(`UJMTradeManager::HandleEnd`).
+- **거부 문구**: 상점 요청의 `IN_TRADE`는 "거래 중에는 상점을 이용할 수 없습니다.", `NO_ITEM`은 "상점에서 처리할 수 없는 요청입니다."로 따로 띄웁니다(같은 코드가 다른 요청에서는 다른 뜻).
+- **개발용 콘솔 명령**(`AJMPlayerController`): `ShopOpen`(시야 안 가장 가까운 NPC), `ShopBuy <itemId> <count>`, `ShopSell <itemId> <count>`, `ShopClose` — 창이 보내는 것과 같은 요청.
+- **봇**: `--shop-interval`(구매·판매 번갈아). 봇은 자기 위치를 받은 뒤의 `SC_ADD_OBJECT`를 건너뛰는데, 이 옵션이 켜지면 NPC id를 알아야 해서 계속 읽습니다.
+- **시험(TESTING 2026-11-19 L4)**: 사망 중 거부(`DEAD`)는 원시 소켓으로 확인하지 못했습니다.
+
 ## 클라이언트 UI (A6.1·A6.2·MC4.4·A6.3a·A6.3b)
 - 창은 모두 `UJMUIManager::RegisterWidget`(`bIsWindow`, ZOrder는 크로스헤어 100보다 위)로 등록하고 키로 `ToggleWidget`합니다. 창이 열리면 커서가 보입니다(기존 동작). 키는 초기 제안이며 구현 때 조정합니다.
 - **인벤토리 + 장비창**(I 키, `WBP_Inventory` 한 창 — A6.1, D-166): 장착 7칸, 칸 격자(서버 칸 수만큼, 빈 칸 표시, 아이콘·수량 — 칸 위젯 `UItemSlotWidget`/`WBP_ItemSlot`), 골드, 선택한 아이템 이름. 인벤토리의 장비 우클릭 = 장착, 장착 칸 우클릭 = 해제, 끌어다 놓기 = 칸 옮기기·맞바꾸기(인벤토리 ↔ 인벤토리)·장착(인벤토리 → 장착 칸)·해제 또는 교체(장착 칸 → 인벤토리). 창은 클라이언트 사본(`UJMInventoryManager`)을 그리며 여닫을 때 서버에 묻지 않습니다. 선택한 아이템의 버리기(A6.2)·사용·액티브 칸에 올리기(A3.6)는 그때 붙입니다.
@@ -261,6 +305,7 @@
   - `CS_TRADE_SET_OFFER`는 전체 교체라, 응답 전에 연달아 고칠 때는 마지막으로 보낸 제시를 바탕으로 다음 요청을 만듭니다(`Pending`). 거부(`SC_TRADE_RESULT`)가 오면 버리고 서버 값으로 돌아갑니다.
   - 안내: `SC_TRADE_RESULT`·`SC_TRADE_END` 사유를 시스템 메시지 창으로. 내가 누른 취소·거절로 끝난 것은 띄우지 않습니다.
   - 창 위젯은 `SelfHitTestInvisible`로 보입니다(`UJMUIManager`) — 화면 전체를 덮는 위젯 자체가 클릭을 받으면 위 창(거래)이 아래 창(인벤토리)을 막기 때문입니다. 창 안의 패널·버튼은 그대로 클릭됩니다.
+- **상점 창**(L4, NPC 근처에서 F 키): 위 "상점 NPC (L4)"의 "클라이언트".
 - **경매 창**(K 키): 검색(슬롯 필터, 쪽 넘기기)·구매, 등록(인벤토리에서 골라 수량·가격 입력), 내 등록(취소), 수령함(수령) 탭.
 - 거부·실패·성사 안내는 모두 시스템 메시지 창(D-050)입니다.
 
@@ -276,10 +321,11 @@
 | A4.3 | 1024 `AUCTION_SEARCH`, 1025 `AUCTION_REGISTER`, 1026 `AUCTION_BUY`, 1027 `AUCTION_CANCEL`, 1028 `AUCTION_MY`, 1029 `MAIL_CLAIM` | 2024 `AUCTION_LIST`, 2025 `AUCTION_MY`, 2026 `AUCTION_RESULT`(본인: 요청 패킷 id + `AuctionResult` + `listing_id`) |
 | A2.7 | — | 2027 `KICK`(끊기 직전 본인, 사유) |
 | A6.1 | 1030 `MOVE_ITEM`(칸 옮기기·맞바꾸기) | (성공은 `INVENTORY_UPDATE`, 거부는 `ITEM_RESULT`) |
+| L4 | 1031 `SHOP_OPEN`, 1032 `SHOP_BUY`, 1033 `SHOP_SELL` | 2029 `SHOP_OPEN`(본인, 품목·구매가). 구매·판매 성공은 `INVENTORY_UPDATE`, 거부는 `ITEM_RESULT`. `INVENTORY`에 `shop_range_cm` 추가. NPC 표시는 기존 `ADD_OBJECT`·`REMOVE_OBJECT` |
 
 - 구조체 `ItemInfo`(`item_db_id`, `item_id`, `count`, `equip_part` — 0 = 인벤토리, `slot` — 인벤토리 칸 번호·장착 중이면 -1), `ObjectInfo.item_count`(12번), `CS_CHANGE_EQUIP_PACKET`은 `item_id`(2번)를 `reserved`로 막고 `item_db_id`(3번)를 추가합니다. `item_db_id`·`listing_id`·`mail_id`·골드·가격·수량 필드는 int64입니다.
 - 결과 enum은 기능별로 둡니다(D-114 방식). 새 enum은 기존 관례대로 `*_NONE` = 0, `*_SUCCESS` = 1로 시작하고 아래 값이 2부터 이어집니다.
-  - `ItemResult`: `NOT_IN_ROOM`, `DEAD`, `BUSY`, `TOO_FREQUENT`, `NOT_ALLOWED`, `NO_ITEM`, `TOO_FAR`, `NOT_OWNER`, `INVENTORY_FULL`, `GOLD_FULL`, `IN_TRADE`, `NOT_USABLE`, `HP_FULL`, `COOLDOWN`, `LEVEL_TOO_LOW`, `DB_ERROR`, `BAD_SLOT`(18, A6.1).
+  - `ItemResult`: `NOT_IN_ROOM`, `DEAD`, `BUSY`, `TOO_FREQUENT`, `NOT_ALLOWED`, `NO_ITEM`, `TOO_FAR`, `NOT_OWNER`, `INVENTORY_FULL`, `GOLD_FULL`, `IN_TRADE`, `NOT_USABLE`, `HP_FULL`, `COOLDOWN`, `LEVEL_TOO_LOW`, `DB_ERROR`, `BAD_SLOT`(18, A6.1), `NOT_ENOUGH_GOLD`(19, L4), `NOT_SELLABLE`(20, L4).
   - `EquipResult` 추가: `NOT_OWNED`(9), `LEVEL_TOO_LOW`(10), `INVENTORY_FULL`(11), `BUSY`(12), `IN_TRADE`(13), `DB_ERROR`(14), `NOT_ALLOWED`(15, 더미 봇 — D-161).
   - `TradeResult`: `NO_TARGET`, `TOO_FAR`, `TARGET_BUSY`, `DECLINED`, `TIMEOUT`, `CANCELLED`, `DEAD`, `DISCONNECTED`, `LOCKED`, `INVALID_OFFER`, `INVENTORY_FULL`, `GOLD_FULL`, `BUSY`, `NOT_ALLOWED`, `DB_ERROR`.
   - `AuctionResult`: `NO_LISTING`, `SOLD`, `OWN_ITEM`, `NOT_ENOUGH_GOLD`, `LISTING_LIMIT`, `BAD_PRICE`, `NO_ITEM`, `IN_TRADE`, `INVENTORY_FULL`, `GOLD_FULL`, `BUSY`, `DEAD`, `NOT_ALLOWED`, `DB_ERROR`.
@@ -309,13 +355,14 @@
 - **A3.6**: 물약 사용 시 HP·수량 반영과 AOI 방송, 사망·HP 최대·재사용 시간 중 거부, 액티브 칸 배치가 재접속 후 유지.
 - **A4.1·A4.2**: 단계별 중간 접속 해제·시간 초과·거리 이탈·사망에서 양쪽 인벤토리 불변, 잠금 후 제시 변경 거부, 중복 확정 무시, 제시한 아이템의 장착·버리기 거부, 반복 거래 후 양쪽 합계(아이템 행 수·골드 합) 보존과 `Trade_Log` 행 수 일치.
 - **A4.3**: 다른 Room 두 유저의 등록 → 구매 → 양쪽 수령, 동시 구매 시 한 명만 성공, 구매와 취소·만료가 겹쳐도 한쪽만 성공하고 목록이 DB와 일치, 결과 도착 전 접속 해제 후 DB와 다음 로그인 값 일치, 골드 부족·본인 물품·등록 수 초과 거부, 만료 반환, 서버 재시작 후 등록·수령함 유지와 밀린 만료 처리.
+- **L4**: 구매·판매 뒤 골드·아이템이 DB와 일치(반복 뒤 합계 = 계산값 = 재로그인 값), 골드 부족·칸 부족·거리 밖·거래 중·사망·없는 NPC·없는 품목·팔 수 없는 아이템·수량 범위 밖·골드 상한 거부, DB 롤백·지연·결과 도착 전 접속 해제, NPC 시야 진입·이탈 때 ADD·REMOVE, ShopTable·NpcTable 오류(없는 참조, `BuyPrice` < `SellPrice`)에서 시작 중단.
 - 결과 도착 전 접속 해제 시험은 A3.3·A4.2·A4.3 각각에서 합니다(A4.4는 병목이 없으면 하지 않을 수 있는 항목이라 여기에만 두지 않음).
 - **A4.4**: DB 응답을 늦춘 상태에서 줍기·거래·경매 부하 중 틱 지연 p99 ≤ 20ms, 결과 도착 전 접속 해제 시 서버 오류 없이 DB와 다음 로그인 값 일치.
 - **봇(A5.2)**: 개별 계정 봇 + `DevCommands`. 줍기 = 받은 ITEM 오브젝트로 이동 후 요청, 거래 = 이웃 번호끼리 짝(짝수가 요청, 홀수가 자동 수락·잠금·확정), 경매 = 등록·검색·구매·수령 순환. 통계에 요청·성공·거부 수를 추가합니다. 개별 계정 봇이 PlayerStart에서 몬스터에 닿지 못하는 문제(ROADMAP A5.1 메모)를 먼저 풀어야 줍기 프로필이 동작합니다. 봇은 `SC_KICK`·`LOGIN_RESULT_BUSY`를 받으면 실패로 세고 다시 접속하지 않습니다.
 
 ## 알아둘 간극
 - 기본 장비를 거래할 수 있어 새 계정을 만들어 아이템을 늘릴 수 있습니다(사용자 결정, 경제 균형은 범위 밖).
-- 수수료가 없어 골드가 회수되지 않습니다. 골드 드랍만큼 계속 늘어납니다.
+- 거래·경매에는 수수료가 없습니다. 골드가 회수되는 곳은 상점 구매뿐입니다(L4 — 판매가가 구매가보다 낮아 사고팔면 줄어듦).
 - 줍기·장착·물약이 모두 DB 왕복을 기다립니다. 부하 단계(A5.4)에서 병목이면 골드 줍기 묶음 처리 등을 그때 검토합니다.
 - 버리기로 거래 절차 없이 아이템을 넘길 수 있습니다(소유권 없는 드랍). 도배는 요청 간격과 `MaxDropsPerRoom`으로만 막습니다.
 - 인벤토리에서 스택을 합칠 수 없어, 거래·수령으로 받은 물약은 덜 찬 스택이 여러 칸으로 남을 수 있습니다(사용·액티브 칸 수량은 종류 합계라 쓰는 데는 지장 없음).

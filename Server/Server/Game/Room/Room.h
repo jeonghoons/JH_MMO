@@ -9,6 +9,7 @@
 
 // 모든 Room이 쓰는 레벨 이름은 ServerConfig [World] MapName(GServerConfig.mapName), 정원은 WorldTable.RoomCapacity (D-172·D-176)
 constexpr int DROP_ID_BEGIN = 1000000000;      // 드랍 오브젝트 id 시작(방마다 따로 증가, int32 끝에 닿으면 처음으로)
+constexpr int NPC_ID_BEGIN = 900000000;        // 마을 NPC 오브젝트 id 시작(방을 만들 때 마커 순서대로 — 플레이어·몬스터·드랍과 겹치지 않음, L4)
 constexpr int MAX_CHAT_LEN = 100;               // 채팅 한 줄 최대 글자 수(UTF-16 문자 기준)
 constexpr long long CHAT_MIN_INTERVAL_MS = 500;  // 같은 플레이어의 채팅 최소 간격(도배 방지)
 
@@ -19,6 +20,7 @@ class Character;
 class Player;
 class Monster;
 class DropItem;
+class TownNpc;
 
 // ---- 1:1 거래 상태 (A4.1, D-158, DESIGN_ITEMS_TRADE "1:1 거래") ----
 // 거래는 같은 방의 두 플레이어 사이에서만 하고, 상태는 Room이 갖는다(Player에는 tradeId만). 모든 전이는 Room 잡 안에서 일어난다.
@@ -109,6 +111,15 @@ public:
 	void PlayerPickupItem(shared_ptr<Player> player, int dropId);
 	// 버리기(A3.5, D-155): 인벤토리 위치의 행을 DB에서 지운 뒤, 그 자리 근처에 소유권 없는 드랍을 만든다(스택 통째).
 	void PlayerDropItem(shared_ptr<Player> player, int64_t itemDbId);
+	// ---- 상점 NPC (L4, D-201·D-202 — DESIGN_ITEMS_TRADE "상점 NPC") ----
+	// 서버에 "상점을 연 상태"는 없다. 세 요청 모두 매번 방 안 → 더미 봇 아님 → 생존 → 요청 간격·진행 중인 작업 → 거래 중 아님 → NPC·상점 존재 → 거리를 본다.
+	// 품목 요청: SC_SHOP_OPEN(품목·구매가). DB를 쓰지 않는다.
+	void PlayerShopOpen(shared_ptr<Player> player, int npcId);
+	// 구매: 품목 → 수량 → 골드 → 빈 칸(덜 찬 스택 먼저)을 검증하고 줍기와 같은 쿼리로 아이템 추가 + 골드 차감을 한 트랜잭션에 한다.
+	void PlayerShopBuy(shared_ptr<Player> player, int npcId, int itemId, int count);
+	// 판매: 인벤토리 위치의 내 행 → 수량(스택 일부 가능) → SellPrice > 0 → 골드 상한을 검증하고 행 삭제(또는 수량 감소) + 골드 증액을 한 트랜잭션에 한다.
+	void PlayerShopSell(shared_ptr<Player> player, int npcId, int64_t itemDbId, int count);
+
 	// 소비 아이템 사용(A3.6, D-154). itemDbId가 0이면 itemId 종류 중 수량이 적은 스택부터 고른다(액티브 칸).
 	// 검증(보유 → 사용 효과 → 레벨 → 생존 → HP 최대 → 재사용 시간 → 요청 간격·진행 중인 작업) 뒤 DB에서 1개를 줄이고,
 	// 성공하면 효과를 적용해 SC_USE_ITEM(AOI, 본인 포함) + SC_INVENTORY_UPDATE를 보낸다.
@@ -248,6 +259,16 @@ private:
 	// 플레이어의 드랍 시야(Player::dropView)를 지금 위치 기준으로 맞춘다: 반경 R 안에 새로 들어온 드랍은 SC_ADD_OBJECT,
 	// R+H 밖으로 멀어진 드랍은 SC_REMOVE_OBJECT. 플레이어 위치가 바뀌는 곳(PlayerMove·PlayerRevive)과 입장 때 부른다.
 	void UpdateDropView(const shared_ptr<Player>& player);
+
+	// ---- 마을 NPC (L4) ----
+	// 맵의 Npc 마커 + NpcTable로 NPC를 놓는다(InitRoom). 마커의 종류가 NpcTable에 없으면 그 마커는 건너뛰고 ERROR를 남긴다.
+	void SpawnTownNpcs();
+	shared_ptr<TownNpc> GetNpc(int npcId) const;
+	// 플레이어의 NPC 시야(Player::npcView)를 지금 위치 기준으로 맞춘다(드랍과 같은 반경: 들어옴 <= R, 나감 > R+H).
+	// NPC는 움직이지 않고 수가 적어 색인 없이 거리로 본다. **UpdateDropView를 부르는 곳에서 함께 부른다.**
+	void UpdateNpcView(const shared_ptr<Player>& player);
+	// 상점 요청 공통 검증. 통과하면 SUCCESS와 함께 outNpc를 채운다. needItemOp = false(품목 요청)면 진행 중인 작업(BUSY)은 보지 않는다.
+	Protocol::ItemResult CheckShopRequest(const shared_ptr<Player>& player, int npcId, bool needItemOp, shared_ptr<TownNpc>& outNpc);
 	int NextDropId();
 
 	atomic<int> _playerCount = 0;
@@ -263,6 +284,8 @@ private:
 	unordered_map<int, shared_ptr<Monster>> _monsters;
 	// 바닥 드랍. _objects에는 넣지 않는다(DropItem.h). id = DROP_ID_BEGIN부터(플레이어 = 세션 번호, 몬스터 = 100001~ 과 겹치지 않음)
 	unordered_map<int, shared_ptr<DropItem>> _drops;
+	// 마을 NPC(L4). _objects에는 넣지 않는다(TownNpc.h). id = NPC_ID_BEGIN부터
+	unordered_map<int, shared_ptr<TownNpc>> _npcs;
 	deque<int> _dropOrder;   // 만든 순서(상한을 넘으면 앞에서부터 지운다). 이미 사라진 id는 앞에서 걷어 낸다
 	int _nextDropId = 0;
 

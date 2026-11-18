@@ -105,6 +105,7 @@ void UJMTradeManager::HandleEnd(Protocol::TradeResult Result)
 {
 	UE_LOG(LogTemp, Log, TEXT("Trade end: result=%d"), static_cast<int32>(Result));
 	const bool bSilent = bSelfEnded && (Result == Protocol::TRADE_RESULT_CANCELLED || Result == Protocol::TRADE_RESULT_DECLINED);
+	const bool bHadOffering = State == EJMTradeState::Offering || State == EJMTradeState::Confirming;
 
 	State = EJMTradeState::None;
 	Mine = FJMTradeOffer();
@@ -113,7 +114,7 @@ void UJMTradeManager::HandleEnd(Protocol::TradeResult Result)
 	bHasPending = false;
 	bSelfEnded = false;
 
-	SetWindowVisible(false, false);
+	SetWindowVisible(false, bHadOffering);
 	OnTradeChanged.Broadcast();
 	if (!bSilent) ShowMessage(TradeResultText(Result));
 }
@@ -233,7 +234,7 @@ void UJMTradeManager::SetWindowVisible(bool bVisible, bool bWithInventory)
 	UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr;
 	if (UIManager == nullptr) return;
 	UIManager->SetWidgetVisible(WidgetNames::Trade, bVisible);
-	if (bVisible && bWithInventory) UIManager->SetWidgetVisible(WidgetNames::Inventory, true);
+	if (bWithInventory) UIManager->SetWidgetVisible(WidgetNames::Inventory, bVisible);
 }
 
 void UJMTradeManager::ShowMessage(const FText& Message)

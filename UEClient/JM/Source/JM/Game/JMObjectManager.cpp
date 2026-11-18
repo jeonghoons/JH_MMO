@@ -3,6 +3,8 @@
 #include "Network/NetworkManager.h"
 #include "Player/JMMyPlayer.h"
 #include "Player/JMPlayer.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/Character.h"
 #include "Character/NpcCharacter.h"
 #include "Engine/World.h"
 #include "Player/JMPlayerController.h"
@@ -22,6 +24,7 @@ void UJMObjectManager::ClearObjects()
 {
 	Objects.Empty();
 	Drops.Empty();
+	Npcs.Empty();
 	MyPlayer = nullptr;
 }
 
@@ -56,6 +59,27 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 
 	FVector SpawnLoc(ObjInfo.position().x(), ObjInfo.position().y(), ObjInfo.position().z());
 	FRotator SpawnRot(0, ObjInfo.position().yaw(), 0);
+
+	// 마을 NPC(OBJECT_TYPE_NPC, L4): 플레이어 액터 클래스로 만들어 서버가 준 체형(player_type)·장비 외형(equip_items)을 입힌다.
+	// 움직이지 않고 대상이 되지 않으므로 Objects가 아니라 Npcs에 둔다. 상호작용은 AJMMyPlayer가 거리로 골라 F 키로 한다.
+	if (ObjInfo.object_type() == Protocol::OBJECT_TYPE_NPC)
+	{
+		if (Npcs.Contains(ObjectId) || !GameInst->PlayerClass) return;
+		FActorSpawnParameters NpcParams;
+		NpcParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		// 서버가 주는 NPC 높이는 지면(내비메시)이다. 플레이어 액터는 캡슐 중심 높이를 쓰므로 반높이만큼 올린다(그대로 두면 허리까지 묻힌다).
+		const ACharacter* DefaultCharacter = GameInst->PlayerClass->GetDefaultObject<ACharacter>();
+		const float HalfHeight = (DefaultCharacter && DefaultCharacter->GetCapsuleComponent()) ? DefaultCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() : 0.f;
+		Protocol::ObjectInfo NpcInfo = ObjInfo;
+		NpcInfo.mutable_position()->set_z(ObjInfo.position().z() + HalfHeight);
+		const FVector NpcLoc(SpawnLoc.X, SpawnLoc.Y, SpawnLoc.Z + HalfHeight);
+		if (AJMPlayer* Npc = World->SpawnActor<AJMPlayer>(GameInst->PlayerClass, NpcLoc, SpawnRot, NpcParams))
+		{
+			Npc->SetPlayerData(NpcInfo);
+			Npcs.Add(ObjectId, Npc);
+		}
+		return;
+	}
 
 	AJMCharacterBase* SpawnedActor = nullptr;
 
@@ -146,8 +170,52 @@ ADropItemActor* UJMObjectManager::FindNearestDrop(const FVector& From, float Ran
 	return Nearest;
 }
 
+int32 UJMObjectManager::FindNearestNpc(const FVector& From, float RangeCm, float& OutDistSq) const
+{
+	int32 NearestId = 0;
+	float BestSq = RangeCm * RangeCm;
+	for (const TPair<int32, TObjectPtr<AJMCharacterBase>>& Pair : Npcs)
+	{
+		const AJMCharacterBase* Npc = Pair.Value.Get();
+		if (!IsValid(Npc)) continue;
+		// 캐릭터 액터의 위치는 캡슐 중심이지만 수평 거리만 보므로 서버 위치(발밑)와 같은 값이다.
+		const float DistSq = FVector::DistSquared2D(From, Npc->GetActorLocation());
+		if (DistSq <= BestSq)
+		{
+			BestSq = DistSq;
+			NearestId = Pair.Key;
+		}
+	}
+	OutDistSq = BestSq;
+	return NearestId;
+}
+
+FString UJMObjectManager::GetNpcName(int32 NpcId) const
+{
+	const TObjectPtr<AJMCharacterBase>* Found = Npcs.Find(NpcId);
+	return (Found && *Found) ? FString(UTF8_TO_TCHAR((*Found)->GetObjectInfo().name().c_str())) : FString();
+}
+
+bool UJMObjectManager::GetNpcLocation(int32 NpcId, FVector& OutLocation) const
+{
+	const TObjectPtr<AJMCharacterBase>* Found = Npcs.Find(NpcId);
+	if (Found == nullptr || !IsValid(Found->Get())) return false;
+	OutLocation = (*Found)->GetActorLocation();
+	return true;
+}
+
 void UJMObjectManager::HandleDespawn(int32 ObjectId)
 {
+	// 마을 NPC: 내 시야에서 벗어났다(L4).
+	if (TObjectPtr<AJMCharacterBase>* FoundNpc = Npcs.Find(ObjectId))
+	{
+		if (*FoundNpc != nullptr)
+		{
+			(*FoundNpc)->Destroy();
+		}
+		Npcs.Remove(ObjectId);
+		return;
+	}
 	// 바닥 드랍: 누가 주웠거나 수명이 다했거나 내 시야에서 벗어났다.
 	if (TObjectPtr<ADropItemActor>* FoundDrop = Drops.Find(ObjectId))
 	{

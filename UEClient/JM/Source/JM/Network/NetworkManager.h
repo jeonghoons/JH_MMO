@@ -58,6 +58,10 @@ public:
 	void SendUseItem(int64 ItemDbId, int32 ItemId);
 	void SendSetQuickSlot(int32 Slot, int32 ItemId);
 	// A6.3a: 1:1 거래. 요청(대상 오브젝트 id)·응답·제시 전체 교체(아이템 = (ItemDbId, 수량))·잠금·확정·취소. 검증은 서버가 한다
+	// 상점 NPC(L4). 거리·거래 중·골드·빈 칸 검증은 서버가 한다. 성공은 SC_SHOP_OPEN / SC_INVENTORY_UPDATE, 거부는 SC_ITEM_RESULT
+	void SendShopOpen(int32 NpcId);
+	void SendShopBuy(int32 NpcId, int32 ItemId, int32 Count);
+	void SendShopSell(int32 NpcId, int64 ItemDbId, int32 Count);
 	void SendTradeRequest(int32 TargetId);
 	void SendTradeRespond(bool bAccept);
 	void SendTradeSetOffer(const TArray<TPair<int64, int64>>& Items, int64 Gold);

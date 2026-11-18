@@ -252,7 +252,8 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 		query = DbQueries::ItemMove.c_str();
 		break;
 	case ItemOpKind::Pickup:
-		kindName = "Pickup";
+	case ItemOpKind::ShopBuy:   // 상점 구매는 줍기와 같은 계획·쿼리다(goldDelta가 음수, L4)
+		kindName = op.kind == ItemOpKind::ShopBuy ? "ShopBuy" : "Pickup";
 		if (op.fills.size() > 1 || op.newCounts.size() > 1)
 		{
 			// 스택 둘 이상·새 행 둘 이상(드묾)은 지급과 같은 조립식 쿼리로 한다.
@@ -278,6 +279,15 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 		dbConn->BindParam(4, &op.discardSlot, &paramLen[3]);
 		dbConn->BindParam(5, &op.discardCount, &paramLen[4]);
 		query = DbQueries::ItemDiscard.c_str();
+		break;
+	case ItemOpKind::ShopSell:
+		kindName = "ShopSell";
+		dbConn->BindParam(3, &op.sellDbId, &paramLen[2]);
+		dbConn->BindParam(4, &op.sellExpectCount, &paramLen[3]);
+		dbConn->BindParam(5, &op.sellCount, &paramLen[4]);
+		dbConn->BindParam(6, &op.goldDelta, &paramLen[5]);
+		dbConn->BindParam(7, &op.goldMax, &paramLen[6]);
+		query = DbQueries::ItemShopSell.c_str();
 		break;
 	case ItemOpKind::Use:
 		kindName = "Use";

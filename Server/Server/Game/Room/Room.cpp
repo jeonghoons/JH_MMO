@@ -5,6 +5,7 @@
 #include "Game/Object/Player.h"
 #include "Game/Object/Monster.h"
 #include "Game/Object/DropItem.h"
+#include "Game/Object/TownNpc.h"
 #include "Game/Combat/CombatProcessor.h"
 #include "Data/ServerData.h"
 #include "Utils/Metrics.h"
@@ -67,6 +68,9 @@ void Room::InitRoom()
 		LOG_INFO("Room", "몬스터 스폰: 지점 {}곳, 몬스터 {}마리 ({})", monsterSpawns.size(), _monsters.size(), summary);
 	}
 	
+	// 마을 NPC(L4): Npc 마커 + NpcTable
+	SpawnTownNpcs();
+
 	long long currentTick = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 	Update(currentTick);
 }
@@ -293,6 +297,10 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	// 주변 바닥 드랍(A3.4)
 	player->dropView.clear();
 	UpdateDropView(player);
+
+	// 주변 마을 NPC(L4)
+	player->npcView.clear();
+	UpdateNpcView(player);
 }
 
 void Room::PlayerLeaveRoom(shared_ptr<Player> player)
@@ -326,6 +334,7 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 
 	// 드랍 시야는 목록만 비운다(나가는 클라이언트에는 보낼 것이 없다).
 	player->dropView.clear();
+	player->npcView.clear();
 
 	// 조준 중이었다면 상태만 지운다(SC_REMOVE_OBJECT로 다른 사람의 표시는 사라진다).
 	if (player->IsSkillAiming())
@@ -459,6 +468,7 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 	}
 
 	UpdateDropView(player);
+	UpdateNpcView(player);
 
 	// 거래 중이면 상대와의 거리를 본다(A4.1): TradeRangeCm을 넘으면 취소. 거리 안 이동은 허용한다. 확정 중이면 DB 결과를 기다린다.
 	if (player->tradeId != 0)
@@ -566,6 +576,7 @@ void Room::PlayerRevive(shared_ptr<Player> player)
 		UpdateView(player, result);
 
 	UpdateDropView(player);
+	UpdateNpcView(player);
 }
 
 void Room::UpdateAims(long long nowMs)
@@ -834,6 +845,207 @@ void Room::PlayerDropItem(shared_ptr<Player> player, int64_t itemDbId)
 	op.discardZ = pos.z();
 
 	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// 마을 NPC·상점 (L4, D-201·D-202 — DESIGN_ITEMS_TRADE "상점 NPC")
+// ---------------------------------------------------------------------------------------------------------------
+void Room::SpawnTownNpcs()
+{
+	int nextId = NPC_ID_BEGIN;
+	for (const NpcSpawnPoint& spawn : _gameMap.GetNpcSpawns())
+	{
+		const NpcData* data = DataManager::GetNpcData(spawn.NpcTemplateId);
+		if (data == nullptr)
+		{
+			// 방은 실행 중에도 만들어지므로 서버를 멈추지 않고 ERROR만 남긴다(몬스터 스폰과 같은 규칙).
+			LOG_ERROR("Room", "Npc 마커 {} 의 npcTemplateId {} 가 NpcTable에 없어 놓지 않습니다", spawn.PointId, spawn.NpcTemplateId);
+			continue;
+		}
+		// 마커는 지면보다 높게 놓이므로 걷는 영역(지면 높이) 위로 맞춘다. 걷는 영역 밖이면 마커 위치를 그대로 쓰고 경고한다(플레이어가 다가갈 수 없을 수 있음).
+		MapPosition pos = spawn.Pos;
+		Protocol::PositionInfo adjusted;
+		adjusted.set_x(pos.X);
+		adjusted.set_y(pos.Y);
+		adjusted.set_z(pos.Z);
+		NavmeshManager* nav = GetNavManager();
+		if (nav != nullptr && nav->AdjustPositionToNavMesh(adjusted))
+		{
+			pos.X = adjusted.x();
+			pos.Y = adjusted.y();
+			pos.Z = adjusted.z();
+		}
+		else
+		{
+			LOG_WARN("Room", "Npc 마커 {} 가 걷는 영역 위가 아닙니다 ({:.0f}, {:.0f}, {:.0f})", spawn.PointId, pos.X, pos.Y, pos.Z);
+		}
+		const shared_ptr<TownNpc> npc = make_shared<TownNpc>(nextId++, *data, pos);
+		LOG_INFO("Room", "마을 NPC 배치: id {} 종류 {} 상점 {} 위치 ({:.0f}, {:.0f}, {:.0f})", npc->GetId(), data->templateId, data->shopId, pos.X, pos.Y, pos.Z);
+		npc->SetOwnerRoom(shared_from_this());
+		_npcs[npc->GetId()] = npc;
+	}
+	if (!_gameMap.GetNpcSpawns().empty())
+		LOG_INFO("Room", "마을 NPC: 마커 {}곳, 배치 {}명", _gameMap.GetNpcSpawns().size(), _npcs.size());
+}
+
+shared_ptr<TownNpc> Room::GetNpc(int npcId) const
+{
+	auto it = _npcs.find(npcId);
+	return it != _npcs.end() ? it->second : nullptr;
+}
+
+void Room::UpdateNpcView(const shared_ptr<Player>& player)
+{
+	if (_npcs.empty()) return;
+
+	shared_ptr<Session> session = player->GetSession();
+	const Protocol::PositionInfo& pos = player->GetPosition();
+	const float rIn = _gameMap.GetViewRadius();
+	const float rOut = rIn + _gameMap.GetViewHysteresis();
+
+	for (const auto& [npcId, npc] : _npcs)
+	{
+		const Protocol::PositionInfo& npcPos = npc->GetPosition();
+		const float dx = npcPos.x() - pos.x(), dy = npcPos.y() - pos.y();
+		const float distSq = dx * dx + dy * dy;
+		if (player->npcView.count(npcId))
+		{
+			// 나감: R ~ R+H 사이는 그대로 둔다(경계 깜빡임 방지).
+			if (distSq <= rOut * rOut) continue;
+			player->npcView.erase(npcId);
+			if (session) session->Send(PacketSerializer::MAKE_SC_REMOVE_OBJECT(npcId));
+		}
+		else if (distSq <= rIn * rIn)
+		{
+			player->npcView.insert(npcId);
+			if (session) session->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(npc));
+		}
+	}
+}
+
+Protocol::ItemResult Room::CheckShopRequest(const shared_ptr<Player>& player, int npcId, bool needItemOp, shared_ptr<TownNpc>& outNpc)
+{
+	// 검증 순서: 방 안 → 더미 봇 아님 → 생존 → 요청 간격(·진행 중인 작업) → 거래 중 아님 → NPC·상점 존재 → 거리
+	if (false == IsInRoom(player)) return Protocol::ITEM_RESULT_NOT_IN_ROOM;
+	if (player->isDummy || player->GetPlayerUID() == 0) return Protocol::ITEM_RESULT_NOT_ALLOWED;
+	if (player->GetStat().IsDead()) return Protocol::ITEM_RESULT_DEAD;
+	if (needItemOp)
+	{
+		const Protocol::ItemResult check = CheckItemRequest(player);
+		if (check != Protocol::ITEM_RESULT_SUCCESS) return check;
+	}
+	else if (!player->itemOp.interval.IsReady())
+	{
+		return Protocol::ITEM_RESULT_TOO_FREQUENT;
+	}
+	// 1:1 거래가 열려 있으면(요청 대기 포함) 상점 전체를 막는다 — 올린 아이템만 막는 줍기·버리기와 다르다(D-201).
+	if (player->tradeId != 0) return Protocol::ITEM_RESULT_IN_TRADE;
+
+	const shared_ptr<TownNpc> npc = GetNpc(npcId);
+	if (npc == nullptr || npc->GetShopId() == 0) return Protocol::ITEM_RESULT_NO_ITEM;
+
+	const Protocol::PositionInfo& myPos = player->GetPosition();
+	const Protocol::PositionInfo& npcPos = npc->GetPosition();
+	const float dx = npcPos.x() - myPos.x(), dy = npcPos.y() - myPos.y();
+	const float range = static_cast<float>(DataManager::GetEconomy().shopRangeCm);
+	if (dx * dx + dy * dy > range * range) return Protocol::ITEM_RESULT_TOO_FAR;
+
+	outNpc = npc;
+	return Protocol::ITEM_RESULT_SUCCESS;
+}
+
+void Room::PlayerShopOpen(shared_ptr<Player> player, int npcId)
+{
+	if (player == nullptr) return;
+
+	shared_ptr<TownNpc> npc;
+	const Protocol::ItemResult check = CheckShopRequest(player, npcId, false, npc);
+	if (check != Protocol::ITEM_RESULT_SUCCESS)
+	{
+		LOG_DEBUG("Item", "상점 열기 거부 player={} npc={} result={}", player->GetId(), npcId, Protocol::ItemResult_Name(check));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_SHOP_OPEN, check));
+		return;
+	}
+
+	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	if (shared_ptr<Session> session = player->GetSession())
+		session->Send(PacketSerializer::MAKE_SC_SHOP_OPEN(npcId, DataManager::GetShopItems(npc->GetShopId())));
+}
+
+void Room::PlayerShopBuy(shared_ptr<Player> player, int npcId, int itemId, int count)
+{
+	if (player == nullptr) return;
+
+	auto reject = [&](Protocol::ItemResult result) {
+		LOG_DEBUG("Item", "상점 구매 거부 player={} npc={} item={} count={} result={}", player->GetId(), npcId, itemId, count, Protocol::ItemResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_SHOP_BUY, result));
+	};
+
+	shared_ptr<TownNpc> npc;
+	const Protocol::ItemResult check = CheckShopRequest(player, npcId, true, npc);
+	if (check != Protocol::ITEM_RESULT_SUCCESS) { reject(check); return; }
+
+	// 품목 → 수량 → 골드 → 빈 칸
+	const ShopData* row = DataManager::FindShopItem(npc->GetShopId(), itemId);
+	const ItemData* item = row != nullptr ? DataManager::GetItemData(itemId) : nullptr;
+	if (row == nullptr || item == nullptr || count < 1) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+
+	const EconomyData& economy = DataManager::GetEconomy();
+	// 수량 상한(MaxStack × 칸 수)을 먼저 본다 — 아래 총액 계산이 넘치지 않게(PlanAdd도 같은 상한을 본다).
+	if (static_cast<int64_t>(count) > static_cast<int64_t>(item->maxStack) * economy.inventorySlots) { reject(Protocol::ITEM_RESULT_INVENTORY_FULL); return; }
+	const int64_t total = static_cast<int64_t>(row->buyPrice) * count;
+	if (total > player->GetGold()) { reject(Protocol::ITEM_RESULT_NOT_ENOUGH_GOLD); return; }
+
+	DB_ItemOp op;
+	op.kind = ItemOpKind::ShopBuy;
+	op.itemId = itemId;
+	// 덜 찬 스택부터 채우고 남으면 새 칸. 전부 들어갈 자리가 없으면 통째로 거부한다(D-155).
+	if (false == player->inventory.PlanAdd(itemId, count, item->maxStack, economy.inventorySlots, op.fills, op.newCounts, op.newSlots)) { reject(Protocol::ITEM_RESULT_INVENTORY_FULL); return; }
+	op.goldDelta = -total;
+	op.goldMax = economy.goldMax;
+
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+void Room::PlayerShopSell(shared_ptr<Player> player, int npcId, int64_t itemDbId, int count)
+{
+	if (player == nullptr) return;
+
+	auto reject = [&](Protocol::ItemResult result) {
+		LOG_DEBUG("Item", "상점 판매 거부 player={} npc={} dbId={} count={} result={}", player->GetId(), npcId, itemDbId, count, Protocol::ItemResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_SHOP_SELL, result));
+	};
+
+	shared_ptr<TownNpc> npc;
+	const Protocol::ItemResult check = CheckShopRequest(player, npcId, true, npc);
+	if (check != Protocol::ITEM_RESULT_SUCCESS) { reject(check); return; }
+
+	// 인벤토리 위치의 내 행만 판다(장착 중인 것은 먼저 해제해야 한다). 스택은 일부만 팔 수 있다.
+	const ItemInstance* owned = player->inventory.Find(itemDbId);
+	if (owned == nullptr || owned->equipPart != 0 || count < 1 || count > owned->count) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+
+	const ItemData* item = DataManager::GetItemData(owned->itemId);
+	if (item == nullptr || item->sellPrice <= 0) { reject(Protocol::ITEM_RESULT_NOT_SELLABLE); return; }
+
+	const EconomyData& economy = DataManager::GetEconomy();
+	const int64_t total = static_cast<int64_t>(item->sellPrice) * count;
+	if (total > static_cast<int64_t>(economy.goldMax) - player->GetGold()) { reject(Protocol::ITEM_RESULT_GOLD_FULL); return; }
+
+	DB_ItemOp op;
+	op.kind = ItemOpKind::ShopSell;
+	op.itemId = owned->itemId;
+	op.sellDbId = itemDbId;
+	op.sellExpectCount = owned->count;
+	op.sellCount = count;
+	op.goldDelta = total;
+	op.goldMax = economy.goldMax;
+
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
 	StartItemOp(player, op);
 }
 
@@ -1565,6 +1777,50 @@ void Room::OnItemOpDone(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult
 		LOG_DEBUG("Item", "줍기 player={} uid={} drop={} item={} gold={}", player->GetId(), op.playerUID, op.dropId, op.itemId, op.goldDelta);
 		if (!inRoom) break;
 		applyAdded();
+		break;
+	}
+	case ItemOpKind::ShopBuy:
+	{
+		if (!result.success)
+		{
+			if (session) session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_SHOP_BUY, Protocol::ITEM_RESULT_DB_ERROR));
+			break;
+		}
+		LOG_DEBUG("Item", "상점 구매 player={} uid={} item={} gold={} 잔액={}", player->GetId(), op.playerUID, op.itemId, op.goldDelta, result.gold);
+		if (!inRoom) break;
+		applyAdded();
+		break;
+	}
+	case ItemOpKind::ShopSell:
+	{
+		if (!result.success)
+		{
+			if (session) session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_SHOP_SELL, Protocol::ITEM_RESULT_DB_ERROR));
+			break;
+		}
+		LOG_DEBUG("Item", "상점 판매 player={} uid={} dbId={} item={} count={}/{} gold=+{} 잔액={}", player->GetId(), op.playerUID, op.sellDbId, op.itemId, op.sellCount, op.sellExpectCount, op.goldDelta, result.gold);
+		if (!inRoom) break;
+
+		// 수량: 전량이면 행이 사라지고, 아니면 판 만큼 줄어든다.
+		vector<int64_t> removed;
+		if (const ItemInstance* found = player->inventory.Find(op.sellDbId))
+		{
+			if (op.sellCount >= op.sellExpectCount)
+			{
+				player->inventory.Remove(op.sellDbId);
+				removed.push_back(op.sellDbId);
+			}
+			else
+			{
+				ItemInstance left = *found;
+				left.count = op.sellExpectCount - op.sellCount;
+				player->inventory.Set(left);
+				changed.push_back(left);
+			}
+		}
+		if (result.gold >= 0)
+			player->SetGold(result.gold);
+		if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, removed, player->GetGold()));
 		break;
 	}
 	case ItemOpKind::Discard:

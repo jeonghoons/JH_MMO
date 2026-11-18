@@ -25,6 +25,7 @@ void UJMInventoryManager::HandleInventory(const Protocol::SC_INVENTORY_PACKET& P
 	MaxSlots = Pkt.max_slots();
 	PickupRangeCm = Pkt.pickup_range_cm();
 	TradeRangeCm = Pkt.trade_range_cm();
+	ShopRangeCm = Pkt.shop_range_cm();
 	QuickSlotItems.Reset();
 	for (const int32 ItemId : Pkt.quick_slots()) QuickSlotItems.Add(ItemId);
 	bReceived = true;

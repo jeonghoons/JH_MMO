@@ -65,6 +65,15 @@ void PacketHandler::Init()
         return ParseAndHandle<Protocol::CS_PICKUP_ITEM_PACKET>(&PacketHandler::Handle_CS_PICKUP_ITEM, session, buffer, len);
         };
 
+    GPacketHandler[Protocol::CS_SHOP_OPEN] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_SHOP_OPEN_PACKET>(&PacketHandler::Handle_CS_SHOP_OPEN, session, buffer, len);
+        };
+    GPacketHandler[Protocol::CS_SHOP_BUY] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_SHOP_BUY_PACKET>(&PacketHandler::Handle_CS_SHOP_BUY, session, buffer, len);
+        };
+    GPacketHandler[Protocol::CS_SHOP_SELL] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_SHOP_SELL_PACKET>(&PacketHandler::Handle_CS_SHOP_SELL, session, buffer, len);
+        };
     GPacketHandler[Protocol::CS_DROP_ITEM] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_DROP_ITEM_PACKET>(&PacketHandler::Handle_CS_DROP_ITEM, session, buffer, len);
         };
@@ -298,6 +307,40 @@ void PacketHandler::Handle_CS_DROP_ITEM(shared_ptr<GameSession> session, Protoco
 
     // 보유 검증과 DB 트랜잭션은 Room 잡에서 한다.
     room->PushJob(&Room::PlayerDropItem, player, static_cast<int64_t>(pkt.item_db_id()));
+}
+
+// 상점 NPC(L4, D-201·D-202). NPC 존재·거리·거래 중·골드·빈 칸 검증과 DB 트랜잭션은 Room 잡에서 한다.
+void PacketHandler::Handle_CS_SHOP_OPEN(shared_ptr<GameSession> session, Protocol::CS_SHOP_OPEN_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::PlayerShopOpen, player, static_cast<int>(pkt.npc_id()));
+}
+
+void PacketHandler::Handle_CS_SHOP_BUY(shared_ptr<GameSession> session, Protocol::CS_SHOP_BUY_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::PlayerShopBuy, player, static_cast<int>(pkt.npc_id()), static_cast<int>(pkt.item_id()), static_cast<int>(pkt.count()));
+}
+
+void PacketHandler::Handle_CS_SHOP_SELL(shared_ptr<GameSession> session, Protocol::CS_SHOP_SELL_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::PlayerShopSell, player, static_cast<int>(pkt.npc_id()), static_cast<int64_t>(pkt.item_db_id()), static_cast<int>(pkt.count()));
 }
 
 void PacketHandler::Handle_CS_USE_ITEM(shared_ptr<GameSession> session, Protocol::CS_USE_ITEM_PACKET& pkt)
