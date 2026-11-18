@@ -28,6 +28,8 @@ public:
 	// 큐가 가득 차 버린 로그 수(누적)
 	static long long Dropped() { return _dropped.load(std::memory_order_relaxed); }
 	static const std::string& FilePath();
+	// Init한 시각 "YYYYMMDD_HHMMSS"(로그 파일 이름에 쓴 값). metrics.csv의 실행 ID로도 쓴다. Init 전에는 빈 문자열.
+	static const std::string& StartStamp();
 	static const char* LevelName(LogLevel level);
 
 private:

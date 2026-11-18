@@ -3,6 +3,7 @@
 #include "Network/NetStats.h"
 #include "Game/Room/Room.h"
 #include <fstream>
+#include <filesystem>
 #include <thread>
 
 namespace
@@ -18,14 +19,57 @@ namespace
 		return static_cast<double>(sorted[idx]);
 	}
 
+	constexpr const char* CSV_PATH = "metrics.csv";
+	constexpr const char* CSV_HEADER =
+		"run_id,time,sessions,rooms,players,packets_in_ps,messages_out_ps,tick_late_avg_ms,tick_late_max_ms,tick_body_avg_ms,tick_body_max_ms,"
+		"send_calls_ps,bufs_per_send,tick_late_p99_ms,tick_body_p99_ms,sendq_session_max";
+
+	// metrics.csv를 이어쓰기로 연다. 헤더는 파일이 없거나 비었을 때만 쓴다(재시작마다 헤더가 다시 들어가던 문제 — P1a).
+	// 열 구성이 다른 옛 파일은 이름을 바꿔 남기고 새로 시작한다. 실행은 run_id 열(= 로그 파일의 시작 시각)로 구분한다.
+	std::ofstream OpenCsv()
+	{
+		namespace fs = std::filesystem;
+		std::error_code ec;
+		bool needHeader = true;
+		if (fs::exists(CSV_PATH, ec) && fs::file_size(CSV_PATH, ec) > 0)
+		{
+			std::string firstLine;
+			{
+				std::ifstream in(CSV_PATH);
+				std::getline(in, firstLine);
+			}
+			if (!firstLine.empty() && firstLine.back() == '\r') firstLine.pop_back();
+
+			if (firstLine == CSV_HEADER)
+			{
+				needHeader = false;
+			}
+			else
+			{
+				const std::string oldName = std::format("metrics_old_{}.csv", Logger::StartStamp());
+				fs::rename(CSV_PATH, oldName, ec);
+				if (ec)
+					LOG_WARN("metrics", "metrics.csv의 열 구성이 다른데 이름을 바꾸지 못했습니다({}) — 그대로 이어 씁니다", ec.message());
+				else
+					LOG_INFO("metrics", "metrics.csv의 열 구성이 달라 {}로 옮기고 새로 시작합니다", oldName);
+			}
+		}
+
+		std::ofstream csv(CSV_PATH, std::ios::app);
+		if (needHeader)
+			csv << CSV_HEADER << "\n";
+		return csv;
+	}
+
 	void ReportLoop()
 	{
-		std::ofstream csv("metrics.csv", std::ios::app);
-		if (csv.tellp() == 0)
-			csv << "time,sessions,rooms,players,packets_in_ps,messages_out_ps,tick_late_avg_ms,tick_late_max_ms,tick_body_avg_ms,tick_body_max_ms\n";
+		std::ofstream csv = OpenCsv();
+		const std::string runId = Logger::StartStamp();
 
 		long long prevIn = NetStats::PacketsIn.load();
 		long long prevOut = NetStats::MessagesOut.load();
+		long long prevSendCalls = NetStats::SendCalls.load();
+		long long prevSendBufs = NetStats::SendBufs.load();
 		long long prevAtkReq = Metrics::AttackRequests.load();
 		long long prevAtkOk = Metrics::AttackAccepted.load();
 
@@ -39,6 +83,15 @@ namespace
 			double outPs = (nowOut - prevOut) / static_cast<double>(REPORT_INTERVAL_SEC);
 			prevIn = nowIn;
 			prevOut = nowOut;
+
+			// WSASend 호출 수/s와 호출 한 번에 실린 메시지 수(WSABUF 평균) — 송신 묶기(P1b)의 효과 지표
+			const long long nowSendCalls = NetStats::SendCalls.load();
+			const long long nowSendBufs = NetStats::SendBufs.load();
+			const double sendCallsPs = (nowSendCalls - prevSendCalls) / static_cast<double>(REPORT_INTERVAL_SEC);
+			const double bufsPerSend = (nowSendCalls > prevSendCalls)
+				? (nowSendBufs - prevSendBufs) / static_cast<double>(nowSendCalls - prevSendCalls) : 0.0;
+			prevSendCalls = nowSendCalls;
+			prevSendBufs = nowSendBufs;
 
 			const long long atkReq = Metrics::AttackRequests.load();
 			const long long atkOk = Metrics::AttackAccepted.load();
@@ -69,7 +122,7 @@ namespace
 			const Metrics::Percentiles pgTotal = Metrics::ProgressSaveTotalUs.TakeAndReset();
 
 			LOG_INFO("metrics",
-				"sessions={} rooms={} players={} monsters={} in/s={:.0f} out/s={:.0f} atk(req/ok per s)={:.1f}/{:.1f} zones(total created/hits)={}/{} "
+				"sessions={} rooms={} players={} monsters={} in/s={:.0f} out/s={:.0f} sendCalls/s={:.0f} bufsPerSend={:.2f} atk(req/ok per s)={:.1f}/{:.1f} zones(total created/hits)={}/{} "
 				"move(total ok/speed/nav/bad/stale/rate)={}/{}/{}/{}/{}/{} "
 				"tickLate(avg/p50/p95/p99/max ms)={:.1f}/{:.1f}/{:.1f}/{:.1f}/{:.1f} tickBody(avg/p50/p95/p99/max ms)={:.2f}/{:.2f}/{:.2f}/{:.2f}/{:.2f} "
 				"viewPlayers(avg/p99/max)={:.1f}/{:.0f}/{:.0f} viewObjects(avg/p99/max)={:.1f}/{:.0f}/{:.0f} sendQ(total/sessionMax)={}/{} logDrop={} "
@@ -81,7 +134,7 @@ namespace
 				"revive(total deaths/ok/reject/deadMove)={}/{}/{}/{} portal(total ok/reject)={}/{} "
 				"login(total kick/busy/forced)={}/{}/{} "
 				"drops(now kills/created/expired/evicted)={} {}/{}/{}/{} pickup(picked/discarded)={}/{} trades={}",
-				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
+				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, sendCallsPs, bufsPerSend, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
 				late.avg / 1000.0, late.p50 / 1000.0, late.p95 / 1000.0, late.p99 / 1000.0, late.max / 1000.0,
@@ -104,9 +157,10 @@ namespace
 				Metrics::DropsPicked.load(), Metrics::DropsDiscarded.load(), Metrics::TradesDone.load());
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-			csv << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","
+			csv << runId << "," << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","
 				<< inPs << "," << outPs << "," << late.avg / 1000.0 << "," << late.max / 1000.0 << ","
-				<< body.avg / 1000.0 << "," << body.max / 1000.0 << "\n";
+				<< body.avg / 1000.0 << "," << body.max / 1000.0 << ","
+				<< sendCallsPs << "," << bufsPerSend << "," << late.p99 / 1000.0 << "," << body.p99 / 1000.0 << "," << sendQueueMax << "\n";
 			csv.flush();
 		}
 	}

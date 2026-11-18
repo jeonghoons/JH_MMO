@@ -28,6 +28,7 @@ namespace
 	std::thread gThread;
 	FILE* gFile = nullptr;
 	std::string gFilePath;
+	std::string gStartStamp;   // Init 시각 "YYYYMMDD_HHMMSS"
 	std::mutex gDirectMutex;   // Init 전·Shutdown 후 직접 출력용
 	std::once_flag gConsoleOnce;
 
@@ -123,6 +124,11 @@ const std::string& Logger::FilePath()
 	return gFilePath;
 }
 
+const std::string& Logger::StartStamp()
+{
+	return gStartStamp;
+}
+
 bool Logger::Init(LogLevel minLevel, const std::string& dir, const std::string& filePrefix, std::string& err)
 {
 	EnsureConsoleUtf8();
@@ -132,6 +138,15 @@ bool Logger::Init(LogLevel minLevel, const std::string& dir, const std::string& 
 	{
 		err = "logger is already initialized";
 		return false;
+	}
+
+	// 시작 시각 문자열: 로그 파일 이름과 metrics.csv의 실행 ID(run_id)가 같은 값을 쓴다.
+	{
+		const std::time_t t = std::time(nullptr);
+		std::tm lt{};
+		localtime_s(&lt, &t);
+		gStartStamp = std::format("{:04}{:02}{:02}_{:02}{:02}{:02}",
+			lt.tm_year + 1900, lt.tm_mon + 1, lt.tm_mday, lt.tm_hour, lt.tm_min, lt.tm_sec);
 	}
 
 	if (!dir.empty())
@@ -145,11 +160,7 @@ bool Logger::Init(LogLevel minLevel, const std::string& dir, const std::string& 
 			return false;
 		}
 
-		const std::time_t t = std::time(nullptr);
-		std::tm lt{};
-		localtime_s(&lt, &t);
-		const std::string fileName = std::format("{}_{:04}{:02}{:02}_{:02}{:02}{:02}.log", filePrefix,
-			lt.tm_year + 1900, lt.tm_mon + 1, lt.tm_mday, lt.tm_hour, lt.tm_min, lt.tm_sec);
+		const std::string fileName = std::format("{}_{}.log", filePrefix, gStartStamp);
 		const fs::path path = fs::path(dir) / fileName;
 
 		if (fopen_s(&gFile, path.string().c_str(), "ab") != 0 || gFile == nullptr)

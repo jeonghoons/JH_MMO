@@ -215,6 +215,9 @@ void Session::RegisterSend()
 	}
 
 
+	NetStats::SendCalls.fetch_add(1);
+	NetStats::SendBufs.fetch_add(static_cast<long long>(wsaBufs.size()));
+
 	DWORD numOfBytes = 0;
 	if (SOCKET_ERROR == ::WSASend(_socket, wsaBufs.data(), (DWORD)wsaBufs.size(), &numOfBytes, 0, &_sendEvent, nullptr))
 	{

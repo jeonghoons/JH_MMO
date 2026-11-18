@@ -76,6 +76,8 @@ Server 코드는 별도 접두사 규칙 없이 기능 위주로 클래스/함�
 
 서버 출력은 `cout`/`printf` 대신 ServerCore `Utils/Logger`의 `LOG_DEBUG/INFO/WARN/ERROR("카테고리", "형식 {}", 값)`(std::format 문법)을 씁니다. `CorePch.h`에 들어 있어 어디서나 쓸 수 있습니다. 게임 스레드는 레벨 확인 → 포맷 → 큐에 넣기만 하고 전용 스레드가 콘솔과 `Log.Dir`(기본 `Server/Server/Logs/GameServer_<시작시각>.log`, 커밋 안 됨)에 씁니다. 큐가 가득 차면(65,536줄) 버리고 개수를 세며(`[metrics]`의 `logDrop`, `[Logger]` 경고 줄), 종료(`exit`·Ctrl+C·창 닫기) 시 남은 로그를 씁니다. 레벨 기준: 플레이어·연결·패킷마다 남는 로그는 **Debug**(기본 Info에서는 출력 안 됨), 시작·로드·메트릭은 Info, 비정상 입력은 Warn, 실패는 Error. 와이드 문자열은 `Utils::WStringToUTF8`로 바꿔 넘깁니다.
 
+**지표 (`Utils/Metrics`, ServerCore `Network/NetStats`)**: 5초마다 `[metrics]` 로그 한 줄과 작업 폴더의 `metrics.csv` 한 행을 남깁니다. 핫패스에서는 atomic 증가만 하고 집계는 리포터 스레드가 합니다. `metrics.csv`의 `run_id` 열은 `Logger::StartStamp()`(로그 파일 이름의 시작 시각)이고, 열을 바꾸면 `Metrics.cpp`의 `CSV_HEADER`와 행 출력을 함께 고칩니다(옛 파일은 서버가 `metrics_old_<run_id>.csv`로 옮김). 송신 지표 `sendCalls/s`·`bufsPerSend`는 `Session::RegisterSend`에서 셉니다(P1a). 열 설명과 측정 자료 보관 규칙은 [Docs/TESTING.md](../Docs/TESTING.md) "부하 테스트 하니스".
+
 **인코딩:** 서버 프로젝트(GameServer·ServerCore·NavGenerator·봇)는 모두 `/utf-8`로 컴파일하고 소스는 UTF-8입니다. 문자열 리터럴·로그 파일·콘솔·클라이언트 문자열(Protobuf)이 모두 UTF-8이므로, 클라이언트 문자열을 `WCHAR`로 바꿀 때는 `CP_UTF8`(또는 `Utils::UTF8ToWString`)을 씁니다(`CP_ACP` 금지).
 
 ## 데이터 테이블 (CSV 로더)
