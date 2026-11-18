@@ -232,6 +232,12 @@ message SC_USE_ITEM_PACKET {
 	int32 cooldown_ms = 4;              // 그 종류의 재사용 시간(ItemTable.UseCooldownMs, 서버 값). 본인의 칸 표시에 쓴다
 }
 
+// 피해(SC_DAMAGE)·아이템 사용(SC_USE_ITEM)이 아닌 HP 변화(L3, D-193). 클라이언트는 피격 연출 없이 HP만 반영한다.
+message SC_CHANGE_HP_PACKET {
+	int32 object_id = 1;
+	int32 hp = 2;                       // 바뀐 뒤 HP
+}
+
 // 아이템 요청 거부를 요청한 본인에게만 보낸다(장착 거부는 SC_CHANGE_EQUIP_RESULT).
 message SC_ITEM_RESULT_PACKET {
 	PacketId request = 1;               // 거부된 요청의 패킷 id (CS_DEV_GIVE 등)

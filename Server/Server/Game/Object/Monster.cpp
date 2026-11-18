@@ -18,6 +18,11 @@ Monster::Monster(int templateId) : Character(Protocol::ObjectType::OBJECT_TYPE_M
 		if (const SkillData* skill = DataManager::GetSkillData(_skillId)) {
 			_attackRange = skill->radius;
 		}
+		_wanderRadius = static_cast<float>(monsterData->wanderRadiusCm);
+		_aggroRange = static_cast<float>(monsterData->aggroRangeCm);
+		_leashRange = static_cast<float>(monsterData->leashRangeCm);
+		_returnMode = monsterData->returnMode;
+		_bodyRadius = static_cast<float>(monsterData->bodyRadiusCm);
 	}
 
 	_maxSpeed = _statInfo.GetMoveSpeed();
@@ -61,13 +66,45 @@ void Monster::Update(float deltaTime)
 
 void Monster::OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker)
 {
+	if (_statInfo.IsDead()) return;
+
+	std::shared_ptr<Player> attackerPlayer;
+	if (attacker && attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER)
+		attackerPlayer = std::static_pointer_cast<Player>(attacker);
+
+	// 안전 구역 안에서 준 피해는 받지 않는다(양방향 차단, D-195). 공격자가 이미 사라졌으면(nullptr) 그대로 적용한다.
+	if (attackerPlayer) {
+		auto room = GetCurrentRoom();
+		if (room && room->GetGameMap().IsInSafeZone(attackerPlayer->GetPosition())) return;
+	}
+
+	// 복귀 중 피해 무시(ReturnMode 1)
+	if (_monsterState == MonsterState::RETURN && _returnMode == MONSTER_RETURN_EVADE) return;
+
 	Character::OnDamaged(damage, attackerId, attacker);
+
+	// 이 피해로 죽었으면 OnDead가 상태를 정리했다. 죽은 몬스터의 상태를 다시 바꾸지 않는다.
+	if (_statInfo.IsDead()) return;
+
+	// 걸어서 복귀 중(ReturnMode 0): 나와 공격자가 모두 추격 제한 안일 때만 다시 쫓는다. 아니면 맞으면서 계속 돌아간다.
+	if (_monsterState == MonsterState::RETURN)
+	{
+		const float leashSq = _leashRange * _leashRange;
+		if (attackerPlayer && IsTargetable(attackerPlayer) && DistSqToHome() <= leashSq &&
+			DistSqFromHome(attackerPlayer->GetPosition().x(), attackerPlayer->GetPosition().y()) <= leashSq)
+		{
+			_targetPlayer = attackerPlayer;
+			ChangeState(MonsterState::TRACE);
+		}
+		return;
+	}
 
 	ChangeState(MonsterState::HIT);
 
-	// 공격자가 이미 사라졌으면 어그로 대상은 바꾸지 않는다.
-	if (attacker && attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) {
-		_targetPlayer = std::static_pointer_cast<Player>(attacker);
+	// 맞으면 선공·비선공 모두 공격자를 쫓는다(거리 무관 — 포기는 추격 제한이 정한다). 대상은 마지막으로 때린 사람.
+	// 공격자가 사라졌거나 대상으로 삼을 수 없으면 HIT에 머물다 경직이 끝나면 배회로 돌아간다(UpdateHit).
+	if (attackerPlayer && IsTargetable(attackerPlayer)) {
+		_targetPlayer = attackerPlayer;
 		ChangeState(MonsterState::TRACE);
 	}
 }
@@ -104,6 +141,7 @@ void Monster::UpdateAI()
 	case MonsterState::TRACE:  UpdateTrace();  break;
 	case MonsterState::ATTACK: UpdateAttack(); break;
 	case MonsterState::HIT:    UpdateHit();    break;
+	case MonsterState::RETURN: UpdateReturn(); break;
 	}
 }
 
@@ -120,6 +158,13 @@ void Monster::ChangeState(MonsterState newState)
 	else if (_monsterState == MonsterState::PATROL) {
 		_patrolTimer.Reset(1000);
 	}
+	else if (_monsterState == MonsterState::RETURN) {
+		_targetPlayer.reset();
+		_pathSearchTimer.Reset(0);
+		// 홈까지 걷는 데 걸릴 시간의 두 배 + 5초 안에 닿지 못하면 홈으로 옮긴다(UpdateReturn).
+		const float distCm = sqrtf(DistSqToHome());
+		_returnTimer.Reset(static_cast<long long>(distCm / max(_maxSpeed, 1.f) * 2000.f) + 5000);
+	}
 }
 
 void Monster::UpdateNone()
@@ -127,46 +172,87 @@ void Monster::UpdateNone()
 
 }
 
+float Monster::DistSqFromHome(float x, float y) const
+{
+	if (!_hasHome) return 0.f;
+	const float dx = x - _homePos.x(), dy = y - _homePos.y();
+	return dx * dx + dy * dy;
+}
+
+float Monster::DistSqToHome() const
+{
+	return DistSqFromHome(_objectInfo.position().x(), _objectInfo.position().y());
+}
+
+bool Monster::IsTargetable(const std::shared_ptr<Player>& player) const
+{
+	if (player == nullptr || player->GetStat().IsDead()) return false;
+	// 내 시야 목록에 없으면 방을 나갔거나 시야 밖이다(Player 객체는 세션이 잡고 있어 방을 나가도 살아 있다).
+	if (std::find(_viewList.begin(), _viewList.end(), player->GetId()) == _viewList.end()) return false;
+	auto room = GetCurrentRoom();
+	if (room == nullptr) return false;
+	return !room->GetGameMap().IsInSafeZone(player->GetPosition());
+}
+
+bool Monster::IsInSafeZone() const
+{
+	auto room = GetCurrentRoom();
+	return room != nullptr && room->GetGameMap().IsInSafeZone(_objectInfo.position());
+}
+
 void Monster::UpdatePatrol()
 {
 	auto room = GetCurrentRoom();
 	if (room == nullptr) return;
 
-	std::shared_ptr<Player> closestPlayer = nullptr;
-	float currentMinDistSq = FLT_MAX;
-	float traceRangeSq = _traceRange * _traceRange;
-
-	for (int objectId : _viewList)
+	// 홈에서 배회 반경 밖에 있으면(추격 중 잠들었다 깨어난 경우 등) 배회가 아니라 복귀부터 한다.
+	const float homeSlack = _wanderRadius + 200.f;
+	if (_hasHome && DistSqToHome() > homeSlack * homeSlack)
 	{
-		auto object = room->GetGameObject(objectId);
-		if (!object || object->GetType() != Protocol::ObjectType::OBJECT_TYPE_PLAYER) continue;
-
-		shared_ptr<Player> player = std::static_pointer_cast<Player>(object);
-
-		float diffX = player->GetPosition().x() - GetPosition().x();
-		float diffY = player->GetPosition().y() - GetPosition().y();
-		float distSq = diffX * diffX + diffY * diffY;
-
-		if (distSq < currentMinDistSq && distSq <= traceRangeSq && !player->GetStat().IsDead())
-		{
-			currentMinDistSq = distSq;
-			closestPlayer = player;
-		}
+		ChangeState(MonsterState::RETURN);
+		return;
 	}
 
-	if (closestPlayer)
+	// 선공(AggroRangeCm > 0)만 먼저 찾는다. 후보 = 대상으로 삼을 수 있고, 인식 범위 안이고, 홈에서 추격 제한 안에 있는 가장 가까운 플레이어.
+	// (추격 제한 밖의 플레이어를 잡으면 쫓자마자 복귀해 추격·복귀를 되풀이한다)
+	if (_aggroRange > 0.f)
 	{
-		_targetPlayer = closestPlayer;
-		ChangeState(MonsterState::TRACE);
-		return;
+		std::shared_ptr<Player> closestPlayer = nullptr;
+		float currentMinDistSq = FLT_MAX;
+		const float aggroRangeSq = _aggroRange * _aggroRange;
+		const float leashSq = _leashRange * _leashRange;
+
+		for (int objectId : _viewList)
+		{
+			auto object = room->GetGameObject(objectId);
+			if (!object || object->GetType() != Protocol::ObjectType::OBJECT_TYPE_PLAYER) continue;
+
+			shared_ptr<Player> player = std::static_pointer_cast<Player>(object);
+
+			float diffX = player->GetPosition().x() - GetPosition().x();
+			float diffY = player->GetPosition().y() - GetPosition().y();
+			float distSq = diffX * diffX + diffY * diffY;
+
+			if (distSq < currentMinDistSq && distSq <= aggroRangeSq && IsTargetable(player) &&
+				DistSqFromHome(player->GetPosition().x(), player->GetPosition().y()) <= leashSq)
+			{
+				currentMinDistSq = distSq;
+				closestPlayer = player;
+			}
+		}
+
+		if (closestPlayer)
+		{
+			_targetPlayer = closestPlayer;
+			ChangeState(MonsterState::TRACE);
+			return;
+		}
 	}
 
 	if (!_hasPath && _patrolTimer.IsReady())
 	{
-		// 배회 범위는 MonsterTable.WanderRadiusCm (임시 — 행동트리 개선 때 재검토)
-		const MonsterData* data = DataManager::GetMonsterData(_objectInfo.template_id());
-		const float wanderRadius = data ? static_cast<float>(data->wanderRadiusCm) : 500.f;
-		Protocol::PositionInfo randomDest = room->GetGameMap().GetRandomPosNear(_objectInfo.position(), wanderRadius);
+		// 배회: 홈 중심 MonsterTable.WanderRadiusCm 안의 임의 지점(현재 위치 기준으로 고르면 걸을수록 스폰 지점에서 멀어진다)
+		Protocol::PositionInfo randomDest = room->GetGameMap().GetRandomPosNear(_hasHome ? _homePos : _objectInfo.position(), _wanderRadius);
 
 		std::vector<Protocol::PositionInfo> newPath;
 		if (room->GetNavManager()->FindPath(_objectInfo.position(), randomDest, newPath))
@@ -184,24 +270,18 @@ void Monster::UpdatePatrol()
 
 void Monster::UpdateTrace()
 {
+	// 추격 포기(L3, D-193): 대상을 잃음(사망·시야 이탈·방 퇴장·안전 구역 진입) / 내가 홈에서 추격 제한을 넘음 / 내가 안전 구역에 닿음 → 홈으로 복귀.
+	// 대상과의 거리로는 포기하지 않는다(원거리 공격을 맞고도 쫓아가야 한다).
 	shared_ptr<Player> target = _targetPlayer.lock();
-	if (target == nullptr || target->GetStat().IsDead())
+	if (!IsTargetable(target) || DistSqToHome() > _leashRange * _leashRange || IsInSafeZone())
 	{
-		_targetPlayer.reset();
-		ChangeState(MonsterState::PATROL);
+		ChangeState(MonsterState::RETURN);
 		return;
 	}
 
 	float diffX = target->GetPosition().x() - _objectInfo.position().x();
 	float diffY = target->GetPosition().y() - _objectInfo.position().y();
 	float distSq = diffX * diffX + diffY * diffY;
-
-	if (distSq > _traceRange * _traceRange)
-	{
-		_targetPlayer.reset();
-		ChangeState(MonsterState::PATROL);
-		return;
-	}
 
 	if (distSq <= _attackRange * _attackRange)
 	{
@@ -232,10 +312,11 @@ void Monster::UpdateTrace()
 
 void Monster::UpdateAttack()
 {
+	// 포기 조건은 UpdateTrace와 같다.
 	auto target = _targetPlayer.lock();
-	if (target == nullptr || target->GetStat().IsDead())
+	if (!IsTargetable(target) || DistSqToHome() > _leashRange * _leashRange || IsInSafeZone())
 	{
-		ChangeState(MonsterState::PATROL);
+		ChangeState(MonsterState::RETURN);
 		return;
 	}
 
@@ -267,7 +348,61 @@ void Monster::UpdateHit()
 {
 	if (IsHit()) return;
 
-	ChangeState(MonsterState::NONE);
+	// 쫓을 대상 없이 맞은 경우(공격자가 사라짐)만 여기로 온다. 경직이 끝나면 배회로 돌아간다(NONE에 두면 다시 깨어날 때까지 멈춘다).
+	ChangeState(MonsterState::PATROL);
+}
+
+void Monster::UpdateReturn()
+{
+	auto room = GetCurrentRoom();
+	if (room == nullptr) return;
+
+	// 도착 판정은 수평 거리(홈은 내비메시 위로 보정된 자리라 경로 끝과 거의 같다)
+	if (!_hasHome || DistSqToHome() <= 100.f * 100.f)
+	{
+		ArriveHome();
+		return;
+	}
+
+	// 제한 시간 안에 닿지 못했다(경로가 끊겼거나 부분 경로만 나옴): 홈으로 옮긴다.
+	if (_returnTimer.IsReady())
+	{
+		StopMove();
+		Protocol::PositionInfo home = _homePos;
+		home.set_state(Protocol::MOVE_STATE_IDLE);
+		SetPosition(home);
+		room->NPCMove(std::static_pointer_cast<Monster>(shared_from_this()));
+		room->BroadcastAOI(static_pointer_cast<Character>(shared_from_this()), PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_from_this()));
+		LOG_DEBUG("Monster", "몬스터 {} 가 제한 시간 안에 홈에 닿지 못해 홈으로 옮겼습니다", GetId());
+		ArriveHome();
+		return;
+	}
+
+	if (!_hasPath && _pathSearchTimer.IsReady() && room->GetNavManager())
+	{
+		std::vector<Protocol::PositionInfo> newPath;
+		if (room->GetNavManager()->FindPath(GetPosition(), _homePos, newPath))
+		{
+			SetPath(newPath);
+			_pathSearchTimer.Reset(1000);
+		}
+		else
+		{
+			_pathSearchTimer.Reset(500);
+		}
+	}
+}
+
+void Monster::ArriveHome()
+{
+	// ReturnMode 1: 복귀를 마치면 HP를 가득 채운다. 피해·아이템이 아닌 HP 변화라 SC_CHANGE_HP로 알린다.
+	if (_returnMode == MONSTER_RETURN_EVADE && !_statInfo.IsDead() && _statInfo.GetHp() < _statInfo.GetMaxHp())
+	{
+		_statInfo.OnHealed(_statInfo.GetMaxHp());
+		if (auto room = GetCurrentRoom())
+			room->BroadcastAOI(static_pointer_cast<Character>(shared_from_this()), PacketSerializer::MAKE_SC_CHANGE_HP(GetId(), _statInfo.GetHp()));
+	}
+	ChangeState(MonsterState::PATROL);
 }
 
 void Monster::SetPath(const std::vector<Protocol::PositionInfo>& path)
@@ -316,6 +451,7 @@ void Monster::SleepIfNoPlayer()
 	if (_viewList.empty())
 	{
 		_wakeUp = false;
+		_targetPlayer.reset();
 		ChangeState(MonsterState::NONE);
 	}
 }

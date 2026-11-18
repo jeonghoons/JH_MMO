@@ -23,6 +23,7 @@ public:
 		long long actionMs;     // 행동 잠금: 이 시간 동안 다음 시전 불가 (= 애니메이션 1회)
 		long long hitDelayMs;   // 판정 시점
 		long long cooldownMs;   // 스킬 쿨타임 (기본 공격은 0)
+		long long moveLockMs;   // 이동 잠금 시간 (SkillTable.MoveLockMs, 기본 공격은 AttackSpeed로 나눈 값)
 	};
 
 	// 슬롯의 스킬을 지금 시전할 수 있는지 확인한다(부수 효과 없음).
@@ -40,6 +41,8 @@ public:
 	// 시전 없이 공용 행동 잠금만 건다 (무기 스왑, DECISIONS 2026-11-04). 스킬 쿨타임은 건드리지 않는다.
 	void LockActionForSwap(long long ms) { _actionTimer.Reset(ms); _actionIsSwapLock = true; }
 	virtual int GetHitStunMs() const { return 300; }   // 피격 후 행동이 막히는 시간
+	// 몸 반경(cm): 이 캐릭터를 맞히는 판정에 더한다. 몬스터는 MonsterTable.BodyRadiusCm, 플레이어는 0(중심점 판정) (MN1, D-198)
+	virtual float GetBodyRadius() const { return 0.f; }
 	// SC_DEAD에 싣는 부활 대기 시간(ms). 플레이어만 값이 있고 그 밖은 0 (A2.4)
 	virtual int GetReviveDelayMs() const { return 0; }
 	// 부활할 때 피격 경직·행동 잠금을 푼다(스킬 쿨타임은 그대로).

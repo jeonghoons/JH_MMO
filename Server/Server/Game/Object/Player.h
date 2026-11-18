@@ -56,6 +56,12 @@ public:
 	float GetMoveSpeedLimit(const MovementData& rule) const;
 	void AccrueMoveBudget(long long nowMs, const MovementData& rule);
 
+	// 이동 잠금(D-199): 시전부터 휘두르기가 끝날 때까지(SkillTable.MoveLockMs) 이동을 받지 않는다. 잠금 동안에는 이동 예산이 쌓이지 않고,
+	// 시작할 때 예산을 ServerMoveLockSlackCm로 줄인다(시전 순간 서버가 아는 위치와 클라이언트가 멈춘 위치의 차이만 받아 준다).
+	long long moveLockUntilMs = 0;
+	bool IsMoveLocked(long long nowMs) const { return nowMs < moveLockUntilMs; }
+	void BeginMoveLock(long long nowMs, long long lockMs, const MovementData& rule);
+
 	// 스킬 조준 상태(MC4.2d-1, DECISIONS 2026-11-09). Room 잡 안에서만 읽고 쓴다. 방에 들어갈 때 초기화한다.
 	struct AimState
 	{

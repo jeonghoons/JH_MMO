@@ -143,7 +143,8 @@ private:
 
 	const FSkillTableRow* FindMySkill(int32 Slot) const;
 	bool ComputeAim(const FSkillTableRow& Skill, FAimResult& Out) const;
-	void DrawAimIndicator(const FSkillTableRow& Skill, const FAimResult& Aim) const;
+	// Duration < 0이면 한 프레임(조준 중 매 틱 다시 그림), 0 이상이면 그 시간 동안 남긴다(시전한 공격의 범위 표시, D-199).
+	void DrawAimIndicator(const FSkillTableRow& Skill, const FAimResult& Aim, float Duration = -1.f) const;
 	void CastSkillSlot(int32 Slot);
 
 	// 조준 켜기/끄기. 켜기는 쿨타임·사망·빈도·AimMaxMs를 로컬에서 먼저 본다. bSendOff = 서버에 끄기를 보낼지(확정 공격은 서버가 해제하므로 false)
@@ -159,6 +160,12 @@ private:
 	float AimMinInterval = 0.2f;       // MovementTable.ServerAimMinIntervalMs (PossessedBy)
 	TMap<int32, double> SkillCooldownEnd;   // 스킬 ID → 쿨타임 끝 시각(FPlatformTime::Seconds)
 	uint64 LastAttackInputFrame = 0;
+
+	// 이동 잠금(D-199): 시전부터 휘두르기 끝(SkillTable.MoveLockMs)까지 이동 입력을 받지 않는다. 서버도 같은 시간 동안 이동을 거부한다.
+	// LocalActionUntil = 내가 보낸 시전의 동작이 끝나는 시각(월드 초). 그 전에 누른 공격은 서버가 받지 않으므로 잠금·범위 표시를 다시 걸지 않는다.
+	double MoveLockUntil = 0.0;
+	double LocalActionUntil = 0.0;
+	bool IsMoveLocked() const;
 
 	TArray<FQuickSlot> QuickSlots;
 };

@@ -31,6 +31,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_INVENTORY_UPDATE, &FPacketHandler::Handle_SC_INVENTORY_UPDATE);
 	RegisterHandler(Protocol::SC_ITEM_RESULT, &FPacketHandler::Handle_SC_ITEM_RESULT);
 	RegisterHandler(Protocol::SC_USE_ITEM, &FPacketHandler::Handle_SC_USE_ITEM);
+	RegisterHandler(Protocol::SC_CHANGE_HP, &FPacketHandler::Handle_SC_CHANGE_HP);
 	RegisterHandler(Protocol::SC_TRADE_REQUEST, &FPacketHandler::Handle_SC_TRADE_REQUEST);
 	RegisterHandler(Protocol::SC_TRADE_STATE, &FPacketHandler::Handle_SC_TRADE_STATE);
 	RegisterHandler(Protocol::SC_TRADE_END, &FPacketHandler::Handle_SC_TRADE_END);
@@ -272,6 +273,12 @@ void FPacketHandler::Handle_SC_USE_ITEM(TSharedPtr<NetworkSession>& session, Pro
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandleUseItem(pkt.object_id(), pkt.item_id(), pkt.hp(), pkt.cooldown_ms());
+}
+
+void FPacketHandler::Handle_SC_CHANGE_HP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_HP_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleChangeHp(pkt.object_id(), pkt.hp());
 }
 
 void FPacketHandler::Handle_SC_ITEM_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_ITEM_RESULT_PACKET& pkt)

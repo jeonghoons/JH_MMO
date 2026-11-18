@@ -65,11 +65,14 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 
 		bool bIsHit = false;
 
+		// 대상의 몸 반경만큼 판정을 넓힌다(MN1, D-198): 큰 몬스터는 더 멀리서 맞고 작은 몬스터는 가까이 가야 맞는다. 플레이어는 0.
+		const float body = targetChar->GetBodyRadius();
+
 		if (skillData->hitShape == HitShape::Sector) {
-			bIsHit = MathUtils::CheckSector(origin, targetChar->GetPosition(), skillData->radius, skillData->angle);
+			bIsHit = MathUtils::CheckSector(origin, targetChar->GetPosition(), skillData->radius + body, skillData->angle);
 		}
 		else if (skillData->hitShape == HitShape::Line || skillData->hitShape == HitShape::Projectile) {
-			bIsHit = MathUtils::CheckLine(origin, targetChar->GetPosition(), skillData->width, skillData->range);
+			bIsHit = MathUtils::CheckLine(origin, targetChar->GetPosition(), skillData->width + body * 2.f, skillData->range + body);
 		}
 
 		if (bIsHit)

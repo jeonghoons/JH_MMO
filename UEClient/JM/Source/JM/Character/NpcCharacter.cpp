@@ -3,6 +3,8 @@
 #include "UI/HpBarWidget.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Game/DataManager.h"
+#include "Engine/SkeletalMesh.h"
 
 ANpcCharacter::ANpcCharacter()
 {
@@ -18,10 +20,39 @@ void ANpcCharacter::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
 {
 	Super::SetPlayerData(ObjInfo);
 
+	if (!bAppearanceApplied)
+	{
+		bAppearanceApplied = true;
+		ApplyMonsterAppearance(ObjInfo.template_id());
+	}
+
     if (UHpBarWidget* HpWidget = Cast<UHpBarWidget>(HpBarComponent->GetUserWidgetObject()))
     {
         HpWidget->UpdateHp(ObjectInfo.stat().hp(), ObjectInfo.stat().max_hp());
     }
+}
+
+void ANpcCharacter::ApplyMonsterAppearance(int32 TemplateId)
+{
+	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const FMonsterTableRow* Row = DataManager ? DataManager->FindMonster(TemplateId) : nullptr;
+	if (Row == nullptr)
+	{
+		// 행이 없으면 BP_Npc의 기본 메시·크기 그대로 보인다(서버 MonsterTable과 DT_MonsterTable이 어긋난 경우).
+		UE_LOG(LogTemp, Warning, TEXT("NpcCharacter: MonsterTable has no row %d - default appearance"), TemplateId);
+		return;
+	}
+
+	// 스킨: 같은 스켈레톤의 메시로 바꾼다(AnimBP는 그대로). 방 입장 전에 UDataManager::PreloadGameAssets가 미리 로드해 둔다.
+	if (USkeletalMesh* SkinMesh = Row->Mesh.LoadSynchronous())
+	{
+		if (GetMesh()->GetSkeletalMeshAsset() != SkinMesh)
+			GetMesh()->SetSkeletalMeshAsset(SkinMesh);
+	}
+
+	// 크기: 액터 전체에 곱한다(캡슐·메시·HP 막대 위치가 함께 변한다). 서버 판정은 같은 행의 BodyRadiusCm를 쓴다.
+	if (Row->Scale > 0.f && !FMath::IsNearlyEqual(Row->Scale, 1.f))
+		SetActorScale3D(FVector(Row->Scale));
 }
 
 void ANpcCharacter::OnDamaged(int damage, int remainHp)

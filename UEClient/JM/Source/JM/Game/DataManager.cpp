@@ -144,6 +144,28 @@ const FWeaponTypeTableRow* UDataManager::FindWeaponType(EWeaponType WeaponType) 
 	return Row;
 }
 
+UDataTable* UDataManager::GetMonsterTable() const
+{
+	if (CachedMonsterTable == nullptr)
+	{
+		const UJMDataSettings* Settings = GetDefault<UJMDataSettings>();
+		if (Settings == nullptr || Settings->MonsterTable.IsNull())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DataManager: MonsterTable is not set (Project Settings > Game > JM Data)"));
+			return nullptr;
+		}
+		CachedMonsterTable = Settings->MonsterTable.LoadSynchronous();
+	}
+	return CachedMonsterTable;
+}
+
+const FMonsterTableRow* UDataManager::FindMonster(int32 TemplateId) const
+{
+	UDataTable* Table = GetMonsterTable();
+	if (Table == nullptr) return nullptr;
+	return Table->FindRow<FMonsterTableRow>(FName(*FString::FromInt(TemplateId)), TEXT("FindMonster"), false);
+}
+
 void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
 {
 	TArray<FSoftObjectPath> AssetsToLoad;
@@ -184,6 +206,16 @@ void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
 			AddPath(Row->MeshM.ToSoftObjectPath());
 			AddPath(Row->MeshF.ToSoftObjectPath());
 			AddPath(Row->StaticMesh.ToSoftObjectPath());
+		}
+	}
+
+	// 몬스터 종류별 메시(MN1): 처음 보는 종류가 시야에 들어올 때의 동기 로딩을 막는다.
+	if (UDataTable* MonsterTable = GetMonsterTable())
+	{
+		for (const TPair<FName, uint8*>& Pair : MonsterTable->GetRowMap())
+		{
+			const FMonsterTableRow* Row = reinterpret_cast<const FMonsterTableRow*>(Pair.Value);
+			if (Row) AddPath(Row->Mesh.ToSoftObjectPath());
 		}
 	}
 

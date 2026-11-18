@@ -45,6 +45,7 @@ Character::CastTiming Character::BeginCast(const SkillData& skill)
 	timing.actionMs = static_cast<long long>(skill.animMs / rate);
 	timing.hitDelayMs = static_cast<long long>(skill.hitDelayMs / rate);
 	timing.cooldownMs = skill.cooldownMs;
+	timing.moveLockMs = static_cast<long long>(skill.moveLockMs / rate);
 
 	_actionTimer.Reset(timing.actionMs);
 	_actionIsSwapLock = false;

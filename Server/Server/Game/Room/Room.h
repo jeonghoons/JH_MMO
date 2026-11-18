@@ -161,7 +161,8 @@ public:
 	void CreateZone(shared_ptr<Character> attacker, const SkillData& skill, float x, float y, int damage);
 	// Npc
 	void NpcEnterRoom(shared_ptr<Monster> monster);
-	void SpawnMonster(int spawnIndex);   // 스폰 마커 반경 안의 임의 위치에 몬스터 한 마리를 만든다.
+	// 스폰 마커 반경 안의 임의 위치에 몬스터 한 마리를 만든다. templateId·respawnMs는 SpawnTable 행(구역 이름이 없는 마커는 마커 값·0). respawnMs 0 = MonsterTable 값
+	void SpawnMonster(int spawnIndex, int templateId, int respawnMs);
 	void RemoveMonster(int monsterId);   // 사망한 몬스터를 월드에서 제거하고 리스폰을 예약한다.
 	void NPCMove(shared_ptr<Monster> monster);
 	int MonsterIdGenerator()

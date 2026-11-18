@@ -28,4 +28,7 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "DataTable")
 	TSoftObjectPtr<UDataTable> WeaponTypeTable;
+
+	UPROPERTY(Config, EditAnywhere, Category = "DataTable")
+	TSoftObjectPtr<UDataTable> MonsterTable;
 };

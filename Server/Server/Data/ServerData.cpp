@@ -127,6 +127,7 @@ bool DataManager::Init()
 	_worldTable.clear();
 	_skillBySlot.clear();
 	_dropTable.clear();
+	_spawnTable.clear();
 	_economy = EconomyData{};
 
 	fs::path dir;
@@ -183,6 +184,7 @@ bool DataManager::Init()
 			!row.GetInt("Slot", d.slot, err) || !row.GetString("TargetingType", targeting, err) ||
 			!row.GetString("HitShape", shape, err) || !row.GetInt("HitDelayMs", d.hitDelayMs, err) ||
 			!row.GetInt("CooldownMs", d.cooldownMs, err) || !row.GetInt("AnimMs", d.animMs, err) ||
+			!row.GetInt("MoveLockMs", d.moveLockMs, err) ||
 			!row.GetFloat("CastRange", d.castRange, err) ||
 			!row.GetFloat("Radius", d.radius, err) || !row.GetFloat("Angle", d.angle, err) ||
 			!row.GetFloat("Range", d.range, err) || !row.GetFloat("Width", d.width, err) ||
@@ -224,9 +226,9 @@ bool DataManager::Init()
 
 		if (d.hitDelayMs < 0 || d.cooldownMs < 0 || d.animMs <= 0 || (d.slot > 0 && d.cooldownMs <= 0) || d.baseDamage < 0 || d.slot < 0 || d.slot > 5 ||
 			d.castRange < 0.f || d.radius < 0.f || d.angle < 0.f || d.range < 0.f || d.width < 0.f || d.projSpeed < 0.f ||
-			d.durationMs < 0 || d.tickMs < 0)
+			d.durationMs < 0 || d.tickMs < 0 || d.moveLockMs < 0 || d.moveLockMs > d.animMs)
 		{
-			LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (Slot 0~5, 나머지 음수 불가, AnimMs>0, 스킬(Slot 1~5)은 CooldownMs>0)", where);
+			LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (Slot 0~5, 나머지 음수 불가, AnimMs>0, 스킬(Slot 1~5)은 CooldownMs>0, 0 <= MoveLockMs <= AnimMs)", where);
 			return false;
 		}
 		if (!(d.aimMoveSpeedMul > 0.f && d.aimMoveSpeedMul <= 1.f) || d.aimMaxMs < 0 || d.aimMaxMs > 60000 || (d.slot == 0 && d.aimMaxMs > 0))
@@ -269,7 +271,8 @@ bool DataManager::Init()
 		return false;
 	}
 	// MonsterTable: Name(=monsterTemplateId, 1001~), SkillId, MaxHp, AttackDamage, AttackSpeed, MoveSpeed,
-	//               RespawnSec, DeathRemoveDelaySec, HitStunMs, WanderRadiusCm
+	//               RespawnSec, DeathRemoveDelaySec, HitStunMs, WanderRadiusCm, AggroRangeCm, LeashRangeCm, ReturnMode, Scale, BodyRadiusCm
+	// (Mesh 등 외형 열은 클라이언트 전용이라 읽지 않는다)
 	CsvFile monster;
 	if (!monster.Load((dir / "MonsterTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
@@ -281,14 +284,30 @@ bool DataManager::Init()
 			!ReadStat(monster, row, d.stat, err) ||
 			!row.GetInt("RespawnSec", respawnSec, err) ||
 			!row.GetInt("DeathRemoveDelaySec", removeDelaySec, err) || !row.GetInt("HitStunMs", hitStunMs, err) ||
-			!row.GetInt("WanderRadiusCm", wanderRadiusCm, err))
+			!row.GetInt("WanderRadiusCm", wanderRadiusCm, err) ||
+			!row.GetInt("AggroRangeCm", d.aggroRangeCm, err) || !row.GetInt("LeashRangeCm", d.leashRangeCm, err) ||
+			!row.GetInt("ReturnMode", d.returnMode, err) ||
+			!row.GetFloat("Scale", d.scale, err) || !row.GetInt("BodyRadiusCm", d.bodyRadiusCm, err))
 		{
 			LOG_ERROR("Data", "{}", err);
+			return false;
+		}
+		// 행동 범위(L3, D-193): 인식 범위 0 = 비선공. 추격 제한은 홈 기준이라 배회 반경보다 좁으면 배회만으로 복귀에 걸린다.
+		if (d.aggroRangeCm < 0 || d.aggroRangeCm > 5000 || d.leashRangeCm <= 0 || d.leashRangeCm > 10000 || d.leashRangeCm < wanderRadiusCm ||
+			(d.returnMode != MONSTER_RETURN_WALK && d.returnMode != MONSTER_RETURN_EVADE))
+		{
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (0 <= AggroRangeCm <= 5000, 0 < LeashRangeCm <= 10000, LeashRangeCm >= WanderRadiusCm, ReturnMode 0 또는 1)", monster.Path(), row.Line());
 			return false;
 		}
 		if (respawnSec < 0 || removeDelaySec < 0 || removeDelaySec > respawnSec || hitStunMs < 0 || hitStunMs > 10000 || wanderRadiusCm < 0 || wanderRadiusCm > 10000)
 		{
 			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (0 <= DeathRemoveDelaySec <= RespawnSec, 0 <= HitStunMs <= 10000, 0 <= WanderRadiusCm <= 10000)", monster.Path(), row.Line());
+			return false;
+		}
+		// 크기(MN1, D-198): 배율은 클라이언트가 그리는 크기, 몸 반경은 서버 판정에 더하는 값이라 둘을 함께 맞춘다.
+		if (d.scale < 0.3f || d.scale > 3.f || d.bodyRadiusCm < 0 || d.bodyRadiusCm > 500)
+		{
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (0.3 <= Scale <= 3, 0 <= BodyRadiusCm <= 500)", monster.Path(), row.Line());
 			return false;
 		}
 		if (_monsterTable.count(d.templateId))
@@ -464,7 +483,7 @@ bool DataManager::Init()
 	}
 
 	// MovementTable: Name(=movementId), ServerSpeedTolerance, ServerMoveBudgetMs, ServerMoveSlackCm, ServerMinMoveIntervalMs, ServerNavToleranceCm,
-	// ServerWeaponSwapLockMs, ServerEquipMinIntervalMs, ServerAimMinIntervalMs
+	// ServerWeaponSwapLockMs, ServerEquipMinIntervalMs, ServerAimMinIntervalMs, ServerMoveLockSlackCm
 	// (나머지 열은 클라이언트 전용이라 읽지 않는다)
 	CsvFile movement;
 	if (!movement.Load((dir / "MovementTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
@@ -476,7 +495,7 @@ bool DataManager::Init()
 			!row.GetInt("ServerMoveBudgetMs", d.moveBudgetMs, err) || !row.GetFloat("ServerMoveSlackCm", d.moveSlackCm, err) ||
 			!row.GetInt("ServerMinMoveIntervalMs", d.minMoveIntervalMs, err) || !row.GetFloat("ServerNavToleranceCm", d.navToleranceCm, err) ||
 			!row.GetInt("ServerWeaponSwapLockMs", d.weaponSwapLockMs, err) || !row.GetInt("ServerEquipMinIntervalMs", d.equipMinIntervalMs, err) ||
-			!row.GetInt("ServerAimMinIntervalMs", d.aimMinIntervalMs, err))
+			!row.GetInt("ServerAimMinIntervalMs", d.aimMinIntervalMs, err) || !row.GetFloat("ServerMoveLockSlackCm", d.moveLockSlackCm, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
@@ -484,9 +503,9 @@ bool DataManager::Init()
 		if (d.speedTolerance < 1.f || d.speedTolerance > 3.f || d.moveBudgetMs <= 0 || d.moveBudgetMs > 10000 ||
 			d.moveSlackCm < 0.f || d.minMoveIntervalMs < 0 || d.minMoveIntervalMs > 1000 || d.navToleranceCm < 0.f || d.navToleranceCm > 100.f ||
 			d.weaponSwapLockMs < 0 || d.weaponSwapLockMs > 5000 || d.equipMinIntervalMs < 0 || d.equipMinIntervalMs > 5000 ||
-			d.aimMinIntervalMs < 0 || d.aimMinIntervalMs > 5000)
+			d.aimMinIntervalMs < 0 || d.aimMinIntervalMs > 5000 || d.moveLockSlackCm < 0.f || d.moveLockSlackCm > 1000.f)
 		{
-			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (1 <= ServerSpeedTolerance <= 3, 0 < ServerMoveBudgetMs <= 10000, ServerMoveSlackCm >= 0, 0 <= ServerMinMoveIntervalMs <= 1000, 0 <= ServerNavToleranceCm <= 100, 0 <= ServerWeaponSwapLockMs <= 5000, 0 <= ServerEquipMinIntervalMs <= 5000, 0 <= ServerAimMinIntervalMs <= 5000)", movement.Path(), row.Line());
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (1 <= ServerSpeedTolerance <= 3, 0 < ServerMoveBudgetMs <= 10000, ServerMoveSlackCm >= 0, 0 <= ServerMinMoveIntervalMs <= 1000, 0 <= ServerNavToleranceCm <= 100, 0 <= ServerWeaponSwapLockMs <= 5000, 0 <= ServerEquipMinIntervalMs <= 5000, 0 <= ServerAimMinIntervalMs <= 5000, 0 <= ServerMoveLockSlackCm <= 1000)", movement.Path(), row.Line());
 			return false;
 		}
 		if (_movementTable.count(d.id))
@@ -645,8 +664,69 @@ bool DataManager::Init()
 		}
 	}
 
-	LOG_INFO("Data", "로드 완료 (PlayerStatTable {}행, SkillTable {}행, MonsterTable {}행, ItemTable {}행, MovementTable {}행, WorldTable {}행, DropTable {}행, EconomyTable: 인벤토리 {}칸·골드 상한 {}·드랍 소유 {}초/소멸 {}초)",
-		_playerStatTable.size(), _skillTable.size(), _monsterTable.size(), _itemTable.size(), _movementTable.size(), _worldTable.size(), dropRows,
+	// SpawnTable(서버 전용): Name(=행 ID, 1001~), MapName, Zone, MonsterTemplateId, CountPerSpawn, RespawnSec(0 = MonsterTable 값)
+	CsvFile spawn;
+	if (!spawn.Load((dir / "SpawnTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
+
+	size_t spawnRows = 0;
+	{
+		std::unordered_set<int> spawnIds;
+		std::set<std::pair<std::string, int>> spawnKeys;   // (MapName/Zone, MonsterTemplateId)
+		for (const CsvRow& row : spawn.Rows())
+		{
+			SpawnData d{};
+			int respawnSec = 0;
+			if (!row.GetInt("Name", d.id, err) || !row.GetString("MapName", d.mapName, err) || !row.GetString("Zone", d.zone, err) ||
+				!row.GetInt("MonsterTemplateId", d.monsterTemplateId, err) || !row.GetInt("CountPerSpawn", d.countPerSpawn, err) ||
+				!row.GetInt("RespawnSec", respawnSec, err))
+			{
+				LOG_ERROR("Data", "{}", err);
+				return false;
+			}
+
+			const std::string where = spawn.Path() + " line " + std::to_string(row.Line()) + ": ";
+
+			if (d.id < 1001 || !spawnIds.insert(d.id).second)
+			{
+				LOG_ERROR("Data", "{}행 ID {} 는 1001 이상이고 중복되지 않아야 합니다", where, d.id);
+				return false;
+			}
+			if (GetWorldData(d.mapName) == nullptr)
+			{
+				LOG_ERROR("Data", "{}MapName '{}' 가 WorldTable에 없습니다", where, d.mapName);
+				return false;
+			}
+			if (d.zone.empty() || d.zone.find('/') != std::string::npos)
+			{
+				LOG_ERROR("Data", "{}Zone 은 비어 있지 않고 '/'를 쓰지 않아야 합니다", where);
+				return false;
+			}
+			const MonsterData* spawnMonster = GetMonsterData(d.monsterTemplateId);
+			if (spawnMonster == nullptr)
+			{
+				LOG_ERROR("Data", "{}MonsterTemplateId {} 가 MonsterTable에 없습니다", where, d.monsterTemplateId);
+				return false;
+			}
+			if (d.countPerSpawn < 1 || d.countPerSpawn > 20 || respawnSec < 0 || respawnSec > 86400 ||
+				(respawnSec != 0 && respawnSec * 1000 < spawnMonster->deathRemoveDelayMs))
+			{
+				LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (1 <= CountPerSpawn <= 20, RespawnSec 은 0(MonsterTable 값) 또는 그 몬스터의 DeathRemoveDelaySec 이상 86400 이하)", where);
+				return false;
+			}
+			const std::string key = d.mapName + "/" + d.zone;
+			if (!spawnKeys.insert({ key, d.monsterTemplateId }).second)
+			{
+				LOG_ERROR("Data", "{}(MapName '{}', Zone '{}', MonsterTemplateId {}) 조합이 중복되었습니다", where, d.mapName, d.zone, d.monsterTemplateId);
+				return false;
+			}
+			d.respawnMs = respawnSec * 1000;
+			_spawnTable[key].push_back(d);
+			++spawnRows;
+		}
+	}
+
+	LOG_INFO("Data", "로드 완료 (PlayerStatTable {}행, SkillTable {}행, MonsterTable {}행, ItemTable {}행, MovementTable {}행, WorldTable {}행, DropTable {}행, SpawnTable {}행, EconomyTable: 인벤토리 {}칸·골드 상한 {}·드랍 소유 {}초/소멸 {}초)",
+		_playerStatTable.size(), _skillTable.size(), _monsterTable.size(), _itemTable.size(), _movementTable.size(), _worldTable.size(), dropRows, spawnRows,
 		_economy.inventorySlots, _economy.goldMax, _economy.dropOwnerSec, _economy.dropLifeSec);
 	return true;
 }

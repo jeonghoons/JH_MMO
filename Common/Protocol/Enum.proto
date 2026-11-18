@@ -55,6 +55,7 @@ enum PacketId {
     SC_TRADE_END = 2022;             // 거래가 끝났다: 성사 또는 취소 사유 (두 사람에게)
     SC_TRADE_RESULT = 2023;          // 거래 요청 거부 결과 (본인에게, 거부일 때만. 확정 재검증 실패는 두 사람에게)
     SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2024~2026은 A4.3 예약(DESIGN_ITEMS_TRADE)
+    SC_CHANGE_HP = 2028;             // 피해·아이템 사용이 아닌 HP 변화 (AOI): 몬스터가 홈으로 돌아가 회복 (L3, D-193)
 }
 
 enum MoveState {

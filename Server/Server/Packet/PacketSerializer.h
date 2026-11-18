@@ -35,6 +35,7 @@ public:
 	static shared_ptr<SendBuffer> MAKE_SC_TRADE_RESULT(Protocol::PacketId request, Protocol::TradeResult result);
 	// 소비 아이템 사용 결과(A3.6): 쓴 종류, 사용 뒤 HP, 재사용 시간
 	static shared_ptr<SendBuffer> MAKE_SC_USE_ITEM(int objectId, int itemId, int hp, int cooldownMs);
+	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_HP(int objectId, int hp);
 	static shared_ptr<SendBuffer> MAKE_SC_ITEM_RESULT(Protocol::PacketId request, Protocol::ItemResult result);
 	// seq는 본인에게 보내는 거부·시간 초과에만 채운다 (그 밖은 0)
 	static shared_ptr<SendBuffer> MAKE_SC_SKILL_AIM(int objectId, int skillId, bool active, uint32_t seq);

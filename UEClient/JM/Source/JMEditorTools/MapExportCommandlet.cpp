@@ -38,6 +38,7 @@ namespace
 		case EMarkerType::MonsterSpawn:  return TEXT("MonsterSpawn");
 		case EMarkerType::Npc:           return TEXT("Npc");
 		case EMarkerType::PortalTrigger: return TEXT("PortalTrigger");
+		case EMarkerType::SafeZone:      return TEXT("SafeZone");
 		default:                         return TEXT("Unknown");
 		}
 	}

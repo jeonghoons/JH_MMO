@@ -233,7 +233,7 @@ FString ULandscapeBuildLibrary::DescribeLandscape()
 	return FString::Printf(TEXT("{\"count\":%d,\"landscapes\":[%s]}"), Count, *Items);
 }
 
-FString ULandscapeBuildLibrary::SpawnLevelMarker(const FString& Type, int32 PointId, FVector Location, float Yaw, int32 TemplateId, float Radius, int32 MaxCount, const FString& TargetMap, const FString& Label)
+FString ULandscapeBuildLibrary::SpawnLevelMarker(const FString& Type, int32 PointId, FVector Location, float Yaw, int32 TemplateId, float Radius, int32 MaxCount, const FString& TargetMap, const FString& Label, const FString& ZoneName)
 {
 	UWorld* World = GetEditorWorld();
 	if (!World)
@@ -254,6 +254,14 @@ FString ULandscapeBuildLibrary::SpawnLevelMarker(const FString& Type, int32 Poin
 		P.MonsterTemplateId = TemplateId;
 		P.SpawnRadius = Radius;
 		P.MaxCount = MaxCount;
+		P.ZoneName = ZoneName;
+		Params = FInstancedStruct::Make(P);
+	}
+	else if (Type == TEXT("SafeZone"))
+	{
+		MarkerType = EMarkerType::SafeZone;
+		FSafeZoneParams P;
+		P.Radius = Radius;
 		Params = FInstancedStruct::Make(P);
 	}
 	else if (Type == TEXT("Npc"))
@@ -317,14 +325,14 @@ FString ULandscapeBuildLibrary::ListLevelMarkers()
 	{
 		return TEXT("ERROR: 에디터 월드가 없음");
 	}
-	static const TCHAR* TypeNames[] = { TEXT("PlayerStart"), TEXT("MonsterSpawn"), TEXT("Npc"), TEXT("PortalTrigger") };
+	static const TCHAR* TypeNames[] = { TEXT("PlayerStart"), TEXT("MonsterSpawn"), TEXT("Npc"), TEXT("PortalTrigger"), TEXT("SafeZone") };
 	FString Items;
 	int32 Count = 0;
 	for (TActorIterator<ALevelMarker> It(World); It; ++It)
 	{
 		const ALevelMarker* Marker = *It;
 		const FVector Loc = Marker->GetActorLocation();
-		const int32 TypeIndex = FMath::Clamp(static_cast<int32>(Marker->MarkerType), 0, 3);
+		const int32 TypeIndex = FMath::Clamp(static_cast<int32>(Marker->MarkerType), 0, 4);
 		if (Count++ > 0)
 		{
 			Items += TEXT(",");

@@ -25,7 +25,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 2,
@@ -39,7 +40,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 3,
@@ -53,7 +55,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 4,
@@ -67,7 +70,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 5,
@@ -81,7 +85,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 6,
@@ -95,7 +100,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 7,
@@ -109,7 +115,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 8,
@@ -123,7 +130,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 9,
@@ -137,7 +145,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 10,
@@ -151,7 +160,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 11,
@@ -165,7 +175,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_w"
 		},
 		{
 			"pointId": 12,
@@ -179,7 +190,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 13,
@@ -193,7 +205,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 14,
@@ -207,7 +220,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 15,
@@ -221,7 +235,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 16,
@@ -235,7 +250,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 17,
@@ -249,7 +265,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 18,
@@ -263,7 +280,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 19,
@@ -277,7 +295,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 20,
@@ -291,7 +310,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 21,
@@ -305,7 +325,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 22,
@@ -319,7 +340,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_e"
 		},
 		{
 			"pointId": 23,
@@ -333,7 +355,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_n"
 		},
 		{
 			"pointId": 24,
@@ -347,7 +370,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_n"
 		},
 		{
 			"pointId": 25,
@@ -361,7 +385,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_n"
 		},
 		{
 			"pointId": 26,
@@ -375,7 +400,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_n"
 		},
 		{
 			"pointId": 27,
@@ -389,7 +415,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_n"
 		},
 		{
 			"pointId": 28,
@@ -403,7 +430,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "meadow_n"
 		},
 		{
 			"pointId": 29,
@@ -417,7 +445,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 30,
@@ -431,7 +460,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 31,
@@ -445,7 +475,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 32,
@@ -459,7 +490,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 33,
@@ -473,7 +505,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 34,
@@ -487,7 +520,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 35,
@@ -501,7 +535,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 36,
@@ -515,7 +550,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 37,
@@ -529,7 +565,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 38,
@@ -543,7 +580,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 39,
@@ -557,7 +595,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 40,
@@ -571,7 +610,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 41,
@@ -585,7 +625,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 42,
@@ -599,7 +640,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 43,
@@ -613,7 +655,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 44,
@@ -627,7 +670,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 45,
@@ -641,7 +685,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 46,
@@ -655,7 +700,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 47,
@@ -669,7 +715,8 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
 		},
 		{
 			"pointId": 48,
@@ -683,7 +730,23 @@
 			},
 			"monsterTemplateId": 1001,
 			"spawnRadius": 1200,
-			"maxCount": 5
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 49,
+			"type": "MonsterSpawn",
+			"position":
+			{
+				"x": 19507.366948438786,
+				"y": 7067.4393166481404,
+				"z": 99.025413593500986,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1003,
+			"spawnRadius": 300,
+			"maxCount": 1,
+			"zoneName": "forest_boss"
 		},
 		{
 			"pointId": 100,
@@ -796,6 +859,18 @@
 			"triggerRadius": 300,
 			"targetMap": "Continent01",
 			"targetPointId": 103
+		},
+		{
+			"pointId": 300,
+			"type": "SafeZone",
+			"position":
+			{
+				"x": -15000,
+				"y": 0,
+				"z": 100,
+				"yaw": 0
+			},
+			"radius": 7200
 		}
 	]
 }

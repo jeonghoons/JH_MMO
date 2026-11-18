@@ -328,7 +328,7 @@ def place_markers(name):
         return unreal.Vector(x * 100.0, y * 100.0, h(x, y) * 100.0 + up_cm)
 
     ps = m["player_start"]
-    out.append(lib.spawn_level_marker("PlayerStart", 0, loc(ps["x"], ps["y"], 100.0), ps.get("yaw", 0.0), 0, 0.0, 0, "", "Marker_PlayerStart"))
+    out.append(lib.spawn_level_marker("PlayerStart", 0, loc(ps["x"], ps["y"], 100.0), ps.get("yaw", 0.0), 0, 0.0, 0, "", "Marker_PlayerStart", ""))
     pie = EAS.spawn_actor_from_class(unreal.PlayerStart, loc(ps["x"], ps["y"], 110.0), unreal.Rotator(0, 0, ps.get("yaw", 0.0)))
     pie.set_actor_label("PlayerStart")
     pid = 1
@@ -336,15 +336,18 @@ def place_markers(name):
     for grp in m.get("monster", []):
         pts, _ = _scatter_points(d, grp, taken)
         for (x, y) in pts:
-            out.append(lib.spawn_level_marker("MonsterSpawn", pid, loc(x, y, 100.0), 0.0, grp["template_id"], float(grp["radius_cm"]), grp["max_count"], "", f"Marker_Monster_{grp['zone']}_{pid:02d}"))
+            out.append(lib.spawn_level_marker("MonsterSpawn", pid, loc(x, y, 100.0), 0.0, grp["template_id"], float(grp["radius_cm"]), grp["max_count"], "", f"Marker_Monster_{grp['zone']}_{pid:02d}", grp["zone"]))
             pid += 1
         taken += pts
     po = m.get("portal")
     if po:
-        out.append(lib.spawn_level_marker("PortalTrigger", 100, loc(po["x"], po["y"], 100.0), 0.0, po.get("target_point", 0), float(po["radius_cm"]), 0, po["target_map"], "Marker_Portal_Dungeon"))
+        out.append(lib.spawn_level_marker("PortalTrigger", 100, loc(po["x"], po["y"], 100.0), 0.0, po.get("target_point", 0), float(po["radius_cm"]), 0, po["target_map"], "Marker_Portal_Dungeon", ""))
     # 포털 여러 개: {"id", "label", "x", "y", "radius_cm", "target_map", "target_point"} — 같은 레벨 안의 짝 포털은 target_map이 이 레벨, target_point가 짝의 id
     for po in m.get("portals", []):
-        out.append(lib.spawn_level_marker("PortalTrigger", int(po["id"]), loc(po["x"], po["y"], 100.0), 0.0, int(po.get("target_point", 0)), float(po["radius_cm"]), 0, po["target_map"], f"Marker_Portal_{po['label']}"))
+        out.append(lib.spawn_level_marker("PortalTrigger", int(po["id"]), loc(po["x"], po["y"], 100.0), 0.0, int(po.get("target_point", 0)), float(po["radius_cm"]), 0, po["target_map"], f"Marker_Portal_{po['label']}", ""))
+    # safe_zones(L3): {"id", "label", "x", "y", "radius_cm"}
+    for sz in m.get("safe_zones", []):
+        out.append(lib.spawn_level_marker("SafeZone", int(sz["id"]), loc(sz["x"], sz["y"], 100.0), 0.0, 0, float(sz["radius_cm"]), 0, "", f"Marker_SafeZone_{sz['label']}", ""))
     errors = [o for o in out if o.startswith("ERROR")]
     return {"removed": removed, "placed": len(out) - len(errors), "errors": errors}
 

@@ -3,6 +3,7 @@
 #include "Animation/AnimMontage.h"
 // JM 모듈은 Public 폴더 없이 모듈 루트에 헤더를 둔다. include 경로를 추가하면 UHT가 JMEditorTools 경로를 잘못 잘라내므로 상대 경로로 쓴다.
 #include "../JM/Animation/AnimNotify_SkillHit.h"
+#include "../JM/Animation/AnimNotify_SwingEnd.h"
 #include "../JM/Data/JMDataSettings.h"
 #include "Engine/DataTable.h"
 #include "EditorReimportHandler.h"
@@ -65,6 +66,7 @@ int32 USkillTimingExportCommandlet::Main(const FString& Params)
 	const int32 HitCol = Header.IndexOfByKey(TEXT("HitDelayMs"));
 	const int32 MontageCol = Header.IndexOfByKey(TEXT("Montage"));
 	const int32 AnimCol = Header.IndexOfByKey(TEXT("AnimMs"));
+	const int32 LockCol = Header.IndexOfByKey(TEXT("MoveLockMs"));   // 없으면 건너뛴다(D-199)
 	if (NameCol == INDEX_NONE || HitCol == INDEX_NONE || MontageCol == INDEX_NONE || AnimCol == INDEX_NONE)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[SkillTiming] Name/HitDelayMs/AnimMs/Montage 열이 필요합니다."));
@@ -118,6 +120,36 @@ int32 USkillTimingExportCommandlet::Main(const FString& Params)
 		else
 		{
 			UE_LOG(LogTemp, Display, TEXT("[SkillTiming] %s: AnimMs %s (변경 없음)"), *SkillName, *AnimValue);
+		}
+
+		// 이동 잠금(D-199): Swing End 노티파이 시각 → MoveLockMs. 노티파이가 없으면 CSV 값을 그대로 둔다.
+		if (LockCol != INDEX_NONE && Cells.IsValidIndex(LockCol))
+		{
+			float SwingEnd = -1.f;
+			for (const FAnimNotifyEvent& Event : Montage->Notifies)
+			{
+				if (Cast<UAnimNotify_SwingEnd>(Event.Notify) && (SwingEnd < 0.f || Event.GetTriggerTime() < SwingEnd))
+					SwingEnd = Event.GetTriggerTime();
+			}
+			if (SwingEnd < 0.f)
+			{
+				UE_LOG(LogTemp, Display, TEXT("[SkillTiming] %s: Swing End 노티파이가 없습니다. MoveLockMs %s 유지"), *SkillName, *Cells[LockCol]);
+			}
+			else
+			{
+				const FString LockValue = FString::FromInt(FMath::RoundToInt(SwingEnd / RateScale * 1000.f));
+				if (Cells[LockCol] != LockValue)
+				{
+					UE_LOG(LogTemp, Display, TEXT("[SkillTiming] %s: MoveLockMs %s -> %s"), *SkillName, *Cells[LockCol], *LockValue);
+					Cells[LockCol] = LockValue;
+					Lines[i] = FString::Join(Cells, TEXT(","));
+					++Updated;
+				}
+				else
+				{
+					UE_LOG(LogTemp, Display, TEXT("[SkillTiming] %s: MoveLockMs %s (변경 없음)"), *SkillName, *LockValue);
+				}
+			}
 		}
 
 		TArray<float> HitTimes;

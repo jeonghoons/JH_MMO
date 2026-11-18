@@ -7,6 +7,7 @@
 #include "Data/ItemTableRow.h"
 #include "Data/BodyTableRow.h"
 #include "Data/WeaponTypeTableRow.h"
+#include "Data/MonsterTableRow.h"
 #include "DataManager.generated.h"
 
 // DataTable 조회 창구. 애셋 경로는 UJMDataSettings(DefaultGame.ini)에서만 읽는다. (Docs/DESIGN_DATA.md)
@@ -34,6 +35,9 @@ public:
 	// None·Monster는 플레이어 무기가 아니므로 nullptr.
 	const FWeaponTypeTableRow* FindWeaponType(EWeaponType WeaponType) const;
 
+	// 몬스터 종류 ID(MonsterTable의 RowName = ObjectInfo.template_id)로 찾는다. 없거나 테이블이 지정되지 않았으면 nullptr (MN1)
+	const FMonsterTableRow* FindMonster(int32 TemplateId) const;
+
 	// 스킬 ID(SkillTable의 RowName, SC_ATTACK.skill_id)로 찾는다. 없으면 nullptr
 	const FSkillTableRow* FindSkillById(int32 SkillId) const;
 
@@ -45,6 +49,7 @@ public:
 private:
 	UDataTable* GetSkillTable() const;
 	UDataTable* GetItemTable() const;
+	UDataTable* GetMonsterTable() const;
 
 	TSharedPtr<struct FStreamableHandle> PreloadHandle;
 
@@ -54,4 +59,5 @@ private:
 	mutable TObjectPtr<UDataTable> CachedItemTable;
 	mutable TObjectPtr<UDataTable> CachedBodyTable;
 	mutable TObjectPtr<UDataTable> CachedWeaponTypeTable;
+	mutable TObjectPtr<UDataTable> CachedMonsterTable;
 };

@@ -94,12 +94,13 @@ enum PacketId : int {
   SC_TRADE_END = 2022,
   SC_TRADE_RESULT = 2023,
   SC_KICK = 2027,
+  SC_CHANGE_HP = 2028,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_KICK;
+constexpr PacketId PacketId_MAX = SC_CHANGE_HP;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();

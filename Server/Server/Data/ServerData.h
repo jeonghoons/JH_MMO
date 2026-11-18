@@ -274,6 +274,7 @@ struct SkillData
 	int hitDelayMs;     // 발사 선딜레이 (손에서 이펙트가 떠나는 시간)
 	int cooldownMs;     // 스킬 쿨타임(시전 순간부터). 기본 공격은 0
 	int animMs;         // 행동 시간 = 애니메이션 1회. 이 동안 다음 시전 불가. 기본 공격은 AttackSpeed로 나눈다
+	int moveLockMs;     // 이동 잠금: 시전부터 휘두르기가 끝날 때까지(몽타주 Swing End 노티파이) 플레이어 이동을 받지 않는다. 0 = 잠그지 않음. 기본 공격은 AttackSpeed로 나눈다 (D-199)
 	float radius;       // 부채꼴 반경
 	float angle;        // 부채꼴 각도
 	float range;        // 투사체/직선 사거리
@@ -307,7 +308,27 @@ struct MonsterData
 	int respawnMs;            // 사망 후 리스폰까지의 시간
 	int deathRemoveDelayMs;   // 사망 연출을 위해 시체를 남겨 두는 시간
 	int hitStunMs;            // 피격 후 행동(공격)이 막히는 시간. 피격 모션 길이에 맞춘다
-	int wanderRadiusCm;       // 대기 중 배회: 현재 위치에서 이 반경 안 임의 지점 (임시 — 행동트리 개선 때 재검토)
+	int wanderRadiusCm;       // 대기 중 배회: 홈(스폰된 자리)에서 이 반경 안 임의 지점
+	int aggroRangeCm;         // 인식 범위(몬스터 기준): 이 안의 플레이어를 먼저 공격한다. 0 = 비선공(맞아야 추격) (L3, D-193)
+	int leashRangeCm;         // 추격 제한(홈 기준): 홈에서 이만큼 멀어지면 추격을 끊고 돌아간다
+	int returnMode;           // 복귀 방식: 0 = 걸어서 복귀(피해 받음, HP 유지) / 1 = 복귀 중 피해 무시 + 홈 도착 시 HP 전량 회복
+	float scale;              // 크기 배율(클라이언트 표시용 — 서버는 범위만 검사한다) (MN1, D-198)
+	int bodyRadiusCm;         // 몸 반경: 이 몬스터를 맞히는 판정(부채꼴 반경·직선 폭·장판 반경·대상 지정 사거리)에 더한다. 기준 캡슐 반경 42cm × scale
+};
+
+// 몬스터 복귀 방식(MonsterTable.ReturnMode)
+constexpr int MONSTER_RETURN_WALK = 0;
+constexpr int MONSTER_RETURN_EVADE = 1;
+
+// SpawnTable(서버 전용): 구역(맵 로직 JSON 스폰 마커의 zoneName)마다 놓을 몬스터. 한 구역에 여러 행이면 스폰 지점마다 행별 수만큼 섞어 놓는다 (L3, D-194)
+struct SpawnData
+{
+	int id;
+	std::string mapName;      // WorldTable.MapName
+	std::string zone;         // 스폰 마커의 zoneName
+	int monsterTemplateId;    // MonsterTable ID
+	int countPerSpawn;        // 스폰 지점 하나에 놓는 수
+	int respawnMs;            // 사망 후 리스폰까지. 0 = MonsterTable.RespawnSec 을 쓴다
 };
 
 // MovementTable 중 서버가 쓰는 열. 이동 속도 자체는 스탯(PlayerStatTable·MonsterTable의 MoveSpeed)을 쓰고, 여기는 검증 허용치만 둔다.
@@ -322,6 +343,7 @@ struct MovementData
 	int weaponSwapLockMs;      // 무기 슬롯이 바뀌면(착용·해제) 이 시간 동안 공용 행동 잠금 (MC3.2)
 	int equipMinIntervalMs;    // 같은 캐릭터의 장착 요청 최소 간격 (MC3.2)
 	int aimMinIntervalMs;      // 같은 캐릭터의 스킬 조준 켜기 요청 최소 간격 — 끄기는 제한하지 않는다 (MC4.2d-1)
+	float moveLockSlackCm;     // 이동 잠금(SkillTable.MoveLockMs) 동안 인정하는 이동 거리 합계. 시전 순간 서버가 아는 위치는 마지막 이동 패킷(최대 전송 간격만큼 전)이라 그 차이를 받아 준다 (D-199)
 };
 
 // MovementTable에서 플레이어 기본값을 담은 행 (클라이언트 UDataManager도 같은 행을 쓴다)
@@ -345,7 +367,7 @@ struct WorldData
 class DataManager
 {
 public:
-	// Common/DataTable/PlayerStatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv, EconomyTable.csv, DropTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
+	// Common/DataTable/PlayerStatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv, EconomyTable.csv, DropTable.csv, SpawnTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
 	static bool Init();
 
 	// 몬스터 한 종류의 DropTable 행들. 드랍이 없는 몬스터는 빈 목록
@@ -397,6 +419,14 @@ public:
 		return nullptr;
 	}
 
+	// 맵의 한 구역에 놓을 몬스터 행들. 행이 없는 구역은 빈 목록
+	static const std::vector<SpawnData>& GetSpawns(const std::string& mapName, const std::string& zone)
+	{
+		static const std::vector<SpawnData> kEmpty;
+		auto it = _spawnTable.find(mapName + "/" + zone);
+		return it != _spawnTable.end() ? it->second : kEmpty;
+	}
+
 	static const MovementData* GetMovementData(int id)
 	{
 		auto it = _movementTable.find(id);
@@ -428,6 +458,7 @@ private:
 	static inline std::unordered_map<int, ItemData> _itemTable;
 	static inline std::vector<const ItemData*> _starterItems;
 	static inline std::unordered_map<int, std::vector<DropData>> _dropTable; // key = monsterId
+	static inline std::unordered_map<std::string, std::vector<SpawnData>> _spawnTable; // key = mapName + "/" + zone
 	static inline EconomyData _economy{};
 	static inline std::unordered_map<int, int> _skillBySlot; // key = (int)WeaponType*100 + slot -> skillId (플레이어 무기 타입만)
 };

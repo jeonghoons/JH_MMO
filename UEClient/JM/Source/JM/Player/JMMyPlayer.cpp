@@ -223,6 +223,13 @@ void AJMMyPlayer::Move(const FInputActionValue& Value)
 
 	if (bIsDead) return;   // 사망 중 이동 입력 차단(D-149)
 
+	// 공격 중(휘두르기가 끝날 때까지)에는 이동 입력을 받지 않는다(D-199). 키를 계속 누르고 있으면 잠금이 풀리는 틱부터 다시 움직인다.
+	if (IsMoveLocked())
+	{
+		DesiredInput = FVector2D::Zero();
+		return;
+	}
+
 	if (GetController() != nullptr)
 	{
 		// 카메라(컨트롤러) 방향 기준 이동: W = 카메라가 바라보는 쪽, D = 카메라 오른쪽.
@@ -365,32 +372,40 @@ bool AJMMyPlayer::ComputeAim(const FSkillTableRow& Skill, FAimResult& Out) const
 	return true;
 }
 
-void AJMMyPlayer::DrawAimIndicator(const FSkillTableRow& Skill, const FAimResult& Aim) const
+bool AJMMyPlayer::IsMoveLocked() const
+{
+	return GetWorld() != nullptr && GetWorld()->GetTimeSeconds() < MoveLockUntil;
+}
+
+void AJMMyPlayer::DrawAimIndicator(const FSkillTableRow& Skill, const FAimResult& Aim, float Duration) const
 {
 	// 임시 표시: 디버그 도형. 장판/부채꼴 데칼 연출은 A2.2d에서 교체한다.
 	const float FeetZ = GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + 5.f;
 	const FVector Self(GetActorLocation().X, GetActorLocation().Y, FeetZ);
 	const FColor Color = FColor(255, 80, 80);
+	const float Life = Duration;
 
 	if (Skill.HitShape == ESkillHitShape::Zone)
 	{
 		const FVector Center(Aim.Point.X, Aim.Point.Y, FeetZ);
-		DrawDebugCircle(GetWorld(), Center, Skill.Radius, 48, Color, false, -1.f, 0, 4.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
-		DrawDebugLine(GetWorld(), Self, Center, Color, false, -1.f, 0, 2.f);
-		DrawDebugCircle(GetWorld(), Self, Skill.CastRange, 64, FColor(120, 120, 120), false, -1.f, 0, 1.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+		DrawDebugCircle(GetWorld(), Center, Skill.Radius, 48, Color, false, Life, 0, 4.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+		DrawDebugLine(GetWorld(), Self, Center, Color, false, Life, 0, 2.f);
+		if (Life < 0.f) DrawDebugCircle(GetWorld(), Self, Skill.CastRange, 64, FColor(120, 120, 120), false, -1.f, 0, 1.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
 	}
 	else if (Skill.HitShape == ESkillHitShape::Sector)
 	{
 		const FVector Dir = FRotator(0.f, Aim.Yaw, 0.f).Vector();
 		const float HalfAngle = FMath::DegreesToRadians(Skill.Angle * 0.5f);
-		DrawDebugCircleArc(GetWorld(), Self, Skill.Radius, Dir, HalfAngle, 32, Color, false, -1.f, 0, 4.f);
-		DrawDebugLine(GetWorld(), Self, Self + FVector(Dir.X * FMath::Cos(HalfAngle) - Dir.Y * FMath::Sin(HalfAngle), Dir.X * FMath::Sin(HalfAngle) + Dir.Y * FMath::Cos(HalfAngle), 0.f) * Skill.Radius, Color, false, -1.f, 0, 3.f);
-		DrawDebugLine(GetWorld(), Self, Self + FVector(Dir.X * FMath::Cos(-HalfAngle) - Dir.Y * FMath::Sin(-HalfAngle), Dir.X * FMath::Sin(-HalfAngle) + Dir.Y * FMath::Cos(-HalfAngle), 0.f) * Skill.Radius, Color, false, -1.f, 0, 3.f);
+		DrawDebugCircleArc(GetWorld(), Self, Skill.Radius, Dir, HalfAngle, 32, Color, false, Life, 0, 4.f);
+		DrawDebugLine(GetWorld(), Self, Self + FVector(Dir.X * FMath::Cos(HalfAngle) - Dir.Y * FMath::Sin(HalfAngle), Dir.X * FMath::Sin(HalfAngle) + Dir.Y * FMath::Cos(HalfAngle), 0.f) * Skill.Radius, Color, false, Life, 0, 3.f);
+		DrawDebugLine(GetWorld(), Self, Self + FVector(Dir.X * FMath::Cos(-HalfAngle) - Dir.Y * FMath::Sin(-HalfAngle), Dir.X * FMath::Sin(-HalfAngle) + Dir.Y * FMath::Cos(-HalfAngle), 0.f) * Skill.Radius, Color, false, Life, 0, 3.f);
 	}
 	else
 	{
 		const FVector Dir = FRotator(0.f, Aim.Yaw, 0.f).Vector();
-		DrawDebugLine(GetWorld(), Self, Self + Dir * FMath::Max(Skill.Range, Skill.CastRange), Color, false, -1.f, 0, 4.f);
+		// 대상 지정(활 기본 공격)은 대상까지, 그 밖은 사거리 끝까지
+		const FVector LineEnd = (Aim.TargetId != 0) ? FVector(Aim.Point.X, Aim.Point.Y, FeetZ) : Self + Dir * FMath::Max(Skill.Range, Skill.CastRange);
+		DrawDebugLine(GetWorld(), Self, LineEnd, Color, false, Life, 0, 4.f);
 	}
 }
 
@@ -414,6 +429,28 @@ void AJMMyPlayer::CastSkillSlot(int32 Slot)
 	// 반응성을 위해 시전 방향으로 바로 돌린다. 실제 판정 방향은 서버가 확정한다.
 	SetActorRotation(FRotator(0.f, Aim.Yaw, 0.f));
 	LockFacingForSkill(*Skill);
+
+	// 이동 잠금 + 범위 표시(D-199). 앞선 동작이 끝나기 전에 누른 공격은 서버가 받지 않으므로 다시 걸지 않는다.
+	const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (Now >= LocalActionUntil)
+	{
+		const float Rate = FMath::Max(GetAttackPlayRate(Skill), 0.01f);
+		LocalActionUntil = Now + Skill->AnimMs / 1000.0 / Rate * 0.9;   // 서버보다 조금 짧게(지연으로 서버가 먼저 받을 수 있다)
+		const float LockSec = Skill->MoveLockMs / 1000.f / Rate;
+		if (LockSec > 0.f)
+		{
+			MoveLockUntil = Now + LockSec;
+			DesiredInput = FVector2D::Zero();
+			if (UCharacterMovementComponent* MoveComp = GetCharacterMovement()) MoveComp->StopMovementImmediately();
+			// 몸 방향도 같은 시간 동안 고정한다(잠금이 풀리기 전에 이동 방향으로 몸 전체가 돌지 않게).
+			LockFacing(LockSec);
+			// 멈춘 자리를 바로 알린다(서버는 잠금 동안 ServerMoveLockSlackCm까지만 받는다).
+			SyncTransformToInfo();
+			bMoveSendPending = true;
+		}
+		// 판정이 나는 순간까지 판정 범위를 바닥에 그린다(임시 표시 — 조준 표시와 같은 디버그 도형).
+		DrawAimIndicator(*Skill, Aim, FMath::Max(Skill->HitDelayMs / 1000.f / Rate, 0.15f));
+	}
 	// 서버는 CS_ATTACK을 받으며 조준을 해제한다(성공이든 실패든). 끄기를 따로 보내지 않는다.
 	EndLocalAim(false);
 }

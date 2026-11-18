@@ -825,6 +825,23 @@ class AnimBuilderTools(unreal.ToolsetDefinition):
 
     @toolset_registry.tool_call
     @staticmethod
+    def anim_set_montage_marker(montage_path: str, notify_kind: str, time_sec: float | None = None) -> str:
+        """몽타주의 표식 노티파이(SkillHit = 판정 시점, SwingEnd = 휘두르기 끝 = 이동 잠금 해제)를 읽거나 단다.
+
+        같은 종류가 이미 있으면 지우고 하나만 단다. 단 뒤에는 SkillTimingExport 커맨드렛(ExportSkillTiming.bat)으로 SkillTable.csv에 반영한다.
+
+        Args:
+            montage_path: 몽타주 경로(예 /Game/Character/Mannequin/Anims/OneHandSword/AM_OneHandSword_Attack).
+            notify_kind: SkillHit 또는 SwingEnd.
+            time_sec: 달 시각(몽타주 시간, 초). 비우면 지금 달린 노티파이 목록만 돌려준다.
+
+        Returns:
+            결과 텍스트(몽타주 길이·재생 배율·노티파이 목록).
+        """
+        return unreal.AnimAssetBuilder.set_montage_marker(montage_path, notify_kind, -1.0 if time_sec is None else float(time_sec))
+
+    @toolset_registry.tool_call
+    @staticmethod
     def anim_create_montage_multi(sequence_paths: str, package_path: str, slot_name: str,
                                   auto_blend_out: bool | None = None, skill_hit_time_sec: float | None = None) -> str:
         """여러 시퀀스를 차례로 이어 몽타주 하나를 만든다(MC4.2d-2 활 기본 공격 = 당기기 + 놓기).

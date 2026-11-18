@@ -33,10 +33,38 @@ void Room::InitRoom()
 	}
 	else
 	{
+		// 구역 이름이 있는 마커는 SpawnTable의 (맵, 구역) 행이 종류·수·리스폰을 정한다(L3, D-194). 한 구역에 여러 행이면 지점마다 행별 수만큼 섞어 놓는다.
+		// 구역 이름이 없는 마커(옛 맵)는 마커의 monsterTemplateId·maxCount를 그대로 쓴다.
+		std::map<string, int> zoneCounts;      // 구역 → 놓은 수 (시작 로그용)
+		std::set<string> missingZones;
 		for (int i = 0; i < static_cast<int>(monsterSpawns.size()); ++i) {
-			for (int n = 0; n < max(1, monsterSpawns[i].MaxCount); ++n)
-				SpawnMonster(i);
+			const MonsterSpawnPoint& spawn = monsterSpawns[i];
+			if (spawn.ZoneName.empty())
+			{
+				for (int n = 0; n < max(1, spawn.MaxCount); ++n)
+					SpawnMonster(i, spawn.MonsterTemplateId, 0);
+				zoneCounts["(마커 값)"] += max(1, spawn.MaxCount);
+				continue;
+			}
+			const vector<SpawnData>& rows = DataManager::GetSpawns(GServerConfig.mapName, spawn.ZoneName);
+			if (rows.empty())
+			{
+				// 방은 플레이어가 늘면 실행 중에도 만들어지므로 서버를 멈추지 않고 ERROR만 남긴다(구역마다 한 번).
+				if (missingZones.insert(spawn.ZoneName).second)
+					LOG_ERROR("Room", "스폰 마커의 구역 '{}' 이 SpawnTable(MapName '{}')에 없어 그 구역은 스폰하지 않습니다", spawn.ZoneName, GServerConfig.mapName);
+				continue;
+			}
+			for (const SpawnData& row : rows)
+			{
+				for (int n = 0; n < row.countPerSpawn; ++n)
+					SpawnMonster(i, row.monsterTemplateId, row.respawnMs);
+				zoneCounts[spawn.ZoneName] += row.countPerSpawn;
+			}
 		}
+		string summary;
+		for (const auto& [zone, count] : zoneCounts)
+			summary += (summary.empty() ? "" : ", ") + zone + " " + std::to_string(count);
+		LOG_INFO("Room", "몬스터 스폰: 지점 {}곳, 몬스터 {}마리 ({})", monsterSpawns.size(), _monsters.size(), summary);
 	}
 	
 	long long currentTick = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
@@ -390,7 +418,9 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 
 	const float dx = position.x() - currentPos.x(), dy = position.y() - currentPos.y();
 	const float dist = sqrtf(dx * dx + dy * dy);
-	if (dist > guard.budgetCm + rule->moveSlackCm)
+	// 이동 잠금 중에는 패킷마다 인정하는 여유(ServerMoveSlackCm)를 주지 않는다. 잠금 시작 때 남긴 예산(ServerMoveLockSlackCm)이 전부다.
+	const float slack = player->IsMoveLocked(nowMs) ? 0.f : rule->moveSlackCm;
+	if (dist > guard.budgetCm + slack)
 	{
 		Metrics::MoveRejectSpeed.fetch_add(1);
 		reject();
@@ -1856,7 +1886,8 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 		const float dx = targetObj->GetPosition().x() - pos.x();
 		const float dy = targetObj->GetPosition().y() - pos.y();
 		const float dist = std::sqrt(dx * dx + dy * dy);
-		if (dist > skill->castRange * 1.1f) return;   // 이동 지연을 감안한 10% 여유
+		// 이동 지연을 감안한 10% 여유 + 대상의 몸 반경(MN1, D-198)
+		if (dist > skill->castRange * 1.1f + static_pointer_cast<Character>(targetObj)->GetBodyRadius()) return;
 
 		yaw = std::atan2(dy, dx) * RAD_TO_DEG;
 	}
@@ -1889,7 +1920,12 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 	caster->GetMutablePosition()->set_yaw(yaw);
 	const Character::CastTiming timing = caster->BeginCast(*skill);
 	if (casterIsPlayer)
+	{
 		Metrics::AttackAccepted.fetch_add(1);
+		// 이동 잠금(D-199): 휘두르기가 끝날 때까지 이동을 받지 않는다. 판정 원점(판정 시점의 시전자 위치)이 시전한 자리에 머문다.
+		if (const MovementData* rule = DataManager::GetMovementData(PLAYER_MOVEMENT_ID))
+			static_pointer_cast<Player>(caster)->BeginMoveLock(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count(), timing.moveLockMs, *rule);
+	}
 
 	BroadcastAOI(caster, PacketSerializer::MAKE_SC_ATTACK(caster->GetId(), skill->skillId, targetId, yaw, ax, ay, static_cast<int>(timing.cooldownMs)), true);
 
@@ -1954,7 +1990,10 @@ void Room::UpdateZones()
 
 				const float dx = target->GetPosition().x() - zone.x;
 				const float dy = target->GetPosition().y() - zone.y;
-				if (dx * dx + dy * dy > radiusSq) continue;
+				// 대상의 몸 반경만큼 장판을 넓게 본다(MN1, D-198). 플레이어는 0이라 radiusSq 그대로.
+				const float body = target->GetBodyRadius();
+				const float reachSq = body > 0.f ? (zone.radius + body) * (zone.radius + body) : radiusSq;
+				if (dx * dx + dy * dy > reachSq) continue;
 
 				auto& nextHit = zone.nextHit[id];
 				if (now < nextHit) continue;
@@ -2003,24 +2042,24 @@ void Room::NpcEnterRoom(shared_ptr<Monster> monster)
 	}
 }
 
-void Room::SpawnMonster(int spawnIndex)
+void Room::SpawnMonster(int spawnIndex, int templateId, int respawnMs)
 {
 	const auto& spawns = _gameMap.GetMonsterSpawns();
 	if (spawnIndex < 0 || spawnIndex >= static_cast<int>(spawns.size())) return;
 
 	const MonsterSpawnPoint& spawn = spawns[spawnIndex];
 
-	// 맵 로직 JSON의 monsterTemplateId가 MonsterTable에 없으면 스탯 없는 몬스터가 생기므로 이 마커는 스폰하지 않는다.
+	// 구역 이름이 없는 마커의 monsterTemplateId가 MonsterTable에 없으면 스탯 없는 몬스터가 생기므로 스폰하지 않는다(SpawnTable 행은 로더가 확인했다).
 	// (방은 플레이어가 늘면 실행 중에도 만들어지므로 서버를 멈추지 않고 ERROR만 남긴다)
-	if (DataManager::GetMonsterData(spawn.MonsterTemplateId) == nullptr)
+	if (DataManager::GetMonsterData(templateId) == nullptr)
 	{
-		LOG_ERROR("Room", "스폰 마커 {} 의 monsterTemplateId {} 가 MonsterTable에 없어 스폰하지 않습니다", spawnIndex, spawn.MonsterTemplateId);
+		LOG_ERROR("Room", "스폰 마커 {} 의 monsterTemplateId {} 가 MonsterTable에 없어 스폰하지 않습니다", spawnIndex, templateId);
 		return;
 	}
 
-	shared_ptr<Monster> monster = make_shared<Monster>(spawn.MonsterTemplateId);
+	shared_ptr<Monster> monster = make_shared<Monster>(templateId);
 	monster->SetId(MonsterIdGenerator());
-	monster->SetSpawnIndex(spawnIndex);
+	monster->SetSpawnInfo(spawnIndex, respawnMs);
 
 	Protocol::PositionInfo spawnPos;
 	spawnPos.set_x(spawn.Pos.X);
@@ -2028,23 +2067,35 @@ void Room::SpawnMonster(int spawnIndex)
 	spawnPos.set_z(spawn.Pos.Z);
 	spawnPos.set_yaw(spawn.Pos.Yaw);
 
-	// 마커 반경 안의 임의 위치. 내비메시 위로 보정할 수 없으면 마커 위치를 그대로 쓴다.
-	if (spawn.SpawnRadius > 0.f)
+	// 마커 반경 안의 임의 위치(L3: 여러 번 시도). 걷는 영역 위로 보정되고(바위·나무 자리는 보정이 실패하거나 가장자리로 밀림),
+	// 보정 뒤에도 반경 안이며, 안전 구역 밖인 점만 받는다. 끝내 못 찾으면 마커 위치를 보정해 쓴다.
+	NavmeshManager* nav = GetNavManager();
+	bool found = false;
+	if (spawn.SpawnRadius > 0.f && nav != nullptr)
 	{
-		const float angle = (rand() / static_cast<float>(RAND_MAX)) * 2.f * MathUtils::PI;
-		const float dist = sqrtf(rand() / static_cast<float>(RAND_MAX)) * spawn.SpawnRadius;
+		for (int i = 0; i < 10 && !found; ++i)
+		{
+			const float angle = Utils::GetRandom<float>(0.f, 6.2831853f);
+			const float dist = spawn.SpawnRadius * sqrtf(Utils::GetRandom<float>(0.f, 1.f));
 
-		Protocol::PositionInfo candidate = spawnPos;
-		candidate.set_x(spawn.Pos.X + cosf(angle) * dist);
-		candidate.set_y(spawn.Pos.Y + sinf(angle) * dist);
+			Protocol::PositionInfo candidate = spawnPos;
+			candidate.set_x(spawn.Pos.X + cosf(angle) * dist);
+			candidate.set_y(spawn.Pos.Y + sinf(angle) * dist);
 
-		if (NavmeshManager* nav = GetNavManager()) {
-			if (nav->AdjustPositionToNavMesh(candidate))
-				spawnPos = candidate;
+			if (!nav->AdjustPositionToNavMesh(candidate)) continue;
+			const float dx = candidate.x() - spawn.Pos.X, dy = candidate.y() - spawn.Pos.Y;
+			if (dx * dx + dy * dy > spawn.SpawnRadius * spawn.SpawnRadius) continue;
+			if (_gameMap.IsInSafeZone(candidate)) continue;
+
+			spawnPos = candidate;
+			found = true;
 		}
 	}
+	if (!found && nav != nullptr)
+		nav->AdjustPositionToNavMesh(spawnPos);
 
 	monster->SetPosition(spawnPos);
+	monster->SetHome(spawnPos);
 	NpcEnterRoom(monster);
 }
 
@@ -2055,6 +2106,7 @@ void Room::RemoveMonster(int monsterId)
 
 	const int spawnIndex = monster->GetSpawnIndex();
 	const int templateId = monster->GetInfo().template_id();
+	const int spawnRespawnMs = monster->GetRespawnMs();   // SpawnTable.RespawnSec (0 = MonsterTable 값)
 
 	// 시야에 있던 플레이어들에게 SC_REMOVE_OBJECT가 전달된다.
 	ViewUpdate result = _gameMap.LeaveMap(monsterId, monster->_viewList);
@@ -2066,10 +2118,11 @@ void Room::RemoveMonster(int monsterId)
 	_monsters.erase(monsterId);
 	Metrics::Monsters.fetch_sub(1);
 
-	// 사망 시점부터 RespawnSec가 지난 뒤 같은 마커에서 새로 만든다. (이미 deathRemoveDelay만큼 지났으므로 그만큼 뺀다)
+	// 사망 시점부터 RespawnSec가 지난 뒤 같은 마커에서 같은 종류로 새로 만든다. (이미 deathRemoveDelay만큼 지났으므로 그만큼 뺀다)
 	const MonsterData* data = DataManager::GetMonsterData(templateId);
-	const int delayMs = data ? max(0, data->respawnMs - data->deathRemoveDelayMs) : 7000;
-	ReserveJob(delayMs, &Room::SpawnMonster, spawnIndex);
+	const int respawnMs = spawnRespawnMs > 0 ? spawnRespawnMs : (data ? data->respawnMs : 10000);
+	const int delayMs = max(0, respawnMs - (data ? data->deathRemoveDelayMs : 3000));
+	ReserveJob(static_cast<DWORD>(delayMs), &Room::SpawnMonster, spawnIndex, templateId, spawnRespawnMs);
 }
 
 void Room::NPCMove(shared_ptr<Monster> monster)

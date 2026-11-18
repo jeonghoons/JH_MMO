@@ -39,6 +39,7 @@ struct FSkillTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 HitDelayMs = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 CooldownMs = 0;   // 스킬 쿨타임(시전 순간부터). 기본 공격은 0
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 AnimMs = 0;       // 행동 시간 = 애니메이션 1회. 기본 공격은 AttackSpeed로 나눈다
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 MoveLockMs = 0;   // 이동 잠금: 시전부터 휘두르기 끝(Swing End 노티파이)까지. 서버가 그동안 이동을 거부한다. 0 = 잠그지 않음. 기본 공격은 AttackSpeed로 나눈다 (D-199)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float CastRange = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float Radius = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float Angle = 0.f;

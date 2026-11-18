@@ -48,6 +48,8 @@
 ### 서버 검증
 - 서버가 사거리/쿨다운/자원을 재검증한 뒤, **영향받는 대상을 서버가 직접 산출**합니다(클라이언트가 보낸 대상/히트 리스트는 신뢰하지 않습니다).
 - 새 패킷(스킬 시전 요청 등)이 필요하면 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md)의 절차(Enum.proto → Protocol.proto → `GanPackets.bat` → 서버/클라이언트 핸들러)를 따릅니다.
+- **대상 몸 반경(2026-11-18 MN1, D-198)**: 판정 범위에 맞는 대상의 몸 반경 `Character::GetBodyRadius()`를 더합니다(플레이어는 0 = 중심점, 몬스터는 `MonsterTable.BodyRadiusCm` = 기준 캡슐 반경 42cm × `Scale`). 부채꼴은 반경 + 몸 반경, 직선·투사체는 폭 + 몸 반경 × 2·사거리 + 몸 반경, 장판(`Room::UpdateZones`)은 반경 + 몸 반경, 대상 지정 시전 사거리(`Room::CastSkill`)는 `CastRange × 1.1 + 몸 반경`입니다. 그래서 큰 몬스터일수록 더 멀리서 맞습니다(검 기본 공격 190 → 하급 219, 중급 236, 보스 249cm).
+- **공격 중 이동 잠금(2026-11-18 CB1, D-199)**: 서버는 판정 시점(시전 뒤 `HitDelayMs`)의 시전자 위치에서 시전 때 확정한 방향으로 판정하므로, 플레이어의 모든 공격·스킬은 시전부터 휘두르기가 끝날 때(`SkillTable.MoveLockMs` — 몽타주의 `UAnimNotify_SwingEnd` 시각, 기본 공격은 `AttackSpeed`로 나눔)까지 이동·몸 방향을 잠급니다. 서버는 시전 확정 때 `Player::BeginMoveLock`으로 잠금 끝 시각을 정하고 잠금 동안 받는 이동 합계를 `MovementTable.ServerMoveLockSlackCm`(120cm)까지만 인정하며(넘으면 보정), 클라이언트(`AJMMyPlayer`)는 이동 입력을 받지 않고 즉시 멈춰 멈춘 자리를 서버에 알립니다. 시전부터 판정 시점까지 판정 범위를 바닥에 그립니다(`DrawAimIndicator`, 임시 디버그 도형·내 화면만).
 
 ### 플레이어 사망·부활 (2026-11-16, A2.4, D-149)
 - 사망: HP가 0이 되면 서버가 `SC_DEAD{object_id, revive_delay_ms}`를 AOI에 방송합니다(`revive_delay_ms` = 플레이어의 부활 대기 시간, 몬스터는 0). 사망 상태는 전용 필드 없이 `stat.hp == 0`으로 판정하고, 시체는 방과 AOI에 그대로 남습니다(늦게 본 사람은 `SC_ADD_OBJECT`의 hp 0을 보고 바로 사망 자세).

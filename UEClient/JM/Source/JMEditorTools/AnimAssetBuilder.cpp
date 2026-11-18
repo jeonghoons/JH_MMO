@@ -19,6 +19,7 @@
 #include "Animation/AnimLayerInterface.h"
 #include "Animation/AnimMontage.h"
 #include "../JM/Animation/AnimNotify_SkillHit.h"
+#include "../JM/Animation/AnimNotify_SwingEnd.h"
 #include "Animation/AnimSequence.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/BlendSpace.h"
@@ -548,6 +549,41 @@ FString UAnimAssetBuilder::SetLayerBlendSpaceWithOverride(const FString& Bluepri
 	Out += Compile;
 	if (!SaveAsset(BP)) return Fail(TEXT("save failed: ") + BP->GetPathName());
 	return Out + TEXT("saved\n");
+}
+
+FString UAnimAssetBuilder::SetMontageMarker(const FString& MontagePath, const FString& NotifyKind, float TimeSec)
+{
+	UAnimMontage* Montage = LoadObject<UAnimMontage>(nullptr, *MontagePath);
+	if (Montage == nullptr) return Fail(TEXT("montage load failed: ") + MontagePath);
+
+	UClass* NotifyClass = nullptr;
+	if (NotifyKind == TEXT("SkillHit")) NotifyClass = UAnimNotify_SkillHit::StaticClass();
+	else if (NotifyKind == TEXT("SwingEnd")) NotifyClass = UAnimNotify_SwingEnd::StaticClass();
+	else return Fail(TEXT("unknown notify kind (SkillHit / SwingEnd): ") + NotifyKind);
+
+	FString Out = FString::Printf(TEXT("%s length=%.3f rate=%.2f\n"), *Montage->GetPathName(), Montage->GetPlayLength(), Montage->RateScale);
+	for (const FAnimNotifyEvent& Event : Montage->Notifies)
+	{
+		if (Event.Notify) Out += FString::Printf(TEXT("  notify %s at %.3f\n"), *Event.Notify->GetClass()->GetName(), Event.GetTriggerTime());
+	}
+	if (TimeSec < 0.f) return Out;
+
+	Montage->Modify();
+	const int32 Removed = Montage->Notifies.RemoveAll([NotifyClass](const FAnimNotifyEvent& Event) { return Event.Notify && Event.Notify->IsA(NotifyClass); });
+	const float Time = FMath::Clamp(TimeSec, 0.f, Montage->GetPlayLength());
+	if (Montage->AnimNotifyTracks.Num() == 0) Montage->AnimNotifyTracks.AddDefaulted();
+	const int32 Index = Montage->Notifies.AddDefaulted();
+	FAnimNotifyEvent& Event = Montage->Notifies[Index];
+	Event.Notify = NewObject<UAnimNotify>(Montage, NotifyClass, NAME_None, RF_Transactional);
+	Event.NotifyName = FName(*Event.Notify->GetNotifyName());
+	Event.Link(Montage, Time);
+	Event.TriggerTimeOffset = GetTriggerTimeOffsetForType(Montage->CalculateOffsetForNotify(Time));
+	Event.TrackIndex = 0;
+	Montage->RefreshCacheData();
+	Montage->PostEditChange();
+	Montage->MarkPackageDirty();
+	if (!SaveAsset(Montage)) return Fail(TEXT("save failed: ") + Montage->GetPathName());
+	return Out + FString::Printf(TEXT("set %s at %.3f (removed %d)\nsaved\n"), *NotifyKind, Time, Removed);
 }
 
 FString UAnimAssetBuilder::CreateMontage(const FString& SequencePath, const FString& PackagePath, const FString& SlotName, bool bAutoBlendOut, float SkillHitTimeSec)

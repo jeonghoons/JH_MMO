@@ -125,7 +125,19 @@ bool GameMap::LoadMapData(const string& fileName)
                     spawn.MonsterTemplateId = marker.value("monsterTemplateId", 0);
                     spawn.SpawnRadius = marker.value("spawnRadius", 0.f);
                     spawn.MaxCount = marker.value("maxCount", 1);
+                    spawn.ZoneName = marker.value("zoneName", string());
                     _monsterSpawns.push_back(spawn);
+                }
+                else if (type == "SafeZone")
+                {
+                    SafeZonePoint zone;
+                    zone.PointId = pointId;
+                    zone.Pos = pos;
+                    zone.Radius = marker.value("radius", 0.f);
+                    if (zone.Radius > 0.f)
+                        _safeZones.push_back(zone);
+                    else
+                        LOG_WARN("GameMap", "SafeZone 마커 {} 의 radius가 0 이하라 쓰지 않습니다", pointId);
                 }
                 else if (type == "Npc")
                 {
@@ -151,8 +163,20 @@ bool GameMap::LoadMapData(const string& fileName)
                 }
             }
 
-            LOG_INFO("GameMap", "로직 데이터 로드 완료! (PlayerStart {}, MonsterSpawn {}, Npc {}, PortalTrigger {})",
-                _playerStarts.size(), _monsterSpawns.size(), _npcSpawns.size(), _portalTriggers.size());
+            // 스폰 원(중심 ± 반경)이 안전 구역에 걸치면 그 안으로는 스폰하지 않지만(Room::SpawnMonster) 배치 실수이므로 알린다.
+            for (const MonsterSpawnPoint& spawn : _monsterSpawns)
+            {
+                for (const SafeZonePoint& zone : _safeZones)
+                {
+                    const float dx = spawn.Pos.X - zone.Pos.X, dy = spawn.Pos.Y - zone.Pos.Y;
+                    const float reach = zone.Radius + spawn.SpawnRadius;
+                    if (dx * dx + dy * dy < reach * reach)
+                        LOG_WARN("GameMap", "스폰 마커 {} 의 스폰 원이 안전 구역 {} 에 걸칩니다 (중심 거리 {:.0f}cm < {:.0f}cm)", spawn.PointId, zone.PointId, sqrtf(dx * dx + dy * dy), reach);
+                }
+            }
+
+            LOG_INFO("GameMap", "로직 데이터 로드 완료! (PlayerStart {}, MonsterSpawn {}, Npc {}, PortalTrigger {}, SafeZone {})",
+                _playerStarts.size(), _monsterSpawns.size(), _npcSpawns.size(), _portalTriggers.size(), _safeZones.size());
         }
         catch (const nlohmann::json::exception& e)
         {
@@ -185,6 +209,8 @@ Protocol::PositionInfo GameMap::GetRandomPosNear(const Protocol::PositionInfo& p
         randomDest.set_x(pos.x() + cosf(angle) * dist);
         randomDest.set_y(pos.y() + sinf(angle) * dist);
         randomDest.set_z(pos.z());
+
+        if (IsInSafeZone(randomDest)) continue;
 
         if (CanMove(pos, randomDest))
         {

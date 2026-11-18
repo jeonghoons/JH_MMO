@@ -162,6 +162,14 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_USE_ITEM(int objectId, int item
 	return MakeSendBuffer(packet, Protocol::SC_USE_ITEM);
 }
 
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHANGE_HP(int objectId, int hp)
+{
+	Protocol::SC_CHANGE_HP_PACKET packet;
+	packet.set_object_id(objectId);
+	packet.set_hp(hp);
+	return MakeSendBuffer(packet, Protocol::SC_CHANGE_HP);
+}
+
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY_UPDATE(const vector<ItemInstance>& changed, const vector<int64_t>& removed, int64_t gold, const QuickSlotArray* quickSlots)
 {
 	Protocol::SC_INVENTORY_UPDATE_PACKET packet;

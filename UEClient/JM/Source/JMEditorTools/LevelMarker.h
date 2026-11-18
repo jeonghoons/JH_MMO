@@ -6,15 +6,17 @@
 #include "LevelMarker.generated.h"
 
 // 서버 Server/Server/Game/World/GameMap.h의 마커 구조체와 대응된다.
-// 새 마커 타입을 추가할 때는 이 enum에 값을 추가하고, 아래에 대응하는 FXxxParams 구조체를 하나 추가하면 된다.
-// (ALevelMarker, MapExportCommandlet은 그대로 둬도 됨)
+// 새 마커 타입을 추가할 때는 이 enum에 값을 추가하고(끝에 — 저장된 레벨의 값이 밀리지 않게), 아래에 대응하는 FXxxParams 구조체를 하나 추가한다.
+// 함께 고칠 곳: MapExportCommandlet의 MarkerTypeToString, LandscapeBuildLibrary의 SpawnLevelMarker·ListLevelMarkers, 서버 GameMap::LoadMapData.
+// (구조체에 필드만 추가할 때는 커맨드렛을 고치지 않아도 JSON에 나간다 — 서버 로더만 읽게 하면 됨)
 UENUM(BlueprintType)
 enum class EMarkerType : uint8
 {
 	PlayerStart,
 	MonsterSpawn,
 	Npc,
-	PortalTrigger
+	PortalTrigger,
+	SafeZone
 };
 
 USTRUCT(BlueprintType)
@@ -31,6 +33,20 @@ struct FMonsterSpawnParams
 
 	UPROPERTY(EditAnywhere, Category = "MonsterSpawn")
 	int32 MaxCount = 1;
+
+	// 구역 이름(L3). 채우면 서버가 Common/DataTable/SpawnTable.csv의 (MapName, Zone) 행으로 종류·수·리스폰을 정하고 위 MonsterTemplateId·MaxCount는 쓰지 않는다.
+	UPROPERTY(EditAnywhere, Category = "MonsterSpawn")
+	FString ZoneName;
+};
+
+// 안전 구역(L3): 마커 위치가 중심인 원. 안의 플레이어는 몬스터의 대상이 되지 않고 피해를 주고받지 않으며, 몬스터는 들어오지 않는다.
+USTRUCT(BlueprintType)
+struct FSafeZoneParams
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "SafeZone")
+	float Radius = 0.f;
 };
 
 USTRUCT(BlueprintType)

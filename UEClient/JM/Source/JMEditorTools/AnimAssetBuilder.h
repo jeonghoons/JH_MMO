@@ -66,6 +66,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
 	static FString CreateMontage(const FString& SequencePath, const FString& PackagePath, const FString& SlotName, bool bAutoBlendOut, float SkillHitTimeSec);
 
+	// 이미 있는 몽타주에 표식 노티파이를 단다. NotifyKind = "SkillHit" 또는 "SwingEnd". 같은 종류가 이미 있으면 지우고 TimeSec(몽타주 시간)에 하나 단다.
+	// TimeSec < 0이면 지금 달린 노티파이의 시각만 알려 준다(고치지 않음).
+	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
+	static FString SetMontageMarker(const FString& MontagePath, const FString& NotifyKind, float TimeSec);
+
 	// 여러 시퀀스를 차례로 이어 몽타주 하나를 만든다(MC4.2d-2 활 기본 공격 = 당기기 + 놓기). SkillHitTimeSec은 몽타주 전체 기준 시각.
 	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
 	static FString CreateMontageFromSequences(const TArray<FString>& SequencePaths, const FString& PackagePath, const FString& SlotName, bool bAutoBlendOut, float SkillHitTimeSec);

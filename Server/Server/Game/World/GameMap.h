@@ -29,6 +29,15 @@ struct MonsterSpawnPoint
     int32_t MonsterTemplateId = 0;
     float SpawnRadius = 0.f;
     int32_t MaxCount = 1;
+    string ZoneName;   // 채워져 있으면 SpawnTable의 (MapName, Zone) 행이 종류·수·리스폰을 정한다(MonsterTemplateId·MaxCount는 안 씀) (L3)
+};
+
+// 안전 구역(L3, D-195): 마커 위치가 중심인 원(수평 거리). 안의 플레이어는 몬스터의 대상이 되지 않고 피해를 주고받지 않으며, 몬스터는 들어오지 않는다.
+struct SafeZonePoint
+{
+    int32_t PointId = 0;
+    MapPosition Pos;
+    float Radius = 0.f;
 };
 
 struct NpcSpawnPoint
@@ -68,13 +77,25 @@ public:
     const vector<MonsterSpawnPoint>& GetMonsterSpawns() const { return _monsterSpawns; }
     const vector<NpcSpawnPoint>& GetNpcSpawns() const { return _npcSpawns; }
     const vector<PortalTriggerPoint>& GetPortalTriggers() const { return _portalTriggers; }
+    const vector<SafeZonePoint>& GetSafeZones() const { return _safeZones; }
+    // (x, y)가 안전 구역 안인가(수평 거리). 구역이 없는 맵은 항상 false
+    bool IsInSafeZone(float x, float y) const
+    {
+        for (const SafeZonePoint& zone : _safeZones)
+        {
+            const float dx = x - zone.Pos.X, dy = y - zone.Pos.Y;
+            if (dx * dx + dy * dy <= zone.Radius * zone.Radius) return true;
+        }
+        return false;
+    }
+    bool IsInSafeZone(const Protocol::PositionInfo& pos) const { return IsInSafeZone(pos.x(), pos.y()); }
     bool CanMove(const Protocol::PositionInfo& from, const Protocol::PositionInfo& to, float edgeToleranceCm = 100.f) const;
     bool IsOutOfBounds(const Protocol::PositionInfo& pos) const;
 
     NavmeshManager* GetNavManager() { return _navManager.get(); }
     float GetViewRadius() const { return _viewRadius; }
     float GetViewHysteresis() const { return _viewHysteresis; }
-    // pos에서 반경 radius 안의 갈 수 있는 임의 지점(몬스터 배회). 못 찾으면 pos
+    // pos에서 반경 radius 안의 갈 수 있는 임의 지점(몬스터 배회 — 안전 구역 안은 고르지 않는다). 못 찾으면 pos
     Protocol::PositionInfo GetRandomPosNear(const Protocol::PositionInfo& pos, float radius) const;
     const AoiIndex& GetAoi() const { return _aoi; }
     // 바닥 드랍 전용 색인(A3.4). 캐릭터 시야(_aoi·_viewList)와 분리해 몬스터 이동·시야 감사·시야 지표에 영향을 주지 않는다.
@@ -101,6 +122,7 @@ private:
     vector<MonsterSpawnPoint> _monsterSpawns;
     vector<NpcSpawnPoint> _npcSpawns;
     vector<PortalTriggerPoint> _portalTriggers;
+    vector<SafeZonePoint> _safeZones;
     unique_ptr<NavmeshManager> _navManager;
 };
 

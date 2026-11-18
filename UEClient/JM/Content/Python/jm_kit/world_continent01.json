@@ -1980,6 +1980,29 @@
         "template_id": 1001,
         "radius_cm": 1200,
         "max_count": 5
+      },
+      {
+        "zone": "forest_boss",
+        "x": 198,
+        "y": 73,
+        "half_x": 3,
+        "half_y": 3,
+        "count": 1,
+        "min_gap_m": 0.0,
+        "seed": 31,
+        "flat_margin_m": 22.0,
+        "template_id": 1003,
+        "radius_cm": 300,
+        "max_count": 1
+      }
+    ],
+    "safe_zones": [
+      {
+        "id": 300,
+        "label": "Village",
+        "x": -150,
+        "y": 0,
+        "radius_cm": 7200
       }
     ],
     "portals": [

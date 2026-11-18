@@ -80,7 +80,11 @@ void Player::Update(float deltaTime)
 
 void Player::OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker)
 {
-	Character::OnDamaged(damage, attackerId, attacker);	
+	// 안전 구역 안에서는 피해를 받지 않는다(L3, D-195). 즉시·지연 투사체·장판 피해가 모두 여기로 모인다.
+	if (auto room = GetCurrentRoom()) {
+		if (room->GetGameMap().IsInSafeZone(GetPosition())) return;
+	}
+	Character::OnDamaged(damage, attackerId, attacker);
 }
 
 void Player::OnDead(std::shared_ptr<Character> attacker)
@@ -114,8 +118,18 @@ void Player::AccrueMoveBudget(long long nowMs, const MovementData& rule)
 {
 	const float maxSpeed = GetMoveSpeedLimit(rule);
 	const float budgetCap = maxSpeed * rule.moveBudgetMs / 1000.f;
-	moveGuard.budgetCm = min(budgetCap, moveGuard.budgetCm + maxSpeed * (nowMs - moveGuard.lastAccrueMs) / 1000.f);
+	// 이동 잠금 구간(~moveLockUntilMs)의 시간은 예산으로 쌓지 않는다(D-199).
+	const long long from = max(moveGuard.lastAccrueMs, min(nowMs, moveLockUntilMs));
+	moveGuard.budgetCm = min(budgetCap, moveGuard.budgetCm + maxSpeed * (nowMs - from) / 1000.f);
 	moveGuard.lastAccrueMs = nowMs;
+}
+
+void Player::BeginMoveLock(long long nowMs, long long lockMs, const MovementData& rule)
+{
+	if (lockMs <= 0) return;
+	AccrueMoveBudget(nowMs, rule);   // 잠그기 전 시간은 평소대로 정산
+	moveLockUntilMs = max(moveLockUntilMs, nowMs + lockMs);
+	moveGuard.budgetCm = min(moveGuard.budgetCm, rule.moveLockSlackCm);
 }
 
 bool Player::SetSkillAim(const SkillData* skill, long long nowMs)

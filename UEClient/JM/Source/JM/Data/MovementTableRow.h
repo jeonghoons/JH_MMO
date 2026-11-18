@@ -51,4 +51,6 @@ struct FMovementTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerEquipMinIntervalMs = 200;
 	// 스킬 조준 켜기 요청 최소 간격(MC4.2d-1). 클라이언트도 이보다 잦은 켜기는 보내지 않는다(서버가 거부)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerAimMinIntervalMs = 200;
+	// 이동 잠금(SkillTable.MoveLockMs) 동안 서버가 인정하는 이동 거리 합계(서버 전용, D-199)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ServerMoveLockSlackCm = 120.f;
 };
