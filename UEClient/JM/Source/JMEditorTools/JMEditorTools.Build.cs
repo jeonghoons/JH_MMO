@@ -18,5 +18,8 @@ public class JMEditorTools : ModuleRules
 			"AnimGraph", "AnimGraphRuntime", "BlueprintGraph", "Kismet", "KismetCompiler",
 			"AssetTools", "EditorScriptingUtilities", "AnimationBlueprintLibrary"
 		});
+
+		// LandscapeBuildLibrary(L2a): 높이 배열로 Landscape 생성
+		PrivateDependencyModuleNames.Add("Landscape");
 	}
 }

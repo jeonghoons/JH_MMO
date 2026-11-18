@@ -133,6 +133,7 @@ message CS_REVIVE_PACKET {
 message SC_LOGIN_INFO_PACKET {
 	ObjectInfo object_info = 1;   // result가 SUCCESS일 때만 채워진다
 	LoginResult result = 2;
+	string map_name = 3;          // 들어갈 레벨 이름(서버 ServerConfig [World] MapName). result가 SUCCESS일 때만 채워진다. 클라이언트는 이 이름의 레벨을 연다 (L2e, D-185)
 }
 
 message SC_SIGNUP_PACKET {

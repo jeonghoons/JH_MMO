@@ -51,6 +51,8 @@ public:
 private:
     bool LoadBinFile(const std::string& path, RawMapData& outData);
     void SaveToObj(const std::string& fileName, const rcPolyMesh& pmesh);
+    // 가장 넓은 연결 영역의 폴리곤만 flags 1로 두고 나머지는 0으로 끈다(서버 필터가 제외).
+    static void PruneIslands(rcPolyMesh& pmesh, float cellSize);
 
 private:
     dtNavMesh* m_navMesh = nullptr;

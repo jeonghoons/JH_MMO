@@ -321,7 +321,8 @@ struct CS_REVIVE_PACKETDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CS_REVIVE_PACKETDefaultTypeInternal _CS_REVIVE_PACKET_default_instance_;
 PROTOBUF_CONSTEXPR SC_LOGIN_INFO_PACKET::SC_LOGIN_INFO_PACKET(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.object_info_)*/nullptr
+    /*decltype(_impl_.map_name_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.object_info_)*/nullptr
   , /*decltype(_impl_.result_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct SC_LOGIN_INFO_PACKETDefaultTypeInternal {
@@ -847,6 +848,7 @@ const uint32_t TableStruct_Protocol_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::Protocol::SC_LOGIN_INFO_PACKET, _impl_.object_info_),
   PROTOBUF_FIELD_OFFSET(::Protocol::SC_LOGIN_INFO_PACKET, _impl_.result_),
+  PROTOBUF_FIELD_OFFSET(::Protocol::SC_LOGIN_INFO_PACKET, _impl_.map_name_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Protocol::SC_SIGNUP_PACKET, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -1068,28 +1070,28 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 156, -1, -1, sizeof(::Protocol::CS_PING_PACKET)},
   { 163, -1, -1, sizeof(::Protocol::CS_REVIVE_PACKET)},
   { 169, -1, -1, sizeof(::Protocol::SC_LOGIN_INFO_PACKET)},
-  { 177, -1, -1, sizeof(::Protocol::SC_SIGNUP_PACKET)},
-  { 184, -1, -1, sizeof(::Protocol::SC_ADD_OBJECT_PACKET)},
-  { 191, -1, -1, sizeof(::Protocol::SC_REMOVE_OBJECT_PACKET)},
-  { 198, -1, -1, sizeof(::Protocol::SC_CHAT_PACKET)},
-  { 207, -1, -1, sizeof(::Protocol::SC_MOVE_PACKET)},
-  { 216, -1, -1, sizeof(::Protocol::SC_ATTACK_PACKET)},
-  { 229, -1, -1, sizeof(::Protocol::SC_DAMAGE_PACKET)},
-  { 239, -1, -1, sizeof(::Protocol::SC_DEAD_PACKET)},
-  { 247, -1, -1, sizeof(::Protocol::SC_REVIVE_PACKET)},
-  { 257, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_PACKET)},
-  { 267, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET)},
-  { 277, -1, -1, sizeof(::Protocol::SC_INVENTORY_PACKET)},
-  { 289, -1, -1, sizeof(::Protocol::SC_INVENTORY_UPDATE_PACKET)},
-  { 299, -1, -1, sizeof(::Protocol::SC_USE_ITEM_PACKET)},
-  { 309, -1, -1, sizeof(::Protocol::SC_ITEM_RESULT_PACKET)},
-  { 317, -1, -1, sizeof(::Protocol::SC_SKILL_AIM_PACKET)},
-  { 327, -1, -1, sizeof(::Protocol::SC_PONG_PACKET)},
-  { 334, -1, -1, sizeof(::Protocol::SC_TRADE_REQUEST_PACKET)},
-  { 343, -1, -1, sizeof(::Protocol::SC_TRADE_STATE_PACKET)},
-  { 351, -1, -1, sizeof(::Protocol::SC_TRADE_END_PACKET)},
-  { 358, -1, -1, sizeof(::Protocol::SC_TRADE_RESULT_PACKET)},
-  { 366, -1, -1, sizeof(::Protocol::SC_KICK_PACKET)},
+  { 178, -1, -1, sizeof(::Protocol::SC_SIGNUP_PACKET)},
+  { 185, -1, -1, sizeof(::Protocol::SC_ADD_OBJECT_PACKET)},
+  { 192, -1, -1, sizeof(::Protocol::SC_REMOVE_OBJECT_PACKET)},
+  { 199, -1, -1, sizeof(::Protocol::SC_CHAT_PACKET)},
+  { 208, -1, -1, sizeof(::Protocol::SC_MOVE_PACKET)},
+  { 217, -1, -1, sizeof(::Protocol::SC_ATTACK_PACKET)},
+  { 230, -1, -1, sizeof(::Protocol::SC_DAMAGE_PACKET)},
+  { 240, -1, -1, sizeof(::Protocol::SC_DEAD_PACKET)},
+  { 248, -1, -1, sizeof(::Protocol::SC_REVIVE_PACKET)},
+  { 258, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_PACKET)},
+  { 268, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET)},
+  { 278, -1, -1, sizeof(::Protocol::SC_INVENTORY_PACKET)},
+  { 290, -1, -1, sizeof(::Protocol::SC_INVENTORY_UPDATE_PACKET)},
+  { 300, -1, -1, sizeof(::Protocol::SC_USE_ITEM_PACKET)},
+  { 310, -1, -1, sizeof(::Protocol::SC_ITEM_RESULT_PACKET)},
+  { 318, -1, -1, sizeof(::Protocol::SC_SKILL_AIM_PACKET)},
+  { 328, -1, -1, sizeof(::Protocol::SC_PONG_PACKET)},
+  { 335, -1, -1, sizeof(::Protocol::SC_TRADE_REQUEST_PACKET)},
+  { 344, -1, -1, sizeof(::Protocol::SC_TRADE_STATE_PACKET)},
+  { 352, -1, -1, sizeof(::Protocol::SC_TRADE_END_PACKET)},
+  { 359, -1, -1, sizeof(::Protocol::SC_TRADE_RESULT_PACKET)},
+  { 367, -1, -1, sizeof(::Protocol::SC_KICK_PACKET)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -1173,61 +1175,61 @@ const char descriptor_table_protodef_Protocol_2eproto[] PROTOBUF_SECTION_VARIABL
   "\026CS_TRADE_CANCEL_PACKET\"@\n\023CS_SKILL_AIM_"
   "PACKET\022\014\n\004slot\030\001 \001(\005\022\016\n\006active\030\002 \001(\010\022\013\n\003"
   "seq\030\003 \001(\r\"%\n\016CS_PING_PACKET\022\023\n\013client_ti"
-  "me\030\001 \001(\003\"\022\n\020CS_REVIVE_PACKET\"h\n\024SC_LOGIN"
+  "me\030\001 \001(\003\"\022\n\020CS_REVIVE_PACKET\"z\n\024SC_LOGIN"
   "_INFO_PACKET\022)\n\013object_info\030\001 \001(\0132\024.Prot"
   "ocol.ObjectInfo\022%\n\006result\030\002 \001(\0162\025.Protoc"
-  "ol.LoginResult\"\"\n\020SC_SIGNUP_PACKET\022\016\n\006re"
-  "sult\030\001 \001(\010\"A\n\024SC_ADD_OBJECT_PACKET\022)\n\013ob"
-  "ject_info\030\001 \001(\0132\024.Protocol.ObjectInfo\",\n"
-  "\027SC_REMOVE_OBJECT_PACKET\022\021\n\tobject_id\030\001 "
-  "\001(\005\"I\n\016SC_CHAT_PACKET\022\021\n\tsender_id\030\001 \001(\005"
-  "\022\017\n\007message\030\002 \001(\t\022\023\n\013sender_name\030\003 \001(\t\"f"
-  "\n\016SC_MOVE_PACKET\022)\n\013object_info\030\001 \001(\0132\024."
-  "Protocol.ObjectInfo\022\021\n\tmove_time\030\002 \001(\r\022\026"
-  "\n\016correction_seq\030\003 \001(\r\"\220\001\n\020SC_ATTACK_PAC"
-  "KET\022\023\n\013attacker_id\030\001 \001(\005\022\020\n\010skill_id\030\002 \001"
-  "(\005\022\021\n\ttarget_id\030\003 \001(\005\022\017\n\007aim_yaw\030\004 \001(\002\022\r"
-  "\n\005aim_x\030\005 \001(\002\022\r\n\005aim_y\030\006 \001(\002\022\023\n\013cooldown"
-  "_ms\030\007 \001(\005\"]\n\020SC_DAMAGE_PACKET\022\023\n\013attacke"
-  "r_id\030\001 \001(\005\022\021\n\ttarget_id\030\002 \001(\005\022\016\n\006damage\030"
-  "\003 \001(\005\022\021\n\tremain_hp\030\004 \001(\005\"<\n\016SC_DEAD_PACK"
-  "ET\022\021\n\tobject_id\030\001 \001(\005\022\027\n\017revive_delay_ms"
-  "\030\002 \001(\005\"s\n\020SC_REVIVE_PACKET\022\021\n\tobject_id\030"
-  "\001 \001(\005\022(\n\010pos_info\030\002 \001(\0132\026.Protocol.Posit"
-  "ionInfo\022\n\n\002hp\030\003 \001(\005\022\026\n\016correction_seq\030\004 "
-  "\001(\r\"\201\001\n\026SC_CHANGE_EQUIP_PACKET\022\021\n\tobject"
-  "_id\030\001 \001(\005\022!\n\004part\030\002 \001(\0162\023.Protocol.Equip"
-  "Part\022\017\n\007item_id\030\003 \001(\005\022 \n\004stat\030\004 \001(\0132\022.Pr"
-  "otocol.StatInfo\"\216\001\n\035SC_CHANGE_EQUIP_RESU"
-  "LT_PACKET\022%\n\006result\030\001 \001(\0162\025.Protocol.Equ"
-  "ipResult\022!\n\004part\030\002 \001(\0162\023.Protocol.EquipP"
-  "art\022\017\n\007item_id\030\003 \001(\005\022\022\n\nitem_db_id\030\004 \001(\003"
-  "\"\237\001\n\023SC_INVENTORY_PACKET\022!\n\005items\030\001 \003(\0132"
-  "\022.Protocol.ItemInfo\022\014\n\004gold\030\002 \001(\003\022\021\n\tmax"
-  "_slots\030\003 \001(\005\022\027\n\017pickup_range_cm\030\004 \001(\005\022\026\n"
-  "\016trade_range_cm\030\005 \001(\005\022\023\n\013quick_slots\030\006 \003"
-  "(\005\"u\n\032SC_INVENTORY_UPDATE_PACKET\022#\n\007chan"
-  "ged\030\001 \003(\0132\022.Protocol.ItemInfo\022\017\n\007removed"
-  "\030\002 \003(\003\022\014\n\004gold\030\003 \001(\003\022\023\n\013quick_slots\030\004 \003("
-  "\005\"Y\n\022SC_USE_ITEM_PACKET\022\021\n\tobject_id\030\001 \001"
-  "(\005\022\017\n\007item_id\030\002 \001(\005\022\n\n\002hp\030\003 \001(\005\022\023\n\013coold"
-  "own_ms\030\004 \001(\005\"b\n\025SC_ITEM_RESULT_PACKET\022#\n"
-  "\007request\030\001 \001(\0162\022.Protocol.PacketId\022$\n\006re"
-  "sult\030\002 \001(\0162\024.Protocol.ItemResult\"W\n\023SC_S"
-  "KILL_AIM_PACKET\022\021\n\tobject_id\030\001 \001(\005\022\020\n\010sk"
-  "ill_id\030\002 \001(\005\022\016\n\006active\030\003 \001(\010\022\013\n\003seq\030\004 \001("
-  "\r\"%\n\016SC_PONG_PACKET\022\023\n\013client_time\030\001 \001(\003"
-  "\"R\n\027SC_TRADE_REQUEST_PACKET\022\017\n\007from_id\030\001"
-  " \001(\005\022\021\n\tfrom_name\030\002 \001(\t\022\023\n\013timeout_sec\030\003"
-  " \001(\005\"b\n\025SC_TRADE_STATE_PACKET\022#\n\005phase\030\001"
-  " \001(\0162\024.Protocol.TradePhase\022$\n\006offers\030\002 \003"
-  "(\0132\024.Protocol.TradeOffer\"<\n\023SC_TRADE_END"
-  "_PACKET\022%\n\006result\030\001 \001(\0162\025.Protocol.Trade"
-  "Result\"d\n\026SC_TRADE_RESULT_PACKET\022#\n\007requ"
-  "est\030\001 \001(\0162\022.Protocol.PacketId\022%\n\006result\030"
-  "\002 \001(\0162\025.Protocol.TradeResult\"6\n\016SC_KICK_"
-  "PACKET\022$\n\006reason\030\001 \001(\0162\024.Protocol.KickRe"
-  "asonb\006proto3"
+  "ol.LoginResult\022\020\n\010map_name\030\003 \001(\t\"\"\n\020SC_S"
+  "IGNUP_PACKET\022\016\n\006result\030\001 \001(\010\"A\n\024SC_ADD_O"
+  "BJECT_PACKET\022)\n\013object_info\030\001 \001(\0132\024.Prot"
+  "ocol.ObjectInfo\",\n\027SC_REMOVE_OBJECT_PACK"
+  "ET\022\021\n\tobject_id\030\001 \001(\005\"I\n\016SC_CHAT_PACKET\022"
+  "\021\n\tsender_id\030\001 \001(\005\022\017\n\007message\030\002 \001(\t\022\023\n\013s"
+  "ender_name\030\003 \001(\t\"f\n\016SC_MOVE_PACKET\022)\n\013ob"
+  "ject_info\030\001 \001(\0132\024.Protocol.ObjectInfo\022\021\n"
+  "\tmove_time\030\002 \001(\r\022\026\n\016correction_seq\030\003 \001(\r"
+  "\"\220\001\n\020SC_ATTACK_PACKET\022\023\n\013attacker_id\030\001 \001"
+  "(\005\022\020\n\010skill_id\030\002 \001(\005\022\021\n\ttarget_id\030\003 \001(\005\022"
+  "\017\n\007aim_yaw\030\004 \001(\002\022\r\n\005aim_x\030\005 \001(\002\022\r\n\005aim_y"
+  "\030\006 \001(\002\022\023\n\013cooldown_ms\030\007 \001(\005\"]\n\020SC_DAMAGE"
+  "_PACKET\022\023\n\013attacker_id\030\001 \001(\005\022\021\n\ttarget_i"
+  "d\030\002 \001(\005\022\016\n\006damage\030\003 \001(\005\022\021\n\tremain_hp\030\004 \001"
+  "(\005\"<\n\016SC_DEAD_PACKET\022\021\n\tobject_id\030\001 \001(\005\022"
+  "\027\n\017revive_delay_ms\030\002 \001(\005\"s\n\020SC_REVIVE_PA"
+  "CKET\022\021\n\tobject_id\030\001 \001(\005\022(\n\010pos_info\030\002 \001("
+  "\0132\026.Protocol.PositionInfo\022\n\n\002hp\030\003 \001(\005\022\026\n"
+  "\016correction_seq\030\004 \001(\r\"\201\001\n\026SC_CHANGE_EQUI"
+  "P_PACKET\022\021\n\tobject_id\030\001 \001(\005\022!\n\004part\030\002 \001("
+  "\0162\023.Protocol.EquipPart\022\017\n\007item_id\030\003 \001(\005\022"
+  " \n\004stat\030\004 \001(\0132\022.Protocol.StatInfo\"\216\001\n\035SC"
+  "_CHANGE_EQUIP_RESULT_PACKET\022%\n\006result\030\001 "
+  "\001(\0162\025.Protocol.EquipResult\022!\n\004part\030\002 \001(\016"
+  "2\023.Protocol.EquipPart\022\017\n\007item_id\030\003 \001(\005\022\022"
+  "\n\nitem_db_id\030\004 \001(\003\"\237\001\n\023SC_INVENTORY_PACK"
+  "ET\022!\n\005items\030\001 \003(\0132\022.Protocol.ItemInfo\022\014\n"
+  "\004gold\030\002 \001(\003\022\021\n\tmax_slots\030\003 \001(\005\022\027\n\017pickup"
+  "_range_cm\030\004 \001(\005\022\026\n\016trade_range_cm\030\005 \001(\005\022"
+  "\023\n\013quick_slots\030\006 \003(\005\"u\n\032SC_INVENTORY_UPD"
+  "ATE_PACKET\022#\n\007changed\030\001 \003(\0132\022.Protocol.I"
+  "temInfo\022\017\n\007removed\030\002 \003(\003\022\014\n\004gold\030\003 \001(\003\022\023"
+  "\n\013quick_slots\030\004 \003(\005\"Y\n\022SC_USE_ITEM_PACKE"
+  "T\022\021\n\tobject_id\030\001 \001(\005\022\017\n\007item_id\030\002 \001(\005\022\n\n"
+  "\002hp\030\003 \001(\005\022\023\n\013cooldown_ms\030\004 \001(\005\"b\n\025SC_ITE"
+  "M_RESULT_PACKET\022#\n\007request\030\001 \001(\0162\022.Proto"
+  "col.PacketId\022$\n\006result\030\002 \001(\0162\024.Protocol."
+  "ItemResult\"W\n\023SC_SKILL_AIM_PACKET\022\021\n\tobj"
+  "ect_id\030\001 \001(\005\022\020\n\010skill_id\030\002 \001(\005\022\016\n\006active"
+  "\030\003 \001(\010\022\013\n\003seq\030\004 \001(\r\"%\n\016SC_PONG_PACKET\022\023\n"
+  "\013client_time\030\001 \001(\003\"R\n\027SC_TRADE_REQUEST_P"
+  "ACKET\022\017\n\007from_id\030\001 \001(\005\022\021\n\tfrom_name\030\002 \001("
+  "\t\022\023\n\013timeout_sec\030\003 \001(\005\"b\n\025SC_TRADE_STATE"
+  "_PACKET\022#\n\005phase\030\001 \001(\0162\024.Protocol.TradeP"
+  "hase\022$\n\006offers\030\002 \003(\0132\024.Protocol.TradeOff"
+  "er\"<\n\023SC_TRADE_END_PACKET\022%\n\006result\030\001 \001("
+  "\0162\025.Protocol.TradeResult\"d\n\026SC_TRADE_RES"
+  "ULT_PACKET\022#\n\007request\030\001 \001(\0162\022.Protocol.P"
+  "acketId\022%\n\006result\030\002 \001(\0162\025.Protocol.Trade"
+  "Result\"6\n\016SC_KICK_PACKET\022$\n\006reason\030\001 \001(\016"
+  "2\024.Protocol.KickReasonb\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_Protocol_2eproto_deps[2] = {
   &::descriptor_table_Enum_2eproto,
@@ -1235,7 +1237,7 @@ static const ::_pbi::DescriptorTable* const descriptor_table_Protocol_2eproto_de
 };
 static ::_pbi::once_flag descriptor_table_Protocol_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Protocol_2eproto = {
-    false, false, 3452, descriptor_table_protodef_Protocol_2eproto,
+    false, false, 3470, descriptor_table_protodef_Protocol_2eproto,
     "Protocol.proto",
     &descriptor_table_Protocol_2eproto_once, descriptor_table_Protocol_2eproto_deps, 2, 45,
     schemas, file_default_instances, TableStruct_Protocol_2eproto::offsets,
@@ -5494,11 +5496,20 @@ SC_LOGIN_INFO_PACKET::SC_LOGIN_INFO_PACKET(const SC_LOGIN_INFO_PACKET& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   SC_LOGIN_INFO_PACKET* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.object_info_){nullptr}
+      decltype(_impl_.map_name_){}
+    , decltype(_impl_.object_info_){nullptr}
     , decltype(_impl_.result_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.map_name_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.map_name_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_map_name().empty()) {
+    _this->_impl_.map_name_.Set(from._internal_map_name(), 
+      _this->GetArenaForAllocation());
+  }
   if (from._internal_has_object_info()) {
     _this->_impl_.object_info_ = new ::Protocol::ObjectInfo(*from._impl_.object_info_);
   }
@@ -5511,10 +5522,15 @@ inline void SC_LOGIN_INFO_PACKET::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.object_info_){nullptr}
+      decltype(_impl_.map_name_){}
+    , decltype(_impl_.object_info_){nullptr}
     , decltype(_impl_.result_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
+  _impl_.map_name_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.map_name_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 SC_LOGIN_INFO_PACKET::~SC_LOGIN_INFO_PACKET() {
@@ -5528,6 +5544,7 @@ SC_LOGIN_INFO_PACKET::~SC_LOGIN_INFO_PACKET() {
 
 inline void SC_LOGIN_INFO_PACKET::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.map_name_.Destroy();
   if (this != internal_default_instance()) delete _impl_.object_info_;
 }
 
@@ -5541,6 +5558,7 @@ void SC_LOGIN_INFO_PACKET::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  _impl_.map_name_.ClearToEmpty();
   if (GetArenaForAllocation() == nullptr && _impl_.object_info_ != nullptr) {
     delete _impl_.object_info_;
   }
@@ -5569,6 +5587,16 @@ const char* SC_LOGIN_INFO_PACKET::_InternalParse(const char* ptr, ::_pbi::ParseC
           uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
           _internal_set_result(static_cast<::Protocol::LoginResult>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // string map_name = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_map_name();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "Protocol.SC_LOGIN_INFO_PACKET.map_name"));
         } else
           goto handle_unusual;
         continue;
@@ -5615,6 +5643,16 @@ uint8_t* SC_LOGIN_INFO_PACKET::_InternalSerialize(
       2, this->_internal_result(), target);
   }
 
+  // string map_name = 3;
+  if (!this->_internal_map_name().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_map_name().data(), static_cast<int>(this->_internal_map_name().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "Protocol.SC_LOGIN_INFO_PACKET.map_name");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_map_name(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -5630,6 +5668,13 @@ size_t SC_LOGIN_INFO_PACKET::ByteSizeLong() const {
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
+
+  // string map_name = 3;
+  if (!this->_internal_map_name().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_map_name());
+  }
 
   // .Protocol.ObjectInfo object_info = 1;
   if (this->_internal_has_object_info()) {
@@ -5662,6 +5707,9 @@ void SC_LOGIN_INFO_PACKET::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, c
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (!from._internal_map_name().empty()) {
+    _this->_internal_set_map_name(from._internal_map_name());
+  }
   if (from._internal_has_object_info()) {
     _this->_internal_mutable_object_info()->::Protocol::ObjectInfo::MergeFrom(
         from._internal_object_info());
@@ -5685,7 +5733,13 @@ bool SC_LOGIN_INFO_PACKET::IsInitialized() const {
 
 void SC_LOGIN_INFO_PACKET::InternalSwap(SC_LOGIN_INFO_PACKET* other) {
   using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.map_name_, lhs_arena,
+      &other->_impl_.map_name_, rhs_arena
+  );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(SC_LOGIN_INFO_PACKET, _impl_.result_)
       + sizeof(SC_LOGIN_INFO_PACKET::_impl_.result_)

@@ -7,6 +7,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "LandscapeProxy.h"
+#include "LandscapeComponent.h"
+#include "LandscapeDataAccess.h"
 #include "Interfaces/Interface_CollisionDataProvider.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -175,12 +178,63 @@ bool UMapExportCommandlet::ExportGeometry(UWorld* World, const FString& OutBinPa
 		}
 	}
 
-	UE_LOG(LogTemp, Display, TEXT("[MapExport] 지오메트리: 내보낸 컴포넌트 %d개, 제외(충돌 없음·Pawn 비차단) %d개, 정점 %d, 삼각형 %d"),
-		ExportedComps, SkippedComps, Vertices.Num(), Indices.Num() / 3);
+	// 지형(Landscape): 컴포넌트마다 LOD 0 높이 격자를 월드 좌표로 읽어 삼각형으로 내보낸다(D-173, DESIGN_WORLD §11).
+	// 스태틱메시와 같은 기준(충돌 켜짐 + Pawn Block)인 지형만. 컴포넌트 경계의 정점은 양쪽에 중복되지만 Recast는 삼각형 단위로 래스터화하므로 문제없다.
+	int32 LandscapeComps = 0;
+	for (TActorIterator<ALandscapeProxy> It(World); It; ++It)
+	{
+		ALandscapeProxy* Proxy = *It;
+		if (Proxy->BodyInstance.GetCollisionEnabled() == ECollisionEnabled::NoCollision ||
+			Proxy->BodyInstance.GetResponseToChannel(ECC_Pawn) != ECR_Block)
+		{
+			++SkippedComps;
+			continue;
+		}
+
+		for (ULandscapeComponent* Comp : Proxy->LandscapeComponents)
+		{
+			if (!Comp)
+			{
+				continue;
+			}
+
+			FLandscapeComponentDataInterface Data(Comp);
+			const int32 N = Comp->ComponentSizeQuads + 1;
+			const int32 BaseIndex = Vertices.Num();
+
+			Vertices.Reserve(Vertices.Num() + N * N);
+			for (int32 Y = 0; Y < N; ++Y)
+			{
+				for (int32 X = 0; X < N; ++X)
+				{
+					Vertices.Add(Data.GetWorldVertex(X, Y));
+				}
+			}
+
+			Indices.Reserve(Indices.Num() + (N - 1) * (N - 1) * 6);
+			for (int32 Y = 0; Y < N - 1; ++Y)
+			{
+				for (int32 X = 0; X < N - 1; ++X)
+				{
+					const int32 I00 = BaseIndex + Y * N + X;
+					const int32 I10 = I00 + 1;      // +X
+					const int32 I01 = I00 + N;      // +Y
+					const int32 I11 = I01 + 1;
+					// Detour 좌표(y, z, -x)로 바꾼 뒤 법선이 위(+Y)를 향하는 순서: (00, 01, 10), (10, 01, 11)
+					Indices.Add(I00); Indices.Add(I01); Indices.Add(I10);
+					Indices.Add(I10); Indices.Add(I01); Indices.Add(I11);
+				}
+			}
+			++LandscapeComps;
+		}
+	}
+
+	UE_LOG(LogTemp, Display, TEXT("[MapExport] 지오메트리: 내보낸 스태틱메시 컴포넌트 %d개, 지형 컴포넌트 %d개, 제외(충돌 없음·Pawn 비차단) %d개, 정점 %d, 삼각형 %d"),
+		ExportedComps, LandscapeComps, SkippedComps, Vertices.Num(), Indices.Num() / 3);
 
 	if (Vertices.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[MapExport] Pawn을 막는 충돌을 가진 스태틱메시를 찾지 못했습니다."));
+		UE_LOG(LogTemp, Warning, TEXT("[MapExport] Pawn을 막는 충돌을 가진 스태틱메시·지형을 찾지 못했습니다."));
 	}
 
 	IFileManager::Get().MakeDirectory(*FPaths::GetPath(OutBinPath), true);

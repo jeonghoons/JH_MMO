@@ -12,6 +12,60 @@ RecastNavMesh::~RecastNavMesh()
 	if (m_navMesh) dtFreeNavMesh(m_navMesh);
 }
 
+void RecastNavMesh::PruneIslands(rcPolyMesh& pmesh, float cellSize)
+{
+    const int n = pmesh.npolys, nvp = pmesh.nvp;
+    std::vector<int> comp(n, -1);
+    std::vector<double> compArea;   // 수평 넓이(셀² 단위)
+    std::vector<int> stack;
+
+    for (int i = 0; i < n; ++i) {
+        if (comp[i] != -1) continue;
+        const int id = (int)compArea.size();
+        compArea.push_back(0.0);
+        comp[i] = id;
+        stack.push_back(i);
+        while (!stack.empty()) {
+            const int cur = stack.back();
+            stack.pop_back();
+            const unsigned short* p = &pmesh.polys[cur * nvp * 2];
+            int nv = 0;
+            while (nv < nvp && p[nv] != RC_MESH_NULL_IDX) ++nv;
+
+            const unsigned short* v0 = &pmesh.verts[p[0] * 3];
+            for (int j = 1; j + 1 < nv; ++j) {
+                const unsigned short* v1 = &pmesh.verts[p[j] * 3];
+                const unsigned short* v2 = &pmesh.verts[p[j + 1] * 3];
+                const double ax = (double)v1[0] - v0[0], az = (double)v1[2] - v0[2];
+                const double bx = (double)v2[0] - v0[0], bz = (double)v2[2] - v0[2];
+                compArea[id] += std::fabs(ax * bz - az * bx) * 0.5;
+            }
+            for (int j = 0; j < nv; ++j) {
+                const unsigned short nb = p[nvp + j];   // 그 변을 공유하는 이웃 폴리곤(없으면 NULL, 0x8000 = 타일 경계)
+                if (nb == RC_MESH_NULL_IDX || (nb & 0x8000)) continue;
+                if (comp[nb] == -1) { comp[nb] = id; stack.push_back(nb); }
+            }
+        }
+    }
+
+    int best = 0;
+    for (int c = 1; c < (int)compArea.size(); ++c)
+        if (compArea[c] > compArea[best]) best = c;
+
+    int removedPolys = 0;
+    double removedArea = 0.0;
+    for (int c = 0; c < (int)compArea.size(); ++c)
+        if (c != best) removedArea += compArea[c];
+    for (int i = 0; i < n; ++i) {
+        pmesh.flags[i] = (comp[i] == best) ? 1 : 0;
+        if (comp[i] != best) ++removedPolys;
+    }
+
+    const double toM2 = (double)cellSize * cellSize / 10000.0;   // 셀² → ㎡ (cellSize는 cm)
+    std::cout << "[Prune] 연결 영역 " << compArea.size() << "개 중 가장 넓은 것만 남김: 남긴 넓이 " << compArea[best] * toM2
+        << " m2 (폴리곤 " << (n - removedPolys) << "), 끈 섬 넓이 " << removedArea * toM2 << " m2 (폴리곤 " << removedPolys << ")" << std::endl;
+}
+
 bool RecastNavMesh::Build(const std::string& filePath)
 {
     RawMapData mapData;
@@ -85,22 +139,31 @@ bool RecastNavMesh::Build(const std::string& filePath)
 
     std::cout << "[Step 8] rcBuildPolyMesh..." << std::endl;
     rcPolyMesh* pmesh = rcAllocPolyMesh();
-    rcBuildPolyMesh(&ctx, *cset, cfg.maxVertsPerPoly, *pmesh);
+    // 단일 타일이라 폴리곤 메시 정점은 16비트 인덱스(최대 65,534개)를 넘을 수 없다. 넘으면 Recast가 false를 돌려준다.
+    if (!rcBuildPolyMesh(&ctx, *cset, cfg.maxVertsPerPoly, *pmesh)) {
+        std::cerr << ">>> 에러: rcBuildPolyMesh 실패 (정점이 단일 타일 상한 65,534개를 넘었을 수 있습니다 — 맵을 줄이거나 타일로 나눠야 합니다) <<<" << std::endl;
+        return false;
+    }
+    std::cout << "[Step 8] 폴리곤 메시: 정점 " << pmesh->nverts << " / 65534, 폴리곤 " << pmesh->npolys << std::endl;
 
     std::cout << "[Step 9] rcBuildPolyMeshDetail..." << std::endl;
     rcPolyMeshDetail* dmesh = rcAllocPolyMeshDetail();
-    rcBuildPolyMeshDetail(&ctx, *pmesh, *chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *dmesh);
+    if (!rcBuildPolyMeshDetail(&ctx, *pmesh, *chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *dmesh)) {
+        std::cerr << ">>> 에러: rcBuildPolyMeshDetail 실패 <<<" << std::endl;
+        return false;
+    }
 
-    std::cout << "[Step 9] 완료! 생성된 폴리곤 수: " << pmesh->npolys << "개" << std::endl;
+    std::cout << "[Step 9] 완료! 생성된 폴리곤 수: " << pmesh->npolys << "개, 디테일 정점 " << dmesh->nverts << ", 디테일 삼각형 " << dmesh->ntris << std::endl;
 
     if (pmesh->npolys == 0) {
         std::cerr << ">>> 에러: 살아남은 폴리곤이 0개입니다! <<<" << std::endl;
         return false;
     }
 
-    for (int i = 0; i < pmesh->npolys; ++i) {
-        pmesh->flags[i] = 1;
-    }
+    // 가장 넓은 연결 영역만 걷기 가능(flags 1)으로 남기고 나머지 섬(능선 꼭대기, 바위·건물 윗면)은 flags 0으로 끈다.
+    // 서버 필터(includeFlags 0xFFFF)는 flags 0인 폴리곤을 모든 질의(무작위 위치·가까운 폴리곤·경로)에서 제외한다.
+    // 끄지 않으면 무작위 배치(봇·드랍·몬스터 순찰 목적지)가 닿을 수 없는 섬 위에 놓인다. (D-176, RecastDemo의 prune 도구와 같은 방식)
+    PruneIslands(*pmesh, cfg.cs);
 
     std::cout << "[Step 10] dtCreateNavMeshData..." << std::endl;
     dtNavMeshCreateParams params;
@@ -138,6 +201,24 @@ bool RecastNavMesh::Build(const std::string& filePath)
 
     std::cout << "[Step 11] OBJ 검증용 데이터 저장..." << std::endl;
     SaveToObj("NavMesh_Output.obj", *pmesh);
+
+    // 검증용 표본: 서버가 무작위 위치를 뽑는 것과 같은 질의(findRandomPoint + 필터)로 점을 뽑아 UE 좌표(cm)로 저장한다.
+    // 원본 지형 높이와 비교하거나(높이 오차) 섬이 실제로 제외됐는지(분포) 확인하는 데 쓴다.
+    {
+        std::ofstream samples("NavMesh_Samples.csv");
+        samples << "ue_x,ue_y,ue_z\n";
+        auto frand = []() { return (float)rand() / ((float)RAND_MAX + 1.0f); };
+        srand(12345);
+        for (int i = 0; i < 4000; ++i) {
+            dtPolyRef ref = 0;
+            float pt[3];
+            if (dtStatusFailed(m_navQuery->findRandomPoint(&m_filter, frand, &ref, pt))) continue;
+            float h = pt[1];
+            m_navQuery->getPolyHeight(ref, pt, &h);
+            // Detour(x, y, z) = UE(y, z, -x)
+            samples << -pt[2] << "," << pt[0] << "," << h << "\n";
+        }
+    }
 
     rcFreeHeightField(hf);
     rcFreeCompactHeightfield(chf);
@@ -243,6 +324,7 @@ void RecastNavMesh::SaveToObj(const std::string& fileName, const rcPolyMesh& pme
             << pmesh.bmin[2] + v[2] * pmesh.cs << "\n";
     }
     for (int i = 0; i < pmesh.npolys; ++i) {
+        if (pmesh.flags[i] == 0) continue;   // 끈 섬은 그리지 않는다(PruneIslands)
         const unsigned short* p = &pmesh.polys[i * pmesh.nvp * 2];
         objFile << "f ";
         for (int j = 0; j < pmesh.nvp; ++j) {

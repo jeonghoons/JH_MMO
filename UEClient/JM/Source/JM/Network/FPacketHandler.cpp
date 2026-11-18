@@ -169,7 +169,7 @@ void FPacketHandler::Handle_SC_LOGIN(TSharedPtr<NetworkSession>& session, Protoc
     if (UNetworkManager* NetManager = session->OwnerNetwork.Get())
     {
         NetManager->NetworkId = pkt.object_info().id();
-		NetManager->EnterGame();
+		NetManager->EnterGame(UTF8_TO_TCHAR(pkt.map_name().c_str()));
     }
 }
 

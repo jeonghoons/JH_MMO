@@ -101,7 +101,7 @@ void Player::OnDead(std::shared_ptr<Character> attacker)
 
 int Player::GetReviveDelayMs() const
 {
-	const WorldData* world = DataManager::GetWorldData(ROOM_MAP_NAME);   // 서버 시작 때 존재를 확인했다
+	const WorldData* world = DataManager::GetWorldData(GServerConfig.mapName);   // 서버 시작 때 존재를 확인했다
 	return world ? world->reviveDelaySec * 1000 : 0;
 }
 
@@ -143,7 +143,7 @@ bool Player::SetSkillAim(const SkillData* skill, long long nowMs)
 // 부활 규칙의 HP(= StatComponent::Revive): 최대치 × WorldTable.ReviveHpPercent, 최소 1
 static int ReviveHp(int maxHp)
 {
-	const WorldData* world = DataManager::GetWorldData(ROOM_MAP_NAME);   // 서버 시작 때 존재를 확인했다
+	const WorldData* world = DataManager::GetWorldData(GServerConfig.mapName);   // 서버 시작 때 존재를 확인했다
 	const int percent = world ? world->reviveHpPercent : 100;
 	return std::max(1, static_cast<int>(static_cast<long long>(maxHp) * percent / 100));
 }

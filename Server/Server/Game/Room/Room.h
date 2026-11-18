@@ -7,8 +7,7 @@
 #include "Data/ServerData.h"
 #include <deque>
 
-constexpr int MAX_ROOM_CAPACITY = 100;
-constexpr const char* ROOM_MAP_NAME = "ParagonSample"; // 모든 방이 쓰는 맵(맵 리소스 파일 이름 = WorldTable.MapName)
+// 모든 Room이 쓰는 레벨 이름은 ServerConfig [World] MapName(GServerConfig.mapName), 정원은 WorldTable.RoomCapacity (D-172·D-176)
 constexpr int DROP_ID_BEGIN = 1000000000;      // 드랍 오브젝트 id 시작(방마다 따로 증가, int32 끝에 닿으면 처음으로)
 constexpr int MAX_CHAT_LEN = 100;               // 채팅 한 줄 최대 글자 수(UTF-16 문자 기준)
 constexpr long long CHAT_MIN_INTERVAL_MS = 500;  // 같은 플레이어의 채팅 최소 간격(도배 방지)
@@ -197,7 +196,7 @@ public:
 	bool TryReserveSlot()
 	{
 		int count = _playerCount.load();
-		while (count < MAX_ROOM_CAPACITY)
+		while (count < _capacity)
 		{
 			if (_playerCount.compare_exchange_weak(count, count + 1))
 				return true;
@@ -251,7 +250,8 @@ private:
 	int NextDropId();
 
 	atomic<int> _playerCount = 0;
-	int _tickCount = 0;   // Update 횟수. 1초(10틱)마다 시야 인원 지표·시야 감사를 하는 데 쓴다
+	int _capacity = 100;  // 정원(WorldTable.RoomCapacity). InitRoom에서 정하고 그 뒤로 바뀌지 않는다(Room이 목록에 등록되기 전)
+	int _tickCount = 0;  // Update 횟수. 1초(10틱)마다 시야 인원 지표·시야 감사를 하는 데 쓴다
 
 	// [Debug] 부하·검증 시험용
 	bool PickDummyZonePosition(Protocol::PositionInfo& out);   // DummySpawnZone 안의 내비메시 위치

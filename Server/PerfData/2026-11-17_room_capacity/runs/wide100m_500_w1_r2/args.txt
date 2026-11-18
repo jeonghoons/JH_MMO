@@ -1,0 +1,2 @@
+1794928562 --bots 500 --ramp-rate 50 --duration 75 --threads 4 --move-interval 200 --body male --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-17_room_capacity\runs\wide100m_500_w1_r2\loadtest.csv --zone 0,0,10000
+loadtest exit 0

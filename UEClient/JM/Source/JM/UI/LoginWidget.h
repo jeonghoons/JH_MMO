@@ -41,4 +41,9 @@ private:
 
 	// 서버에 연결돼 있지 않으면 다시 연결을 시도한다. 연결되면 true(실패 메시지는 ConnectToServer가 띄운다).
 	bool EnsureConnected(class UNetworkManager* NetManager) const;
+
+	// 시험용 자동 로그인(배포 빌드 제외): Saved/TestLogin.txt가 있을 때만 그 계정으로 로그인한다.
+	// 줄마다 "계정 비밀번호"(예: Test1 1234), PIE 창 번호 순서대로 한 줄씩 쓴다(창이 하나면 첫 줄). 게임 실행당 한 번만 시도한다.
+	void TryTestAutoLogin();
+	FTimerHandle TestAutoLoginTimer;
 };

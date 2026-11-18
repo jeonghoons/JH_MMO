@@ -70,7 +70,8 @@ public:
 	void SendSkillAim(int32 Slot, bool bActive, uint32 Seq);   // Part = Protocol::EquipPart(1~7), ItemId 0 = 해제. 검증은 서버가 한다
 
 public:
-	void EnterGame();
+	// 서버가 로그인 응답(SC_LOGIN map_name)으로 알려 준 레벨을 연다(D-185). 레벨은 /Game/Maps/<이름>에 있어야 한다.
+	void EnterGame(const FString& MapName);
 	// 연결을 닫고 로그인 화면(레벨)으로 돌아가 Message를 시스템 메시지로 보여준다(SC_KICK, 게임 중 연결 끊김 — A2.7).
 	// 로그인 레벨의 LoginGameMode가 서버에 다시 연결한다.
 	void ReturnToLogin(const FText& Message);
@@ -78,6 +79,9 @@ public:
 
 public:
 	int32 NetworkId = -1;
+
+	// 시험용 자동 로그인(ULoginWidget::TryTestAutoLogin)을 이미 시도했는지. 로그인 화면으로 돌아왔을 때(SC_KICK 등) 되풀이하지 않게 한다.
+	bool bTestAutoLoginTried = false;
 
 private:
 

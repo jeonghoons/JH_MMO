@@ -27,6 +27,9 @@ struct ServerConfig
 	LogLevel logLevel = LogLevel::Info;
 	std::string logDir = "Logs";    // 비우면 파일에 쓰지 않는다(콘솔만)
 
+	// [World] — 이 서버 프로세스가 띄우는 레벨(D-172). 맵 리소스 파일 이름(Resource/Map/<이름>_Geo.nav, MapResource/Export/<이름>)이자 WorldTable.MapName
+	std::string mapName = "ParagonSample";
+
 	// [Debug] — 부하·검증 시험용. 기본은 모두 꺼짐
 	// 더미(봇) 로그인을 이 원들 안에 배치(핫존·시야 경계 시험). 비면 맵 전체 무작위.
 	// 형식: x,y,r[,n];x,y,r[,n];... — 들어오는 순서대로 앞 구역부터 n명씩 채우고, n이 없는 구역은 나머지 전부
@@ -46,6 +49,7 @@ struct ServerConfig
 	std::string dummySpawnZoneFrom = "default", viewAuditFrom = "default", dbSaveDelayMsFrom = "default";
 	std::string loginWaitTimeoutSecFrom = "default", loginCloseForceSecFrom = "default";
 	std::string devCommandsFrom = "default", dbItemFailEveryFrom = "default";
+	std::string mapNameFrom = "default";
 
 	// 실제로 쓸 워커 스레드 수 (0이면 CPU 코어 수 / 2, 최소 1)
 	int ResolvedWorkerThreads() const;

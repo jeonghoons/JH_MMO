@@ -4,6 +4,9 @@
 #include "Components/ComboBoxString.h"
 #include "Network/NetworkManager.h"
 #include "Protocol/Enum.pb.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "TimerManager.h"
 
 namespace
 {
@@ -42,6 +45,39 @@ void ULoginWidget::NativeConstruct()
 	{
 		BtnSignUp->OnClicked.AddDynamic(this, &ULoginWidget::OnSignUpButtonClicked);
 	}
+
+#if !UE_BUILD_SHIPPING
+	// 화면이 뜨고 서버 연결이 끝날 시간을 준 뒤 한 번 시도한다.
+	if (UWorld* World = GetWorld())
+		World->GetTimerManager().SetTimer(TestAutoLoginTimer, this, &ULoginWidget::TryTestAutoLogin, 1.0f, false);
+#endif
+}
+
+void ULoginWidget::TryTestAutoLogin()
+{
+#if !UE_BUILD_SHIPPING
+	UNetworkManager* NetManager = UNetworkManager::Get(this);
+	if (NetManager == nullptr || NetManager->bTestAutoLoginTried) return;
+
+	FString Text;
+	if (!FFileHelper::LoadFileToString(Text, *(FPaths::ProjectSavedDir() / TEXT("TestLogin.txt")))) return;   // 파일이 없으면 평소대로 손으로 로그인
+
+	TArray<FString> Lines;
+	Text.ParseIntoArrayLines(Lines);
+	const int32 PieIndex = GetWorld() ? FMath::Max(0, GetWorld()->GetOutermost()->GetPIEInstanceID()) : 0;
+	if (!Lines.IsValidIndex(PieIndex)) return;
+
+	FString AccountId, AccountPw;
+	if (!Lines[PieIndex].TrimStartAndEnd().Split(TEXT(" "), &AccountId, &AccountPw)) return;
+	AccountPw.TrimStartAndEndInline();
+
+	NetManager->bTestAutoLoginTried = true;
+	UE_LOG(LogTemp, Log, TEXT("[Login] test auto login: %s (Saved/TestLogin.txt line %d)"), *AccountId, PieIndex + 1);
+	if (EnsureConnected(NetManager))
+	{
+		NetManager->SendLogin(AccountId, AccountPw);
+	}
+#endif
 }
 
 void ULoginWidget::OnLoginButtonClicked()

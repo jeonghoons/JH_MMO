@@ -133,6 +133,15 @@ namespace
 			{
 				cfg.logDir = e.value; cfg.logDirFrom = from;
 			}
+			else if (name == "World.MapName")
+			{
+				// 파일 이름으로 쓰이므로 영문·숫자·밑줄만 받는다.
+				bool ok = !e.value.empty() && e.value.size() <= 64;
+				for (char c : e.value)
+					if (!(isalnum(static_cast<unsigned char>(c)) || c == '_')) ok = false;
+				if (!ok) { err = where + "MapName must be 1~64 chars of [A-Za-z0-9_]: '" + e.value + "'"; return false; }
+				cfg.mapName = e.value; cfg.mapNameFrom = from;
+			}
 			else if (name == "Debug.DummySpawnZone")
 			{
 				cfg.dummyZones.clear();
@@ -280,6 +289,7 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "Database.PlayerSaveIntervalSec = {}  ({})", playerSaveIntervalSec, playerSaveIntervalSecFrom);
 	LOG_INFO("Config", "Log.Level                 = {}  ({})", LogLevelName(logLevel), logLevelFrom);
 	LOG_INFO("Config", "Log.Dir                   = {}  ({})", logDir.empty() ? "(파일 출력 안 함)" : logDir, logDirFrom);
+	LOG_INFO("Config", "World.MapName             = {}  ({})", mapName, mapNameFrom);
 	if (dummyZones.empty())
 		LOG_INFO("Config", "Debug.DummySpawnZone      = (끔: 맵 전체 무작위)  ({})", dummySpawnZoneFrom);
 	for (const DummyZone& z : dummyZones)

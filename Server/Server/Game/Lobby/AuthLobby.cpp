@@ -73,6 +73,7 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
     Protocol::SC_LOGIN_INFO_PACKET logInPacket;
     logInPacket.mutable_object_info()->CopyFrom(player->GetInfo());
     logInPacket.set_result(Protocol::LOGIN_RESULT_SUCCESS);
+    logInPacket.set_map_name(GServerConfig.mapName);   // 클라이언트가 열 레벨(D-185)
     uint16_t dateSize = logInPacket.ByteSizeLong();
     uint16_t packetSize = sizeof(PacketHeader) + dateSize;
 

@@ -4,6 +4,7 @@
 #include "Common/TcpSocketBuilder.h"
 #include "SocketSubsystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/PackageName.h"
 #include "FPacketHandler.h"
 #include "Game/JMObjectManager.h"
 #include "Game/JMInventoryManager.h"
@@ -309,9 +310,19 @@ void UNetworkManager::ReturnToLogin(const FText& Message)
 	SwitchGameMapLevel(FName("DevMap"));
 }
 
-void UNetworkManager::EnterGame()
+void UNetworkManager::EnterGame(const FString& MapName)
 {
-	SwitchGameMapLevel(FName("ParagonSample"));
+	// 들어갈 레벨은 서버가 정한다(ServerConfig [World] MapName → SC_LOGIN map_name, D-185).
+	// 이름이 비었거나 그 레벨이 클라이언트에 없으면 기본 맵으로 떨어지지 않게 로그인 화면에 남아 사유를 보여 준다.
+	const FString PackageName = FString(TEXT("/Game/Maps/")) + MapName;
+	if (MapName.IsEmpty() || !FPackageName::DoesPackageExist(PackageName))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[Network] EnterGame: level not found '%s'"), *PackageName);
+		if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+			UIManager->ShowSystemMessage(FText::FromString(FString::Printf(TEXT("서버가 알려 준 레벨(%s)이 클라이언트에 없습니다."), *MapName)));
+		return;
+	}
+	SwitchGameMapLevel(FName(*MapName));
 }
 
 void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad)

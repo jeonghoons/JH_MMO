@@ -1,7 +1,13 @@
 #include "RecastNavMesh.h"
 
+int RunQueryMode(const std::string& navPath, const std::string& queryPath);
+
 int main(int argc, char** argv)
 {
+	// NavGenerator.exe --query <nav> <queries.txt> : build nothing, run server-equivalent queries (NavQuery.cpp)
+	if (argc == 4 && std::string(argv[1]) == "--query")
+		return RunQueryMode(argv[2], argv[3]);
+
 	std::string binPath;
 	std::string navPath;
 

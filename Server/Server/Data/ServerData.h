@@ -339,6 +339,7 @@ struct WorldData
 	int viewHysteresisCm;  // 히스테리시스 H: 나갈 때는 R+H를 넘어야 사라진다(경계 깜빡임 방지)
 	int reviveDelaySec;    // 플레이어가 죽은 뒤 이 시간이 지나야 부활 요청(CS_REVIVE)을 받는다 (A2.4)
 	int reviveHpPercent;   // 부활 HP = 최대 HP × 이 값 / 100 (최소 1)
+	int roomCapacity;      // Room 하나의 정원. 차면 같은 맵의 새 Room을 만든다(RoomManager::EnterPlayer) (D-176)
 };
 
 class DataManager

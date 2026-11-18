@@ -190,7 +190,45 @@ bool NavmeshManager::CanMove(const Protocol::PositionInfo& startPos, const Proto
 			return true;
 		}
 	}
-	return false;
+
+	// 직선이 막혔어도, 목표가 걷는 영역에서 허용치 안이고 걷는 영역 위로 돌아가는 길이 직선 이동과 비슷하면 받아들인다(L2e, D-186).
+	// 내비메시 경계는 충돌 도형에서 20~55cm 떨어져 있어(깎기 20cm + 격자 + 윤곽 단순화) 장애물에 붙어 미끄러지는 캐릭터(캡슐 반지름 42cm)는
+	// 시작점·목표가 모두 경계 살짝 밖일 수 있다. 그때 위 직선 검사는 시작하자마자 막혀 정직한 이동을 거부한다(바위를 끼고 돌 때 끌려감).
+	// 벽 뚫기는 여전히 거부된다: 벽 건너편은 돌아가는 길이 직선보다 훨씬 길다.
+	const float destExtents[3] = { edgeToleranceCm, 300.0f, edgeToleranceCm };
+	dtPolyRef destRef = 0;
+	float nearestDest[3];
+	_navQuery->findNearestPoly(dDest, destExtents, &_filter, &destRef, nearestDest);
+	if (!destRef) return false;
+
+	const float ddx = nearestDest[0] - dDest[0], ddz = nearestDest[2] - dDest[2];
+	if (ddx * ddx + ddz * ddz > edgeToleranceCm * edgeToleranceCm) return false;
+
+	dtPolyRef detourPolys[32];
+	int detourCount = 0;
+	const dtStatus pathStatus = _navQuery->findPath(startRef, destRef, nearestStart, nearestDest, &_filter, detourPolys, &detourCount, 32);
+	if (dtStatusFailed(pathStatus) || dtStatusDetail(pathStatus, DT_PARTIAL_RESULT) || detourCount == 0 || detourPolys[detourCount - 1] != destRef)
+		return false;
+
+	float corners[16 * 3];
+	int cornerCount = 0;
+	const dtStatus straightStatus = _navQuery->findStraightPath(nearestStart, nearestDest, detourPolys, detourCount, corners, nullptr, nullptr, &cornerCount, 16);
+	if (dtStatusFailed(straightStatus) || dtStatusDetail(straightStatus, DT_BUFFER_TOO_SMALL) || cornerCount < 2)
+		return false;
+
+	float detourLen = 0.f;
+	for (int i = 1; i < cornerCount; ++i) {
+		const float sx = corners[i * 3] - corners[(i - 1) * 3], sz = corners[i * 3 + 2] - corners[(i - 1) * 3 + 2];
+		detourLen += sqrtf(sx * sx + sz * sz);
+	}
+	// 끝점이 정확히 목표(가장 가까운 걷는 점)여야 한다
+	const float ex = corners[(cornerCount - 1) * 3] - nearestDest[0], ez = corners[(cornerCount - 1) * 3 + 2] - nearestDest[2];
+	if (ex * ex + ez * ez > 1.0f) return false;
+
+	const float mx = dDest[0] - dStart[0], mz = dDest[2] - dStart[2];
+	const float moveLen = sqrtf(mx * mx + mz * mz);
+	// 여유 = 시작점·목표가 각각 경계 밖으로 나갈 수 있는 거리(허용치)의 합
+	return detourLen <= moveLen + 2.0f * edgeToleranceCm;
 }
 
 bool NavmeshManager::FindPath(const Protocol::PositionInfo& startPos, const Protocol::PositionInfo& destPos, std::vector<Protocol::PositionInfo>& outPath)

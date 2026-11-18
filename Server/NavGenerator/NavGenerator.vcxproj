@@ -148,6 +148,7 @@
     <ClCompile Include="..\ThirdParty\Recast\Source\RecastRasterization.cpp" />
     <ClCompile Include="..\ThirdParty\Recast\Source\RecastRegion.cpp" />
     <ClCompile Include="mapLoad.cpp" />
+    <ClCompile Include="NavQuery.cpp" />
     <ClCompile Include="RecastNavMesh.cpp" />
   </ItemGroup>
   <ItemGroup>

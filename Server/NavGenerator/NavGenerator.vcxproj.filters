@@ -24,6 +24,9 @@
     <ClCompile Include="mapLoad.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="NavQuery.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
     <ClCompile Include="..\ThirdParty\Recast\Source\Recast.cpp">
       <Filter>소스 파일\Recast</Filter>
     </ClCompile>

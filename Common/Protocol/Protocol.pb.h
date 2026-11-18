@@ -3763,9 +3763,24 @@ class SC_LOGIN_INFO_PACKET final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kMapNameFieldNumber = 3,
     kObjectInfoFieldNumber = 1,
     kResultFieldNumber = 2,
   };
+  // string map_name = 3;
+  void clear_map_name();
+  const std::string& map_name() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_map_name(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_map_name();
+  PROTOBUF_NODISCARD std::string* release_map_name();
+  void set_allocated_map_name(std::string* map_name);
+  private:
+  const std::string& _internal_map_name() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_map_name(const std::string& value);
+  std::string* _internal_mutable_map_name();
+  public:
+
   // .Protocol.ObjectInfo object_info = 1;
   bool has_object_info() const;
   private:
@@ -3801,6 +3816,7 @@ class SC_LOGIN_INFO_PACKET final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr map_name_;
     ::Protocol::ObjectInfo* object_info_;
     int result_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -8820,6 +8836,56 @@ inline void SC_LOGIN_INFO_PACKET::_internal_set_result(::Protocol::LoginResult v
 inline void SC_LOGIN_INFO_PACKET::set_result(::Protocol::LoginResult value) {
   _internal_set_result(value);
   // @@protoc_insertion_point(field_set:Protocol.SC_LOGIN_INFO_PACKET.result)
+}
+
+// string map_name = 3;
+inline void SC_LOGIN_INFO_PACKET::clear_map_name() {
+  _impl_.map_name_.ClearToEmpty();
+}
+inline const std::string& SC_LOGIN_INFO_PACKET::map_name() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_LOGIN_INFO_PACKET.map_name)
+  return _internal_map_name();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void SC_LOGIN_INFO_PACKET::set_map_name(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.map_name_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:Protocol.SC_LOGIN_INFO_PACKET.map_name)
+}
+inline std::string* SC_LOGIN_INFO_PACKET::mutable_map_name() {
+  std::string* _s = _internal_mutable_map_name();
+  // @@protoc_insertion_point(field_mutable:Protocol.SC_LOGIN_INFO_PACKET.map_name)
+  return _s;
+}
+inline const std::string& SC_LOGIN_INFO_PACKET::_internal_map_name() const {
+  return _impl_.map_name_.Get();
+}
+inline void SC_LOGIN_INFO_PACKET::_internal_set_map_name(const std::string& value) {
+  
+  _impl_.map_name_.Set(value, GetArenaForAllocation());
+}
+inline std::string* SC_LOGIN_INFO_PACKET::_internal_mutable_map_name() {
+  
+  return _impl_.map_name_.Mutable(GetArenaForAllocation());
+}
+inline std::string* SC_LOGIN_INFO_PACKET::release_map_name() {
+  // @@protoc_insertion_point(field_release:Protocol.SC_LOGIN_INFO_PACKET.map_name)
+  return _impl_.map_name_.Release();
+}
+inline void SC_LOGIN_INFO_PACKET::set_allocated_map_name(std::string* map_name) {
+  if (map_name != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.map_name_.SetAllocated(map_name, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.map_name_.IsDefault()) {
+    _impl_.map_name_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:Protocol.SC_LOGIN_INFO_PACKET.map_name)
 }
 
 // -------------------------------------------------------------------

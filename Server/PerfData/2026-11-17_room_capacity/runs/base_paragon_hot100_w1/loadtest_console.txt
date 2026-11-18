@@ -1,0 +1,17 @@
+[loadtest] host=127.0.0.1:8888 bots=100 ramp=50/s duration=45s threads=4 profile=move body=male chaos=0 out=C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-17_room_capacity\runs\base_paragon_hot100_w1\loadtest.csv
+[bot] bot0 login: id=2 playerType=1 maxHp=650 attack=10 attackSpeed=1.00 moveSpeed=500.0 pos=(0, 0, 0)
+[bot] bot0 sees object id=2 type=1 playerType=1 template=0 pos=(3075,-1995)
+[t=  5s] connected=100 inGame=100 connFail=0 closed=0 | ping p50/p95/p99/max=1.1/15.1/23.5/26.0 ms | sent/s=492 recv/s=24479 | server cpu=23% mem=29MB | maxBot=23.5KB/s botCpu=0%
+[t= 10s] connected=100 inGame=100 connFail=0 closed=0 | ping p50/p95/p99/max=0.6/16.9/22.5/27.9 ms | sent/s=569 recv/s=31737 | server cpu=20% mem=29MB | maxBot=28.3KB/s botCpu=24%
+[t= 15s] connected=100 inGame=100 connFail=0 closed=0 | ping p50/p95/p99/max=0.4/11.7/21.1/26.2 ms | sent/s=578 recv/s=33431 | server cpu=18% mem=29MB | maxBot=29.9KB/s botCpu=16%
+[t= 20s] connected=100 inGame=100 connFail=0 closed=0 | ping p50/p95/p99/max=0.6/23.7/30.3/32.9 ms | sent/s=570 recv/s=32599 | server cpu=21% mem=29MB | maxBot=29.1KB/s botCpu=19%
+[t= 25s] connected=100 inGame=100 connFail=0 closed=0 | ping p50/p95/p99/max=0.6/21.4/26.0/28.0 ms | sent/s=579 recv/s=32166 | server cpu=18% mem=29MB | maxBot=28.7KB/s botCpu=17%
+[t= 30s] connected=100 inGame=100 connFail=0 closed=0 | ping p50/p95/p99/max=0.6/18.9/21.4/25.3 ms | sent/s=571 recv/s=31043 | server cpu=18% mem=29MB | maxBot=27.7KB/s botCpu=17%
+[t= 35s] connected=100 inGame=100 connFail=0 closed=0 | ping p50/p95/p99/max=0.5/19.7/26.8/27.3 ms | sent/s=569 recv/s=31878 | server cpu=17% mem=29MB | maxBot=28.4KB/s botCpu=15%
+[t= 40s] connected=100 inGame=100 connFail=0 closed=0 | ping p50/p95/p99/max=0.6/17.7/24.1/27.9 ms | sent/s=570 recv/s=31727 | server cpu=17% mem=29MB | maxBot=28.3KB/s botCpu=19%
+[t= 45s] connected=100 inGame=100 connFail=0 closed=0 | ping p50/p95/p99/max=0.3/9.5/21.9/27.3 ms | sent/s=572 recv/s=31564 | server cpu=11% mem=29MB | maxBot=28.1KB/s botCpu=13%
+
+[summary] attempts=100 ok=100 fail=0 loginOk=100 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 3.2/24.0/79.6/79.7 ms (n=100)
+[summary] ping    p50/p95/p99/max = 0.5/18.3/25.3/32.9 ms (n=4382)
+[summary] moveCorrected=6938 pongs=4382 totalRecvBytes=125692649 peakBotRecv=29.9KB/s

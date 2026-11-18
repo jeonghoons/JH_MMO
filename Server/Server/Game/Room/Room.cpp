@@ -17,10 +17,13 @@ Room::~Room() = default;
 
 void Room::InitRoom()
 {
-	if (!_gameMap.LoadMapData(ROOM_MAP_NAME))
+	if (!_gameMap.LoadMapData(GServerConfig.mapName))
 	{
 		LOG_ERROR("Room", "맵 초기화(LoadMapData) 중 일부 문제가 발생했습니다.");
 	}
+	// 정원은 맵마다 WorldTable.RoomCapacity (D-176). 행의 존재는 서버 시작 때 확인했다.
+	if (const WorldData* world = DataManager::GetWorldData(GServerConfig.mapName))
+		_capacity = world->roomCapacity;
 	_gameMap.Init(weak_from_this());
 
 	const auto& monsterSpawns = _gameMap.GetMonsterSpawns();
@@ -494,7 +497,7 @@ void Room::PlayerRevive(shared_ptr<Player> player)
 {
 	if (player == nullptr || Id2Player(player->GetId()) == nullptr) return;
 
-	const WorldData* world = DataManager::GetWorldData(ROOM_MAP_NAME);   // 서버 시작 때 존재를 확인했다
+	const WorldData* world = DataManager::GetWorldData(GServerConfig.mapName);   // 서버 시작 때 존재를 확인했다
 	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 
 	// 검증: 죽어 있는가 → 대기 시간이 지났는가. 살아 있을 때 온 요청(중복 부활 포함)과 이른 요청은 응답 없이 버린다.
