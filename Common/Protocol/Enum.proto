@@ -33,6 +33,7 @@ enum PacketId {
     CS_SHOP_OPEN = 1031;  // 상점 NPC 품목 요청 (L4, D-202)
     CS_SHOP_BUY = 1032;   // 상점 구매
     CS_SHOP_SELL = 1033;  // 상점 판매
+    CS_PORTAL = 1034;     // 포털 사용 요청 (L5, D-203)
 
     // Server -> Client
     SC_LOGIN = 2000;
@@ -60,6 +61,8 @@ enum PacketId {
     SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2024~2026은 A4.3 예약(DESIGN_ITEMS_TRADE)
     SC_CHANGE_HP = 2028;             // 피해·아이템 사용이 아닌 HP 변화 (AOI): 몬스터가 홈으로 돌아가 회복 (L3, D-193)
     SC_SHOP_OPEN = 2029;             // 상점 품목·구매가 (본인, L4)
+    SC_TELEPORT = 2030;              // 서버가 정한 자리로 순간이동 (AOI, 본인 포함): 포털 이동 (L5, D-203)
+    SC_PORTAL_LIST = 2031;           // 방 입장 직후 본인에게: 쓸 수 있는 포털의 위치·반경 (L5)
 }
 
 enum MoveState {

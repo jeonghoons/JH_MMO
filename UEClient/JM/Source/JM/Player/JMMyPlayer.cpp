@@ -548,13 +548,22 @@ void AJMMyPlayer::UpdateInteractPrompt()
 		}
 	}
 
+	// 포털(L5): 드랍·NPC가 없을 때만. 반경은 서버 값(SC_PORTAL_LIST)이고 시전·이동 잠금 중에는 서버가 받지 않는다.
+	int32 NearestPortalId = 0;
+	if (!bIsDead && ObjectManager && Nearest == nullptr && NearestNpcId == 0)
+	{
+		float PortalDistSq = 0.f;
+		NearestPortalId = ObjectManager->FindNearestPortal(GetActorLocation(), PortalDistSq);
+	}
+
 	// 열려 있는 상점 창: 멀어지거나 죽거나 거래가 시작되면 닫는다.
 	if (Shop) Shop->UpdateFromPlayer(GetActorLocation(), bIsDead);
 
-	const bool bShown = Nearest != nullptr || NearestNpcId != 0;
-	if (Nearest == InteractTarget.Get() && NearestNpcId == InteractNpcId && bInteractPromptShown == bShown) return;
+	const bool bShown = Nearest != nullptr || NearestNpcId != 0 || NearestPortalId != 0;
+	if (Nearest == InteractTarget.Get() && NearestNpcId == InteractNpcId && NearestPortalId == InteractPortalId && bInteractPromptShown == bShown) return;
 	InteractTarget = Nearest;
 	InteractNpcId = NearestNpcId;
+	InteractPortalId = NearestPortalId;
 	bInteractPromptShown = bShown;
 
 	UJMUIManager* UIManager = GameInstance->GetSubsystem<UJMUIManager>();
@@ -563,6 +572,7 @@ void AJMMyPlayer::UpdateInteractPrompt()
 		FText Prompt;
 		if (Nearest) Prompt = FText::FromString(FString::Printf(TEXT("[F] 줍기: %s"), *Nearest->GetDisplayText().ToString()));
 		else if (NearestNpcId != 0 && ObjectManager) Prompt = FText::FromString(FString::Printf(TEXT("[F] 상점: %s"), *ObjectManager->GetNpcName(NearestNpcId)));
+		else if (NearestPortalId != 0) Prompt = FText::FromString(TEXT("[F] 포털 이동"));
 		Hud->SetInteractPrompt(Prompt);
 	}
 }
@@ -580,6 +590,12 @@ void AJMMyPlayer::OnInteractInput()
 			if (Shop->IsOpen()) Shop->Close();
 			else Shop->RequestOpen(InteractNpcId);
 		}
+		return;
+	}
+	// 포털(L5): 요청만 보낸다. 받아들여지면 SC_TELEPORT가 오고, 거부(시전 중·재사용 대기 등)는 응답이 없다.
+	if (InteractPortalId != 0)
+	{
+		if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendPortal(InteractPortalId);
 		return;
 	}
 	const ADropItemActor* Target = InteractTarget.Get();
@@ -700,6 +716,15 @@ void AJMMyPlayer::OnDead()
 {
 	EndLocalAim(true);   // 서버는 사망 때 이미 해제했다(끄기는 무시됨)
 	Super::OnDead();
+}
+
+void AJMMyPlayer::OnMyTeleport(const Protocol::PositionInfo& Pos, uint32 Seq)
+{
+	TeleportToServerPosition(Pos);
+	// 서버가 이동 때 보정 순번을 올렸다. 그 순번으로 도착 위치에서 다시 시작한다고 알린다(OnMyRevive와 같은 절차).
+	CorrectionSeq = Seq;
+	SyncTransformToInfo();
+	bMoveSendPending = true;
 }
 
 void AJMMyPlayer::OnMyRevive(const Protocol::PositionInfo& Pos, int32 Hp, uint32 Seq)

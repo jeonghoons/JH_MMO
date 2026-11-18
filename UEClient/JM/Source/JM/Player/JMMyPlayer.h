@@ -58,6 +58,8 @@ public:
 	virtual void OnDead() override;
 	// 내 부활(SC_REVIVE): 서버 위치로 옮기고 이후 이동에 실을 보정 순번을 받는다.
 	void OnMyRevive(const Protocol::PositionInfo& Pos, int32 Hp, uint32 Seq);
+	// 내 순간이동(SC_TELEPORT, L5 포털): 서버 위치로 옮기고 이후 이동에 실을 보정 순번을 받는다.
+	void OnMyTeleport(const Protocol::PositionInfo& Pos, uint32 Seq);
 
 	// 액티브 칸(D-148): 칸 수 = QuickSlotActions 수. 지금은 규칙 배치 — 칸 N = 현재 무기의 SkillTable 슬롯 N(없으면 빈 칸).
 	// 무기가 바뀌면 다시 부른다(UJMObjectManager가 스폰·장비 변경 때 부르고 HUD에 넘긴다).
@@ -99,6 +101,8 @@ protected:
 	bool bInteractPromptShown = false;
 	// 안내 중인 상점 NPC의 오브젝트 id(0 = 없음). 드랍과 NPC 중 가까운 쪽 하나만 안내한다 (L4)
 	int32 InteractNpcId = 0;
+	// 안내 중인 포털 id(0 = 없음). 드랍·NPC가 없을 때만 안내한다 (L5)
+	int32 InteractPortalId = 0;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))

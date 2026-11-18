@@ -725,42 +725,46 @@
       {
         "kind": "ring_prop",
         "from": "VillageWall",
-        "mesh": "/Game/World/Props/Palisade/SM_Palisade",
+        "mesh": "/Game/World/Props/Rampart/SM_Rampart",
         "cover": 1.04,
         "col_fit": [
           1.0,
-          0.8,
+          1.0,
           0.9
         ],
-        "sink_m": 0.25,
-        "group": "village"
+        "sink_m": 0.3,
+        "group": "village",
+        "close_gaps_m": 20
       },
       {
         "kind": "gate_prop",
         "from": "GateN",
-        "mesh": "/Game/World/Props/GateFrame/SM_GateFrame",
-        "cover": 1.25,
-        "post_off": 0.29,
-        "post_w": 0.17,
-        "group": "village"
+        "mesh": "/Game/World/Props/ClosedGate/SM_ClosedGate",
+        "cover": 1.06,
+        "group": "village",
+        "closed": true,
+        "door_thick_m": 1.2,
+        "sink_m": 0.2
       },
       {
         "kind": "gate_prop",
         "from": "GateE",
-        "mesh": "/Game/World/Props/GateFrame/SM_GateFrame",
-        "cover": 1.25,
-        "post_off": 0.29,
-        "post_w": 0.17,
-        "group": "village"
+        "mesh": "/Game/World/Props/ClosedGate/SM_ClosedGate",
+        "cover": 1.06,
+        "group": "village",
+        "closed": true,
+        "door_thick_m": 1.2,
+        "sink_m": 0.2
       },
       {
         "kind": "gate_prop",
         "from": "GateW",
-        "mesh": "/Game/World/Props/GateFrame/SM_GateFrame",
-        "cover": 1.25,
-        "post_off": 0.29,
-        "post_w": 0.17,
-        "group": "village"
+        "mesh": "/Game/World/Props/ClosedGate/SM_ClosedGate",
+        "cover": 1.06,
+        "group": "village",
+        "closed": true,
+        "door_thick_m": 1.2,
+        "sink_m": 0.2
       },
       {
         "kind": "gate_prop",
@@ -1463,10 +1467,6 @@
         {
           "deg": 270,
           "width_m": 10
-        },
-        {
-          "deg": 180,
-          "width_m": 70
         }
       ]
     },

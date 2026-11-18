@@ -248,3 +248,29 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_REVIVE(shared_ptr<GameObject> o
 	return MakeSendBuffer(packet, Protocol::SC_REVIVE);
 }
 
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_TELEPORT(shared_ptr<GameObject> object, uint32_t correctionSeq)
+{
+	Protocol::SC_TELEPORT_PACKET packet;
+	packet.set_object_id(object->GetId());
+	packet.mutable_pos_info()->CopyFrom(object->GetInfo().position());
+	packet.set_correction_seq(correctionSeq);
+
+	return MakeSendBuffer(packet, Protocol::SC_TELEPORT);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PORTAL_LIST(const vector<PortalTriggerPoint>& portals)
+{
+	Protocol::SC_PORTAL_LIST_PACKET packet;
+	for (const PortalTriggerPoint& portal : portals)
+	{
+		Protocol::PortalInfo* info = packet.add_portals();
+		info->set_portal_id(portal.PointId);
+		info->set_x(portal.Pos.X);
+		info->set_y(portal.Pos.Y);
+		info->set_z(portal.Pos.Z);
+		info->set_radius_cm(portal.TriggerRadius);
+	}
+
+	return MakeSendBuffer(packet, Protocol::SC_PORTAL_LIST);
+}
+

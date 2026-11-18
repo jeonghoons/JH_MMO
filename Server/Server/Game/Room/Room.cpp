@@ -71,6 +71,17 @@ void Room::InitRoom()
 	// 마을 NPC(L4): Npc 마커 + NpcTable
 	SpawnTownNpcs();
 
+	// 포털 목록(L5): 도착지가 정해지는 포털만 모아 패킷을 한 번 만들어 둔다.
+	{
+		vector<PortalTriggerPoint> usable;
+		Protocol::PositionInfo unused;
+		for (const PortalTriggerPoint& portal : _gameMap.GetPortalTriggers())
+			if (ResolvePortalTarget(portal, unused)) usable.push_back(portal);
+		if (!usable.empty())
+			_portalListBuffer = PacketSerializer::MAKE_SC_PORTAL_LIST(usable);
+		LOG_INFO("Room", "포털: 마커 {}개 중 쓸 수 있는 것 {}개", _gameMap.GetPortalTriggers().size(), usable.size());
+	}
+
 	long long currentTick = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 	Update(currentTick);
 }
@@ -257,7 +268,8 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	// 조준 상태도 새로 시작한다(seq는 클라이언트 값이라 그대로 둔다).
 	player->SetSkillAim(nullptr, player->moveGuard.lastAccrueMs);
 	player->deadAtMs = 0;
-	
+	player->portalCooldown.Reset(0);
+
 	// 주기 저장 시각(A2.5): 입장 시각 + 간격에 id로 흩어 같은 틱에 몰리지 않게 한다.
 	const long long saveIntervalMs = static_cast<long long>(GServerConfig.playerSaveIntervalSec) * 1000;
 	player->nextProgressSaveMs = player->moveGuard.lastAccrueMs + saveIntervalMs + (player->GetId() % GServerConfig.playerSaveIntervalSec) * 1000LL;
@@ -266,6 +278,10 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	LOG_DEBUG("Room", "Client[{}] Enter Room", player->GetId());
 
 	enterSession->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(player));
+
+	// 포털 목록(L5): 지금 쓸 수 있는(도착지가 정해지는) 포털만 본인에게 한 번. 목록은 InitRoom에서 만들어 둔다.
+	if (_portalListBuffer != nullptr)
+		enterSession->Send(_portalListBuffer);
 
 	// 인벤토리(A3.3): 본인에게 전체를 한 번 보낸다. 더미 봇은 아이템 요청이 모두 거부되므로 보내지 않는다(D-164).
 	if (!player->isDummy)
@@ -577,6 +593,102 @@ void Room::PlayerRevive(shared_ptr<Player> player)
 
 	UpdateDropView(player);
 	UpdateNpcView(player);
+}
+
+bool Room::ResolvePortalTarget(const PortalTriggerPoint& portal, Protocol::PositionInfo& outPos) const
+{
+	// 다른 레벨로 가는 포털(던전 입구·정거장)은 아직 받지 않는다(Room 간 이동 — DG3).
+	if (portal.TargetMap != GServerConfig.mapName) return false;
+
+	const PortalTriggerPoint* target = _gameMap.FindPortal(portal.TargetPointId);
+	if (target == nullptr || target->PointId == portal.PointId) return false;
+
+	outPos.set_x(target->Pos.X);
+	outPos.set_y(target->Pos.Y);
+	outPos.set_z(target->Pos.Z);
+	return true;
+}
+
+void Room::PlayerUsePortal(shared_ptr<Player> player, int portalId)
+{
+	if (player == nullptr || Id2Player(player->GetId()) == nullptr) return;
+
+	const WorldData* world = DataManager::GetWorldData(GServerConfig.mapName);      // 서버 시작 때 존재를 확인했다
+	const MovementData* rule = DataManager::GetMovementData(PLAYER_MOVEMENT_ID);
+	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+
+	// 검증: 생존 → 시전·이동 잠금 아님 → 재사용 대기 → 포털 존재 → 도착지 → 거리.
+	// 거리는 서버가 아는 내 위치 기준이고, 이동 패킷 사이에 벌어지는 만큼(ServerMoveSlackCm + ServerNavToleranceCm)을 더 받아 준다.
+	const PortalTriggerPoint* portal = nullptr;
+	Protocol::PositionInfo targetPos;
+	const char* reason = nullptr;
+	if (player->GetStat().IsDead()) reason = "dead";
+	else if (player->IsCasting() || player->IsMoveLocked(nowMs)) reason = "acting";
+	else if (!player->portalCooldown.IsReady()) reason = "too-frequent";
+	else if ((portal = _gameMap.FindPortal(portalId)) == nullptr) reason = "no-portal";
+	else if (!ResolvePortalTarget(*portal, targetPos)) reason = "no-target";
+	else
+	{
+		const float dx = player->GetPosition().x() - portal->Pos.X, dy = player->GetPosition().y() - portal->Pos.Y;
+		const float range = portal->TriggerRadius + rule->moveSlackCm + rule->navToleranceCm;
+		if (dx * dx + dy * dy > range * range) reason = "too-far";
+	}
+	if (reason != nullptr)
+	{
+		LOG_DEBUG("Portal", "거부 player={} portal={} reason={}", player->GetId(), portalId, reason);
+		Metrics::PortalReject.fetch_add(1);
+		return;
+	}
+
+	player->portalCooldown.Reset(world->portalCooldownMs);
+
+	// 조준 중이면 해제한다(시간 초과와 같은 알림: 다른 사람 + 본인에게 seq).
+	if (player->IsSkillAiming())
+	{
+		player->SetSkillAim(nullptr, nowMs);
+		BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_SKILL_AIM(player->GetId(), 0, false, 0));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_SKILL_AIM(player->GetId(), 0, false, player->aim.seq));
+	}
+
+	// 위치: 방향은 그대로, 속도는 0.
+	Protocol::PositionInfo newPos = player->GetPosition();
+	newPos.set_x(targetPos.x());
+	newPos.set_y(targetPos.y());
+	newPos.set_z(targetPos.z());
+	newPos.set_v_x(0.f);
+	newPos.set_v_y(0.f);
+	newPos.set_v_z(0.f);
+	player->SetPosition(newPos);
+
+	// 이동 전에 보낸 이동 패킷이 뒤늦게 와도 버려지도록 보정 순번을 올리고, 이동 예산은 0에서 다시 모은다(부활과 같음).
+	Player::MoveGuard& guard = player->moveGuard;
+	++guard.correctionSeq;
+	guard.budgetCm = 0.f;
+	guard.lastAccrueMs = nowMs;
+
+	Metrics::PortalUsed.fetch_add(1);
+	LOG_DEBUG("Portal", "player={} portal={} -> {} pos=({:.0f},{:.0f},{:.0f})", player->GetId(), portalId, portal->TargetPointId,
+		newPos.x(), newPos.y(), newPos.z());
+
+	// 떠나는 자리에서 보던 사람들에게 먼저 알리고(본인 포함), 그 다음 시야를 새 위치 기준으로 갱신한다.
+	// 계속 보이는 사람은 SC_TELEPORT의 위치로 옮기고, 새 자리에서 처음 보게 된 사람은 UpdateView의 SC_ADD_OBJECT로 받는다.
+	BroadcastAOI(static_pointer_cast<Character>(player), PacketSerializer::MAKE_SC_TELEPORT(player, guard.correctionSeq), true);
+
+	ViewUpdate result = _gameMap.UpdateMap(player->GetId(), player->GetPosition(), player->_viewList);
+	if (!result.entered.empty() || !result.leaved.empty())
+		UpdateView(player, result);
+
+	UpdateDropView(player);
+	UpdateNpcView(player);
+
+	// 거래 중이면 상대와의 거리를 본다(PlayerMove와 같음): TradeRangeCm을 넘으면 취소. 확정 중이면 DB 결과를 기다린다.
+	if (player->tradeId != 0)
+	{
+		const TradeSession* trade = FindTrade(player);
+		if (trade != nullptr && trade->phase != Protocol::TRADE_PHASE_CONFIRMING && !IsTradeRangeOk(*trade))
+			EndTrade(trade->id, Protocol::TRADE_RESULT_TOO_FAR);
+	}
 }
 
 void Room::UpdateAims(long long nowMs)

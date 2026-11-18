@@ -20,6 +20,10 @@ public:
 	static shared_ptr<SendBuffer> MAKE_SC_DEAD(int objectId, int reviveDelayMs = 0);
 	// 부활한 플레이어의 현재 위치·HP를 싣는다. correctionSeq는 본인이 이후 CS_MOVE에 실을 순번
 	static shared_ptr<SendBuffer> MAKE_SC_REVIVE(shared_ptr<GameObject> object, uint32_t correctionSeq);
+	// 순간이동(L5): object의 지금 위치(이미 옮긴 뒤)와 본인용 보정 순번
+	static shared_ptr<SendBuffer> MAKE_SC_TELEPORT(shared_ptr<GameObject> object, uint32_t correctionSeq);
+	// 쓸 수 있는 포털 목록(L5). 방 입장 직후 본인에게
+	static shared_ptr<SendBuffer> MAKE_SC_PORTAL_LIST(const vector<struct PortalTriggerPoint>& portals);
 
 	static shared_ptr<SendBuffer> MAKE_SC_PONG(long long clientTime);
 	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_EQUIP(int objectId, Protocol::EquipPart part, int itemId, const Protocol::StatInfo& stat);

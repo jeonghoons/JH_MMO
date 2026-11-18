@@ -165,6 +165,8 @@ int main(int argc, char** argv)
 		if (GStat.shopBuySent.load() > 0 || GStat.shopSellSent.load() > 0)
 			printf("[summary] shop: buySent=%lld sellSent=%lld\n", GStat.shopBuySent.load(), GStat.shopSellSent.load());
 	}
+	if (GStat.portalSent.load() > 0)
+		printf("[summary] portal: sent=%lld moved(SC_TELEPORT)=%lld\n", GStat.portalSent.load(), GStat.portalMoved.load());
 
 	return 0;
 }

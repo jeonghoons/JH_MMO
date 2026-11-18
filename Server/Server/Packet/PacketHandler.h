@@ -43,6 +43,7 @@ private:
     static void Handle_CS_SHOP_OPEN(shared_ptr<GameSession> session, Protocol::CS_SHOP_OPEN_PACKET& pkt);
     static void Handle_CS_SHOP_BUY(shared_ptr<GameSession> session, Protocol::CS_SHOP_BUY_PACKET& pkt);
     static void Handle_CS_SHOP_SELL(shared_ptr<GameSession> session, Protocol::CS_SHOP_SELL_PACKET& pkt);
+    static void Handle_CS_PORTAL(shared_ptr<GameSession> session, Protocol::CS_PORTAL_PACKET& pkt);
     static void Handle_CS_PICKUP_ITEM(shared_ptr<GameSession> session, Protocol::CS_PICKUP_ITEM_PACKET& pkt);
     static void Handle_CS_DROP_ITEM(shared_ptr<GameSession> session, Protocol::CS_DROP_ITEM_PACKET& pkt);
     static void Handle_CS_USE_ITEM(shared_ptr<GameSession> session, Protocol::CS_USE_ITEM_PACKET& pkt);

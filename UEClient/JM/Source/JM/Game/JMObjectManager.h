@@ -27,6 +27,10 @@ public:
 	void HandleDead(int32 CharacterId, int32 ReviveDelayMs);
 	// SC_REVIVE(A2.4): 사망 해제·순간이동·HP 반영. 내 캐릭터면 보정 순번·HUD·부활 창까지.
 	void HandleRevive(int32 CharacterId, const Protocol::PositionInfo& Pos, int32 Hp, uint32 CorrectionSeq);
+	// SC_TELEPORT(L5): 보간 없이 서버가 정한 자리로 옮긴다. 내 캐릭터면 보정 순번까지.
+	void HandleTeleport(int32 CharacterId, const Protocol::PositionInfo& Pos, uint32 CorrectionSeq);
+	// SC_PORTAL_LIST(L5): 방 입장 직후 서버가 알려 주는, 지금 쓸 수 있는 포털의 위치·반경
+	void HandlePortalList(const Protocol::SC_PORTAL_LIST_PACKET& Pkt);
 	// SC_CHANGE_EQUIP: 장착 목록·스탯 반영, 내 캐릭터면 HUD(HP·무기 타입별 스킬 슬롯) 갱신
 	void HandleChangeEquip(int32 ObjectId, Protocol::EquipPart Part, int32 ItemId, const Protocol::StatInfo& Stat);
 	// SC_SKILL_AIM(MC4.2d-1): 원격은 그대로 반영, 내 캐릭터는 해제(거부·시간 초과)만 Seq가 맞을 때 반영한다.
@@ -43,6 +47,9 @@ public:
 	int32 FindNearestNpc(const FVector& From, float RangeCm, float& OutDistSq) const;
 	FString GetNpcName(int32 NpcId) const;
 	bool GetNpcLocation(int32 NpcId, FVector& OutLocation) const;
+
+	// 포털(L5). From이 반경 안(수평 거리 — 서버와 같은 기준)에 든 포털 중 가장 가까운 것의 id. 없으면 0
+	int32 FindNearestPortal(const FVector& From, float& OutDistSq) const;
 
 private:
 	// 전투 HUD(UIManager에 HUD 이름으로 등록된 위젯). 로그인 화면처럼 HUD가 없으면 nullptr
@@ -63,4 +70,13 @@ public:
 	// Objects(전투·거래 대상 탐색에 쓰는 캐릭터 목록)에는 넣지 않는다 — NPC는 공격·거래 대상이 아니다.
 	UPROPERTY()
 	TMap<int32, TObjectPtr<AJMCharacterBase>> Npcs;
+
+	// 서버가 알려 준 포털(SC_PORTAL_LIST, L5). 클라이언트는 위치·반경만 알고 도착지는 서버가 정한다.
+	struct FPortalEntry
+	{
+		int32 Id = 0;
+		FVector Location = FVector::ZeroVector;
+		float RadiusCm = 0.f;
+	};
+	TArray<FPortalEntry> Portals;
 };

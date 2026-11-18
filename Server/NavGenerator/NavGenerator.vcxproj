@@ -105,7 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\Recast\Include;$(SolutionDir)ThirdParty\Detour\Include;$(SolutionDir)ThirdParty\Recast\Include;$(SolutionDir)ThirdParty\Detour\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\Recast\Include;$(SolutionDir)ThirdParty\Detour\Include;$(SolutionDir)ThirdParty\Recast\Include;$(SolutionDir)ThirdParty\Detour\Include;$(SolutionDir)ThirdParty\Json\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,7 +121,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\Recast\Include;$(SolutionDir)ThirdParty\Detour\Include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\Recast\Include;$(SolutionDir)ThirdParty\Detour\Include;$(SolutionDir)ThirdParty\Json\Include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

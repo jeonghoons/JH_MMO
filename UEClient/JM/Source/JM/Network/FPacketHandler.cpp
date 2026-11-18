@@ -38,6 +38,8 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_TRADE_END, &FPacketHandler::Handle_SC_TRADE_END);
 	RegisterHandler(Protocol::SC_TRADE_RESULT, &FPacketHandler::Handle_SC_TRADE_RESULT);
 	RegisterHandler(Protocol::SC_SHOP_OPEN, &FPacketHandler::Handle_SC_SHOP_OPEN);
+	RegisterHandler(Protocol::SC_TELEPORT, &FPacketHandler::Handle_SC_TELEPORT);
+	RegisterHandler(Protocol::SC_PORTAL_LIST, &FPacketHandler::Handle_SC_PORTAL_LIST);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -238,6 +240,19 @@ void FPacketHandler::Handle_SC_REVIVE(TSharedPtr<NetworkSession>& session, Proto
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandleRevive(pkt.object_id(), pkt.pos_info(), pkt.hp(), pkt.correction_seq());
+}
+
+// ---- 포털(L5, D-203): 순간이동과 포털 목록 ----
+void FPacketHandler::Handle_SC_TELEPORT(TSharedPtr<NetworkSession>& session, Protocol::SC_TELEPORT_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleTeleport(pkt.object_id(), pkt.pos_info(), pkt.correction_seq());
+}
+
+void FPacketHandler::Handle_SC_PORTAL_LIST(TSharedPtr<NetworkSession>& session, Protocol::SC_PORTAL_LIST_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandlePortalList(pkt);
 }
 
 void FPacketHandler::Handle_SC_CHANGE_EQUIP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_PACKET& pkt)

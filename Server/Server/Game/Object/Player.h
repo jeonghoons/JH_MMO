@@ -62,6 +62,9 @@ public:
 	bool IsMoveLocked(long long nowMs) const { return nowMs < moveLockUntilMs; }
 	void BeginMoveLock(long long nowMs, long long lockMs, const MovementData& rule);
 
+	// 포털 재사용 대기(L5, WorldTable.PortalCooldownMs). Room 잡 안에서만 읽고 쓴다.
+	Cooldown portalCooldown;
+
 	// 스킬 조준 상태(MC4.2d-1, DECISIONS 2026-11-09). Room 잡 안에서만 읽고 쓴다. 방에 들어갈 때 초기화한다.
 	struct AimState
 	{

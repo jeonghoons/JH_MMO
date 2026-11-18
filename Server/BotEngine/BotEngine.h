@@ -30,6 +30,7 @@ struct BotConfig
 	bool giveGear = false;     // --give-gear: 입장 후 판금 세트·활을 개발 지급 명령으로 받는다(서버 [Debug] DevCommands=true, 개별 계정 필요). 장착 시험 준비
 	int slotIntervalMs = 0;    // >0이면 이 간격(±50%)마다 인벤토리 아이템 하나를 무작위 칸(0~29)으로 옮긴다(CS_MOVE_ITEM, A6.1)
 	int shopIntervalMs = 0;    // >0이면 이 간격(±50%)마다 시야 안의 상점 NPC에 구매(물약 1~3개)와 판매(인벤토리 행 하나에서 1개)를 번갈아 요청한다(L4). NPC 근처에 있어야 하므로 --zone과 함께 쓴다
+	int portalIntervalMs = 0;  // >0이면 이 간격(±50%)마다 가장 가까운 포털에 CS_PORTAL을 보낸다(L5). 반경 밖이면 서버가 버리므로 --zone으로 포털 앞에 세운다
 	int giveIntervalMs = 0;    // >0이면 이 간격(±50%)마다 개발 지급 요청(물약 1~5개 또는 골드). 아이템 작업 부하·스택 시험(A3.3)
 	std::string outFile;
 	std::string serverProc = "GameServer.exe";
@@ -53,6 +54,7 @@ struct BotCounters
 	std::atomic<long long> inventoryRecv{ 0 }, inventoryUpdateRecv{ 0 }, giveSent{ 0 }, itemRejected{ 0 }, slotMoveSent{ 0 };
 	std::atomic<long long> itemRejectedBy[24]{};
 	std::atomic<long long> shopBuySent{ 0 }, shopSellSent{ 0 };   // 상점 구매·판매 요청 (L4)
+	std::atomic<long long> portalSent{ 0 }, portalMoved{ 0 };     // 포털 요청 / 내 SC_TELEPORT (L5)
 	std::atomic<long long> selfDead{ 0 }, reviveSent{ 0 }, selfRevived{ 0 };   // 내 SC_DEAD / CS_REVIVE / 내 SC_REVIVE (A2.4)
 	std::atomic<int> connected{ 0 }, inGame{ 0 };
 	// 구간(리포트 간격) 동안 봇 한 명이 받은 최대 바이트. 리포터가 읽으며 0으로 되돌리고 windowEpoch를 올린다.

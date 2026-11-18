@@ -71,6 +71,8 @@ public:
 	// 스킬 조준 켜기/끄기(MC4.2d-1). 상태가 바뀔 때만, Seq는 보낼 때마다 1씩 올린 값. 확정(공격)은 서버가 함께 해제하므로 끄기를 보내지 않는다
 	// 부활 요청(A2.4). 사망 여부·대기 시간은 서버가 검증하고, 받아들이면 SC_REVIVE가 온다
 	void SendRevive();
+	// 포털 사용 요청(L5, D-203). 거리·상태는 서버가 검증하고, 받아들이면 SC_TELEPORT가 온다(거부는 응답 없음)
+	void SendPortal(int32 PortalId);
 	void SendSkillAim(int32 Slot, bool bActive, uint32 Seq);   // Part = Protocol::EquipPart(1~7), ItemId 0 = 해제. 검증은 서버가 한다
 
 public:

@@ -391,6 +391,7 @@ struct WorldData
 	int reviveDelaySec;    // 플레이어가 죽은 뒤 이 시간이 지나야 부활 요청(CS_REVIVE)을 받는다 (A2.4)
 	int reviveHpPercent;   // 부활 HP = 최대 HP × 이 값 / 100 (최소 1)
 	int roomCapacity;      // Room 하나의 정원. 차면 같은 맵의 새 Room을 만든다(RoomManager::EnterPlayer) (D-176)
+	int portalCooldownMs;  // 포털을 쓴 뒤 다시 쓸 수 있을 때까지의 시간 (L5, D-203)
 };
 
 class DataManager

@@ -161,6 +161,12 @@ public:
 	// 부활 요청(A2.4, D-149). 죽어 있고 WorldTable.ReviveDelaySec가 지났을 때만 받는다(그 밖은 조용히 버림).
 	// 입장 때 배치된 자리로 옮기고 HP를 채운 뒤 SC_REVIVE를 AOI 전체(본인 포함)에 보낸다.
 	void PlayerRevive(shared_ptr<Player> player);
+	// 포털 사용 요청(L5, D-203). 검증(방 안 → 생존 → 시전·이동 잠금 아님 → 재사용 대기 → 포털 존재 → 도착지 → 거리)을 통과하면
+	// 도착지로 옮기고 SC_TELEPORT를 떠나는 자리의 AOI 전체(본인 포함)에 보낸다. 거부는 응답 없이 버린다.
+	void PlayerUsePortal(shared_ptr<Player> player, int portalId);
+	// 포털의 도착지를 정하는 유일한 곳(D-200·D-204). 지금은 같은 레벨의 짝 포털 자리만 받는다.
+	// 도착지가 다른 Room이 되면(맵별 Room 분할 — DG1·DG3) 이 함수와 PlayerUsePortal의 적용 부분만 바꾼다.
+	bool ResolvePortalTarget(const struct PortalTriggerPoint& portal, Protocol::PositionInfo& outPos) const;
 
 	// 슬롯(0 = 기본 공격)의 스킬을 시전한다. 사거리/대상/방향은 서버가 검증·보정하며, 실패하면 아무 일도 일어나지 않는다.
 	void CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY);
@@ -286,6 +292,8 @@ private:
 	unordered_map<int, shared_ptr<DropItem>> _drops;
 	// 마을 NPC(L4). _objects에는 넣지 않는다(TownNpc.h). id = NPC_ID_BEGIN부터
 	unordered_map<int, shared_ptr<TownNpc>> _npcs;
+	// 입장한 플레이어에게 보내는 포털 목록(SC_PORTAL_LIST, L5). InitRoom에서 한 번 만들고 바꾸지 않는다. 쓸 포털이 없으면 nullptr
+	shared_ptr<SendBuffer> _portalListBuffer;
 	deque<int> _dropOrder;   // 만든 순서(상한을 넘으면 앞에서부터 지운다). 이미 사라진 id는 앞에서 걷어 낸다
 	int _nextDropId = 0;
 

@@ -78,6 +78,13 @@ public:
     const vector<NpcSpawnPoint>& GetNpcSpawns() const { return _npcSpawns; }
     const vector<PortalTriggerPoint>& GetPortalTriggers() const { return _portalTriggers; }
     const vector<SafeZonePoint>& GetSafeZones() const { return _safeZones; }
+    // pointId의 포털 마커. 없으면 nullptr (L5)
+    const PortalTriggerPoint* FindPortal(int32_t pointId) const
+    {
+        for (const PortalTriggerPoint& portal : _portalTriggers)
+            if (portal.PointId == pointId) return &portal;
+        return nullptr;
+    }
     // (x, y)가 안전 구역 안인가(수평 거리). 구역이 없는 맵은 항상 false
     bool IsInSafeZone(float x, float y) const
     {

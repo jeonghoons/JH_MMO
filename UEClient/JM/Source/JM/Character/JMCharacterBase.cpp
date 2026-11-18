@@ -291,7 +291,12 @@ void AJMCharacterBase::OnRevive(const Protocol::PositionInfo& Pos, int32 Hp)
 		AnimInst->Montage_Stop(0.2f, CurrentDeadMontage);
 	}
 
-	// 서버가 정한 부활 위치로 순간이동한다(보간하면 죽은 자리에서 미끄러져 온다). 속도는 0에서 시작.
+	// 서버가 정한 부활 위치로 순간이동한다(보간하면 죽은 자리에서 미끄러져 온다).
+	TeleportToServerPosition(Pos);
+}
+
+void AJMCharacterBase::TeleportToServerPosition(const Protocol::PositionInfo& Pos)
+{
 	Protocol::PositionInfo Target = Pos;
 	Target.set_v_x(0.f); Target.set_v_y(0.f); Target.set_v_z(0.f);
 	DestPosition.CopyFrom(Target);

@@ -95,6 +95,10 @@ namespace Metrics
 	inline std::atomic<long long> Revives{ 0 };        // 부활 수락
 	inline std::atomic<long long> ReviveReject{ 0 };   // 부활 거부(살아 있음·대기 시간 전)
 
+	// 포털 이동(L5, Room::PlayerUsePortal). 모두 누적
+	inline std::atomic<long long> PortalUsed{ 0 };     // 이동 수락
+	inline std::atomic<long long> PortalReject{ 0 };   // 거부(없는 포털·도착지 없음·거리 밖·사망·시전 중·너무 잦음)
+
 	inline SampleStat TickLate;     // Room 틱이 예정보다 늦어진 시간(us) (Timer/JobQueue/IOCP 대기 지연)
 	inline SampleStat TickBody;     // Room::Update 본문 처리 시간(us)
 	inline SampleStat ViewPlayers;  // 플레이어 한 명의 시야 안 다른 플레이어 수 (1초마다 플레이어별 표본)

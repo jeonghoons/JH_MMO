@@ -74,6 +74,9 @@ void PacketHandler::Init()
     GPacketHandler[Protocol::CS_SHOP_SELL] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_SHOP_SELL_PACKET>(&PacketHandler::Handle_CS_SHOP_SELL, session, buffer, len);
         };
+    GPacketHandler[Protocol::CS_PORTAL] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_PORTAL_PACKET>(&PacketHandler::Handle_CS_PORTAL, session, buffer, len);
+        };
     GPacketHandler[Protocol::CS_DROP_ITEM] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_DROP_ITEM_PACKET>(&PacketHandler::Handle_CS_DROP_ITEM, session, buffer, len);
         };
@@ -463,6 +466,18 @@ void PacketHandler::Handle_CS_REVIVE(shared_ptr<GameSession> session, Protocol::
 
     // 사망 여부·대기 시간 검증과 부활 처리는 Room 잡에서 한다(플레이어 상태는 Room 스레드에서만 바꾼다).
     room->PushJob(&Room::PlayerRevive, player);
+}
+
+void PacketHandler::Handle_CS_PORTAL(shared_ptr<GameSession> session, Protocol::CS_PORTAL_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->_currPlayer;
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    // 포털 존재·거리·상태 검증과 이동은 Room 잡에서 한다(L5, D-203).
+    room->PushJob(&Room::PlayerUsePortal, player, pkt.portal_id());
 }
 
 void PacketHandler::Handle_CS_ATTACK(shared_ptr<GameSession> session, Protocol::CS_ATTACK_PACKET& pkt)

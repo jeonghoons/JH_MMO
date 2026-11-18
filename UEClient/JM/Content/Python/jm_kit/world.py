@@ -1157,6 +1157,22 @@ def dress(name, list_rocks=False):
                 spawn(it, f"{it['from']}_{i:02d}", "Village", x, y, sc, pyaw, float(it.get("sink_m", 0.1)))
                 box_collider(it, f"{it['from']}_{i:02d}", x, y, sc, pyaw, it)
                 n += 1
+            # close_gaps_m(L5, D-203): 이 폭 이하인 틈(문 자리)은 양 끝에 칸을 하나씩 더 놓아 문 폭에 딱 맞춘다.
+            # 고리 칸은 일정한 각도로 놓여서 틈이 문보다 한쪽으로 넓게 남을 수 있다(동·서문 옆으로 바깥이 보였음).
+            if it.get("close_gaps_m"):
+                seg_w = float(it.get("cover", 1.0)) * src["size"][1]
+                for k, g in enumerate(src.get("gaps", [])):
+                    if g["width_m"] > float(it["close_gaps_m"]):
+                        continue
+                    for side, tag in ((-1, "a"), (1, "b")):
+                        deg = g["deg"] + side * math.degrees((g["width_m"] * 0.5 + seg_w * 0.5) / src["r"])
+                        gx = src["x"] + src["r"] * math.cos(math.radians(deg))
+                        gy = src["y"] + src["r"] * math.sin(math.radians(deg))
+                        gyaw = deg + (90.0 if long_x else 0.0) + float(it.get("yaw_off", 0.0))
+                        gsc = float(it.get("cover", 1.0)) * src["size"][1] * 100.0 / (2.0 * max(ext.x, ext.y))
+                        spawn(it, f"{it['from']}_G{k}{tag}", "Village", gx, gy, gsc, gyaw, float(it.get("sink_m", 0.1)))
+                        box_collider(it, f"{it['from']}_G{k}{tag}", gx, gy, gsc, gyaw, it)
+                        n += 1
             replaced.add(it["from"])
         elif kind == "gate_prop":
             # 블록아웃 arch(문) 자리에 문틀 소품. 충돌은 양쪽 기둥 자리의 숨긴 상자 둘(가운데는 지나다님).
@@ -1173,8 +1189,12 @@ def dress(name, list_rocks=False):
             off = float(it["post_off"]) * total if it.get("post_off") else (w + t) * 0.5
             pw = float(it["post_w"]) * total if it.get("post_w") else t
             sx, sy = -math.sin(math.radians(yaw)), math.cos(math.radians(yaw))
-            for side, tag in ((-1, "L"), (1, "R")):
-                collider("Cube", f"{it['from']}_{tag}", src["x"] + side * sx * off, src["y"] + side * sy * off, [pw, pw, min(hh, 4.0)], yaw, 0.2)
+            if it.get("closed"):
+                # 닫힌 문(L5, D-203): 문 전체 폭을 막는 상자 하나. 드나드는 것은 포털(서버 CS_PORTAL)로만 한다.
+                collider("Cube", f"{it['from']}_Door", src["x"], src["y"], [float(it.get("door_thick_m", t)), total, min(hh, 4.0)], yaw, 0.2)
+            else:
+                for side, tag in ((-1, "L"), (1, "R")):
+                    collider("Cube", f"{it['from']}_{tag}", src["x"] + side * sx * off, src["y"] + side * sy * off, [pw, pw, min(hh, 4.0)], yaw, 0.2)
             replaced.add(it["from"])
             n = 1
         elif kind == "prop":

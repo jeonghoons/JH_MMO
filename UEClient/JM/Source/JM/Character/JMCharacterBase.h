@@ -46,6 +46,8 @@ public:
 	virtual void OnDead();
 	// 부활(SC_REVIVE, A2.4): 사망 상태·멈춘 사망 몽타주를 풀고 서버가 정한 위치로 순간이동, HP 반영.
 	virtual void OnRevive(const Protocol::PositionInfo& Pos, int32 Hp);
+	// 서버가 정한 자리로 보간 없이 옮긴다(부활·포털 SC_TELEPORT). 속도는 0에서 시작.
+	void TeleportToServerPosition(const Protocol::PositionInfo& Pos);
 	// 이미 죽은 캐릭터가 시야에 들어왔을 때(SC_ADD_OBJECT의 hp 0): 쓰러지는 과정 없이 바로 사망 자세로 둔다.
 	// 사망 몽타주가 아직 로드되지 않았으면 SetReactionMontages에서 다시 시도한다.
 	void EnterDeadPose();

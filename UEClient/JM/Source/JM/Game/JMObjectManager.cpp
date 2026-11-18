@@ -25,6 +25,7 @@ void UJMObjectManager::ClearObjects()
 	Objects.Empty();
 	Drops.Empty();
 	Npcs.Empty();
+	Portals.Empty();
 	MyPlayer = nullptr;
 }
 
@@ -453,6 +454,45 @@ void UJMObjectManager::HandleDead(int32 CharacterId, int32 ReviveDelayMs)
 			}
 		}
 	}
+}
+
+void UJMObjectManager::HandleTeleport(int32 CharacterId, const Protocol::PositionInfo& Pos, uint32 CorrectionSeq)
+{
+	TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(CharacterId);
+	if (FoundActor == nullptr || *FoundActor == nullptr) return;
+
+	if (*FoundActor != MyPlayer) (*FoundActor)->TeleportToServerPosition(Pos);
+	else MyPlayer->OnMyTeleport(Pos, CorrectionSeq);
+}
+
+void UJMObjectManager::HandlePortalList(const Protocol::SC_PORTAL_LIST_PACKET& Pkt)
+{
+	Portals.Reset();
+	for (const Protocol::PortalInfo& Info : Pkt.portals())
+	{
+		FPortalEntry Entry;
+		Entry.Id = Info.portal_id();
+		Entry.Location = FVector(Info.x(), Info.y(), Info.z());
+		Entry.RadiusCm = Info.radius_cm();
+		Portals.Add(Entry);
+	}
+}
+
+int32 UJMObjectManager::FindNearestPortal(const FVector& From, float& OutDistSq) const
+{
+	int32 NearestId = 0;
+	float BestSq = TNumericLimits<float>::Max();
+	for (const FPortalEntry& Portal : Portals)
+	{
+		const float DistSq = FVector::DistSquared2D(From, Portal.Location);
+		if (DistSq <= Portal.RadiusCm * Portal.RadiusCm && DistSq < BestSq)
+		{
+			BestSq = DistSq;
+			NearestId = Portal.Id;
+		}
+	}
+	OutDistSq = BestSq;
+	return NearestId;
 }
 
 void UJMObjectManager::HandleRevive(int32 CharacterId, const Protocol::PositionInfo& Pos, int32 Hp, uint32 CorrectionSeq)

@@ -1,4 +1,5 @@
 ﻿#include "RecastNavMesh.h"
+#include <nlohmann/json.hpp>
 
 RecastNavMesh::RecastNavMesh()
 {
@@ -12,7 +13,48 @@ RecastNavMesh::~RecastNavMesh()
 	if (m_navMesh) dtFreeNavMesh(m_navMesh);
 }
 
-void RecastNavMesh::PruneIslands(rcPolyMesh& pmesh, float cellSize)
+// 반드시 남길 연결 영역의 기준점을 읽는다(L5, D-203): 지오메트리 옆 로직 JSON(<맵>/Logic/<맵>_Logic.json)의
+// PlayerStart 마커와 같은 레벨 안을 잇는 PortalTrigger 마커. 마을을 벽으로 막으면 마을 안이 가장 넓은 영역과 끊어지는데, 플레이어가 시작하고
+// 포털로 드나드는 곳이므로 걷는 영역으로 남아야 한다. 파일이 없으면 빈 목록(가장 넓은 영역만 남김).
+// 반환 좌표는 Detour(x, y, z) = UE(y, z, -x).
+static std::vector<std::array<float, 3>> LoadKeepSeeds(const std::string& geoBinPath)
+{
+    std::vector<std::array<float, 3>> seeds;
+
+    std::string path = geoBinPath;
+    std::replace(path.begin(), path.end(), '\\', '/');
+    const size_t geoDir = path.rfind("/Geometry/");
+    const size_t suffix = path.rfind("_Geo.bin");
+    if (geoDir == std::string::npos || suffix == std::string::npos || suffix < geoDir + 10) return seeds;
+    const std::string mapName = path.substr(geoDir + 10, suffix - (geoDir + 10));
+    const std::string logicPath = path.substr(0, geoDir) + "/Logic/" + mapName + "_Logic.json";
+
+    std::ifstream file(logicPath);
+    if (!file.is_open()) {
+        std::cout << "[Prune] 로직 파일 없음(" << logicPath << ") - 가장 넓은 연결 영역만 남깁니다." << std::endl;
+        return seeds;
+    }
+    try {
+        nlohmann::json root;
+        file >> root;
+        for (const auto& marker : root.at("markers")) {
+            const std::string type = marker.at("type").get<std::string>();
+            if (type != "PlayerStart" && type != "PortalTrigger") continue;
+            // 다른 레벨로 가는 포털(던전 입구·정거장)은 도착지가 아니라서 기준점으로 쓰지 않는다(승강장 위 같은 섬을 살리지 않게).
+            if (type == "PortalTrigger" && marker.value("targetMap", std::string()) != mapName) continue;
+            const auto& pos = marker.at("position");
+            const float x = pos.at("x").get<float>(), y = pos.at("y").get<float>(), z = pos.at("z").get<float>();
+            seeds.push_back({ y, z, -x });
+        }
+    }
+    catch (const nlohmann::json::exception& e) {
+        std::cerr << "[Prune] 로직 파일 파싱 실패(" << logicPath << "): " << e.what() << std::endl;
+        seeds.clear();
+    }
+    return seeds;
+}
+
+void RecastNavMesh::PruneIslands(rcPolyMesh& pmesh, float cellSize, float cellHeight, const std::vector<std::array<float, 3>>& keepSeeds)
 {
     const int n = pmesh.npolys, nvp = pmesh.nvp;
     std::vector<int> comp(n, -1);
@@ -52,18 +94,60 @@ void RecastNavMesh::PruneIslands(rcPolyMesh& pmesh, float cellSize)
     for (int c = 1; c < (int)compArea.size(); ++c)
         if (compArea[c] > compArea[best]) best = c;
 
-    int removedPolys = 0;
-    double removedArea = 0.0;
-    for (int c = 0; c < (int)compArea.size(); ++c)
-        if (c != best) removedArea += compArea[c];
-    for (int i = 0; i < n; ++i) {
-        pmesh.flags[i] = (comp[i] == best) ? 1 : 0;
-        if (comp[i] != best) ++removedPolys;
+    const double toM2 = (double)cellSize * cellSize / 10000.0;   // 셀² → ㎡ (cellSize는 cm)
+
+    // 기준점(시작 지점·포털 마커)이 놓인 연결 영역도 남긴다(L5): 기준점의 수평 위치를 품는 폴리곤 중 높이가 가장 가까운 것.
+    // 높이 차가 3m를 넘거나 품는 폴리곤이 없으면(걷는 영역 밖의 마커) 그 기준점은 건너뛴다.
+    std::vector<char> keep(compArea.size(), 0);
+    keep[best] = 1;
+    int seedKept = 0, seedMissed = 0;
+    for (const std::array<float, 3>& seed : keepSeeds) {
+        const double sx = ((double)seed[0] - pmesh.bmin[0]) / cellSize;
+        const double sy = ((double)seed[1] - pmesh.bmin[1]) / cellHeight;
+        const double sz = ((double)seed[2] - pmesh.bmin[2]) / cellSize;
+        int found = -1;
+        double foundDy = 300.0 / cellHeight;
+        for (int i = 0; i < n; ++i) {
+            const unsigned short* p = &pmesh.polys[i * nvp * 2];
+            int nv = 0;
+            while (nv < nvp && p[nv] != RC_MESH_NULL_IDX) ++nv;
+            bool inside = false;
+            double sumY = 0.0;
+            for (int j = 0, k = nv - 1; j < nv; k = j++) {
+                const unsigned short* vj = &pmesh.verts[p[j] * 3];
+                const unsigned short* vk = &pmesh.verts[p[k] * 3];
+                sumY += vj[1];
+                if (((double)vj[2] > sz) != ((double)vk[2] > sz) &&
+                    sx < ((double)vk[0] - vj[0]) * (sz - vj[2]) / ((double)vk[2] - vj[2]) + vj[0])
+                    inside = !inside;
+            }
+            if (!inside) continue;
+            const double dy = std::fabs(sumY / nv - sy);
+            if (dy <= foundDy) { foundDy = dy; found = i; }
+        }
+        if (found < 0) { ++seedMissed; continue; }
+        if (!keep[comp[found]]) {
+            keep[comp[found]] = 1;
+            ++seedKept;
+            // Detour(x, y, z) = UE(y, z, -x)
+            std::cout << "[Prune] 기준점 UE(" << -seed[2] << ", " << seed[0] << ")이 놓인 연결 영역을 남김: " << compArea[comp[found]] * toM2 << " m2" << std::endl;
+        }
     }
 
-    const double toM2 = (double)cellSize * cellSize / 10000.0;   // 셀² → ㎡ (cellSize는 cm)
-    std::cout << "[Prune] 연결 영역 " << compArea.size() << "개 중 가장 넓은 것만 남김: 남긴 넓이 " << compArea[best] * toM2
-        << " m2 (폴리곤 " << (n - removedPolys) << "), 끈 섬 넓이 " << removedArea * toM2 << " m2 (폴리곤 " << removedPolys << ")" << std::endl;
+    int removedPolys = 0, removedComps = 0;
+    double removedArea = 0.0, keptArea = 0.0;
+    for (int c = 0; c < (int)compArea.size(); ++c) {
+        if (keep[c]) keptArea += compArea[c];
+        else { removedArea += compArea[c]; ++removedComps; }
+    }
+    for (int i = 0; i < n; ++i) {
+        pmesh.flags[i] = keep[comp[i]] ? 1 : 0;
+        if (!keep[comp[i]]) ++removedPolys;
+    }
+
+    std::cout << "[Prune] 연결 영역 " << compArea.size() << "개 중 가장 넓은 것 + 기준점 영역 " << seedKept << "개를 남김(기준점 " << keepSeeds.size()
+        << "개, 걷는 영역 밖 " << seedMissed << "개): 남긴 넓이 " << keptArea * toM2
+        << " m2 (폴리곤 " << (n - removedPolys) << "), 끈 섬 " << removedComps << "개 넓이 " << removedArea * toM2 << " m2 (폴리곤 " << removedPolys << ")" << std::endl;
 }
 
 bool RecastNavMesh::Build(const std::string& filePath)
@@ -163,7 +247,8 @@ bool RecastNavMesh::Build(const std::string& filePath)
     // 가장 넓은 연결 영역만 걷기 가능(flags 1)으로 남기고 나머지 섬(능선 꼭대기, 바위·건물 윗면)은 flags 0으로 끈다.
     // 서버 필터(includeFlags 0xFFFF)는 flags 0인 폴리곤을 모든 질의(무작위 위치·가까운 폴리곤·경로)에서 제외한다.
     // 끄지 않으면 무작위 배치(봇·드랍·몬스터 순찰 목적지)가 닿을 수 없는 섬 위에 놓인다. (D-176, RecastDemo의 prune 도구와 같은 방식)
-    PruneIslands(*pmesh, cfg.cs);
+    // 마을처럼 벽으로 끊긴 곳은 시작 지점·포털 마커가 놓인 영역이면 함께 남긴다(L5, D-203).
+    PruneIslands(*pmesh, cfg.cs, cfg.ch, LoadKeepSeeds(filePath));
 
     std::cout << "[Step 10] dtCreateNavMeshData..." << std::endl;
     dtNavMeshCreateParams params;

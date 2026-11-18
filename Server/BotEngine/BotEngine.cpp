@@ -97,6 +97,8 @@ struct Bot
 	long long nextSlotMoveUs = 0;
 	long long nextShopUs = 0;
 	int shopNpcId = 0;            // 시야 안의 상점 NPC(OBJECT_TYPE_NPC) id. 없으면 0 (--shop-interval)
+	long long nextPortalUs = 0;
+	vector<array<float, 3>> portals;   // SC_PORTAL_LIST: (x, y, id) (--portal-interval)
 	bool shopBuyNext = true;      // 다음 상점 요청이 구매인지(구매·판매를 번갈아 보낸다)
 	bool aimBowGiveSent = false;  // --aim: 활이 없어 지급을 요청했는지
 	int objectId = -1;
@@ -468,6 +470,32 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		b.moveFailures = 0;
 		GStat.selfRevived.fetch_add(1);
 		if (b.index == 0) printf("[bot] bot0 revived: hp=%d pos=(%.0f, %.0f, %.0f) seq=%u\n", pkt.hp(), b.x, b.y, b.z, pkt.correction_seq());
+		break;
+	}
+	case Protocol::SC_PORTAL_LIST:
+	{
+		if (GConfig.portalIntervalMs <= 0) break;
+		Protocol::SC_PORTAL_LIST_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		b.portals.clear();
+		for (const Protocol::PortalInfo& info : pkt.portals())
+			b.portals.push_back({ info.x(), info.y(), static_cast<float>(info.portal_id()) });
+		break;
+	}
+	case Protocol::SC_TELEPORT:
+	{
+		// 내 순간이동만 반영한다(다른 사람 것은 위치를 추적하지 않는다). 부활과 같이 위치·보정 순번에서 다시 시작.
+		Protocol::SC_TELEPORT_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		if (pkt.object_id() != b.objectId) break;
+		b.x = pkt.pos_info().x();
+		b.y = pkt.pos_info().y();
+		b.z = pkt.pos_info().z();
+		b.correctionSeq = pkt.correction_seq();
+		b.lastMoveSentUs = NowUs();
+		b.hasGoal = false;
+		b.moveFailures = 0;
+		GStat.portalMoved.fetch_add(1);
 		break;
 	}
 	case Protocol::SC_DAMAGE:
@@ -948,6 +976,25 @@ static void WorkerMain(int workerIndex, int workerCount)
 						GStat.slotMoveSent.fetch_add(1);
 					}
 				}
+				// 포털(--portal-interval, L5): 가장 가까운 포털에 요청한다. 반경 밖·재사용 대기·시전 중이면 서버가 응답 없이 버린다.
+				// --chaos면 5%는 없는 포털 id.
+				if (GConfig.portalIntervalMs > 0 && !b.portals.empty() && now >= b.nextPortalUs)
+				{
+					const int half = GConfig.portalIntervalMs / 2;
+					b.nextPortalUs = now + (GConfig.portalIntervalMs - half + rand() % (2 * half + 1)) * 1000LL;
+					int portalId = 0;
+					float bestSq = FLT_MAX;
+					for (const array<float, 3>& p : b.portals)
+					{
+						const float dx = p[0] - b.x, dy = p[1] - b.y;
+						if (dx * dx + dy * dy < bestSq) { bestSq = dx * dx + dy * dy; portalId = static_cast<int>(p[2]); }
+					}
+					if (GConfig.chaos && rand() % 20 == 0) portalId = 9000 + rand() % 100;
+					Protocol::CS_PORTAL_PACKET portal;
+					portal.set_portal_id(portalId);
+					SendPacket(b, Protocol::CS_PORTAL, portal);
+					GStat.portalSent.fetch_add(1);
+				}
 				if (now >= b.nextPingUs)
 				{
 					b.nextPingUs = now + GConfig.pingIntervalMs * 1000LL;
@@ -1047,7 +1094,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 void BotEngine::Usage(const char* program)
 {
 	printf("%s --bots N --ramp-rate R --duration S [--host H] [--port P] [--threads T]\n"
-		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--shop-interval ms] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
+		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--shop-interval ms] [--portal-interval ms] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
 		"         [--zone x,y,r]   (hotspot: bots walk to (x,y) and stay within radius r cm)\n",
 		program);
 }
@@ -1081,6 +1128,7 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--give-gear") GConfig.giveGear = true;
 		else if (a == "--slot-interval") { if (!(v = next("--slot-interval"))) return false; GConfig.slotIntervalMs = atoi(v); }
 		else if (a == "--shop-interval") { if (!(v = next("--shop-interval"))) return false; GConfig.shopIntervalMs = atoi(v); }
+		else if (a == "--portal-interval") { if (!(v = next("--portal-interval"))) return false; GConfig.portalIntervalMs = atoi(v); }
 		else if (a == "--give-interval") { if (!(v = next("--give-interval"))) return false; GConfig.giveIntervalMs = atoi(v); }
 		else if (a == "--map") { if (!(v = next("--map"))) return false; GConfig.mapLogic = v; }
 		else if (a == "--out") { if (!(v = next("--out"))) return false; GConfig.outFile = v; }

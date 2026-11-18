@@ -322,6 +322,13 @@ void UNetworkManager::SendRevive()
 	SendProtocol(*this, pkt, Protocol::CS_REVIVE);
 }
 
+void UNetworkManager::SendPortal(int32 PortalId)
+{
+	Protocol::CS_PORTAL_PACKET pkt;
+	pkt.set_portal_id(PortalId);
+	SendProtocol(*this, pkt, Protocol::CS_PORTAL);
+}
+
 void UNetworkManager::ReturnToLogin(const FText& Message)
 {
 	DisconnectFromServer();

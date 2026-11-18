@@ -104,6 +104,11 @@ message CS_SHOP_SELL_PACKET {
 	int32 count = 3;        // 1 ~ 그 행의 수량 (스택 일부만 팔 수 있다)
 }
 
+// 포털 사용 요청(L5, D-203). 도착지는 서버가 정한다. 성공은 SC_TELEPORT, 거부(없는 포털·거리 밖·사망·시전 중·너무 잦음)는 응답 없이 버린다.
+message CS_PORTAL_PACKET {
+	int32 portal_id = 1;    // SC_PORTAL_LIST로 받은 포털 id (맵 마커 pointId)
+}
+
 // ---- 1:1 거래 (A4.2, D-158). 거부는 SC_TRADE_RESULT(request = 요청 패킷 id), 진행은 SC_TRADE_STATE, 끝은 SC_TRADE_END ----
 message CS_TRADE_REQUEST_PACKET {
 	int32 target_id = 1;                 // 거래할 플레이어의 오브젝트 id (같은 방, 거리 안)
@@ -208,6 +213,28 @@ message SC_REVIVE_PACKET {
 	PositionInfo pos_info = 2;
 	int32 hp = 3;
 	uint32 correction_seq = 4;   // 본인용: 부활로 올라간 이동 보정 순번(이후 CS_MOVE에 싣는다). 다른 사람에게는 의미 없음
+}
+
+// 서버가 정한 자리로 순간이동(L5, D-203 — 포털). 떠나는 자리에서 보던 사람들(본인 포함)에게 방송한다.
+// 받은 쪽은 보간 없이 위치를 바꾼다. 새 자리에서 처음 보게 된 사람은 SC_ADD_OBJECT로 받는다.
+message SC_TELEPORT_PACKET {
+	int32 object_id = 1;
+	PositionInfo pos_info = 2;
+	uint32 correction_seq = 3;   // 본인용: 이동으로 올라간 이동 보정 순번(이후 CS_MOVE에 싣는다). 다른 사람에게는 의미 없음
+}
+
+// 포털 하나 (L5). 위치는 cm, 이 반경 안에서 CS_PORTAL을 보낼 수 있다.
+message PortalInfo {
+	int32 portal_id = 1;
+	float x = 2;
+	float y = 3;
+	float z = 4;
+	float radius_cm = 5;
+}
+
+// 방 입장 직후 본인에게 한 번(L5). 지금 쓸 수 있는 포털만 담는다(도착지가 없는 포털은 빠진다).
+message SC_PORTAL_LIST_PACKET {
+	repeated PortalInfo portals = 1;
 }
 
 // 장착 성공을 AOI 전체에 방송한다. stat = 장비 반영 후 최종 스탯(서버 계산).

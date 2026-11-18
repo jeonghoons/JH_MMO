@@ -74,6 +74,7 @@ enum PacketId : int {
   CS_SHOP_OPEN = 1031,
   CS_SHOP_BUY = 1032,
   CS_SHOP_SELL = 1033,
+  CS_PORTAL = 1034,
   SC_LOGIN = 2000,
   SC_SIGNUP = 2001,
   SC_ADD_OBJECT = 2003,
@@ -99,12 +100,14 @@ enum PacketId : int {
   SC_KICK = 2027,
   SC_CHANGE_HP = 2028,
   SC_SHOP_OPEN = 2029,
+  SC_TELEPORT = 2030,
+  SC_PORTAL_LIST = 2031,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_SHOP_OPEN;
+constexpr PacketId PacketId_MAX = SC_PORTAL_LIST;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();
