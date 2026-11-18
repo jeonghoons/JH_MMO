@@ -109,9 +109,11 @@ def _dest(pkg, mapping):
     return None
 
 
-def move(packages, mapping, dry_run=True):
+def move(packages, mapping, dry_run=True, fixup=True):
     """packages를 mapping [(원본 접두사, 대상 접두사)]대로 Move(AssetTools.rename_assets — 참조 갱신·리디렉터 생성),
-    그다음 원본 쪽 리디렉터를 Fix Up하고 저장한다. dry_run이면 대상 경로·충돌만 보고."""
+    그다음 원본 쪽 리디렉터를 Fix Up하고 저장한다. dry_run이면 대상 경로·충돌만 보고.
+    fixup=False면 리디렉터를 남긴다 — 열려 있지 않은 맵(예: ParagonSample)은 다시 저장되지 않고 리디렉터로 새 위치를 찾는다(D-192).
+    이때 새 경로로 고쳐져야 하는 맵은 Move 전에 에디터에 열어 두어야 한다."""
     plan_rows, conflicts = [], []
     for p in packages:
         dst = _dest(p, mapping)
@@ -151,7 +153,7 @@ def move(packages, mapping, dry_run=True):
                 if r:
                     redirs.append(r)
     fixed = 0
-    if redirs:
+    if redirs and fixup:
         try:
             tools.fixup_referencers(redirs, False, unreal.RedirectFixupMode.DELETE_FIXED_UP_REDIRECTORS)
         except TypeError:
@@ -163,3 +165,29 @@ def move(packages, mapping, dry_run=True):
             if str(a.asset_class_path.asset_name) == "ObjectRedirector"]
     return {"renamed": ok, "count": len(data), "failed_load": failed_load, "redirectors_fixed": fixed,
             "redirectors_left": left, "saved": saved}
+
+
+def resave(roots):
+    """roots(폴더·패키지) 가운데 리디렉터를 가리키는 패키지만 다시 저장해 참조를 새 경로로 굳힌다.
+    move(fixup=False) 뒤에 남길 쪽(커밋되는 맵·에셋)에 쓴다. 맵은 에디터에 열려 있는 것만 저장한다(열려 있지 않으면 skipped)."""
+    def is_redirector(pkg):
+        return any(str(a.asset_class_path.asset_name) == "ObjectRedirector" for a in AR.get_assets_by_package_name(unreal.Name(pkg)))
+    world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+    open_map = world.get_outermost().get_name() if world else ""
+    saved, skipped, failed = [], [], []
+    for r in roots:
+        for pkg in (_all_packages(r, ()) if unreal.EditorAssetLibrary.does_directory_exist(r) else [r]):
+            stale = [d for d in _deps(pkg) if d.startswith("/Game/") and is_redirector(d)]
+            if not stale:
+                continue
+            classes = [str(a.asset_class_path.asset_name) for a in AR.get_assets_by_package_name(unreal.Name(pkg))]
+            if "World" in classes:
+                if pkg != open_map:
+                    skipped.append(pkg)
+                    continue
+                ok = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).save_current_level()
+            else:
+                asset = unreal.EditorAssetLibrary.load_asset(pkg)
+                ok = bool(asset) and unreal.EditorAssetLibrary.save_loaded_asset(asset, False)
+            (saved if ok else failed).append(pkg)
+    return {"saved": saved, "skipped": skipped, "failed": failed}

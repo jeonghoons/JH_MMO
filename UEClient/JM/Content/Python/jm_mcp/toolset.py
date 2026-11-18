@@ -12,12 +12,12 @@ import unreal
 import toolset_registry
 from toolset_registry.registration import Registration
 
-from jm_kit import body_mask, fx_fix, fx_sheet, garment, glove_paint, icon, item_table, posed, preview, profiles, refs, retarget, skeleton_check, testbed, world
+from jm_kit import body_mask, fx_fix, fx_sheet, garment, glove_paint, icon, item_table, posed, preview, profiles, refs, retarget, skeleton_check, testbed, tex, world
 
 
 def _reload():
     """도구를 고친 뒤 에디터 재시작 없이 반영(의존 순서대로)."""
-    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table, testbed, posed, refs, fx_sheet, fx_fix):
+    for m in (profiles, skeleton_check, body_mask, garment, glove_paint, preview, icon, item_table, testbed, posed, refs, tex, fx_sheet, fx_fix):
         importlib.reload(m)
 
 
@@ -469,7 +469,8 @@ class KitTools(unreal.ToolsetDefinition):
 
     @toolset_registry.tool_call
     @staticmethod
-    def refs_move(roots: str, mapping_json: str, deleting: str | None = None, dry_run: bool | None = None) -> str:
+    def refs_move(roots: str, mapping_json: str, deleting: str | None = None, dry_run: bool | None = None,
+                  fixup: bool | None = None) -> str:
         """refs_plan(roots, mapping 원본 접두사들)의 moves를 mapping대로 Move → 리디렉터 Fix Up → 저장(jm_kit.refs.move).
 
         Args:
@@ -477,6 +478,7 @@ class KitTools(unreal.ToolsetDefinition):
             mapping_json: JSON [[원본 접두사, 대상 접두사], ...].
             deleting: refs_plan과 같음(blockers가 있으면 옮기지 않음).
             dry_run: 기본 True — 대상 경로·충돌만 보고.
+            fixup: 기본 True. False면 리디렉터를 남겨 열려 있지 않은 맵을 다시 저장하지 않는다(고칠 맵은 먼저 열어 둘 것).
 
         Returns:
             JSON 결과.
@@ -486,9 +488,43 @@ class KitTools(unreal.ToolsetDefinition):
         pl = refs.plan(sp(roots), tuple(m[0] for m in mapping), sp(deleting))
         if pl["blockers"]:
             return _dump({"blocked": pl["blockers"][:50]})
-        res = refs.move(pl["moves"], mapping, True if dry_run is None else dry_run)
+        res = refs.move(pl["moves"], mapping, True if dry_run is None else dry_run, True if fixup is None else fixup)
         res["missing"] = pl["missing"]
         return _dump(res)
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def refs_resave(roots: str) -> str:
+        """roots 가운데 리디렉터를 가리키는 패키지만 다시 저장해 참조를 새 경로로 굳힌다(jm_kit.refs.resave). refs_move(fixup=false) 뒤에 쓴다.
+
+        Args:
+            roots: 쉼표 구분 폴더·패키지. 맵은 에디터에 열려 있는 것만 저장된다.
+
+        Returns:
+            JSON {saved, skipped, failed}.
+        """
+        return _dump(refs.resave(tuple(x.strip() for x in roots.split(",") if x.strip())))
+
+    @toolset_registry.tool_call
+    @staticmethod
+    def tex_reduce(roots: str, targets: str, max_size: int | None = None, only: str | None = None, dry_run: bool | None = None) -> str:
+        """refs_plan(roots, targets)의 moves 가운데 텍스처의 원본(uasset 안 비트맵)을 긴 변 max_size 이하로 줄이고 저장(jm_kit.tex.reduce).
+
+        Args:
+            roots: refs_plan과 같음.
+            targets: refs_plan과 같음(쉼표 구분 접두사).
+            max_size: 긴 변 상한(기본 2048).
+            only: 쉼표 구분 패키지 — 주면 그 가운데 이것만 처리(시험용).
+            dry_run: 기본 True — 대상과 현재 크기만 보고.
+
+        Returns:
+            JSON {textures, mb_before, mb_after, errors, changed_settings, rows}.
+        """
+        sp = lambda v: tuple(x.strip() for x in v.split(",") if x.strip()) if v else ()
+        pkgs = refs.plan(sp(roots), sp(targets), ())["moves"]
+        if only:
+            pkgs = [p for p in pkgs if p in set(sp(only))]
+        return _dump(tex.reduce(pkgs, int(max_size or 2048), True if dry_run is None else dry_run))
 
     # ── 몸 마스크 ─────────────────────────────────────────
     @toolset_registry.tool_call

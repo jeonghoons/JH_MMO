@@ -9,8 +9,8 @@
 | ~~`Content/ParagonGreystone`~~ | Paragon: Greystone | (Fab 링크 기입) | **2026-11-12 삭제** — 쓰던 FX 의존은 `Content/FX/Dep/Greystone`(git 포함). 설치 불필요 | — |
 | ~~`Content/ParagonSparrow`~~ | Paragon: Sparrow | (Fab 링크 기입) | **2026-11-12 삭제** — 쓰던 FX 의존은 `Content/FX/Dep/Sparrow`(git 포함). 설치 불필요 | — |
 | `Content/ParagonRampage` | Paragon: Rampage | (Fab 링크 기입) | 몬스터(메시·스켈레톤 등). FX가 쓰던 의존은 2026-11-12 `Content/FX/Dep/Rampage`로 옮겨 팩에서 빠짐 — 새로 받으면 그 에셋이 팩 쪽에도 다시 생기지만 참조하지 않음 | Fab 라이브러리 → Add to Project → `JM` |
-| `Content/ParagonProps` | Paragon: Props | (Fab 링크 기입) | 환경 소품(미사용 확인 필요) | 위와 동일 |
-| `Content/KiteDemo` | Kite Demo | (Fab 링크 기입) | 데모 에셋(미사용 확인 필요) | 위와 동일 |
+| `Content/ParagonProps` | Paragon: Props | (Fab 링크 기입) | 환경 소품. **새 맵 `Continent01`은 이 폴더를 쓰지 않음** — 쓰는 바위 메시·재질은 2026-11-18 `Content/World/Dep/ParagonProps`로 옮김(git 포함, 텍스처 2K로 축소 — D-191·D-192). 옛 맵 `ParagonSample`과 던전 제작(DG4 `Monolith/Ruins` 예정)에 필요. 새로 받으면 옮긴 에셋이 팩 쪽에도 다시 생기지만 `Continent01`은 참조하지 않음 | 위와 동일 |
+| `Content/KiteDemo` | Kite Demo | (Fab 링크 기입) | 자연물(나무·바위·풀·지면 타일). **새 맵 `Continent01`은 이 폴더를 쓰지 않음** — 쓰는 에셋은 2026-11-18 `Content/World/Dep/KiteDemo`로 옮김(git 포함, 텍스처 2K로 축소 — D-191·D-192). 옛 맵 `ParagonSample`에만 필요 | 위와 동일 |
 | `Content/LevelPrototyping`, `Content/StarterContent` | UE 템플릿 기본 에셋 | - | 프로토타이핑용 | 새 프로젝트 템플릿에서 가져오기 |
 | `Content/CoreC` | Stylized Handpainted Modular Character Starter Kit: Male & Female + Outfit (CoreCharacters, 무료) | https://fab.com/s/485d4e7206ec | **플레이어 베이스 바디(남/여)**, 2026-11-04 MC2.1b | Fab 내 라이브러리 → Add to Project → `JM`. 몸 부위는 키트 메시를 그대로 사용(`jm_kit/kit_profiles.json`). **재설치 뒤 소켓 추가 필요**(2026-11-12 FX 궤적용, 폴더가 git 제외): `SKM_CoreC_M_Base_Body_Combined`·`SKM_CoreC_F_Base_Body_Combined`에 `hand_r` 자식 소켓 `FX_Weapon_Bottom`·`FX_Weapon_Top`(회전 0, 배율 1) — M 위치 (-5.264, 6.422, 11.429)·(-8.211, 44.988, 74.633), F (-5.657, 12.754, 2.98)·(-8.466, 85.167, 18.446). 값은 MCP `fx_weapon_socket_points`(검 부착값의 날 22%·칼끝), 추가는 `SkeletalMeshTools.add_socket` → `set_socket_transform` → 저장 |
 | (Test) `Content/Polyphoria` | (에셋 이름 기입) | (Fab 링크 기입) | 모듈러 검토용, 병합 여부 미정 | 위와 동일 |

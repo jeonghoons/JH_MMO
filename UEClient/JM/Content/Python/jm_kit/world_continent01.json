@@ -253,7 +253,7 @@
     },
     "textures": {
       "grass": {
-        "d": "/Game/KiteDemo/Environments/GroundTiles/Grass/T_ground_Moss_D",
+        "d": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/Grass/T_ground_Moss_D",
         "tile_m": 5.0,
         "rough": 0.9,
         "desat": 0.35,
@@ -264,22 +264,22 @@
         ]
       },
       "leaf": {
-        "d": "/Game/KiteDemo/Environments/GroundTiles/LeafyPath/T_GDC_Tiling_LeafPathStones_D_R",
-        "n": "/Game/KiteDemo/Environments/GroundTiles/LeafyPath/T_GDC_Tiling_LeafpathStones_N",
+        "d": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/LeafyPath/T_GDC_Tiling_LeafPathStones_D_R",
+        "n": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/LeafyPath/T_GDC_Tiling_LeafpathStones_N",
         "tile_m": 4.0
       },
       "stone": {
-        "d": "/Game/KiteDemo/Environments/GroundTiles/RockyPath/T_GDC_StonePath_Tile_D_R",
-        "n": "/Game/KiteDemo/Environments/GroundTiles/RockyPath/T_GDC_StonePath_Tile_N",
+        "d": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/RockyPath/T_GDC_StonePath_Tile_D_R",
+        "n": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/RockyPath/T_GDC_StonePath_Tile_N",
         "tile_m": 4.0
       },
       "gravel": {
-        "d": "/Game/KiteDemo/Environments/GroundTiles/PebblyRiverbank/T_Tile_PebblyRiverbank_D_R",
-        "n": "/Game/KiteDemo/Environments/GroundTiles/PebblyRiverbank/T_Tile_PebblyRiverbank_N",
+        "d": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/PebblyRiverbank/T_Tile_PebblyRiverbank_D_R",
+        "n": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/PebblyRiverbank/T_Tile_PebblyRiverbank_N",
         "tile_m": 4.0
       },
       "rock": {
-        "d": "/Game/ParagonProps/Monolith/Rocks/Textures/T_NordicRockTile02b",
+        "d": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Textures/T_NordicRockTile02b",
         "tile_m": 14.0,
         "rough": 0.85,
         "vertical": true,
@@ -422,7 +422,7 @@
         "layer": "MeadowN",
         "varieties": [
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
             "density": 220
           }
         ]
@@ -437,7 +437,7 @@
         },
         "varieties": [
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Flowers/Buttercup/SM_Buttercup_Patch_01",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Flowers/Buttercup/SM_Buttercup_Patch_01",
             "density": 30
           }
         ]
@@ -447,7 +447,7 @@
         "layer": "MeadowW",
         "varieties": [
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
             "density": 150
           }
         ]
@@ -462,11 +462,11 @@
         },
         "varieties": [
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Flowers/Heather/SM_Heather_Mesh_Clumps2",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Flowers/Heather/SM_Heather_Mesh_Clumps2",
             "density": 22
           },
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/BogMyrtleBush_02/BogMyrtleBush_02",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/BogMyrtleBush_02/BogMyrtleBush_02",
             "density": 10,
             "scale": [
               1.0,
@@ -480,7 +480,7 @@
         "layer": "MeadowE",
         "varieties": [
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
             "density": 220
           }
         ]
@@ -495,15 +495,15 @@
         },
         "varieties": [
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Flowers/Yarrow/SM_Yarrow",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Flowers/Yarrow/SM_Yarrow",
             "density": 30
           },
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Flowers/FieldScabious/SM_FieldScabious_01",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Flowers/FieldScabious/SM_FieldScabious_01",
             "density": 30
           },
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Flowers/Buttercup/SM_Buttercup_Patch_01",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Flowers/Buttercup/SM_Buttercup_Patch_01",
             "density": 22
           }
         ]
@@ -513,11 +513,11 @@
         "layer": "Forest",
         "varieties": [
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
             "density": 40
           },
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Leaves/SM_DeadLeaves",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Leaves/SM_DeadLeaves",
             "density": 8,
             "align": true
           }
@@ -533,15 +533,15 @@
         },
         "varieties": [
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Ferns/SM_Fern_01",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Ferns/SM_Fern_01",
             "density": 9
           },
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Ferns/SM_Fern_02",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Ferns/SM_Fern_02",
             "density": 9
           },
           {
-            "mesh": "/Game/KiteDemo/Environments/Foliage/Ferns/SM_Fern_03",
+            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Ferns/SM_Fern_03",
             "density": 9
           }
         ]
@@ -553,7 +553,7 @@
     "sets": {
       "pines": [
         {
-          "mesh": "/Game/KiteDemo/Environments/Trees/ScotsPineTall_01/ScotsPineTall_01",
+          "mesh": "/Game/World/Dep/KiteDemo/Environments/Trees/ScotsPineTall_01/ScotsPineTall_01",
           "weight": 5,
           "scale": [
             0.8,
@@ -562,7 +562,7 @@
           "trunk_r_m": 0.3
         },
         {
-          "mesh": "/Game/KiteDemo/Environments/Trees/ScotsPine_01/ScotsPine_01",
+          "mesh": "/Game/World/Dep/KiteDemo/Environments/Trees/ScotsPine_01/ScotsPine_01",
           "weight": 2,
           "scale": [
             0.8,
@@ -571,7 +571,7 @@
           "trunk_r_m": 0.45
         },
         {
-          "mesh": "/Game/KiteDemo/Environments/Trees/HillTree_Tall_02/HillTree_Tall_02",
+          "mesh": "/Game/World/Dep/KiteDemo/Environments/Trees/HillTree_Tall_02/HillTree_Tall_02",
           "weight": 2,
           "scale": [
             0.8,
@@ -582,31 +582,31 @@
       ],
       "boulders": [
         {
-          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_03",
+          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_03",
           "weight": 3,
           "sink": 0.45,
           "col_fit": 0.6
         },
         {
-          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_Corner_01",
+          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_Corner_01",
           "weight": 2,
           "sink": 0.25,
           "col_fit": 0.6
         },
         {
-          "mesh": "/Game/KiteDemo/Environments/Rocks/Mountain_RockFace_002/SM_MountainRock_Closed",
+          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Mountain_RockFace_002/SM_MountainRock_Closed",
           "weight": 3,
           "sink": 0.2,
           "col_fit": 0.6
         },
         {
-          "mesh": "/Game/KiteDemo/Environments/Rocks/Large_Volcanic_Rock_001/LargeVolcanicRock_001",
+          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Large_Volcanic_Rock_001/LargeVolcanicRock_001",
           "weight": 2,
           "sink": 0.2,
           "col_fit": 0.75
         },
         {
-          "mesh": "/Game/KiteDemo/Environments/Rocks/Large_Volcanic_Rock_001/LargeVolcanicRock_004",
+          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Large_Volcanic_Rock_001/LargeVolcanicRock_004",
           "weight": 2,
           "sink": 0.2,
           "col_fit": 0.75
@@ -614,13 +614,13 @@
       ],
       "big": [
         {
-          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_03",
+          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_03",
           "weight": 3,
           "sink": 0.45,
           "col_fit": 0.6
         },
         {
-          "mesh": "/Game/KiteDemo/Environments/Rocks/Mountain_RockFace_002/SM_MountainRock_Closed",
+          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Mountain_RockFace_002/SM_MountainRock_Closed",
           "weight": 2,
           "sink": 0.2,
           "col_fit": 0.6
@@ -628,23 +628,23 @@
       ],
       "stones": [
         {
-          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_04"
+          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_04"
         },
         {
-          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_05"
+          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_05"
         },
         {
-          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_06"
+          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_06"
         },
         {
-          "mesh": "/Game/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_07"
+          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_07"
         },
         {
-          "mesh": "/Game/KiteDemo/Environments/Rocks/Medium_Boulder_001/Medium_Boulder_001",
+          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Medium_Boulder_001/Medium_Boulder_001",
           "weight": 2
         },
         {
-          "mesh": "/Game/KiteDemo/Environments/Rocks/Medium_Boulder_002/Medium_Boulder_LowPoly",
+          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Medium_Boulder_002/Medium_Boulder_LowPoly",
           "weight": 2
         }
       ]
@@ -698,7 +698,7 @@
       {
         "kind": "place",
         "label": "DungeonCliff",
-        "mesh": "/Game/KiteDemo/Environments/Cliffs/Cliff01/SM_Cliff01",
+        "mesh": "/Game/World/Dep/KiteDemo/Environments/Cliffs/Cliff01/SM_Cliff01",
         "x": 199.0,
         "y": -193.0,
         "yaw": 60.0,
@@ -1831,6 +1831,93 @@
       ]
     }
   ],
+  "lighting": {
+    "_comment": "본 조명(L2f, world_step lighting). 야외 주간 고정·동적 조명·라이트맵 없음(DESIGN_WORLD). props = 컴포넌트 프로퍼티, settings = 후처리(override 자동). 색: color = 0~255, linear = 0~1",
+    "actors": [
+      {
+        "label": "Env_Sun",
+        "class": "DirectionalLight",
+        "component": "DirectionalLightComponent",
+        "movable": true,
+        "location_m": [
+          0,
+          0,
+          30
+        ],
+        "rotation": {
+          "pitch": -42.0,
+          "yaw": -35.0
+        },
+        "props": {
+          "intensity": 8.0,
+          "light_color": {
+            "color": [
+              255,
+              243,
+              224
+            ]
+          },
+          "atmosphere_sun_light": true,
+          "light_source_angle": 1.0,
+          "dynamic_shadow_distance_movable_light": 12000.0,
+          "dynamic_shadow_cascades": 4,
+          "cascade_distribution_exponent": 3.0
+        }
+      },
+      {
+        "label": "Env_SkyLight",
+        "class": "SkyLight",
+        "component": "SkyLightComponent",
+        "movable": true,
+        "location_m": [
+          0,
+          0,
+          30
+        ],
+        "props": {
+          "real_time_capture": true,
+          "intensity": 1.8
+        }
+      },
+      {
+        "label": "Env_Atmosphere",
+        "class": "SkyAtmosphere",
+        "component": "SkyAtmosphereComponent",
+        "props": {}
+      },
+      {
+        "label": "Env_Fog",
+        "class": "ExponentialHeightFog",
+        "component": "ExponentialHeightFogComponent",
+        "location_m": [
+          0,
+          0,
+          0
+        ],
+        "props": {
+          "fog_density": 0.012,
+          "fog_height_falloff": 0.25,
+          "start_distance": 3000.0,
+          "fog_max_opacity": 0.85,
+          "enable_volumetric_fog": false
+        }
+      },
+      {
+        "label": "Env_PostProcess",
+        "class": "PostProcessVolume",
+        "actor_props": {
+          "unbound": true
+        },
+        "settings": {
+          "auto_exposure_min_brightness": -0.9,
+          "auto_exposure_max_brightness": -0.1,
+          "auto_exposure_bias": 0.0,
+          "bloom_intensity": 0.35,
+          "vignette_intensity": 0.25
+        }
+      }
+    ]
+  },
   "markers": {
     "player_start": {
       "x": -142.0,

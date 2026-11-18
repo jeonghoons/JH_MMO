@@ -131,7 +131,7 @@ def new_level(level_path):
 
 
 def basic_lighting():
-    """야외 주간 기본 조명(없는 것만 추가): 태양·하늘빛·대기·안개. 본 조명은 L2f에서 다듬는다."""
+    """야외 주간 기본 조명(없는 것만 추가): 태양·하늘빛·대기·안개. 값은 정의의 lighting을 apply_lighting(world_step "lighting")이 넣는다."""
     have = {a.get_actor_label() for a in EAS.get_all_level_actors()}
     added = []
 
@@ -1275,9 +1275,106 @@ def check_dress(name):
     return res
 
 
+def _light_value(v):
+    """정의의 값 → 에디터 프로퍼티 값: {"color": [r,g,b]} = Color, {"linear": [r,g,b]} = LinearColor, {"vec4": [x,y,z,w]} = Vector4."""
+    if isinstance(v, dict):
+        if "color" in v:
+            c = v["color"]
+            return unreal.Color(int(c[2]), int(c[1]), int(c[0]), 255)  # Color(b, g, r, a)
+        if "linear" in v:
+            c = v["linear"]
+            return unreal.LinearColor(c[0], c[1], c[2], c[3] if len(c) > 3 else 1.0)
+        if "vec4" in v:
+            c = v["vec4"]
+            return unreal.Vector4(c[0], c[1], c[2], c[3])
+    return v
+
+
+def apply_lighting(name, dump=False, actors=None, pie=False):
+    """본 조명(L2f): 정의의 lighting.actors대로 조명 액터를 만들거나(없을 때) 값을 넣는다 — 다시 불러도 같은 결과.
+    pie = True면 PIE 월드의 액터에 임시로 넣고(비교 측정), actors를 주면 정의 대신 그 목록을 쓴다.
+    항목: label, class(unreal 클래스 이름), component(값을 넣을 컴포넌트 클래스 이름), movable, location_m, rotation{pitch, yaw},
+    props(컴포넌트 프로퍼티), actor_props(액터 프로퍼티), settings(후처리 볼륨의 PostProcessSettings — override_* 를 함께 켠다).
+    dump = True면 값을 넣지 않고 지금 값만 읽어 돌려준다."""
+    d = load_def(name)
+    if pie:
+        # 비교 측정용: PIE 월드의 조명 액터에 임시로 넣는다(저장되지 않음, 없는 액터는 만들지 않음). actors로 다른 값을 줄 수 있다
+        worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
+        if not worlds:
+            return {"error": "PIE가 실행 중이 아님"}
+        level_actors = unreal.GameplayStatics.get_all_actors_of_class(worlds[0], unreal.Actor)
+    else:
+        level_actors = EAS.get_all_level_actors()
+    by_label = {a.get_actor_label(): a for a in level_actors}
+    out = []
+    for it in (actors if actors is not None else d.get("lighting", {}).get("actors", [])):
+        label = it["label"]
+        a = by_label.get(label)
+        info = {"label": label, "created": False}
+        if a is None:
+            if dump or pie:
+                info["missing"] = True
+                out.append(info)
+                continue
+            a = EAS.spawn_actor_from_class(getattr(unreal, it["class"]), unreal.Vector(0, 0, 0), unreal.Rotator(0, 0, 0))
+            a.set_actor_label(label)
+            a.set_folder_path("Lighting")
+            info["created"] = True
+        comp = a.get_component_by_class(getattr(unreal, it["component"])) if it.get("component") else None
+        if dump:
+            cur = {}
+            st = a.get_editor_property("settings") if it.get("settings") else None
+            for src, keys in ((comp, it.get("props", {})), (st, it.get("settings", {}))):
+                for k in keys:
+                    try:
+                        cur[k] = str(src.get_editor_property(k))
+                    except Exception as e:
+                        cur[k] = f"ERROR {e}"
+            rot = a.get_actor_rotation()
+            info.update({"rotation": {"pitch": round(rot.pitch, 1), "yaw": round(rot.yaw, 1)}, "now": cur})
+            out.append(info)
+            continue
+        if it.get("movable") and a.root_component:
+            a.root_component.set_mobility(unreal.ComponentMobility.MOVABLE)
+        if "location_m" in it:
+            x, y, z = it["location_m"]
+            a.set_actor_location(unreal.Vector(x * 100.0, y * 100.0, z * 100.0), False, False)
+        if "rotation" in it:
+            a.set_actor_rotation(unreal.Rotator(0.0, float(it["rotation"].get("pitch", 0.0)), float(it["rotation"].get("yaw", 0.0))), False)
+        errors = []
+        for k, v in it.get("actor_props", {}).items():
+            try:
+                a.set_editor_property(k, _light_value(v))
+            except Exception as e:  # 프로퍼티 이름이 틀리면 그 항목만 알림
+                errors.append(f"{k}: {e}")
+        for k, v in it.get("props", {}).items():
+            try:
+                comp.set_editor_property(k, _light_value(v))
+            except Exception as e:
+                errors.append(f"{k}: {e}")
+        if it.get("settings"):
+            st = a.get_editor_property("settings")
+            for k, v in it["settings"].items():
+                try:
+                    st.set_editor_property(k, _light_value(v))
+                    st.set_editor_property("override_" + k, True)
+                except Exception as e:
+                    errors.append(f"{k}: {e}")
+            a.set_editor_property("settings", st)
+        if errors:
+            info["errors"] = errors
+        out.append(info)
+    return out
+
+
+# pie_exec가 받는 콘솔 명령(첫 단어, 소문자): 측정과 렌더 설정만
+_PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen"}
+_PIE_EXEC_PREFIX = ("t.", "r.", "sg.", "grass.", "foliage.")
+
+
 # ── 범용 진입점(MCP world_step): 새 단계를 추가해도 툴셋(= 에디터 재시작)을 고치지 않는다 ──
 def run_step(name, step, args=None):
-    """step: weights / grass / material / apply_material / ground(grass → material → apply_material) / audit / probe / dress / clear_dress / check_dress / show_colliders / colliders / near / pie_pawn / pie_chars / prop_import / prop_info."""
+    """step: weights / grass / material / apply_material / ground(grass → material → apply_material) / audit / probe / dress / clear_dress / check_dress / show_colliders / colliders / near / pie_pawn / pie_chars / prop_import / prop_info / lighting / pie_exec / pie_view."""
     args = args or {}
     if step == "probe":
         return probe(name, args.get("items"))
@@ -1364,6 +1461,55 @@ def run_step(name, step, args=None):
             if len(out["chars"]) >= int(args.get("limit", 40)):
                 break
         return out
+    if step == "lighting":
+        # 본 조명(L2f): 정의의 lighting대로 조명 액터 값을 넣음. args = {"dump": true}면 지금 값만 읽음
+        return apply_lighting(name, bool(args.get("dump")), args.get("actors"), bool(args.get("pie")))
+    if step == "pie_exec":
+        # PIE 월드에서 콘솔 명령 실행(L2f 성능 측정용, D-190). 임의 명령을 막으려고 측정·렌더 설정 명령만 받는다.
+        # args = {"cmds": ["t.MaxFPS 0", "r.VSync 0", "csvprofile start", ...]}
+        worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
+        if not worlds:
+            return {"error": "PIE가 실행 중이 아님"}
+        w = worlds[0]
+        pc = unreal.GameplayStatics.get_player_controller(w, 0)
+        done, refused = [], []
+        for cmd in args.get("cmds", []):
+            head = cmd.strip().split(" ")[0].lower()
+            if head in _PIE_EXEC_EXACT or head.startswith(_PIE_EXEC_PREFIX):
+                unreal.SystemLibrary.execute_console_command(w, cmd, pc)
+                done.append(cmd)
+            else:
+                refused.append(cmd)
+        size = unreal.WidgetLayoutLibrary.get_viewport_size(w)
+        return {"world": w.get_name(), "done": done, "refused": refused, "viewport_px": [int(size.x), int(size.y)]}
+    if step == "pie_view":
+        # PIE 화면의 시점을 고정 카메라로 옮긴다(측정 지점 이동 — 캐릭터 위치는 서버 권위라 건드리지 않음).
+        # args = {"x", "y", "z"(m), "pitch", "yaw"} / {"clear": true}면 플레이어 시점으로 되돌림
+        worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
+        if not worlds:
+            return {"error": "PIE가 실행 중이 아님"}
+        w = worlds[0]
+        pc = unreal.GameplayStatics.get_player_controller(w, 0)
+        if pc is None:
+            return {"error": "플레이어 컨트롤러가 없음"}
+        # 게임 월드에 액터를 만드는 Python 함수가 없어 플레이어 폰의 카메라 컴포넌트를 절대 좌표로 바꿔 측정 지점에 둔다
+        # (스프링 암을 따라가지 않게 됨 — PIE 안에서만 바뀌고 저장되지 않는다).
+        pawn = pc.get_controlled_pawn()
+        cams = pawn.get_components_by_class(unreal.CameraComponent) if pawn else []
+        if not cams:
+            return {"error": "플레이어 카메라가 없음"}
+        cam = cams[0]
+        if args.get("clear"):
+            cam.set_absolute(False, False, False)
+            cam.set_relative_location_and_rotation(unreal.Vector(0, 0, 0), unreal.Rotator(0, 0, 0), False, False)
+            return {"view": "player"}
+        loc = unreal.Vector(float(args["x"]) * 100.0, float(args["y"]) * 100.0, float(args["z"]) * 100.0)
+        rot = unreal.Rotator(0.0, float(args.get("pitch", -10.0)), float(args.get("yaw", 0.0)))
+        cam.set_editor_property("use_pawn_control_rotation", False)
+        cam.set_absolute(True, True, False)
+        cam.set_world_location_and_rotation(loc, rot, False, False)
+        got = cam.get_world_location()
+        return {"view": [round(got.x / 100.0, 1), round(got.y / 100.0, 1), round(got.z / 100.0, 1)], "pitch": rot.pitch, "yaw": rot.yaw}
     if step == "weights":
         return build_weights(load_def(name), _saved_path(name, "w8"))
     if step == "grass":
