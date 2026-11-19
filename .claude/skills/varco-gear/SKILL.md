@@ -37,13 +37,13 @@ MC2.3 판금 세트(2026-11-06)에서 얻은 요령이다. 투구는 4번 실패
 - 통과한 예: 문틀, 가판대, 깃발(가는 장대도 유지됨), 모닥불, 상자·통 더미, 차양, 수레, 천막 — 3만~5만 폴리로 생성해 UE에서 3천~1만으로 줄임.
 - 반입: FBX를 짧은 경로(`C:/Temp/L2d/`)에 받아 `world_step(name, "prop_import", {"fbx", "prop", "target_tris"})`(`jm_kit/props.py`) — `/Game/World/Props/<이름>/`에 `SM_`·`M_`(공용 PBR 인스턴스)·`T_` 이름으로 정리하고 LOD 3단계를 만든다. 같은 이름으로 다시 가져오면 폴더를 비우고 가져온다(안 비우면 새 메시에 옛 텍스처가 물림).
 - VARCO 메시는 긴 변이 1m로 정규화돼 오고(pivot 바닥), 앞면 방향이 제각각이다 → 실제 크기로 `probe`해 두 방향(yaw 0·90)에서 찍어 앞면과 긴 축을 확인한 뒤 배치 값(`yaw_off`, `width_m`)을 정한다. 장비처럼 GLB를 6방향 렌더하지 않아도 UE `probe` 캡처로 형상 확인이 된다.
-- 배치와 충돌은 `UEClient/JM/CLAUDE.md`의 `jm_kit.world` `dress`(`ring_prop`·`gate_prop`·`prop`). 배치 값을 만든 스크립트는 이 폴더 `scripts/l2d_update_village.py`(정의 파일의 마을 항목을 다시 만든다).
+- 배치와 충돌은 `world-build` 스킬의 `jm_kit.world` `dress`(`ring_prop`·`gate_prop`·`prop`). 배치 값을 만든 스크립트는 이 폴더 `scripts/l2d_update_village.py`(정의 파일의 마을 항목을 다시 만든다).
 
 ## 생성·반입
 
 - 단단한 정적 장비는 **고폴리로 생성하고 UE에서 줄인다**(`items.json` `attach.target_tris` → 가져올 때 `garment.reduce_static_lods`로 LOD 3단계).
 - UE에 넣기 전에 GLB를 6방향으로 렌더해 형상을 확인한다(시점 라벨 방향 주의). 렌더 스크립트를 새로 만들면 **이 스킬 폴더에 저장**한다(scratchpad는 세션이 끝나면 사라짐 — 이전 스크립트는 그렇게 잃었다).
-- 투구는 정적 메시 + `head` 소켓 `fit: "helm"`, 방패는 `fit: "shield"`. 도구 사용법은 `UEClient/JM/CLAUDE.md`의 `jm_kit.garment`.
+- 투구는 정적 메시 + `head` 소켓 `fit: "helm"`, 방패는 `fit: "shield"`. 도구 사용법은 `kit-gear` 스킬의 `jm_kit.garment`.
 - 실행 전에 예상 포인트를 사용자에게 알리고, 노드 ID와 사용 포인트는 `TESTING.md`에 기록한다.
 
 ## 연결 문제

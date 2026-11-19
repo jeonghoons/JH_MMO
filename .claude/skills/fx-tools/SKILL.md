@@ -1,0 +1,12 @@
+---
+name: fx-tools
+description: FX(파티클) 라이브러리를 미리보기 시트로 찍거나 Cascade 이미터·본·Trail 노티파이를 손질할 때 사용. jm_kit.fx_sheet, jm_kit.fx_fix와 C++ UFxEditLibrary 사용법과 함정.
+---
+
+# FX 시트·손질
+
+절차의 기준 문서는 `Docs/FX_CATALOG.md`(시트 = 3단계, 손질 = 4단계)이다. 촬영 전에 백그라운드 스로틀을 끈다(`UEClient/JM/CLAUDE.md` "알려진 함정").
+
+- `jm_kit.fx_sheet` — FX 라이브러리 미리보기 시트(`Docs/FX_CATALOG.md` 3단계, MCP `fx_sheet_start`·`fx_sheet_status`·`fx_sheet_stop`): `Content/FX/<분류>/`의 파티클을 **Simulate 중** 게임 월드에 하나씩 스폰해(Buff·Life·Trail은 `KM_Leader`의 `spine_03` 위치, Cast는 발밑, 나머지는 캐릭터 자리 바닥 — `spawn_emitter_attached`는 Simulate에서 아무것도 그리지 않아 위치 스폰) 시점별(기본 0.3·1.0초)로 `T_CapG`가 찍고 분류별 시트 `Saved/MCShots/fx_sheet_<라벨>_<분류>.png`(행 = 에셋, 열 = 시점, 순서는 `fx_sheet_status.json`의 `sheets[].order`)로 합성. 한 Python 호출 안에서는 프레임이 안 가므로 슬레이트 post-tick 콜백으로 진행하고 `start`는 바로 반환(`status`로 확인). 순서: `preview_setup_level` → `preview_clear("KM")` → `preview_spawn("KM","M",[0,0,0],"kit")` → `preview_start_simulate` → 다음 호출에서 `fx_sheet_start`.
+  - 함정(2026-11-10): ① 에디터가 뒤에 있으면 "Use Less CPU when in Background"로 GPU 파티클(불꽃·섬광)이 진행되지 않아 빈 화면 — `ObjectTools.set_properties("/Script/UnrealEd.Default__EditorPerformanceSettings", {"bThrottleCPUWhenNotForeground": false})` 또는 `Saved/Config/WindowsEditor/EditorSettings.ini`(같은 값, 로컬) ② Simulate 중엔 `EditorAssetLibrary`가 동작하지 않아 목록은 에셋 레지스트리로 ③ Cascade LOD는 플레이어 카메라 기준이라 에셋 `lod_method`를 잠시 DirectSet으로(저장 안 함) ④ 캡처는 `KM_*`와 파티클만 표시(바닥·대기 제외, 검은 배경)해 가산 파티클이 보이게 ⑤ 레벨의 다른 `*_Leader` 시험 액터와 섞이지 않게 라벨을 정확히 `KM_Leader`로 찾음.
+- `jm_kit.fx_fix` — FX 손질(`Docs/FX_CATALOG.md` 4단계, MCP `fx_inspect`·`fx_apply`·`fx_weapon_socket_points`·`fx_trail_notify`): Cascade의 `Emitters`·`LODLevels`·`Modules`와 본 모듈 프로퍼티는 에디터 Python `get_editor_property`가 거부하고("protected and cannot be read", 2026-11-12) Cascade 클래스는 `unreal` 모듈에 타입도 없다. 그래서 구조 덤프(JSON)·이미터 삭제(안 쓰는 모듈은 임시 패키지로 옮겨 저장에서 제외)·켬/끔·본 이름 편집(`EditBones` rename/drop/set)·몽타주 Trail 노티파이는 C++ `UFxEditLibrary`(`Source/JMEditorTools/FxEditLibrary.*`)가 하고, Python은 메시 교체(`TypeDataMesh.mesh`는 EditAnywhere라 됨)·매니퀸 본 대조(`bones_missing`)·JSON 정리만 한다. `apply(ops)` op: `delete_emitter`·`disable_emitter`·`enable_emitter`·`rename_bones`·`drop_bones`·`set_bone_source`·`set_mesh`(emitter는 이름 또는 `#인덱스`, 같은 이름이 여럿이면 인덱스, **삭제는 인덱스 큰 것부터**). `weapon_socket_points`는 `items.json` 부착값으로 칼 밑동·칼끝을 `hand_r` 로컬로 계산 — AnimTrail 소켓 `FX_Weapon_Bottom/Top`은 리더 메시에 `SkeletalMeshTools.add_socket`(`Docs/ExternalAssets.md`). `set_trail_notify(몽타주, FX, start, duration)`는 기존 Trail 노티파이를 지우고 하나 단다. 확인은 `fx_sheet` 재촬영(본·궤적은 위치 스폰이라 안 찍힘 → PIE).
