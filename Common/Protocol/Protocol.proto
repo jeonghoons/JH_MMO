@@ -40,6 +40,7 @@ message CS_ATTACK_PACKET {
 	float aim_yaw = 3;       // NonTargeted의 시전 방향(deg)
 	float aim_x = 4;         // 지면 지정 스킬의 목표 지점
 	float aim_y = 5;
+	uint32 seq = 6;          // 요청 순번(클라이언트가 1부터 증가). SC_ATTACK·SC_ATTACK_RESULT가 그대로 돌려준다 (CP1, D-211). 0 = 순번 없음
 }
 
 message CS_CHANGE_EQUIP_PACKET {
@@ -192,7 +193,16 @@ message SC_ATTACK_PACKET {
 	float aim_yaw = 4;       // 서버가 확정한 시전 방향
 	float aim_x = 5;         // 서버가 사거리로 보정한 지면 목표 지점
 	float aim_y = 6;
-	int32 cooldown_ms = 7;   // 서버가 적용한 이 스킬의 쿨타임(기본 공격은 공격 속도 반영). 클라이언트 쿨타임 표시용
+	int32 cooldown_ms = 7;   // 서버가 적용한 이 스킬의 쿨타임(SkillTable.CooldownMs). 클라이언트 쿨타임 표시용
+	uint32 seq = 8;          // 시전자가 보낸 CS_ATTACK.seq (몬스터는 0). 시전자 본인만 쓴다: 입력 때 먼저 시작한 시전과 같으면 다시 재생하지 않는다 (CP1)
+}
+
+// 스킬·공격 거부. 본인에게만, 거부일 때만 보낸다(성공은 SC_ATTACK). 형식이 틀린 요청(칸 범위 밖·NaN)은 응답 없이 버린다. (CP1, D-211)
+message SC_ATTACK_RESULT_PACKET {
+	AttackResult result = 1;
+	uint32 seq = 2;          // 거부된 CS_ATTACK.seq
+	int32 skill_slot = 3;
+	int32 remain_ms = 4;     // ACTING·COOLDOWN일 때 서버 기준 남은 시간(그 밖은 0). 클라이언트가 로컬 시각을 서버에 맞추는 데 쓴다
 }
 
 message SC_DAMAGE_PACKET {

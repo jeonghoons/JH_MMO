@@ -78,6 +78,8 @@ namespace Metrics
 	inline std::atomic<int>       Monsters{ 0 };      // 현재 월드에 살아 있거나 시체로 남아 있는 몬스터 수
 	inline std::atomic<long long> AttackRequests{ 0 };  // CS_ATTACK 수신 수(누적)
 	inline std::atomic<long long> AttackAccepted{ 0 };  // 쿨타임·상태 검사를 통과한 플레이어 공격 수(누적)
+	inline std::atomic<long long> AttackRejected{ 0 };  // Room::CastSkill이 거부해 SC_ATTACK_RESULT를 보낸 수(누적, CP1)
+	inline std::atomic<long long> AttackEarlyAccepted{ 0 };  // 허용 오차(AttackEarlyToleranceMs)로 받은 공격 수(누적, D-213)
 	inline std::atomic<long long> ZonesCreated{ 0 };   // 생성된 지면 장판 수(누적)
 	inline std::atomic<long long> ZoneHits{ 0 };       // 장판이 입힌 피해 횟수(누적)
 

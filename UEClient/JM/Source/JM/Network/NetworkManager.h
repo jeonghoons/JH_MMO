@@ -43,7 +43,8 @@ public:
 	void SendEnterRoom();
 	// CorrectionSeq: 서버에게서 받은 마지막 내 위치 보정 순번(S1). 서버는 순번이 다른 이동을 버린다.
 	void SendMove(const Protocol::PositionInfo& PosInfo, bool bForce, uint32 CorrectionSeq);
-	void SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY);
+	// Seq: 요청 순번(CP1). 서버가 SC_ATTACK·SC_ATTACK_RESULT에 그대로 돌려준다
+	void SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY, uint32 Seq);
 	void SendChat(const FString& Message);   // 검증(길이·제어 문자·도배)은 서버가 한다
 	// Part = Protocol::EquipPart(1~7), ItemDbId = 내 인벤토리의 아이템(UJMInventoryManager), 0 = 해제. 검증은 서버가 한다(A3.3)
 	void SendChangeEquip(int32 Part, int64 ItemDbId);

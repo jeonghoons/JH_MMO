@@ -31,6 +31,8 @@ public:
 	FOnQuickSlotRightClicked OnRightClicked;
 
 	void StartCooldown(int32 CooldownMs);
+	// 쿨타임 표시를 남은 시간 기준으로 다시 맞춘다(CP1: 먼저 시작한 표시를 거부 때 되돌림). RemainMs 0 이하면 지운다. TotalMs = 막대의 전체 길이
+	void SetCooldownRemain(int32 RemainMs, int32 TotalMs);
 
 protected:
 	virtual void NativeConstruct() override;

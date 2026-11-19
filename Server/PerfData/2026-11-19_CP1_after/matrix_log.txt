@@ -1,0 +1,5 @@
+done hunt_250_r1
+done hunt_250_r2
+done spread_250_r1
+done chaos_50
+done hunt_250_tol100

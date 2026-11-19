@@ -135,6 +135,9 @@ extern SC_ADD_OBJECT_PACKETDefaultTypeInternal _SC_ADD_OBJECT_PACKET_default_ins
 class SC_ATTACK_PACKET;
 struct SC_ATTACK_PACKETDefaultTypeInternal;
 extern SC_ATTACK_PACKETDefaultTypeInternal _SC_ATTACK_PACKET_default_instance_;
+class SC_ATTACK_RESULT_PACKET;
+struct SC_ATTACK_RESULT_PACKETDefaultTypeInternal;
+extern SC_ATTACK_RESULT_PACKETDefaultTypeInternal _SC_ATTACK_RESULT_PACKET_default_instance_;
 class SC_CHANGE_EQUIP_PACKET;
 struct SC_CHANGE_EQUIP_PACKETDefaultTypeInternal;
 extern SC_CHANGE_EQUIP_PACKETDefaultTypeInternal _SC_CHANGE_EQUIP_PACKET_default_instance_;
@@ -244,6 +247,7 @@ template<> ::Protocol::CS_USE_ITEM_PACKET* Arena::CreateMaybeMessage<::Protocol:
 template<> ::Protocol::PortalInfo* Arena::CreateMaybeMessage<::Protocol::PortalInfo>(Arena*);
 template<> ::Protocol::SC_ADD_OBJECT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ADD_OBJECT_PACKET>(Arena*);
 template<> ::Protocol::SC_ATTACK_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ATTACK_PACKET>(Arena*);
+template<> ::Protocol::SC_ATTACK_RESULT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ATTACK_RESULT_PACKET>(Arena*);
 template<> ::Protocol::SC_CHANGE_EQUIP_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHANGE_EQUIP_PACKET>(Arena*);
 template<> ::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET>(Arena*);
 template<> ::Protocol::SC_CHANGE_HP_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHANGE_HP_PACKET>(Arena*);
@@ -1241,6 +1245,7 @@ class CS_ATTACK_PACKET final :
     kAimYawFieldNumber = 3,
     kAimXFieldNumber = 4,
     kAimYFieldNumber = 5,
+    kSeqFieldNumber = 6,
   };
   // int32 target_id = 1;
   void clear_target_id();
@@ -1287,6 +1292,15 @@ class CS_ATTACK_PACKET final :
   void _internal_set_aim_y(float value);
   public:
 
+  // uint32 seq = 6;
+  void clear_seq();
+  uint32_t seq() const;
+  void set_seq(uint32_t value);
+  private:
+  uint32_t _internal_seq() const;
+  void _internal_set_seq(uint32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.CS_ATTACK_PACKET)
  private:
   class _Internal;
@@ -1300,6 +1314,7 @@ class CS_ATTACK_PACKET final :
     float aim_yaw_;
     float aim_x_;
     float aim_y_;
+    uint32_t seq_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5442,6 +5457,7 @@ class SC_ATTACK_PACKET final :
     kAimXFieldNumber = 5,
     kAimYFieldNumber = 6,
     kCooldownMsFieldNumber = 7,
+    kSeqFieldNumber = 8,
   };
   // int32 attacker_id = 1;
   void clear_attacker_id();
@@ -5506,6 +5522,15 @@ class SC_ATTACK_PACKET final :
   void _internal_set_cooldown_ms(int32_t value);
   public:
 
+  // uint32 seq = 8;
+  void clear_seq();
+  uint32_t seq() const;
+  void set_seq(uint32_t value);
+  private:
+  uint32_t _internal_seq() const;
+  void _internal_set_seq(uint32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.SC_ATTACK_PACKET)
  private:
   class _Internal;
@@ -5521,6 +5546,188 @@ class SC_ATTACK_PACKET final :
     float aim_x_;
     float aim_y_;
     int32_t cooldown_ms_;
+    uint32_t seq_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class SC_ATTACK_RESULT_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_ATTACK_RESULT_PACKET) */ {
+ public:
+  inline SC_ATTACK_RESULT_PACKET() : SC_ATTACK_RESULT_PACKET(nullptr) {}
+  ~SC_ATTACK_RESULT_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_ATTACK_RESULT_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_ATTACK_RESULT_PACKET(const SC_ATTACK_RESULT_PACKET& from);
+  SC_ATTACK_RESULT_PACKET(SC_ATTACK_RESULT_PACKET&& from) noexcept
+    : SC_ATTACK_RESULT_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_ATTACK_RESULT_PACKET& operator=(const SC_ATTACK_RESULT_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_ATTACK_RESULT_PACKET& operator=(SC_ATTACK_RESULT_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_ATTACK_RESULT_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_ATTACK_RESULT_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_ATTACK_RESULT_PACKET*>(
+               &_SC_ATTACK_RESULT_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    33;
+
+  friend void swap(SC_ATTACK_RESULT_PACKET& a, SC_ATTACK_RESULT_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_ATTACK_RESULT_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_ATTACK_RESULT_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_ATTACK_RESULT_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_ATTACK_RESULT_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_ATTACK_RESULT_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_ATTACK_RESULT_PACKET& from) {
+    SC_ATTACK_RESULT_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_ATTACK_RESULT_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_ATTACK_RESULT_PACKET";
+  }
+  protected:
+  explicit SC_ATTACK_RESULT_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kResultFieldNumber = 1,
+    kSeqFieldNumber = 2,
+    kSkillSlotFieldNumber = 3,
+    kRemainMsFieldNumber = 4,
+  };
+  // .Protocol.AttackResult result = 1;
+  void clear_result();
+  ::Protocol::AttackResult result() const;
+  void set_result(::Protocol::AttackResult value);
+  private:
+  ::Protocol::AttackResult _internal_result() const;
+  void _internal_set_result(::Protocol::AttackResult value);
+  public:
+
+  // uint32 seq = 2;
+  void clear_seq();
+  uint32_t seq() const;
+  void set_seq(uint32_t value);
+  private:
+  uint32_t _internal_seq() const;
+  void _internal_set_seq(uint32_t value);
+  public:
+
+  // int32 skill_slot = 3;
+  void clear_skill_slot();
+  int32_t skill_slot() const;
+  void set_skill_slot(int32_t value);
+  private:
+  int32_t _internal_skill_slot() const;
+  void _internal_set_skill_slot(int32_t value);
+  public:
+
+  // int32 remain_ms = 4;
+  void clear_remain_ms();
+  int32_t remain_ms() const;
+  void set_remain_ms(int32_t value);
+  private:
+  int32_t _internal_remain_ms() const;
+  void _internal_set_remain_ms(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_ATTACK_RESULT_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int result_;
+    uint32_t seq_;
+    int32_t skill_slot_;
+    int32_t remain_ms_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5576,7 +5783,7 @@ class SC_DAMAGE_PACKET final :
                &_SC_DAMAGE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    33;
+    34;
 
   friend void swap(SC_DAMAGE_PACKET& a, SC_DAMAGE_PACKET& b) {
     a.Swap(&b);
@@ -5757,7 +5964,7 @@ class SC_DEAD_PACKET final :
                &_SC_DEAD_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    34;
+    35;
 
   friend void swap(SC_DEAD_PACKET& a, SC_DEAD_PACKET& b) {
     a.Swap(&b);
@@ -5916,7 +6123,7 @@ class SC_REVIVE_PACKET final :
                &_SC_REVIVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    35;
+    36;
 
   friend void swap(SC_REVIVE_PACKET& a, SC_REVIVE_PACKET& b) {
     a.Swap(&b);
@@ -6106,7 +6313,7 @@ class SC_TELEPORT_PACKET final :
                &_SC_TELEPORT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    37;
 
   friend void swap(SC_TELEPORT_PACKET& a, SC_TELEPORT_PACKET& b) {
     a.Swap(&b);
@@ -6285,7 +6492,7 @@ class PortalInfo final :
                &_PortalInfo_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    38;
 
   friend void swap(PortalInfo& a, PortalInfo& b) {
     a.Swap(&b);
@@ -6477,7 +6684,7 @@ class SC_PORTAL_LIST_PACKET final :
                &_SC_PORTAL_LIST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    38;
+    39;
 
   friend void swap(SC_PORTAL_LIST_PACKET& a, SC_PORTAL_LIST_PACKET& b) {
     a.Swap(&b);
@@ -6634,7 +6841,7 @@ class SC_CHANGE_EQUIP_PACKET final :
                &_SC_CHANGE_EQUIP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    39;
+    40;
 
   friend void swap(SC_CHANGE_EQUIP_PACKET& a, SC_CHANGE_EQUIP_PACKET& b) {
     a.Swap(&b);
@@ -6824,7 +7031,7 @@ class SC_CHANGE_EQUIP_RESULT_PACKET final :
                &_SC_CHANGE_EQUIP_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    40;
+    41;
 
   friend void swap(SC_CHANGE_EQUIP_RESULT_PACKET& a, SC_CHANGE_EQUIP_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -7005,7 +7212,7 @@ class SC_INVENTORY_PACKET final :
                &_SC_INVENTORY_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    42;
 
   friend void swap(SC_INVENTORY_PACKET& a, SC_INVENTORY_PACKET& b) {
     a.Swap(&b);
@@ -7242,7 +7449,7 @@ class SC_INVENTORY_UPDATE_PACKET final :
                &_SC_INVENTORY_UPDATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    43;
 
   friend void swap(SC_INVENTORY_UPDATE_PACKET& a, SC_INVENTORY_UPDATE_PACKET& b) {
     a.Swap(&b);
@@ -7460,7 +7667,7 @@ class SC_USE_ITEM_PACKET final :
                &_SC_USE_ITEM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    44;
 
   friend void swap(SC_USE_ITEM_PACKET& a, SC_USE_ITEM_PACKET& b) {
     a.Swap(&b);
@@ -7641,7 +7848,7 @@ class SC_CHANGE_HP_PACKET final :
                &_SC_CHANGE_HP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    45;
 
   friend void swap(SC_CHANGE_HP_PACKET& a, SC_CHANGE_HP_PACKET& b) {
     a.Swap(&b);
@@ -7800,7 +8007,7 @@ class SC_ITEM_RESULT_PACKET final :
                &_SC_ITEM_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    46;
 
   friend void swap(SC_ITEM_RESULT_PACKET& a, SC_ITEM_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -7959,7 +8166,7 @@ class ShopItem final :
                &_ShopItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    47;
 
   friend void swap(ShopItem& a, ShopItem& b) {
     a.Swap(&b);
@@ -8118,7 +8325,7 @@ class SC_SHOP_OPEN_PACKET final :
                &_SC_SHOP_OPEN_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    47;
+    48;
 
   friend void swap(SC_SHOP_OPEN_PACKET& a, SC_SHOP_OPEN_PACKET& b) {
     a.Swap(&b);
@@ -8286,7 +8493,7 @@ class SC_SKILL_AIM_PACKET final :
                &_SC_SKILL_AIM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    48;
+    49;
 
   friend void swap(SC_SKILL_AIM_PACKET& a, SC_SKILL_AIM_PACKET& b) {
     a.Swap(&b);
@@ -8467,7 +8674,7 @@ class SC_PONG_PACKET final :
                &_SC_PONG_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    49;
+    50;
 
   friend void swap(SC_PONG_PACKET& a, SC_PONG_PACKET& b) {
     a.Swap(&b);
@@ -8615,7 +8822,7 @@ class SC_TRADE_REQUEST_PACKET final :
                &_SC_TRADE_REQUEST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    50;
+    51;
 
   friend void swap(SC_TRADE_REQUEST_PACKET& a, SC_TRADE_REQUEST_PACKET& b) {
     a.Swap(&b);
@@ -8790,7 +8997,7 @@ class SC_TRADE_STATE_PACKET final :
                &_SC_TRADE_STATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    51;
+    52;
 
   friend void swap(SC_TRADE_STATE_PACKET& a, SC_TRADE_STATE_PACKET& b) {
     a.Swap(&b);
@@ -8958,7 +9165,7 @@ class SC_TRADE_END_PACKET final :
                &_SC_TRADE_END_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    52;
+    53;
 
   friend void swap(SC_TRADE_END_PACKET& a, SC_TRADE_END_PACKET& b) {
     a.Swap(&b);
@@ -9106,7 +9313,7 @@ class SC_TRADE_RESULT_PACKET final :
                &_SC_TRADE_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    53;
+    54;
 
   friend void swap(SC_TRADE_RESULT_PACKET& a, SC_TRADE_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -9265,7 +9472,7 @@ class SC_KICK_PACKET final :
                &_SC_KICK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    54;
+    55;
 
   friend void swap(SC_KICK_PACKET& a, SC_KICK_PACKET& b) {
     a.Swap(&b);
@@ -9927,6 +10134,26 @@ inline void CS_ATTACK_PACKET::_internal_set_aim_y(float value) {
 inline void CS_ATTACK_PACKET::set_aim_y(float value) {
   _internal_set_aim_y(value);
   // @@protoc_insertion_point(field_set:Protocol.CS_ATTACK_PACKET.aim_y)
+}
+
+// uint32 seq = 6;
+inline void CS_ATTACK_PACKET::clear_seq() {
+  _impl_.seq_ = 0u;
+}
+inline uint32_t CS_ATTACK_PACKET::_internal_seq() const {
+  return _impl_.seq_;
+}
+inline uint32_t CS_ATTACK_PACKET::seq() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_ATTACK_PACKET.seq)
+  return _internal_seq();
+}
+inline void CS_ATTACK_PACKET::_internal_set_seq(uint32_t value) {
+  
+  _impl_.seq_ = value;
+}
+inline void CS_ATTACK_PACKET::set_seq(uint32_t value) {
+  _internal_set_seq(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_ATTACK_PACKET.seq)
 }
 
 // -------------------------------------------------------------------
@@ -11297,6 +11524,110 @@ inline void SC_ATTACK_PACKET::_internal_set_cooldown_ms(int32_t value) {
 inline void SC_ATTACK_PACKET::set_cooldown_ms(int32_t value) {
   _internal_set_cooldown_ms(value);
   // @@protoc_insertion_point(field_set:Protocol.SC_ATTACK_PACKET.cooldown_ms)
+}
+
+// uint32 seq = 8;
+inline void SC_ATTACK_PACKET::clear_seq() {
+  _impl_.seq_ = 0u;
+}
+inline uint32_t SC_ATTACK_PACKET::_internal_seq() const {
+  return _impl_.seq_;
+}
+inline uint32_t SC_ATTACK_PACKET::seq() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ATTACK_PACKET.seq)
+  return _internal_seq();
+}
+inline void SC_ATTACK_PACKET::_internal_set_seq(uint32_t value) {
+  
+  _impl_.seq_ = value;
+}
+inline void SC_ATTACK_PACKET::set_seq(uint32_t value) {
+  _internal_set_seq(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_ATTACK_PACKET.seq)
+}
+
+// -------------------------------------------------------------------
+
+// SC_ATTACK_RESULT_PACKET
+
+// .Protocol.AttackResult result = 1;
+inline void SC_ATTACK_RESULT_PACKET::clear_result() {
+  _impl_.result_ = 0;
+}
+inline ::Protocol::AttackResult SC_ATTACK_RESULT_PACKET::_internal_result() const {
+  return static_cast< ::Protocol::AttackResult >(_impl_.result_);
+}
+inline ::Protocol::AttackResult SC_ATTACK_RESULT_PACKET::result() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ATTACK_RESULT_PACKET.result)
+  return _internal_result();
+}
+inline void SC_ATTACK_RESULT_PACKET::_internal_set_result(::Protocol::AttackResult value) {
+  
+  _impl_.result_ = value;
+}
+inline void SC_ATTACK_RESULT_PACKET::set_result(::Protocol::AttackResult value) {
+  _internal_set_result(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_ATTACK_RESULT_PACKET.result)
+}
+
+// uint32 seq = 2;
+inline void SC_ATTACK_RESULT_PACKET::clear_seq() {
+  _impl_.seq_ = 0u;
+}
+inline uint32_t SC_ATTACK_RESULT_PACKET::_internal_seq() const {
+  return _impl_.seq_;
+}
+inline uint32_t SC_ATTACK_RESULT_PACKET::seq() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ATTACK_RESULT_PACKET.seq)
+  return _internal_seq();
+}
+inline void SC_ATTACK_RESULT_PACKET::_internal_set_seq(uint32_t value) {
+  
+  _impl_.seq_ = value;
+}
+inline void SC_ATTACK_RESULT_PACKET::set_seq(uint32_t value) {
+  _internal_set_seq(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_ATTACK_RESULT_PACKET.seq)
+}
+
+// int32 skill_slot = 3;
+inline void SC_ATTACK_RESULT_PACKET::clear_skill_slot() {
+  _impl_.skill_slot_ = 0;
+}
+inline int32_t SC_ATTACK_RESULT_PACKET::_internal_skill_slot() const {
+  return _impl_.skill_slot_;
+}
+inline int32_t SC_ATTACK_RESULT_PACKET::skill_slot() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ATTACK_RESULT_PACKET.skill_slot)
+  return _internal_skill_slot();
+}
+inline void SC_ATTACK_RESULT_PACKET::_internal_set_skill_slot(int32_t value) {
+  
+  _impl_.skill_slot_ = value;
+}
+inline void SC_ATTACK_RESULT_PACKET::set_skill_slot(int32_t value) {
+  _internal_set_skill_slot(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_ATTACK_RESULT_PACKET.skill_slot)
+}
+
+// int32 remain_ms = 4;
+inline void SC_ATTACK_RESULT_PACKET::clear_remain_ms() {
+  _impl_.remain_ms_ = 0;
+}
+inline int32_t SC_ATTACK_RESULT_PACKET::_internal_remain_ms() const {
+  return _impl_.remain_ms_;
+}
+inline int32_t SC_ATTACK_RESULT_PACKET::remain_ms() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ATTACK_RESULT_PACKET.remain_ms)
+  return _internal_remain_ms();
+}
+inline void SC_ATTACK_RESULT_PACKET::_internal_set_remain_ms(int32_t value) {
+  
+  _impl_.remain_ms_ = value;
+}
+inline void SC_ATTACK_RESULT_PACKET::set_remain_ms(int32_t value) {
+  _internal_set_remain_ms(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_ATTACK_RESULT_PACKET.remain_ms)
 }
 
 // -------------------------------------------------------------------
@@ -13067,6 +13398,8 @@ inline void SC_KICK_PACKET::set_reason(::Protocol::KickReason value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

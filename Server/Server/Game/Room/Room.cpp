@@ -2209,7 +2209,7 @@ void Room::PlayerChat(shared_ptr<Player> player, wstring msg)
 	Broadcast(PacketSerializer::MAKE_SC_CHAT(player->GetId(), player->GetName(), msg));
 }
 
-void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY)
+void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY, uint32_t seq)
 {
 	if (caster == nullptr) return;
 	if (GetGameObject(caster->GetId()) == nullptr) return;   // 이 방에 없는 시전자
@@ -2239,12 +2239,24 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 			Metrics::AimCastClear.fetch_add(1);
 			aimNotice.pending = true;
 		}
-		// 무기 교체가 DB에 가 있는 동안에는 시전을 받지 않는다(A3.3). 결과가 오면 스왑 잠금이 걸리고 스킬 구성도 바뀐다.
-		if (player->itemOp.weaponSwapPending) return;
 	}
 
-	const SkillData* skill = caster->FindCastableSkill(slot);
-	if (skill == nullptr) return;
+	// 거부(CP1, D-211): 플레이어 본인에게만 사유와 요청 순번을 돌려준다. 클라이언트는 입력 때 먼저 시작한 시전을 되돌린다.
+	auto reject = [&](Protocol::AttackResult result, long long remainMs = 0) {
+		if (!casterIsPlayer) return;
+		Metrics::AttackRejected.fetch_add(1);
+		LOG_DEBUG("Attack", "거부 player={} slot={} seq={} result={} remain={}ms", caster->GetId(), slot, seq, Protocol::AttackResult_Name(result), remainMs);
+		if (shared_ptr<Session> session = static_pointer_cast<Player>(caster)->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_ATTACK_RESULT(result, seq, slot, static_cast<int>(remainMs)));
+	};
+
+	// 무기 교체가 DB에 가 있는 동안에는 시전을 받지 않는다(A3.3). 결과가 오면 스왑 잠금이 걸리고 스킬 구성도 바뀐다.
+	if (casterIsPlayer && static_pointer_cast<Player>(caster)->itemOp.weaponSwapPending) return reject(Protocol::ATTACK_RESULT_SWAP_PENDING);
+
+	// 허용 오차(D-213)는 플레이어만: 지연이 흔들려 앞 동작·쿨타임이 끝나기 조금 전에 도착한 요청을 받아 준다(기본 0 = 끔).
+	Character::CastCheck check;
+	const SkillData* skill = caster->FindCastableSkill(slot, &check, casterIsPlayer ? GServerConfig.attackEarlyToleranceMs : 0);
+	if (skill == nullptr) return reject(check.reason, check.remainMs);
 
 	const Protocol::PositionInfo& pos = caster->GetPosition();
 	constexpr float RAD_TO_DEG = 180.0f / MathUtils::PI;
@@ -2257,27 +2269,27 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 	{
 		// 클라이언트가 보낸 대상 id는 신뢰하지 않고, 존재/생존/적대 관계/사거리를 서버에서 다시 확인한다.
 		shared_ptr<GameObject> targetObj = GetGameObject(targetId);
-		if (targetObj == nullptr) return;
+		if (targetObj == nullptr) return reject(Protocol::ATTACK_RESULT_NO_TARGET);
 
 		const Protocol::ObjectType wantedType = casterIsPlayer ? Protocol::ObjectType::OBJECT_TYPE_MONSTER : Protocol::ObjectType::OBJECT_TYPE_PLAYER;
-		if (targetObj->GetType() != wantedType) return;
-		if (static_pointer_cast<Character>(targetObj)->GetStat().IsDead()) return;
+		if (targetObj->GetType() != wantedType) return reject(Protocol::ATTACK_RESULT_NO_TARGET);
+		if (static_pointer_cast<Character>(targetObj)->GetStat().IsDead()) return reject(Protocol::ATTACK_RESULT_TARGET_DEAD);
 
 		const float dx = targetObj->GetPosition().x() - pos.x();
 		const float dy = targetObj->GetPosition().y() - pos.y();
 		const float dist = std::sqrt(dx * dx + dy * dy);
 		// 이동 지연을 감안한 10% 여유 + 대상의 몸 반경(MN1, D-198)
-		if (dist > skill->castRange * 1.1f + static_pointer_cast<Character>(targetObj)->GetBodyRadius()) return;
+		if (dist > skill->castRange * 1.1f + static_pointer_cast<Character>(targetObj)->GetBodyRadius()) return reject(Protocol::ATTACK_RESULT_TOO_FAR);
 
 		yaw = std::atan2(dy, dx) * RAD_TO_DEG;
 	}
 	else
 	{
-		if (!std::isfinite(yaw)) return;
+		if (!std::isfinite(yaw)) return reject(Protocol::ATTACK_RESULT_BAD_REQUEST);
 
 		if (skill->hitShape == HitShape::Zone)
 		{
-			if (!std::isfinite(ax) || !std::isfinite(ay)) return;
+			if (!std::isfinite(ax) || !std::isfinite(ay)) return reject(Protocol::ATTACK_RESULT_BAD_REQUEST);
 
 			// 사거리를 넘는 지점은 사거리 끝으로 보정한다.
 			float dx = ax - pos.x();
@@ -2298,16 +2310,17 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 	// 여기부터 시전이 확정된다. 조준 해제는 SC_ATTACK이 알린다.
 	aimNotice.pending = false;
 	caster->GetMutablePosition()->set_yaw(yaw);
-	const Character::CastTiming timing = caster->BeginCast(*skill);
+	const Character::CastTiming timing = caster->BeginCast(*skill, check.actionCarryMs, check.cooldownCarryMs);
 	if (casterIsPlayer)
 	{
 		Metrics::AttackAccepted.fetch_add(1);
+		if (check.actionCarryMs > 0 || check.cooldownCarryMs > 0) Metrics::AttackEarlyAccepted.fetch_add(1);
 		// 이동 잠금(D-199): 휘두르기가 끝날 때까지 이동을 받지 않는다. 판정 원점(판정 시점의 시전자 위치)이 시전한 자리에 머문다.
 		if (const MovementData* rule = DataManager::GetMovementData(PLAYER_MOVEMENT_ID))
 			static_pointer_cast<Player>(caster)->BeginMoveLock(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count(), timing.moveLockMs, *rule);
 	}
 
-	BroadcastAOI(caster, PacketSerializer::MAKE_SC_ATTACK(caster->GetId(), skill->skillId, targetId, yaw, ax, ay, static_cast<int>(timing.cooldownMs)), true);
+	BroadcastAOI(caster, PacketSerializer::MAKE_SC_ATTACK(caster->GetId(), skill->skillId, targetId, yaw, ax, ay, static_cast<int>(timing.cooldownMs), seq), true);
 
 	// 피해 = 스킬 BaseDamage + 시전자 공격력. 시전 순간에 확정해 즉시 판정·투사체·장판에 같은 값을 쓴다
 	// (판정 전에 무기를 바꿔도 이미 나간 공격은 그대로 — DESIGN_COMBAT_SKILL.md). 방어력 감소는 나중(Character::OnDamaged).

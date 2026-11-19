@@ -172,7 +172,8 @@ public:
 	bool ResolvePortalTarget(const struct PortalTriggerPoint& portal, Protocol::PositionInfo& outPos) const;
 
 	// 슬롯(0 = 기본 공격)의 스킬을 시전한다. 사거리/대상/방향은 서버가 검증·보정하며, 실패하면 아무 일도 일어나지 않는다.
-	void CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY);
+	// seq: 플레이어가 보낸 CS_ATTACK.seq(몬스터는 0). SC_ATTACK·SC_ATTACK_RESULT에 그대로 싣는다 (CP1, D-211)
+	void CastSkill(shared_ptr<Character> caster, int slot, int targetId, float aimYaw, float aimX, float aimY, uint32_t seq);
 	// damage: 시전 순간에 확정한 피해(BaseDamage + 시전자 공격력)
 	void ExecuteSkillHit(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY, int damage);
 	void ApplyDelayedDamage(int targetId, int attackerId, int damage);

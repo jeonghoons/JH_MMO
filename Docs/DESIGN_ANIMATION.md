@@ -21,7 +21,7 @@
 
 ## 무기 등에 메기 (클라이언트 연출 전용)
 - 비전투 시 무기는 **등 소켓**에 붙어 있습니다. 처음 보이는 캐릭터도 등에 멘 상태로 나타납니다.
-- `SC_ATTACK`을 받으면 **즉시** 손 소켓으로 옮깁니다(꺼내는 모션 때문에 서버 `HitDelayMs`를 늦추지 않음).
+- 공격하면 **즉시** 손 소켓으로 옮깁니다(꺼내는 모션 때문에 서버 `HitDelayMs`를 늦추지 않음). 내 캐릭터는 입력 때(선반영, CP1 D-212), 원격 캐릭터는 `SC_ATTACK`을 받았을 때입니다.
 - 마지막 공격·피격 후 `SheatheDelaySec`(5초, `MovementTable` 클라 전용 열 예정)이 지나면 넣는 모션 → 등 소켓.
 - 프로토콜 변경이 없고 서버는 이 상태를 모릅니다.
 - (2026-11-09 MC4.2d-2 구현, 활 먼저 — `DECISIONS.md`) 값 위치: WeaponTypeTable `SheatheDelaySec`(0이면 항상 손, 지금 검)·`SheatheMontage`·`SheatheSwapSec`(넣기 동작 중 등 소켓으로 옮기는 시각), 아이템별 등 부착 = ItemTable 생성 열 `BackSocket`·`BackM`·`BackF`(items.json `back`, `fit: "back"` = 몸 공간의 중심·방향·시위 쪽으로 지정). 조준 시작도 꺼내기 조건이고, 피격은 손에 든 동안 타이머만 다시 시작. 구현: `AJMPlayer`(DrawWeapon·넣기 타이머) + `UEquipmentComponent::SetWeaponOnBack` → `ULeaderPoseAppearance`.

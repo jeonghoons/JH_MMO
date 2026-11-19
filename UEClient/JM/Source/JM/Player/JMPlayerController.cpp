@@ -1,5 +1,6 @@
 ﻿#include "Player/JMPlayerController.h"
 #include "Network/NetMoveStats.h"
+#include "Player/JMMyPlayer.h"
 #include "Network/NetworkManager.h"
 #include "UI/JMUIManager.h"
 #include "UI/WidgetNames.h"
@@ -191,4 +192,19 @@ void AJMPlayerController::OnFreeCursorReleased()
 	{
 		ApplyCombatInputMode(this);
 	}
+}
+void AJMPlayerController::AutoAttack(int32 Count, int32 Slot)
+{
+	// 근소한 거부 측정(CP1, D-213): 시전할 수 있게 되는 첫 프레임마다 시전한다.
+	if (AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn()))
+	{
+		MyPlayer->DevAutoAttack(Count, Slot);
+		UE_LOG(LogTemp, Log, TEXT("AutoAttack: count=%d slot=%d"), Count, Slot);
+	}
+}
+
+void AJMPlayerController::AttackStats(int32 Reset)
+{
+	if (AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn()))
+		UE_LOG(LogTemp, Log, TEXT("%s"), *MyPlayer->DevAttackStats(Reset != 0));
 }

@@ -21,7 +21,10 @@ public:
 	// 내 캐릭터에 대한 SC_MOVE는 서버가 내 이동을 거부했다는 보정이다(CorrectionSeq와 함께 적용).
 	void HandleMove(const Protocol::ObjectInfo& ObjInfo, uint32 CorrectionSeq);
 	// CooldownMs: 서버가 적용한 쿨타임(SC_ATTACK.cooldown_ms). 내 시전이면 HUD 슬롯에 표시한다.
-	void HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY, int32 CooldownMs);
+	// Seq: 시전자가 보낸 요청 순번(SC_ATTACK.seq). 내 시전은 입력 때 이미 시작했으므로(CP1) 순번이 있으면 다시 재생하지 않는다.
+	void HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY, int32 CooldownMs, uint32 Seq);
+	// SC_ATTACK_RESULT(CP1): 서버가 내 시전을 거부했다. Result = Protocol::AttackResult
+	void HandleAttackResult(int32 Result, uint32 Seq, int32 RemainMs);
 	void HandleDamage(int32 AttackerId, int32 TargetId, int32 Damage, int32 RemainHp);
 	// ReviveDelayMs: 내 캐릭터가 죽었을 때 부활 버튼이 켜지기까지의 시간(SC_DEAD.revive_delay_ms, 서버 값)
 	void HandleDead(int32 CharacterId, int32 ReviveDelayMs);
@@ -51,12 +54,15 @@ public:
 	// 포털(L5). From이 반경 안(수평 거리 — 서버와 같은 기준)에 든 포털 중 가장 가까운 것의 id. 없으면 0
 	int32 FindNearestPortal(const FVector& From, float& OutDistSq) const;
 
+	// SkillTable의 Fx를 HitShape에 맞춰 재생한다. 장판은 조준 지점에 DurationMs 동안, 부채꼴·직선은 타격 시점에 시전자 발밑에서 1회.
+	// OutComp·OutTimer(CP1): 내 캐릭터가 먼저 시작한 이펙트를 거부 때 지울 수 있게 장판 컴포넌트와 타이머(장판 끄기 또는 타격 시점 대기)를 돌려준다.
+	void SpawnSkillFx(AJMCharacterBase* Attacker, const struct FSkillTableRow& Skill, float AimYaw, float AimX, float AimY,
+		TWeakObjectPtr<class UParticleSystemComponent>* OutComp = nullptr, FTimerHandle* OutTimer = nullptr);
+
 private:
 	// 전투 HUD(UIManager에 HUD 이름으로 등록된 위젯). 로그인 화면처럼 HUD가 없으면 nullptr
 	class UCombatHudWidget* GetCombatHud() const;
 
-	// SkillTable의 Fx를 HitShape에 맞춰 재생한다. 장판은 조준 지점에 DurationMs 동안, 부채꼴·직선은 타격 시점에 시전자 발밑에서 1회.
-	void SpawnSkillFx(AJMCharacterBase* Attacker, const struct FSkillTableRow& Skill, float AimYaw, float AimX, float AimY);
 
 public:
 	UPROPERTY()

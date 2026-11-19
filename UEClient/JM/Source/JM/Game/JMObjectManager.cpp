@@ -254,12 +254,21 @@ void UJMObjectManager::HandleMove(const Protocol::ObjectInfo& ObjInfo, uint32 Co
 	}
 }
 
-void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY, int32 CooldownMs)
+void UJMObjectManager::HandleAttackResult(int32 Result, uint32 Seq, int32 RemainMs)
+{
+	if (MyPlayer) MyPlayer->RollbackCast(Seq, Result, RemainMs);
+}
+
+void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY, int32 CooldownMs, uint32 Seq)
 {
 	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(AttackerId))
 	{
 		AJMCharacterBase* Attacker = *FoundActor;
 		if (Attacker == nullptr) return;
+
+		// 내 시전은 입력 때 이미 몽타주·이펙트·쿨타임을 시작했다(CP1). 확정만 하고 다시 재생하지 않는다.
+		// false = 먼저 시작한 것이 없거나(순번 0) 서버가 다른 스킬로 확정했다 → 아래에서 서버 값으로 재생한다.
+		if (Attacker == MyPlayer && MyPlayer->ConfirmCast(Seq, SkillId, AimX, AimY)) return;
 
 		UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
 		const FSkillTableRow* Skill = DataManager ? DataManager->FindSkillById(SkillId) : nullptr;   // 몬스터 스킬은 SkillTable에 없을 수 있다
@@ -286,7 +295,8 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYa
 	}
 }
 
-void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTableRow& Skill, float AimYaw, float AimX, float AimY)
+void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTableRow& Skill, float AimYaw, float AimX, float AimY,
+	TWeakObjectPtr<UParticleSystemComponent>* OutComp, FTimerHandle* OutTimer)
 {
 	UWorld* World = GetWorld();
 	if (World == nullptr || Attacker == nullptr) return;
@@ -313,6 +323,8 @@ void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTabl
 			// 반복 재생 이펙트도 지속시간이 끝나면 멈춘다. 비활성화 후 남은 파티클이 사라지면 자동 삭제된다.
 			FTimerHandle Handle;
 			World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(FxComp, [FxComp]() { FxComp->Deactivate(); }), DurationSec, false);
+			if (OutComp) *OutComp = FxComp;
+			if (OutTimer) *OutTimer = Handle;
 		}
 		else
 		{
@@ -338,6 +350,7 @@ void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTabl
 		// 서버 판정 시점과 같게 재생 배율(기본 공격은 AttackSpeed)로 나눈다.
 		FTimerHandle Handle;
 		World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(Attacker, Play), Skill.HitDelayMs / 1000.f / Attacker->GetAttackPlayRate(&Skill), false);
+			if (OutTimer) *OutTimer = Handle;
 	}
 	else
 	{

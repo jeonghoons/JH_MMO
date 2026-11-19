@@ -44,6 +44,12 @@
   - 서버: 켜기 검증(생존·조준 가능한 스킬 `AimMaxMs > 0`·쿨타임·빈도 `ServerAimMinIntervalMs`), 이동 예산 속도 × SkillTable `AimMoveSpeedMul`, 해제 = 클라 취소·`CS_ATTACK`(검증 전, 실패해도)·사망·무기 교체·`AimMaxMs` 초과. 거부·시간 초과는 본인에게 `false` + seq.
   - 클라: 내 조준 상태는 로컬이 권위(진입 전 쿨타임·사망·빈도 검사, `MaxWalkSpeed` = 스탯 × 배율, 로컬 `AimMaxMs` 초과 시 취소 전송, 서버 `false`는 seq가 같을 때만 반영). 원격은 `SC_SKILL_AIM`과 `SC_ATTACK`·`SC_DEAD`·무기 `SC_CHANGE_EQUIP`으로 반영하고, 애니메이션은 `UJMAnimInstance::bIsSkillAiming`.
 - 확정 시 방향/대상/지점을 서버로 1회 전송하고, 서버는 이 값을 신뢰하지 않고 사거리·대상 유효성을 다시 검증합니다(변경 없음).
+- **선반영(2026-11-19 CP1, D-211~D-213)**: 내 스킬·공격은 서버 답을 기다리지 않고 입력 즉시 시작합니다 — 몽타주·무기 꺼내기·쿨타임 표시·스킬 이펙트·이동 잠금·방향 고정(`AJMMyPlayer::CastSkillSlot`). 피해·HP·사망·피격 연출은 서버 패킷이 와야 보입니다.
+  - 요청 순번: `CS_ATTACK.seq`(1부터 증가)를 서버가 `SC_ATTACK.seq`(확정)나 `SC_ATTACK_RESULT.seq`(거부)로 돌려줍니다. 클라이언트는 응답을 기다리는 시전을 하나만 두고(`FPendingCast`), 응답 전에는 다음 시전을 보내지 않습니다(2초 안에 응답이 없으면 대기만 풂).
+  - 확정(`ConfirmCast`): 순번이 있는 내 `SC_ATTACK`은 다시 재생하지 않습니다. 서버가 장판 지점을 다르게 보정했으면 이펙트만 옮기고, 서버가 다른 스킬로 확정했으면(무기가 서로 달랐던 순간) 먼저 시작한 것을 되돌리고 서버 값으로 재생합니다.
+  - 거부(`RollbackCast`): `SC_ATTACK_RESULT{result, seq, skill_slot, remain_ms}`는 거부일 때만 본인에게 옵니다. 순번이 기다리는 시전과 같으면 먼저 재생한 몽타주를 멈추고(그 몽타주만), 이펙트·쿨타임 표시·이동 잠금·방향 고정·범위 표시를 시전 전으로 되돌립니다. `ACTING`·`COOLDOWN`은 `remain_ms`로 로컬 시각을 서버에 맞춥니다.
+  - 사전 검사(`CanCastLocally`): 사망·앞 동작 중(`AnimMs ÷ 재생 배율`)·쿨타임·응답 대기 중이면 보내지 않습니다. 서버만 아는 상태(피격 경직, 무기 교체 잠금, 대상이 방금 죽음)는 거부로 옵니다.
+  - 허용 오차: 클라이언트는 누른 시각부터, 서버는 받은 시각부터 재므로 지연이 흔들리면 다음 요청이 조금 일찍 도착합니다. 서버는 `[Network] AttackEarlyToleranceMs`(100ms) 이하로 남은 앞 동작 잠금·스킬 쿨타임은 통과시키고 남아 있던 시간을 다음 잠금·쿨타임에 더합니다(공격 주기는 그대로). 무기 교체 잠금·피격 경직·몬스터에는 적용하지 않습니다.
 
 ### 서버 검증
 - 서버가 사거리/쿨다운/자원을 재검증한 뒤, **영향받는 대상을 서버가 직접 산출**합니다(클라이언트가 보낸 대상/히트 리스트는 신뢰하지 않습니다).
@@ -59,14 +65,14 @@
 - 클라이언트 연출: 사망 몽타주(BodyTable `DeathMontage`)를 재생하고 끝 자세에서 멈춤, 부활 때 몽타주를 풀고 서버 위치로 순간이동합니다. AnimBP `bIsDead` 상태 전환은 하지 않습니다(백로그).
 
 ## 알아둘 간극
-- 스킬 조회 키가 `PlayerType`에서 "현재 무기 타입"으로 바뀌므로, 캐릭터가 장착 무기 타입을 들고 있어야 하고 `CombatProcessor`/`Room::CharacterAttack`의 조회부가 바뀝니다(MC3.1~MC3.2).
+- 스킬 조회 키가 `PlayerType`에서 "현재 무기 타입"으로 바뀌므로, 캐릭터가 장착 무기 타입을 들고 있어야 하고 `CombatProcessor`/`Room::CastSkill`(옛 이름 `CharacterAttack`)의 조회부가 바뀝니다(MC3.1~MC3.2).
 - 몬스터는 `PlayerType`이 아니라 `MonsterTable.SkillId`로 스킬을 찾게 됩니다.
 
 ## Test 프로젝트 병합 시 서버 권위 전환 방침
 `UEProjects/Test`(클라이언트 테스트 공간)는 서버 없이 `IGameBackend`/`ULocalGameBackend`로 서버 동작을 흉내 냈습니다. 병합 시 "나중에 서버가 할 일"로 설계된 동작은 모두 이 저장소의 서버 권위 동작(CS_ 패킷 → 서버 검증/계산 → SC_ 패킷 반영)으로 바꿉니다.
 
 - 스킬/공격 시전(`RequestAttack`/`RequestCastSkill`) → CS_ 패킷. 사거리/쿨다운은 서버가 재검증합니다.
-- Test의 "클라이언트가 AnimNotify 시점에 판정하고 맞은 대상을 보고"하는 방식은 채택하지 않습니다. 클라이언트는 AnimNotify로 시전·연출 타이밍만 맡고, 대상 산출·데미지·사망은 서버(`CombatProcessor`, `Room::CharacterAttack`)가 결정합니다.
+- Test의 "클라이언트가 AnimNotify 시점에 판정하고 맞은 대상을 보고"하는 방식은 채택하지 않습니다. 클라이언트는 AnimNotify로 시전·연출 타이밍만 맡고, 대상 산출·데미지·사망은 서버(`CombatProcessor`, `Room::CastSkill`)가 결정합니다.
 - 스폰/데미지/사망(`OnSpawnMonster`/`OnDamage`/`OnMonsterDead`) → 기존 SC_ 패킷과 `FPacketHandler`.
 - 아이템 드랍/줍기/장착(`RequestPickupItem`/`RequestEquip`/`OnDropItem`/`OnEquipChanged`) → 신규 CS_/SC_ 패킷이 필요하며, 서버에 아이템 테이블이 아직 없으므로 별도 작업으로 다룹니다.
 - 몬스터 AI/드랍 계산은 서버 책임이며 클라이언트에 만들지 않습니다.

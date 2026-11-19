@@ -24,6 +24,16 @@
 #include "Game/JMObjectManager.h"
 #include "Game/JMTradeManager.h"
 #include "Game/JMShopManager.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "TimerManager.h"
+
+namespace
+{
+	// 응답(SC_ATTACK·SC_ATTACK_RESULT)이 이 시간 안에 오지 않으면 대기를 풀어 다음 시전을 보낼 수 있게 한다(되돌리지는 않음).
+	constexpr double PendingCastTimeoutSec = 2.0;
+}
 
 AJMMyPlayer::AJMMyPlayer()
 {
@@ -169,6 +179,14 @@ void AJMMyPlayer::Tick(float DeltaTime)
 		bMoveSendPending = false;
 		bWasMoving = false;
 		return;
+	}
+
+	// 개발용 자동 공격: 시전할 수 있게 되는 첫 프레임에 누른 것처럼 시전한다(근소한 거부 측정, D-213).
+	if (DevAutoRemain > 0)
+	{
+		const uint32 Before = AttackSeq;
+		CastSkillSlot(DevAutoSlot);
+		if (AttackSeq != Before) --DevAutoRemain;
 	}
 
 	UNetworkManager* NetManager = UNetworkManager::Get(this);
@@ -410,50 +428,230 @@ void AJMMyPlayer::DrawAimIndicator(const FSkillTableRow& Skill, const FAimResult
 	}
 }
 
+UCombatHudWidget* AJMMyPlayer::GetCombatHud() const
+{
+	UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr;
+	return UIManager ? Cast<UCombatHudWidget>(UIManager->GetWidget(WidgetNames::HUD)) : nullptr;
+}
+
+bool AJMMyPlayer::CanCastLocally(int32 SkillId)
+{
+	if (bIsDead || GetWorld() == nullptr) return false;
+	const double Now = GetWorld()->GetTimeSeconds();
+	if (Now < LocalActionUntil) return false;   // 앞 동작이 끝나지 않았다(서버가 ACTING으로 거부한다)
+	if (const double* CooldownEnd = SkillCooldownEnd.Find(SkillId); CooldownEnd && FPlatformTime::Seconds() < *CooldownEnd) return false;
+	if (PendingCast.bActive)
+	{
+		if (Now - PendingCast.StartTime < PendingCastTimeoutSec) return false;
+		UE_LOG(LogTemp, Warning, TEXT("[Cast] 응답 없음 seq=%u skill=%d — 대기 해제"), PendingCast.Seq, PendingCast.SkillId);
+		PendingCast.bActive = false;
+		++StatCastTimeout;
+	}
+	return true;
+}
+
 void AJMMyPlayer::CastSkillSlot(int32 Slot)
 {
 	const FSkillTableRow* Skill = FindMySkill(Slot);
-	if (Skill == nullptr)
+	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const int32 SkillId = DataManager ? DataManager->FindSkillIdBySlot(GetWeaponType(), Slot) : 0;
+	if (Skill == nullptr || SkillId == 0)
 	{
 		EndLocalAim(true);
 		return;
 	}
 
+	// 로컬 사전 검사(CP1, D-213): 서버가 거부할 것이 분명한 요청은 보내지 않는다. 조준 중이면 조준을 유지한다.
+	if (!CanCastLocally(SkillId)) return;
+
 	FAimResult Aim;
 	if (!ComputeAim(*Skill, Aim)) return;   // 대상 없음: 조준 중이면 조준을 유지한다.
 
-	if (UNetworkManager* NetManager = UNetworkManager::Get(this))
-	{
-		NetManager->SendAttack(Slot, Aim.TargetId, Aim.Yaw, Aim.Point.X, Aim.Point.Y);
-	}
+	UNetworkManager* NetManager = UNetworkManager::Get(this);
+	if (NetManager == nullptr) return;
 
-	// 반응성을 위해 시전 방향으로 바로 돌린다. 실제 판정 방향은 서버가 확정한다.
+	const double Now = GetWorld()->GetTimeSeconds();
+	const double* PrevCooldown = SkillCooldownEnd.Find(SkillId);
+
+	PendingCast = FPendingCast();
+	PendingCast.bActive = true;
+	PendingCast.Seq = ++AttackSeq;
+	PendingCast.SkillId = SkillId;
+	PendingCast.Slot = Slot;
+	PendingCast.StartTime = Now;
+	PendingCast.PrevCooldownEnd = PrevCooldown ? *PrevCooldown : 0.0;
+	PendingCast.PrevLocalActionUntil = LocalActionUntil;
+	PendingCast.PrevMoveLockUntil = MoveLockUntil;
+	++StatCastSent;
+
+	NetManager->SendAttack(Slot, Aim.TargetId, Aim.Yaw, Aim.Point.X, Aim.Point.Y, PendingCast.Seq);
+
+	// 여기부터 서버 답을 기다리지 않고 바로 시작한다(CP1, D-212). 서버가 거부하면 RollbackCast가 되돌린다.
+	// 실제 판정 방향·피해는 서버가 확정한다.
 	SetActorRotation(FRotator(0.f, Aim.Yaw, 0.f));
 	LockFacingForSkill(*Skill);
 
-	// 이동 잠금 + 범위 표시(D-199). 앞선 동작이 끝나기 전에 누른 공격은 서버가 받지 않으므로 다시 걸지 않는다.
-	const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
-	if (Now >= LocalActionUntil)
+	// 이동 잠금 + 범위 표시(D-199). 동작 시간은 서버와 같은 길이(AnimMs ÷ 재생 배율)로 잰다.
+	const float Rate = FMath::Max(GetAttackPlayRate(Skill), 0.01f);
+	LocalActionUntil = Now + Skill->AnimMs / 1000.0 / Rate;
+	const float LockSec = Skill->MoveLockMs / 1000.f / Rate;
+	if (LockSec > 0.f)
 	{
-		const float Rate = FMath::Max(GetAttackPlayRate(Skill), 0.01f);
-		LocalActionUntil = Now + Skill->AnimMs / 1000.0 / Rate * 0.9;   // 서버보다 조금 짧게(지연으로 서버가 먼저 받을 수 있다)
-		const float LockSec = Skill->MoveLockMs / 1000.f / Rate;
-		if (LockSec > 0.f)
-		{
-			MoveLockUntil = Now + LockSec;
-			DesiredInput = FVector2D::Zero();
-			if (UCharacterMovementComponent* MoveComp = GetCharacterMovement()) MoveComp->StopMovementImmediately();
-			// 몸 방향도 같은 시간 동안 고정한다(잠금이 풀리기 전에 이동 방향으로 몸 전체가 돌지 않게).
-			LockFacing(LockSec);
-			// 멈춘 자리를 바로 알린다(서버는 잠금 동안 ServerMoveLockSlackCm까지만 받는다).
-			SyncTransformToInfo();
-			bMoveSendPending = true;
-		}
-		// 판정이 나는 순간까지 판정 범위를 바닥에 그린다(임시 표시 — 조준 표시와 같은 디버그 도형).
-		DrawAimIndicator(*Skill, Aim, FMath::Max(Skill->HitDelayMs / 1000.f / Rate, 0.15f));
+		MoveLockUntil = Now + LockSec;
+		DesiredInput = FVector2D::Zero();
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement()) MoveComp->StopMovementImmediately();
+		// 몸 방향도 같은 시간 동안 고정한다(잠금이 풀리기 전에 이동 방향으로 몸 전체가 돌지 않게).
+		LockFacing(LockSec);
+		// 멈춘 자리를 바로 알린다(서버는 잠금 동안 ServerMoveLockSlackCm까지만 받는다).
+		SyncTransformToInfo();
+		bMoveSendPending = true;
 	}
+	// 판정이 나는 순간까지 판정 범위를 바닥에 그린다(임시 표시 — 조준 표시와 같은 디버그 도형).
+	DrawAimIndicator(*Skill, Aim, FMath::Max(Skill->HitDelayMs / 1000.f / Rate, 0.15f));
+
 	// 서버는 CS_ATTACK을 받으며 조준을 해제한다(성공이든 실패든). 끄기를 따로 보내지 않는다.
 	EndLocalAim(false);
+
+	// 몽타주·무기 꺼내기
+	OnAttack(Skill);
+	if (UAnimInstance* AnimInst = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr)
+		PendingCast.Montage = AnimInst->GetCurrentActiveMontage();
+
+	// 이펙트(장판은 내가 조준한 지점 — 서버도 같은 식으로 사거리 보정을 한다)
+	if (UJMObjectManager* ObjectManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMObjectManager>() : nullptr)
+		ObjectManager->SpawnSkillFx(this, *Skill, Aim.Yaw, Aim.Point.X, Aim.Point.Y, &PendingCast.FxComp, &PendingCast.FxTimer);
+
+	// 쿨타임 표시(길이는 SkillTable 값 = 서버가 적용하는 값)
+	if (Skill->CooldownMs > 0)
+	{
+		if (UCombatHudWidget* Hud = GetCombatHud()) Hud->StartCooldown(Skill->Slot, Skill->CooldownMs);
+		NoteSkillCooldown(SkillId, Skill->CooldownMs);
+	}
+
+	UE_LOG(LogTemp, Verbose, TEXT("[Cast] 시작 seq=%u slot=%d skill=%d"), PendingCast.Seq, Slot, SkillId);
+}
+
+bool AJMMyPlayer::ConfirmCast(uint32 Seq, int32 SkillId, float AimX, float AimY)
+{
+	if (Seq == 0) return false;   // 내가 먼저 시작한 시전이 아니다
+
+	if (!PendingCast.bActive || PendingCast.Seq != Seq)
+		return true;   // 이미 정리된 시전의 늦은 확정: 다시 재생하지 않는다
+
+	if (PendingCast.SkillId != SkillId)
+	{
+		// 서버가 다른 스킬로 확정했다(무기가 서로 달랐던 순간). 먼저 시작한 것을 되돌리고 서버 값으로 재생하게 한다.
+		UE_LOG(LogTemp, Warning, TEXT("[Cast] 확정 스킬 불일치 seq=%u local=%d server=%d"), Seq, PendingCast.SkillId, SkillId);
+		UndoPendingCast();
+		return false;
+	}
+
+	// 서버가 장판 지점을 다르게 보정했으면 이펙트를 그 자리로 옮긴다.
+	if (UParticleSystemComponent* FxComp = PendingCast.FxComp.Get())
+	{
+		const FVector Loc = FxComp->GetComponentLocation();
+		if (FVector2D::DistSquared(FVector2D(Loc), FVector2D(AimX, AimY)) > FMath::Square(10.f))
+			FxComp->SetWorldLocation(FVector(AimX, AimY, Loc.Z));
+	}
+
+	UE_LOG(LogTemp, Verbose, TEXT("[Cast] 확정 seq=%u skill=%d (%.0fms)"), Seq, SkillId, GetWorld() ? (GetWorld()->GetTimeSeconds() - PendingCast.StartTime) * 1000.0 : 0.0);
+	PendingCast.bActive = false;
+	++StatCastConfirmed;
+	return true;
+}
+
+void AJMMyPlayer::UndoPendingCast()
+{
+	if (!PendingCast.bActive) return;
+	PendingCast.bActive = false;
+
+	// 몽타주: 먼저 재생한 그 몽타주만 멈춘다(그 사이 시작된 피격·사망 몽타주는 건드리지 않는다).
+	if (UAnimMontage* Montage = PendingCast.Montage.Get())
+	{
+		if (UAnimInstance* AnimInst = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr)
+			if (AnimInst->Montage_IsPlaying(Montage)) AnimInst->Montage_Stop(0.1f, Montage);
+	}
+
+	// 이펙트
+	if (GetWorld()) GetWorld()->GetTimerManager().ClearTimer(PendingCast.FxTimer);
+	if (UParticleSystemComponent* FxComp = PendingCast.FxComp.Get()) FxComp->DestroyComponent();
+
+	// 쿨타임: 시전 전 값으로
+	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const FSkillTableRow* Skill = DataManager ? DataManager->FindSkillById(PendingCast.SkillId) : nullptr;
+	const double PlatformNow = FPlatformTime::Seconds();
+	if (PendingCast.PrevCooldownEnd > PlatformNow) SkillCooldownEnd.Add(PendingCast.SkillId, PendingCast.PrevCooldownEnd);
+	else SkillCooldownEnd.Remove(PendingCast.SkillId);
+	// HUD 칸은 무기가 그대로일 때만 고친다(무기를 바꿨으면 그 칸은 이미 다른 스킬이다).
+	if (Skill && Skill->CooldownMs > 0 && DataManager->FindSkillIdBySlot(GetWeaponType(), PendingCast.Slot) == PendingCast.SkillId)
+	{
+		const int32 RemainMs = FMath::Max(0, FMath::RoundToInt32((PendingCast.PrevCooldownEnd - PlatformNow) * 1000.0));
+		if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetCooldownRemain(Skill->Slot, RemainMs, Skill->CooldownMs);
+	}
+
+	// 잠금·방향 고정·범위 표시
+	LocalActionUntil = PendingCast.PrevLocalActionUntil;
+	MoveLockUntil = PendingCast.PrevMoveLockUntil;
+	if (GetWorldTimerManager().IsTimerActive(FacingLockTimer))
+	{
+		GetWorldTimerManager().ClearTimer(FacingLockTimer);
+		UnlockFacing();
+	}
+	if (GetWorld()) FlushPersistentDebugLines(GetWorld());
+}
+
+void AJMMyPlayer::RollbackCast(uint32 Seq, int32 Result, int32 RemainMs)
+{
+	++StatCastRejected;
+	if (Result >= 0 && Result < static_cast<int32>(UE_ARRAY_COUNT(StatCastRejectedBy))) ++StatCastRejectedBy[Result];
+
+	if (!PendingCast.bActive || PendingCast.Seq != Seq)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[Cast] 거부(이미 정리됨) seq=%u result=%d"), Seq, Result);
+		return;
+	}
+
+	const int32 SkillId = PendingCast.SkillId;
+	const int32 Slot = PendingCast.Slot;
+	UE_LOG(LogTemp, Log, TEXT("[Cast] 거부 → 되돌림 seq=%u skill=%d result=%d remain=%dms (%.0fms 뒤)"), Seq, SkillId, Result, RemainMs,
+		GetWorld() ? (GetWorld()->GetTimeSeconds() - PendingCast.StartTime) * 1000.0 : 0.0);
+	UndoPendingCast();
+
+	// 서버 기준 남은 시간에 로컬 시각을 맞춘다(그 전에는 다시 보내지 않게).
+	if (RemainMs <= 0) return;
+	if (Result == Protocol::ATTACK_RESULT_ACTING)
+	{
+		if (GetWorld()) LocalActionUntil = FMath::Max(LocalActionUntil, GetWorld()->GetTimeSeconds() + RemainMs / 1000.0);
+	}
+	else if (Result == Protocol::ATTACK_RESULT_COOLDOWN)
+	{
+		SkillCooldownEnd.Add(SkillId, FPlatformTime::Seconds() + RemainMs / 1000.0);
+		UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+		const FSkillTableRow* Skill = DataManager ? DataManager->FindSkillById(SkillId) : nullptr;
+		if (Skill && DataManager->FindSkillIdBySlot(GetWeaponType(), Slot) == SkillId)
+			if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetCooldownRemain(Skill->Slot, RemainMs, Skill->CooldownMs);
+	}
+}
+
+void AJMMyPlayer::DevAutoAttack(int32 Count, int32 Slot)
+{
+	DevAutoRemain = FMath::Max(Count, 0);
+	DevAutoSlot = Slot;
+}
+
+FString AJMMyPlayer::DevAttackStats(bool bReset)
+{
+	FString By;
+	for (int32 Index = 0; Index < static_cast<int32>(UE_ARRAY_COUNT(StatCastRejectedBy)); ++Index)
+		if (StatCastRejectedBy[Index] > 0) By += FString::Printf(TEXT(" %d=%d"), Index, StatCastRejectedBy[Index]);
+	const FString Out = FString::Printf(TEXT("[AttackStats] sent=%d confirmed=%d rejected=%d timeout=%d autoRemain=%d byResult:%s"),
+		StatCastSent, StatCastConfirmed, StatCastRejected, StatCastTimeout, DevAutoRemain, By.IsEmpty() ? TEXT(" none") : *By);
+	if (bReset)
+	{
+		StatCastSent = StatCastConfirmed = StatCastRejected = StatCastTimeout = 0;
+		for (int32& Value : StatCastRejectedBy) Value = 0;
+	}
+	return Out;
 }
 
 void AJMMyPlayer::OnAttackInput()
@@ -656,6 +854,9 @@ void AJMMyPlayer::BeginLocalAim(int32 Slot)
 	const int32 SkillId = DataManager ? DataManager->FindSkillIdBySlot(GetWeaponType(), Slot) : 0;
 	if (Skill == nullptr || SkillId == 0) return;
 
+	const double Now = FPlatformTime::Seconds();
+	if (const double* CooldownEnd = SkillCooldownEnd.Find(SkillId); CooldownEnd && Now < *CooldownEnd) return;
+
 	// 조준 단계가 없는 스킬(AimMaxMs 0)은 바로 시전한다.
 	if (Skill->AimMaxMs <= 0)
 	{
@@ -664,8 +865,6 @@ void AJMMyPlayer::BeginLocalAim(int32 Slot)
 		return;
 	}
 
-	const double Now = FPlatformTime::Seconds();
-	if (const double* CooldownEnd = SkillCooldownEnd.Find(SkillId); CooldownEnd && Now < *CooldownEnd) return;
 	if (Now - LastAimOnTime < AimMinInterval) return;   // 서버가 거부할 빈도
 
 	if (bAiming) EndLocalAim(true);   // 다른 슬롯으로 바꿔 조준

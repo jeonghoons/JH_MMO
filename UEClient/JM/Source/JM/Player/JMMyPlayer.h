@@ -56,6 +56,16 @@ public:
 	// 서버가 적용한 스킬 쿨타임(SC_ATTACK.cooldown_ms)을 기록한다. 쿨타임 중에는 조준에 들어가지 않는다.
 	void NoteSkillCooldown(int32 SkillId, int32 CooldownMs);
 	virtual void OnDead() override;
+
+	// 선반영(CP1, D-211·D-212): 내 스킬·공격은 CastSkillSlot이 입력 즉시 몽타주·이펙트·쿨타임을 시작하고 요청 순번을 붙여 보낸다.
+	// ConfirmCast = 내 SC_ATTACK. true면 먼저 시작한 시전이므로 다시 재생하지 않는다. false = 순번 0이거나 서버가 다른 스킬로 확정(먼저 시작한 것은 되돌림).
+	bool ConfirmCast(uint32 Seq, int32 SkillId, float AimX, float AimY);
+	// RollbackCast = SC_ATTACK_RESULT(거부). 순번이 응답을 기다리는 시전과 같을 때만 몽타주·이펙트·쿨타임·잠금을 되돌린다.
+	// Result = Protocol::AttackResult, RemainMs = ACTING·COOLDOWN일 때 서버 기준 남은 시간(로컬 시각을 거기에 맞춘다).
+	void RollbackCast(uint32 Seq, int32 Result, int32 RemainMs);
+	// 개발용(콘솔 AutoAttack·AttackStats): 시전할 수 있게 되는 첫 프레임마다 Slot을 Count번 시전한다 / 보낸·확정·거부 수를 글로 돌려준다.
+	void DevAutoAttack(int32 Count, int32 Slot);
+	FString DevAttackStats(bool bReset);
 	// 내 부활(SC_REVIVE): 서버 위치로 옮기고 이후 이동에 실을 보정 순번을 받는다.
 	void OnMyRevive(const Protocol::PositionInfo& Pos, int32 Hp, uint32 Seq);
 	// 내 순간이동(SC_TELEPORT, L5 포털): 서버 위치로 옮기고 이후 이동에 실을 보정 순번을 받는다.
@@ -172,6 +182,35 @@ private:
 	double MoveLockUntil = 0.0;
 	double LocalActionUntil = 0.0;
 	bool IsMoveLocked() const;
+
+	// 응답을 기다리는 내 시전(CP1). 한 번에 하나: 응답 전에는 다음 시전을 보내지 않는다(PendingCastTimeoutSec이 지나면 풀림).
+	struct FPendingCast
+	{
+		bool bActive = false;
+		uint32 Seq = 0;
+		int32 SkillId = 0;
+		int32 Slot = 0;
+		double StartTime = 0.0;            // 월드 초
+		double PrevCooldownEnd = 0.0;      // 시전 전의 SkillCooldownEnd 값(없었으면 0)
+		double PrevLocalActionUntil = 0.0;
+		double PrevMoveLockUntil = 0.0;
+		TWeakObjectPtr<class UAnimMontage> Montage;                  // 먼저 재생한 몽타주
+		TWeakObjectPtr<class UParticleSystemComponent> FxComp;       // 먼저 만든 장판 이펙트
+		FTimerHandle FxTimer;                                        // 장판 끄기 또는 타격 시점 이펙트 대기
+	};
+	FPendingCast PendingCast;
+	uint32 AttackSeq = 0;              // CS_ATTACK을 보낼 때마다 +1
+	// 지금 로컬 기준으로 시전을 보낼 수 있는가: 생존·앞 동작 끝·쿨타임·응답 대기 없음. 서버만 아는 것(피격 경직·무기 교체 잠금)은 거부로 온다.
+	bool CanCastLocally(int32 SkillId);
+	// 먼저 시작한 것을 되돌린다(몽타주·이펙트·쿨타임 표시·이동 잠금·방향 고정·범위 표시).
+	void UndoPendingCast();
+	class UCombatHudWidget* GetCombatHud() const;
+
+	// 개발용 통계·자동 공격
+	int32 DevAutoRemain = 0;
+	int32 DevAutoSlot = 0;
+	int32 StatCastSent = 0, StatCastConfirmed = 0, StatCastRejected = 0, StatCastTimeout = 0;
+	int32 StatCastRejectedBy[16] = {};
 
 	TArray<FQuickSlot> QuickSlots;
 };

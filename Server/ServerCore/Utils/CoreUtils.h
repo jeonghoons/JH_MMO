@@ -38,6 +38,14 @@ struct Cooldown
 		return elapsed >= durationMs;
 	}
 
+	// 끝날 때까지 남은 시간(ms). 끝났으면 0
+	long long RemainMs() const
+	{
+		auto now = std::chrono::steady_clock::now();
+		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTick).count();
+		return elapsed >= durationMs ? 0 : durationMs - elapsed;
+	}
+
 	void Reset(long long newDurationMs)
 	{
 		lastTick = std::chrono::steady_clock::now();

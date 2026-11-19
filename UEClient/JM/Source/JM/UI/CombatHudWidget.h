@@ -28,6 +28,8 @@ public:
 
 	// 서버가 확정한 시전(SC_ATTACK)의 쿨타임을 그 스킬이 든 칸에 표시한다. SkillSlot = SkillTable의 Slot.
 	void StartCooldown(int32 SkillSlot, int32 CooldownMs);
+	// 그 스킬 칸의 쿨타임 표시를 남은 시간으로 다시 맞춘다(0 이하면 지움). 서버가 시전을 거부했을 때 쓴다 (CP1)
+	void SetCooldownRemain(int32 SkillSlot, int32 RemainMs, int32 TotalMs);
 	// 서버가 확정한 아이템 사용(SC_USE_ITEM)의 재사용 시간을 그 종류가 든 칸에 표시한다 (A3.6)
 	void StartItemCooldown(int32 ItemId, int32 CooldownMs);
 

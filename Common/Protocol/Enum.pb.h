@@ -102,12 +102,13 @@ enum PacketId : int {
   SC_SHOP_OPEN = 2029,
   SC_TELEPORT = 2030,
   SC_PORTAL_LIST = 2031,
+  SC_ATTACK_RESULT = 2032,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_PORTAL_LIST;
+constexpr PacketId PacketId_MAX = SC_ATTACK_RESULT;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();
@@ -276,6 +277,40 @@ inline bool EquipResult_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, EquipResult* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<EquipResult>(
     EquipResult_descriptor(), name, value);
+}
+enum AttackResult : int {
+  ATTACK_RESULT_NONE = 0,
+  ATTACK_RESULT_DEAD = 1,
+  ATTACK_RESULT_HIT_STUN = 2,
+  ATTACK_RESULT_ACTING = 3,
+  ATTACK_RESULT_COOLDOWN = 4,
+  ATTACK_RESULT_NO_SKILL = 5,
+  ATTACK_RESULT_SWAP_PENDING = 6,
+  ATTACK_RESULT_NO_TARGET = 7,
+  ATTACK_RESULT_TARGET_DEAD = 8,
+  ATTACK_RESULT_TOO_FAR = 9,
+  ATTACK_RESULT_BAD_REQUEST = 10,
+  AttackResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  AttackResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool AttackResult_IsValid(int value);
+constexpr AttackResult AttackResult_MIN = ATTACK_RESULT_NONE;
+constexpr AttackResult AttackResult_MAX = ATTACK_RESULT_BAD_REQUEST;
+constexpr int AttackResult_ARRAYSIZE = AttackResult_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AttackResult_descriptor();
+template<typename T>
+inline const std::string& AttackResult_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, AttackResult>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function AttackResult_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    AttackResult_descriptor(), enum_t_value);
+}
+inline bool AttackResult_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, AttackResult* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AttackResult>(
+    AttackResult_descriptor(), name, value);
 }
 enum ItemResult : int {
   ITEM_RESULT_NONE = 0,
@@ -494,6 +529,11 @@ template <> struct is_proto_enum< ::Protocol::EquipResult> : ::std::true_type {}
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::EquipResult>() {
   return ::Protocol::EquipResult_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::AttackResult> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::AttackResult>() {
+  return ::Protocol::AttackResult_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::ItemResult> : ::std::true_type {};
 template <>

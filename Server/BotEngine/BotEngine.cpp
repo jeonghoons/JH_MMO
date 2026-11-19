@@ -114,6 +114,7 @@ struct Bot
 	bool aiming = false;
 	bool aimBowSent = false;    // 시작할 때 활(6102)을 한 번 장착했는지
 	uint32_t aimSeq = 0;
+	uint32_t attackSeq = 0;   // CS_ATTACK.seq (CP1)
 	int moveFailures = 0;   // 서버가 내 이동을 거부(보정)한 횟수. hunt 봇이 막혔는지 판단한다
 	int spawnTarget = -1;   // hunt 봇이 찾아가는 몬스터 스폰(GMonsterSpawns 인덱스). 처음엔 가장 가까운 곳
 	int blockedCount = 0;   // 지금 목표로 가다가 막힌 횟수. 많이 막히면 다른 스폰으로 바꾼다
@@ -501,6 +502,24 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 	case Protocol::SC_DAMAGE:
 		GStat.damageRecv.fetch_add(1);
 		break;
+	case Protocol::SC_ATTACK:
+	{
+		// 내 시전이 받아들여졌는지만 센다(사냥 프로필일 때만 파싱 — 이동 측정의 봇 비용을 늘리지 않게).
+		if (!GConfig.hunt) break;
+		Protocol::SC_ATTACK_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		if (pkt.attacker_id() == b.objectId && pkt.seq() != 0) GStat.attackOk.fetch_add(1);
+		break;
+	}
+	case Protocol::SC_ATTACK_RESULT:
+	{
+		GStat.attackRejected.fetch_add(1);
+		Protocol::SC_ATTACK_RESULT_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		const int code = static_cast<int>(pkt.result());
+		if (code >= 0 && code < 16) GStat.attackRejectedBy[code].fetch_add(1);
+		break;
+	}
 	case Protocol::SC_CHANGE_EQUIP:
 	{
 		Protocol::SC_CHANGE_EQUIP_PACKET pkt;
@@ -835,7 +854,11 @@ static void WorkerMain(int workerIndex, int workerCount)
 						}
 					}
 					if (!skipAttack)
+					{
+						atk.set_seq(++b.attackSeq);
+						GStat.attackSent.fetch_add(1);
 						SendPacket(b, Protocol::CS_ATTACK, atk);
+					}
 				}
 				// --aim: 처음 한 번 활을 장착한다(조준할 수 있는 스킬 3002). 장착은 내 인벤토리의 item_db_id로 요청하므로(A3.3)
 				// 활(6102)이 없으면 개발 지급 명령으로 먼저 받는다(서버 [Debug] DevCommands=true 필요).

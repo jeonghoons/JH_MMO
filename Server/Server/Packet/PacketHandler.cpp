@@ -494,5 +494,5 @@ void PacketHandler::Handle_CS_ATTACK(shared_ptr<GameSession> session, Protocol::
     if (slot < 0 || slot > 5) return;
     if (!std::isfinite(pkt.aim_yaw()) || !std::isfinite(pkt.aim_x()) || !std::isfinite(pkt.aim_y())) return;
 
-    room->PushJob(&Room::CastSkill, static_pointer_cast<Character>(player), slot, pkt.target_id(), pkt.aim_yaw(), pkt.aim_x(), pkt.aim_y());
+    room->PushJob(&Room::CastSkill, static_pointer_cast<Character>(player), slot, pkt.target_id(), pkt.aim_yaw(), pkt.aim_x(), pkt.aim_y(), static_cast<uint32_t>(pkt.seq()));
 }

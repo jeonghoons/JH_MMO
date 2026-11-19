@@ -49,6 +49,9 @@ struct BotCounters
 	std::atomic<long long> monsterDead{ 0 }, monsterRemoved{ 0 }, monsterAdded{ 0 }, damageRecv{ 0 }, objectAdded{ 0 };
 	std::atomic<long long> aimSent{ 0 }, aimRecv{ 0 }, aimOwnOff{ 0 };   // CS_SKILL_AIM / 받은 SC_SKILL_AIM / 내 조준의 거부·시간 초과
 	std::atomic<long long> equipSent{ 0 }, equipOk{ 0 }, equipRejected{ 0 };   // 장착 요청 / 내 SC_CHANGE_EQUIP / SC_CHANGE_EQUIP_RESULT
+	// 공격(CP1): CS_ATTACK 송신 / 내 SC_ATTACK(순번 일치) / SC_ATTACK_RESULT(거부), AttackResult 값별
+	std::atomic<long long> attackSent{ 0 }, attackOk{ 0 }, attackRejected{ 0 };
+	std::atomic<long long> attackRejectedBy[16]{};
 	std::atomic<long long> equipRejectedBy[16]{};                              // SC_CHANGE_EQUIP_RESULT를 EquipResult 값별로
 	// 인벤토리(A3.3): 받은 SC_INVENTORY / SC_INVENTORY_UPDATE, 지급 요청 / SC_ITEM_RESULT(거부) / ItemResult 값별
 	std::atomic<long long> inventoryRecv{ 0 }, inventoryUpdateRecv{ 0 }, giveSent{ 0 }, itemRejected{ 0 }, slotMoveSent{ 0 };

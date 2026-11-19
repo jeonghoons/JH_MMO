@@ -140,6 +140,14 @@ int main(int argc, char** argv)
 	if (GConfig.hunt)
 		printf("[summary] hunt: monsterAdded=%lld monsterDead(SC_DEAD)=%lld monsterRemoved(SC_REMOVE_OBJECT)=%lld damagePackets=%lld\n",
 			GStat.monsterAdded.load(), GStat.monsterDead.load(), GStat.monsterRemoved.load(), GStat.damageRecv.load());
+	if (GStat.attackSent.load() > 0)
+	{
+		printf("[summary] attack: sent=%lld ok(own SC_ATTACK)=%lld rejected(SC_ATTACK_RESULT)=%lld by AttackResult:",
+			GStat.attackSent.load(), GStat.attackOk.load(), GStat.attackRejected.load());
+		for (int i = 0; i < 16; ++i)
+			if (GStat.attackRejectedBy[i].load() > 0) printf(" %d=%lld", i, GStat.attackRejectedBy[i].load());
+		printf("\n");
+	}
 	if (GStat.selfDead.load() > 0 || GStat.reviveSent.load() > 0)
 		printf("[summary] revive: selfDead(own SC_DEAD)=%lld reviveSent(CS_REVIVE)=%lld selfRevived(own SC_REVIVE)=%lld\n",
 			GStat.selfDead.load(), GStat.reviveSent.load(), GStat.selfRevived.load());

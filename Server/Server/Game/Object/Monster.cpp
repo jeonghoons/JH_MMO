@@ -338,7 +338,7 @@ void Monster::UpdateAttack()
 
 
 		if (shared_ptr<Room> room = GetCurrentRoom()) {
-			room->CastSkill(static_pointer_cast<Character>(shared_from_this()), 0, target->GetId(), _objectInfo.position().yaw(), 0.f, 0.f);
+			room->CastSkill(static_pointer_cast<Character>(shared_from_this()), 0, target->GetId(), _objectInfo.position().yaw(), 0.f, 0.f, 0u);
 		}
 
 	}

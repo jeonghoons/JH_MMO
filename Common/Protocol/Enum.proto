@@ -63,6 +63,7 @@ enum PacketId {
     SC_SHOP_OPEN = 2029;             // 상점 품목·구매가 (본인, L4)
     SC_TELEPORT = 2030;              // 서버가 정한 자리로 순간이동 (AOI, 본인 포함): 포털 이동 (L5, D-203)
     SC_PORTAL_LIST = 2031;           // 방 입장 직후 본인에게: 쓸 수 있는 포털의 위치·반경 (L5)
+    SC_ATTACK_RESULT = 2032;         // 스킬·공격 거부 결과 (본인에게만, 거부일 때만. 요청 seq 포함 — CP1, D-211)
 }
 
 enum MoveState {
@@ -122,6 +123,22 @@ enum EquipResult {
     EQUIP_RESULT_IN_TRADE = 13;       // 거래에 올린 아이템 (A4)
     EQUIP_RESULT_DB_ERROR = 14;       // DB 실패 — 바뀐 것 없음
     EQUIP_RESULT_NOT_ALLOWED = 15;    // 더미 봇 (D-161)
+}
+
+// SC_ATTACK_RESULT_PACKET.result. 성공은 SC_ATTACK 방송으로 알리므로 이 패킷은 거부일 때만 보낸다. (CP1, D-211)
+// 클라이언트는 내 시전을 입력 즉시 시작하고, 이 패킷의 seq가 그 시전과 같으면 되돌린다.
+enum AttackResult {
+    ATTACK_RESULT_NONE = 0;
+    ATTACK_RESULT_DEAD = 1;          // 사망 중
+    ATTACK_RESULT_HIT_STUN = 2;      // 피격 경직 중
+    ATTACK_RESULT_ACTING = 3;        // 앞 동작(또는 무기 교체 잠금)이 끝나지 않음 — remain_ms = 남은 시간
+    ATTACK_RESULT_COOLDOWN = 4;      // 스킬 쿨타임 — remain_ms = 남은 시간
+    ATTACK_RESULT_NO_SKILL = 5;      // 지금 무기에 그 칸의 스킬이 없음
+    ATTACK_RESULT_SWAP_PENDING = 6;  // 무기 교체가 처리 중
+    ATTACK_RESULT_NO_TARGET = 7;     // 대상이 없거나 공격할 수 없는 대상
+    ATTACK_RESULT_TARGET_DEAD = 8;
+    ATTACK_RESULT_TOO_FAR = 9;       // 대상이 사거리 밖
+    ATTACK_RESULT_BAD_REQUEST = 10;  // 값이 올바르지 않음
 }
 
 // SC_ITEM_RESULT_PACKET.result. 성공은 SC_INVENTORY_UPDATE로 알리므로 거부일 때만 보낸다. (DESIGN_ITEMS_TRADE "패킷")

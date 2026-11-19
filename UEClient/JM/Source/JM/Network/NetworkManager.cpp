@@ -29,6 +29,7 @@ void UNetworkManager::Tick(float DeltaTime)
 		return;
 
 	Session->HandleRecvPackets();
+	Session->FlushDelayedSends();
 
 	// 워커가 연결 끊김을 알렸으면 받아 둔 패킷을 처리한 뒤 세션을 정리한다.
 	if (Session->IsConnectionLost() && Packet_Session == Session)
@@ -164,7 +165,7 @@ void UNetworkManager::SendMove(const Protocol::PositionInfo& PosInfo, bool bForc
 	SendProtocol(*this, pkt, Protocol::CS_MOVE);
 }
 
-void UNetworkManager::SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY)
+void UNetworkManager::SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, float AimX, float AimY, uint32 Seq)
 {
 	Protocol::CS_ATTACK_PACKET pkt;
 	pkt.set_skill_slot(SkillSlot);
@@ -172,6 +173,7 @@ void UNetworkManager::SendAttack(int32 SkillSlot, int32 TargetId, float AimYaw, 
 	pkt.set_aim_yaw(AimYaw);
 	pkt.set_aim_x(AimX);
 	pkt.set_aim_y(AimY);
+	pkt.set_seq(Seq);
 	SendProtocol(*this, pkt, Protocol::CS_ATTACK);
 }
 

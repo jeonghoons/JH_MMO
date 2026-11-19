@@ -199,7 +199,7 @@ namespace
 				"itemOp(total sent/fail/busy inflight)={}/{}/{} {} itemOpMs(n exec avg/p99/max total avg/p99/max)={} {:.1f}/{:.1f}/{:.1f} {:.1f}/{:.1f}/{:.1f} "
 				"equipApplyMs(n avg/p50/p99/max)={} {:.1f}/{:.1f}/{:.1f}/{:.1f} "
 				"progressSave(total sent/coalesced/fail inflight)={}/{}/{} {} progressSaveMs(n exec avg/p99/max total avg/p99/max)={} {:.1f}/{:.1f}/{:.1f} {:.1f}/{:.1f}/{:.1f} "
-				"aim(total on/reject/off/castClear/timeout)={}/{}/{}/{}/{} "
+				"aim(total on/reject/off/castClear/timeout)={}/{}/{}/{}/{} atkReject(total sent/earlyOk)={}/{} "
 				"revive(total deaths/ok/reject/deadMove)={}/{}/{}/{} portal(total ok/reject)={}/{} "
 				"login(total kick/busy/forced)={}/{}/{} "
 				"drops(now kills/created/expired/evicted)={} {}/{}/{}/{} pickup(picked/discarded)={}/{} trades={} "
@@ -222,7 +222,7 @@ namespace
 				Metrics::ProgressSaveSent.load(), Metrics::ProgressSaveCoalesced.load(), Metrics::ProgressSaveFailed.load(),
 				Metrics::ProgressSaveInFlight.load(), pgExec.count,
 				pgExec.avg / 1000.0, pgExec.p99 / 1000.0, pgExec.max / 1000.0, pgTotal.avg / 1000.0, pgTotal.p99 / 1000.0, pgTotal.max / 1000.0,
-				Metrics::AimOn.load(), Metrics::AimReject.load(), Metrics::AimOff.load(), Metrics::AimCastClear.load(), Metrics::AimTimeout.load(),
+				Metrics::AimOn.load(), Metrics::AimReject.load(), Metrics::AimOff.load(), Metrics::AimCastClear.load(), Metrics::AimTimeout.load(), Metrics::AttackRejected.load(), Metrics::AttackEarlyAccepted.load(),
 				Metrics::PlayerDeaths.load(), Metrics::Revives.load(), Metrics::ReviveReject.load(), Metrics::MoveDroppedDead.load(), Metrics::PortalUsed.load(), Metrics::PortalReject.load(),
 				Metrics::LoginKicks.load(), Metrics::LoginBusy.load(), Metrics::LoginCloseForced.load(),
 				Metrics::Drops.load(), Metrics::MonsterKills.load(), Metrics::DropsCreated.load(), Metrics::DropsExpired.load(), Metrics::DropsEvicted.load(),

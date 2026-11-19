@@ -12,7 +12,10 @@ public:
 	// correctionSeq: 내 캐릭터 보정일 때 서버의 보정 순번(그 외에는 0)
 	static shared_ptr<SendBuffer> MAKE_SC_MOVE_OBJECT(shared_ptr<GameObject> object, uint32_t correctionSeq = 0);
 
-	static shared_ptr<SendBuffer> MAKE_SC_ATTACK(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY, int cooldownMs);
+	// seq: 시전자가 보낸 요청 순번(몬스터는 0). 한 버퍼로 AOI 전원에게 가고 시전자 본인만 쓴다 (CP1)
+	static shared_ptr<SendBuffer> MAKE_SC_ATTACK(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY, int cooldownMs, uint32_t seq);
+	// 스킬·공격 거부(본인에게만). remainMs는 ACTING·COOLDOWN일 때 남은 시간
+	static shared_ptr<SendBuffer> MAKE_SC_ATTACK_RESULT(Protocol::AttackResult result, uint32_t seq, int skillSlot, int remainMs);
 	
 	static shared_ptr<SendBuffer> MAKE_SC_DAMAGE(int attackerId, int targetId, int damage, int remainHp);
 

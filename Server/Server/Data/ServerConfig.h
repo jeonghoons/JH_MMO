@@ -19,6 +19,9 @@ struct ServerConfig
 	// Windows 타이머 해상도(ms, timeBeginPeriod). 0이면 건드리지 않는다(시스템 기본 약 15.6ms — 예약 작업이 그만큼 늦게 깰 수 있다)
 	int timerResolutionMs = 1;
 	std::string timerResolutionMsFrom = "default";
+	// 공격 허용 오차(CP1, D-213): 앞 동작·스킬 쿨타임이 이 시간(ms) 이하로 남았을 때 온 공격 요청을 받는다. 0이면 끔(정확히 판정)
+	int attackEarlyToleranceMs = 100;
+	std::string attackEarlyToleranceMsFrom = "default";
 	// 중복 접속 차단(A2.7, D-158)
 	int loginWaitTimeoutSec = 10;   // 같은 캐릭터의 이전 접속 정리(퇴장·마지막 저장)를 기다리는 시간. 넘으면 LOGIN_RESULT_BUSY
 	int loginCloseForceSec = 30;    // 정리가 끝났다는 신호가 이 시간 안에 오지 않으면 오류 로그를 남기고 접속 목록에서 강제로 뺀다

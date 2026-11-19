@@ -57,6 +57,13 @@ public:
     UFUNCTION(Exec)
     void NetMoveStats(int32 Reset = 1);
 
+    // Dev console commands (CP1): "AutoAttack <count> [slot]" casts the slot on the first frame it becomes castable, count times
+    // (measures near-miss rejects under jm.NetLagMs / jm.NetLagJitterMs). "AttackStats [reset 0/1]" logs sent/confirmed/rejected counts.
+    UFUNCTION(Exec)
+    void AutoAttack(int32 Count = 30, int32 Slot = 0);
+    UFUNCTION(Exec)
+    void AttackStats(int32 Reset = 1);
+
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<class UUserWidget> ChatWidgetClass;

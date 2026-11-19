@@ -82,6 +82,19 @@ void USkillSlotWidget::StartCooldown(int32 CooldownMs)
 	ShowCooldown(true);
 }
 
+void USkillSlotWidget::SetCooldownRemain(int32 RemainMs, int32 TotalMs)
+{
+	if (RemainMs <= 0)
+	{
+		CooldownDuration = 0.0;
+		ShowCooldown(false);
+		return;
+	}
+	CooldownDuration = FMath::Max(TotalMs, RemainMs) / 1000.0;
+	CooldownEndTime = FPlatformTime::Seconds() + RemainMs / 1000.0;
+	ShowCooldown(true);
+}
+
 void USkillSlotWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);

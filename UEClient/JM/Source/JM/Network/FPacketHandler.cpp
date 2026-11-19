@@ -20,6 +20,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_REMOVE_OBJECT, &FPacketHandler::Handle_SC_REMOVE_OBJECT);
 	RegisterHandler(Protocol::SC_MOVE_OBJECT, &FPacketHandler::Handle_SC_MOVE_OBJECT);
 	RegisterHandler(Protocol::SC_ATTACK, &FPacketHandler::Handle_SC_ATTACK);
+	RegisterHandler(Protocol::SC_ATTACK_RESULT, &FPacketHandler::Handle_SC_ATTACK_RESULT);
 	RegisterHandler(Protocol::SC_DAMAGE, &FPacketHandler::Handle_SC_DAMAGE);
 	RegisterHandler(Protocol::SC_DEAD, &FPacketHandler::Handle_SC_DEAD);
 	RegisterHandler(Protocol::SC_CHAT, &FPacketHandler::Handle_SC_CHAT);
@@ -209,7 +210,14 @@ void FPacketHandler::Handle_SC_MOVE_OBJECT(TSharedPtr<NetworkSession>& session, 
 void FPacketHandler::Handle_SC_ATTACK(TSharedPtr<NetworkSession>& session, Protocol::SC_ATTACK_PACKET& pkt)
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
-		ObjectManager->HandleAttack(pkt.attacker_id(), pkt.skill_id(), pkt.aim_yaw(), pkt.aim_x(), pkt.aim_y(), pkt.cooldown_ms());
+		ObjectManager->HandleAttack(pkt.attacker_id(), pkt.skill_id(), pkt.aim_yaw(), pkt.aim_x(), pkt.aim_y(), pkt.cooldown_ms(), pkt.seq());
+}
+
+void FPacketHandler::Handle_SC_ATTACK_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_ATTACK_RESULT_PACKET& pkt)
+{
+	// 성공은 SC_ATTACK 방송으로 오므로 이 패킷은 거부일 때만 온다(CP1). 입력 때 먼저 시작한 내 시전을 되돌린다.
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleAttackResult(static_cast<int32>(pkt.result()), pkt.seq(), pkt.remain_ms());
 }
 
 void FPacketHandler::Handle_SC_DAMAGE(TSharedPtr<NetworkSession>& session, Protocol::SC_DAMAGE_PACKET& pkt)

@@ -12,26 +12,49 @@ void Character::Update(float deltaTime)
 	MovableObject::Update(deltaTime);
 }
 
-const SkillData* Character::FindCastableSkill(int slot) const
+const SkillData* Character::FindCastableSkill(int slot, CastCheck* check, long long earlyToleranceMs) const
 {
-	if (_statInfo.IsDead()) return nullptr;
+	CastCheck local;
+	CastCheck& out = check ? *check : local;
+	out = CastCheck{};
+	auto deny = [&out](Protocol::AttackResult reason, long long remainMs = 0) -> const SkillData* {
+		out.reason = reason;
+		out.remainMs = remainMs;
+		return nullptr;
+	};
 
-	if (IsHit()) return nullptr;
+	if (_statInfo.IsDead()) return deny(Protocol::ATTACK_RESULT_DEAD);
+
+	if (IsHit()) return deny(Protocol::ATTACK_RESULT_HIT_STUN);
 
 	const SkillData* skill = GetSlotSkill(slot);
-	if (skill == nullptr) return nullptr;
+	if (skill == nullptr) return deny(Protocol::ATTACK_RESULT_NO_SKILL);
 
 	// 이전 시전의 애니메이션이 끝나기 전에는 기본 공격도 스킬도 받지 않는다.
-	if (IsActing()) return nullptr;
+	const long long actionRemain = _actionTimer.RemainMs();
+	if (actionRemain > 0)
+	{
+		if (_actionIsSwapLock || actionRemain > earlyToleranceMs) return deny(Protocol::ATTACK_RESULT_ACTING, actionRemain);
+		out.actionCarryMs = actionRemain;
+	}
 
 	// 클라이언트가 공격 패킷을 연달아 보내도 스킬 쿨타임 안에서는 받아들이지 않는다.
 	auto it = _skillCooldowns.find(skill->skillId);
-	if (it != _skillCooldowns.end() && !it->second.IsReady()) return nullptr;
+	if (it != _skillCooldowns.end())
+	{
+		const long long cooldownRemain = it->second.RemainMs();
+		if (cooldownRemain > earlyToleranceMs)
+		{
+			out.actionCarryMs = 0;
+			return deny(Protocol::ATTACK_RESULT_COOLDOWN, cooldownRemain);
+		}
+		out.cooldownCarryMs = cooldownRemain;
+	}
 
 	return skill;
 }
 
-Character::CastTiming Character::BeginCast(const SkillData& skill)
+Character::CastTiming Character::BeginCast(const SkillData& skill, long long actionCarryMs, long long cooldownCarryMs)
 {
 	// 기본 공격만 AttackSpeed만큼 애니메이션을 빨리 재생한다. (클라이언트도 같은 배율로 몽타주를 재생)
 	float rate = 1.f;
@@ -47,10 +70,10 @@ Character::CastTiming Character::BeginCast(const SkillData& skill)
 	timing.cooldownMs = skill.cooldownMs;
 	timing.moveLockMs = static_cast<long long>(skill.moveLockMs / rate);
 
-	_actionTimer.Reset(timing.actionMs);
+	_actionTimer.Reset(timing.actionMs + actionCarryMs);
 	_actionIsSwapLock = false;
 	if (timing.cooldownMs > 0)
-		_skillCooldowns[skill.skillId].Reset(timing.cooldownMs);
+		_skillCooldowns[skill.skillId].Reset(timing.cooldownMs + cooldownCarryMs);
 	return timing;
 }
 void Character::OnDamaged(int damage, int attackerId, shared_ptr<Character> attacker)

@@ -1,0 +1,3 @@
+1795083557 --bots 250 --ramp-rate 50 --duration 75 --threads 4 --move-interval 200 --body male --profile hunt --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_CP1_after\runs\hunt_250_r1\loadtest.csv
+loadtest exit 0
+run_id 20261119_191913

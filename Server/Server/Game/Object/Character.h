@@ -28,10 +28,21 @@ public:
 
 	// 슬롯의 스킬을 지금 시전할 수 있는지 확인한다(부수 효과 없음).
 	// 죽음/피격 경직/행동 중(이전 시전의 애니메이션)/스킬 쿨타임/해당 슬롯 스킬 없음이면 nullptr.
-	const SkillData* FindCastableSkill(int slot) const;
+	// check를 주면 거부 사유·남은 시간을 채운다(CP1, D-211).
+	// earlyToleranceMs(D-213): 앞 시전의 행동 잠금·스킬 쿨타임이 이 시간 이하로 남았으면 통과시키고, 남아 있던 시간을
+	// check의 carry에 적는다(BeginCast에 넘겨 다음 잠금·쿨타임에 더함 — 공격 주기가 빨라지지 않게). 무기 스왑 잠금·피격 경직에는 적용하지 않는다.
+	struct CastCheck
+	{
+		Protocol::AttackResult reason = Protocol::ATTACK_RESULT_NONE;
+		long long remainMs = 0;          // ACTING·COOLDOWN으로 거부했을 때 남은 시간
+		long long actionCarryMs = 0;     // 허용 오차로 통과했을 때 남아 있던 행동 잠금
+		long long cooldownCarryMs = 0;   // 허용 오차로 통과했을 때 남아 있던 스킬 쿨타임
+	};
+	const SkillData* FindCastableSkill(int slot, CastCheck* check = nullptr, long long earlyToleranceMs = 0) const;
 	// 시전이 확정되면 호출해 행동 잠금과 스킬 쿨타임(CooldownMs > 0)을 시작한다.
 	// 기본 공격(슬롯 0)은 행동 시간과 판정 시점을 AttackSpeed(애니메이션 재생 배율)로 나눈다. 스킬은 원래 속도.
-	CastTiming BeginCast(const SkillData& skill);
+	// carry: 허용 오차로 일찍 받은 시간(FindCastableSkill의 check). 잠금·쿨타임 길이에만 더하고 CastTiming(클라이언트에 알리는 값·판정 시점)은 그대로다.
+	CastTiming BeginCast(const SkillData& skill, long long actionCarryMs = 0, long long cooldownCarryMs = 0);
 	// 스킬 쿨타임이 끝났는가 (쿨타임 기록이 없으면 준비됨)
 	bool IsSkillReady(int skillId) const { auto it = _skillCooldowns.find(skillId); return it == _skillCooldowns.end() || it->second.IsReady(); }
 	bool IsHit() const { return !_hitTimer.IsReady(); }
