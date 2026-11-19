@@ -149,7 +149,7 @@ void PacketHandler::Handle_CS_LOGIN(shared_ptr<GameSession> session, Protocol::C
     }
 
     // 같은 연결로 다시 로그인하면 이전 캐릭터가 방에 남으므로 거부한다. (DB 응답 전에 연달아 온 요청은 AuthLobby::OnLoginSuccess에서 거른다)
-    if (session->_currPlayer != nullptr)
+    if (session->GetPlayer() != nullptr)
     {
         GLobby->PushJob(&AuthLobby::OnLoginFailed, session, Protocol::LOGIN_RESULT_ALREADY_LOGGED_IN);
         return;
@@ -172,7 +172,7 @@ void PacketHandler::Handle_CS_SIGNUP(shared_ptr<GameSession> session, Protocol::
         return;
     }
     // 이미 로그인한 연결에서는 가입하지 않는다.
-    if (session->_currPlayer != nullptr)
+    if (session->GetPlayer() != nullptr)
     {
         GLobby->PushJob(&AuthLobby::OnSignUpResult, session, false);
         return;
@@ -183,7 +183,7 @@ void PacketHandler::Handle_CS_SIGNUP(shared_ptr<GameSession> session, Protocol::
 
 void PacketHandler::Handle_CS_CHAT(shared_ptr<GameSession> session, Protocol::CS_CHAT_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -223,7 +223,7 @@ void PacketHandler::Handle_CS_ENTER_ROOM(shared_ptr<GameSession> session, Protoc
 {
     // 로그인 전(DB 응답 전 포함)이거나 이미 방에 배정된 플레이어의 입장 요청은 무시한다.
     // 방 배정(SetOwnerRoom)은 EnterPlayer 안에서 바로 되므로 연달아 온 두 번째 요청도 여기서 걸러진다.
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr || player->GetCurrentRoom() != nullptr) return;
 
     GRoomManager->EnterPlayer(player);
@@ -231,7 +231,7 @@ void PacketHandler::Handle_CS_ENTER_ROOM(shared_ptr<GameSession> session, Protoc
 
 void PacketHandler::Handle_CS_MOVE(shared_ptr<GameSession> session, Protocol::CS_MOVE_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -242,7 +242,7 @@ void PacketHandler::Handle_CS_MOVE(shared_ptr<GameSession> session, Protocol::CS
 
 void PacketHandler::Handle_CS_PING(shared_ptr<GameSession> session, Protocol::CS_PING_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -254,7 +254,7 @@ void PacketHandler::Handle_CS_PING(shared_ptr<GameSession> session, Protocol::CS
 
 void PacketHandler::Handle_CS_CHANGE_EQUIP(shared_ptr<GameSession> session, Protocol::CS_CHANGE_EQUIP_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -266,7 +266,7 @@ void PacketHandler::Handle_CS_CHANGE_EQUIP(shared_ptr<GameSession> session, Prot
 
 void PacketHandler::Handle_CS_DEV_GIVE(shared_ptr<GameSession> session, Protocol::CS_DEV_GIVE_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -278,7 +278,7 @@ void PacketHandler::Handle_CS_DEV_GIVE(shared_ptr<GameSession> session, Protocol
 
 void PacketHandler::Handle_CS_MOVE_ITEM(shared_ptr<GameSession> session, Protocol::CS_MOVE_ITEM_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -290,7 +290,7 @@ void PacketHandler::Handle_CS_MOVE_ITEM(shared_ptr<GameSession> session, Protoco
 
 void PacketHandler::Handle_CS_PICKUP_ITEM(shared_ptr<GameSession> session, Protocol::CS_PICKUP_ITEM_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -302,7 +302,7 @@ void PacketHandler::Handle_CS_PICKUP_ITEM(shared_ptr<GameSession> session, Proto
 
 void PacketHandler::Handle_CS_DROP_ITEM(shared_ptr<GameSession> session, Protocol::CS_DROP_ITEM_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -315,7 +315,7 @@ void PacketHandler::Handle_CS_DROP_ITEM(shared_ptr<GameSession> session, Protoco
 // 상점 NPC(L4, D-201·D-202). NPC 존재·거리·거래 중·골드·빈 칸 검증과 DB 트랜잭션은 Room 잡에서 한다.
 void PacketHandler::Handle_CS_SHOP_OPEN(shared_ptr<GameSession> session, Protocol::CS_SHOP_OPEN_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -326,7 +326,7 @@ void PacketHandler::Handle_CS_SHOP_OPEN(shared_ptr<GameSession> session, Protoco
 
 void PacketHandler::Handle_CS_SHOP_BUY(shared_ptr<GameSession> session, Protocol::CS_SHOP_BUY_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -337,7 +337,7 @@ void PacketHandler::Handle_CS_SHOP_BUY(shared_ptr<GameSession> session, Protocol
 
 void PacketHandler::Handle_CS_SHOP_SELL(shared_ptr<GameSession> session, Protocol::CS_SHOP_SELL_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -348,7 +348,7 @@ void PacketHandler::Handle_CS_SHOP_SELL(shared_ptr<GameSession> session, Protoco
 
 void PacketHandler::Handle_CS_USE_ITEM(shared_ptr<GameSession> session, Protocol::CS_USE_ITEM_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -360,7 +360,7 @@ void PacketHandler::Handle_CS_USE_ITEM(shared_ptr<GameSession> session, Protocol
 
 void PacketHandler::Handle_CS_SET_QUICKSLOT(shared_ptr<GameSession> session, Protocol::CS_SET_QUICKSLOT_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -371,7 +371,7 @@ void PacketHandler::Handle_CS_SET_QUICKSLOT(shared_ptr<GameSession> session, Pro
 
 void PacketHandler::Handle_CS_TRADE_REQUEST(shared_ptr<GameSession> session, Protocol::CS_TRADE_REQUEST_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -382,7 +382,7 @@ void PacketHandler::Handle_CS_TRADE_REQUEST(shared_ptr<GameSession> session, Pro
 
 void PacketHandler::Handle_CS_TRADE_RESPOND(shared_ptr<GameSession> session, Protocol::CS_TRADE_RESPOND_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -393,7 +393,7 @@ void PacketHandler::Handle_CS_TRADE_RESPOND(shared_ptr<GameSession> session, Pro
 
 void PacketHandler::Handle_CS_TRADE_SET_OFFER(shared_ptr<GameSession> session, Protocol::CS_TRADE_SET_OFFER_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -410,7 +410,7 @@ void PacketHandler::Handle_CS_TRADE_SET_OFFER(shared_ptr<GameSession> session, P
 
 void PacketHandler::Handle_CS_TRADE_LOCK(shared_ptr<GameSession> session, Protocol::CS_TRADE_LOCK_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -421,7 +421,7 @@ void PacketHandler::Handle_CS_TRADE_LOCK(shared_ptr<GameSession> session, Protoc
 
 void PacketHandler::Handle_CS_TRADE_CONFIRM(shared_ptr<GameSession> session, Protocol::CS_TRADE_CONFIRM_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -432,7 +432,7 @@ void PacketHandler::Handle_CS_TRADE_CONFIRM(shared_ptr<GameSession> session, Pro
 
 void PacketHandler::Handle_CS_TRADE_CANCEL(shared_ptr<GameSession> session, Protocol::CS_TRADE_CANCEL_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -443,7 +443,7 @@ void PacketHandler::Handle_CS_TRADE_CANCEL(shared_ptr<GameSession> session, Prot
 
 void PacketHandler::Handle_CS_SKILL_AIM(shared_ptr<GameSession> session, Protocol::CS_SKILL_AIM_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -458,7 +458,7 @@ void PacketHandler::Handle_CS_SKILL_AIM(shared_ptr<GameSession> session, Protoco
 
 void PacketHandler::Handle_CS_REVIVE(shared_ptr<GameSession> session, Protocol::CS_REVIVE_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -470,7 +470,7 @@ void PacketHandler::Handle_CS_REVIVE(shared_ptr<GameSession> session, Protocol::
 
 void PacketHandler::Handle_CS_PORTAL(shared_ptr<GameSession> session, Protocol::CS_PORTAL_PACKET& pkt)
 {
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();
@@ -483,7 +483,7 @@ void PacketHandler::Handle_CS_PORTAL(shared_ptr<GameSession> session, Protocol::
 void PacketHandler::Handle_CS_ATTACK(shared_ptr<GameSession> session, Protocol::CS_ATTACK_PACKET& pkt)
 {
     Metrics::AttackRequests.fetch_add(1);
-    shared_ptr<Player> player = session->_currPlayer;
+    shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
 
     shared_ptr<Room> room = player->GetCurrentRoom();

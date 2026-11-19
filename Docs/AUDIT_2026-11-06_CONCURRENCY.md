@@ -4,6 +4,8 @@
 파일 경로는 `Server/` 기준이며 줄 번호는 현재 작업 트리(`content/dev`) 기준이다.
 > 2026-11-06 Claude Fable 5.1 서브에이전트가 수행. 서버 작업 재개 시 코드가 바뀌었을 수 있으니 줄 번호 대신 함수명으로 찾고, 각 항목을 다시 확인한 뒤 수정한다. 처리 계획은 `ROADMAP.md` P0·P1a·P1b·A5.0, 같은 날 성능 기준선은 [PERF_BASELINE_2026-11-06.md](PERF_BASELINE_2026-11-06.md).
 
+> **처리 현황 (2026-11-19)**: F1·F2 수정(P0, 2026-11-16), F5 수정(P1b — 잡 64개·2ms마다 자기 재포스트), F3·F4·F7·F9·F10 수정(A5.0, 2026-11-19 — `_currPlayer`·`_ownerRoom`은 `atomic<shared_ptr/weak_ptr>` + 접근자, `Session::Disconnect`가 `shutdown` + `CancelIoEx`, 유휴 타임아웃 `IdleTimeoutSec`·송신 큐 상한 `SendQueueLimit` 추가, `IocpCore::Dispatch`·`GetService()` null 검사. 재현·확인은 `TESTING.md` A5.0, 스크립트 `Server/PerfData/2026-11-19_A5.0/`). 남은 것: F6(종료 시 join — 정리 단계 후보), F8(Room 영구 생존 — DG3c에서 `RoomManager::Remove` 구현). 아래 본문은 감사 당시 내용 그대로다.
+
 ## 0. 요약 (심각도순)
 
 | # | 심각도 | 위치 | 한 줄 요약 |

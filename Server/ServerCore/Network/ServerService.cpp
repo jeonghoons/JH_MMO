@@ -1,5 +1,6 @@
 ﻿#include "CorePch.h"
 #include "Network/ServerService.h"
+#include "Network/NetStats.h"
 
 ServerService::ServerService(NetAddress address, shared_ptr<IocpCore> iocpCore, SessionFactory factory)
 	: _netAddress(address), _iocpCore(iocpCore), _sessionFactory(std::move(factory))
@@ -65,6 +66,35 @@ void ServerService::ReleaseSession(shared_ptr<Session> session)
 	else {
 		_sessions.erase(it);
 	}
+}
 
+int ServerService::CloseIdleSessions(long long timeoutMs)
+{
+	if (timeoutMs <= 0)
+		return 0;
 
+	// Disconnect가 ReleaseSession으로 쓰기 락을 잡으므로, 대상을 락 안에서 모으고 락 밖에서 끊는다.
+	const long long nowMs = static_cast<long long>(::GetTickCount64());
+	vector<shared_ptr<Session>> idle;
+	{
+		RWLock::ReadGuard lock(_lock);
+		for (const auto& [id, session] : _sessions)
+		{
+			if (nowMs - session->LastRecvMs() >= timeoutMs)
+				idle.push_back(session);
+		}
+	}
+
+	int closed = 0;
+	for (const shared_ptr<Session>& session : idle)
+	{
+		// 목록을 만든 뒤 다른 경로로 이미 끊긴 세션은 세지 않는다.
+		if (session->IsConnected() == false)
+			continue;
+		++closed;
+		NetStats::IdleKicks.fetch_add(1);
+		LOG_DEBUG("Network", "유휴 타임아웃: 세션 {} ({}ms 동안 수신 없음)", session->GetId(), nowMs - session->LastRecvMs());
+		session->Disconnect(L"Idle Timeout");
+	}
+	return closed;
 }

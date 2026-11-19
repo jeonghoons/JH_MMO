@@ -11,7 +11,7 @@ class NetworkSession;
 class AJMPlayer;
 class AJMMyPlayer;
 
-UCLASS()
+UCLASS(Config = Game)
 class JM_API UNetworkManager : public UGameInstanceSubsystem, public FTickableGameObject
 {
 	GENERATED_BODY()
@@ -74,6 +74,9 @@ public:
 	void SendRevive();
 	// 포털 사용 요청(L5, D-203). 거리·상태는 서버가 검증하고, 받아들이면 SC_TELEPORT가 온다(거부는 응답 없음)
 	void SendPortal(int32 PortalId);
+	// 하트비트(A5.0, D-220): 연결된 동안(로그인 화면 포함) HeartbeatIntervalSec마다 Tick이 보낸다. 서버는 [Network] IdleTimeoutSec(60초) 동안
+	// 아무것도 받지 못한 연결을 끊으므로, 가만히 있어도 끊기지 않게 한다. 기존 CS_PING을 쓴다(응답 SC_PONG은 방 안에서만 오고 쓰지 않음)
+	void SendHeartbeat();
 	void SendSkillAim(int32 Slot, bool bActive, uint32 Seq);   // Part = Protocol::EquipPart(1~7), ItemId 0 = 해제. 검증은 서버가 한다
 
 public:
@@ -90,8 +93,15 @@ public:
 	// 시험용 자동 로그인(ULoginWidget::TryTestAutoLogin)을 이미 시도했는지. 로그인 화면으로 돌아왔을 때(SC_KICK 등) 되풀이하지 않게 한다.
 	bool bTestAutoLoginTried = false;
 
+	// 하트비트 간격(초). Config/DefaultGame.ini [/Script/JM.NetworkManager]. 0 이하면 보내지 않는다 — 서버 IdleTimeoutSec보다 충분히 짧아야 한다
+	UPROPERTY(Config)
+	float HeartbeatIntervalSec = 5.f;
+
 private:
 
 	TSharedPtr<NetworkSession> Packet_Session;
+
+	// 마지막으로 하트비트를 보낸 시각(FPlatformTime::Seconds — 게임 일시 정지·시간 배율과 무관한 실제 시간)
+	double LastHeartbeatSec = 0.0;
 
 };

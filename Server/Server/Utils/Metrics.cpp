@@ -26,7 +26,8 @@ namespace
 		"send_flush_ps,send_continue_ps,send_direct_ps,flush_gap_p50_ms,flush_gap_p90_ms,flush_gap_p99_ms,"
 		"send_wake_ps,send_wake_late_avg_ms,send_wake_late_p99_ms,send_wake_late_max_ms,jobs_ps,job_repost_ps,"
 		"job_wait_p50_ms,job_wait_p90_ms,job_wait_p99_ms,job_run_max_ms,flush_run_max_ms,"
-		"job_dispatch_p50_ms,job_dispatch_p99_ms,job_busy_ms_ps,flush_busy_ms_ps,flush_runs_ps,send_kick_ps";
+		"job_dispatch_p50_ms,job_dispatch_p99_ms,job_busy_ms_ps,flush_busy_ms_ps,flush_runs_ps,send_kick_ps,"
+		"session_objects,handles,sendq_total,idle_kicks,sendq_kicks";
 
 	// 누적 카운터의 구간 증가량을 초당 값으로 바꾼다.
 	struct RateCounter
@@ -172,6 +173,13 @@ namespace
 			const Metrics::Percentiles viewP = Metrics::ViewPlayers.TakeAndReset();
 			const Metrics::Percentiles viewO = Metrics::ViewObjects.TakeAndReset();
 			const int sendQueueMax = NetStats::SendQueueMax.exchange(0);
+			// 연결 정리(A5.0): Sessions는 Disconnect 순간 줄어들므로, 끊긴 세션이 실제로 사라졌는지는 객체 수·프로세스 핸들 수·큐 합계로 본다.
+			const int sessionObjs = NetStats::SessionObjects.load();
+			DWORD handleCount = 0;
+			::GetProcessHandleCount(::GetCurrentProcess(), &handleCount);
+			const long long sendQueuedTotal = NetStats::SendQueued.load();
+			const long long idleKicks = NetStats::IdleKicks.load();
+			const long long sendQueueKicks = NetStats::SendQueueKicks.load();
 			const Metrics::Percentiles itExec = Metrics::ItemOpExecUs.TakeAndReset();
 			const Metrics::Percentiles itTotal = Metrics::ItemOpTotalUs.TakeAndReset();
 			const Metrics::Percentiles eqApply = Metrics::EquipApplyUs.TakeAndReset();
@@ -205,7 +213,7 @@ namespace
 				"drops(now kills/created/expired/evicted)={} {}/{}/{}/{} pickup(picked/discarded)={}/{} trades={} "
 				"sendPath(flush/continue/direct/kick per s)={:.0f}/{:.0f}/{:.0f}/{:.0f} flushGap(p50/p90/p99 ms)={:.0f}/{:.0f}/{:.0f} "
 				"sendWake(per s, late avg/p50/p99/max ms)={:.0f} {:.1f}/{:.1f}/{:.1f}/{:.1f} jobs(exec/repost per s)={:.0f}/{:.0f} jobWait(p50/p90/p99 ms)={:.0f}/{:.0f}/{:.0f} jobRunMax={:.1f}ms flushRunMax={:.1f}ms "
-				"jobDispatch(p50/p90/p99 ms)={:.0f}/{:.0f}/{:.0f} busy(job/flush ms per s)={:.0f}/{:.0f} flushRuns/s={:.0f}",
+				"jobDispatch(p50/p90/p99 ms)={:.0f}/{:.0f}/{:.0f} busy(job/flush ms per s)={:.0f}/{:.0f} flushRuns/s={:.0f} conn(sessionObjs/handles idleKick/sendqKick)={}/{} {}/{}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, sendCallsPs, bufsPerSend, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
@@ -230,7 +238,8 @@ namespace
 				flushPs, continuePs, directPs, kickPs, flushGap.p50, flushGap.p90, flushGap.p99,
 				wakePs, wakeLate.avg / 1000.0, wakeLate.p50 / 1000.0, wakeLate.p99 / 1000.0, wakeLate.max / 1000.0, jobsPs, repostPs,
 				jobWait.p50, jobWait.p90, jobWait.p99, jobRunMaxMs, flushRunMaxMs,
-				jobDispatch.p50, jobDispatch.p90, jobDispatch.p99, jobBusyMs, flushBusyMs, flushRunsPs);
+				jobDispatch.p50, jobDispatch.p90, jobDispatch.p99, jobBusyMs, flushBusyMs, flushRunsPs,
+				sessionObjs, handleCount, idleKicks, sendQueueKicks);
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << runId << "," << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","
@@ -241,7 +250,8 @@ namespace
 				<< wakePs << "," << wakeLate.avg / 1000.0 << "," << wakeLate.p99 / 1000.0 << "," << wakeLate.max / 1000.0 << ","
 				<< jobsPs << "," << repostPs << ","
 				<< jobWait.p50 << "," << jobWait.p90 << "," << jobWait.p99 << "," << jobRunMaxMs << "," << flushRunMaxMs << ","
-				<< jobDispatch.p50 << "," << jobDispatch.p99 << "," << jobBusyMs << "," << flushBusyMs << "," << flushRunsPs << "," << kickPs << "\n";
+				<< jobDispatch.p50 << "," << jobDispatch.p99 << "," << jobBusyMs << "," << flushBusyMs << "," << flushRunsPs << "," << kickPs << ","
+				<< sessionObjs << "," << handleCount << "," << sendQueuedTotal << "," << idleKicks << "," << sendQueueKicks << "\n";
 			csv.flush();
 		}
 	}

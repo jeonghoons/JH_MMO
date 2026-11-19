@@ -40,7 +40,26 @@ void UNetworkManager::Tick(float DeltaTime)
 			ReturnToLogin(FText::FromString(TEXT("서버와의 연결이 끊겼습니다.")));
 		else
 			DisconnectFromServer();
+		return;
 	}
+
+	// 하트비트(A5.0, D-220): 연결이 살아 있는 동안 주기적으로 보낸다.
+	if (HeartbeatIntervalSec > 0.f && Packet_Session == Session && Session->IsConnectionLost() == false)
+	{
+		const double Now = FPlatformTime::Seconds();
+		if (Now - LastHeartbeatSec >= HeartbeatIntervalSec)
+		{
+			LastHeartbeatSec = Now;
+			SendHeartbeat();
+		}
+	}
+}
+
+void UNetworkManager::SendHeartbeat()
+{
+	Protocol::CS_PING_PACKET pkt;
+	pkt.set_client_time(FDateTime::UtcNow().ToUnixTimestamp() * 1000);
+	SendPacket(SendBuffer::MakeSendBuffer(pkt, Protocol::CS_PING));
 }
 
 void UNetworkManager::ConnectToServer()
@@ -70,6 +89,7 @@ void UNetworkManager::ConnectToServer()
 		UE_LOG(LogTemp, Log, TEXT("Connection Success"));
 
 		Packet_Session = MakeShared<NetworkSession>(socket, this);
+		LastHeartbeatSec = FPlatformTime::Seconds();
 		FPacketHandler::Init();
 		Packet_Session->Run();
 	}

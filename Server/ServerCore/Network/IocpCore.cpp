@@ -27,9 +27,11 @@ bool IocpCore::Dispatch(int timeouts)
 	if (::GetQueuedCompletionStatus(iocpHandle, &num_bytes, &key,
 		reinterpret_cast<LPOVERLAPPED*>(&over), timeouts))
 	{
+		if (over == nullptr)
+			return true;
 		shared_ptr<IocpObject> iocpObject = over->_owner;
-		iocpObject->Dispatch(over, num_bytes);
-		
+		if (iocpObject != nullptr)
+			iocpObject->Dispatch(over, num_bytes);
 	}
 	else
 	{
@@ -39,8 +41,16 @@ bool IocpCore::Dispatch(int timeouts)
 		case WAIT_TIMEOUT:
 			return false;
 		default:
+			// 완료 패킷 없이 실패한 경우(over == nullptr — 포트 핸들 문제 등)에는 넘길 대상이 없다(감사 F7).
+			if (over == nullptr)
+			{
+				LOG_ERROR("Network", "GetQueuedCompletionStatus 실패 (완료 패킷 없음, 오류 {})", errCode);
+				return false;
+			}
+			// 실패한 I/O의 완료(상대가 끊음, CancelIoEx로 취소됨 등)는 그대로 넘긴다 — 세션은 0바이트 완료로 보고 참조를 풀고 끊는다.
 			shared_ptr<IocpObject> iocpObject = over->_owner;
-			iocpObject->Dispatch(over, num_bytes);
+			if (iocpObject != nullptr)
+				iocpObject->Dispatch(over, num_bytes);
 			break;
 		}
 	}

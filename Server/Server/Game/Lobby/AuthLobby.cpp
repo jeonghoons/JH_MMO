@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "Game/Lobby/AuthLobby.h"
 #include "Network/Session.h"
+#include "Network/ServerService.h"
 #include "Game/Object/Player.h"
 #include "DB/DatabaseWorker.h"
 #include "Utils/Metrics.h"
@@ -18,7 +19,7 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
     if (session->IsConnected() == false) return;
 
     // DB 응답 전에 로그인 요청이 연달아 오면 성공이 두 번 올 수 있다. 로비 잡은 한 스레드씩 실행되므로 여기서 두 번째를 거른다.
-    if (session->_currPlayer != nullptr)
+    if (session->GetPlayer() != nullptr)
     {
         OnLoginFailed(session, Protocol::LOGIN_RESULT_ALREADY_LOGGED_IN);
         return;
@@ -68,7 +69,7 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
         _online.emplace(info.playerUID, std::move(entry));
     }
 
-    session->_currPlayer = player;
+    session->SetPlayer(player);
 
     Protocol::SC_LOGIN_INFO_PACKET logInPacket;
     logInPacket.mutable_object_info()->CopyFrom(player->GetInfo());
@@ -133,6 +134,23 @@ void AuthLobby::HoldLogin(int64_t playerUID, OnlineEntry& entry, shared_ptr<Game
     entry.waiterPw = std::move(accountPw);
     entry.waitSerial = ++_waitSerial;
     ReserveJob(static_cast<DWORD>(GServerConfig.loginWaitTimeoutSec) * 1000, &AuthLobby::OnLoginWaitTimeout, playerUID, entry.waitSerial);
+}
+
+void AuthLobby::StartIdleCheck(weak_ptr<ServerService> service)
+{
+    if (GServerConfig.idleTimeoutSec <= 0) return;
+
+    _service = std::move(service);
+    ReserveJob(IDLE_CHECK_INTERVAL_MS, &AuthLobby::CheckIdleSessions);
+}
+
+void AuthLobby::CheckIdleSessions()
+{
+    // 끊긴 세션은 평소의 Disconnect 경로(GameSession::OnDisconnected → 방 퇴장·저장 → 접속 목록 정리)를 그대로 탄다.
+    if (shared_ptr<ServerService> service = _service.lock())
+        service->CloseIdleSessions(static_cast<long long>(GServerConfig.idleTimeoutSec) * 1000);
+
+    ReserveJob(IDLE_CHECK_INTERVAL_MS, &AuthLobby::CheckIdleSessions);
 }
 
 void AuthLobby::OnPlayerClosed(int64_t playerUID, int sessionId)

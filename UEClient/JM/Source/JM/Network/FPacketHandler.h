@@ -55,6 +55,7 @@ private:
     static void Handle_SC_SKILL_AIM(TSharedPtr<NetworkSession>& session, Protocol::SC_SKILL_AIM_PACKET& pkt);
     static void Handle_SC_REVIVE(TSharedPtr<NetworkSession>& session, Protocol::SC_REVIVE_PACKET& pkt);
     static void Handle_SC_KICK(TSharedPtr<NetworkSession>& session, Protocol::SC_KICK_PACKET& pkt);
+    static void Handle_SC_PONG(TSharedPtr<NetworkSession>& session, Protocol::SC_PONG_PACKET& pkt);
     static void Handle_SC_INVENTORY(TSharedPtr<NetworkSession>& session, Protocol::SC_INVENTORY_PACKET& pkt);
     static void Handle_SC_INVENTORY_UPDATE(TSharedPtr<NetworkSession>& session, Protocol::SC_INVENTORY_UPDATE_PACKET& pkt);
     static void Handle_SC_ITEM_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_ITEM_RESULT_PACKET& pkt);

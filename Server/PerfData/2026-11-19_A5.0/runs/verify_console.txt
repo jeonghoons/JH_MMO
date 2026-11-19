@@ -1,0 +1,41 @@
+-- 시작 (23:12:52)
+== python -I -X utf8 /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_A5.0/idle.py --mode connect --count 5 --limit 25 --expect closed
+[idle connect #2] closed after 12.2 s
+[idle connect #3] closed after 12.2 s
+[idle connect #4] closed after 12.2 s
+[idle connect] PASS (expect closed)
+== python -I -X utf8 /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_A5.0/idle.py --mode login --count 5 --limit 25 --expect closed
+[idle login #2] closed after 14.7 s
+[idle login #3] closed after 14.7 s
+[idle login #4] closed after 14.7 s
+[idle login] PASS (expect closed)
+== python -I -X utf8 /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_A5.0/idle.py --mode ingame --count 5 --limit 25 --expect closed
+[idle ingame #2] closed after 14.7 s
+[idle ingame #3] closed after 14.7 s
+[idle ingame #4] closed after 14.7 s
+[idle ingame] PASS (expect closed)
+== python -I -X utf8 /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_A5.0/idle.py --mode ingame --account Test1 --limit 25 --expect closed
+[idle ingame #0] closed after 14.8 s
+[idle ingame] PASS (expect closed)
+== python -I -X utf8 /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_A5.0/idle.py --mode ping --count 5 --limit 30 --ping-interval 5 --expect alive
+[idle ping #2] alive after 30.0 s
+[idle ping #3] alive after 30.0 s
+[idle ping #4] alive after 30.0 s
+[idle ping] PASS (expect alive)
+-- 유휴 뒤 (23:14:32)
+== python -I -X utf8 /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_A5.0/idle.py --mode ping --account Test1 --limit 6 --ping-interval 2 --expect alive
+[idle ping #0] alive after 6.0 s
+[idle ping] PASS (expect alive)
+-- 재로그인 뒤 (23:14:50)
+== python -I -X utf8 /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_A5.0/login_loop.py --count 500 --close mixed
+[loop] 500회(입장 뒤 끊기 166), 연결·응답 실패 0, 6.5초
+-- 연속 500(dummy) 뒤 (23:15:09)
+== python -I -X utf8 /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_A5.0/login_loop.py --count 500 --close mixed --accounts Test1,Test2,Test3,Test4
+[loop] 500회(입장 뒤 끊기 166), 연결·응답 실패 0, 5.5초
+-- 연속 500(Test1~4) 뒤 (23:16:02)
+== python -I -X utf8 /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_A5.0/login_loop.py --count 400 --errors
+[loop] 400회(입장 뒤 끊기 0), 연결·응답 실패 0, 7.2초
+-- 오류 입력 400 뒤 (23:16:22)
+server alive
+WARN/ERROR 줄 수: 50
+done

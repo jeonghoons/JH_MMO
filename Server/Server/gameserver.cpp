@@ -96,6 +96,9 @@ int main(int argc, char* argv[])
 	GRoomManager = make_unique<RoomManager>(service->GetIocpInstance()->GetHandle());
 	GRoomManager->CreateRoom();
 	GLobby = make_shared<AuthLobby>(service->GetIocpInstance()->GetHandle());
+	// 연결 정리(A5.0): 받지 않는 클라이언트의 송신 큐 상한(D-221)과 유휴 세션 검사(D-220)
+	Session::SetSendQueueLimit(GServerConfig.sendQueueLimit);
+	GLobby->StartIdleCheck(service);
 	Metrics::StartReporter();
 	
 	vector<thread> threads;

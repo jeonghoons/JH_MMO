@@ -1,0 +1,27 @@
+2026-11-19 22:19:25.748 INFO  [T23232] [metrics] metrics.csv의 열 구성이 달라 metrics_old_20261119_221925.csv로 옮기고 새로 시작합니다
+2026-11-19 22:19:30.749 sessions=0 players=0 sendQ(total/sessionMax)=0/0 logDrop=0
+2026-11-19 22:19:35.750 sessions=50 players=50 sendQ(total/sessionMax)=0/53 logDrop=0
+2026-11-19 22:19:40.751 sessions=50 players=50 sendQ(total/sessionMax)=0/30 logDrop=0
+2026-11-19 22:19:45.752 sessions=50 players=50 sendQ(total/sessionMax)=0/30 logDrop=0
+2026-11-19 22:19:50.753 sessions=55 players=55 sendQ(total/sessionMax)=1590/318 logDrop=0
+2026-11-19 22:19:55.753 sessions=55 players=55 sendQ(total/sessionMax)=7460/1492 logDrop=0
+2026-11-19 22:20:00.755 sessions=50 players=50 sendQ(total/sessionMax)=0/1663 logDrop=0
+2026-11-19 22:20:05.755 sessions=50 players=50 sendQ(total/sessionMax)=0/30 logDrop=0
+2026-11-19 22:20:10.755 sessions=50 players=50 sendQ(total/sessionMax)=0/30 logDrop=0
+2026-11-19 22:20:15.757 sessions=50 players=50 sendQ(total/sessionMax)=719/30 logDrop=0
+2026-11-19 22:20:20.757 sessions=50 players=50 sendQ(total/sessionMax)=0/30 logDrop=0
+2026-11-19 22:20:25.758 sessions=50 players=50 sendQ(total/sessionMax)=0/30 logDrop=0
+2026-11-19 22:20:30.759 sessions=50 players=50 sendQ(total/sessionMax)=0/30 logDrop=0
+2026-11-19 22:20:35.760 sessions=50 players=50 sendQ(total/sessionMax)=573/30 logDrop=0
+2026-11-19 22:20:40.760 sessions=50 players=50 sendQ(total/sessionMax)=0/31 logDrop=0
+2026-11-19 22:20:45.762 sessions=50 players=50 sendQ(total/sessionMax)=1220/30 logDrop=0
+2026-11-19 22:20:50.765 sessions=50 players=50 sendQ(total/sessionMax)=0/49 logDrop=0
+2026-11-19 22:20:55.766 sessions=50 players=50 sendQ(total/sessionMax)=0/49 logDrop=0
+2026-11-19 22:21:00.766 sessions=50 players=50 sendQ(total/sessionMax)=0/49 logDrop=0
+2026-11-19 22:21:05.768 sessions=50 players=50 sendQ(total/sessionMax)=0/49 logDrop=0
+2026-11-19 22:21:10.769 sessions=50 players=50 sendQ(total/sessionMax)=0/49 logDrop=0
+2026-11-19 22:21:15.770 sessions=50 players=50 sendQ(total/sessionMax)=0/49 logDrop=0
+2026-11-19 22:21:20.771 sessions=50 players=50 sendQ(total/sessionMax)=2169/49 logDrop=0
+2026-11-19 22:21:25.772 sessions=0 players=0 sendQ(total/sessionMax)=0/48 logDrop=0
+2026-11-19 22:21:30.773 sessions=0 players=0 sendQ(total/sessionMax)=0/0 logDrop=0
+2026-11-19 22:21:35.774 sessions=0 players=0 sendQ(total/sessionMax)=0/0 logDrop=0

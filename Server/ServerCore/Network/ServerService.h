@@ -23,6 +23,9 @@ public:
 	void			AddSession(shared_ptr<Session> session);
 	void			ReleaseSession(shared_ptr<Session> session);
 
+	// 마지막 수신 뒤 timeoutMs가 지난 세션을 끊는다(유휴 타임아웃, D-220). 끊은 수를 돌려준다. 어느 스레드에서 불러도 된다.
+	int			CloseIdleSessions(long long timeoutMs);
+
 private:
 	RWLock					_lock;
 	

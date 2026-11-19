@@ -13,7 +13,7 @@ void GameSession::OnDisconnected()
 void GameSession::HandlePlayerGone()
 {
 	// 로그인 전에 끊기면 _currPlayer가 아직 없다.
-	shared_ptr<Player> player = _currPlayer;
+	shared_ptr<Player> player = GetPlayer();
 	if (player == nullptr) return;
 	if (_playerGoneHandled.exchange(true)) return;
 

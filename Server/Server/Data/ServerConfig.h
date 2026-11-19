@@ -25,6 +25,10 @@ struct ServerConfig
 	// 중복 접속 차단(A2.7, D-158)
 	int loginWaitTimeoutSec = 10;   // 같은 캐릭터의 이전 접속 정리(퇴장·마지막 저장)를 기다리는 시간. 넘으면 LOGIN_RESULT_BUSY
 	int loginCloseForceSec = 30;    // 정리가 끝났다는 신호가 이 시간 안에 오지 않으면 오류 로그를 남기고 접속 목록에서 강제로 뺀다
+	// 연결 정리(A5.0)
+	int idleTimeoutSec = 60;        // 이 시간 동안 아무것도 받지 못한 연결을 끊는다(D-220). 0이면 끔. 클라이언트는 5초마다 CS_PING을 보낸다
+	int sendQueueLimit = 4000;      // 세션 하나의 송신 큐에 쌓일 수 있는 패킷 수(D-221). 넘으면 끊는다. 0이면 끔
+	std::string idleTimeoutSecFrom = "default", sendQueueLimitFrom = "default";
 
 	// [Database]
 	std::string dbConnectionString = "Driver={ODBC Driver 17 for SQL Server};Server=.\\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;";

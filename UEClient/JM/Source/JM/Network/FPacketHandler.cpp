@@ -29,6 +29,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_SKILL_AIM, &FPacketHandler::Handle_SC_SKILL_AIM);
 	RegisterHandler(Protocol::SC_REVIVE, &FPacketHandler::Handle_SC_REVIVE);
 	RegisterHandler(Protocol::SC_KICK, &FPacketHandler::Handle_SC_KICK);
+	RegisterHandler(Protocol::SC_PONG, &FPacketHandler::Handle_SC_PONG);
 	RegisterHandler(Protocol::SC_INVENTORY, &FPacketHandler::Handle_SC_INVENTORY);
 	RegisterHandler(Protocol::SC_INVENTORY_UPDATE, &FPacketHandler::Handle_SC_INVENTORY_UPDATE);
 	RegisterHandler(Protocol::SC_ITEM_RESULT, &FPacketHandler::Handle_SC_ITEM_RESULT);
@@ -230,6 +231,11 @@ void FPacketHandler::Handle_SC_DEAD(TSharedPtr<NetworkSession>& session, Protoco
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandleDead(pkt.object_id(), pkt.revive_delay_ms());
+}
+
+// 하트비트(CS_PING, UNetworkManager::SendHeartbeat)의 응답. 방 안에 있을 때만 온다. 연결 유지가 목적이라 내용은 쓰지 않는다(A5.0, D-220).
+void FPacketHandler::Handle_SC_PONG(TSharedPtr<NetworkSession>& session, Protocol::SC_PONG_PACKET& pkt)
+{
 }
 
 // 서버가 이 연결을 끊기 직전에 보낸다(A2.7). 연결을 닫고 로그인 화면으로 돌아가 사유를 보여준다.

@@ -34,6 +34,10 @@ public:
 	// 보내는 곳: GameSession::HandlePlayerGone(방에 들어가기 전), Room::NotifyClosedIfDone(그 밖 전부).
 	void OnPlayerClosed(int64_t playerUID, int sessionId);
 
+	// 유휴 세션 검사(A5.0, D-220)를 시작한다: IDLE_CHECK_INTERVAL_MS마다 [Network] IdleTimeoutSec 동안 수신이 없던 연결을 끊는다.
+	// 서버 시작 때 한 번 부른다. IdleTimeoutSec이 0이면 아무것도 하지 않는다.
+	void StartIdleCheck(weak_ptr<class ServerService> service);
+
 private:
 	// 접속 중 캐릭터 목록(A2.7, D-158). 로비 잡 안에서만 읽고 쓴다. 더미 봇(전원이 한 캐릭터)은 넣지 않는다.
 	struct OnlineEntry
@@ -57,7 +61,12 @@ private:
 	void OnLoginWaitTimeout(int64_t playerUID, uint64_t waitSerial);
 	void OnCloseForce(int64_t playerUID, int sessionId);
 
+	// 예약 잡: 유휴 세션을 끊고 자신을 다시 예약한다.
+	void CheckIdleSessions();
+
 private:
+	static constexpr DWORD IDLE_CHECK_INTERVAL_MS = 5000;
+	weak_ptr<class ServerService> _service;
 	shared_ptr<JobQueue> _jobQueue;
 	unordered_map<int64_t, OnlineEntry> _online;
 	uint64_t _waitSerial = 0;

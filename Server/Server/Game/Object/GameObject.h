@@ -12,8 +12,10 @@ public:
 public:
 	virtual void Update(float deltaTime) {}
 
-	std::shared_ptr<Room> GetCurrentRoom() const { return _ownerRoom.lock(); }
-	void SetOwnerRoom(std::shared_ptr<Room> room) { _ownerRoom = room; }
+	// 속한 방. 플레이어의 방은 수신 스레드(입장 배정)·Room 잡이 쓰고 수신 스레드·Disconnect를 부른 스레드·Room 잡이 읽으므로
+	// 원자적으로 읽고 쓴다(A5.0, 감사 F9 — Room 간 이동 DG3에서는 Room 잡이 바꾸는 동안 수신 스레드가 읽는다).
+	std::shared_ptr<Room> GetCurrentRoom() const { return _ownerRoom.load().lock(); }
+	void SetOwnerRoom(std::shared_ptr<Room> room) { _ownerRoom.store(std::weak_ptr<Room>(room)); }
 
 	const Protocol::PositionInfo& GetPosition() const { return _objectInfo.position(); }
 	Protocol::PositionInfo* GetMutablePosition() { return _objectInfo.mutable_position(); }
@@ -33,7 +35,7 @@ public:
 
 protected:
 	Protocol::ObjectInfo _objectInfo{};
-	std::weak_ptr<Room>  _ownerRoom;
+	std::atomic<std::weak_ptr<Room>>  _ownerRoom;
 	unsigned int         _lastMoveTime = 0;
 };
 

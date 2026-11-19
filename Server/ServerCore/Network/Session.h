@@ -29,11 +29,17 @@ public:
 
 public:
 	void			Connected();				// Listener가 accept 완료 후 호출
+	// 연결을 끊는다(세션당 한 번만 동작). 소켓 양방향을 닫아 상대에게 FIN을 보내고 걸어 둔 수신·송신을 취소한다 — 취소된 완료가
+	// 세션 참조를 풀어 세션·소켓·송신 큐가 바로 정리된다(A5.0, 감사 F4). 송신 큐에만 있던 패킷은 버려진다.
 	void			Disconnect(const WCHAR* cause);
-	// 서버가 먼저 끊을 때(중복 접속 차단 등, A2.7). Disconnect는 소켓을 그대로 둬서 가만히 있는 클라이언트의 연결이 남으므로,
-	// 여기서는 양방향을 닫아 상대에게 FIN을 보내고 걸어 둔 수신을 끝낸다. 직전에 Send한 패킷은 이미 전송을 걸었으면 도착한다
-	// (다른 전송이 진행 중이라 큐에만 있던 패킷은 버려진다). 송신 묶기(P1b)로 큐에만 있던 패킷은 끊기 전에 여기서 전송을 건다.
+	// 끊기 전에 꼭 보내야 하는 패킷(SC_KICK 등)이 있을 때. 송신 묶기(P1b)로 큐에만 있던 패킷의 전송을 먼저 걸고 Disconnect한다
+	// (다른 전송이 진행 중이라 큐에만 남은 패킷은 버려진다).
 	void			ForceClose(const WCHAR* cause);
+
+	// 마지막으로 무엇이든 받은 시각(GetTickCount64 ms, 연결 직후에는 연결 시각) — 유휴 타임아웃 판정에 쓴다(D-220).
+	long long	LastRecvMs() const { return _lastRecvMs.load(memory_order_relaxed); }
+	// 세션 하나의 송신 큐에 쌓일 수 있는 패킷 수 상한(0 = 없음). 넘으면 그 세션을 끊는다 — 받지 않는 클라이언트 대책(D-221).
+	static void	SetSendQueueLimit(int limit) { s_sendQueueLimit.store(limit); }
 
 	// 패킷을 송신 큐에 넣는다. 잡 큐(Room·로비)의 작업을 실행 중인 스레드에서 부르면 바로 보내지 않고 그 잡 큐에
 	// 등록해 두었다가 작업이 끝난 뒤 세션당 WSASend 1회로 보낸다(송신 묶기 P1b — JobQueue.h). 그 밖의 스레드에서는 바로 보낸다.
@@ -64,8 +70,6 @@ private:
 
 
 public:
-	RWLock		_lock;
-	
 	RecvBuffer	_recvBuffer;
 	
 
@@ -82,6 +86,9 @@ private:
 	NetAddress		_netAddress = {};
 	atomic<bool>		_connected = false;
 	unsigned int		_cid = {};
+	atomic<long long>	_lastRecvMs = 0;
+
+	static inline atomic<int> s_sendQueueLimit = 0;
 
 	RecvEvent		_recvEvent;
 	SendEvent		_sendEvent; // 패킷을 모아서 보내기 위해서 재사용

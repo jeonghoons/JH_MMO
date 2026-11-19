@@ -114,6 +114,16 @@ namespace
 				if (!ParseInt(e.value, 0, 500, cfg.attackEarlyToleranceMs)) { err = where + "AttackEarlyToleranceMs must be 0~500: '" + e.value + "'"; return false; }
 				cfg.attackEarlyToleranceMsFrom = from;
 			}
+			else if (name == "Network.IdleTimeoutSec")
+			{
+				if (!ParseInt(e.value, 0, 86400, cfg.idleTimeoutSec)) { err = where + "IdleTimeoutSec must be 0~86400: '" + e.value + "'"; return false; }
+				cfg.idleTimeoutSecFrom = from;
+			}
+			else if (name == "Network.SendQueueLimit")
+			{
+				if (!ParseInt(e.value, 0, 1000000, cfg.sendQueueLimit)) { err = where + "SendQueueLimit must be 0~1000000: '" + e.value + "'"; return false; }
+				cfg.sendQueueLimitFrom = from;
+			}
 			else if (name == "Network.LoginWaitTimeoutSec")
 			{
 				if (!ParseInt(e.value, 1, 600, cfg.loginWaitTimeoutSec)) { err = where + "LoginWaitTimeoutSec must be 1~600: '" + e.value + "'"; return false; }
@@ -302,6 +312,8 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "Network.AttackEarlyToleranceMs = {}  ({})", attackEarlyToleranceMs, attackEarlyToleranceMsFrom);
 	LOG_INFO("Config", "Network.LoginWaitTimeoutSec = {}  ({})", loginWaitTimeoutSec, loginWaitTimeoutSecFrom);
 	LOG_INFO("Config", "Network.LoginCloseForceSec = {}  ({})", loginCloseForceSec, loginCloseForceSecFrom);
+	LOG_INFO("Config", "Network.IdleTimeoutSec    = {}  ({})", idleTimeoutSec, idleTimeoutSecFrom);
+	LOG_INFO("Config", "Network.SendQueueLimit    = {}  ({})", sendQueueLimit, sendQueueLimitFrom);
 	LOG_INFO("Config", "Database.ConnectionString = {}  ({})", MaskSecrets(dbConnectionString), dbConnectionStringFrom);
 	LOG_INFO("Config", "Database.Connections      = {}  ({})", dbConnections, dbConnectionsFrom);
 	LOG_INFO("Config", "Database.PlayerSaveIntervalSec = {}  ({})", playerSaveIntervalSec, playerSaveIntervalSecFrom);

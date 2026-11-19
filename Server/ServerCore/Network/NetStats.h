@@ -11,6 +11,10 @@ namespace NetStats
 	inline std::atomic<long long> SendBufs{ 0 };      // WSASend에 넘긴 WSABUF 수(누적) — SendBufs ÷ SendCalls = 호출당 메시지 수(송신 묶임 정도)
 	inline std::atomic<long long> SendQueued{ 0 };    // 모든 세션의 송신 큐에 쌓여 아직 WSASend에 넘기지 않은 패킷 수(현재)
 	inline std::atomic<int>       SendQueueMax{ 0 };  // 한 세션의 송신 큐가 가장 길었던 값(구간 최대, 리포터가 읽으며 0으로)
+	// 연결 정리(A5.0) 지표. Sessions는 Disconnect 순간 줄어들므로, 끊긴 뒤에도 남아 있는 세션은 SessionObjects - Sessions로 본다.
+	inline std::atomic<int>       SessionObjects{ 0 };  // 살아 있는 Session 객체 수(생성자 +1, 소멸자 -1)
+	inline std::atomic<long long> IdleKicks{ 0 };       // 유휴 타임아웃으로 끊은 세션 수(누적)
+	inline std::atomic<long long> SendQueueKicks{ 0 };  // 송신 큐 상한을 넘어 끊은 세션 수(누적)
 
 	// 송신 묶기(P1b) 조사 지표. 모두 누적.
 	// WSASend가 어느 경로에서 나갔는지: 잡 큐가 모아서(Flushes) / 송신 완료 직후 큐에 남은 것을 이어서(Continues — 송신 간격을 거치지 않음)

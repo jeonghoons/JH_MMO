@@ -7,6 +7,7 @@
 Session::Session() : _recvBuffer(65536)
 {
 	_socket = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+	NetStats::SessionObjects.fetch_add(1);
 }
 
 Session::~Session()
@@ -18,6 +19,7 @@ Session::~Session()
 
 	// 보내지 못하고 남은 패킷은 큐와 함께 사라지므로 전체 합에서 뺀다.
 	NetStats::SendQueued.fetch_sub(_sendQueued.load());
+	NetStats::SessionObjects.fetch_sub(1);
 
 	_socket = INVALID_SOCKET;
 }
@@ -46,10 +48,12 @@ void Session::Dispatch(IocpEvent* iocpEvent, int numBytes)
 
 void Session::Connected()
 {
+	_lastRecvMs.store(static_cast<long long>(::GetTickCount64()), memory_order_relaxed);
 	_connected.store(true);
 	NetStats::Sessions.fetch_add(1);
 
-	GetService()->AddSession(static_pointer_cast<Session>(shared_from_this()));
+	if (shared_ptr<ServerService> service = GetService())
+		service->AddSession(static_pointer_cast<Session>(shared_from_this()));
 
 	OnConnected();
 	RegisterRecv();
@@ -63,9 +67,17 @@ void Session::Disconnect(const WCHAR* cause)
 	NetStats::Sessions.fetch_sub(1);
 
 	OnDisconnected();
-	GetService()->ReleaseSession(static_pointer_cast<Session>(shared_from_this()));
-	
-	LOG_DEBUG("Session", "DisConnect :{}", Utils::WStringToUTF8(cause));
+	if (shared_ptr<ServerService> service = GetService())
+		service->ReleaseSession(static_pointer_cast<Session>(shared_from_this()));
+
+	LOG_DEBUG("Session", "DisConnect[{}] :{}", _cid, Utils::WStringToUTF8(cause));
+
+	// 소켓 정리(A5.0, 감사 F4). 걸려 있던 WSARecv·WSASend의 이벤트가 세션 참조(_owner)를 쥐고 있어, 그대로 두면 상대가 끊거나
+	// 받아 줄 때까지 세션·소켓·송신 큐가 남는다(받지 않는 클라이언트면 무기한). shutdown을 먼저 해서 이 뒤에 다른 스레드가 부르는
+	// WSARecv/WSASend가 바로 실패하게 하고, 이미 걸려 있던 것은 CancelIoEx로 끝낸다 — 취소된 완료는 ProcessRecv(0)/ProcessSend(0)으로
+	// 와서 참조를 푼다. 핸들은 소멸자에서 닫는다(다른 스레드가 같은 핸들로 WSARecv/WSASend를 부르는 중일 수 있어 여기서 closesocket하지 않는다).
+	::shutdown(_socket, SD_BOTH);
+	::CancelIoEx(reinterpret_cast<HANDLE>(_socket), nullptr);
 }
 
 void Session::ForceClose(const WCHAR* cause)
@@ -74,11 +86,6 @@ void Session::ForceClose(const WCHAR* cause)
 	TrySendNow();
 
 	Disconnect(cause);
-
-	// 핸들은 소멸자에서 닫는다(다른 스레드가 같은 핸들로 WSARecv/WSASend를 부르는 중일 수 있어 여기서 closesocket하지 않는다).
-	// shutdown 뒤의 WSARecv는 실패하고, 이미 걸려 있던 수신은 CancelIoEx로 끝나 세션 참조가 풀린다.
-	::shutdown(_socket, SD_BOTH);
-	::CancelIoEx(reinterpret_cast<HANDLE>(_socket), nullptr);
 }
 
 
@@ -93,6 +100,16 @@ void Session::Send(shared_ptr<SendBuffer> sendBuffer)
 	const int depth = _sendQueued.fetch_add(1) + 1;
 	int prevMax = NetStats::SendQueueMax.load();
 	while (depth > prevMax && !NetStats::SendQueueMax.compare_exchange_weak(prevMax, depth)) {}
+
+	// 송신 큐 상한(D-221): 받지 않는 클라이언트는 WSASend가 끝나지 않아 큐만 쌓인다. 상한을 넘으면 끊는다(큐는 세션과 함께 사라짐).
+	const int limit = s_sendQueueLimit.load(memory_order_relaxed);
+	if (limit > 0 && depth > limit)
+	{
+		NetStats::SendQueueKicks.fetch_add(1);
+		LOG_WARN("Session", "송신 큐 상한 초과로 세션 {} 을 끊습니다 (쌓인 패킷 {} > {})", _cid, depth, limit);
+		Disconnect(L"SendQueue Full");
+		return;
+	}
 
 	// 잡 큐의 작업 안에서 보낸 것은 그 큐가 모아서 보낸다. 큐에 넣은 뒤에 등록하므로, 다른 스레드의 FlushSend가
 	// 플래그를 내리는 것과 겹쳐도 이 패킷은 그 송신에 실리거나(플래그가 아직 켜져 있었음) 여기서 새로 등록된다.
@@ -197,6 +214,7 @@ void Session::ProcessRecv(int numOfBytes)
 		Disconnect(L"Recv 0");
 		return;
 	}
+	_lastRecvMs.store(static_cast<long long>(::GetTickCount64()), memory_order_relaxed);
 
 	if (_recvBuffer.OnWrite(numOfBytes) == false) {
 		Disconnect(L"Recv Buffer Full");
