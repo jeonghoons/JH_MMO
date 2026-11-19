@@ -6,6 +6,8 @@
 #include "Packet/PacketHandler.h"
 #include "Utils/Metrics.h"
 #include "Session/GameSession.h"
+#include <timeapi.h>
+#pragma comment(lib, "winmm.lib")
 
 shared_ptr<Timer> GTimer = nullptr;
 shared_ptr<DatabaseWorker> GDBWorker = nullptr;
@@ -83,6 +85,13 @@ int main(int argc, char* argv[])
 		Utils::UTF8ToWString(GServerConfig.dbConnectionString));
 
 	PacketHandler::Init();
+
+	// 타이머 해상도: 기본(약 15.6ms)에서는 Timer의 예약 작업이 그만큼 늦게 깬다. 프로세스가 끝나면 시스템이 되돌리므로 따로 풀지 않는다.
+	if (GServerConfig.timerResolutionMs > 0) {
+		if (::timeBeginPeriod(static_cast<UINT>(GServerConfig.timerResolutionMs)) != TIMERR_NOERROR)
+			LOG_WARN("Server", "타이머 해상도 {}ms를 설정하지 못했습니다 — 시스템 기본으로 동작합니다", GServerConfig.timerResolutionMs);
+	}
+
 	GTimer = make_shared<Timer>();
 	GRoomManager = make_unique<RoomManager>(service->GetIocpInstance()->GetHandle());
 	GRoomManager->CreateRoom();

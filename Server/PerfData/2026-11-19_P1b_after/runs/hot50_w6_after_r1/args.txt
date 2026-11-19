@@ -1,0 +1,3 @@
+1795074806 --bots 50 --ramp-rate 50 --duration 45 --threads 4 --move-interval 200 --body male  --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_P1b_after\runs\hot50_w6_after_r1\loadtest.csv --zone -14200,0,1000
+loadtest exit 0
+run_id 20261119_165323

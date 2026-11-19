@@ -1,0 +1,1 @@
+turn: --bots 3 --ramp-rate 3 --profile turn --turn-send --turn-interval 550 --threads 2 --move-interval 200 --body male --zone -14200,0,1000 --duration 150 / crowd: --bots 40 --ramp-rate 20 --threads 2 --move-interval 200 --body male --zone -14200,0,1000 --duration 150

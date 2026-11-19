@@ -27,6 +27,13 @@ void Room::InitRoom()
 		_capacity = world->roomCapacity;
 	_gameMap.Init(weak_from_this());
 
+	// 송신 묶기(P1b, D-206): 방 작업 안의 Send는 잡 큐가 모아 세션당 WSASend 1회로 보낸다(JobQueue.h).
+	// 큐가 비었는데 아직 보낼 때가 안 된 세션이 남으면 그 시각에 빈 작업을 예약해 깨운다.
+	_jobQueue->SetSendBatch(GServerConfig.sendFlushIntervalMs, [weakRoom = weak_from_this()](int delayMs) {
+		if (shared_ptr<Room> room = weakRoom.lock())
+			room->ReserveJob(static_cast<DWORD>(delayMs), &Room::OnSendWake, Metrics::NowUs() + delayMs * 1000LL);
+	});
+
 	const auto& monsterSpawns = _gameMap.GetMonsterSpawns();
 	if (monsterSpawns.empty())
 	{
@@ -149,6 +156,11 @@ void Room::AuditViews()
 	Metrics::ViewAuditMissing.fetch_add(missing);
 	Metrics::ViewAuditMustNot.fetch_add(mustNot);
 	Metrics::ViewAuditExtra.fetch_add(extra);
+}
+
+void Room::OnSendWake(long long dueUs)
+{
+	Metrics::SendWakeLate.Add(max<long long>(0, Metrics::NowUs() - dueUs));
 }
 
 void Room::Update(long long elapsedTime)

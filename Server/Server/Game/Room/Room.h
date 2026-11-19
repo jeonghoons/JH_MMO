@@ -75,6 +75,9 @@ public:
 		_timer->Reserve(ectime, _jobQueue, shared_from_this(), memFunc, std::forward<Arguments>(args)...);
 	}
 	void Update(long long elapsedTime);
+	// 송신 묶기의 깨우기용 작업(P1b). 하는 일은 지표 기록뿐이고, 이 작업이 끝난 뒤 잡 큐가 때가 된 세션을 보낸다.
+	// dueUs = 깨우기로 예약한 시각(Metrics::NowUs 기준) — 실제 실행이 얼마나 늦었는지 잰다.
+	void OnSendWake(long long dueUs);
 	// 공용
 	bool AddObject(shared_ptr<GameObject> object);
 	bool RemoveObject(int objectId);

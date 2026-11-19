@@ -32,10 +32,20 @@ public:
 	void			Disconnect(const WCHAR* cause);
 	// 서버가 먼저 끊을 때(중복 접속 차단 등, A2.7). Disconnect는 소켓을 그대로 둬서 가만히 있는 클라이언트의 연결이 남으므로,
 	// 여기서는 양방향을 닫아 상대에게 FIN을 보내고 걸어 둔 수신을 끝낸다. 직전에 Send한 패킷은 이미 전송을 걸었으면 도착한다
-	// (다른 전송이 진행 중이라 큐에만 있던 패킷은 버려진다).
+	// (다른 전송이 진행 중이라 큐에만 있던 패킷은 버려진다). 송신 묶기(P1b)로 큐에만 있던 패킷은 끊기 전에 여기서 전송을 건다.
 	void			ForceClose(const WCHAR* cause);
 
-	void			Send(shared_ptr<SendBuffer> sendBuffer, bool pushOnly = false);
+	// 패킷을 송신 큐에 넣는다. 잡 큐(Room·로비)의 작업을 실행 중인 스레드에서 부르면 바로 보내지 않고 그 잡 큐에
+	// 등록해 두었다가 작업이 끝난 뒤 세션당 WSASend 1회로 보낸다(송신 묶기 P1b — JobQueue.h). 그 밖의 스레드에서는 바로 보낸다.
+	void			Send(shared_ptr<SendBuffer> sendBuffer);
+
+	// 잡 큐가 모아 둔 송신을 내보낸다(JobQueue 전용). 송신 큐에 쌓인 것을 WSASend 1회로 넘긴다.
+	// sendNow가 false면 표시(보낸 시각·등록 해제)만 하고 WSASend는 하지 않는다 — 부른 쪽이 TrySendNow를 워커에게 넘긴다.
+	void			FlushSend(long long nowMs, bool sendNow = true);
+	// 송신 큐가 비어 있지 않고 진행 중인 송신이 없으면 지금 보낸다. 어느 스레드에서 불러도 된다.
+	void			TrySendNow();
+	// 마지막으로 FlushSend한 시각(steady_clock ms, 한 번도 없으면 0) — 세션별 송신 빈도 제한에 쓴다.
+	long long	LastFlushMs() const { return _lastFlushMs.load(memory_order_relaxed); }
 
 	int			ProcessData(BYTE* buffer, int len);
 
@@ -63,6 +73,8 @@ public:
 	SendBufferQueue		_sendQueue;
 	atomic<int>			_sendQueued = 0;	// _sendQueue에 쌓인 패킷 수(NetStats 송신 큐 지표용)
 	atomic<bool>			_sendRegistered = false;
+	atomic<bool>			_flushPending = false;	// 어느 잡 큐의 "보낼 세션 목록"에 올라 있다(중복 등록 방지)
+	atomic<long long>	_lastFlushMs = 0;
 
 private:
 	weak_ptr<ServerService> _service;

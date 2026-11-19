@@ -24,6 +24,9 @@ public:
 		_func();
 	}
 
+public:
+	long long				_enqueueUs = 0;	// 잡 큐에 넣은 시각(us, JobQueue::Push가 적음) — 큐 대기 시간 지표용
+
 private:
 	function<void()>		_func;
 };

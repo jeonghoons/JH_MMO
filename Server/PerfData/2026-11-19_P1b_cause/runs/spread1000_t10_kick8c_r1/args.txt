@@ -1,0 +1,3 @@
+1795067535 --bots 1000 --ramp-rate 200 --duration 50 --threads 4 --move-interval 200 --body male  --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_P1b_cause\runs\spread1000_t10_kick8c_r1\loadtest.csv
+loadtest exit 0
+run_id 20261119_145211

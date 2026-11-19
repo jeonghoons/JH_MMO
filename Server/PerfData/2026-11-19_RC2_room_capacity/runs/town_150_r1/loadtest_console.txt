@@ -1,0 +1,23 @@
+[loadtest] host=127.0.0.1:8888 bots=150 ramp=50/s duration=75s threads=4 profile=move body=male chaos=0 out=C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_RC2_room_capacity\runs\town_150_r1\loadtest.csv
+[bot] bot0 login: id=5 playerType=1 maxHp=650 attack=10 attackSpeed=1.00 moveSpeed=500.0 pos=(0, 0, 0)
+[bot] bot0 sees object id=5 type=1 playerType=1 template=0 pos=(-18835,4947)
+[t=  5s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=1.4/13.5/22.5/31.9 ms | sent/s=666 recv/s=31868 | server cpu=50% mem=34MB | maxBot=30.9KB/s botCpu=0%
+[t= 10s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.5/22.6/33.6/42.5 ms | sent/s=861 recv/s=61976 | server cpu=44% mem=34MB | maxBot=53.9KB/s botCpu=32%
+[t= 15s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.5/22.6/33.8/43.0 ms | sent/s=845 recv/s=72192 | server cpu=50% mem=35MB | maxBot=56.2KB/s botCpu=33%
+[t= 20s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.5/31.2/41.9/45.2 ms | sent/s=861 recv/s=75511 | server cpu=52% mem=35MB | maxBot=57.4KB/s botCpu=31%
+[t= 25s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.5/30.2/39.3/49.4 ms | sent/s=846 recv/s=76612 | server cpu=39% mem=35MB | maxBot=58.0KB/s botCpu=25%
+[t= 30s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.6/24.1/38.4/45.4 ms | sent/s=867 recv/s=81577 | server cpu=61% mem=35MB | maxBot=60.3KB/s botCpu=41%
+[t= 35s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.6/30.6/42.5/45.3 ms | sent/s=841 recv/s=79971 | server cpu=42% mem=35MB | maxBot=58.0KB/s botCpu=25%
+[t= 40s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.4/15.5/35.6/45.9 ms | sent/s=877 recv/s=80829 | server cpu=30% mem=35MB | maxBot=59.5KB/s botCpu=17%
+[t= 45s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.7/32.0/43.2/47.6 ms | sent/s=846 recv/s=75424 | server cpu=37% mem=36MB | maxBot=56.2KB/s botCpu=22%
+[t= 50s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.8/32.3/42.6/45.4 ms | sent/s=860 recv/s=76926 | server cpu=50% mem=36MB | maxBot=56.9KB/s botCpu=32%
+[t= 55s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.8/32.8/36.1/46.5 ms | sent/s=869 recv/s=75550 | server cpu=47% mem=36MB | maxBot=57.4KB/s botCpu=30%
+[t= 60s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.7/23.0/33.5/43.3 ms | sent/s=855 recv/s=71680 | server cpu=54% mem=35MB | maxBot=56.7KB/s botCpu=34%
+[t= 65s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.7/22.9/31.8/41.4 ms | sent/s=868 recv/s=69645 | server cpu=44% mem=35MB | maxBot=54.3KB/s botCpu=32%
+[t= 70s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.4/21.6/41.8/44.0 ms | sent/s=856 recv/s=74806 | server cpu=29% mem=36MB | maxBot=58.4KB/s botCpu=19%
+[t= 75s] connected=150 inGame=150 connFail=0 closed=0 | ping p50/p95/p99/max=0.5/20.6/34.6/45.6 ms | sent/s=854 recv/s=76763 | server cpu=25% mem=36MB | maxBot=57.4KB/s botCpu=15%
+
+[summary] attempts=150 ok=150 fail=0 loginOk=150 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 2.6/61.2/145.9/146.4 ms (n=150)
+[summary] ping    p50/p95/p99/max = 0.6/26.0/39.1/49.4 ms (n=10969)
+[summary] moveCorrected=709 pongs=10969 totalRecvBytes=483919533 peakBotRecv=60.3KB/s

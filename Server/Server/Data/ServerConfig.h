@@ -14,6 +14,11 @@ struct ServerConfig
 	std::string bindIp = "127.0.0.1";
 	int port = 8888;
 	int workerThreads = 0;          // 0이면 CPU 코어 수 / 2
+	// 송신 묶기(P1b, D-206): 방 작업에서 한 세션에 보내는 WSASend 사이의 최소 간격(ms). 0이면 작업이 끝날 때마다 바로 보낸다
+	int sendFlushIntervalMs = 10;
+	// Windows 타이머 해상도(ms, timeBeginPeriod). 0이면 건드리지 않는다(시스템 기본 약 15.6ms — 예약 작업이 그만큼 늦게 깰 수 있다)
+	int timerResolutionMs = 1;
+	std::string timerResolutionMsFrom = "default";
 	// 중복 접속 차단(A2.7, D-158)
 	int loginWaitTimeoutSec = 10;   // 같은 캐릭터의 이전 접속 정리(퇴장·마지막 저장)를 기다리는 시간. 넘으면 LOGIN_RESULT_BUSY
 	int loginCloseForceSec = 30;    // 정리가 끝났다는 신호가 이 시간 안에 오지 않으면 오류 로그를 남기고 접속 목록에서 강제로 뺀다
@@ -44,7 +49,7 @@ struct ServerConfig
 	int rollDropsKills = 0;
 
 	// 값마다 어디서 왔는지(default / 파일 경로 / env / cli). 시작 로그에 함께 출력한다.
-	std::string bindIpFrom = "default", portFrom = "default", workerThreadsFrom = "default";
+	std::string bindIpFrom = "default", portFrom = "default", workerThreadsFrom = "default", sendFlushIntervalMsFrom = "default";
 	std::string dbConnectionStringFrom = "default", dbConnectionsFrom = "default", playerSaveIntervalSecFrom = "default", logLevelFrom = "default", logDirFrom = "default";
 	std::string dummySpawnZoneFrom = "default", viewAuditFrom = "default", dbSaveDelayMsFrom = "default";
 	std::string loginWaitTimeoutSecFrom = "default", loginCloseForceSecFrom = "default";

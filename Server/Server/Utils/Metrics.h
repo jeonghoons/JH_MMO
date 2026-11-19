@@ -101,6 +101,7 @@ namespace Metrics
 
 	inline SampleStat TickLate;     // Room 틱이 예정보다 늦어진 시간(us) (Timer/JobQueue/IOCP 대기 지연)
 	inline SampleStat TickBody;     // Room::Update 본문 처리 시간(us)
+	inline SampleStat SendWakeLate; // 송신 깨우기 작업(Room::OnSendWake)이 예약 시각보다 늦게 돈 시간(us) (P1b — Timer 해상도 + IOCP 대기)
 	inline SampleStat ViewPlayers;  // 플레이어 한 명의 시야 안 다른 플레이어 수 (1초마다 플레이어별 표본)
 	inline SampleStat ViewObjects;  // 플레이어 한 명의 시야 안 전체 오브젝트 수(플레이어 + 몬스터)
 

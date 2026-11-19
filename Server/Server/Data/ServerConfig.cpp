@@ -99,6 +99,16 @@ namespace
 				if (!ParseInt(e.value, 0, 256, cfg.workerThreads)) { err = where + "WorkerThreads must be 0~256: '" + e.value + "'"; return false; }
 				cfg.workerThreadsFrom = from;
 			}
+			else if (name == "Network.SendFlushIntervalMs")
+			{
+				if (!ParseInt(e.value, 0, 200, cfg.sendFlushIntervalMs)) { err = where + "SendFlushIntervalMs must be 0~200: '" + e.value + "'"; return false; }
+				cfg.sendFlushIntervalMsFrom = from;
+			}
+			else if (name == "Network.TimerResolutionMs")
+			{
+				if (!ParseInt(e.value, 0, 16, cfg.timerResolutionMs)) { err = where + "TimerResolutionMs must be 0~16: '" + e.value + "'"; return false; }
+				cfg.timerResolutionMsFrom = from;
+			}
 			else if (name == "Network.LoginWaitTimeoutSec")
 			{
 				if (!ParseInt(e.value, 1, 600, cfg.loginWaitTimeoutSec)) { err = where + "LoginWaitTimeoutSec must be 1~600: '" + e.value + "'"; return false; }
@@ -282,6 +292,8 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "Network.BindIp            = {}  ({})", bindIp, bindIpFrom);
 	LOG_INFO("Config", "Network.Port              = {}  ({})", port, portFrom);
 	LOG_INFO("Config", "Network.WorkerThreads     = {} -> {}  ({})", workerThreads, ResolvedWorkerThreads(), workerThreadsFrom);
+	LOG_INFO("Config", "Network.SendFlushIntervalMs = {}  ({})", sendFlushIntervalMs, sendFlushIntervalMsFrom);
+	LOG_INFO("Config", "Network.TimerResolutionMs = {}  ({})", timerResolutionMs, timerResolutionMsFrom);
 	LOG_INFO("Config", "Network.LoginWaitTimeoutSec = {}  ({})", loginWaitTimeoutSec, loginWaitTimeoutSecFrom);
 	LOG_INFO("Config", "Network.LoginCloseForceSec = {}  ({})", loginCloseForceSec, loginCloseForceSecFrom);
 	LOG_INFO("Config", "Database.ConnectionString = {}  ({})", MaskSecrets(dbConnectionString), dbConnectionStringFrom);

@@ -1395,7 +1395,7 @@ def apply_lighting(name, dump=False, actors=None, pie=False):
 
 # pie_exec가 받는 콘솔 명령(첫 단어, 소문자): 측정과 렌더 설정,
 # 그리고 게임의 개발용 콘솔 명령(AJMPlayerController — 서버가 검증하는 요청만 보냄: Give·Equip·Shop*, L4에서 추가)
-_PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen", "give", "equip", "shopopen", "shopbuy", "shopsell", "shopclose"}
+_PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen", "give", "equip", "shopopen", "shopbuy", "shopsell", "shopclose", "netmovestats"}
 _PIE_EXEC_PREFIX = ("t.", "r.", "sg.", "grass.", "foliage.")
 
 

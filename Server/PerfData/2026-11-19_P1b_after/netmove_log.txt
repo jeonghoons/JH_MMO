@@ -1,0 +1,4 @@
+[2026.11.19-08.23.22:843][209]LogTemp: NetMoveStats 5s: frames=1148 speedRatio p50/p99/max=1.10/1.26/1.30 over1.2=9.23% | packetErr avg/max=190.3/764.7cm n=2772 | snaps=60 | mySends=0 (0.0/s)
+[2026.11.19-08.24.31:859][425]LogTemp: NetMoveStats 69s: frames=18615 speedRatio p50/p99/max=1.01/1.27/1.30 over1.2=2.38% | packetErr avg/max=124.7/282.7cm n=28502 | snaps=0 | mySends=0 (0.0/s)
+[2026.11.19-08.25.07:716][531]LogTemp: NetMoveStats 36s: frames=4218 speedRatio p50/p99/max=0.98/1.26/1.30 over1.2=2.75% | packetErr avg/max=127.0/301.3cm n=6930 | snaps=0 | mySends=0 (0.0/s)
+[2026.11.19-08.26.15:698][735]LogTemp: NetMoveStats 68s: frames=17567 speedRatio p50/p99/max=1.01/1.26/1.30 over1.2=2.02% | packetErr avg/max=125.2/240.3cm n=28098 | snaps=0 | mySends=0 (0.0/s)

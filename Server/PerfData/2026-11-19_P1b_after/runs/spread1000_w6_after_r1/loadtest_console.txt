@@ -1,0 +1,18 @@
+[loadtest] host=127.0.0.1:8888 bots=1000 ramp=200/s duration=50s threads=4 profile=move body=male chaos=0 out=C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_P1b_after\runs\spread1000_w6_after_r1\loadtest.csv
+[bot] bot0 login: id=2 playerType=1 maxHp=650 attack=10 attackSpeed=1.00 moveSpeed=500.0 pos=(0, 0, 0)
+[bot] bot0 sees object id=2 type=1 playerType=1 template=0 pos=(-5793,-18744)
+[t=  5s] connected=984 inGame=984 connFail=0 closed=0 | ping p50/p95/p99/max=0.6/11.1/13.5/18.7 ms | sent/s=3318 recv/s=20451 | server cpu=96% mem=96MB | maxBot=6.5KB/s botCpu=0%
+[t= 10s] connected=1000 inGame=1000 connFail=0 closed=0 | ping p50/p95/p99/max=0.9/11.5/14.0/23.0 ms | sent/s=5982 recv/s=36598 | server cpu=157% mem=98MB | maxBot=7.5KB/s botCpu=158%
+[t= 15s] connected=1000 inGame=1000 connFail=0 closed=0 | ping p50/p95/p99/max=1.8/13.2/15.5/22.4 ms | sent/s=5970 recv/s=35583 | server cpu=146% mem=98MB | maxBot=7.0KB/s botCpu=130%
+[t= 20s] connected=1000 inGame=1000 connFail=0 closed=0 | ping p50/p95/p99/max=1.3/13.4/16.9/32.8 ms | sent/s=5976 recv/s=34733 | server cpu=148% mem=98MB | maxBot=6.9KB/s botCpu=138%
+[t= 25s] connected=1000 inGame=1000 connFail=0 closed=0 | ping p50/p95/p99/max=1.0/10.7/15.6/36.5 ms | sent/s=5942 recv/s=33497 | server cpu=135% mem=98MB | maxBot=6.6KB/s botCpu=125%
+[t= 30s] connected=1000 inGame=1000 connFail=0 closed=0 | ping p50/p95/p99/max=0.9/11.8/19.8/40.4 ms | sent/s=5975 recv/s=32933 | server cpu=118% mem=98MB | maxBot=6.6KB/s botCpu=98%
+[t= 35s] connected=1000 inGame=1000 connFail=0 closed=0 | ping p50/p95/p99/max=0.9/13.6/19.7/36.2 ms | sent/s=5835 recv/s=32846 | server cpu=112% mem=98MB | maxBot=6.5KB/s botCpu=97%
+[t= 40s] connected=1000 inGame=1000 connFail=0 closed=0 | ping p50/p95/p99/max=2.8/30.2/44.0/55.6 ms | sent/s=5976 recv/s=33038 | server cpu=136% mem=98MB | maxBot=6.5KB/s botCpu=106%
+[t= 45s] connected=1000 inGame=1000 connFail=0 closed=0 | ping p50/p95/p99/max=1.2/21.6/33.0/42.5 ms | sent/s=5996 recv/s=33544 | server cpu=124% mem=98MB | maxBot=6.6KB/s botCpu=103%
+[t= 50s] connected=1000 inGame=1000 connFail=0 closed=0 | ping p50/p95/p99/max=1.6/16.2/21.7/25.6 ms | sent/s=5889 recv/s=33414 | server cpu=145% mem=98MB | maxBot=6.8KB/s botCpu=122%
+
+[summary] attempts=1000 ok=1000 fail=0 loginOk=1000 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 3.6/13.9/36.6/59.9 ms (n=1000)
+[summary] ping    p50/p95/p99/max = 1.2/15.2/28.0/55.6 ms (n=47228)
+[summary] moveCorrected=3063 pongs=47228 totalRecvBytes=132401014 peakBotRecv=7.5KB/s

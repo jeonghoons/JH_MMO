@@ -1,0 +1,29 @@
+[matrix] 있음: idle
+done spread_500_r1
+done spread_500_r2
+[matrix] spread 500명: 초과
+done spread_250_r1
+done spread_250_r2
+[matrix] spread 250명: 통과
+done spread_375_r1
+done spread_375_r2
+[matrix] spread 375명: 초과
+done hot_250_r1
+done hot_250_r2
+[matrix] hot 250명: 초과
+done hot_150_r1
+done hot_150_r2
+[matrix] hot 150명: 초과
+done town_500_r1
+done town_500_r2
+[matrix] town 500명: 초과
+done town_250_r1
+done town_250_r2
+[matrix] town 250명: 초과
+done town_150_r1
+done town_150_r2
+[matrix] town 150명: 초과
+done hunt_250_r1
+done hunt_250_r2
+[matrix] hunt 250명: 통과
+[matrix] 끝

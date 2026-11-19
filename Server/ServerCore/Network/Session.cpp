@@ -2,6 +2,7 @@
 #include "Network/Session.h"
 #include "Network/ServerService.h"
 #include "Network/NetStats.h"
+#include "Job/JobQueue.h"
 
 Session::Session() : _recvBuffer(65536)
 {
@@ -69,6 +70,9 @@ void Session::Disconnect(const WCHAR* cause)
 
 void Session::ForceClose(const WCHAR* cause)
 {
+	// 직전에 Send한 패킷(SC_KICK 등)이 송신 묶기로 큐에만 있을 수 있다. 끊기 전에 전송을 건다.
+	TrySendNow();
+
 	Disconnect(cause);
 
 	// 핸들은 소멸자에서 닫는다(다른 스레드가 같은 핸들로 WSARecv/WSASend를 부르는 중일 수 있어 여기서 closesocket하지 않는다).
@@ -78,7 +82,7 @@ void Session::ForceClose(const WCHAR* cause)
 }
 
 
-void Session::Send(shared_ptr<SendBuffer> sendBuffer, bool pushOnly)
+void Session::Send(shared_ptr<SendBuffer> sendBuffer)
 {
 	if (false == IsConnected())
 		return;
@@ -90,13 +94,43 @@ void Session::Send(shared_ptr<SendBuffer> sendBuffer, bool pushOnly)
 	int prevMax = NetStats::SendQueueMax.load();
 	while (depth > prevMax && !NetStats::SendQueueMax.compare_exchange_weak(prevMax, depth)) {}
 
-	if (pushOnly) return;
-
-	bool expected = false;
-	if (_sendRegistered.compare_exchange_strong(expected, true)) {
-		RegisterSend();
+	// 잡 큐의 작업 안에서 보낸 것은 그 큐가 모아서 보낸다. 큐에 넣은 뒤에 등록하므로, 다른 스레드의 FlushSend가
+	// 플래그를 내리는 것과 겹쳐도 이 패킷은 그 송신에 실리거나(플래그가 아직 켜져 있었음) 여기서 새로 등록된다.
+	if (JobQueue* queue = JobQueue::Current())
+	{
+		if (_flushPending.exchange(true) == false)
+			queue->AddPendingSend(static_pointer_cast<Session>(shared_from_this()));
+		return;
 	}
 
+	NetStats::SendDirect.fetch_add(1, memory_order_relaxed);
+	TrySendNow();
+}
+
+void Session::FlushSend(long long nowMs, bool sendNow)
+{
+	// 큐를 보기 전에 플래그를 내린다 — 이 뒤에 Send된 패킷은 다시 등록된다.
+	// 시각을 먼저 적는 것은 다시 등록하는 쪽이 새 시각으로 보낼 때를 계산하게 하려는 것.
+	const long long prevMs = _lastFlushMs.exchange(nowMs, memory_order_relaxed);
+	_flushPending.store(false);
+
+	NetStats::SendFlushes.fetch_add(1, memory_order_relaxed);
+	if (prevMs != 0)
+		NetStats::AddMs(NetStats::FlushGapMs, nowMs - prevMs);
+
+	if (sendNow)
+		TrySendNow();
+}
+
+void Session::TrySendNow()
+{
+	if (_sendQueue.isEmpty())
+		return;
+
+	// 이미 송신 중이면 ProcessSend의 재확인이 큐에 남은 것을 이어서 보낸다.
+	bool expected = false;
+	if (_sendRegistered.compare_exchange_strong(expected, true))
+		RegisterSend();
 }
 
 int Session::ProcessData(BYTE* buffer, int len)
@@ -201,6 +235,16 @@ void Session::RegisterSend()
 		_sendEvent.sendBuffers.push_back(buffer);
 	}
 	const int popped = static_cast<int>(_sendEvent.sendBuffers.size());
+	if (popped == 0)
+	{
+		// 큐를 본 뒤 플래그를 잡기 전에 다른 송신(ProcessSend의 재확인)이 먼저 다 가져갔다.
+		// 버퍼 0개로 WSASend하면 0바이트 완료가 와서 ProcessSend가 "Send 0"으로 끊으므로 부르지 않는다.
+		// 플래그를 내린 뒤 다시 확인하는 것은 ProcessSend와 같은 절차다.
+		_sendEvent._owner = nullptr;
+		_sendRegistered.store(false);
+		TrySendNow();
+		return;
+	}
 	_sendQueued.fetch_sub(popped);
 	NetStats::SendQueued.fetch_sub(popped);
 
@@ -250,9 +294,18 @@ void Session::ProcessSend(int numOfBytes)
 	_sendRegistered.store(false);
 	if (_sendQueue.isEmpty() == false)
 	{
+		// 큐에 남은 것이 잡 큐의 "보낼 세션 목록"에 올라 있으면(_flushPending) 그 큐가 송신 간격에 맞춰 보낸다 — 여기서 바로
+		// 이어 보내면 간격을 건너뛰어 묶이지 않는다(P1b). 플래그가 켜져 있는 동안은 FlushSend가 반드시 한 번 더 불린다.
+		// 플래그가 꺼져 있으면(FlushSend가 이미 지나갔거나 잡 큐 밖에서 보낸 것) 여기서 이어 보내야 남지 않는다.
+		if (_flushPending.load())
+			return;
+
 		bool expected = false;
 		if (_sendRegistered.compare_exchange_strong(expected, true))
+		{
+			NetStats::SendContinues.fetch_add(1, memory_order_relaxed);
 			RegisterSend();
+		}
 	}
 }
 

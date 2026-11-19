@@ -1,0 +1,15 @@
+done hot100_w6_t0
+done hot100_w6_t5
+done hot100_w6_t10
+done hot100_w6_t20
+done hot100_w6_t30
+done hot25_w6_t5
+done hot50_w6_t5
+done spread1000_w6_t5
+done hot25_w6_t10
+done hot50_w6_t10
+done spread1000_w6_t10
+done hot25_w6_t20
+done hot50_w6_t20
+done spread1000_w6_t20
+[matrix] 끝

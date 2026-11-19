@@ -1,0 +1,5 @@
+done hot100_t10_kick8_r1
+done spread1000_t10_kick8_r1
+done hot100_t10_kick8_r2
+done spread1000_t10_kick8_r2
+[set] 끝
