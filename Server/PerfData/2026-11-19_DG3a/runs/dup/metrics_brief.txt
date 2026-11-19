@@ -1,0 +1,6 @@
+01:05:29.781	sessions=1	players=1	login(total kick/busy/forced)=1/0/0	world(channels/roster/chMax)=1/1/1
+01:05:34.795	sessions=1	players=1	login(total kick/busy/forced)=1/0/0	world(channels/roster/chMax)=1/1/1
+01:05:39.801	sessions=1	players=1	login(total kick/busy/forced)=1/0/0	world(channels/roster/chMax)=1/1/1
+01:05:44.804	sessions=1	players=1	login(total kick/busy/forced)=1/0/0	world(channels/roster/chMax)=1/1/1
+01:05:49.804	sessions=0	players=0	login(total kick/busy/forced)=1/0/0	world(channels/roster/chMax)=1/0/0
+01:05:54.805	sessions=0	players=0	login(total kick/busy/forced)=1/0/0	world(channels/roster/chMax)=1/0/0

@@ -1,0 +1,5 @@
+[A] SC_LOGIN 0.0s 뒤 (본문 67B)
+[B] SC_LOGIN 0.0s 뒤 (본문 67B)
+[A] 끊김: 4.38690185546875e-05
+[C] SC_LOGIN 0.0s 뒤 (본문 67B)
+PASS

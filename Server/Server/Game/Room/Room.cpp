@@ -11,20 +11,26 @@
 #include "Utils/Metrics.h"
 #include "DB/DatabaseWorker.h"
 
-Room::Room(shared_ptr<Timer> timer, HANDLE iocpHandle) : _timer(timer), _jobQueue(make_shared<JobQueue>(iocpHandle))
+Room::Room(shared_ptr<Timer> timer, HANDLE iocpHandle, RoomInfo info) : _info(std::move(info)), _timer(timer), _jobQueue(make_shared<JobQueue>(iocpHandle))
 {
 }
 Room::~Room() = default;
 
-void Room::InitRoom()
+bool Room::InitRoom(bool allowBroken)
 {
-	if (!_gameMap.LoadMapData(GServerConfig.mapName))
+	// 레벨 수치(부활·포털 재사용 대기 등)는 이 Room 레벨의 WorldTable 행에서 읽는다. 행이 없으면 Room을 돌릴 수 없다.
+	_world = DataManager::GetWorldData(_info.levelName);
+	if (_world == nullptr)
 	{
-		LOG_ERROR("Room", "맵 초기화(LoadMapData) 중 일부 문제가 발생했습니다.");
+		LOG_ERROR("Room", "Room {}: WorldTable에 맵 '{}' 행이 없습니다", _info.roomId, _info.levelName);
+		return false;
 	}
-	// 정원은 맵마다 WorldTable.RoomCapacity (D-176). 행의 존재는 서버 시작 때 확인했다.
-	if (const WorldData* world = DataManager::GetWorldData(GServerConfig.mapName))
-		_capacity = world->roomCapacity;
+	const bool mapOk = _gameMap.LoadMapData(_info.levelName);
+	if (!mapOk)
+	{
+		LOG_ERROR("Room", "Room {}(채널 {}, 맵 '{}'): 맵 초기화(LoadMapData) 중 일부 문제가 발생했습니다.", _info.roomId, _info.channel, _info.levelName);
+		if (!allowBroken) return false;
+	}
 	_gameMap.Init(weak_from_this());
 
 	// 송신 묶기(P1b, D-206): 방 작업 안의 Send는 잡 큐가 모아 세션당 WSASend 1회로 보낸다(JobQueue.h).
@@ -54,12 +60,12 @@ void Room::InitRoom()
 				zoneCounts["(마커 값)"] += max(1, spawn.MaxCount);
 				continue;
 			}
-			const vector<SpawnData>& rows = DataManager::GetSpawns(GServerConfig.mapName, spawn.ZoneName);
+			const vector<SpawnData>& rows = DataManager::GetSpawns(_info.levelName, spawn.ZoneName);
 			if (rows.empty())
 			{
 				// 방은 플레이어가 늘면 실행 중에도 만들어지므로 서버를 멈추지 않고 ERROR만 남긴다(구역마다 한 번).
 				if (missingZones.insert(spawn.ZoneName).second)
-					LOG_ERROR("Room", "스폰 마커의 구역 '{}' 이 SpawnTable(MapName '{}')에 없어 그 구역은 스폰하지 않습니다", spawn.ZoneName, GServerConfig.mapName);
+					LOG_ERROR("Room", "스폰 마커의 구역 '{}' 이 SpawnTable(MapName '{}')에 없어 그 구역은 스폰하지 않습니다", spawn.ZoneName, _info.levelName);
 				continue;
 			}
 			for (const SpawnData& row : rows)
@@ -72,7 +78,7 @@ void Room::InitRoom()
 		string summary;
 		for (const auto& [zone, count] : zoneCounts)
 			summary += (summary.empty() ? "" : ", ") + zone + " " + std::to_string(count);
-		LOG_INFO("Room", "몬스터 스폰: 지점 {}곳, 몬스터 {}마리 ({})", monsterSpawns.size(), _monsters.size(), summary);
+		LOG_INFO("Room", "Room {}(채널 {}, {}) 몬스터 스폰: 지점 {}곳, 몬스터 {}마리 ({})", _info.roomId, _info.channel, _info.levelName, monsterSpawns.size(), _monsters.size(), summary);
 	}
 	
 	// 마을 NPC(L4): Npc 마커 + NpcTable
@@ -91,6 +97,7 @@ void Room::InitRoom()
 
 	long long currentTick = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 	Update(currentTick);
+	return true;   // 맵을 읽지 못했어도 여기까지 왔으면(allowBroken) 방은 돌고 있다
 }
 
 // [Debug] DummySpawnZone 원 안에서 내비메시 위의 점을 고른다(핫존·시야 경계 시험). 구역이 없거나 다 찼거나 못 찾으면 false
@@ -257,22 +264,21 @@ bool Room::RemoveObject(int objectId)
 
 void Room::PlayerEnterRoom(shared_ptr<Player> player)
 {
-	// 입장 예약(EnterPlayer)과 이 잡 사이에 세션이 끊겼으면 들이지 않는다. 끊긴 세션의 OnDisconnected는
+	// 입장 배정(WorldService::EnterWorld)과 이 잡 사이에 세션이 끊겼으면 들이지 않는다. 끊긴 세션의 OnDisconnected는
 	// 아직 방에 없던 플레이어라 퇴장 잡을 넣지 않았을 수 있으므로, 여기서 들이면 유령 플레이어가 된다(감사 F1·F2).
 	shared_ptr<GameSession> enterSession = player->GetSession();
 	if (enterSession == nullptr || false == enterSession->IsConnected()) {
 		LOG_DEBUG("Room", "Player[{}] Enter 취소: 세션 끊김", player->GetId());
-		ReleaseSlot();
 		NotifyClosedIfDone(player);
 		return;
 	}
 
 	if (false == AddObject(player)) {
-		ReleaseSlot(); // EnterPlayer에서 예약한 자리를 반환한다.
 		return;
 	}
 
-	_players.emplace(player->GetId(), player);
+	if (_players.emplace(player->GetId(), player).second)
+		_playerCount.fetch_add(1);
 
 	// 이동 검증 상태: 예산 0에서 시작해 시간이 지나면 모인다.
 	player->moveGuard = {};
@@ -355,7 +361,7 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 	}
 
 	if (_players.erase(playerId) > 0)
-		ReleaseSlot();
+		_playerCount.fetch_sub(1);
 
 	// 거래 중이었다면 취소한다(A4.1). 확정 중(DB 결과 대기)이면 그대로 두고 결과 처리가 남은 쪽에만 반영한다.
 	CancelTradeOf(player, Protocol::TRADE_RESULT_DISCONNECTED);
@@ -379,7 +385,7 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 
 void Room::NotifyClosedIfDone(const shared_ptr<Player>& player)
 {
-	if (player == nullptr || player->isDummy || player->GetPlayerUID() == 0) return;   // 접속 목록에 없는 플레이어
+	if (player == nullptr) return;
 	if (player->closedNotified) return;
 
 	// 아직 방에 있다(같은 id를 다른 플레이어가 다시 쓸 수 있으므로 포인터로 비교).
@@ -393,8 +399,9 @@ void Room::NotifyClosedIfDone(const shared_ptr<Player>& player)
 	// DB에 가 있는 작업이 남았다. 결과를 받는 쪽이 다시 부른다.
 	if (player->itemOp.inFlight || player->progressSave.inFlight || player->quickSlotSave.inFlight) return;
 
+	// 접속자 명부·채널 인원은 WorldService가 정리하고(더미 봇 포함), 중복 접속 목록(_online)은 서비스가 로비에 이어서 알린다(DG3a).
 	player->closedNotified = true;
-	GLobby->PushJob(&AuthLobby::OnPlayerClosed, player->GetPlayerUID(), player->GetId());
+	GWorld->PushJob(&WorldService::OnPlayerClosed, player->GetId(), player->GetPlayerUID(), player->isDummy);
 }
 
 void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, uint32_t correctionSeq)
@@ -565,7 +572,7 @@ void Room::PlayerRevive(shared_ptr<Player> player)
 {
 	if (player == nullptr || Id2Player(player->GetId()) == nullptr) return;
 
-	const WorldData* world = DataManager::GetWorldData(GServerConfig.mapName);   // 서버 시작 때 존재를 확인했다
+	const WorldData* world = _world;
 	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 
 	// 검증: 죽어 있는가 → 대기 시간이 지났는가. 살아 있을 때 온 요청(중복 부활 포함)과 이른 요청은 응답 없이 버린다.
@@ -610,7 +617,7 @@ void Room::PlayerRevive(shared_ptr<Player> player)
 bool Room::ResolvePortalTarget(const PortalTriggerPoint& portal, Protocol::PositionInfo& outPos) const
 {
 	// 다른 레벨로 가는 포털(던전 입구·정거장)은 아직 받지 않는다(Room 간 이동 — DG3).
-	if (portal.TargetMap != GServerConfig.mapName) return false;
+	if (portal.TargetMap != _info.levelName) return false;
 
 	const PortalTriggerPoint* target = _gameMap.FindPortal(portal.TargetPointId);
 	if (target == nullptr || target->PointId == portal.PointId) return false;
@@ -625,7 +632,7 @@ void Room::PlayerUsePortal(shared_ptr<Player> player, int portalId)
 {
 	if (player == nullptr || Id2Player(player->GetId()) == nullptr) return;
 
-	const WorldData* world = DataManager::GetWorldData(GServerConfig.mapName);      // 서버 시작 때 존재를 확인했다
+	const WorldData* world = _world;
 	const MovementData* rule = DataManager::GetMovementData(PLAYER_MOVEMENT_ID);
 	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 
@@ -2817,67 +2824,8 @@ shared_ptr<Monster> Room::Id2Monster(int mId)
 	return it->second;
 }
 
-shared_ptr<Room> RoomManager::CreateRoom()
-{
-	int id = IdGenerator();
-
-	shared_ptr<Room> room = make_shared<Room>(GTimer, _iocpHandle);
-	// 맵·몬스터 로딩이 오래 걸리므로 매니저 락을 잡지 않고 먼저 초기화한 뒤 등록한다.
-	room->InitRoom();
-
-	{
-		RWLock::WriteGuard lock(_lock);
-		_rooms.insert({ id, room });
-	}
-
-	return room;
-}
-
-void RoomManager::Remove(int roomId)
+void RoomManager::Add(shared_ptr<Room> room)
 {
 	RWLock::WriteGuard lock(_lock);
-	_rooms.erase(roomId);
-}
-
-void RoomManager::Remove(shared_ptr<Room> room)
-{
-	return;
-}
-
-bool RoomManager::TryEnterExisting(shared_ptr<Player> player)
-{
-	RWLock::ReadGuard lock(_lock);
-	for (auto& [id, room] : _rooms) {
-		if (room->TryReserveSlot()) {
-			player->SetOwnerRoom(room);
-			room->PushJob(&Room::PlayerEnterRoom, player);
-			return true;
-		}
-	}
-	return false;
-}
-
-void RoomManager::EnterPlayer(shared_ptr<Player> player)
-{
-	if (player == nullptr) return;
-
-	if (TryEnterExisting(player))
-		return;
-
-	// 방이 없으면 하나만 만든다. 락을 기다리는 동안 다른 스레드가 만든 방이 있으면 그 방을 쓴다.
-	lock_guard<mutex> createLock(_createMutex);
-	if (TryEnterExisting(player))
-		return;
-
-	shared_ptr<Room> newRoom = CreateRoom();
-	newRoom->TryReserveSlot();
-	player->SetOwnerRoom(newRoom);
-	newRoom->PushJob(&Room::PlayerEnterRoom, player);
-}
-
-
-int RoomManager::IdGenerator()
-{
-	static atomic<int> _idGenerator = 0;
-	return ++_idGenerator;
+	_rooms.insert({ room->GetRoomId(), room });
 }

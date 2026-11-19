@@ -1,0 +1,4 @@
+1795103036 --bots 200 --ramp-rate 50 --duration 60 --threads 4 --move-interval 200 --body male  --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_DG3a\runs\spread200_w6_after_r2\loadtest.csv
+exe after data /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_DG3a/datatable_post
+loadtest exit 0
+run_id 20261120_004353

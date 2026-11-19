@@ -1,0 +1,17 @@
+[loadtest] host=127.0.0.1:8888 bots=25 ramp=50/s duration=45s threads=4 profile=move body=male chaos=0 out=C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_DG3a\runs\hot25_w6_after_r1\loadtest.csv
+[bot] bot0 login: id=5 playerType=1 maxHp=650 attack=10 attackSpeed=1.00 moveSpeed=500.0 pos=(0, 0, 0)
+[bot] bot0 sees object id=5 type=1 playerType=1 template=0 pos=(-14438,-191)
+[t=  5s] connected=25 inGame=25 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/11.3/12.0/12.0 ms | sent/s=145 recv/s=2740 | server cpu=5% mem=24MB | maxBot=9.7KB/s botCpu=0%
+[t= 10s] connected=25 inGame=25 connFail=0 closed=0 | ping p50/p95/p99/max=0.4/11.3/11.9/12.2 ms | sent/s=141 recv/s=2798 | server cpu=3% mem=24MB | maxBot=9.9KB/s botCpu=3%
+[t= 15s] connected=25 inGame=25 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/0.9/11.8/11.9 ms | sent/s=143 recv/s=2832 | server cpu=3% mem=24MB | maxBot=9.9KB/s botCpu=2%
+[t= 20s] connected=25 inGame=25 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/11.2/11.6/11.8 ms | sent/s=142 recv/s=2810 | server cpu=1% mem=24MB | maxBot=9.9KB/s botCpu=0%
+[t= 25s] connected=25 inGame=25 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/10.2/11.6/11.7 ms | sent/s=144 recv/s=2888 | server cpu=2% mem=25MB | maxBot=10.1KB/s botCpu=0%
+[t= 30s] connected=25 inGame=25 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/11.6/12.1/12.2 ms | sent/s=143 recv/s=2848 | server cpu=2% mem=25MB | maxBot=9.9KB/s botCpu=1%
+[t= 35s] connected=25 inGame=25 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/11.0/11.6/11.8 ms | sent/s=144 recv/s=2873 | server cpu=3% mem=25MB | maxBot=10.1KB/s botCpu=3%
+[t= 40s] connected=25 inGame=25 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/10.6/12.6/12.8 ms | sent/s=141 recv/s=2785 | server cpu=1% mem=25MB | maxBot=9.8KB/s botCpu=0%
+[t= 45s] connected=25 inGame=25 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/11.1/11.3/11.3 ms | sent/s=145 recv/s=2870 | server cpu=1% mem=25MB | maxBot=10.1KB/s botCpu=1%
+
+[summary] attempts=25 ok=25 fail=0 loginOk=25 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 31.2/59.2/67.1/67.1 ms (n=25)
+[summary] ping    p50/p95/p99/max = 0.2/11.2/11.8/12.8 ms (n=1112)
+[summary] moveCorrected=43 pongs=1112 totalRecvBytes=11370099 peakBotRecv=10.1KB/s

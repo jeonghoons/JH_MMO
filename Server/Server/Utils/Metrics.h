@@ -75,6 +75,10 @@ namespace Metrics
 	inline std::atomic<long long> DropsDiscarded{ 0 };   // 플레이어가 버려서 만든 수(누적, DropsCreated에도 들어간다, A3.5)
 	inline std::atomic<long long> TradesDone{ 0 };       // 성사된 1:1 거래 수(누적, A4.2)
 
+	// 전역 서비스(DG3a): WorldService가 명부·채널이 바뀔 때 적는다
+	inline std::atomic<int>       WorldChannels{ 0 };   // 만들어진 채널 수
+	inline std::atomic<int>       WorldRoster{ 0 };     // 접속자 명부 크기(로그인 ~ 정리 완료, 더미 봇 포함)
+	inline std::atomic<int>       WorldChannelMax{ 0 }; // 인원이 가장 많은 채널의 인원
 	inline std::atomic<int>       Monsters{ 0 };      // 현재 월드에 살아 있거나 시체로 남아 있는 몬스터 수
 	inline std::atomic<long long> AttackRequests{ 0 };  // CS_ATTACK 수신 수(누적)
 	inline std::atomic<long long> AttackAccepted{ 0 };  // 쿨타임·상태 검사를 통과한 플레이어 공격 수(누적)

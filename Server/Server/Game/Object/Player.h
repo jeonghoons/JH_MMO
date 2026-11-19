@@ -21,6 +21,7 @@ public:
 	virtual void OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker) override;
 	virtual void OnDead(std::shared_ptr<Character> attacker) override;
 	virtual int GetReviveDelayMs() const override;
+	const struct WorldData* CurrentWorldData() const;
 public:
 
 	// DB에서 읽은 값(레벨·HP·인벤토리·장비)을 반영한다(MC3.3·A2.5·A3.3). DB 레벨의 PlayerStatTable 행이 없으면 false(로그인 거부).
@@ -28,6 +29,7 @@ public:
 	int64_t GetPlayerUID() const { return _dbPlayerInfo.playerUID; }
 
 	void SetPlayerType(Protocol::PlayerType type) { _objectInfo.set_player_type(type); }
+	int channel = 0;   // 로그인 때 WorldService가 배정하고 접속이 끝날 때까지 바뀌지 않는다(D-215). 0 = 아직 배정 전
 	bool isDummy = false;
 
 	// 캐릭터 이름(Player_Info.Name). 로그인 때 정해지고 바뀌지 않는다. ObjectInfo.name(UTF-8)에도 실어 HUD·다른 플레이어에게 보낸다(A2.3a).

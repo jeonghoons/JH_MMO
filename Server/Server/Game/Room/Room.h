@@ -7,7 +7,8 @@
 #include "Data/ServerData.h"
 #include <deque>
 
-// 모든 Room이 쓰는 레벨 이름은 ServerConfig [World] MapName(GServerConfig.mapName), 정원은 WorldTable.RoomCapacity (D-172·D-176)
+// Room은 자기 정체(RoomInfo: id·종류·채널·구역·레벨 이름)를 갖고, 레벨 수치는 그 레벨의 WorldTable 행에서 읽는다(DG3a, D-215).
+// Room별 정원은 없다 — 채널 인원은 WorldService가 센다.
 constexpr int DROP_ID_BEGIN = 1000000000;      // 드랍 오브젝트 id 시작(방마다 따로 증가, int32 끝에 닿으면 처음으로)
 constexpr int NPC_ID_BEGIN = 900000000;        // 마을 NPC 오브젝트 id 시작(방을 만들 때 마커 순서대로 — 플레이어·몬스터·드랍과 겹치지 않음, L4)
 constexpr int MAX_CHAT_LEN = 100;               // 채팅 한 줄 최대 글자 수(UTF-16 문자 기준)
@@ -53,14 +54,36 @@ struct TradeSession
 };
 struct SkillData;
 
+// Room의 종류(DESIGN_PARTY_DUNGEON §2-1). 마을·사냥터는 채널마다 하나씩, 던전은 인스턴스마다 하나.
+enum class RoomKind { Town, Field, Dungeon };
+
+// Room의 정체. 만들 때 정하고 바뀌지 않는다(어느 스레드에서 읽어도 된다).
+struct RoomInfo
+{
+	int roomId = 0;                 // 서버 안에서 유일(WorldService가 순번으로 준다)
+	RoomKind kind = RoomKind::Town;
+	int channel = 0;                // 1부터
+	string area;                    // 구역 이름(town/field/dungeon). 비어 있으면 레벨 전체 — DG3a에서는 채널당 Room 하나라 비워 둔다(DG3b에서 나눔)
+	string levelName;               // 맵 리소스 파일 이름 = WorldTable.MapName
+};
+
 class Room : public enable_shared_from_this<Room>
 {
 public:
-	Room(shared_ptr<Timer> timer, HANDLE iocpHandle);
+	Room(shared_ptr<Timer> timer, HANDLE iocpHandle, RoomInfo info);
 
 	~Room();
 
-	void InitRoom();
+	// 맵을 읽고 몬스터·NPC·포털을 놓은 뒤 Update를 시작한다. 반환값 = 방이 시작됐는가(false면 아무것도 시작하지 않았으므로 버리면 된다).
+	// allowBroken = true면 맵 리소스를 읽지 못해도 끝까지 진행하고 true(서버 시작 때의 첫 Room — 오류는 로그로 남기고 서버는 뜬다, 기존 동작).
+	// false면 읽지 못했을 때 바로 false로 돌아간다(실행 중에 만드는 채널). WorldTable 행이 없으면 어느 쪽이든 false.
+	// Room이 아직 어디에도 등록되지 않은 때에 만드는 스레드에서 직접 부른다(잡 큐 밖에서 Room 상태를 만지는 유일한 예외).
+	bool InitRoom(bool allowBroken);
+
+	const RoomInfo& GetInfo() const { return _info; }
+	int GetRoomId() const { return _info.roomId; }
+	// 이 Room 레벨의 WorldTable 행. InitRoom에서 정하고 바뀌지 않는다(InitRoom이 성공했으면 nullptr이 아니다).
+	const WorldData* GetWorldData() const { return _world; }
 
 	template<typename... Arguments>
 	void PushJob(void(Room::* memFunc)(Arguments...), Arguments... args)
@@ -213,19 +236,7 @@ public:
 	shared_ptr<Player> Id2Player(int pId);
 	shared_ptr<Monster> Id2Monster(int mId);
 
-	// 입장 예약(정원 확인 + 자리 확보)을 원자적으로 한다. 입장 처리(PlayerEnterRoom)는 JobQueue에서 나중에 실행되므로
-	// _players.size()로 정원을 판단하면 동시에 들어오는 플레이어가 정원을 넘길 수 있다.
-	bool TryReserveSlot()
-	{
-		int count = _playerCount.load();
-		while (count < _capacity)
-		{
-			if (_playerCount.compare_exchange_weak(count, count + 1))
-				return true;
-		}
-		return false;
-	}
-	void ReleaseSlot() { _playerCount.fetch_sub(1); }
+	// 방 안의 플레이어 수(지표 리포터 스레드가 읽는다). 정원 판단에는 쓰지 않는다.
 	int NumPlayers() const { return _playerCount.load(); }
 
 private:
@@ -281,8 +292,9 @@ private:
 	Protocol::ItemResult CheckShopRequest(const shared_ptr<Player>& player, int npcId, bool needItemOp, shared_ptr<TownNpc>& outNpc);
 	int NextDropId();
 
-	atomic<int> _playerCount = 0;
-	int _capacity = 100;  // 정원(WorldTable.RoomCapacity). InitRoom에서 정하고 그 뒤로 바뀌지 않는다(Room이 목록에 등록되기 전)
+	RoomInfo _info;
+	const WorldData* _world = nullptr;
+	atomic<int> _playerCount = 0;   // = _players.size(). 입장·퇴장 때 맞춘다
 	int _tickCount = 0;  // Update 횟수. 1초(10틱)마다 시야 인원 지표·시야 감사를 하는 데 쓴다
 
 	// [Debug] 부하·검증 시험용
@@ -312,30 +324,23 @@ private:
 	shared_ptr<Timer>		_timer;
 };
 
+// roomId → Room 보관소. 배정·생성 판단은 WorldService가 한다(DG3a). 지표 리포터 스레드가 순회한다.
+// Room을 빼는 함수는 아직 없다 — 넣을 때는 그 Room 잡 큐의 보낼 세션 목록을 먼저 내보내는 닫기 절차가 필요하다(Server/CLAUDE.md "송신 묶기", DG3c).
 class RoomManager
 {
 public:
-	RoomManager(HANDLE iocpHandle) : _iocpHandle(iocpHandle) {}
-public:
-	shared_ptr<Room> CreateRoom();
-	void Remove(int roomId);
-	void Remove(shared_ptr<Room> room);
+	void Add(shared_ptr<Room> room);
 
-	void EnterPlayer(shared_ptr<Player> player);
-
-	int IdGenerator();
+	// 모든 Room에 대해 fn(room)을 부른다(읽기 락 안). fn 안에서 Room의 잡 큐 상태를 건드리지 않는다.
+	template<typename Fn>
+	void ForEach(Fn&& fn)
+	{
+		RWLock::ReadGuard lock(_lock);
+		for (const auto& [id, room] : _rooms)
+			fn(room);
+	}
 
 private:
-	// 정원이 남은 기존 방에 입장 예약을 시도한다.
-	bool TryEnterExisting(shared_ptr<Player> player);
-
-public:
-
 	RWLock				_lock;
-	mutex				_createMutex; // 방 생성(맵 로딩 포함)은 한 번에 하나만, _lock 밖에서 수행한다.
-
 	unordered_map<int, shared_ptr<Room>> _rooms;
-
-	HANDLE _iocpHandle;
 };
-

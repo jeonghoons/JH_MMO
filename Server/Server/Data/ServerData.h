@@ -390,7 +390,7 @@ struct WorldData
 	int viewHysteresisCm;  // 히스테리시스 H: 나갈 때는 R+H를 넘어야 사라진다(경계 깜빡임 방지)
 	int reviveDelaySec;    // 플레이어가 죽은 뒤 이 시간이 지나야 부활 요청(CS_REVIVE)을 받는다 (A2.4)
 	int reviveHpPercent;   // 부활 HP = 최대 HP × 이 값 / 100 (최소 1)
-	int roomCapacity;      // Room 하나의 정원. 차면 같은 맵의 새 Room을 만든다(RoomManager::EnterPlayer) (D-176)
+	int channelCapacity;   // 채널 하나의 정원(그 채널의 모든 Room 인원 합). 로그인 때 인원이 이 값 미만인 가장 낮은 채널에 배정하고, 모두 찼으면 새 채널을 만든다(WorldService, D-215). Room별 정원은 없다
 	int portalCooldownMs;  // 포털을 쓴 뒤 다시 쓸 수 있을 때까지의 시간 (L5, D-203)
 };
 

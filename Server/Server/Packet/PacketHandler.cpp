@@ -222,11 +222,11 @@ wstring PacketHandler::SanitizeChat(const string& utf8Msg)
 void PacketHandler::Handle_CS_ENTER_ROOM(shared_ptr<GameSession> session, Protocol::CS_ENTER_ROOM_PACKET& pkt)
 {
     // 로그인 전(DB 응답 전 포함)이거나 이미 방에 배정된 플레이어의 입장 요청은 무시한다.
-    // 방 배정(SetOwnerRoom)은 EnterPlayer 안에서 바로 되므로 연달아 온 두 번째 요청도 여기서 걸러진다.
+    // 방 배정은 서비스 잡(WorldService::EnterWorld)에서 하므로 연달아 온 두 번째 요청은 여기를 지날 수 있고, 서비스가 한 번 더 거른다.
     shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr || player->GetCurrentRoom() != nullptr) return;
 
-    GRoomManager->EnterPlayer(player);
+    GWorld->PushJob(&WorldService::EnterWorld, player);
 }
 
 void PacketHandler::Handle_CS_MOVE(shared_ptr<GameSession> session, Protocol::CS_MOVE_PACKET& pkt)

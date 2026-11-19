@@ -1,0 +1,12 @@
+--bots 600 --ramp-rate 120 --threads 4 --move-interval 200 --body male --profile hunt --chaos
+full exit 0
+kill 1 after 3s
+kill 2 after 4s
+kill 3 after 5s
+kill 4 after 6s
+kill 5 after 7s
+kill 6 after 8s
+kill 7 after 9s
+kill 8 after 10s
+kill 9 after 11s
+kill 10 after 12s

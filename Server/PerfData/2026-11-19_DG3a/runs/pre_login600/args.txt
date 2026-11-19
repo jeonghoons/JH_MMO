@@ -1,0 +1,4 @@
+1795100227 --bots 600 --ramp-rate 600 --duration 25 --threads 4 --move-interval 200 --body male  --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_DG3a\runs\pre_login600\loadtest.csv
+exe /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_DG3a/pre/GameServer.exe data repo
+loadtest exit 0
+run_id 20261119_235704

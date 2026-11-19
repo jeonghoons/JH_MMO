@@ -34,5 +34,5 @@ description: LoadTest·DummyClient 봇으로 부하 시험, 연결 혼란 시험
 
 - 사냥 봇은 쿨타임을 보지 않아 공격 요청의 약 77%가 거부된다(정상, LoadTest 요약 `[summary] attack:`).
 - 봇은 공격하면서 움직여 잠금 중 이동이 보정된다(`move(...speed...)` 증가).
-- 접속이 모두 끝난 뒤 `login(forced)`가 0이 아니면 정리 신호가 빠진 경로가 있다.
+- 접속이 모두 끝난 뒤 `world(roster/chMax)`가 0이 아니거나 `login(forced)`가 0이 아니면 정리 신호가 빠진 경로가 있다.
 - 끊긴 세션이 실제로 사라졌는지는 `conn(sessionObjs)`(바닥 1)·핸들 수·`sendQ(total)`로 본다.

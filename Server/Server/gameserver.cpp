@@ -13,6 +13,7 @@ shared_ptr<Timer> GTimer = nullptr;
 shared_ptr<DatabaseWorker> GDBWorker = nullptr;
 unique_ptr<RoomManager> GRoomManager = nullptr;
 shared_ptr<AuthLobby> GLobby = nullptr;
+shared_ptr<WorldService> GWorld = nullptr;
 
 
 
@@ -93,8 +94,11 @@ int main(int argc, char* argv[])
 	}
 
 	GTimer = make_shared<Timer>();
-	GRoomManager = make_unique<RoomManager>(service->GetIocpInstance()->GetHandle());
-	GRoomManager->CreateRoom();
+	GRoomManager = make_unique<RoomManager>();
+	// 전역 서비스(DG3a): 채널 1과 그 Room을 여기서 만든다 — 맵 로드 오류를 시작 로그에서 본다. 채널 2부터는 필요할 때 서비스 잡에서 만든다.
+	GWorld = make_shared<WorldService>(service->GetIocpInstance()->GetHandle());
+	if (GWorld->Init() == false)
+		LOG_ERROR("World", "채널 1을 만들지 못했습니다 — 로그인한 플레이어가 들어갈 Room이 없습니다. (ServerConfig [World] MapName = {})", GServerConfig.mapName);
 	GLobby = make_shared<AuthLobby>(service->GetIocpInstance()->GetHandle());
 	// 연결 정리(A5.0): 받지 않는 클라이언트의 송신 큐 상한(D-221)과 유휴 세션 검사(D-220)
 	Session::SetSendQueueLimit(GServerConfig.sendQueueLimit);

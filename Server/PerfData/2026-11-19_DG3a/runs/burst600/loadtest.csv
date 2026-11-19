@@ -1,0 +1,5 @@
+t_sec,connected,in_game,connect_fail,unexpected_close,login_p50_ms,login_p95_ms,ping_p50_ms,ping_p95_ms,ping_p99_ms,ping_max_ms,sent_ps,recv_ps,recv_kbps,move_corrected,server_cpu_pct,server_mem_mb,max_bot_recv_KBps,bot_cpu_pct
+5,600,600,0,0,51.1,137.8,4.1,12.0,15.2,21.6,3593,68750,46644,206,101,67,21.7,0
+10,600,600,0,0,0.0,0.0,0.4,15.5,21.4,27.1,3536,71473,48773,182,59,67,20.6,66
+15,600,600,0,0,0.0,0.0,0.4,12.8,18.8,24.6,3597,69946,47672,150,49,67,22.2,57
+20,600,600,0,0,0.0,0.0,0.5,17.3,23.3,33.7,3540,66958,45581,134,47,68,21.0,53

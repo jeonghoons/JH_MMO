@@ -1,0 +1,4 @@
+1795100611 --bots 1100 --ramp-rate 1100 --duration 25 --threads 4 --move-interval 200 --body male  --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_DG3a\runs\login1100\loadtest.csv
+exe after data repo
+loadtest exit 0
+run_id 20261120_000327

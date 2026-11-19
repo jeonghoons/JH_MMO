@@ -108,6 +108,9 @@
     <ClInclude Include="Game\World\NavmeshManager.h">
       <Filter>Game\World</Filter>
     </ClInclude>
+    <ClInclude Include="Game\World\WorldService.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
     <ClInclude Include="Packet\PacketHandler.h">
       <Filter>Packet</Filter>
     </ClInclude>
@@ -175,6 +178,9 @@
       <Filter>Game\World</Filter>
     </ClCompile>
     <ClCompile Include="Game\World\NavmeshManager.cpp">
+      <Filter>Game\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\World\WorldService.cpp">
       <Filter>Game\World</Filter>
     </ClCompile>
     <ClCompile Include="Packet\PacketHandler.cpp">

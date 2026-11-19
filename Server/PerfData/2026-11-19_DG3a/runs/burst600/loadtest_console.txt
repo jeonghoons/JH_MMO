@@ -1,0 +1,12 @@
+[loadtest] host=127.0.0.1:8888 bots=600 ramp=6000/s duration=20s threads=4 profile=move body=male chaos=0 out=C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_DG3a\runs\burst600\loadtest.csv
+[bot] bot0 login: id=5 playerType=1 maxHp=650 attack=10 attackSpeed=1.00 moveSpeed=500.0 pos=(0, 0, 0)
+[bot] bot0 sees object id=5 type=1 playerType=1 template=0 pos=(21874,-5982)
+[t=  5s] connected=600 inGame=600 connFail=0 closed=0 | ping p50/p95/p99/max=4.1/12.0/15.2/21.6 ms | sent/s=3593 recv/s=68750 | server cpu=101% mem=67MB | maxBot=21.7KB/s botCpu=0%
+[t= 10s] connected=600 inGame=600 connFail=0 closed=0 | ping p50/p95/p99/max=0.4/15.5/21.4/27.1 ms | sent/s=3536 recv/s=71473 | server cpu=59% mem=67MB | maxBot=20.6KB/s botCpu=66%
+[t= 15s] connected=600 inGame=600 connFail=0 closed=0 | ping p50/p95/p99/max=0.4/12.8/18.8/24.6 ms | sent/s=3597 recv/s=69946 | server cpu=49% mem=67MB | maxBot=22.2KB/s botCpu=57%
+[t= 20s] connected=600 inGame=600 connFail=0 closed=0 | ping p50/p95/p99/max=0.5/17.3/23.3/33.7 ms | sent/s=3540 recv/s=66958 | server cpu=47% mem=68MB | maxBot=21.0KB/s botCpu=53%
+
+[summary] attempts=600 ok=600 fail=0 loginOk=600 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 51.1/137.8/144.4/145.8 ms (n=600)
+[summary] ping    p50/p95/p99/max = 0.5/14.3/21.3/33.7 ms (n=11740)
+[summary] moveCorrected=672 pongs=11740 totalRecvBytes=120766452 peakBotRecv=22.2KB/s

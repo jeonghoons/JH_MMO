@@ -1,0 +1,4 @@
+1795104539 --bots 200 --ramp-rate 50 --duration 30 --threads 4 --move-interval 200 --body male --profile idle --portal-interval 1500 --chaos --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-19_DG3a\runs\portal200_pre\loadtest.csv --zone -8500,0,200,100;-15000,6500,200
+exe /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_DG3a/pre/GameServer.exe data /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-19_DG3a/datatable_pre
+loadtest exit 0
+run_id 20261120_010855

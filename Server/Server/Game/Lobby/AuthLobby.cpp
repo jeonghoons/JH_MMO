@@ -69,6 +69,10 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
         _online.emplace(info.playerUID, std::move(entry));
     }
 
+    // 접속자 명부 등록·채널 배정(DG3a). 플레이어를 세션에 넣기 전에 서비스 큐에 넣어야 한다 — 이 플레이어의 입장 요청·정리 신호는
+    // 세션에 플레이어가 보인 뒤에만 서비스 큐에 들어가므로, 등록이 항상 그보다 먼저 실행된다.
+    GWorld->PushJob(&WorldService::RegisterPlayer, player);
+
     session->SetPlayer(player);
 
     Protocol::SC_LOGIN_INFO_PACKET logInPacket;

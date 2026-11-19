@@ -21,9 +21,10 @@ void GameSession::HandlePlayerGone()
 		// 접속 목록에서 빼는 신호는 퇴장 처리와 마지막 저장이 끝난 뒤 Room이 보낸다(Room::NotifyClosedIfDone).
 		room->PushJob(&Room::PlayerLeaveRoom, player);
 	}
-	else if (false == player->isDummy) {
-		// 방에 들어가기 전에 끊겼다: 저장할 것이 없으므로 바로 알린다. 이 직후 입장 요청이 처리돼도 입장 잡이 끊긴 세션을 보고 취소한다.
-		GLobby->PushJob(&AuthLobby::OnPlayerClosed, player->GetPlayerUID(), player->GetId());
+	else {
+		// 방에 들어가기 전에 끊겼다: 저장할 것이 없으므로 바로 알린다(명부·채널 인원 정리 → 로비의 접속 목록 정리, 더미 봇 포함).
+		// 이 직후 입장 요청이 처리돼도 서비스가 명부에 없는 세션을 버리고, 먼저 처리됐다면 입장 잡이 끊긴 세션을 보고 취소한다.
+		GWorld->PushJob(&WorldService::OnPlayerClosed, player->GetId(), player->GetPlayerUID(), player->isDummy);
 	}
 }
 

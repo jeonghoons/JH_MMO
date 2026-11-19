@@ -103,9 +103,19 @@ void Player::OnDead(std::shared_ptr<Character> attacker)
 	Character::OnDead(attacker);
 }
 
+// 지금 있는 Room 레벨의 WorldTable 행. 아직 Room이 없으면(로그인 처리 중) 처음 들어갈 레벨([World] MapName)의 행.
+const WorldData* Player::CurrentWorldData() const
+{
+	if (shared_ptr<Room> room = GetCurrentRoom())
+	{
+		if (const WorldData* world = room->GetWorldData()) return world;
+	}
+	return DataManager::GetWorldData(GServerConfig.mapName);   // 서버 시작 때 존재를 확인했다
+}
+
 int Player::GetReviveDelayMs() const
 {
-	const WorldData* world = DataManager::GetWorldData(GServerConfig.mapName);   // 서버 시작 때 존재를 확인했다
+	const WorldData* world = CurrentWorldData();
 	return world ? world->reviveDelaySec * 1000 : 0;
 }
 
@@ -155,9 +165,8 @@ bool Player::SetSkillAim(const SkillData* skill, long long nowMs)
 }
 
 // 부활 규칙의 HP(= StatComponent::Revive): 최대치 × WorldTable.ReviveHpPercent, 최소 1
-static int ReviveHp(int maxHp)
+static int ReviveHp(int maxHp, const WorldData* world)
 {
-	const WorldData* world = DataManager::GetWorldData(GServerConfig.mapName);   // 서버 시작 때 존재를 확인했다
 	const int percent = world ? world->reviveHpPercent : 100;
 	return std::max(1, static_cast<int>(static_cast<long long>(maxHp) * percent / 100));
 }
@@ -273,7 +282,7 @@ bool Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	// 저장한 적이 없는 캐릭터는 최대치 — 가입 때 넣는 HP는 장비 보너스 전 값(D-113)이라 그대로 쓰면 깎인 채 시작한다.
 	RecalcStat();
 	const int maxHp = _statInfo.GetMaxHp();
-	const int hp = data.neverSaved ? maxHp : (data.hp > 0 ? std::min(data.hp, maxHp) : ReviveHp(maxHp));
+	const int hp = data.neverSaved ? maxHp : (data.hp > 0 ? std::min(data.hp, maxHp) : ReviveHp(maxHp, CurrentWorldData()));
 	_objectInfo.mutable_stat()->set_hp(hp);
 
 	// DB에 있는 값을 기억한다. 위에서 HP를 고쳤다면 스냅숏이 달라 다음 저장 때 DB에도 반영된다.
@@ -286,7 +295,7 @@ DB_PlayerProgress Player::MakeProgressSnapshot() const
 	DB_PlayerProgress snapshot;
 	snapshot.level = _objectInfo.level();
 	snapshot.exp = _dbPlayerData.exp;
-	snapshot.hp = _statInfo.IsDead() ? ReviveHp(_statInfo.GetMaxHp()) : _statInfo.GetHp();
+	snapshot.hp = _statInfo.IsDead() ? ReviveHp(_statInfo.GetMaxHp(), CurrentWorldData()) : _statInfo.GetHp();
 	return snapshot;
 }
 
