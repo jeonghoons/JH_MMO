@@ -78,9 +78,6 @@ public:
 	void SendRevive();
 	// 포털 사용 요청(L5, D-203). 거리·상태는 서버가 검증하고, 받아들이면 SC_TELEPORT가 온다(거부는 응답 없음)
 	void SendPortal(int32 PortalId);
-	// 하트비트(A5.0, D-220): 연결된 동안(로그인 화면 포함) HeartbeatIntervalSec마다 Tick이 보낸다. 서버는 [Network] IdleTimeoutSec(60초) 동안
-	// 아무것도 받지 못한 연결을 끊으므로, 가만히 있어도 끊기지 않게 한다. 기존 CS_PING을 쓴다(응답 SC_PONG은 방 안에서만 오고 쓰지 않음)
-	void SendHeartbeat();
 	void SendSkillAim(int32 Slot, bool bActive, uint32 Seq);   // Part = Protocol::EquipPart(1~7), ItemId 0 = 해제. 검증은 서버가 한다
 
 public:
@@ -89,7 +86,11 @@ public:
 	// 연결을 닫고 로그인 화면(레벨)으로 돌아가 Message를 시스템 메시지로 보여준다(SC_KICK, 게임 중 연결 끊김 — A2.7).
 	// 로그인 레벨의 LoginGameMode가 서버에 다시 연결한다.
 	void ReturnToLogin(const FText& Message);
-	void SwitchGameMapLevel(FName LevelToLoad);
+	// Room 이동으로 다른 레벨에 가야 할 때(SC_ROOM_CHANGE의 map_name이 지금 레벨과 다름 — 던전 입장·퇴장, DG3c-2):
+	// 대기 창을 띄우고 잠시 뒤 레벨을 연다. 레벨이 없으면 로그인 화면으로 돌아간다. 부르는 쪽은 UJMObjectManager::HandleRoomChange.
+	void TravelToRoomLevel(const FString& MapName);
+	// bRoomTravel = Room 이동의 레벨 전환(접속·로그인 상태는 그대로): 인벤토리 사본과 UJMObjectManager가 넘기려는 값을 남긴다.
+	void SwitchGameMapLevel(FName LevelToLoad, bool bRoomTravel = false);
 
 public:
 	int32 NetworkId = -1;
@@ -97,7 +98,9 @@ public:
 	// 시험용 자동 로그인(ULoginWidget::TryTestAutoLogin)을 이미 시도했는지. 로그인 화면으로 돌아왔을 때(SC_KICK 등) 되풀이하지 않게 한다.
 	bool bTestAutoLoginTried = false;
 
-	// 하트비트 간격(초). Config/DefaultGame.ini [/Script/JM.NetworkManager]. 0 이하면 보내지 않는다 — 서버 IdleTimeoutSec보다 충분히 짧아야 한다
+	// 하트비트(A5.0, D-220): 연결된 동안(로그인 화면 포함) 이 간격(초)마다 송신 워커 스레드가 CS_PING을 보낸다(SendWorker::Run —
+	// 게임 스레드가 맵 로딩으로 멈춰도 계속 나감, DG3c-2). 서버는 [Network] IdleTimeoutSec(60초) 동안 아무것도 받지 못한 연결을 끊는다.
+	// Config/DefaultGame.ini [/Script/JM.NetworkManager]. 0 이하면 보내지 않는다 — 서버 IdleTimeoutSec보다 충분히 짧아야 한다
 	UPROPERTY(Config)
 	float HeartbeatIntervalSec = 5.f;
 
@@ -105,7 +108,8 @@ private:
 
 	TSharedPtr<NetworkSession> Packet_Session;
 
-	// 마지막으로 하트비트를 보낸 시각(FPlatformTime::Seconds — 게임 일시 정지·시간 배율과 무관한 실제 시간)
-	double LastHeartbeatSec = 0.0;
+	// 예약된 Room 레벨 전환(TravelToRoomLevel): 남은 Tick 수가 0이 되면 연다. NAME_None = 없음
+	FName PendingTravelLevel;
+	int32 PendingTravelFrames = 0;
 
 };

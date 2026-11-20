@@ -32,9 +32,23 @@ public:
 	void HandleRevive(int32 CharacterId, const Protocol::PositionInfo& Pos, int32 Hp, uint32 CorrectionSeq);
 	// SC_TELEPORT(L5): 보간 없이 서버가 정한 자리로 옮긴다. 내 캐릭터면 보정 순번까지.
 	void HandleTeleport(int32 CharacterId, const Protocol::PositionInfo& Pos, uint32 CorrectionSeq);
-	// SC_ROOM_CHANGE(DG3b): 같은 레벨 안에서 Room이 바뀌었다. 다른 Room의 주변 오브젝트를 지우고 내 캐릭터는 남겨 새 자리로 옮긴다.
-	// 다른 레벨로의 이동은 아직 처리하지 않는다(DG3c).
+	// SC_ROOM_CHANGE: Room이 바뀌었다.
+	// 같은 레벨(DG3b): 다른 Room의 주변 오브젝트를 지우고 내 캐릭터는 남겨 새 자리로 옮긴다.
+	// 다른 레벨(DG3c-2, 던전 입장·퇴장): 내 캐릭터의 순번·쿨타임을 TravelCarry에 담고 UNetworkManager::TravelToRoomLevel로 레벨을 연다.
+	// 새 레벨에서 AJMPlayerController::BeginPlay가 CS_ENTER_ROOM("로딩 끝")을 보내면 본인 SC_ADD_OBJECT가 오고 HandleSpawn이 담아 둔 값을 넣는다.
 	void HandleRoomChange(const Protocol::SC_ROOM_CHANGE_PACKET& Pkt);
+	// SC_DUNGEON_STATE(DG3c): 던전에 들어온 직후 한 번, 우두머리를 잡으면 한 번 온다. 나갈 때는 오지 않으므로 Room이 바뀔 때 지운다.
+	void HandleDungeonState(const Protocol::SC_DUNGEON_STATE_PACKET& Pkt);
+	// 지금 던전 상태(Protocol::DungeonState)와 클리어 뒤 내보내는 시각(FPlatformTime::Seconds, 클리어가 아니면 0). HUD가 만들어질 때 읽는다.
+	int32 GetDungeonState() const { return DungeonState; }
+	double GetDungeonClearEndSec() const { return DungeonClearEndSec; }
+
+	// 레벨이 바뀌는 Room 이동이 진행 중인가(SC_ROOM_CHANGE를 받은 뒤 새 레벨에서 내 캐릭터가 스폰되기 전까지)
+	bool IsRoomTravelActive() const { return TravelCarry.bActive; }
+	// CS_ENTER_ROOM을 보낸 시각을 적는다(로딩 시간 로그용). UNetworkManager::SendEnterRoom이 부른다
+	void NoteEnterRoomSent();
+	// 로그인 화면으로 돌아가거나 새로 로그인할 때: 넘기려던 값·사망 시각을 버린다(UNetworkManager::SwitchGameMapLevel)
+	void ResetRoomTravel();
 	// SC_PORTAL_LIST(L5): 방 입장 직후 서버가 알려 주는, 지금 쓸 수 있는 포털의 위치·반경
 	void HandlePortalList(const Protocol::SC_PORTAL_LIST_PACKET& Pkt);
 	// SC_CHANGE_EQUIP: 장착 목록·스탯 반영, 내 캐릭터면 HUD(HP·무기 타입별 스킬 슬롯) 갱신
@@ -55,7 +69,8 @@ public:
 	bool GetNpcLocation(int32 NpcId, FVector& OutLocation) const;
 
 	// 포털(L5). From이 반경 안(수평 거리 — 서버와 같은 기준)에 든 포털 중 가장 가까운 것의 id. 없으면 0
-	int32 FindNearestPortal(const FVector& From, float& OutDistSq) const;
+	// OutKind = 그 포털의 종류(Protocol::PortalKind — 일반·던전 입구·던전 출구, 안내 문구용)
+	int32 FindNearestPortal(const FVector& From, float& OutDistSq, int32* OutKind = nullptr) const;
 
 	// SkillTable의 Fx를 HitShape에 맞춰 재생한다. 장판은 조준 지점에 DurationMs 동안, 부채꼴·직선은 타격 시점에 시전자 발밑에서 1회.
 	// OutComp·OutTimer(CP1): 내 캐릭터가 먼저 시작한 이펙트를 거부 때 지울 수 있게 장판 컴포넌트와 타이머(장판 끄기 또는 타격 시점 대기)를 돌려준다.
@@ -86,6 +101,32 @@ public:
 		int32 Id = 0;
 		FVector Location = FVector::ZeroVector;
 		float RadiusCm = 0.f;
+		int32 Kind = 0;   // Protocol::PortalKind
 	};
 	TArray<FPortalEntry> Portals;
+
+private:
+	void ClearDungeonState();
+
+	// 레벨이 바뀌는 Room 이동에서 새 레벨의 내 캐릭터에 넘길 값(DG3c-2). 이 매니저는 GameInstance 수명이라 레벨 전환에도 남는다.
+	// 서버는 Room 이동 때 보정 순번을 +1만 하고 쿨타임도 이어 가는데, SC_ADD_OBJECT에는 그 값이 없어 SC_ROOM_CHANGE에서 받아 둬야 한다.
+	struct FRoomTravelCarry
+	{
+		bool bActive = false;
+		FString MapName;                      // 가는 중인 레벨(짧은 이름). 도착 전의 "지금 레벨" 비교에 쓴다
+		uint32 CorrectionSeq = 0;             // SC_ROOM_CHANGE.correction_seq
+		uint32 AttackSeq = 0;
+		uint32 AimSeq = 0;
+		TMap<int32, double> SkillCooldownEnd; // 스킬 ID → 끝 시각(FPlatformTime::Seconds)
+		double RecvSec = 0.0;                 // SC_ROOM_CHANGE를 받은 시각
+		double EnterSentSec = 0.0;            // CS_ENTER_ROOM을 보낸 시각
+	};
+	FRoomTravelCarry TravelCarry;
+
+	// 내 캐릭터가 부활할 수 있게 되는 시각(FPlatformTime::Seconds, 0 = 죽지 않음). 죽은 채 다른 레벨에 도착하면(파티장 따라가기·내보냄)
+	// 서버가 SC_DEAD를 다시 보내지 않으므로, 이 값으로 부활 창의 남은 시간을 다시 맞춘다.
+	double MyReviveReadySec = 0.0;
+
+	int32 DungeonState = 0;            // Protocol::DungeonState
+	double DungeonClearEndSec = 0.0;
 };

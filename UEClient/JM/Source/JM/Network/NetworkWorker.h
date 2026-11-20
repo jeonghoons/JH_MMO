@@ -57,4 +57,6 @@ protected:
 	std::atomic<bool> Running{ true };
 	FSocket* Socket;
 	TWeakPtr<NetworkSession> Session;
+	// 하트비트 간격(초, NetworkSession에서 받음). 0 이하면 보내지 않는다
+	float HeartbeatIntervalSec = 0.f;
 };

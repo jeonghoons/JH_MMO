@@ -28,7 +28,10 @@ void AJMPlayerController::BeginPlay()
 
 		// 내 캐릭터가 스폰되면 UJMObjectManager::HandleSpawn이 닫는다.
 		UIManager->SetGameplayInput(true);
-		UIManager->ShowSystemMessage(FText::FromString(TEXT("방에 입장하는 중...")), ESystemMessageType::Waiting);
+		// Room 이동으로 레벨이 바뀐 것이면(던전 입장·퇴장, DG3c-2) 문구를 달리한다.
+		const UJMObjectManager* ObjectManager = GetGameInstance()->GetSubsystem<UJMObjectManager>();
+		const bool bRoomTravel = ObjectManager && ObjectManager->IsRoomTravelActive();
+		UIManager->ShowSystemMessage(FText::FromString(bRoomTravel ? TEXT("이동하는 중...") : TEXT("방에 입장하는 중...")), ESystemMessageType::Waiting);
 	}
 
 	// 영웅·스킬 에셋을 먼저 로드한 뒤 입장한다. 스폰된 캐릭터가 메시 없이(투명하게) 보이지 않게 하기 위함이다.

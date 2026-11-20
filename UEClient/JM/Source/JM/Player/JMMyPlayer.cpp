@@ -175,7 +175,8 @@ void AJMMyPlayer::Tick(float DeltaTime)
 	}
 
 	// 사망 중에는 이동을 보내지 않는다(서버도 버린다, D-149). 부활 때 SC_REVIVE의 위치·순번에서 다시 시작한다.
-	if (bIsDead)
+	// 레벨 전환 대기 중에도 보내지 않는다(서버는 로딩 대기 중의 이동을 버린다, DG3c-2).
+	if (bIsDead || bTravelLocked)
 	{
 		DesiredInput = FVector2D::Zero();
 		LastDesiredInput = DesiredInput;
@@ -751,10 +752,11 @@ void AJMMyPlayer::UpdateInteractPrompt()
 
 	// 포털(L5): 드랍·NPC가 없을 때만. 반경은 서버 값(SC_PORTAL_LIST)이고 시전·이동 잠금 중에는 서버가 받지 않는다.
 	int32 NearestPortalId = 0;
+	int32 NearestPortalKind = 0;
 	if (!bIsDead && ObjectManager && Nearest == nullptr && NearestNpcId == 0)
 	{
 		float PortalDistSq = 0.f;
-		NearestPortalId = ObjectManager->FindNearestPortal(GetActorLocation(), PortalDistSq);
+		NearestPortalId = ObjectManager->FindNearestPortal(GetActorLocation(), PortalDistSq, &NearestPortalKind);
 	}
 
 	// 열려 있는 상점 창: 멀어지거나 죽거나 거래가 시작되면 닫는다.
@@ -773,6 +775,9 @@ void AJMMyPlayer::UpdateInteractPrompt()
 		FText Prompt;
 		if (Nearest) Prompt = FText::FromString(FString::Printf(TEXT("[F] 줍기: %s"), *Nearest->GetDisplayText().ToString()));
 		else if (NearestNpcId != 0 && ObjectManager) Prompt = FText::FromString(FString::Printf(TEXT("[F] 상점: %s"), *ObjectManager->GetNpcName(NearestNpcId)));
+		// 포털 종류(SC_PORTAL_LIST의 kind — 서버가 정함, DG3c-2): 던전 입구·출구는 문구를 따로 둔다.
+		else if (NearestPortalId != 0 && NearestPortalKind == Protocol::PORTAL_KIND_DUNGEON_ENTER) Prompt = FText::FromString(TEXT("[F] 던전 입장"));
+		else if (NearestPortalId != 0 && NearestPortalKind == Protocol::PORTAL_KIND_DUNGEON_EXIT) Prompt = FText::FromString(TEXT("[F] 던전 나가기"));
 		else if (NearestPortalId != 0) Prompt = FText::FromString(TEXT("[F] 포털 이동"));
 		Hud->SetInteractPrompt(Prompt);
 	}
@@ -985,6 +990,48 @@ void AJMMyPlayer::ResetForRoomChange()
 	bInteractPromptShown = false;
 	InteractCheckTimer = 0.f;
 	if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetInteractPrompt(FText::GetEmpty());
+}
+
+void AJMMyPlayer::GetTravelState(uint32& OutAttackSeq, uint32& OutAimSeq, TMap<int32, double>& OutSkillCooldownEnd) const
+{
+	OutAttackSeq = AttackSeq;
+	OutAimSeq = AimSeq;
+	OutSkillCooldownEnd = SkillCooldownEnd;   // 끝 시각이 FPlatformTime::Seconds 기준이라 레벨이 바뀌어도 그대로 쓸 수 있다
+}
+
+void AJMMyPlayer::ApplyTravelState(uint32 InCorrectionSeq, uint32 InAttackSeq, uint32 InAimSeq, const TMap<int32, double>& InSkillCooldownEnd)
+{
+	// 서버는 Room 이동 때 보정 순번을 올리기만 하고 0으로 되돌리지 않는다. 새 액터가 0으로 시작하면 이동이 전부 버려진다(OnMyTeleport와 같은 절차).
+	CorrectionSeq = InCorrectionSeq;
+	SyncTransformToInfo();
+	bMoveSendPending = true;
+
+	// 요청 순번은 서버가 검사하지 않지만, 늦게 온 옛 응답과 겹치지 않게 이어 간다.
+	AttackSeq = InAttackSeq;
+	AimSeq = InAimSeq;
+
+	// 쿨타임도 서버에서 이어진다. 로컬 판정과 HUD 표시를 남은 시간으로 맞춘다(액티브 칸 = 현재 무기의 스킬 슬롯).
+	SkillCooldownEnd = InSkillCooldownEnd;
+	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	UCombatHudWidget* Hud = GetCombatHud();
+	if (DataManager == nullptr || Hud == nullptr) return;
+	const double Now = FPlatformTime::Seconds();
+	for (int32 Slot = 1; Slot <= QuickSlots.Num(); ++Slot)
+	{
+		const FSkillTableRow* Skill = FindMySkill(Slot);
+		const int32 SkillId = DataManager->FindSkillIdBySlot(GetWeaponType(), Slot);
+		const double* End = (Skill && SkillId != 0) ? SkillCooldownEnd.Find(SkillId) : nullptr;
+		if (End == nullptr || *End <= Now) continue;
+		Hud->SetCooldownRemain(Skill->Slot, FMath::CeilToInt32((*End - Now) * 1000.0), Skill->CooldownMs);
+	}
+}
+
+void AJMMyPlayer::LockForLevelTravel()
+{
+	bTravelLocked = true;
+	DesiredInput = FVector2D::Zero();
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement()) MoveComp->StopMovementImmediately();
+	if (APlayerController* PC = Cast<APlayerController>(GetController())) DisableInput(PC);
 }
 
 void AJMMyPlayer::OnMyRevive(const Protocol::PositionInfo& Pos, int32 Hp, uint32 Seq)

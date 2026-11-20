@@ -35,6 +35,9 @@ public:
 
 	TWeakObjectPtr<UNetworkManager> OwnerNetwork;
 
+	// 하트비트 간격(초). Run() 전에 정하면 송신 워커가 이 간격으로 CS_PING을 보낸다(0 이하 = 보내지 않음)
+	float HeartbeatIntervalSec = 0.f;
+
 private:
 	std::atomic<bool> bConnectionLost{ false };
 

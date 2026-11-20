@@ -80,6 +80,15 @@ public:
 	// 죽은 상태에서 불러도 된다(부활 이동 — 뒤따르는 SC_REVIVE가 부활 창을 닫는다).
 	void ResetForRoomChange();
 
+	// 레벨이 바뀌는 Room 이동(SC_ROOM_CHANGE의 map_name이 다른 레벨, DG3c-2): 이 액터는 레벨과 함께 사라지고 새 레벨에서 다시 만들어진다.
+	// 서버는 순번·쿨타임을 이어 가므로(되돌리지 않음) 옛 액터에서 꺼내(GetTravelState) UJMObjectManager가 들고 있다가 새 액터에 넣는다(ApplyTravelState).
+	// **레벨 전환 너머로 이어져야 하는 내 캐릭터 상태를 추가하면 이 두 함수와 UJMObjectManager::FRoomTravelCarry에 함께 넣는다.**
+	void GetTravelState(uint32& OutAttackSeq, uint32& OutAimSeq, TMap<int32, double>& OutSkillCooldownEnd) const;
+	// InCorrectionSeq = SC_ROOM_CHANGE.correction_seq(서버는 순번이 다른 이동을 모두 버린다). HUD 쿨타임 표시도 남은 시간으로 다시 맞춘다.
+	void ApplyTravelState(uint32 InCorrectionSeq, uint32 InAttackSeq, uint32 InAimSeq, const TMap<int32, double>& InSkillCooldownEnd);
+	// 레벨이 열리기를 기다리는 동안(서버는 로딩 대기 — 이동·공격·포털 요청을 버린다) 입력과 이동 패킷을 막는다. 되돌리지 않는다(액터가 곧 사라짐).
+	void LockForLevelTravel();
+
 	// 액티브 칸(D-148): 칸 수 = QuickSlotActions 수. 지금은 규칙 배치 — 칸 N = 현재 무기의 SkillTable 슬롯 N(없으면 빈 칸).
 	// 무기가 바뀌면 다시 부른다(UJMObjectManager가 스폰·장비 변경 때 부르고 HUD에 넘긴다).
 	void RebuildQuickSlots();
@@ -151,6 +160,8 @@ protected:
 	float MoveSendTurnDegValue = 0.f;
 	float LastSentYaw = 0.f;
 	uint32 CorrectionSeq = 0;
+	// 레벨 전환 대기 중(LockForLevelTravel). 이동 패킷을 보내지 않는다
+	bool bTravelLocked = false;
 
 	FVector2D	DesiredInput;
 	FVector		DesiredMovementDir;

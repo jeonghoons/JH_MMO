@@ -167,6 +167,10 @@
 `SC_ROOM_CHANGE`를 받으면:
 - **같은 레벨**(마을 ↔ 사냥터): 내 캐릭터를 뺀 모든 원격 캐릭터·몬스터·드랍·NPC 액터를 **지우고**(새 함수 — 지금 `ClearObjects`는 목록만 비우고 액터는 레벨 전환이 지운다고 전제함) 포털 목록을 비운 뒤, 내 캐릭터를 받은 위치로 옮기고 보정 순번을 적용합니다(지금 `OnMyTeleport`와 같은 절차). 열린 상점·거래 창을 닫고 응답 대기 중인 시전(CP1 `PendingCast`)을 버립니다. 로딩 화면은 없습니다. 이어서 오는 `SC_ADD_OBJECT`(내 것은 이미 있으므로 무시)·`SC_PORTAL_LIST`로 새 Room이 채워집니다.
 - **다른 레벨**(던전 입장·퇴장): 대기 창을 띄우고 지금의 레벨 전환(`SwitchGameMapLevel`)을 타되 **인벤토리 사본은 비우지 않습니다**(다시 받지 않으므로). 레벨이 열리면 지금처럼 `AJMPlayerController::BeginPlay`가 에셋 예열 뒤 `CS_ENTER_ROOM`을 보냅니다.
+  - 구현(DG3c-2, D-226): `UJMObjectManager::HandleRoomChange` → `UNetworkManager::TravelToRoomLevel`(대기 창을 먼저 띄우고 Tick 두 번 뒤 레벨을 엶). 내 캐릭터 액터는 레벨과 함께 사라지므로 **보정 순번(`SC_ROOM_CHANGE.correction_seq`)·공격/조준 순번·스킬 쿨타임**을 `FRoomTravelCarry`에 담았다가 새 레벨의 본인 `SC_ADD_OBJECT` 때 넣습니다(서버는 순번을 0으로 되돌리지 않으므로 빠뜨리면 이동이 전부 버려짐).
+  - **죽은 채 도착**(파티장 따라가기·죽은 채 내보내짐): 서버가 `SC_DEAD`를 다시 보내지 않으므로 본인 `SC_ADD_OBJECT`의 hp 0으로 판단해 사망 자세와 부활 창을 띄우고, 남은 대기 시간은 죽을 때 적어 둔 시각으로 계산합니다.
+  - 던전 상태(`SC_DUNGEON_STATE`)는 HUD 한 줄로 보여 주고, 나갈 때 해제 패킷이 없으므로 `SC_ROOM_CHANGE`를 받을 때마다 지웁니다.
+  - 하트비트는 송신 워커 스레드가 보내므로 맵을 읽는 동안에도 나갑니다(유휴 타임아웃과 무관). 로딩 시한(`LoadTimeoutSec`)은 `CS_ENTER_ROOM`이 기준입니다.
 - 봇: `SC_ROOM_CHANGE`에서 몬스터·포털 목록을 비우고 위치·순번을 받습니다. 다른 레벨이면 곧바로 `CS_ENTER_ROOM`을 보냅니다.
 
 오브젝트 id: 플레이어(세션 id)·몬스터는 서버 전체에서 유일합니다. 드랍·NPC·거래 번호는 방마다 같은 범위를 쓰지만, 클라이언트가 Room을 옮길 때 전부 지우므로 겹쳐도 됩니다. [그대로]

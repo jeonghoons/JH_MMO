@@ -36,10 +36,15 @@ public:
 	// 상호작용 안내(A6.2): 주울 수 있는 드랍이 가까이 있으면 "[F] 줍기: 이름". 빈 글이면 숨긴다.
 	void SetInteractPrompt(const FText& Prompt);
 
+	// 던전 상태 한 줄(DG3c-2): State = Protocol::DungeonState. 진행 중이면 "던전 진행 중", 클리어면 ClearEndSec(FPlatformTime::Seconds)까지
+	// 남은 시간을 1초씩 줄여 보여 준다. NONE(던전 밖)이면 숨긴다. 값은 UJMObjectManager가 SC_DUNGEON_STATE·Room 변경 때 넘긴다.
+	void SetDungeonState(int32 State, double ClearEndSec);
+
 protected:
 	// HUD가 내 캐릭터보다 늦게 만들어져도 현재 값으로 시작한다.
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> TxtName;
@@ -61,6 +66,10 @@ protected:
 	// 상호작용 안내 글(없으면 안내를 띄우지 않는다)
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> TxtInteract;
+
+	// 던전 상태 한 줄(없으면 표시하지 않는다)
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> TxtDungeon;
 
 	// 액티브 칸 1~5(숫자키). 칸 번호는 각 인스턴스의 SkillSlot 값. 기본 공격은 좌클릭이라 칸을 두지 않는다. (D-038·D-148)
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -84,6 +93,12 @@ private:
 	void OnSlotRightClicked(USkillSlotWidget* SlotWidget);
 
 	FDelegateHandle InventoryChangedHandle;
+
+	// 던전 상태 표시(SetDungeonState). ShownDungeonSec = 지금 글자에 적힌 남은 초(같으면 다시 쓰지 않는다)
+	void RefreshDungeonText();
+	int32 DungeonStateValue = 0;
+	double DungeonClearEndSec = 0.0;
+	int32 ShownDungeonSec = -1;
 
 	// 마지막으로 받은 칸 내용(쿨타임을 어느 칸에 표시할지 찾는 데 쓴다)
 	TArray<FQuickSlot> CurrentQuickSlots;

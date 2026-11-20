@@ -31,9 +31,10 @@ namespace
 
 int32 UJMPartyManager::GetMyId() const
 {
+	// 내 오브젝트 id = 로그인 때 받은 NetworkId. 내 캐릭터 액터는 레벨 전환 중(던전 입장·퇴장)에 잠깐 없으므로 액터에서 읽지 않는다(DG3c-2).
 	const UGameInstance* GameInstance = GetGameInstance();
-	const UJMObjectManager* ObjectManager = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
-	return (ObjectManager && ObjectManager->MyPlayer) ? ObjectManager->MyPlayer->GetObjectInfo().id() : 0;
+	const UNetworkManager* NetManager = GameInstance ? GameInstance->GetSubsystem<UNetworkManager>() : nullptr;
+	return (NetManager && NetManager->NetworkId > 0) ? NetManager->NetworkId : 0;
 }
 
 void UJMPartyManager::HandleInvite(const Protocol::SC_PARTY_INVITE_PACKET& Pkt)

@@ -1,0 +1,4 @@
+Name,MapName,CellSizeCm,QuadSplitCount,QuadMinSizeCm,ViewRadiusCm,ViewHysteresisCm,ReviveDelaySec,ReviveHpPercent,ChannelCapacity,PortalCooldownMs,LevelKind,DungeonClearExitSec
+1001,ParagonSample,5000,8,500,5000,500,5,100,500,1000,world,0
+1002,Continent01,5000,8,500,5000,500,5,100,500,1000,world,0
+1003,Continent01_Dungeon,5000,8,500,5000,500,5,100,500,1000,dungeon,25

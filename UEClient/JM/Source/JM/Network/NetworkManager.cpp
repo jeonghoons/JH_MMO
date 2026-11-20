@@ -44,23 +44,15 @@ void UNetworkManager::Tick(float DeltaTime)
 		return;
 	}
 
-	// 하트비트(A5.0, D-220): 연결이 살아 있는 동안 주기적으로 보낸다.
-	if (HeartbeatIntervalSec > 0.f && Packet_Session == Session && Session->IsConnectionLost() == false)
-	{
-		const double Now = FPlatformTime::Seconds();
-		if (Now - LastHeartbeatSec >= HeartbeatIntervalSec)
-		{
-			LastHeartbeatSec = Now;
-			SendHeartbeat();
-		}
-	}
-}
+	// 하트비트(CS_PING)는 송신 워커 스레드가 보낸다(SendWorker::Run) — 게임 스레드가 맵 로딩으로 멈춰도 끊기지 않게.
 
-void UNetworkManager::SendHeartbeat()
-{
-	Protocol::CS_PING_PACKET pkt;
-	pkt.set_client_time(FDateTime::UtcNow().ToUnixTimestamp() * 1000);
-	SendPacket(SendBuffer::MakeSendBuffer(pkt, Protocol::CS_PING));
+	// 예약된 Room 레벨 전환(TravelToRoomLevel): 대기 창이 한 번 그려진 뒤에 레벨을 연다.
+	if (!PendingTravelLevel.IsNone() && --PendingTravelFrames <= 0)
+	{
+		const FName Level = PendingTravelLevel;
+		PendingTravelLevel = NAME_None;
+		SwitchGameMapLevel(Level, true);
+	}
 }
 
 void UNetworkManager::ConnectToServer()
@@ -90,7 +82,7 @@ void UNetworkManager::ConnectToServer()
 		UE_LOG(LogTemp, Log, TEXT("Connection Success"));
 
 		Packet_Session = MakeShared<NetworkSession>(socket, this);
-		LastHeartbeatSec = FPlatformTime::Seconds();
+		Packet_Session->HeartbeatIntervalSec = HeartbeatIntervalSec;
 		FPacketHandler::Init();
 		Packet_Session->Run();
 	}
@@ -173,8 +165,14 @@ void UNetworkManager::SendSignUp(const FString& AccountId, const FString& Accoun
 
 void UNetworkManager::SendEnterRoom()
 {
+	// 로그인 직후에는 첫 입장 요청, Room 이동으로 레벨이 바뀐 뒤에는 "로딩 끝" 신호다(서버가 방이 있는지로 구분, DG3c).
 	Protocol::CS_ENTER_ROOM_PACKET pkt;
+	pkt.set_result(true);
 	SendProtocol(*this, pkt, Protocol::CS_ENTER_ROOM);
+	if (UJMObjectManager* ObjectManager = GetGameInstance()->GetSubsystem<UJMObjectManager>())
+	{
+		ObjectManager->NoteEnterRoomSent();
+	}
 }
 
 void UNetworkManager::SendMove(const Protocol::PositionInfo& PosInfo, bool bForce, uint32 CorrectionSeq)
@@ -377,6 +375,9 @@ void UNetworkManager::ReturnToLogin(const FText& Message)
 {
 	DisconnectFromServer();
 
+	// 예약해 둔 Room 레벨 전환이 있으면 버린다(전환을 기다리는 사이 SC_KICK·연결 끊김).
+	PendingTravelLevel = NAME_None;
+
 	// 파티는 접속이 끝나면 서버에서 탈퇴된다. 사본은 레벨 전환(SwitchGameMapLevel)이 아니라 여기서 비운다(던전 레벨 전환에는 이어져야 함 — DG3c).
 	if (UJMPartyManager* Party = GetGameInstance()->GetSubsystem<UJMPartyManager>())
 	{
@@ -408,15 +409,39 @@ void UNetworkManager::EnterGame(const FString& MapName)
 	SwitchGameMapLevel(FName(*MapName));
 }
 
-void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad)
+void UNetworkManager::TravelToRoomLevel(const FString& MapName)
+{
+	// 레벨 이름은 서버가 준다(D-185). 클라이언트에 없는 레벨이면 로딩을 끝낼 수 없어 서버가 LoadTimeoutSec 뒤 끊으므로, 바로 로그인 화면으로 돌아가 사유를 보여 준다.
+	const FString PackageName = FString(TEXT("/Game/Maps/")) + MapName;
+	if (MapName.IsEmpty() || !FPackageName::DoesPackageExist(PackageName))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[Network] TravelToRoomLevel: level not found '%s'"), *PackageName);
+		ReturnToLogin(FText::FromString(FString::Printf(TEXT("서버가 알려 준 레벨(%s)이 클라이언트에 없습니다."), *MapName)));
+		return;
+	}
+
+	// OpenLevel은 맵을 읽는 동안 게임 스레드를 막는다. 멈춘 게임 화면 대신 대기 창이 보이도록 먼저 띄우고, 한 번 그려진 뒤(Tick 두 번 뒤) 레벨을 연다.
+	// 이 창은 레벨 전환(ClearWidgets) 때 사라지고, 새 레벨의 AJMPlayerController::BeginPlay가 다시 띄운다.
+	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+	{
+		UIManager->ShowSystemMessage(FText::FromString(TEXT("이동하는 중...")), ESystemMessageType::Waiting);
+	}
+	PendingTravelLevel = FName(*MapName);
+	PendingTravelFrames = 2;
+}
+
+void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad, bool bRoomTravel)
 {
 	if (UJMObjectManager* ObjectManager = GetGameInstance()->GetSubsystem<UJMObjectManager>())
 	{
 		ObjectManager->ClearObjects();
+		// 로그인 진입·로그인 화면 복귀: 레벨 전환 너머로 넘기려던 값도 버린다.
+		if (!bRoomTravel) ObjectManager->ResetRoomTravel();
 	}
 
-	// Inventory is re-sent by the server on room enter (SC_INVENTORY).
-	if (UJMInventoryManager* Inventory = GetGameInstance()->GetSubsystem<UJMInventoryManager>())
+	// 인벤토리 사본: 로그인 뒤 첫 입장에는 서버가 SC_INVENTORY로 다시 보내므로 비운다.
+	// Room 이동의 레벨 전환(던전 입장·퇴장)에는 서버가 다시 보내지 않으므로 남긴다(DG3c-2).
+	if (UJMInventoryManager* Inventory = bRoomTravel ? nullptr : GetGameInstance()->GetSubsystem<UJMInventoryManager>())
 	{
 		Inventory->Clear();
 	}

@@ -28,6 +28,35 @@ void UJMObjectManager::ClearObjects()
 	Npcs.Empty();
 	Portals.Empty();
 	MyPlayer = nullptr;
+	// 던전 상태는 Room에 딸린 값이다. 레벨 전환 너머로 넘길 값(TravelCarry·MyReviveReadySec)은 여기서 지우지 않는다(ResetRoomTravel).
+	ClearDungeonState();
+}
+
+void UJMObjectManager::ResetRoomTravel()
+{
+	TravelCarry = FRoomTravelCarry();
+	MyReviveReadySec = 0.0;
+}
+
+void UJMObjectManager::NoteEnterRoomSent()
+{
+	if (TravelCarry.bActive) TravelCarry.EnterSentSec = FPlatformTime::Seconds();
+}
+
+void UJMObjectManager::ClearDungeonState()
+{
+	DungeonState = Protocol::DUNGEON_STATE_NONE;
+	DungeonClearEndSec = 0.0;
+	if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetDungeonState(DungeonState, DungeonClearEndSec);
+}
+
+void UJMObjectManager::HandleDungeonState(const Protocol::SC_DUNGEON_STATE_PACKET& Pkt)
+{
+	DungeonState = Pkt.state();
+	// 남은 시간은 클리어일 때만 뜻이 있다(그 밖은 0). 받은 순간부터 클라이언트가 줄여 가며 보여 준다.
+	DungeonClearEndSec = (Pkt.state() == Protocol::DUNGEON_STATE_CLEARED) ? FPlatformTime::Seconds() + FMath::Max(Pkt.remain_sec(), 0) : 0.0;
+	UE_LOG(LogTemp, Log, TEXT("[Dungeon] state=%d remain=%d sec"), DungeonState, Pkt.remain_sec());
+	if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetDungeonState(DungeonState, DungeonClearEndSec);
 }
 
 void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
@@ -126,7 +155,9 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 		Objects.Add(ObjectId, SpawnedActor);
 
 		// 이미 죽어 있는 플레이어가 시야에 들어왔다(사망 상태 = hp 0, D-149). 바로 사망 자세로 둔다.
-		if (ObjInfo.object_type() == Protocol::OBJECT_TYPE_PLAYER && ObjInfo.stat().hp() <= 0 && SpawnedActor != MyPlayer)
+		// 내 캐릭터도 죽은 채 다른 레벨에 도착할 수 있다(파티장을 따라 던전에 입장, 죽은 채 마을로 내보내짐 — DG3c-2).
+		const bool bSpawnedDead = ObjInfo.object_type() == Protocol::OBJECT_TYPE_PLAYER && ObjInfo.stat().hp() <= 0;
+		if (bSpawnedDead)
 			SpawnedActor->EnterDeadPose();
 
 		if (SpawnedActor == MyPlayer)
@@ -139,8 +170,39 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 				Hud->SetHp(ObjInfo.stat().hp(), ObjInfo.stat().max_hp());
 			}
 
-			// 입장 완료. AJMPlayerController::BeginPlay가 띄운 "방에 입장하는 중..."을 닫는다.
-			if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+			UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
+
+			// 레벨이 바뀌는 Room 이동으로 온 것이면 옛 액터에서 꺼내 둔 순번·쿨타임을 넣는다(로그인 첫 입장은 서버도 0부터라 넣을 것이 없다).
+			if (TravelCarry.bActive)
+			{
+				MyPlayer->ApplyTravelState(TravelCarry.CorrectionSeq, TravelCarry.AttackSeq, TravelCarry.AimSeq, TravelCarry.SkillCooldownEnd);
+
+				// 로딩 시간(완료 기준의 측정값): 서버는 SC_ROOM_CHANGE부터 CS_ENTER_ROOM까지 LoadTimeoutSec(60초)을 기다린다.
+				const double Now = FPlatformTime::Seconds();
+				const double EnterSent = TravelCarry.EnterSentSec > 0.0 ? TravelCarry.EnterSentSec : Now;
+				UE_LOG(LogTemp, Log, TEXT("[Travel] %s: recv->enter %.0f ms, enter->spawn %.0f ms, total %.0f ms (seq=%u, dead=%d)"),
+					*TravelCarry.MapName, (EnterSent - TravelCarry.RecvSec) * 1000.0, (Now - EnterSent) * 1000.0, (Now - TravelCarry.RecvSec) * 1000.0,
+					TravelCarry.CorrectionSeq, bSpawnedDead ? 1 : 0);
+				TravelCarry = FRoomTravelCarry();
+			}
+
+			if (bSpawnedDead)
+			{
+				// 서버는 SC_DEAD를 다시 보내지 않는다. 죽을 때 적어 둔 시각으로 부활 창의 남은 시간을 맞춘다(지났으면 바로 누를 수 있음).
+				if (UReviveWidget* Revive = UIManager ? Cast<UReviveWidget>(UIManager->GetWidget(WidgetNames::Revive)) : nullptr)
+				{
+					const double RemainSec = MyReviveReadySec > 0.0 ? MyReviveReadySec - FPlatformTime::Seconds() : 0.0;
+					Revive->StartCountdown(FMath::CeilToInt32(FMath::Max(RemainSec, 0.0) * 1000.0));
+					UIManager->SetWidgetVisible(WidgetNames::Revive, true);
+				}
+			}
+			else
+			{
+				MyReviveReadySec = 0.0;
+			}
+
+			// 입장 완료. AJMPlayerController::BeginPlay가 띄운 대기 창("방에 입장하는 중..."·"이동하는 중...")을 닫는다.
+			if (UIManager)
 			{
 				UIManager->CloseWaitingMessage();
 			}
@@ -457,6 +519,9 @@ void UJMObjectManager::HandleDead(int32 CharacterId, int32 ReviveDelayMs)
 		{
 			if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetHp(0, MyPlayer->GetObjectInfo().stat().max_hp());
 
+			// 죽은 채 다른 레벨로 옮겨질 때를 위해 부활할 수 있게 되는 시각을 적어 둔다(HandleSpawn이 부활 창을 다시 맞춤).
+			MyReviveReadySec = FPlatformTime::Seconds() + FMath::Max(ReviveDelayMs, 0) / 1000.0;
+
 			// 부활 창: 서버가 알려 준 대기 시간이 지나면 버튼이 켜진다.
 			if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
 			{
@@ -484,14 +549,41 @@ void UJMObjectManager::HandleRoomChange(const Protocol::SC_ROOM_CHANGE_PACKET& P
 	UWorld* World = GetWorld();
 	if (World == nullptr) return;
 
-	// 이번 단계는 같은 레벨 안의 Room 변경만 처리한다(다른 레벨 이동은 DG3c). 레벨 이름은 PIE 접두사를 뺀 짧은 이름으로 비교한다.
+	// 던전 상태는 옛 Room의 것이다. 나갈 때 해제 패킷이 없으므로 여기서 지운다(새 Room이 던전이면 SC_DUNGEON_STATE가 다시 온다).
+	ClearDungeonState();
+
+	// 레벨 이름은 PIE 접두사를 뺀 짧은 이름으로 비교한다. 레벨 전환이 걸려 있으면(아직 옛 레벨이 열려 있음) 가는 중인 레벨이 기준이다.
 	const FString NewMap = UTF8_TO_TCHAR(Pkt.map_name().c_str());
-	const FString CurrentMap = UGameplayStatics::GetCurrentLevelName(World, true);
+	const FString CurrentMap = TravelCarry.bActive ? TravelCarry.MapName : UGameplayStatics::GetCurrentLevelName(World, true);
 	if (!NewMap.Equals(CurrentMap, ESearchCase::IgnoreCase))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Room] 다른 레벨로의 이동은 아직 처리하지 않습니다: %s (현재 %s)"), *NewMap, *CurrentMap);
+		// 다른 레벨(DG3c-2): 서버는 CS_ENTER_ROOM("로딩 끝")이 올 때까지 나를 시야·전투에 넣지 않고 기다린다(LoadTimeoutSec).
+		UE_LOG(LogTemp, Log, TEXT("[Room] level change: %s -> %s (kind=%d, seq=%u)"), *CurrentMap, *NewMap, static_cast<int32>(Pkt.kind()), Pkt.correction_seq());
+
+		// 옛 액터는 레벨과 함께 사라진다. 응답 대기 중인 시전·조준을 정리하고, 새 액터에 넘길 순번·쿨타임을 꺼내 둔 뒤 입력을 막는다.
+		// (이미 전환 중이라 MyPlayer가 없으면 앞서 꺼내 둔 값을 그대로 쓴다.)
+		if (MyPlayer)
+		{
+			MyPlayer->ResetForRoomChange();
+			MyPlayer->GetTravelState(TravelCarry.AttackSeq, TravelCarry.AimSeq, TravelCarry.SkillCooldownEnd);
+			MyPlayer->LockForLevelTravel();
+		}
+		if (UJMShopManager* Shop = GetGameInstance()->GetSubsystem<UJMShopManager>()) Shop->Close();
+
+		TravelCarry.bActive = true;
+		TravelCarry.MapName = NewMap;
+		TravelCarry.CorrectionSeq = Pkt.correction_seq();
+		TravelCarry.RecvSec = FPlatformTime::Seconds();
+		TravelCarry.EnterSentSec = 0.0;
+
+		// 오브젝트·위젯 정리와 레벨 열기는 UNetworkManager가 한다(인벤토리·파티 사본은 남김 — 서버가 다시 보내지 않는다).
+		if (UNetworkManager* NetManager = GetGameInstance()->GetSubsystem<UNetworkManager>())
+			NetManager->TravelToRoomLevel(NewMap);
 		return;
 	}
+
+	// 같은 레벨인데 내 캐릭터가 아직 없다 = 레벨 전환으로 도착한 직후(스폰 전)에 Room이 또 바뀌었다. 도착 순번만 새 값으로 바꿔 둔다.
+	if (TravelCarry.bActive) TravelCarry.CorrectionSeq = Pkt.correction_seq();
 
 	// 응답 대기 중인 내 시전·조준·잠금·상호작용 대상을 먼저 정리한다(부활 이동이면 내 캐릭터는 아직 죽어 있다).
 	if (MyPlayer) MyPlayer->ResetForRoomChange();
@@ -533,13 +625,15 @@ void UJMObjectManager::HandlePortalList(const Protocol::SC_PORTAL_LIST_PACKET& P
 		Entry.Id = Info.portal_id();
 		Entry.Location = FVector(Info.x(), Info.y(), Info.z());
 		Entry.RadiusCm = Info.radius_cm();
+		Entry.Kind = static_cast<int32>(Info.kind());
 		Portals.Add(Entry);
 	}
 }
 
-int32 UJMObjectManager::FindNearestPortal(const FVector& From, float& OutDistSq) const
+int32 UJMObjectManager::FindNearestPortal(const FVector& From, float& OutDistSq, int32* OutKind) const
 {
 	int32 NearestId = 0;
+	int32 NearestKind = 0;
 	float BestSq = TNumericLimits<float>::Max();
 	for (const FPortalEntry& Portal : Portals)
 	{
@@ -548,9 +642,11 @@ int32 UJMObjectManager::FindNearestPortal(const FVector& From, float& OutDistSq)
 		{
 			BestSq = DistSq;
 			NearestId = Portal.Id;
+			NearestKind = Portal.Kind;
 		}
 	}
 	OutDistSq = BestSq;
+	if (OutKind) *OutKind = NearestKind;
 	return NearestId;
 }
 
@@ -566,6 +662,7 @@ void UJMObjectManager::HandleRevive(int32 CharacterId, const Protocol::PositionI
 	}
 
 	MyPlayer->OnMyRevive(Pos, Hp, CorrectionSeq);
+	MyReviveReadySec = 0.0;
 	if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetHp(Hp, MyPlayer->GetObjectInfo().stat().max_hp());
 	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
 		UIManager->SetWidgetVisible(WidgetNames::Revive, false);

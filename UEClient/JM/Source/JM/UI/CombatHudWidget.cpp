@@ -39,6 +39,48 @@ void UCombatHudWidget::NativeConstruct()
 		SetQuickSlots(TArray<FQuickSlot>(), EWeaponType::None);
 		SetHp(0, 0);
 	}
+
+	// 던전 상태: 패킷은 HUD가 만들어진 뒤에 오지만, 순서가 바뀌어도 지금 값으로 시작한다.
+	if (ObjectManager) SetDungeonState(ObjectManager->GetDungeonState(), ObjectManager->GetDungeonClearEndSec());
+	else SetDungeonState(0, 0.0);
+}
+
+void UCombatHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	// 클리어 뒤 남은 시간만 시간이 흐르면 바뀐다.
+	if (DungeonStateValue == Protocol::DUNGEON_STATE_CLEARED) RefreshDungeonText();
+}
+
+void UCombatHudWidget::SetDungeonState(int32 State, double ClearEndSec)
+{
+	DungeonStateValue = State;
+	DungeonClearEndSec = ClearEndSec;
+	ShownDungeonSec = -1;
+	RefreshDungeonText();
+}
+
+void UCombatHudWidget::RefreshDungeonText()
+{
+	if (TxtDungeon == nullptr) return;
+
+	if (DungeonStateValue == Protocol::DUNGEON_STATE_CLEARED)
+	{
+		const int32 Remain = FMath::Max(FMath::CeilToInt32(DungeonClearEndSec - FPlatformTime::Seconds()), 0);
+		if (Remain == ShownDungeonSec) return;
+		ShownDungeonSec = Remain;
+		TxtDungeon->SetText(FText::FromString(FString::Printf(TEXT("던전 클리어 — %d초 뒤 마을로 이동"), Remain)));
+		TxtDungeon->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+	else if (DungeonStateValue == Protocol::DUNGEON_STATE_IN_PROGRESS)
+	{
+		TxtDungeon->SetText(FText::FromString(TEXT("던전 진행 중")));
+		TxtDungeon->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+	else
+	{
+		TxtDungeon->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void UCombatHudWidget::NativeDestruct()

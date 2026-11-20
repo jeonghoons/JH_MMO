@@ -45,6 +45,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_PORTAL_LIST, &FPacketHandler::Handle_SC_PORTAL_LIST);
 	RegisterHandler(Protocol::SC_ROOM_CHANGE, &FPacketHandler::Handle_SC_ROOM_CHANGE);
 	RegisterHandler(Protocol::SC_MOVE_RESULT, &FPacketHandler::Handle_SC_MOVE_RESULT);
+	RegisterHandler(Protocol::SC_DUNGEON_STATE, &FPacketHandler::Handle_SC_DUNGEON_STATE);
 	RegisterHandler(Protocol::SC_PARTY_INVITE, &FPacketHandler::Handle_SC_PARTY_INVITE);
 	RegisterHandler(Protocol::SC_PARTY_STATE, &FPacketHandler::Handle_SC_PARTY_STATE);
 	RegisterHandler(Protocol::SC_PARTY_RESULT, &FPacketHandler::Handle_SC_PARTY_RESULT);
@@ -239,7 +240,7 @@ void FPacketHandler::Handle_SC_DEAD(TSharedPtr<NetworkSession>& session, Protoco
 		ObjectManager->HandleDead(pkt.object_id(), pkt.revive_delay_ms());
 }
 
-// 하트비트(CS_PING, UNetworkManager::SendHeartbeat)의 응답. 방 안에 있을 때만 온다. 연결 유지가 목적이라 내용은 쓰지 않는다(A5.0, D-220).
+// 하트비트(CS_PING, 송신 워커 스레드 SendWorker::Run이 보냄)의 응답. 방 안에 있을 때만 온다. 연결 유지가 목적이라 내용은 쓰지 않는다(A5.0, D-220).
 void FPacketHandler::Handle_SC_PONG(TSharedPtr<NetworkSession>& session, Protocol::SC_PONG_PACKET& pkt)
 {
 }
@@ -275,11 +276,19 @@ void FPacketHandler::Handle_SC_PORTAL_LIST(TSharedPtr<NetworkSession>& session, 
 		ObjectManager->HandlePortalList(pkt);
 }
 
-// ---- Room 변경(DG3b): 같은 레벨 안에서 Room이 바뀌었다(문 포털·사냥터 부활). 뒤따라 본인 SC_ADD_OBJECT·포털 목록·주변 오브젝트가 온다. ----
+// ---- Room 변경(DG3b·DG3c-2): Room이 바뀌었다(문 포털·사냥터 부활 = 같은 레벨, 던전 입장·퇴장 = 다른 레벨). ----
+// 같은 레벨이면 뒤따라 본인 SC_ADD_OBJECT·포털 목록·주변 오브젝트가 오고, 다른 레벨이면 레벨을 열어 CS_ENTER_ROOM을 보낸 뒤에 온다.
 void FPacketHandler::Handle_SC_ROOM_CHANGE(TSharedPtr<NetworkSession>& session, Protocol::SC_ROOM_CHANGE_PACKET& pkt)
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandleRoomChange(pkt);
+}
+
+// SC_DUNGEON_STATE(DG3c): 던전에 들어온 직후 한 번(진행 중, 또는 이미 클리어면 남은 시간), 우두머리를 잡으면 안의 전원에게 한 번.
+void FPacketHandler::Handle_SC_DUNGEON_STATE(TSharedPtr<NetworkSession>& session, Protocol::SC_DUNGEON_STATE_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleDungeonState(pkt);
 }
 
 // SC_MOVE_RESULT(DG3b): 서버가 이동을 거부했다. 거부일 때만 온다.

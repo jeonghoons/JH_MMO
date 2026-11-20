@@ -2,6 +2,7 @@
 #include "NetworkSession.h"
 #include "Sockets.h"
 #include "SendBuffer.h"
+#include "Protocol/Protocol.pb.h"
 
 namespace
 {
@@ -149,6 +150,8 @@ bool RecvWorker::ReceiveDesiredBytes(uint8* Results, int32 Size)
 
 SendWorker::SendWorker(FSocket* Socket, TSharedPtr<class NetworkSession> Session) : Socket(Socket), Session(Session)
 {
+	// 스레드를 만들기 전에 정해 둔다(스레드가 읽기만 함).
+	HeartbeatIntervalSec = Session.IsValid() ? Session->HeartbeatIntervalSec : 0.f;
 	Thread = FRunnableThread::Create(this, TEXT("SendWorker Thread"));
 }
 
@@ -164,10 +167,34 @@ bool SendWorker::Init()
 
 uint32 SendWorker::Run()
 {
+	// 하트비트(A5.0, D-220 → DG3c-2에서 게임 스레드 Tick에서 이 스레드로 옮김): 게임 스레드가 맵을 읽느라 멈춰도(레벨 전환)
+	// 서버의 유휴 타임아웃에 걸리지 않게 여기서 보낸다. 송신 큐는 생산자 하나(게임 스레드)·소비자 하나(이 스레드) 구조라
+	// 큐에 넣지 않고 패킷 사이에 직접 보낸다(패킷 하나를 끝까지 보낸 뒤에만 끼어들므로 스트림이 섞이지 않는다).
+	double LastHeartbeatSec = FPlatformTime::Seconds();
+
 	while (Running)
 	{
 		TSharedPtr<SendBuffer> sendBuffer;
 		bool bSent = false;
+
+		if (HeartbeatIntervalSec > 0.f)
+		{
+			const double Now = FPlatformTime::Seconds();
+			if (Now - LastHeartbeatSec >= HeartbeatIntervalSec)
+			{
+				LastHeartbeatSec = Now;
+				Protocol::CS_PING_PACKET Ping;
+				Ping.set_client_time(FDateTime::UtcNow().ToUnixTimestamp() * 1000);
+				if (SendPacket(SendBuffer::MakeSendBuffer(Ping, Protocol::CS_PING)) == false)
+				{
+					if (Running)
+					{
+						NotifyConnectionLost();
+					}
+					break;
+				}
+			}
+		}
 
 		if (TSharedPtr<NetworkSession> SessionPtr = Session.Pin())
 		{
