@@ -282,6 +282,11 @@ bool UMapExportCommandlet::ExportLogic(UWorld* World, const FString& MapName, co
 		TSharedRef<FJsonObject> MarkerJson = MakeShared<FJsonObject>();
 		MarkerJson->SetNumberField(TEXT("pointId"), Marker->PointId);
 		MarkerJson->SetStringField(TEXT("type"), MarkerTypeToString(Marker->MarkerType));
+		// 구역 이름(DG3b): 비어 있으면 쓰지 않는다(서버는 없는 키를 "레벨 전체"로 읽음).
+		if (!Marker->Area.IsEmpty())
+		{
+			MarkerJson->SetStringField(TEXT("area"), Marker->Area);
+		}
 
 		const FVector Loc = Marker->GetActorLocation();
 		const float Yaw = Marker->GetActorRotation().Yaw;

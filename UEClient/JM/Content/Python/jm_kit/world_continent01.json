@@ -1922,11 +1922,18 @@
     "player_start": {
       "x": -142.0,
       "y": 0,
-      "yaw": 0
+      "yaw": 0,
+      "area": "town"
     },
+    "player_starts": [
+      {"id": 501, "label": "GateN", "x": -98.0, "y": 0.0, "yaw": 180.0, "area": "town"},
+      {"id": 502, "label": "GateE", "x": -143.0, "y": 52.0, "yaw": -90.0, "area": "town"},
+      {"id": 503, "label": "GateW", "x": -147.0, "y": -50.0, "yaw": 90.0, "area": "town"}
+    ],
     "monster": [
       {
         "zone": "meadow_w",
+        "area": "field",
         "x": -75,
         "y": -150,
         "half_x": 127,
@@ -1941,6 +1948,7 @@
       },
       {
         "zone": "meadow_e",
+        "area": "field",
         "x": -75,
         "y": 150,
         "half_x": 127,
@@ -1955,6 +1963,7 @@
       },
       {
         "zone": "meadow_n",
+        "area": "field",
         "x": 5,
         "y": 0,
         "half_x": 47,
@@ -1969,6 +1978,7 @@
       },
       {
         "zone": "forest_n",
+        "area": "field",
         "x": 140,
         "y": 0,
         "half_x": 62,
@@ -1983,6 +1993,7 @@
       },
       {
         "zone": "forest_boss",
+        "area": "field",
         "x": 198,
         "y": 73,
         "half_x": 3,
@@ -2000,6 +2011,7 @@
       {
         "id": 400,
         "label": "Shop_General",
+        "area": "town",
         "x": -141.5,
         "y": -22.0,
         "yaw": 180.0,
@@ -2010,6 +2022,7 @@
       {
         "id": 300,
         "label": "Village",
+        "area": "town",
         "x": -150,
         "y": 0,
         "radius_cm": 7200
@@ -2019,6 +2032,7 @@
       {
         "id": 100,
         "label": "Dungeon",
+        "area": "field",
         "x": 190.2,
         "y": -188.0,
         "radius_cm": 400,
@@ -2028,6 +2042,7 @@
       {
         "id": 110,
         "label": "Station",
+        "area": "field",
         "x": 189.3,
         "y": 187.5,
         "radius_cm": 400,
@@ -2037,6 +2052,7 @@
       {
         "id": 101,
         "label": "VillageN_In",
+        "area": "town",
         "x": -84.0,
         "y": 0.0,
         "radius_cm": 300,
@@ -2046,6 +2062,7 @@
       {
         "id": 201,
         "label": "VillageN_Out",
+        "area": "field",
         "x": -64.0,
         "y": 0.0,
         "radius_cm": 300,
@@ -2055,6 +2072,7 @@
       {
         "id": 102,
         "label": "VillageE_In",
+        "area": "town",
         "x": -150.0,
         "y": 66.0,
         "radius_cm": 300,
@@ -2064,6 +2082,7 @@
       {
         "id": 202,
         "label": "VillageE_Out",
+        "area": "field",
         "x": -150.0,
         "y": 86.0,
         "radius_cm": 300,
@@ -2073,6 +2092,7 @@
       {
         "id": 103,
         "label": "VillageW_In",
+        "area": "town",
         "x": -150.0,
         "y": -66.0,
         "radius_cm": 300,
@@ -2082,6 +2102,7 @@
       {
         "id": 203,
         "label": "VillageW_Out",
+        "area": "field",
         "x": -150.0,
         "y": -86.0,
         "radius_cm": 300,

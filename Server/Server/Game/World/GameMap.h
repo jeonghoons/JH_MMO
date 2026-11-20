@@ -16,10 +16,12 @@ struct MapPosition
     float Yaw = 0.f;
 };
 
+// 마커의 Area = 구역 이름(DG3b, D-215 — town / field). 같은 레벨을 여러 Room이 나눠 쓸 때 그 마커를 쓰는 Room을 정한다. 비어 있으면 모든 Room.
 struct PlayerStartPoint
 {
     int32_t PointId = 0;
     MapPosition Pos;
+    string Area;
 };
 
 struct MonsterSpawnPoint
@@ -29,6 +31,7 @@ struct MonsterSpawnPoint
     int32_t MonsterTemplateId = 0;
     float SpawnRadius = 0.f;
     int32_t MaxCount = 1;
+    string Area;
     string ZoneName;   // 채워져 있으면 SpawnTable의 (MapName, Zone) 행이 종류·수·리스폰을 정한다(MonsterTemplateId·MaxCount는 안 씀) (L3)
 };
 
@@ -38,6 +41,7 @@ struct SafeZonePoint
     int32_t PointId = 0;
     MapPosition Pos;
     float Radius = 0.f;
+    string Area;
 };
 
 struct NpcSpawnPoint
@@ -45,6 +49,7 @@ struct NpcSpawnPoint
     int32_t PointId = 0;
     MapPosition Pos;
     int32_t NpcTemplateId = 0;
+    string Area;
 };
 
 struct PortalTriggerPoint
@@ -54,6 +59,7 @@ struct PortalTriggerPoint
     float TriggerRadius = 0.f;
     string TargetMap;
     int32_t TargetPointId = 0;
+    string Area;
 };
 
 class Room;
@@ -72,7 +78,13 @@ public:
     ViewUpdate UpdateMap(int objectId, const Protocol::PositionInfo& pos, const vector<int>& currentView);
     ViewUpdate LeaveMap(int objectId, const vector<int>& currentView);
 
-    bool LoadMapData(const string& fileName);
+    // area = 이 맵을 쓰는 Room의 구역 이름(빈 글 = 레벨 전체). 마커는 레벨 전체를 그대로 보관하고(포털의 도착 마커는 다른 구역에 있다),
+    // 쓰는 쪽이 InArea로 거른다. 안전 구역 판정(IsInSafeZone)은 이 구역의 것만 본다.
+    bool LoadMapData(const string& fileName, const string& area = string());
+    // 그 구역 이름의 마커를 이 맵(Room)이 쓰는가. 마커나 Room의 구역이 비어 있으면 쓴다.
+    bool InArea(const string& markerArea) const { return _area.empty() || markerArea.empty() || markerArea == _area; }
+    // 레벨에 그 구역 이름의 마커가 하나라도 있는가(레벨을 구역별 Room으로 나눌지 판단 — WorldService)
+    bool HasArea(const string& area) const;
     const vector<PlayerStartPoint>& GetPlayerStarts() const { return _playerStarts; }
     const vector<MonsterSpawnPoint>& GetMonsterSpawns() const { return _monsterSpawns; }
     const vector<NpcSpawnPoint>& GetNpcSpawns() const { return _npcSpawns; }
@@ -90,6 +102,18 @@ public:
     {
         for (const SafeZonePoint& zone : _safeZones)
         {
+            if (!InArea(zone.Area)) continue;
+            const float dx = x - zone.Pos.X, dy = y - zone.Pos.Y;
+            if (dx * dx + dy * dy <= zone.Radius * zone.Radius) return true;
+        }
+        return false;
+    }
+    // (x, y)가 다른 구역의 안전 구역 원 안인가(= 다른 Room이 쓰는 땅 — 사냥터 Room에서 본 마을 안). 더미 봇 무작위 배치에서 피한다.
+    bool IsInOtherAreaZone(float x, float y) const
+    {
+        for (const SafeZonePoint& zone : _safeZones)
+        {
+            if (InArea(zone.Area)) continue;
             const float dx = x - zone.Pos.X, dy = y - zone.Pos.Y;
             if (dx * dx + dy * dy <= zone.Radius * zone.Radius) return true;
         }
@@ -112,6 +136,7 @@ public:
 
 private:
     weak_ptr<Room>             _ownerRoom;
+    string                     _area;      // 이 맵을 쓰는 Room의 구역 이름(빈 글 = 레벨 전체)
     AoiIndex                   _aoi;
     AoiIndex                   _dropAoi;   // 바닥 드랍(OBJECT_TYPE_ITEM) 전용
 

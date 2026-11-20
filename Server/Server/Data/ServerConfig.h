@@ -41,6 +41,8 @@ struct ServerConfig
 
 	// [World] — 이 서버 프로세스가 띄우는 레벨(D-172). 맵 리소스 파일 이름(Resource/Map/<이름>_Geo.nav, MapResource/Export/<이름>)이자 WorldTable.MapName
 	std::string mapName = "ParagonSample";
+	// Room 이동(DG3b, D-216) 전에 끝나지 않은 일(DB 작업·저장)을 기다리는 최대 시간. 넘으면 이동을 취소하고 MOVE_RESULT_TIMEOUT
+	int moveWaitTimeoutMs = 5000;
 
 	// [Debug] — 부하·검증 시험용. 기본은 모두 꺼짐
 	// 더미(봇) 로그인을 이 원들 안에 배치(핫존·시야 경계 시험). 비면 맵 전체 무작위.
@@ -50,6 +52,10 @@ struct ServerConfig
 	bool viewAudit = false;         // 방마다 1초에 한 번 시야 목록을 실제 거리(WorldTable.ViewRadiusCm/ViewHysteresisCm)와 비교
 	bool devCommands = false;       // 개발 지급 명령(CS_DEV_GIVE)을 받는다(A3.3, D-152). 꺼져 있으면 NOT_ALLOWED
 	int dbItemFailEvery = 0;        // 0보다 크면 아이템 트랜잭션을 이 횟수마다 한 번 일부러 롤백한다(DB 실패 시험, D-162)
+	// 더미 봇이 처음 들어가는 Room(DG3b): town(기본 — 실제 규칙) / field(사냥터 Room에 바로) / split(들어오는 순서대로 번갈아). 구역으로 나뉜 레벨에서만 뜻이 있다
+	std::string dummyRoom = "town";
+	// Room 이동의 잡 사이(서비스 → 떠나기, 떠나기 → 들어오기)를 이만큼 늦춘다 — 그 구간의 접속 해제·사망·중복 요청 시험용
+	int moveHandoffDelayMs = 0;
 	int dbSaveDelayMs = 0;          // 아이템 트랜잭션·진행 상황 저장을 실행하기 전에 이만큼 멈춘다(빠른 재접속·중복 접속 시험, A2.7). DB 작업 스레드를 막으므로 시험에만 쓴다
 
 	// 명령줄 --roll-drops <kills>: 0보다 크면 DataTable 로드 뒤 몬스터마다 그 횟수만큼 드랍을 굴려 빈도를 찍고 종료한다(DB·포트를 열지 않음)
@@ -62,6 +68,7 @@ struct ServerConfig
 	std::string loginWaitTimeoutSecFrom = "default", loginCloseForceSecFrom = "default";
 	std::string devCommandsFrom = "default", dbItemFailEveryFrom = "default";
 	std::string mapNameFrom = "default";
+	std::string moveWaitTimeoutMsFrom = "default", dummyRoomFrom = "default", moveHandoffDelayMsFrom = "default";
 
 	// 실제로 쓸 워커 스레드 수 (0이면 CPU 코어 수 / 2, 최소 1)
 	int ResolvedWorkerThreads() const;

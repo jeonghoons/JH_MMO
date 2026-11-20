@@ -269,6 +269,26 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_TELEPORT(shared_ptr<GameObject>
 	return MakeSendBuffer(packet, Protocol::SC_TELEPORT);
 }
 
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ROOM_CHANGE(shared_ptr<GameObject> object, const string& mapName, Protocol::RoomKind kind, int channel, uint32_t correctionSeq)
+{
+	Protocol::SC_ROOM_CHANGE_PACKET packet;
+	packet.set_map_name(mapName);
+	packet.set_kind(kind);
+	packet.set_channel(channel);
+	packet.mutable_pos_info()->CopyFrom(object->GetInfo().position());
+	packet.set_correction_seq(correctionSeq);
+
+	return MakeSendBuffer(packet, Protocol::SC_ROOM_CHANGE);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MOVE_RESULT(Protocol::MoveResult result)
+{
+	Protocol::SC_MOVE_RESULT_PACKET packet;
+	packet.set_result(result);
+
+	return MakeSendBuffer(packet, Protocol::SC_MOVE_RESULT);
+}
+
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PORTAL_LIST(const vector<PortalTriggerPoint>& portals)
 {
 	Protocol::SC_PORTAL_LIST_PACKET packet;

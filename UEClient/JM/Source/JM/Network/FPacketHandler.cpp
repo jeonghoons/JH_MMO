@@ -42,6 +42,8 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_SHOP_OPEN, &FPacketHandler::Handle_SC_SHOP_OPEN);
 	RegisterHandler(Protocol::SC_TELEPORT, &FPacketHandler::Handle_SC_TELEPORT);
 	RegisterHandler(Protocol::SC_PORTAL_LIST, &FPacketHandler::Handle_SC_PORTAL_LIST);
+	RegisterHandler(Protocol::SC_ROOM_CHANGE, &FPacketHandler::Handle_SC_ROOM_CHANGE);
+	RegisterHandler(Protocol::SC_MOVE_RESULT, &FPacketHandler::Handle_SC_MOVE_RESULT);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -267,6 +269,32 @@ void FPacketHandler::Handle_SC_PORTAL_LIST(TSharedPtr<NetworkSession>& session, 
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandlePortalList(pkt);
+}
+
+// ---- Room 변경(DG3b): 같은 레벨 안에서 Room이 바뀌었다(문 포털·사냥터 부활). 뒤따라 본인 SC_ADD_OBJECT·포털 목록·주변 오브젝트가 온다. ----
+void FPacketHandler::Handle_SC_ROOM_CHANGE(TSharedPtr<NetworkSession>& session, Protocol::SC_ROOM_CHANGE_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleRoomChange(pkt);
+}
+
+// SC_MOVE_RESULT(DG3b): 서버가 이동을 거부했다. 거부일 때만 온다.
+static FText MoveResultText(Protocol::MoveResult Result)
+{
+	switch (Result)
+	{
+	case Protocol::MOVE_RESULT_DUNGEON_FULL:	return FText::FromString(TEXT("인스턴스가 가득 차 들어갈 수 없습니다."));
+	case Protocol::MOVE_RESULT_NOT_LEADER:	return FText::FromString(TEXT("파티장만 입장할 수 있습니다."));
+	case Protocol::MOVE_RESULT_DUNGEON_CLEARED:	return FText::FromString(TEXT("이미 클리어한 던전입니다."));
+	case Protocol::MOVE_RESULT_TIMEOUT:		return FText::FromString(TEXT("처리 중인 작업이 끝나지 않아 이동하지 못했습니다. 다시 시도해 주세요."));
+	case Protocol::MOVE_RESULT_NOT_AVAILABLE:	return FText::FromString(TEXT("지금은 갈 수 없는 곳입니다."));
+	default:							return FText::FromString(TEXT("이동하지 못했습니다."));
+	}
+}
+
+void FPacketHandler::Handle_SC_MOVE_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_MOVE_RESULT_PACKET& pkt)
+{
+	ShowSystemMessage(session, MoveResultText(pkt.result()));
 }
 
 void FPacketHandler::Handle_SC_CHANGE_EQUIP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_EQUIP_PACKET& pkt)

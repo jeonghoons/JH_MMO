@@ -49,9 +49,20 @@ ViewUpdate GameMap::LeaveMap(int objectId, const vector<int>& currentView)
     return result;
 }
 
-bool GameMap::LoadMapData(const string& fileName)
+bool GameMap::HasArea(const string& area) const
+{
+    for (const auto& m : _playerStarts) if (m.Area == area) return true;
+    for (const auto& m : _monsterSpawns) if (m.Area == area) return true;
+    for (const auto& m : _npcSpawns) if (m.Area == area) return true;
+    for (const auto& m : _portalTriggers) if (m.Area == area) return true;
+    for (const auto& m : _safeZones) if (m.Area == area) return true;
+    return false;
+}
+
+bool GameMap::LoadMapData(const string& fileName, const string& area)
 {
     bool isSuccess = true;
+    _area = area;
 
     // 0. 시야(AOI) 수치
     if (const WorldData* world = DataManager::GetWorldData(fileName)) {
@@ -112,10 +123,11 @@ bool GameMap::LoadMapData(const string& fileName)
                 pos.Yaw = posJson.value("yaw", 0.f);
 
                 int32_t pointId = marker.value("pointId", 0);
+                const string markerArea = marker.value("area", string());
 
                 if (type == "PlayerStart")
                 {
-                    _playerStarts.push_back({ pointId, pos });
+                    _playerStarts.push_back({ pointId, pos, markerArea });
                 }
                 else if (type == "MonsterSpawn")
                 {
@@ -126,6 +138,7 @@ bool GameMap::LoadMapData(const string& fileName)
                     spawn.SpawnRadius = marker.value("spawnRadius", 0.f);
                     spawn.MaxCount = marker.value("maxCount", 1);
                     spawn.ZoneName = marker.value("zoneName", string());
+                    spawn.Area = markerArea;
                     _monsterSpawns.push_back(spawn);
                 }
                 else if (type == "SafeZone")
@@ -134,6 +147,7 @@ bool GameMap::LoadMapData(const string& fileName)
                     zone.PointId = pointId;
                     zone.Pos = pos;
                     zone.Radius = marker.value("radius", 0.f);
+                    zone.Area = markerArea;
                     if (zone.Radius > 0.f)
                         _safeZones.push_back(zone);
                     else
@@ -145,6 +159,7 @@ bool GameMap::LoadMapData(const string& fileName)
                     npc.PointId = pointId;
                     npc.Pos = pos;
                     npc.NpcTemplateId = marker.value("npcTemplateId", 0);
+                    npc.Area = markerArea;
                     _npcSpawns.push_back(npc);
                 }
                 else if (type == "PortalTrigger")
@@ -155,6 +170,7 @@ bool GameMap::LoadMapData(const string& fileName)
                     portal.TriggerRadius = marker.value("triggerRadius", 0.f);
                     portal.TargetMap = marker.value("targetMap", string());
                     portal.TargetPointId = marker.value("targetPointId", 0);
+                    portal.Area = markerArea;
                     _portalTriggers.push_back(portal);
                 }
                 else
@@ -166,8 +182,10 @@ bool GameMap::LoadMapData(const string& fileName)
             // 스폰 원(중심 ± 반경)이 안전 구역에 걸치면 그 안으로는 스폰하지 않지만(Room::SpawnMonster) 배치 실수이므로 알린다.
             for (const MonsterSpawnPoint& spawn : _monsterSpawns)
             {
+                if (!InArea(spawn.Area)) continue;
                 for (const SafeZonePoint& zone : _safeZones)
                 {
+                    if (!InArea(zone.Area)) continue;
                     const float dx = spawn.Pos.X - zone.Pos.X, dy = spawn.Pos.Y - zone.Pos.Y;
                     const float reach = zone.Radius + spawn.SpawnRadius;
                     if (dx * dx + dy * dy < reach * reach)

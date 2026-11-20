@@ -70,6 +70,9 @@ public:
 	void OnMyRevive(const Protocol::PositionInfo& Pos, int32 Hp, uint32 Seq);
 	// 내 순간이동(SC_TELEPORT, L5 포털): 서버 위치로 옮기고 이후 이동에 실을 보정 순번을 받는다.
 	void OnMyTeleport(const Protocol::PositionInfo& Pos, uint32 Seq);
+	// 내 Room 변경(SC_ROOM_CHANGE, DG3b): 응답 대기 중인 시전·조준·잠금·상호작용 대상을 정리한다. 스킬 쿨타임 표시는 서버가 이어 가므로 그대로 둔다.
+	// 죽은 상태에서 불러도 된다(부활 이동 — 뒤따르는 SC_REVIVE가 부활 창을 닫는다).
+	void ResetForRoomChange();
 
 	// 액티브 칸(D-148): 칸 수 = QuickSlotActions 수. 지금은 규칙 배치 — 칸 N = 현재 무기의 SkillTable 슬롯 N(없으면 빈 칸).
 	// 무기가 바뀌면 다시 부른다(UJMObjectManager가 스폰·장비 변경 때 부르고 HUD에 넘긴다).

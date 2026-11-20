@@ -52,6 +52,11 @@ public:
     UFUNCTION(Exec)
     void ShopClose();
 
+    // Dev console command (DG3b): "Portal [id]" sends the portal use request for that id, or for the nearest portal in range when id is 0.
+    // Range, cast/move locks and the portal's destination are checked by the server (a rejection gets no reply).
+    UFUNCTION(Exec)
+    void Portal(int32 PortalId = 0);
+
     // Dev console command (MC4.1b): "NetMoveStats [reset 0/1]" logs remote-player move display stats
     // (screen speed / move stat, packet-arrival position error). Default resets after printing.
     UFUNCTION(Exec)

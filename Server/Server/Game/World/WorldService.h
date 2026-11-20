@@ -54,6 +54,12 @@ public:
 	// 같은 신호가 두 번 오거나 명부에 없는 세션이어도 된다(세션 id는 다시 쓰이지 않는다). 더미 봇이 아니면 로비에 이어서 알린다.
 	void OnPlayerClosed(int sessionId, int64_t playerUID, bool isDummy);
 
+	// Room 이동 ④(DG3b, D-216): 그 채널에서 구역 destArea의 Room을 찾아 출발 Room 잡(Room::OnMoveResolved)으로 알려 준다. 없으면 nullptr.
+	// player는 넘겨주기만 한다 — 이 서비스는 그 필드를 읽지 않는다(필드는 소유 Room 잡의 것).
+	void RequestMove(shared_ptr<Player> player, shared_ptr<Room> source, int channel, string destArea);
+	// Room 이동 ⑧: 도착 Room이 알린다 — 명부의 "지금 있는 Room"을 갱신한다.
+	void OnPlayerMoved(int sessionId, shared_ptr<Room> room);
+
 private:
 	struct RosterEntry
 	{
@@ -70,11 +76,12 @@ private:
 	struct Channel
 	{
 		int id = 0;                // 1부터
-		shared_ptr<Room> room;     // DG3a에서는 채널당 Room 하나(DG3b에서 마을/사냥터로 나눈다)
+		shared_ptr<Room> town;     // 마을 Room. 구역으로 나뉘지 않은 레벨이면 레벨 전체를 맡는 하나뿐인 Room
+		shared_ptr<Room> field;    // 사냥터 Room(구역으로 나뉜 레벨만 — DG3b)
 		int population = 0;        // 이 채널에 배정된 접속자 수(명부 항목 수)
 	};
 
-	// 새 채널과 그 Room을 만든다. 실패하면 nullptr(채널 목록은 그대로).
+	// 새 채널과 그 Room(구역으로 나뉜 레벨이면 마을·사냥터 둘)을 만든다. 실패하면 nullptr(채널 목록은 그대로).
 	Channel* CreateChannel(bool allowBroken);
 	Channel* PickChannel();
 	void PublishMetrics();
@@ -84,6 +91,8 @@ private:
 	HANDLE _iocpHandle;
 
 	vector<Channel> _channels;                          // [i] = 채널 i+1. 한번 만든 채널은 서버가 꺼질 때까지 둔다
+	bool _levelSplit = false;                           // 레벨의 마커에 town·field 구역이 있다 → 채널마다 마을·사냥터 Room을 따로 만든다
+	int _dummySeq = 0;                                  // [Debug] DummyRoom=split 의 번갈아 넣기 순번
 	bool _channelCreateFailed = false;                  // 새 채널 생성에 실패했다 — 로그인마다 다시 시도하지 않는다
 	int _nextRoomId = 0;
 

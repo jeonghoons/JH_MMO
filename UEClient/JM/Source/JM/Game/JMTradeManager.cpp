@@ -41,6 +41,7 @@ namespace
 		case Protocol::TRADE_RESULT_CANCELLED:		return FText::FromString(TEXT("거래가 취소되었습니다."));
 		case Protocol::TRADE_RESULT_DEAD:			return FText::FromString(TEXT("사망하여 거래가 취소되었습니다."));
 		case Protocol::TRADE_RESULT_DISCONNECTED:	return FText::FromString(TEXT("상대가 떠나 거래가 취소되었습니다."));
+		case Protocol::TRADE_RESULT_MOVED:			return FText::FromString(TEXT("상대나 내가 다른 곳으로 이동해 거래가 취소되었습니다."));
 		case Protocol::TRADE_RESULT_LOCKED:			return FText::FromString(TEXT("잠금을 풀어야 제시를 바꿀 수 있습니다."));
 		case Protocol::TRADE_RESULT_INVALID_OFFER:	return FText::FromString(TEXT("올릴 수 없는 제시입니다."));
 		case Protocol::TRADE_RESULT_INVENTORY_FULL:	return FText::FromString(TEXT("받는 쪽 인벤토리에 빈 칸이 부족합니다."));

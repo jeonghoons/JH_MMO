@@ -247,6 +247,22 @@ message SC_PORTAL_LIST_PACKET {
 	repeated PortalInfo portals = 1;
 }
 
+// Room을 옮겼다(DG3b, D-216 — 문 포털, 사냥터에서 죽은 뒤 부활). 본인에게만, 새 Room의 SC_ADD_OBJECT·SC_PORTAL_LIST보다 먼저 온다.
+// 받은 쪽: map_name이 지금 레벨과 같으면 내 캐릭터를 뺀 오브젝트·포털을 지우고 pos_info로 옮긴다(레벨을 다시 열지 않음).
+// 다르면 그 레벨을 열고 CS_ENTER_ROOM을 보낸다(DG3c).
+message SC_ROOM_CHANGE_PACKET {
+	string map_name = 1;
+	RoomKind kind = 2;
+	int32 channel = 3;
+	PositionInfo pos_info = 4;
+	uint32 correction_seq = 5;   // 이동으로 올라간 이동 보정 순번(이후 CS_MOVE에 싣는다)
+}
+
+// Room 이동 거부(본인에게만, 거부일 때만).
+message SC_MOVE_RESULT_PACKET {
+	MoveResult result = 1;
+}
+
 // 장착 성공을 AOI 전체에 방송한다. stat = 장비 반영 후 최종 스탯(서버 계산).
 message SC_CHANGE_EQUIP_PACKET {
 	int32 object_id = 1;

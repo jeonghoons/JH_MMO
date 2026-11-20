@@ -27,7 +27,8 @@ namespace
 		"send_wake_ps,send_wake_late_avg_ms,send_wake_late_p99_ms,send_wake_late_max_ms,jobs_ps,job_repost_ps,"
 		"job_wait_p50_ms,job_wait_p90_ms,job_wait_p99_ms,job_run_max_ms,flush_run_max_ms,"
 		"job_dispatch_p50_ms,job_dispatch_p99_ms,job_busy_ms_ps,flush_busy_ms_ps,flush_runs_ps,send_kick_ps,"
-		"session_objects,handles,sendq_total,idle_kicks,sendq_kicks,channels,roster,channel_max";
+		"session_objects,handles,sendq_total,idle_kicks,sendq_kicks,channels,roster,channel_max,"
+		"town_players,field_players,tick_late_p99_town_ms,tick_late_p99_field_ms,tick_body_p99_town_ms,tick_body_p99_field_ms,room_moves";
 
 	// 누적 카운터의 구간 증가량을 초당 값으로 바꾼다.
 	struct RateCounter
@@ -160,12 +161,23 @@ namespace
 
 			int rooms = 0;
 			int players = 0;
-			GRoomManager->ForEach([&](const shared_ptr<Room>& room) { ++rooms; players += room->NumPlayers(); });
+			int kindPlayers[3] = { 0, 0, 0 };
+			GRoomManager->ForEach([&](const shared_ptr<Room>& room) {
+				++rooms;
+				players += room->NumPlayers();
+				kindPlayers[static_cast<int>(room->GetInfo().kind)] += room->NumPlayers();
+			});
 			const int worldChannels = Metrics::WorldChannels.load(), worldRoster = Metrics::WorldRoster.load(), worldChannelMax = Metrics::WorldChannelMax.load();
 
 			// 틱 표본은 us 단위 → ms로 출력
 			const Metrics::Percentiles late = Metrics::TickLate.TakeAndReset();
 			const Metrics::Percentiles body = Metrics::TickBody.TakeAndReset();
+			Metrics::Percentiles lateKind[3], bodyKind[3];
+			for (int k = 0; k < 3; ++k)
+			{
+				lateKind[k] = Metrics::TickLateByKind[k].TakeAndReset();
+				bodyKind[k] = Metrics::TickBodyByKind[k].TakeAndReset();
+			}
 			const Metrics::Percentiles viewP = Metrics::ViewPlayers.TakeAndReset();
 			const Metrics::Percentiles viewO = Metrics::ViewObjects.TakeAndReset();
 			const int sendQueueMax = NetStats::SendQueueMax.exchange(0);
@@ -209,7 +221,9 @@ namespace
 				"drops(now kills/created/expired/evicted)={} {}/{}/{}/{} pickup(picked/discarded)={}/{} trades={} "
 				"sendPath(flush/continue/direct/kick per s)={:.0f}/{:.0f}/{:.0f}/{:.0f} flushGap(p50/p90/p99 ms)={:.0f}/{:.0f}/{:.0f} "
 				"sendWake(per s, late avg/p50/p99/max ms)={:.0f} {:.1f}/{:.1f}/{:.1f}/{:.1f} jobs(exec/repost per s)={:.0f}/{:.0f} jobWait(p50/p90/p99 ms)={:.0f}/{:.0f}/{:.0f} jobRunMax={:.1f}ms flushRunMax={:.1f}ms "
-				"jobDispatch(p50/p90/p99 ms)={:.0f}/{:.0f}/{:.0f} busy(job/flush ms per s)={:.0f}/{:.0f} flushRuns/s={:.0f} conn(sessionObjs/handles idleKick/sendqKick)={}/{} {}/{} world(channels/roster/chMax)={}/{}/{}",
+				"jobDispatch(p50/p90/p99 ms)={:.0f}/{:.0f}/{:.0f} busy(job/flush ms per s)={:.0f}/{:.0f} flushRuns/s={:.0f} conn(sessionObjs/handles idleKick/sendqKick)={}/{} {}/{} world(channels/roster/chMax)={}/{}/{} "
+				"kind(town/field players)={}/{} tickLateP99(town/field ms)={:.1f}/{:.1f} tickBodyP99(town/field ms)={:.2f}/{:.2f} "
+				"roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)={}/{}/{}/{}/{} {}/{}/{}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, sendCallsPs, bufsPerSend, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
@@ -235,7 +249,10 @@ namespace
 				wakePs, wakeLate.avg / 1000.0, wakeLate.p50 / 1000.0, wakeLate.p99 / 1000.0, wakeLate.max / 1000.0, jobsPs, repostPs,
 				jobWait.p50, jobWait.p90, jobWait.p99, jobRunMaxMs, flushRunMaxMs,
 				jobDispatch.p50, jobDispatch.p90, jobDispatch.p99, jobBusyMs, flushBusyMs, flushRunsPs,
-				sessionObjs, handleCount, idleKicks, sendQueueKicks, worldChannels, worldRoster, worldChannelMax);
+				sessionObjs, handleCount, idleKicks, sendQueueKicks, worldChannels, worldRoster, worldChannelMax,
+				kindPlayers[0], kindPlayers[1], lateKind[0].p99 / 1000.0, lateKind[1].p99 / 1000.0, bodyKind[0].p99 / 1000.0, bodyKind[1].p99 / 1000.0,
+				Metrics::RoomMoveStarted.load(), Metrics::RoomMoveDone.load(), Metrics::RoomMoveRejected.load(), Metrics::RoomMoveTimeout.load(), Metrics::RoomMoveCanceled.load(),
+				Metrics::RoomMoveAbortBusy.load(), Metrics::DbResultOrphan.load(), Metrics::OwnerViolation.load());
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << runId << "," << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","
@@ -247,7 +264,9 @@ namespace
 				<< jobsPs << "," << repostPs << ","
 				<< jobWait.p50 << "," << jobWait.p90 << "," << jobWait.p99 << "," << jobRunMaxMs << "," << flushRunMaxMs << ","
 				<< jobDispatch.p50 << "," << jobDispatch.p99 << "," << jobBusyMs << "," << flushBusyMs << "," << flushRunsPs << "," << kickPs << ","
-				<< sessionObjs << "," << handleCount << "," << sendQueuedTotal << "," << idleKicks << "," << sendQueueKicks << "," << worldChannels << "," << worldRoster << "," << worldChannelMax << "\n";
+				<< sessionObjs << "," << handleCount << "," << sendQueuedTotal << "," << idleKicks << "," << sendQueueKicks << "," << worldChannels << "," << worldRoster << "," << worldChannelMax << ","
+				<< kindPlayers[0] << "," << kindPlayers[1] << "," << lateKind[0].p99 / 1000.0 << "," << lateKind[1].p99 / 1000.0 << ","
+				<< bodyKind[0].p99 / 1000.0 << "," << bodyKind[1].p99 / 1000.0 << "," << Metrics::RoomMoveDone.load() << "\n";
 			csv.flush();
 		}
 	}

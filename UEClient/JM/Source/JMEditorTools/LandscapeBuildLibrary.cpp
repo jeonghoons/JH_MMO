@@ -233,7 +233,7 @@ FString ULandscapeBuildLibrary::DescribeLandscape()
 	return FString::Printf(TEXT("{\"count\":%d,\"landscapes\":[%s]}"), Count, *Items);
 }
 
-FString ULandscapeBuildLibrary::SpawnLevelMarker(const FString& Type, int32 PointId, FVector Location, float Yaw, int32 TemplateId, float Radius, int32 MaxCount, const FString& TargetMap, const FString& Label, const FString& ZoneName)
+FString ULandscapeBuildLibrary::SpawnLevelMarker(const FString& Type, int32 PointId, FVector Location, float Yaw, int32 TemplateId, float Radius, int32 MaxCount, const FString& TargetMap, const FString& Label, const FString& ZoneName, const FString& Area)
 {
 	UWorld* World = GetEditorWorld();
 	if (!World)
@@ -293,6 +293,7 @@ FString ULandscapeBuildLibrary::SpawnLevelMarker(const FString& Type, int32 Poin
 	Marker->PointId = PointId;
 	Marker->MarkerType = MarkerType;
 	Marker->MarkerParams = Params;
+	Marker->Area = Area;
 	Marker->SetActorLabel(Label.IsEmpty() ? FString::Printf(TEXT("Marker_%s_%d"), *Type, PointId) : Label);
 	Marker->SetFolderPath(TEXT("Markers"));
 	Marker->MarkPackageDirty();
@@ -337,8 +338,8 @@ FString ULandscapeBuildLibrary::ListLevelMarkers()
 		{
 			Items += TEXT(",");
 		}
-		Items += FString::Printf(TEXT("{\"label\":\"%s\",\"pointId\":%d,\"type\":\"%s\",\"x\":%.1f,\"y\":%.1f,\"z\":%.1f}"),
-			*Marker->GetActorLabel(), Marker->PointId, TypeNames[TypeIndex], Loc.X, Loc.Y, Loc.Z);
+		Items += FString::Printf(TEXT("{\"label\":\"%s\",\"pointId\":%d,\"type\":\"%s\",\"area\":\"%s\",\"x\":%.1f,\"y\":%.1f,\"z\":%.1f}"),
+			*Marker->GetActorLabel(), Marker->PointId, TypeNames[TypeIndex], *Marker->Area, Loc.X, Loc.Y, Loc.Z);
 	}
 	return FString::Printf(TEXT("[%s]"), *Items);
 }

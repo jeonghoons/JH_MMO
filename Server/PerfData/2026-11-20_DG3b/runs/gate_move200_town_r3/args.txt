@@ -1,0 +1,4 @@
+1795112222 --bots 200 --ramp-rate 50 --duration 60 --threads 4 --move-interval 200 --body male  --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3b\runs\gate_move200_town_r3\loadtest.csv
+exe after data repo dummyRoom town
+loadtest exit 0
+run_id 20261120_031658

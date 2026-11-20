@@ -51,6 +51,28 @@ void AJMPlayerController::BeginPlay()
 }
 
 // ---- 개발용 상점 명령(L4): 상점 창이 보내는 것과 같은 요청을 콘솔로 보낸다(마우스 없이 확인할 때). 검증은 모두 서버가 한다. ----
+// Portal [id] (DG3b): id를 주면 그 포털, 생략(0)하면 범위 안의 가장 가까운 포털로 사용 요청을 보낸다.
+void AJMPlayerController::Portal(int32 PortalId)
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	const UJMObjectManager* ObjectManager = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
+	const APawn* MyPawn = GetPawn();
+	if (ObjectManager == nullptr || MyPawn == nullptr) return;
+
+	if (PortalId == 0)
+	{
+		float DistSq = 0.f;
+		PortalId = ObjectManager->FindNearestPortal(MyPawn->GetActorLocation(), DistSq);
+		if (PortalId == 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Portal: 범위 안에 포털이 없습니다."));
+			return;
+		}
+		UE_LOG(LogTemp, Log, TEXT("Portal: nearest id=%d dist=%.0fcm"), PortalId, FMath::Sqrt(DistSq));
+	}
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendPortal(PortalId);
+}
+
 void AJMPlayerController::ShopOpen()
 {
 	UGameInstance* GameInstance = GetGameInstance();

@@ -27,6 +27,9 @@ public:
 	static shared_ptr<SendBuffer> MAKE_SC_TELEPORT(shared_ptr<GameObject> object, uint32_t correctionSeq);
 	// 쓸 수 있는 포털 목록(L5). 방 입장 직후 본인에게
 	static shared_ptr<SendBuffer> MAKE_SC_PORTAL_LIST(const vector<struct PortalTriggerPoint>& portals);
+	// Room 이동(DG3b): object의 지금 위치(도착 자리로 옮긴 뒤)와 보정 순번, 도착 Room의 레벨·종류·채널
+	static shared_ptr<SendBuffer> MAKE_SC_ROOM_CHANGE(shared_ptr<GameObject> object, const string& mapName, Protocol::RoomKind kind, int channel, uint32_t correctionSeq);
+	static shared_ptr<SendBuffer> MAKE_SC_MOVE_RESULT(Protocol::MoveResult result);
 
 	static shared_ptr<SendBuffer> MAKE_SC_PONG(long long clientTime);
 	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_EQUIP(int objectId, Protocol::EquipPart part, int itemId, const Protocol::StatInfo& stat);

@@ -1,0 +1,1 @@
+sessions=0 players=0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=3/3/1/0/0 0/0/0 

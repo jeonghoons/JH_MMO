@@ -105,8 +105,22 @@ namespace Metrics
 	inline std::atomic<long long> PortalUsed{ 0 };     // 이동 수락
 	inline std::atomic<long long> PortalReject{ 0 };   // 거부(없는 포털·도착지 없음·거리 밖·사망·시전 중·너무 잦음)
 
+	// Room 간 이동(DG3b, D-216 — Room::BeginMove ~ PlayerArriveRoom). 모두 누적
+	inline std::atomic<long long> RoomMoveStarted{ 0 };    // 이동 요청을 받아 대기·이동 절차에 들어간 수(포털 + 부활)
+	inline std::atomic<long long> RoomMoveDone{ 0 };       // 도착 Room에 들어간 수
+	inline std::atomic<long long> RoomMoveRejected{ 0 };   // 갈 수 없는 포털(SC_MOVE_RESULT NOT_AVAILABLE)
+	inline std::atomic<long long> RoomMoveTimeout{ 0 };    // 끝나지 않은 일을 기다리다 시간 초과(SC_MOVE_RESULT TIMEOUT)
+	inline std::atomic<long long> RoomMoveCanceled{ 0 };   // 대기·이동 중 사망·접속 해제로 취소
+	// 아래 셋은 0이어야 정상이다(이동 절차의 구멍을 알리는 값)
+	inline std::atomic<long long> RoomMoveAbortBusy{ 0 };  // 떠나기 직전에 끝나지 않은 DB 작업이 남아 있어 취소
+	inline std::atomic<long long> DbResultOrphan{ 0 };     // DB 결과가 왔는데 그 플레이어가 (접속은 살아 있는 채) 다른 Room에 있음 → 접속을 끊음
+	inline std::atomic<long long> OwnerViolation{ 0 };     // 도착 처리 때 플레이어의 소유 Room이 이 Room이 아님
+
 	inline SampleStat TickLate;     // Room 틱이 예정보다 늦어진 시간(us) (Timer/JobQueue/IOCP 대기 지연)
 	inline SampleStat TickBody;     // Room::Update 본문 처리 시간(us)
+	// Room 종류별 틱 표본(DG3b — 채널 인원을 마을·사냥터에 나눠 잴 때 어느 쪽이 느린지 본다). [0] = 마을, [1] = 사냥터, [2] = 던전
+	inline SampleStat TickLateByKind[3];
+	inline SampleStat TickBodyByKind[3];
 	inline SampleStat SendWakeLate; // 송신 깨우기 작업(Room::OnSendWake)이 예약 시각보다 늦게 돈 시간(us) (P1b — Timer 해상도 + IOCP 대기)
 	inline SampleStat ViewPlayers;  // 플레이어 한 명의 시야 안 다른 플레이어 수 (1초마다 플레이어별 표본)
 	inline SampleStat ViewObjects;  // 플레이어 한 명의 시야 안 전체 오브젝트 수(플레이어 + 몬스터)

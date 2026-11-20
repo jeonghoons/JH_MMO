@@ -310,7 +310,7 @@
 - 거부·실패·성사 안내는 모두 시스템 메시지 창(D-050)입니다.
 
 ## 패킷 (번호 배정)
-새 번호는 `Enum.proto`의 마지막 번호 다음부터 이어 씁니다(2026-11-19 기준 CS 1035~, SC 2033~ — 파티·Room 이동이 CS 1035~1037, SC 2033~2038을 씀, `DESIGN_PARTY_DUNGEON.md`). 추가 절차는 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md).
+새 번호는 `Enum.proto`의 마지막 번호 다음부터 이어 씁니다(2026-11-20 기준 CS 1035~, SC 2038~ — 파티가 CS 1035~1037·SC 2033~2035(DG2 예정), Room 이동이 SC 2036·2037(DG3b 구현, 거래 취소 사유 `TRADE_RESULT_MOVED` 17 추가), 2038은 던전 상태(DG3c 예정), `DESIGN_PARTY_DUNGEON.md`). 추가 절차는 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md).
 
 | 항목 | CS | SC |
 |---|---|---|

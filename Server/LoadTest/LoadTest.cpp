@@ -60,13 +60,13 @@ int main(int argc, char** argv)
 
 	ofstream csv(GConfig.outFile);
 	csv << "t_sec,connected,in_game,connect_fail,unexpected_close,login_p50_ms,login_p95_ms,ping_p50_ms,ping_p95_ms,ping_p99_ms,ping_max_ms,"
-		"sent_ps,recv_ps,recv_kbps,move_corrected,server_cpu_pct,server_mem_mb,max_bot_recv_KBps,bot_cpu_pct\n";
+		"sent_ps,recv_ps,recv_kbps,move_corrected,server_cpu_pct,server_mem_mb,max_bot_recv_KBps,bot_cpu_pct,room_change,move_rejected\n";
 
 	vector<uint32_t> allPing, allLogin;
 	double peakBotKBps = 0.0;   // 구간별 봇 1명 최대 수신량 중 가장 큰 값
 	const long long startUs = NowUs();
 	long long lastReportUs = startUs;
-	long long lastSent = 0, lastRecv = 0, lastBytes = 0, lastCorrected = 0;
+	long long lastSent = 0, lastRecv = 0, lastBytes = 0, lastCorrected = 0, lastRoomChange = 0, lastMoveRejected = 0;
 	constexpr int REPORT_SEC = 5;
 	long long nextReportUs = startUs + REPORT_SEC * 1000000LL;
 
@@ -91,6 +91,7 @@ int main(int argc, char** argv)
 
 		const double dt = max(0.001, (now - lastReportUs) / 1e6);
 		long long sent = GStat.pktSent.load(), recv = GStat.pktRecv.load(), bytes = GStat.bytesRecv.load(), corrected = GStat.moveCorrected.load();
+		const long long roomChange = GStat.roomChange.load(), moveRejected = GStat.moveRejected.load();
 		double cpu, mem;
 		proc.Sample(cpu, mem);
 		const double botCpu = SelfCpuPct();
@@ -101,13 +102,13 @@ int main(int argc, char** argv)
 
 		char line[512];
 		snprintf(line, sizeof(line),
-			"%.0f,%d,%d,%lld,%lld,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.0f,%.0f,%.0f,%lld,%.0f,%.0f,%.1f,%.0f",
+			"%.0f,%d,%d,%lld,%lld,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.0f,%.0f,%.0f,%lld,%.0f,%.0f,%.1f,%.0f,%lld,%lld",
 			elapsed, GStat.connected.load(), GStat.inGame.load(), GStat.connectFail.load(), GStat.unexpectedClose.load(),
 			Percentile(login, 0.50) / 1000.0, Percentile(login, 0.95) / 1000.0,
 			Percentile(ping, 0.50) / 1000.0, Percentile(ping, 0.95) / 1000.0, Percentile(ping, 0.99) / 1000.0,
 			(ping.empty() ? 0.0 : ping.back() / 1000.0),
 			(sent - lastSent) / dt, (recv - lastRecv) / dt, (bytes - lastBytes) / dt / 1024.0 * 8.0,
-			corrected - lastCorrected, cpu, mem, maxBotKBps, botCpu);
+			corrected - lastCorrected, cpu, mem, maxBotKBps, botCpu, roomChange - lastRoomChange, moveRejected - lastMoveRejected);
 		csv << line << "\n";
 		csv.flush();
 
@@ -117,6 +118,7 @@ int main(int argc, char** argv)
 			(ping.empty() ? 0.0 : ping.back() / 1000.0), (sent - lastSent) / dt, (recv - lastRecv) / dt, cpu, mem, maxBotKBps, botCpu);
 
 		lastReportUs = now; lastSent = sent; lastRecv = recv; lastBytes = bytes; lastCorrected = corrected;
+		lastRoomChange = roomChange; lastMoveRejected = moveRejected;
 		nextReportUs = now + REPORT_SEC * 1000000LL;
 
 		if (finished) break;
@@ -175,6 +177,15 @@ int main(int argc, char** argv)
 	}
 	if (GStat.portalSent.load() > 0)
 		printf("[summary] portal: sent=%lld moved(SC_TELEPORT)=%lld\n", GStat.portalSent.load(), GStat.portalMoved.load());
+	if (GStat.roomChange.load() > 0 || GStat.moveRejected.load() > 0)
+	{
+		printf("[summary] room: roomChange(SC_ROOM_CHANGE)=%lld moveRejected(SC_MOVE_RESULT)=%lld by MoveResult:",
+			GStat.roomChange.load(), GStat.moveRejected.load());
+		static const char* const kMoveResultName[8] = { "NONE", "DUNGEON_FULL", "NOT_LEADER", "DUNGEON_CLEARED", "TIMEOUT", "NOT_AVAILABLE", "6", "7" };
+		for (int i = 0; i < 8; ++i)
+			if (GStat.moveRejectedBy[i].load() > 0) printf(" %s=%lld", kMoveResultName[i], GStat.moveRejectedBy[i].load());
+		printf("\n");
+	}
 
 	return 0;
 }

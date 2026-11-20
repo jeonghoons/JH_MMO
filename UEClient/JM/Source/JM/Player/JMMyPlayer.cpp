@@ -926,6 +926,31 @@ void AJMMyPlayer::OnMyTeleport(const Protocol::PositionInfo& Pos, uint32 Seq)
 	bMoveSendPending = true;
 }
 
+void AJMMyPlayer::ResetForRoomChange()
+{
+	// 응답을 기다리던 시전은 서버가 받지 않은 것이다(받았다면 SC_ATTACK이 먼저 와서 이미 확정됐다): 몽타주·이펙트·쿨타임·잠금을 되돌린다.
+	UndoPendingCast();
+
+	// 조준은 서버가 이미 해제했으므로 끄기 패킷 없이 로컬에서만 끈다.
+	EndLocalAim(false);
+
+	// 이동·행동 잠금: 옛 Room에서 걸린 시간은 새 Room에 가져가지 않는다.
+	MoveLockUntil = 0.0;
+	LocalActionUntil = 0.0;
+
+	// 개발용 자동 공격도 멈춘다.
+	DevAutoRemain = 0;
+
+	// 상호작용 대상(드랍·NPC·포털)은 옛 Room의 것이므로 지우고 안내 문구도 지운다.
+	// UpdateInteractPrompt는 대상이 같으면 HUD를 고치지 않으므로 여기서 직접 비워야 한다.
+	InteractTarget.Reset();
+	InteractNpcId = 0;
+	InteractPortalId = 0;
+	bInteractPromptShown = false;
+	InteractCheckTimer = 0.f;
+	if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetInteractPrompt(FText::GetEmpty());
+}
+
 void AJMMyPlayer::OnMyRevive(const Protocol::PositionInfo& Pos, int32 Hp, uint32 Seq)
 {
 	OnRevive(Pos, Hp);

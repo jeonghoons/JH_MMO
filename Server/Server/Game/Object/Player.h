@@ -38,7 +38,7 @@ public:
 
 	// 사망·부활(A2.4, D-149). Room 잡 안에서만 읽고 쓴다.
 	long long deadAtMs = 0;                // 죽은 시각(steady_clock ms). 부활 요청은 이 시각 + ReviveDelaySec 뒤부터 받는다
-	Protocol::PositionInfo spawnPosition;  // 방에 들어올 때 배치된 자리(Room::AddObject) = 부활 위치
+	Protocol::PositionInfo spawnPosition;  // 방에 들어올 때 배치된 자리 = 구역이 없는 Room의 부활 위치(구역이 있는 Room은 부활할 때마다 시작 지점을 새로 고른다 — DG3b)
 
 	// 채팅 도배 방지. Room 잡 안에서만 읽고 쓴다.
 	Cooldown chatCooldown;
@@ -154,8 +154,27 @@ public:
 	long long nextProgressSaveMs = 0;      // 다음 주기 저장 시각(steady_clock ms). 방에 들어올 때 정한다
 	int progressSaveRetries = 0;           // 방을 나간 뒤 마지막 저장이 실패해 다시 시도한 횟수
 
-	// 접속 목록에서 빼라는 신호(AuthLobby::OnPlayerClosed)를 이미 보냈다(A2.7). Room 잡 안에서만 읽고 쓴다.
-	bool closedNotified = false;
+	// 접속 목록에서 빼라는 신호(AuthLobby::OnPlayerClosed)를 이미 보냈다(A2.7). 소유 Room 잡에서 쓰지만,
+	// Room 이동과 접속 해제가 겹치는 순간에 두 Room이 함께 볼 수 있어 원자적으로 둔다(DG3b).
+	atomic<bool> closedNotified = false;
+
+	// ---- Room 간 이동 상태(DG3b, D-216 — DESIGN_PARTY_DUNGEON §4-2). 이 플레이어를 가진 Room의 잡 안에서만 읽고 쓴다 ----
+	using MoveReason = Player_MoveReason;
+	struct RoomMoveState
+	{
+		bool waiting = false;     // ② 끝나지 않은 일(DB 작업·저장)이 끝나기를 기다리는 중
+		bool transfer = false;    // ③ 이동 표시: 도착 Room을 물어본 뒤 떠나기까지. 이 동안 이 플레이어의 요청은 버린다
+		MoveReason reason = MoveReason::None;
+		string destArea;          // 도착 Room의 구역 이름(town / field)
+		bool hasDestPos = false;  // true = destPos에 도착(포털의 도착 마커), false = 도착 Room이 시작 지점을 고른다(부활)
+		Protocol::PositionInfo destPos;
+		long long deadlineMs = 0; // 대기 시한(steady_clock ms)
+		bool Active() const { return waiting || transfer; }
+	};
+	RoomMoveState roomMove;
+	// DB에 가 있는 이 플레이어의 작업이 있는가(아이템 작업 — 확정 중인 1:1 거래의 양쪽 포함, 진행 상황·액티브 칸 저장).
+	// Room::NotifyClosedIfDone과 Room 이동이 같은 조건을 본다 — DB로 가는 플레이어 작업을 추가하면 여기에 넣는다.
+	bool HasUnfinishedWork() const { return itemOp.inFlight || progressSave.inFlight || quickSlotSave.inFlight; }
 
 	int64_t GetExp() const { return _dbPlayerData.exp; }
 	int64_t GetGold() const { return _dbPlayerData.gold; }

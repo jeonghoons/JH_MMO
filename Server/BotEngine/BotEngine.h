@@ -57,7 +57,9 @@ struct BotCounters
 	std::atomic<long long> inventoryRecv{ 0 }, inventoryUpdateRecv{ 0 }, giveSent{ 0 }, itemRejected{ 0 }, slotMoveSent{ 0 };
 	std::atomic<long long> itemRejectedBy[24]{};
 	std::atomic<long long> shopBuySent{ 0 }, shopSellSent{ 0 };   // 상점 구매·판매 요청 (L4)
-	std::atomic<long long> portalSent{ 0 }, portalMoved{ 0 };     // 포털 요청 / 내 SC_TELEPORT (L5)
+	std::atomic<long long> roomChange{ 0 }, moveRejected{ 0 };    // 내 SC_ROOM_CHANGE(Room 이동) / SC_MOVE_RESULT(이동 거부, DG3b)
+		std::atomic<long long> moveRejectedBy[8]{};                   // SC_MOVE_RESULT를 MoveResult 값별로(4 = TIMEOUT, 5 = NOT_AVAILABLE)
+		std::atomic<long long> portalSent{ 0 }, portalMoved{ 0 };     // 포털 요청 / 내 SC_TELEPORT (L5)
 	std::atomic<long long> selfDead{ 0 }, reviveSent{ 0 }, selfRevived{ 0 };   // 내 SC_DEAD / CS_REVIVE / 내 SC_REVIVE (A2.4)
 	std::atomic<int> connected{ 0 }, inGame{ 0 };
 	// 구간(리포트 간격) 동안 봇 한 명이 받은 최대 바이트. 리포터가 읽으며 0으로 되돌리고 windowEpoch를 올린다.

@@ -134,6 +134,10 @@ struct Bot
 	// 사망·부활(A2.4): 내 SC_DEAD를 받으면 행동을 멈추고, 서버가 알려 준 대기 시간이 지나면 CS_REVIVE를 보낸다
 	bool dead = false;
 	long long reviveAtUs = 0;
+	// Room 이동(DG3b): SC_ROOM_CHANGE로 아는 Room 종류. roomKind 0 = 아직 모름(로그인 직후). inField는 사냥터 Room일 때 true
+	int roomKind = 0;
+	bool inField = false;
+	long long nextHuntPortalUs = 0;   // 사냥 봇이 마을 포털 요청을 다시 보낼 시각(응답이 없으면 1초 뒤)
 };
 
 static void SendPacket(Bot& b, uint16_t id, const google::protobuf::Message& msg);
@@ -183,6 +187,38 @@ static void SendMove(Bot& b, long long now, float nx, float ny, float yaw, Proto
 	SendPacket(b, Protocol::CS_MOVE, mv);
 	b.lastMoveSentUs = now;
 	b.x = nx; b.y = ny;   // 서버가 거부하면 보정 패킷(SC_MOVE_OBJECT)으로 되돌려진다.
+}
+
+// ---------------------------------------------------------------- Room 이동 (DG3b)
+// 마을 Room의 문 포털은 101~103이고 사냥터 쪽은 201~203이다. 던전 입구(100)·정거장(110)은 다른 레벨로 가므로 봇은 쓰지 않는다.
+static constexpr float kPortalStopCm = 150.f;   // 사냥 봇이 포털 앞에서 멈추는 거리(포털 반경 300cm 안쪽)
+static constexpr float kPortalSendCm = 200.f;   // 이 거리 안에 들어오면 CS_PORTAL을 보낸다
+
+static bool IsTownDoorPortal(float id) { return id >= 101.f && id <= 103.f; }
+
+// 가장 가까운 마을 쪽 포털. 목록에 없으면 nullptr.
+static const array<float, 3>* NearestTownPortal(const Bot& b)
+{
+	const array<float, 3>* best = nullptr;
+	float bestSq = FLT_MAX;
+	for (const array<float, 3>& p : b.portals)
+	{
+		if (!IsTownDoorPortal(p[2])) continue;
+		const float dx = p[0] - b.x, dy = p[1] - b.y;
+		if (dx * dx + dy * dy < bestSq) { bestSq = dx * dx + dy * dy; best = &p; }
+	}
+	return best;
+}
+
+// 사냥 봇이 지금 마을 포털로 나가야 하면 그 포털을, 아니면 nullptr.
+// 사냥터 Room(inField)과 던전은 아니다. 마을 Room(TOWN)이면 마을 쪽 포털이 목록에 있을 때 그렇다.
+// 아직 모르면(로그인 직후) 몬스터가 안 보이고 마을 쪽 포털이 목록에 있을 때만 그렇다 — 사냥터의 포털 목록에는 마을 쪽 포털이 없다.
+static const array<float, 3>* HuntTownPortal(const Bot& b)
+{
+	if (!GConfig.hunt || b.inField) return nullptr;
+	if (b.roomKind == static_cast<int>(Protocol::ROOM_KIND_FIELD) || b.roomKind == static_cast<int>(Protocol::ROOM_KIND_DUNGEON)) return nullptr;
+	if (b.roomKind == static_cast<int>(Protocol::ROOM_KIND_NONE) && !b.monsters.empty()) return nullptr;
+	return NearestTownPortal(b);
 }
 
 #pragma pack(push, 1)
@@ -475,12 +511,50 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 	}
 	case Protocol::SC_PORTAL_LIST:
 	{
-		if (GConfig.portalIntervalMs <= 0) break;
+		// 포털 목록은 옵션과 무관하게 항상 받는다(사냥 봇의 마을 포털 판단에 쓴다, DG3b).
 		Protocol::SC_PORTAL_LIST_PACKET pkt;
 		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
 		b.portals.clear();
 		for (const Protocol::PortalInfo& info : pkt.portals())
 			b.portals.push_back({ info.x(), info.y(), static_cast<float>(info.portal_id()) });
+		break;
+	}
+	case Protocol::SC_ROOM_CHANGE:
+	{
+		// 내 Room이 바뀌었다(문 포털, 부활, 시험 키의 사냥터 배치). 이전 Room의 몬스터·포털·상점 NPC는 버리고,
+		// 뒤따르는 SC_ADD_OBJECT·SC_PORTAL_LIST로 다시 채운다. 죽은 상태(dead)는 건드리지 않는다(부활은 뒤따르는 SC_REVIVE). map_name은 지금은 무시한다.
+		Protocol::SC_ROOM_CHANGE_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		GStat.roomChange.fetch_add(1);
+		b.roomKind = static_cast<int>(pkt.kind());
+		b.inField = (pkt.kind() == Protocol::ROOM_KIND_FIELD);
+		b.monsters.clear();
+		b.deadMonsters.clear();
+		b.portals.clear();
+		b.shopNpcId = 0;
+		b.x = pkt.pos_info().x();
+		b.y = pkt.pos_info().y();
+		b.z = pkt.pos_info().z();
+		b.correctionSeq = pkt.correction_seq();
+		b.lastMoveSentUs = NowUs();
+		b.hasGoal = false;
+		b.spawnTarget = -1;
+		b.blockedCount = 0;
+		b.moveFailures = 0;
+		b.aiming = false;             // Room이 바뀌면 조준은 서버에서도 풀린다
+		b.nextHuntPortalUs = 0;
+		if (b.index == 0)
+			printf("[bot] bot0 room change: kind=%d pos=(%.0f, %.0f, %.0f) seq=%u\n", static_cast<int>(pkt.kind()), b.x, b.y, b.z, pkt.correction_seq());
+		break;
+	}
+	case Protocol::SC_MOVE_RESULT:
+	{
+		// 이동(Room 이동) 거부. 본인에게만 온다. 사유별로 센다(TIMEOUT·NOT_AVAILABLE 포함).
+		Protocol::SC_MOVE_RESULT_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		GStat.moveRejected.fetch_add(1);
+		const int code = static_cast<int>(pkt.result());
+		if (code >= 0 && code < 8) GStat.moveRejectedBy[code].fetch_add(1);
 		break;
 	}
 	case Protocol::SC_TELEPORT:
@@ -694,7 +768,20 @@ static void WorkerMain(int workerIndex, int workerCount)
 					float nx = b.x, ny = b.y, yaw = 0.f;
 					const float zdx = GConfig.zoneX - b.x, zdy = GConfig.zoneY - b.y;
 					const float zoneDist = sqrtf(zdx * zdx + zdy * zdy);
-					if (GConfig.turn)
+					if (const array<float, 3>* tp = HuntTownPortal(b); tp && b.moveFailures < 3)
+						{
+							// 마을 Room의 사냥 봇(DG3b): 가장 가까운 마을 포털 앞(150cm)까지 직선으로 걸어간다. 요청은 아래 포털 블록이 보낸다.
+							// 막혀서 보정이 쌓이면(moveFailures 3 이상) 이 분기를 건너뛰고 무작위 이동으로 비킨다.
+							const float dx = (*tp)[0] - b.x, dy = (*tp)[1] - b.y;
+							const float dist = sqrtf(dx * dx + dy * dy);
+							if (dist > kPortalStopCm)
+							{
+								const float stride = min({ 500.f, dist - kPortalStopCm, MaxStep(b, now) });
+								nx = b.x + dx / dist * stride; ny = b.y + dy / dist * stride;
+							}
+							yaw = atan2f(dy, dx) * 180.f / 3.14159265f;
+						}
+						else if (GConfig.turn)
 					{
 						// 직선으로 걷다 일정 간격마다 왼쪽으로 90° 꺾는다(사각형을 돌아 시작점 근처에 머문다). 급회전 = 원격 표시의 최악 조건.
 						bool corner = false;
@@ -776,7 +863,24 @@ static void WorkerMain(int workerIndex, int workerCount)
 					}
 					SendMove(b, now, nx, ny, yaw, Protocol::MOVE_STATE_RUN);
 				}
-				if (canAct && GConfig.hunt && now >= b.nextAttackUs && !b.monsters.empty())
+				// 사냥 봇의 마을 포털 요청(DG3b): 포털 앞 200cm 안에 오면 CS_PORTAL을 보낸다. 서버는 거리·재사용 대기가 안 맞으면 응답 없이 버리므로
+					// 응답(SC_ROOM_CHANGE)이 올 때까지 1초마다 다시 보낸다. 방이 바뀌면 SC_ROOM_CHANGE가 이 시각을 지운다.
+					if (canAct && now >= b.nextHuntPortalUs)
+					{
+						if (const array<float, 3>* tp = HuntTownPortal(b); tp)
+						{
+							const float dx = (*tp)[0] - b.x, dy = (*tp)[1] - b.y;
+							if (dx * dx + dy * dy <= kPortalSendCm * kPortalSendCm)
+							{
+								b.nextHuntPortalUs = now + 1000 * 1000LL;
+								Protocol::CS_PORTAL_PACKET portal;
+								portal.set_portal_id(static_cast<int>((*tp)[2]));
+								SendPacket(b, Protocol::CS_PORTAL, portal);
+								GStat.portalSent.fetch_add(1);
+							}
+						}
+					}
+					if (canAct && GConfig.hunt && now >= b.nextAttackUs && !b.monsters.empty())
 				{
 					b.nextAttackUs = now + 700 * 1000LL;
 

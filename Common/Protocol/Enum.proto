@@ -64,6 +64,27 @@ enum PacketId {
     SC_TELEPORT = 2030;              // 서버가 정한 자리로 순간이동 (AOI, 본인 포함): 포털 이동 (L5, D-203)
     SC_PORTAL_LIST = 2031;           // 방 입장 직후 본인에게: 쓸 수 있는 포털의 위치·반경 (L5)
     SC_ATTACK_RESULT = 2032;         // 스킬·공격 거부 결과 (본인에게만, 거부일 때만. 요청 seq 포함 — CP1, D-211)
+    // 2033 ~ 2035: 파티(DG2)용으로 비워 둠 (DESIGN_PARTY_DUNGEON.md §5-3)
+    SC_ROOM_CHANGE = 2036;           // Room을 옮김(본인에게): 레벨·종류·채널·새 위치·이동 보정 순번 (DG3b, D-216)
+    SC_MOVE_RESULT = 2037;           // Room 이동 거부(본인에게만, 거부일 때만)
+}
+
+// Room 종류 (SC_ROOM_CHANGE_PACKET.kind — DG3b, D-215)
+enum RoomKind {
+    ROOM_KIND_NONE = 0;
+    ROOM_KIND_TOWN = 1;      // 마을
+    ROOM_KIND_FIELD = 2;     // 사냥터
+    ROOM_KIND_DUNGEON = 3;   // 던전 인스턴스 (DG3c)
+}
+
+// SC_MOVE_RESULT_PACKET.result. 죽음·시전 중·재사용 대기·거리 같은 포털 거부는 지금처럼 응답 없이 버리고, 아래 사유만 알린다.
+enum MoveResult {
+    MOVE_RESULT_NONE = 0;
+    MOVE_RESULT_DUNGEON_FULL = 1;      // 인스턴스 수 상한 (DG3c)
+    MOVE_RESULT_NOT_LEADER = 2;        // 파티장만 새 인스턴스를 만들 수 있음 (DG3c)
+    MOVE_RESULT_DUNGEON_CLEARED = 3;   // 클리어한 인스턴스 (DG3c)
+    MOVE_RESULT_TIMEOUT = 4;           // 끝나지 않은 일(DB 작업)을 기다리다 시간 초과 — 다시 시도
+    MOVE_RESULT_NOT_AVAILABLE = 5;     // 갈 수 없는 포털
 }
 
 enum MoveState {
@@ -185,6 +206,7 @@ enum TradeResult {
     TRADE_RESULT_BUSY = 14;            // 이미 거래 중이거나 아이템 작업이 진행 중(다시 시도)
     TRADE_RESULT_NOT_ALLOWED = 15;     // 더미 봇, 지금 단계에서 받을 수 없는 요청
     TRADE_RESULT_DB_ERROR = 16;        // DB 실패 — 바뀐 것 없음
+    TRADE_RESULT_MOVED = 17;           // 한쪽이 다른 Room으로 이동함 (SC_TRADE_END — DG3b)
 }
 
 // SC_TRADE_STATE_PACKET.phase

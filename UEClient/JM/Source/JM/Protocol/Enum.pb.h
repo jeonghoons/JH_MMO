@@ -103,12 +103,14 @@ enum PacketId : int {
   SC_TELEPORT = 2030,
   SC_PORTAL_LIST = 2031,
   SC_ATTACK_RESULT = 2032,
+  SC_ROOM_CHANGE = 2036,
+  SC_MOVE_RESULT = 2037,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_ATTACK_RESULT;
+constexpr PacketId PacketId_MAX = SC_MOVE_RESULT;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();
@@ -124,6 +126,62 @@ inline bool PacketId_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, PacketId* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<PacketId>(
     PacketId_descriptor(), name, value);
+}
+enum RoomKind : int {
+  ROOM_KIND_NONE = 0,
+  ROOM_KIND_TOWN = 1,
+  ROOM_KIND_FIELD = 2,
+  ROOM_KIND_DUNGEON = 3,
+  RoomKind_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  RoomKind_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool RoomKind_IsValid(int value);
+constexpr RoomKind RoomKind_MIN = ROOM_KIND_NONE;
+constexpr RoomKind RoomKind_MAX = ROOM_KIND_DUNGEON;
+constexpr int RoomKind_ARRAYSIZE = RoomKind_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* RoomKind_descriptor();
+template<typename T>
+inline const std::string& RoomKind_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, RoomKind>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function RoomKind_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    RoomKind_descriptor(), enum_t_value);
+}
+inline bool RoomKind_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, RoomKind* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<RoomKind>(
+    RoomKind_descriptor(), name, value);
+}
+enum MoveResult : int {
+  MOVE_RESULT_NONE = 0,
+  MOVE_RESULT_DUNGEON_FULL = 1,
+  MOVE_RESULT_NOT_LEADER = 2,
+  MOVE_RESULT_DUNGEON_CLEARED = 3,
+  MOVE_RESULT_TIMEOUT = 4,
+  MOVE_RESULT_NOT_AVAILABLE = 5,
+  MoveResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  MoveResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool MoveResult_IsValid(int value);
+constexpr MoveResult MoveResult_MIN = MOVE_RESULT_NONE;
+constexpr MoveResult MoveResult_MAX = MOVE_RESULT_NOT_AVAILABLE;
+constexpr int MoveResult_ARRAYSIZE = MoveResult_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MoveResult_descriptor();
+template<typename T>
+inline const std::string& MoveResult_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, MoveResult>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function MoveResult_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    MoveResult_descriptor(), enum_t_value);
+}
+inline bool MoveResult_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, MoveResult* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<MoveResult>(
+    MoveResult_descriptor(), name, value);
 }
 enum MoveState : int {
   MOVE_STATE_NONE = 0,
@@ -374,12 +432,13 @@ enum TradeResult : int {
   TRADE_RESULT_BUSY = 14,
   TRADE_RESULT_NOT_ALLOWED = 15,
   TRADE_RESULT_DB_ERROR = 16,
+  TRADE_RESULT_MOVED = 17,
   TradeResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   TradeResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool TradeResult_IsValid(int value);
 constexpr TradeResult TradeResult_MIN = TRADE_RESULT_NONE;
-constexpr TradeResult TradeResult_MAX = TRADE_RESULT_DB_ERROR;
+constexpr TradeResult TradeResult_MAX = TRADE_RESULT_MOVED;
 constexpr int TradeResult_ARRAYSIZE = TradeResult_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* TradeResult_descriptor();
@@ -504,6 +563,16 @@ template <> struct is_proto_enum< ::Protocol::PacketId> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::PacketId>() {
   return ::Protocol::PacketId_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::RoomKind> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::RoomKind>() {
+  return ::Protocol::RoomKind_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::MoveResult> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::MoveResult>() {
+  return ::Protocol::MoveResult_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::MoveState> : ::std::true_type {};
 template <>

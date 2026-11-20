@@ -209,6 +209,22 @@ namespace
 				if (!ParseInt(e.value, 0, 1000000, cfg.dbItemFailEvery)) { err = where + "DbItemFailEvery must be 0~1000000: '" + e.value + "'"; return false; }
 				cfg.dbItemFailEveryFrom = from;
 			}
+			else if (name == "World.MoveWaitTimeoutMs")
+			{
+				if (!ParseInt(e.value, 100, 600000, cfg.moveWaitTimeoutMs)) { err = where + "MoveWaitTimeoutMs must be 100~600000: '" + e.value + "'"; return false; }
+				cfg.moveWaitTimeoutMsFrom = from;
+			}
+			else if (name == "Debug.DummyRoom")
+			{
+				if (e.value != "town" && e.value != "field" && e.value != "split") { err = where + "DummyRoom must be town, field or split: '" + e.value + "'"; return false; }
+				cfg.dummyRoom = e.value;
+				cfg.dummyRoomFrom = from;
+			}
+			else if (name == "Debug.MoveHandoffDelayMs")
+			{
+				if (!ParseInt(e.value, 0, 60000, cfg.moveHandoffDelayMs)) { err = where + "MoveHandoffDelayMs must be 0~60000: '" + e.value + "'"; return false; }
+				cfg.moveHandoffDelayMsFrom = from;
+			}
 			else if (name == "Debug.DbSaveDelayMs")
 			{
 				if (!ParseInt(e.value, 0, 60000, cfg.dbSaveDelayMs)) { err = where + "DbSaveDelayMs must be 0~60000: '" + e.value + "'"; return false; }
@@ -325,6 +341,9 @@ void ServerConfig::Print() const
 	for (const DummyZone& z : dummyZones)
 		LOG_INFO("Config", "Debug.DummySpawnZone      = {},{},{} x {}  ({})", z.x, z.y, z.r, z.count == 0 ? std::string("나머지") : std::to_string(z.count), dummySpawnZoneFrom);
 	LOG_INFO("Config", "Debug.ViewAudit           = {}  ({})", viewAudit, viewAuditFrom);
+	LOG_INFO("Config", "World.MoveWaitTimeoutMs   = {}  ({})", moveWaitTimeoutMs, moveWaitTimeoutMsFrom);
+	LOG_INFO("Config", "Debug.DummyRoom           = {}  ({})", dummyRoom, dummyRoomFrom);
+	LOG_INFO("Config", "Debug.MoveHandoffDelayMs  = {}  ({})", moveHandoffDelayMs, moveHandoffDelayMsFrom);
 	LOG_INFO("Config", "Debug.DbSaveDelayMs       = {}  ({})", dbSaveDelayMs, dbSaveDelayMsFrom);
 	LOG_INFO("Config", "Debug.DevCommands         = {}  ({})", devCommands, devCommandsFrom);
 	LOG_INFO("Config", "Debug.DbItemFailEvery     = {}  ({})", dbItemFailEvery, dbItemFailEveryFrom);

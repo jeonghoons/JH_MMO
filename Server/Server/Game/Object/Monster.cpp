@@ -186,9 +186,11 @@ float Monster::DistSqToHome() const
 
 bool Monster::IsTargetable(const std::shared_ptr<Player>& player) const
 {
-	if (player == nullptr || player->GetStat().IsDead()) return false;
+	if (player == nullptr) return false;
 	// 내 시야 목록에 없으면 방을 나갔거나 시야 밖이다(Player 객체는 세션이 잡고 있어 방을 나가도 살아 있다).
+	// 시야 목록(이 Room의 데이터)을 먼저 본다 — 다른 Room으로 옮긴 플레이어의 필드는 그 Room 스레드의 것이라 읽지 않는다(DG3b).
 	if (std::find(_viewList.begin(), _viewList.end(), player->GetId()) == _viewList.end()) return false;
+	if (player->GetStat().IsDead()) return false;
 	auto room = GetCurrentRoom();
 	if (room == nullptr) return false;
 	return !room->GetGameMap().IsInSafeZone(player->GetPosition());

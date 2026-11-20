@@ -328,29 +328,32 @@ def place_markers(name):
         return unreal.Vector(x * 100.0, y * 100.0, h(x, y) * 100.0 + up_cm)
 
     ps = m["player_start"]
-    out.append(lib.spawn_level_marker("PlayerStart", 0, loc(ps["x"], ps["y"], 100.0), ps.get("yaw", 0.0), 0, 0.0, 0, "", "Marker_PlayerStart", ""))
+    out.append(lib.spawn_level_marker("PlayerStart", 0, loc(ps["x"], ps["y"], 100.0), ps.get("yaw", 0.0), 0, 0.0, 0, "", "Marker_PlayerStart", "", ps.get("area", "")))
     pie = EAS.spawn_actor_from_class(unreal.PlayerStart, loc(ps["x"], ps["y"], 110.0), unreal.Rotator(0, 0, ps.get("yaw", 0.0)))
     pie.set_actor_label("PlayerStart")
+    # player_starts(DG3b): {"id", "label", "x", "y", "yaw", "area"}
+    for extra in m.get("player_starts", []):
+        out.append(lib.spawn_level_marker("PlayerStart", int(extra["id"]), loc(extra["x"], extra["y"], 100.0), float(extra.get("yaw", 0.0)), 0, 0.0, 0, "", f"Marker_PlayerStart_{extra['label']}", "", extra.get("area", "")))
     pid = 1
     taken = []
     for grp in m.get("monster", []):
         pts, _ = _scatter_points(d, grp, taken)
         for (x, y) in pts:
-            out.append(lib.spawn_level_marker("MonsterSpawn", pid, loc(x, y, 100.0), 0.0, grp["template_id"], float(grp["radius_cm"]), grp["max_count"], "", f"Marker_Monster_{grp['zone']}_{pid:02d}", grp["zone"]))
+            out.append(lib.spawn_level_marker("MonsterSpawn", pid, loc(x, y, 100.0), 0.0, grp["template_id"], float(grp["radius_cm"]), grp["max_count"], "", f"Marker_Monster_{grp['zone']}_{pid:02d}", grp["zone"], grp.get("area", "")))
             pid += 1
         taken += pts
     po = m.get("portal")
     if po:
-        out.append(lib.spawn_level_marker("PortalTrigger", 100, loc(po["x"], po["y"], 100.0), 0.0, po.get("target_point", 0), float(po["radius_cm"]), 0, po["target_map"], "Marker_Portal_Dungeon", ""))
+        out.append(lib.spawn_level_marker("PortalTrigger", 100, loc(po["x"], po["y"], 100.0), 0.0, po.get("target_point", 0), float(po["radius_cm"]), 0, po["target_map"], "Marker_Portal_Dungeon", "", po.get("area", "")))
     # 포털 여러 개: {"id", "label", "x", "y", "radius_cm", "target_map", "target_point"} — 같은 레벨 안의 짝 포털은 target_map이 이 레벨, target_point가 짝의 id
     for po in m.get("portals", []):
-        out.append(lib.spawn_level_marker("PortalTrigger", int(po["id"]), loc(po["x"], po["y"], 100.0), 0.0, int(po.get("target_point", 0)), float(po["radius_cm"]), 0, po["target_map"], f"Marker_Portal_{po['label']}", ""))
+        out.append(lib.spawn_level_marker("PortalTrigger", int(po["id"]), loc(po["x"], po["y"], 100.0), 0.0, int(po.get("target_point", 0)), float(po["radius_cm"]), 0, po["target_map"], f"Marker_Portal_{po['label']}", "", po.get("area", "")))
     # safe_zones(L3): {"id", "label", "x", "y", "radius_cm"}
     for sz in m.get("safe_zones", []):
-        out.append(lib.spawn_level_marker("SafeZone", int(sz["id"]), loc(sz["x"], sz["y"], 100.0), 0.0, 0, float(sz["radius_cm"]), 0, "", f"Marker_SafeZone_{sz['label']}", ""))
+        out.append(lib.spawn_level_marker("SafeZone", int(sz["id"]), loc(sz["x"], sz["y"], 100.0), 0.0, 0, float(sz["radius_cm"]), 0, "", f"Marker_SafeZone_{sz['label']}", "", sz.get("area", "")))
     # npcs(L4): {"id", "label", "x", "y", "yaw", "template_id"} — 종류(NpcTable ID)만 적는다. 이름·상점·외형은 서버 NpcTable.csv (D-202)
     for npc in m.get("npcs", []):
-        out.append(lib.spawn_level_marker("Npc", int(npc["id"]), loc(npc["x"], npc["y"], 100.0), float(npc.get("yaw", 0.0)), int(npc["template_id"]), 0.0, 0, "", f"Marker_Npc_{npc['label']}", ""))
+        out.append(lib.spawn_level_marker("Npc", int(npc["id"]), loc(npc["x"], npc["y"], 100.0), float(npc.get("yaw", 0.0)), int(npc["template_id"]), 0.0, 0, "", f"Marker_Npc_{npc['label']}", "", npc.get("area", "")))
     errors = [o for o in out if o.startswith("ERROR")]
     return {"removed": removed, "placed": len(out) - len(errors), "errors": errors}
 
@@ -1393,15 +1396,88 @@ def apply_lighting(name, dump=False, actors=None, pie=False):
     return out
 
 
+# ── PIE 걷기(DG3b 2인 PIE 확인): 실제 플레이어를 입력 없이 목표 지점까지 걷게 한다 ──
+# 위치는 건드리지 않고 매 프레임 이동 입력(add_movement_input)만 넣으므로 이동 패킷·서버 검증은 손으로 걸을 때와 같다.
+# 모듈을 다시 불러와도(run_step 호출마다) 기록이 남도록 unreal 모듈에 둔다
+if not hasattr(unreal, "_jm_pie_walks"):
+    unreal._jm_pie_walks = {}
+_PIE_WALKS = unreal._jm_pie_walks   # PIE 창 번호 → {"handle", "path", "t0", "timeout", "tol", "state"}
+
+
+def pie_walk(args):
+    """args = {"world": 창 번호, "path": [[x_m, y_m], ...] 또는 "x"·"y", "tol": 도착 판정 m(기본 0.6), "timeout": 초(기본 40)} — 바로 돌아오고 걷기는 뒤에서 진행.
+    {"world": n, "status": true}면 진행 상태만, {"world": n, "stop": true}면 멈춤. 직선으로만 가므로 막히는 곳은 path로 돌아간다."""
+    import time
+    idx = int(args.get("world", 0))
+    cur = _PIE_WALKS.get(idx)
+
+    def _stop(state, w=None):
+        w = w or _PIE_WALKS.get(idx)
+        if w and w.get("handle") is not None:
+            unreal.unregister_slate_post_tick_callback(w["handle"])
+            w["handle"] = None
+        if w:
+            w["state"] = state
+
+    def _pawn():
+        worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
+        if idx >= len(worlds):
+            return None
+        return unreal.GameplayStatics.get_player_pawn(worlds[idx], 0)
+
+    def _report():
+        w = _PIE_WALKS.get(idx)
+        pawn = _pawn()
+        out = {"world": idx, "state": w["state"] if w else "none", "left": len(w["path"]) if w else 0}
+        if pawn is not None:
+            loc = pawn.get_actor_location()
+            out.update({"pawn": pawn.get_class().get_name(), "x": round(loc.x / 100.0, 2), "y": round(loc.y / 100.0, 2), "z": round(loc.z / 100.0, 2)})
+        return out
+
+    if args.get("status"):
+        return _report()
+    if cur:
+        _stop("stopped")
+    if args.get("stop"):
+        return _report()
+    path = args.get("path") or [[args["x"], args["y"]]]
+    if _pawn() is None:
+        return {"error": "PIE 창 %d에 플레이어 폰이 없음" % idx}
+    walk = {"handle": None, "path": [[float(p[0]) * 100.0, float(p[1]) * 100.0] for p in path], "t0": time.time(),
+            "timeout": float(args.get("timeout", 40.0)), "tol": float(args.get("tol", 0.6)) * 100.0, "state": "walking"}
+    _PIE_WALKS[idx] = walk
+
+    def _tick(_dt):
+        try:
+            pawn = _pawn()
+            if pawn is None:
+                return _stop("no_pawn", walk)
+            if time.time() - walk["t0"] > walk["timeout"]:
+                return _stop("timeout", walk)
+            loc = pawn.get_actor_location()
+            while walk["path"] and math.hypot(walk["path"][0][0] - loc.x, walk["path"][0][1] - loc.y) <= walk["tol"]:
+                walk["path"].pop(0)
+            if not walk["path"]:
+                return _stop("arrived", walk)
+            dx, dy = walk["path"][0][0] - loc.x, walk["path"][0][1] - loc.y
+            d = math.hypot(dx, dy)
+            pawn.add_movement_input(unreal.Vector(dx / d, dy / d, 0.0), 1.0, False)
+        except Exception as e:   # PIE가 끝나 월드가 사라진 경우 등 — 콜백을 반드시 뗀다
+            _stop("error: %s" % e, walk)
+
+    walk["handle"] = unreal.register_slate_post_tick_callback(_tick)
+    return _report()
+
+
 # pie_exec가 받는 콘솔 명령(첫 단어, 소문자): 측정과 렌더 설정,
 # 그리고 게임의 개발용 콘솔 명령(AJMPlayerController — 서버가 검증하는 요청만 보냄: Give·Equip·Shop*, L4에서 추가)
-_PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen", "give", "equip", "shopopen", "shopbuy", "shopsell", "shopclose", "netmovestats", "autoattack", "attackstats"}
+_PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen", "give", "equip", "shopopen", "shopbuy", "shopsell", "shopclose", "netmovestats", "autoattack", "attackstats", "portal"}
 _PIE_EXEC_PREFIX = ("t.", "r.", "sg.", "grass.", "foliage.", "jm.")
 
 
 # ── 범용 진입점(MCP world_step): 새 단계를 추가해도 툴셋(= 에디터 재시작)을 고치지 않는다 ──
 def run_step(name, step, args=None):
-    """step: weights / grass / material / apply_material / ground(grass → material → apply_material) / audit / probe / dress / clear_dress / check_dress / show_colliders / colliders / near / pie_pawn / pie_chars / prop_import / prop_info / lighting / pie_exec / pie_view."""
+    """step: weights / grass / material / apply_material / ground(grass → material → apply_material) / audit / probe / dress / clear_dress / check_dress / show_colliders / colliders / near / pie_pawn / pie_chars / prop_import / prop_info / lighting / pie_exec / pie_view / pie_walk / pie_revive. pie_* 단계는 args.world로 PIE 창 번호(0부터)를 고른다."""
     args = args or {}
     if step == "probe":
         return probe(name, args.get("items"))
@@ -1458,12 +1534,25 @@ def run_step(name, step, args=None):
                         "center_m": [round(org.x / 100.0, 1), round(org.y / 100.0, 1), round(org.z / 100.0, 1)],
                         "half_m": [round(ext.x / 100.0, 1), round(ext.y / 100.0, 1), round(ext.z / 100.0, 1)]})
         return out
+    if step == "pie_revive":
+        # PIE 창의 부활 창 버튼 처리 함수를 부른다(버튼을 누른 것과 같이 CS_REVIVE를 보냄 — 대기 시간 등 검증은 서버). args.world = 창 번호
+        worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
+        if not worlds:
+            return {"error": "PIE not running"}
+        w = worlds[min(int(args.get("world", 0)), len(worlds) - 1)]
+        found = unreal.WidgetLibrary.get_all_widgets_of_class(w, unreal.load_class(None, "/Script/JM.ReviveWidget"), False)
+        shown = [x for x in found if x.is_visible()]
+        for x in shown:
+            x.call_method("OnReviveClicked")
+        return {"widgets": len(found), "clicked": len(shown)}
+    if step == "pie_walk":
+        return pie_walk(args)
     if step == "pie_pawn":
         # PIE 중인 플레이어 폰의 위치(m)와 그 자리의 지면 높이(정의 기준) — 서버 없는 걷기 자동 확인(TestAuto.txt)에서 씀
         worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
         if not worlds:
             return {"error": "PIE가 실행 중이 아님"}
-        pawn = unreal.GameplayStatics.get_player_pawn(worlds[0], 0)
+        pawn = unreal.GameplayStatics.get_player_pawn(worlds[min(int(args.get("world", 0)), len(worlds) - 1)], 0)
         if pawn is None:
             return {"error": "플레이어 폰이 없음"}
         loc = pawn.get_actor_location()
@@ -1476,7 +1565,7 @@ def run_step(name, step, args=None):
         worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
         if not worlds:
             return {"error": "PIE가 실행 중이 아님"}
-        w = worlds[0]
+        w = worlds[min(int(args.get("world", 0)), len(worlds) - 1)]
         h = height_fn(load_def(name))
         out = {"world": w.get_name(), "chars": []}
         for a in unreal.GameplayStatics.get_all_actors_of_class(w, unreal.Character):
@@ -1497,7 +1586,7 @@ def run_step(name, step, args=None):
         worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
         if not worlds:
             return {"error": "PIE가 실행 중이 아님"}
-        w = worlds[0]
+        w = worlds[min(int(args.get("world", 0)), len(worlds) - 1)]
         pc = unreal.GameplayStatics.get_player_controller(w, 0)
         done, refused = [], []
         for cmd in args.get("cmds", []):
@@ -1515,7 +1604,7 @@ def run_step(name, step, args=None):
         worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
         if not worlds:
             return {"error": "PIE가 실행 중이 아님"}
-        w = worlds[0]
+        w = worlds[min(int(args.get("world", 0)), len(worlds) - 1)]
         pc = unreal.GameplayStatics.get_player_controller(w, 0)
         if pc is None:
             return {"error": "플레이어 컨트롤러가 없음"}

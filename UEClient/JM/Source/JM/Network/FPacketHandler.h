@@ -62,6 +62,8 @@ private:
     static void Handle_SC_SHOP_OPEN(TSharedPtr<NetworkSession>& session, Protocol::SC_SHOP_OPEN_PACKET& pkt);
     static void Handle_SC_TELEPORT(TSharedPtr<NetworkSession>& session, Protocol::SC_TELEPORT_PACKET& pkt);
     static void Handle_SC_PORTAL_LIST(TSharedPtr<NetworkSession>& session, Protocol::SC_PORTAL_LIST_PACKET& pkt);
+    static void Handle_SC_ROOM_CHANGE(TSharedPtr<NetworkSession>& session, Protocol::SC_ROOM_CHANGE_PACKET& pkt);
+    static void Handle_SC_MOVE_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_MOVE_RESULT_PACKET& pkt);
     static void Handle_SC_USE_ITEM(TSharedPtr<NetworkSession>& session, Protocol::SC_USE_ITEM_PACKET& pkt);
     static void Handle_SC_CHANGE_HP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_HP_PACKET& pkt);
     static void Handle_SC_TRADE_REQUEST(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_REQUEST_PACKET& pkt);

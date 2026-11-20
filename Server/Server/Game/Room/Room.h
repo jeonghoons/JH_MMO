@@ -19,6 +19,7 @@ class SendBuffer;
 class GameObject;
 class Character;
 class Player;
+enum class Player_MoveReason { None, Portal, Revive };   // Player::RoomMoveState.reason (Player.h가 이 헤더를 include하므로 여기 둔다)
 class Monster;
 class DropItem;
 class TownNpc;
@@ -57,13 +58,26 @@ struct SkillData;
 // Room의 종류(DESIGN_PARTY_DUNGEON §2-1). 마을·사냥터는 채널마다 하나씩, 던전은 인스턴스마다 하나.
 enum class RoomKind { Town, Field, Dungeon };
 
+// 구역 이름(맵 마커의 area, DG3b — DESIGN_PARTY_DUNGEON §2-3). 같은 레벨을 마을 Room과 사냥터 Room이 나눠 쓴다.
+inline const char* const AREA_TOWN = "town";
+inline const char* const AREA_FIELD = "field";
+
+// 포털의 도착지 종류(Room::ResolvePortalTarget)
+enum class PortalRoute
+{
+	None,        // 도착지가 없다(짝 마커 없음)
+	SameRoom,    // 이 Room 안의 다른 자리(순간이동)
+	OtherRoom,   // 같은 레벨의 다른 구역 = 같은 채널의 다른 Room(Room 이동)
+	OtherLevel   // 다른 레벨(던전 입구·정거장 — 아직 받지 않음, DG3c)
+};
+
 // Room의 정체. 만들 때 정하고 바뀌지 않는다(어느 스레드에서 읽어도 된다).
 struct RoomInfo
 {
 	int roomId = 0;                 // 서버 안에서 유일(WorldService가 순번으로 준다)
 	RoomKind kind = RoomKind::Town;
 	int channel = 0;                // 1부터
-	string area;                    // 구역 이름(town/field/dungeon). 비어 있으면 레벨 전체 — DG3a에서는 채널당 Room 하나라 비워 둔다(DG3b에서 나눔)
+	string area;                    // 구역 이름(town/field/dungeon). 비어 있으면 레벨 전체(구역 마커가 없는 레벨 — 채널당 Room 하나)
 	string levelName;               // 맵 리소스 파일 이름 = WorldTable.MapName
 };
 
@@ -189,10 +203,18 @@ public:
 	void PlayerRevive(shared_ptr<Player> player);
 	// 포털 사용 요청(L5, D-203). 검증(방 안 → 생존 → 시전·이동 잠금 아님 → 재사용 대기 → 포털 존재 → 도착지 → 거리)을 통과하면
 	// 도착지로 옮기고 SC_TELEPORT를 떠나는 자리의 AOI 전체(본인 포함)에 보낸다. 거부는 응답 없이 버린다.
+	// 도착지가 다른 구역이면(문 포털) 같은 채널의 그 구역 Room으로 옮긴다(BeginMove — DG3b). 다른 레벨이면 SC_MOVE_RESULT(NOT_AVAILABLE).
 	void PlayerUsePortal(shared_ptr<Player> player, int portalId);
-	// 포털의 도착지를 정하는 유일한 곳(D-200·D-204). 지금은 같은 레벨의 짝 포털 자리만 받는다.
-	// 도착지가 다른 Room이 되면(맵별 Room 분할 — DG1·DG3) 이 함수와 PlayerUsePortal의 적용 부분만 바꾼다.
-	bool ResolvePortalTarget(const struct PortalTriggerPoint& portal, Protocol::PositionInfo& outPos) const;
+	// 포털의 도착지를 정하는 유일한 곳(D-200·D-204). 같은 레벨의 짝 포털 자리(outPos)와 그 마커의 구역(outArea)을 준다.
+	PortalRoute ResolvePortalTarget(const struct PortalTriggerPoint& portal, Protocol::PositionInfo& outPos, string& outArea) const;
+
+	// ---- Room 간 이동(DG3b, D-216 — DESIGN_PARTY_DUNGEON §4-2). 순서: BeginMove(②) → TryAdvanceMove(③) → WorldService::RequestMove(④)
+	//      → OnMoveResolved(⑤ 떠나기, 출발 Room) → PlayerArriveRoom(⑥⑦ 들어오기, 도착 Room) → WorldService::OnPlayerMoved(⑧) ----
+	// ⑤ 서비스가 도착 Room을 알려 줬다(없으면 nullptr). 그 사이 끊김·사망·끝나지 않은 일이 생겼으면 취소하고, 아니면 이 방에서 빼고 도착 Room에 넘긴다.
+	void OnMoveResolved(shared_ptr<Player> player, shared_ptr<Room> dest);
+	// ⑥⑦ 다른 Room에서 넘어온 플레이어를 들인다: 위치·보정 순번 → SC_ROOM_CHANGE → 본인 SC_ADD_OBJECT → SC_PORTAL_LIST → (부활이면 SC_REVIVE) → 시야.
+	// 인벤토리·로그인 보정은 다시 보내지 않고 쿨타임·포털 재사용 대기는 이어진다.
+	void PlayerArriveRoom(shared_ptr<Player> player);
 
 	// 슬롯(0 = 기본 공격)의 스킬을 시전한다. 사거리/대상/방향은 서버가 검증·보정하며, 실패하면 아무 일도 일어나지 않는다.
 	// seq: 플레이어가 보낸 CS_ATTACK.seq(몬스터는 0). SC_ATTACK·SC_ATTACK_RESULT에 그대로 싣는다 (CP1, D-211)
@@ -269,6 +291,26 @@ private:
 	void UpdateTrades(long long nowMs);
 	bool IsTradeRangeOk(const TradeSession& trade) const;
 
+	// ---- Room 간 이동 내부(DG3b) ----
+	// ② 이동 요청을 받았다: 확정 전 거래를 취소하고(MOVED) 끝나지 않은 일이 끝나기를 기다린다. destPos가 nullptr이면 도착 Room이 시작 지점을 고른다.
+	void BeginMove(const shared_ptr<Player>& player, Player_MoveReason reason, const string& destArea, const Protocol::PositionInfo* destPos);
+	// 대기 중인 플레이어의 끝나지 않은 일이 모두 끝났으면 이동 표시를 켜고 서비스에 도착 Room을 묻는다(③). DB 결과 처리 끝마다 부른다.
+	void TryAdvanceMove(const shared_ptr<Player>& player);
+	// 이동을 취소한다(대기·이동 표시 해제). notify가 NONE이 아니면 본인에게 SC_MOVE_RESULT.
+	void CancelMove(const shared_ptr<Player>& player, Protocol::MoveResult notify);
+	// 1초마다: 대기 시한(MoveWaitTimeoutMs)이 지난 이동을 취소한다(TIMEOUT).
+	void UpdateMoves(long long nowMs);
+	// 이 Room 구역의 시작 지점을 차례대로 하나 골라 그 반경 3m 안의 걷는 자리를 준다(로그인·부활 — 한 자리에 겹쳐 서지 않게, D-216).
+	// 구역이 없는 Room(옛 맵)은 첫 PlayerStart 그대로.
+	Protocol::PositionInfo PickStartPosition();
+	// 처음 들어오는 플레이어의 자리(시작 지점, 더미 봇은 [Debug] 규칙)를 정한다.
+	void PlaceNewPlayer(const shared_ptr<Player>& player);
+	// DB 결과가 왔는데 그 플레이어가 접속은 살아 있는 채 다른 Room에 있으면(이동 전에 기다리는 절차가 빠진 경로) ERROR를 남기고 접속을 끊는다
+	// — 다음 로그인 때 DB 값을 다시 읽는다. 정상이면 일어나지 않는다([metrics] roomMove의 orphan).
+	void CheckDbResultOwner(const shared_ptr<Player>& player, const char* what);
+	// OnItemOpDone의 본문(결과를 메모리·패킷에 반영)
+	void ApplyItemOpResult(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult result);
+
 	// ---- 아이템 작업 공통(A3.3) ----
 	// 이 플레이어 객체가 지금 이 방에 있는가(같은 id를 다른 플레이어가 다시 쓸 수 있으므로 포인터로 비교).
 	bool IsInRoom(const shared_ptr<Player>& player) const;
@@ -316,6 +358,10 @@ private:
 	// 진행 중인 1:1 거래(A4.1). 키 = 거래 id(방 안에서만 유일)
 	unordered_map<int, TradeSession> _trades;
 	int _nextTradeId = 0;
+
+	// 이 Room 구역의 PlayerStart(GameMap::GetPlayerStarts의 색인)와 다음에 고를 차례(DG3b)
+	vector<int> _startIndices;
+	size_t _nextStart = 0;
 
 	GameMap				_gameMap;
 

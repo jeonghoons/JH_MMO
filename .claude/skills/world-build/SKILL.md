@@ -13,6 +13,8 @@ description: 맵(대륙·마을·던전 레벨)을 만들거나 고칠 때 사�
 
 블록아웃(L2b): `world_blockout(이름)` = 정의의 `blockout` 목록(`box`·`ring`·`scatter`·`arch`)대로 기본 도형을 `BO_*` 라벨·`Blockout` 폴더에 놓음(다시 부르면 지우고 다시, 시드 고정), `world_place_markers(이름)` = 정의의 `markers`(`player_start`, `monster` 묶음 — `flat_margin_m`으로 평지에서 떨어뜨림, `portals` 목록 — 같은 레벨의 짝 포털은 `target_map`이 이 레벨·`target_point`가 짝의 id)대로 `ALevelMarker`(C++ `SpawnLevelMarker` — `MarkerParams`가 `FInstancedStruct`라 Python으로 못 채움)와 PIE용 `PlayerStart`(L3, 2026-11-18: 스폰 묶음의 `zone`이 마커 `ZoneName`으로 들어가고 — 서버가 `SpawnTable`에서 종류·수를 찾는 키, `safe_zones` 목록(`{"id", "label", "x", "y", "radius_cm"}`, 좌표 m)은 `SafeZone` 마커로 놓음. **열린 레벨에 놓고 그 레벨의 `PlayerStart`를 지우므로 실행 전에 `SceneTools.get_current_level`로 레벨을 확인**(2026-11-18 `DevMap`에 놓은 실수 — 저장 전에 결과의 `removed: 0`으로 발견)), `world_list_markers`, `world_set_game_mode`(`Continent01`은 2026-11-18 L2e부터 실제 GameMode `/Game/_Core/Blueprints/BP_GameMode` — 서버 없이 걸어 볼 때만 `BP_TestGameMode`로 바꿨다가 되돌림). 
 
+구역(DG3b, D-215·D-223): 정의의 마커 항목·묶음마다 `"area"`(`town`/`field`)를 적으면 마커의 `Area`로 들어가 로직 JSON의 `area`로 나갑니다 — 서버가 같은 레벨을 마을 Room과 사냥터 Room으로 나눌 때 그 마커를 쓰는 Room을 정합니다(둘 다 있어야 나뉨). 시작 지점은 `player_start`(PointId 0, PIE용 `PlayerStart`도 이 자리) + `player_starts` 목록(`{"id", "label", "x", "y", "yaw", "area"}` — id는 다른 마커와 겹치지 않게 501~). 마커를 고친 뒤에는 `world_list_markers`의 `area`를 확인하고 `nav-export`로 다시 내보냅니다. 
+
 걷기 자동 확인은 `BP_TestPlayer`를 레벨에 놓고 인스턴스의 `AutoScript`(`0:move 1 0;24:move 0 0`)·`AutoPossessPlayer`를 채운 뒤 PIE(끝나면 지움). 
 
 정점 수 - 1은 63의 배수. 지형 규칙: 걸을 곳 30° 이하, 막을 곳 60° 이상(D-172). 

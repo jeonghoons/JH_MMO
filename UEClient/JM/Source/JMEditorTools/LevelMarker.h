@@ -91,6 +91,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LevelMarker")
 	EMarkerType MarkerType = EMarkerType::MonsterSpawn;
 
+	// 구역 이름(DG3b, DESIGN_PARTY_DUNGEON.md §2-3): 같은 레벨을 여러 Room이 나눠 쓸 때 이 마커를 쓰는 Room(town / field). 빈 글 = 레벨 전체.
+	// 모든 타입에 공통이라 파라미터 구조체가 아닌 액터에 둔다(MapExportCommandlet이 "area"로 내보냄).
+	UPROPERTY(EditAnywhere, Category = "LevelMarker")
+	FString Area;
+
 	// MarkerType에 맞는 FMonsterSpawnParams / FNpcSpawnParams / FPortalTriggerParams 등을 선택해서 채운다.
 	// PlayerStart 타입은 부가 파라미터가 없으므로 비워둔다.
 	UPROPERTY(EditAnywhere, Category = "LevelMarker")

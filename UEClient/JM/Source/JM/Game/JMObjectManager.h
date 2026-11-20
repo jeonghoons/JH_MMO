@@ -32,6 +32,9 @@ public:
 	void HandleRevive(int32 CharacterId, const Protocol::PositionInfo& Pos, int32 Hp, uint32 CorrectionSeq);
 	// SC_TELEPORT(L5): 보간 없이 서버가 정한 자리로 옮긴다. 내 캐릭터면 보정 순번까지.
 	void HandleTeleport(int32 CharacterId, const Protocol::PositionInfo& Pos, uint32 CorrectionSeq);
+	// SC_ROOM_CHANGE(DG3b): 같은 레벨 안에서 Room이 바뀌었다. 다른 Room의 주변 오브젝트를 지우고 내 캐릭터는 남겨 새 자리로 옮긴다.
+	// 다른 레벨로의 이동은 아직 처리하지 않는다(DG3c).
+	void HandleRoomChange(const Protocol::SC_ROOM_CHANGE_PACKET& Pkt);
 	// SC_PORTAL_LIST(L5): 방 입장 직후 서버가 알려 주는, 지금 쓸 수 있는 포털의 위치·반경
 	void HandlePortalList(const Protocol::SC_PORTAL_LIST_PACKET& Pkt);
 	// SC_CHANGE_EQUIP: 장착 목록·스탯 반영, 내 캐릭터면 HUD(HP·무기 타입별 스킬 슬롯) 갱신

@@ -1,0 +1,4 @@
+PASS basic  (DB 아이템 89741, 골드 602548 + 0 = 602548)
+PASS starts  (DB 아이템 89741, 골드 602548 + 0 = 602548)
+PASS notavail  (DB 아이템 89741, 골드 602548 + 0 = 602548)
+FAIL trade: RuntimeError: [Test2] 포털 101까지 걷지 못함 (dead=False)

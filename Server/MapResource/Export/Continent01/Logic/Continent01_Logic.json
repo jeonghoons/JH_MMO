@@ -5,6 +5,7 @@
 		{
 			"pointId": 0,
 			"type": "PlayerStart",
+			"area": "town",
 			"position":
 			{
 				"x": -14200,
@@ -14,8 +15,45 @@
 			}
 		},
 		{
+			"pointId": 501,
+			"type": "PlayerStart",
+			"area": "town",
+			"position":
+			{
+				"x": -9800,
+				"y": 0,
+				"z": 100,
+				"yaw": 180
+			}
+		},
+		{
+			"pointId": 502,
+			"type": "PlayerStart",
+			"area": "town",
+			"position":
+			{
+				"x": -14300,
+				"y": 5200,
+				"z": 100,
+				"yaw": -90
+			}
+		},
+		{
+			"pointId": 503,
+			"type": "PlayerStart",
+			"area": "town",
+			"position":
+			{
+				"x": -14700,
+				"y": -5000,
+				"z": 100,
+				"yaw": 90
+			}
+		},
+		{
 			"pointId": 1,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -16010.283212236771,
@@ -31,6 +69,7 @@
 		{
 			"pointId": 2,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -4071.0015137200971,
@@ -46,6 +85,7 @@
 		{
 			"pointId": 3,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 319.49926961706296,
@@ -61,6 +101,7 @@
 		{
 			"pointId": 4,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -7370.8625018617031,
@@ -76,6 +117,7 @@
 		{
 			"pointId": 5,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -20119.211982498451,
@@ -91,6 +133,7 @@
 		{
 			"pointId": 6,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -14289.548234451337,
@@ -106,6 +149,7 @@
 		{
 			"pointId": 7,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 5138.0547052806205,
@@ -121,6 +165,7 @@
 		{
 			"pointId": 8,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 3979.8885749498909,
@@ -136,6 +181,7 @@
 		{
 			"pointId": 9,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -11489.79583237977,
@@ -151,6 +197,7 @@
 		{
 			"pointId": 10,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -1960.4488209907117,
@@ -166,6 +213,7 @@
 		{
 			"pointId": 11,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -11355.535307713388,
@@ -181,6 +229,7 @@
 		{
 			"pointId": 12,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 3291.5773912990089,
@@ -196,6 +245,7 @@
 		{
 			"pointId": 13,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 2467.806938833914,
@@ -211,6 +261,7 @@
 		{
 			"pointId": 14,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -5162.5084371023231,
@@ -226,6 +277,7 @@
 		{
 			"pointId": 15,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -15323.272198501965,
@@ -241,6 +293,7 @@
 		{
 			"pointId": 16,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -19570.919025764961,
@@ -256,6 +309,7 @@
 		{
 			"pointId": 17,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -7179.0983204341583,
@@ -271,6 +325,7 @@
 		{
 			"pointId": 18,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -11081.492461430527,
@@ -286,6 +341,7 @@
 		{
 			"pointId": 19,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -309.20015352319297,
@@ -301,6 +357,7 @@
 		{
 			"pointId": 20,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -15951.602195109723,
@@ -316,6 +373,7 @@
 		{
 			"pointId": 21,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -19606.584837069589,
@@ -331,6 +389,7 @@
 		{
 			"pointId": 22,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -2744.983870361054,
@@ -346,6 +405,7 @@
 		{
 			"pointId": 23,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -656.55435753037204,
@@ -361,6 +421,7 @@
 		{
 			"pointId": 24,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 3728.3993478430775,
@@ -376,6 +437,7 @@
 		{
 			"pointId": 25,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 3994.0562551071125,
@@ -391,6 +453,7 @@
 		{
 			"pointId": 26,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -1796.5735187652085,
@@ -406,6 +469,7 @@
 		{
 			"pointId": 27,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": -213.64652884144562,
@@ -421,6 +485,7 @@
 		{
 			"pointId": 28,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 130.98906190025872,
@@ -436,6 +501,7 @@
 		{
 			"pointId": 29,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 19681.796309734182,
@@ -451,6 +517,7 @@
 		{
 			"pointId": 30,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 8092.8402245214356,
@@ -466,6 +533,7 @@
 		{
 			"pointId": 31,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 10084.745206715379,
@@ -481,6 +549,7 @@
 		{
 			"pointId": 32,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 15877.623382918198,
@@ -496,6 +565,7 @@
 		{
 			"pointId": 33,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 18728.955580773578,
@@ -511,6 +581,7 @@
 		{
 			"pointId": 34,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 19431.062422977171,
@@ -526,6 +597,7 @@
 		{
 			"pointId": 35,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 11674.657419093533,
@@ -541,6 +613,7 @@
 		{
 			"pointId": 36,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 16077.009446765502,
@@ -556,6 +629,7 @@
 		{
 			"pointId": 37,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 8409.1513354032195,
@@ -571,6 +645,7 @@
 		{
 			"pointId": 38,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 14077.868115343223,
@@ -586,6 +661,7 @@
 		{
 			"pointId": 39,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 12877.082316027225,
@@ -601,6 +677,7 @@
 		{
 			"pointId": 40,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 12794.759192466219,
@@ -616,6 +693,7 @@
 		{
 			"pointId": 41,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 11870.771793136029,
@@ -631,6 +709,7 @@
 		{
 			"pointId": 42,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 19220.587185619523,
@@ -646,6 +725,7 @@
 		{
 			"pointId": 43,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 10482.703052660621,
@@ -661,6 +741,7 @@
 		{
 			"pointId": 44,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 13835.465576390186,
@@ -676,6 +757,7 @@
 		{
 			"pointId": 45,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 15517.935869971077,
@@ -691,6 +773,7 @@
 		{
 			"pointId": 46,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 8403.02810142409,
@@ -706,6 +789,7 @@
 		{
 			"pointId": 47,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 18934.363898624586,
@@ -721,6 +805,7 @@
 		{
 			"pointId": 48,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 7933.9565252049824,
@@ -736,6 +821,7 @@
 		{
 			"pointId": 49,
 			"type": "MonsterSpawn",
+			"area": "field",
 			"position":
 			{
 				"x": 19507.366948438786,
@@ -751,6 +837,7 @@
 		{
 			"pointId": 100,
 			"type": "PortalTrigger",
+			"area": "field",
 			"position":
 			{
 				"x": 19020,
@@ -765,6 +852,7 @@
 		{
 			"pointId": 110,
 			"type": "PortalTrigger",
+			"area": "field",
 			"position":
 			{
 				"x": 18930,
@@ -779,6 +867,7 @@
 		{
 			"pointId": 101,
 			"type": "PortalTrigger",
+			"area": "town",
 			"position":
 			{
 				"x": -8400,
@@ -793,6 +882,7 @@
 		{
 			"pointId": 201,
 			"type": "PortalTrigger",
+			"area": "field",
 			"position":
 			{
 				"x": -6400,
@@ -807,6 +897,7 @@
 		{
 			"pointId": 102,
 			"type": "PortalTrigger",
+			"area": "town",
 			"position":
 			{
 				"x": -15000,
@@ -821,6 +912,7 @@
 		{
 			"pointId": 202,
 			"type": "PortalTrigger",
+			"area": "field",
 			"position":
 			{
 				"x": -15000,
@@ -835,6 +927,7 @@
 		{
 			"pointId": 103,
 			"type": "PortalTrigger",
+			"area": "town",
 			"position":
 			{
 				"x": -15000,
@@ -849,6 +942,7 @@
 		{
 			"pointId": 203,
 			"type": "PortalTrigger",
+			"area": "field",
 			"position":
 			{
 				"x": -15000,
@@ -863,6 +957,7 @@
 		{
 			"pointId": 300,
 			"type": "SafeZone",
+			"area": "town",
 			"position":
 			{
 				"x": -15000,
@@ -875,6 +970,7 @@
 		{
 			"pointId": 400,
 			"type": "Npc",
+			"area": "town",
 			"position":
 			{
 				"x": -14150,

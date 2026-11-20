@@ -19,6 +19,7 @@
 #include "UI/CombatHudWidget.h"
 #include "UI/ReviveWidget.h"
 #include "Game/DropItemActor.h"
+#include "Game/JMShopManager.h"
 
 void UJMObjectManager::ClearObjects()
 {
@@ -476,6 +477,51 @@ void UJMObjectManager::HandleTeleport(int32 CharacterId, const Protocol::Positio
 
 	if (*FoundActor != MyPlayer) (*FoundActor)->TeleportToServerPosition(Pos);
 	else MyPlayer->OnMyTeleport(Pos, CorrectionSeq);
+}
+
+void UJMObjectManager::HandleRoomChange(const Protocol::SC_ROOM_CHANGE_PACKET& Pkt)
+{
+	UWorld* World = GetWorld();
+	if (World == nullptr) return;
+
+	// 이번 단계는 같은 레벨 안의 Room 변경만 처리한다(다른 레벨 이동은 DG3c). 레벨 이름은 PIE 접두사를 뺀 짧은 이름으로 비교한다.
+	const FString NewMap = UTF8_TO_TCHAR(Pkt.map_name().c_str());
+	const FString CurrentMap = UGameplayStatics::GetCurrentLevelName(World, true);
+	if (!NewMap.Equals(CurrentMap, ESearchCase::IgnoreCase))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Room] 다른 레벨로의 이동은 아직 처리하지 않습니다: %s (현재 %s)"), *NewMap, *CurrentMap);
+		return;
+	}
+
+	// 응답 대기 중인 내 시전·조준·잠금·상호작용 대상을 먼저 정리한다(부활 이동이면 내 캐릭터는 아직 죽어 있다).
+	if (MyPlayer) MyPlayer->ResetForRoomChange();
+
+	// 열려 있는 상점 창은 옛 Room의 NPC를 가리키므로 닫는다. 인벤토리 사본은 서버가 다시 보내지 않으므로 그대로 둔다.
+	if (UJMShopManager* Shop = GetGameInstance()->GetSubsystem<UJMShopManager>()) Shop->Close();
+
+	// 내 캐릭터는 Objects에 남긴다. 뒤따르는 본인 SC_ADD_OBJECT는 "이미 있으면 무시"로 넘어가고, SC_REVIVE는 HandleRevive로 간다.
+	// 나머지 캐릭터·몬스터는 HandleDespawn과 같은 방식으로 지운다(딸린 위젯은 액터와 함께 사라진다).
+	for (auto It = Objects.CreateIterator(); It; ++It)
+	{
+		if (It->Value == MyPlayer) continue;
+		if (It->Value) It->Value->Destroy();
+		It.RemoveCurrent();
+	}
+	for (auto& Pair : Drops)
+	{
+		if (Pair.Value) Pair.Value->Destroy();
+	}
+	Drops.Empty();
+	for (auto& Pair : Npcs)
+	{
+		if (Pair.Value) Pair.Value->Destroy();
+	}
+	Npcs.Empty();
+	// 포털 목록은 본인 SC_PORTAL_LIST가 새 Room 것으로 다시 보낸다.
+	Portals.Empty();
+
+	// 내 캐릭터를 새 Room의 자리로 옮기고 보정 순번을 받는다(SC_TELEPORT와 같은 절차).
+	if (MyPlayer) MyPlayer->OnMyTeleport(Pkt.pos_info(), Pkt.correction_seq());
 }
 
 void UJMObjectManager::HandlePortalList(const Protocol::SC_PORTAL_LIST_PACKET& Pkt)

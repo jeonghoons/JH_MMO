@@ -174,6 +174,9 @@ extern SC_LOGIN_INFO_PACKETDefaultTypeInternal _SC_LOGIN_INFO_PACKET_default_ins
 class SC_MOVE_PACKET;
 struct SC_MOVE_PACKETDefaultTypeInternal;
 extern SC_MOVE_PACKETDefaultTypeInternal _SC_MOVE_PACKET_default_instance_;
+class SC_MOVE_RESULT_PACKET;
+struct SC_MOVE_RESULT_PACKETDefaultTypeInternal;
+extern SC_MOVE_RESULT_PACKETDefaultTypeInternal _SC_MOVE_RESULT_PACKET_default_instance_;
 class SC_PONG_PACKET;
 struct SC_PONG_PACKETDefaultTypeInternal;
 extern SC_PONG_PACKETDefaultTypeInternal _SC_PONG_PACKET_default_instance_;
@@ -186,6 +189,9 @@ extern SC_REMOVE_OBJECT_PACKETDefaultTypeInternal _SC_REMOVE_OBJECT_PACKET_defau
 class SC_REVIVE_PACKET;
 struct SC_REVIVE_PACKETDefaultTypeInternal;
 extern SC_REVIVE_PACKETDefaultTypeInternal _SC_REVIVE_PACKET_default_instance_;
+class SC_ROOM_CHANGE_PACKET;
+struct SC_ROOM_CHANGE_PACKETDefaultTypeInternal;
+extern SC_ROOM_CHANGE_PACKETDefaultTypeInternal _SC_ROOM_CHANGE_PACKET_default_instance_;
 class SC_SHOP_OPEN_PACKET;
 struct SC_SHOP_OPEN_PACKETDefaultTypeInternal;
 extern SC_SHOP_OPEN_PACKETDefaultTypeInternal _SC_SHOP_OPEN_PACKET_default_instance_;
@@ -260,10 +266,12 @@ template<> ::Protocol::SC_ITEM_RESULT_PACKET* Arena::CreateMaybeMessage<::Protoc
 template<> ::Protocol::SC_KICK_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_KICK_PACKET>(Arena*);
 template<> ::Protocol::SC_LOGIN_INFO_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_LOGIN_INFO_PACKET>(Arena*);
 template<> ::Protocol::SC_MOVE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_MOVE_PACKET>(Arena*);
+template<> ::Protocol::SC_MOVE_RESULT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_MOVE_RESULT_PACKET>(Arena*);
 template<> ::Protocol::SC_PONG_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_PONG_PACKET>(Arena*);
 template<> ::Protocol::SC_PORTAL_LIST_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_PORTAL_LIST_PACKET>(Arena*);
 template<> ::Protocol::SC_REMOVE_OBJECT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_REMOVE_OBJECT_PACKET>(Arena*);
 template<> ::Protocol::SC_REVIVE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_REVIVE_PACKET>(Arena*);
+template<> ::Protocol::SC_ROOM_CHANGE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ROOM_CHANGE_PACKET>(Arena*);
 template<> ::Protocol::SC_SHOP_OPEN_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_SHOP_OPEN_PACKET>(Arena*);
 template<> ::Protocol::SC_SIGNUP_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_SIGNUP_PACKET>(Arena*);
 template<> ::Protocol::SC_SKILL_AIM_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_SKILL_AIM_PACKET>(Arena*);
@@ -6793,6 +6801,360 @@ class SC_PORTAL_LIST_PACKET final :
 };
 // -------------------------------------------------------------------
 
+class SC_ROOM_CHANGE_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_ROOM_CHANGE_PACKET) */ {
+ public:
+  inline SC_ROOM_CHANGE_PACKET() : SC_ROOM_CHANGE_PACKET(nullptr) {}
+  ~SC_ROOM_CHANGE_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_ROOM_CHANGE_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_ROOM_CHANGE_PACKET(const SC_ROOM_CHANGE_PACKET& from);
+  SC_ROOM_CHANGE_PACKET(SC_ROOM_CHANGE_PACKET&& from) noexcept
+    : SC_ROOM_CHANGE_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_ROOM_CHANGE_PACKET& operator=(const SC_ROOM_CHANGE_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_ROOM_CHANGE_PACKET& operator=(SC_ROOM_CHANGE_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_ROOM_CHANGE_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_ROOM_CHANGE_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_ROOM_CHANGE_PACKET*>(
+               &_SC_ROOM_CHANGE_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    40;
+
+  friend void swap(SC_ROOM_CHANGE_PACKET& a, SC_ROOM_CHANGE_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_ROOM_CHANGE_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_ROOM_CHANGE_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_ROOM_CHANGE_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_ROOM_CHANGE_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_ROOM_CHANGE_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_ROOM_CHANGE_PACKET& from) {
+    SC_ROOM_CHANGE_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_ROOM_CHANGE_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_ROOM_CHANGE_PACKET";
+  }
+  protected:
+  explicit SC_ROOM_CHANGE_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kMapNameFieldNumber = 1,
+    kPosInfoFieldNumber = 4,
+    kKindFieldNumber = 2,
+    kChannelFieldNumber = 3,
+    kCorrectionSeqFieldNumber = 5,
+  };
+  // string map_name = 1;
+  void clear_map_name();
+  const std::string& map_name() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_map_name(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_map_name();
+  PROTOBUF_NODISCARD std::string* release_map_name();
+  void set_allocated_map_name(std::string* map_name);
+  private:
+  const std::string& _internal_map_name() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_map_name(const std::string& value);
+  std::string* _internal_mutable_map_name();
+  public:
+
+  // .Protocol.PositionInfo pos_info = 4;
+  bool has_pos_info() const;
+  private:
+  bool _internal_has_pos_info() const;
+  public:
+  void clear_pos_info();
+  const ::Protocol::PositionInfo& pos_info() const;
+  PROTOBUF_NODISCARD ::Protocol::PositionInfo* release_pos_info();
+  ::Protocol::PositionInfo* mutable_pos_info();
+  void set_allocated_pos_info(::Protocol::PositionInfo* pos_info);
+  private:
+  const ::Protocol::PositionInfo& _internal_pos_info() const;
+  ::Protocol::PositionInfo* _internal_mutable_pos_info();
+  public:
+  void unsafe_arena_set_allocated_pos_info(
+      ::Protocol::PositionInfo* pos_info);
+  ::Protocol::PositionInfo* unsafe_arena_release_pos_info();
+
+  // .Protocol.RoomKind kind = 2;
+  void clear_kind();
+  ::Protocol::RoomKind kind() const;
+  void set_kind(::Protocol::RoomKind value);
+  private:
+  ::Protocol::RoomKind _internal_kind() const;
+  void _internal_set_kind(::Protocol::RoomKind value);
+  public:
+
+  // int32 channel = 3;
+  void clear_channel();
+  int32_t channel() const;
+  void set_channel(int32_t value);
+  private:
+  int32_t _internal_channel() const;
+  void _internal_set_channel(int32_t value);
+  public:
+
+  // uint32 correction_seq = 5;
+  void clear_correction_seq();
+  uint32_t correction_seq() const;
+  void set_correction_seq(uint32_t value);
+  private:
+  uint32_t _internal_correction_seq() const;
+  void _internal_set_correction_seq(uint32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_ROOM_CHANGE_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr map_name_;
+    ::Protocol::PositionInfo* pos_info_;
+    int kind_;
+    int32_t channel_;
+    uint32_t correction_seq_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class SC_MOVE_RESULT_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_MOVE_RESULT_PACKET) */ {
+ public:
+  inline SC_MOVE_RESULT_PACKET() : SC_MOVE_RESULT_PACKET(nullptr) {}
+  ~SC_MOVE_RESULT_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_MOVE_RESULT_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_MOVE_RESULT_PACKET(const SC_MOVE_RESULT_PACKET& from);
+  SC_MOVE_RESULT_PACKET(SC_MOVE_RESULT_PACKET&& from) noexcept
+    : SC_MOVE_RESULT_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_MOVE_RESULT_PACKET& operator=(const SC_MOVE_RESULT_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_MOVE_RESULT_PACKET& operator=(SC_MOVE_RESULT_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_MOVE_RESULT_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_MOVE_RESULT_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_MOVE_RESULT_PACKET*>(
+               &_SC_MOVE_RESULT_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    41;
+
+  friend void swap(SC_MOVE_RESULT_PACKET& a, SC_MOVE_RESULT_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_MOVE_RESULT_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_MOVE_RESULT_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_MOVE_RESULT_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_MOVE_RESULT_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_MOVE_RESULT_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_MOVE_RESULT_PACKET& from) {
+    SC_MOVE_RESULT_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_MOVE_RESULT_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_MOVE_RESULT_PACKET";
+  }
+  protected:
+  explicit SC_MOVE_RESULT_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kResultFieldNumber = 1,
+  };
+  // .Protocol.MoveResult result = 1;
+  void clear_result();
+  ::Protocol::MoveResult result() const;
+  void set_result(::Protocol::MoveResult value);
+  private:
+  ::Protocol::MoveResult _internal_result() const;
+  void _internal_set_result(::Protocol::MoveResult value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_MOVE_RESULT_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int result_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
 class SC_CHANGE_EQUIP_PACKET final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_CHANGE_EQUIP_PACKET) */ {
  public:
@@ -6841,7 +7203,7 @@ class SC_CHANGE_EQUIP_PACKET final :
                &_SC_CHANGE_EQUIP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    40;
+    42;
 
   friend void swap(SC_CHANGE_EQUIP_PACKET& a, SC_CHANGE_EQUIP_PACKET& b) {
     a.Swap(&b);
@@ -7031,7 +7393,7 @@ class SC_CHANGE_EQUIP_RESULT_PACKET final :
                &_SC_CHANGE_EQUIP_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    43;
 
   friend void swap(SC_CHANGE_EQUIP_RESULT_PACKET& a, SC_CHANGE_EQUIP_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -7212,7 +7574,7 @@ class SC_INVENTORY_PACKET final :
                &_SC_INVENTORY_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    44;
 
   friend void swap(SC_INVENTORY_PACKET& a, SC_INVENTORY_PACKET& b) {
     a.Swap(&b);
@@ -7449,7 +7811,7 @@ class SC_INVENTORY_UPDATE_PACKET final :
                &_SC_INVENTORY_UPDATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    45;
 
   friend void swap(SC_INVENTORY_UPDATE_PACKET& a, SC_INVENTORY_UPDATE_PACKET& b) {
     a.Swap(&b);
@@ -7667,7 +8029,7 @@ class SC_USE_ITEM_PACKET final :
                &_SC_USE_ITEM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    46;
 
   friend void swap(SC_USE_ITEM_PACKET& a, SC_USE_ITEM_PACKET& b) {
     a.Swap(&b);
@@ -7848,7 +8210,7 @@ class SC_CHANGE_HP_PACKET final :
                &_SC_CHANGE_HP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    47;
 
   friend void swap(SC_CHANGE_HP_PACKET& a, SC_CHANGE_HP_PACKET& b) {
     a.Swap(&b);
@@ -8007,7 +8369,7 @@ class SC_ITEM_RESULT_PACKET final :
                &_SC_ITEM_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    48;
 
   friend void swap(SC_ITEM_RESULT_PACKET& a, SC_ITEM_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -8166,7 +8528,7 @@ class ShopItem final :
                &_ShopItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    47;
+    49;
 
   friend void swap(ShopItem& a, ShopItem& b) {
     a.Swap(&b);
@@ -8325,7 +8687,7 @@ class SC_SHOP_OPEN_PACKET final :
                &_SC_SHOP_OPEN_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    48;
+    50;
 
   friend void swap(SC_SHOP_OPEN_PACKET& a, SC_SHOP_OPEN_PACKET& b) {
     a.Swap(&b);
@@ -8493,7 +8855,7 @@ class SC_SKILL_AIM_PACKET final :
                &_SC_SKILL_AIM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    49;
+    51;
 
   friend void swap(SC_SKILL_AIM_PACKET& a, SC_SKILL_AIM_PACKET& b) {
     a.Swap(&b);
@@ -8674,7 +9036,7 @@ class SC_PONG_PACKET final :
                &_SC_PONG_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    50;
+    52;
 
   friend void swap(SC_PONG_PACKET& a, SC_PONG_PACKET& b) {
     a.Swap(&b);
@@ -8822,7 +9184,7 @@ class SC_TRADE_REQUEST_PACKET final :
                &_SC_TRADE_REQUEST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    51;
+    53;
 
   friend void swap(SC_TRADE_REQUEST_PACKET& a, SC_TRADE_REQUEST_PACKET& b) {
     a.Swap(&b);
@@ -8997,7 +9359,7 @@ class SC_TRADE_STATE_PACKET final :
                &_SC_TRADE_STATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    52;
+    54;
 
   friend void swap(SC_TRADE_STATE_PACKET& a, SC_TRADE_STATE_PACKET& b) {
     a.Swap(&b);
@@ -9165,7 +9527,7 @@ class SC_TRADE_END_PACKET final :
                &_SC_TRADE_END_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    53;
+    55;
 
   friend void swap(SC_TRADE_END_PACKET& a, SC_TRADE_END_PACKET& b) {
     a.Swap(&b);
@@ -9313,7 +9675,7 @@ class SC_TRADE_RESULT_PACKET final :
                &_SC_TRADE_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    54;
+    56;
 
   friend void swap(SC_TRADE_RESULT_PACKET& a, SC_TRADE_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -9472,7 +9834,7 @@ class SC_KICK_PACKET final :
                &_SC_KICK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    55;
+    57;
 
   friend void swap(SC_KICK_PACKET& a, SC_KICK_PACKET& b) {
     a.Swap(&b);
@@ -12186,6 +12548,229 @@ SC_PORTAL_LIST_PACKET::portals() const {
 
 // -------------------------------------------------------------------
 
+// SC_ROOM_CHANGE_PACKET
+
+// string map_name = 1;
+inline void SC_ROOM_CHANGE_PACKET::clear_map_name() {
+  _impl_.map_name_.ClearToEmpty();
+}
+inline const std::string& SC_ROOM_CHANGE_PACKET::map_name() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ROOM_CHANGE_PACKET.map_name)
+  return _internal_map_name();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void SC_ROOM_CHANGE_PACKET::set_map_name(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.map_name_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:Protocol.SC_ROOM_CHANGE_PACKET.map_name)
+}
+inline std::string* SC_ROOM_CHANGE_PACKET::mutable_map_name() {
+  std::string* _s = _internal_mutable_map_name();
+  // @@protoc_insertion_point(field_mutable:Protocol.SC_ROOM_CHANGE_PACKET.map_name)
+  return _s;
+}
+inline const std::string& SC_ROOM_CHANGE_PACKET::_internal_map_name() const {
+  return _impl_.map_name_.Get();
+}
+inline void SC_ROOM_CHANGE_PACKET::_internal_set_map_name(const std::string& value) {
+  
+  _impl_.map_name_.Set(value, GetArenaForAllocation());
+}
+inline std::string* SC_ROOM_CHANGE_PACKET::_internal_mutable_map_name() {
+  
+  return _impl_.map_name_.Mutable(GetArenaForAllocation());
+}
+inline std::string* SC_ROOM_CHANGE_PACKET::release_map_name() {
+  // @@protoc_insertion_point(field_release:Protocol.SC_ROOM_CHANGE_PACKET.map_name)
+  return _impl_.map_name_.Release();
+}
+inline void SC_ROOM_CHANGE_PACKET::set_allocated_map_name(std::string* map_name) {
+  if (map_name != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.map_name_.SetAllocated(map_name, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.map_name_.IsDefault()) {
+    _impl_.map_name_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:Protocol.SC_ROOM_CHANGE_PACKET.map_name)
+}
+
+// .Protocol.RoomKind kind = 2;
+inline void SC_ROOM_CHANGE_PACKET::clear_kind() {
+  _impl_.kind_ = 0;
+}
+inline ::Protocol::RoomKind SC_ROOM_CHANGE_PACKET::_internal_kind() const {
+  return static_cast< ::Protocol::RoomKind >(_impl_.kind_);
+}
+inline ::Protocol::RoomKind SC_ROOM_CHANGE_PACKET::kind() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ROOM_CHANGE_PACKET.kind)
+  return _internal_kind();
+}
+inline void SC_ROOM_CHANGE_PACKET::_internal_set_kind(::Protocol::RoomKind value) {
+  
+  _impl_.kind_ = value;
+}
+inline void SC_ROOM_CHANGE_PACKET::set_kind(::Protocol::RoomKind value) {
+  _internal_set_kind(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_ROOM_CHANGE_PACKET.kind)
+}
+
+// int32 channel = 3;
+inline void SC_ROOM_CHANGE_PACKET::clear_channel() {
+  _impl_.channel_ = 0;
+}
+inline int32_t SC_ROOM_CHANGE_PACKET::_internal_channel() const {
+  return _impl_.channel_;
+}
+inline int32_t SC_ROOM_CHANGE_PACKET::channel() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ROOM_CHANGE_PACKET.channel)
+  return _internal_channel();
+}
+inline void SC_ROOM_CHANGE_PACKET::_internal_set_channel(int32_t value) {
+  
+  _impl_.channel_ = value;
+}
+inline void SC_ROOM_CHANGE_PACKET::set_channel(int32_t value) {
+  _internal_set_channel(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_ROOM_CHANGE_PACKET.channel)
+}
+
+// .Protocol.PositionInfo pos_info = 4;
+inline bool SC_ROOM_CHANGE_PACKET::_internal_has_pos_info() const {
+  return this != internal_default_instance() && _impl_.pos_info_ != nullptr;
+}
+inline bool SC_ROOM_CHANGE_PACKET::has_pos_info() const {
+  return _internal_has_pos_info();
+}
+inline const ::Protocol::PositionInfo& SC_ROOM_CHANGE_PACKET::_internal_pos_info() const {
+  const ::Protocol::PositionInfo* p = _impl_.pos_info_;
+  return p != nullptr ? *p : reinterpret_cast<const ::Protocol::PositionInfo&>(
+      ::Protocol::_PositionInfo_default_instance_);
+}
+inline const ::Protocol::PositionInfo& SC_ROOM_CHANGE_PACKET::pos_info() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ROOM_CHANGE_PACKET.pos_info)
+  return _internal_pos_info();
+}
+inline void SC_ROOM_CHANGE_PACKET::unsafe_arena_set_allocated_pos_info(
+    ::Protocol::PositionInfo* pos_info) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.pos_info_);
+  }
+  _impl_.pos_info_ = pos_info;
+  if (pos_info) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:Protocol.SC_ROOM_CHANGE_PACKET.pos_info)
+}
+inline ::Protocol::PositionInfo* SC_ROOM_CHANGE_PACKET::release_pos_info() {
+  
+  ::Protocol::PositionInfo* temp = _impl_.pos_info_;
+  _impl_.pos_info_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::Protocol::PositionInfo* SC_ROOM_CHANGE_PACKET::unsafe_arena_release_pos_info() {
+  // @@protoc_insertion_point(field_release:Protocol.SC_ROOM_CHANGE_PACKET.pos_info)
+  
+  ::Protocol::PositionInfo* temp = _impl_.pos_info_;
+  _impl_.pos_info_ = nullptr;
+  return temp;
+}
+inline ::Protocol::PositionInfo* SC_ROOM_CHANGE_PACKET::_internal_mutable_pos_info() {
+  
+  if (_impl_.pos_info_ == nullptr) {
+    auto* p = CreateMaybeMessage<::Protocol::PositionInfo>(GetArenaForAllocation());
+    _impl_.pos_info_ = p;
+  }
+  return _impl_.pos_info_;
+}
+inline ::Protocol::PositionInfo* SC_ROOM_CHANGE_PACKET::mutable_pos_info() {
+  ::Protocol::PositionInfo* _msg = _internal_mutable_pos_info();
+  // @@protoc_insertion_point(field_mutable:Protocol.SC_ROOM_CHANGE_PACKET.pos_info)
+  return _msg;
+}
+inline void SC_ROOM_CHANGE_PACKET::set_allocated_pos_info(::Protocol::PositionInfo* pos_info) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.pos_info_);
+  }
+  if (pos_info) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(pos_info));
+    if (message_arena != submessage_arena) {
+      pos_info = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, pos_info, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.pos_info_ = pos_info;
+  // @@protoc_insertion_point(field_set_allocated:Protocol.SC_ROOM_CHANGE_PACKET.pos_info)
+}
+
+// uint32 correction_seq = 5;
+inline void SC_ROOM_CHANGE_PACKET::clear_correction_seq() {
+  _impl_.correction_seq_ = 0u;
+}
+inline uint32_t SC_ROOM_CHANGE_PACKET::_internal_correction_seq() const {
+  return _impl_.correction_seq_;
+}
+inline uint32_t SC_ROOM_CHANGE_PACKET::correction_seq() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_ROOM_CHANGE_PACKET.correction_seq)
+  return _internal_correction_seq();
+}
+inline void SC_ROOM_CHANGE_PACKET::_internal_set_correction_seq(uint32_t value) {
+  
+  _impl_.correction_seq_ = value;
+}
+inline void SC_ROOM_CHANGE_PACKET::set_correction_seq(uint32_t value) {
+  _internal_set_correction_seq(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_ROOM_CHANGE_PACKET.correction_seq)
+}
+
+// -------------------------------------------------------------------
+
+// SC_MOVE_RESULT_PACKET
+
+// .Protocol.MoveResult result = 1;
+inline void SC_MOVE_RESULT_PACKET::clear_result() {
+  _impl_.result_ = 0;
+}
+inline ::Protocol::MoveResult SC_MOVE_RESULT_PACKET::_internal_result() const {
+  return static_cast< ::Protocol::MoveResult >(_impl_.result_);
+}
+inline ::Protocol::MoveResult SC_MOVE_RESULT_PACKET::result() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_MOVE_RESULT_PACKET.result)
+  return _internal_result();
+}
+inline void SC_MOVE_RESULT_PACKET::_internal_set_result(::Protocol::MoveResult value) {
+  
+  _impl_.result_ = value;
+}
+inline void SC_MOVE_RESULT_PACKET::set_result(::Protocol::MoveResult value) {
+  _internal_set_result(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_MOVE_RESULT_PACKET.result)
+}
+
+// -------------------------------------------------------------------
+
 // SC_CHANGE_EQUIP_PACKET
 
 // int32 object_id = 1;
@@ -13398,6 +13983,10 @@ inline void SC_KICK_PACKET::set_reason(::Protocol::KickReason value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

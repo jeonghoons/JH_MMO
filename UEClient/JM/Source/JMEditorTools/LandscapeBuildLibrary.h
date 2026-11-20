@@ -37,14 +37,15 @@ public:
 	// ALevelMarker를 하나 놓는다(서버 Logic JSON의 원본 — MapExportCommandlet이 내보냄). Type = PlayerStart / MonsterSpawn / Npc / PortalTrigger.
 	// Type에 SafeZone 추가(L3). TemplateId·Radius·MaxCount는 MonsterSpawn(몬스터 ID·스폰 반경·수), Npc(TemplateId), PortalTrigger(Radius·TargetMap·TemplateId = 대상 PointId), SafeZone(Radius)에 쓴다.
 	// ZoneName은 MonsterSpawn의 구역 이름(SpawnTable.csv의 Zone)이고 그 밖의 타입은 빈 글.
+	// Area는 모든 타입 공통의 구역 이름(DG3b — town / field, 빈 글 = 레벨 전체).
 	UFUNCTION(BlueprintCallable, Category = "JM|World")
-	static FString SpawnLevelMarker(const FString& Type, int32 PointId, FVector Location, float Yaw, int32 TemplateId, float Radius, int32 MaxCount, const FString& TargetMap, const FString& Label, const FString& ZoneName);
+	static FString SpawnLevelMarker(const FString& Type, int32 PointId, FVector Location, float Yaw, int32 TemplateId, float Radius, int32 MaxCount, const FString& TargetMap, const FString& Label, const FString& ZoneName, const FString& Area);
 
 	// 지금 열린 레벨의 ALevelMarker를 모두 지우고 개수를 돌려준다.
 	UFUNCTION(BlueprintCallable, Category = "JM|World")
 	static int32 ClearLevelMarkers();
 
-	// 지금 열린 레벨의 ALevelMarker 목록(JSON): [{label, pointId, type, x, y, z}]
+	// 지금 열린 레벨의 ALevelMarker 목록(JSON): [{label, pointId, type, area, x, y, z}]
 	UFUNCTION(BlueprintCallable, Category = "JM|World")
 	static FString ListLevelMarkers();
 };

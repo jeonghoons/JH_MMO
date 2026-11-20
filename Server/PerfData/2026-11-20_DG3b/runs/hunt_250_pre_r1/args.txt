@@ -1,0 +1,4 @@
+1795110722 --bots 250 --ramp-rate 50 --duration 75 --threads 4 --move-interval 200 --body male --profile hunt --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3b\runs\hunt_250_pre_r1\loadtest.csv
+exe /c/Users/kjhkjh/KJH/JH_MMO/Server/PerfData/2026-11-20_DG3b/pre/GameServer.exe data repo dummyRoom town
+loadtest exit 0
+run_id 20261120_025159
