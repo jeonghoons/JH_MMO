@@ -31,6 +31,8 @@ struct BotConfig
 	int slotIntervalMs = 0;    // >0이면 이 간격(±50%)마다 인벤토리 아이템 하나를 무작위 칸(0~29)으로 옮긴다(CS_MOVE_ITEM, A6.1)
 	int shopIntervalMs = 0;    // >0이면 이 간격(±50%)마다 시야 안의 상점 NPC에 구매(물약 1~3개)와 판매(인벤토리 행 하나에서 1개)를 번갈아 요청한다(L4). NPC 근처에 있어야 하므로 --zone과 함께 쓴다
 	int portalIntervalMs = 0;  // >0이면 이 간격(±50%)마다 가장 가까운 포털에 CS_PORTAL을 보낸다(L5). 반경 밖이면 서버가 버리므로 --zone으로 포털 앞에 세운다
+	int partySize = 0;         // --party-size N (DG2): 봇을 번호순으로 N명씩 묶어 파티를 맺는다(묶음의 첫 봇이 나머지를 오브젝트 id로 초대, 받은 초대는 모두 수락)
+	int partyChurnSec = 0;     // --party-churn-sec S: 이 간격(±50%)마다 파티를 탈퇴한다(다시 초대돼 들어감 — 위임·해산·거부 경로 부하)
 	int giveIntervalMs = 0;    // >0이면 이 간격(±50%)마다 개발 지급 요청(물약 1~5개 또는 골드). 아이템 작업 부하·스택 시험(A3.3)
 	std::string outFile;
 	std::string serverProc = "GameServer.exe";
@@ -60,6 +62,10 @@ struct BotCounters
 	std::atomic<long long> roomChange{ 0 }, moveRejected{ 0 };    // 내 SC_ROOM_CHANGE(Room 이동) / SC_MOVE_RESULT(이동 거부, DG3b)
 		std::atomic<long long> moveRejectedBy[8]{};                   // SC_MOVE_RESULT를 MoveResult 값별로(4 = TIMEOUT, 5 = NOT_AVAILABLE)
 		std::atomic<long long> portalSent{ 0 }, portalMoved{ 0 };     // 포털 요청 / 내 SC_TELEPORT (L5)
+	// 파티(DG2): 보낸 초대 / 받은 초대(= 수락 송신) / 받은 SC_PARTY_STATE / 탈퇴 송신 / SC_PARTY_RESULT, PartyResult 값별
+	std::atomic<long long> partyInviteSent{ 0 }, partyInviteRecv{ 0 }, partyStateRecv{ 0 }, partyLeaveSent{ 0 }, partyResult{ 0 };
+	std::atomic<long long> partyResultBy[16]{};
+	std::atomic<int> partyIn{ 0 };   // 지금 파티에 든 봇 수(마지막으로 받은 상태 기준)
 	std::atomic<long long> selfDead{ 0 }, reviveSent{ 0 }, selfRevived{ 0 };   // 내 SC_DEAD / CS_REVIVE / 내 SC_REVIVE (A2.4)
 	std::atomic<int> connected{ 0 }, inGame{ 0 };
 	// 구간(리포트 간격) 동안 봇 한 명이 받은 최대 바이트. 리포터가 읽으며 0으로 되돌리고 windowEpoch를 올린다.

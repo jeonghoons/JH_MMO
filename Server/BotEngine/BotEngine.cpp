@@ -138,7 +138,16 @@ struct Bot
 	int roomKind = 0;
 	bool inField = false;
 	long long nextHuntPortalUs = 0;   // 사냥 봇이 마을 포털 요청을 다시 보낼 시각(응답이 없으면 1초 뒤)
+	// 파티(DG2, --party-size): 마지막 SC_PARTY_STATE의 파티장·구성원(오브젝트 id). 파티가 없으면 partyLeaderId 0
+	int partyLeaderId = 0;
+	unordered_set<int> partyMembers;
+	long long nextPartyInviteUs = 0;
+	long long nextPartyLeaveUs = 0;
+	int partyInviteCursor = 0;        // 묶음 안에서 다음에 초대해 볼 자리
 };
+
+// 봇 번호 → 오브젝트 id(로그인 응답으로 받은 값, 0 = 아직 모름). 파티 초대 대상을 찾는 데 쓴다(워커 스레드 사이 공유).
+static unique_ptr<atomic<int>[]> GBotObjectIds;
 
 static void SendPacket(Bot& b, uint16_t id, const google::protobuf::Message& msg);
 
@@ -357,6 +366,7 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		}
 
 		b.objectId = pkt.object_info().id();
+		if (GBotObjectIds) GBotObjectIds[b.index].store(b.objectId);
 		b.x = pkt.object_info().position().x();
 		b.y = pkt.object_info().position().y();
 		b.z = pkt.object_info().position().z();
@@ -555,6 +565,38 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		GStat.moveRejected.fetch_add(1);
 		const int code = static_cast<int>(pkt.result());
 		if (code >= 0 && code < 8) GStat.moveRejectedBy[code].fetch_add(1);
+		break;
+	}
+	case Protocol::SC_PARTY_INVITE:
+	{
+		// 받은 초대는 모두 수락한다(--party-size 가 없어도 — 원시 소켓 시험이나 다른 봇의 초대).
+		GStat.partyInviteRecv.fetch_add(1);
+		Protocol::CS_PARTY_RESPOND_PACKET respond;
+		respond.set_accept(true);
+		SendPacket(b, Protocol::CS_PARTY_RESPOND, respond);
+		break;
+	}
+	case Protocol::SC_PARTY_STATE:
+	{
+		Protocol::SC_PARTY_STATE_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		GStat.partyStateRecv.fetch_add(1);
+		const bool was = b.partyLeaderId != 0;
+		b.partyLeaderId = pkt.members_size() > 0 ? pkt.leader_id() : 0;
+		b.partyMembers.clear();
+		for (const Protocol::PartyMember& member : pkt.members())
+			b.partyMembers.insert(member.id());
+		const bool is = b.partyLeaderId != 0;
+		if (is != was) GStat.partyIn.fetch_add(is ? 1 : -1);
+		break;
+	}
+	case Protocol::SC_PARTY_RESULT:
+	{
+		Protocol::SC_PARTY_RESULT_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		GStat.partyResult.fetch_add(1);
+		const int code = static_cast<int>(pkt.result());
+		if (code >= 0 && code < 16) GStat.partyResultBy[code].fetch_add(1);
 		break;
 	}
 	case Protocol::SC_TELEPORT:
@@ -1103,6 +1145,45 @@ static void WorkerMain(int workerIndex, int workerCount)
 						GStat.slotMoveSent.fetch_add(1);
 					}
 				}
+				// 파티(--party-size, DG2): 묶음(번호 / N)의 첫 봇, 또는 지금 파티장인 봇이 묶음에서 아직 파티에 없는 봇을 2초마다 한 명씩 초대한다.
+				// 탈퇴(--party-churn-sec)로 파티장이 바뀌면 묶음 첫 봇의 초대는 TARGET_IN_PARTY로 거부된다(거부 경로 부하 — 정상).
+				if (GConfig.partySize > 1 && b.spawnKnown && now >= b.nextPartyInviteUs)
+				{
+					b.nextPartyInviteUs = now + 2000 * 1000LL + (rand() % 500) * 1000LL;
+					const int base = b.index - b.index % GConfig.partySize;
+					const bool leaderNow = b.partyLeaderId == b.objectId;
+					const bool mayInvite = leaderNow || (b.partyLeaderId == 0 && b.index == base);
+					if (mayInvite && static_cast<int>(b.partyMembers.size()) < GConfig.partySize)
+					{
+						for (int tries = 0; tries < GConfig.partySize; ++tries)
+						{
+							const int idx = base + (b.partyInviteCursor++ % GConfig.partySize);
+							if (idx == b.index || idx >= GConfig.bots) continue;
+							const int targetId = GBotObjectIds ? GBotObjectIds[idx].load() : 0;
+							if (targetId <= 0 || b.partyMembers.count(targetId) > 0) continue;
+							Protocol::CS_PARTY_INVITE_PACKET invite;
+							invite.set_target_id(targetId);
+							SendPacket(b, Protocol::CS_PARTY_INVITE, invite);
+							GStat.partyInviteSent.fetch_add(1);
+							break;
+						}
+					}
+				}
+				if (GConfig.partySize > 1 && GConfig.partyChurnSec > 0 && b.spawnKnown)
+				{
+					if (b.nextPartyLeaveUs == 0)
+						b.nextPartyLeaveUs = now + (GConfig.partyChurnSec / 2 + rand() % (GConfig.partyChurnSec + 1)) * 1000000LL;
+					else if (now >= b.nextPartyLeaveUs)
+					{
+						b.nextPartyLeaveUs = now + (GConfig.partyChurnSec / 2 + rand() % (GConfig.partyChurnSec + 1)) * 1000000LL;
+						if (b.partyLeaderId != 0)
+						{
+							Protocol::CS_PARTY_LEAVE_PACKET leave;
+							SendPacket(b, Protocol::CS_PARTY_LEAVE, leave);
+							GStat.partyLeaveSent.fetch_add(1);
+						}
+					}
+				}
 				// 포털(--portal-interval, L5): 가장 가까운 포털에 요청한다. 반경 밖·재사용 대기·시전 중이면 서버가 응답 없이 버린다.
 				// --chaos면 5%는 없는 포털 id.
 				if (GConfig.portalIntervalMs > 0 && !b.portals.empty() && now >= b.nextPortalUs)
@@ -1221,7 +1302,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 void BotEngine::Usage(const char* program)
 {
 	printf("%s --bots N --ramp-rate R --duration S [--host H] [--port P] [--threads T]\n"
-		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--shop-interval ms] [--portal-interval ms] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
+		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--shop-interval ms] [--portal-interval ms] [--party-size N] [--party-churn-sec S] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
 		"         [--zone x,y,r]   (hotspot: bots walk to (x,y) and stay within radius r cm)\n",
 		program);
 }
@@ -1256,6 +1337,8 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--slot-interval") { if (!(v = next("--slot-interval"))) return false; GConfig.slotIntervalMs = atoi(v); }
 		else if (a == "--shop-interval") { if (!(v = next("--shop-interval"))) return false; GConfig.shopIntervalMs = atoi(v); }
 		else if (a == "--portal-interval") { if (!(v = next("--portal-interval"))) return false; GConfig.portalIntervalMs = atoi(v); }
+		else if (a == "--party-size") { if (!(v = next("--party-size"))) return false; GConfig.partySize = atoi(v); }
+		else if (a == "--party-churn-sec") { if (!(v = next("--party-churn-sec"))) return false; GConfig.partyChurnSec = atoi(v); }
 		else if (a == "--give-interval") { if (!(v = next("--give-interval"))) return false; GConfig.giveIntervalMs = atoi(v); }
 		else if (a == "--map") { if (!(v = next("--map"))) return false; GConfig.mapLogic = v; }
 		else if (a == "--out") { if (!(v = next("--out"))) return false; GConfig.outFile = v; }
@@ -1316,6 +1399,8 @@ void BotEngine::Start()
 	if (GConfig.hunt || GConfig.trackWorld)
 		LoadMonsterSpawns();
 
+	GBotObjectIds = make_unique<atomic<int>[]>(max(1, GConfig.bots));
+	for (int i = 0; i < GConfig.bots; ++i) GBotObjectIds[i].store(0);
 	for (int i = 0; i < GConfig.threads; ++i) GSamples.push_back(make_unique<SampleBuffer>());
 	for (int i = 0; i < GConfig.threads; ++i) GSnapshots.push_back(make_unique<SnapshotBuffer>());
 

@@ -1,0 +1,2 @@
+Name,InventorySlots,ItemMinIntervalMs,GoldMax,DropOwnerSec,DropLifeSec,DropScatterCm,PickupRangeCm,MaxDropsPerRoom,TradeRangeCm,TradeRequestTimeoutSec,TradeTimeoutSec,TradeMaxItems,AuctionDurationSec,AuctionMaxListings,AuctionMinPrice,AuctionMaxPrice,AuctionPageSize,AuctionExpireCheckSec,ShopRangeCm,PartyMaxMembers,PartyInviteTimeoutSec
+1001,30,100,2000000000,55,60,80,300,500,500,15,180,8,86400,10,1,100000000,20,60,400,4,30

@@ -69,6 +69,10 @@ public:
 	void SendTradeLock(bool bLocked);
 	void SendTradeConfirm();
 	void SendTradeCancel();
+	// 파티(DG2): 초대(TargetId가 0이면 TargetName으로 찾음)·응답·탈퇴. 검증은 서버(WorldService)가 한다
+	void SendPartyInvite(int32 TargetId, const FString& TargetName);
+	void SendPartyRespond(bool bAccept);
+	void SendPartyLeave();
 	// 스킬 조준 켜기/끄기(MC4.2d-1). 상태가 바뀔 때만, Seq는 보낼 때마다 1씩 올린 값. 확정(공격)은 서버가 함께 해제하므로 끄기를 보내지 않는다
 	// 부활 요청(A2.4). 사망 여부·대기 시간은 서버가 검증하고, 받아들이면 SC_REVIVE가 온다
 	void SendRevive();

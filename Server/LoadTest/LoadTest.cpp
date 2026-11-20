@@ -175,6 +175,16 @@ int main(int argc, char** argv)
 		if (GStat.shopBuySent.load() > 0 || GStat.shopSellSent.load() > 0)
 			printf("[summary] shop: buySent=%lld sellSent=%lld\n", GStat.shopBuySent.load(), GStat.shopSellSent.load());
 	}
+	if (GStat.partyInviteSent.load() > 0 || GStat.partyStateRecv.load() > 0)
+	{
+		printf("[summary] party: inParty(now)=%d inviteSent=%lld inviteRecv(accepted)=%lld stateRecv=%lld leaveSent=%lld result(SC_PARTY_RESULT)=%lld by PartyResult:",
+			GStat.partyIn.load(), GStat.partyInviteSent.load(), GStat.partyInviteRecv.load(), GStat.partyStateRecv.load(), GStat.partyLeaveSent.load(), GStat.partyResult.load());
+		static const char* const kPartyResultName[16] = { "NONE", "NO_TARGET", "OTHER_CHANNEL", "TARGET_IN_PARTY", "TARGET_BUSY", "PARTY_FULL", "NOT_LEADER", "IN_DUNGEON",
+			"DECLINED", "TIMEOUT", "NO_INVITE", "NOT_IN_PARTY", "TOO_FREQUENT", "13", "14", "15" };
+		for (int i = 0; i < 16; ++i)
+			if (GStat.partyResultBy[i].load() > 0) printf(" %s=%lld", kPartyResultName[i], GStat.partyResultBy[i].load());
+		printf("\n");
+	}
 	if (GStat.portalSent.load() > 0)
 		printf("[summary] portal: sent=%lld moved(SC_TELEPORT)=%lld\n", GStat.portalSent.load(), GStat.portalMoved.load());
 	if (GStat.roomChange.load() > 0 || GStat.moveRejected.load() > 0)

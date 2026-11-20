@@ -14,4 +14,5 @@ namespace WidgetNames
 	inline const FName Inventory(TEXT("Inventory"));
 	inline const FName Trade(TEXT("Trade"));
 	inline const FName Shop(TEXT("Shop"));
+	inline const FName Party(TEXT("Party"));
 }

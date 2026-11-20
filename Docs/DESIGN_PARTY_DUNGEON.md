@@ -179,7 +179,7 @@
 
 - 최대 4명, 파티장 1명, 저장하지 않음, 접속을 끊으면 탈퇴(D-171).
 - **같은 채널 사람끼리만** 맺습니다. [결정]
-- 초대 방법 [결정]: ① 채팅창에 `/파티초대 이름` ② 1:1 거래처럼 크로스헤어로 상대를 지정해 바로 신청(키는 DG2에서 정함).
+- 초대 방법 [결정]: ① 채팅창에 `/파티초대 이름` ② 1:1 거래처럼 크로스헤어로 상대를 지정해 바로 신청(**G 키** — D-224, 파티 창은 **P 키**). `/`로 시작하는 채팅 입력은 클라이언트가 가로채 `CS_PARTY_INVITE.target_name`으로 보냅니다(`/파티탈퇴`도 있음).
 - 초대는 파티가 없는 사람 또는 파티장만 할 수 있고(파티가 없던 사람이 초대해 상대가 수락하면 그 사람이 파티장인 파티가 생김), 상대가 이미 파티 중이면 거부됩니다.
 - 초대 응답 대기 `PartyInviteTimeoutSec`(30초, [제안]). 한 사람이 받을 수 있는 대기 초대는 1건(다른 초대가 와 있으면 `PARTY_RESULT_TARGET_BUSY`).
 - 탈퇴는 언제든. 파티장이 나가면 **가장 먼저 들어온 파티원이 파티장**이 됩니다. [결정] 혼자 남으면 파티가 없어집니다.
@@ -212,6 +212,17 @@
 - 먼저 주운 사람이 갖습니다(분배 규칙 없음). 골드도 같습니다.
 - 드랍이 생긴 뒤 파티를 떠난 사람은 못 줍고, 뒤에 들어온 파티원은 주울 수 있습니다(줍는 순간의 파티 번호로 판정 — 단순하게).
 - `DESIGN_ITEMS_TRADE.md`의 "파티·분배는 하지 않음" 문구를 이 규칙으로 고칩니다.
+
+### 5-4a. 구현 메모 (DG2, 2026-11-20)
+
+- 서버: 상태(`Party`·`PendingInvite`)와 잡 함수(`PartyInvite`·`PartyRespond`·`PartyLeave`·`OnInviteTimeout`)는 `WorldService`. 명부 키가 세션 id라 구성원도 세션 id(= 오브젝트 id)로 적습니다.
+- 결과 패킷의 `request`: 초대한 쪽에게 가는 것은 `CS_PARTY_INVITE`, 초대받은 쪽에게 가는 것(시간 초과·보낸 사람이 떠남·답할 초대 없음)은 `CS_PARTY_RESPOND` — 클라이언트는 뒤의 것을 받으면 초대 화면을 닫습니다.
+- 초대 검증 순서: 간격(1초) → 대상(없음·자기 자신·방에 들어가기 전 = `NO_TARGET`) → 채널 → 보낸 사람의 파티(파티장 아님·정원) → 대상이 파티 중 → 대상에 대기 초대 있음. 수락 때 파티장·정원을 다시 봅니다.
+- 파티에 든 사람에게 와 있던 다른 초대는 지웁니다(보낸 쪽 `TARGET_IN_PARTY`, 받은 쪽 `NO_INVITE`).
+- `Player::partyId`: 서비스가 `Room::SetPlayerParty(player, partyId, seq)`를 그 플레이어의 소유 Room 잡에 넣고, 받은 Room이 소유 Room이 아니면(이동 중) 넘깁니다. 넘기는 동안 순서가 바뀔 수 있어 `seq`가 더 큰 것만 적용합니다.
+- 접속 해제: 정리 신호(`OnPlayerClosed`) 때 탈퇴 + 그 세션이 보냈거나 받은 대기 초대 삭제(상대에게 `NO_TARGET`).
+- 있는 곳 표시: 도착 Room의 `OnPlayerMoved`(§4-2 ⑧)에서 파티원이면 `SC_PARTY_STATE`를 다시 보냅니다.
+- 더미 봇: 소유권 없는 드랍만 만들므로(전원이 DB 한 행) 파티 공유 줍기는 부하 봇으로는 지나가지 않습니다 — 원시 소켓 시험(`party_test.py loot`·`midmove`)으로 확인합니다.
 
 ### 5-5. UI (DG2, 최소)
 
@@ -294,7 +305,7 @@
 |---|---|---|
 | `WorldTable.csv` | `RoomCapacity` → `ChannelCapacity`(`Continent01` 500), 던전 레벨 행 추가(+ `DungeonEmptyKeepSec` 60, `DungeonClearExitSec` 60 열) | 게임 규칙이라 테이블 |
 | `SpawnTable.csv` | 던전 행, `RespawnSec` -1 = 다시 나오지 않음, 구역 `boss` | — |
-| `EconomyTable.csv` 또는 새 `PartyTable` | `PartyMaxMembers` 4, `PartyInviteTimeoutSec` 30 | 게임 규칙이라 테이블 |
+| `EconomyTable.csv`(D-224 — 새 테이블은 만들지 않음) | `PartyMaxMembers` 4, `PartyInviteTimeoutSec` 30 | 게임 규칙이라 테이블 |
 | `ServerConfig.ini` `[World]` | `MaxDungeonInstances` 250, `MoveWaitTimeoutMs` 5000, `LoadTimeoutSec` 60 | 운영 값이라 설정 |
 | 맵 마커(로직 JSON) | `area`, 마을 시작 지점 4곳, 던전 레벨의 PlayerStart·출구 포털·스폰 | — |
 

@@ -223,7 +223,8 @@ namespace
 				"sendWake(per s, late avg/p50/p99/max ms)={:.0f} {:.1f}/{:.1f}/{:.1f}/{:.1f} jobs(exec/repost per s)={:.0f}/{:.0f} jobWait(p50/p90/p99 ms)={:.0f}/{:.0f}/{:.0f} jobRunMax={:.1f}ms flushRunMax={:.1f}ms "
 				"jobDispatch(p50/p90/p99 ms)={:.0f}/{:.0f}/{:.0f} busy(job/flush ms per s)={:.0f}/{:.0f} flushRuns/s={:.0f} conn(sessionObjs/handles idleKick/sendqKick)={}/{} {}/{} world(channels/roster/chMax)={}/{}/{} "
 				"kind(town/field players)={}/{} tickLateP99(town/field ms)={:.1f}/{:.1f} tickBodyP99(town/field ms)={:.2f}/{:.2f} "
-				"roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)={}/{}/{}/{}/{} {}/{}/{}",
+				"roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)={}/{}/{}/{}/{} {}/{}/{} "
+				"party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)={}/{}/{} {}/{}/{}/{}/{} {}/{}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, sendCallsPs, bufsPerSend, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
@@ -252,7 +253,10 @@ namespace
 				sessionObjs, handleCount, idleKicks, sendQueueKicks, worldChannels, worldRoster, worldChannelMax,
 				kindPlayers[0], kindPlayers[1], lateKind[0].p99 / 1000.0, lateKind[1].p99 / 1000.0, bodyKind[0].p99 / 1000.0, bodyKind[1].p99 / 1000.0,
 				Metrics::RoomMoveStarted.load(), Metrics::RoomMoveDone.load(), Metrics::RoomMoveRejected.load(), Metrics::RoomMoveTimeout.load(), Metrics::RoomMoveCanceled.load(),
-				Metrics::RoomMoveAbortBusy.load(), Metrics::DbResultOrphan.load(), Metrics::OwnerViolation.load());
+				Metrics::RoomMoveAbortBusy.load(), Metrics::DbResultOrphan.load(), Metrics::OwnerViolation.load(),
+				Metrics::Parties.load(), Metrics::PartyMembers.load(), Metrics::PartyInvitesPending.load(),
+				Metrics::PartyInvites.load(), Metrics::PartyAccepted.load(), Metrics::PartyDeclined.load(), Metrics::PartyTimeout.load(), Metrics::PartyRejected.load(),
+				Metrics::PartyCreated.load(), Metrics::PartyDisbanded.load());
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << runId << "," << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","

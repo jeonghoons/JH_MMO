@@ -138,6 +138,11 @@ public:
 	// 진행 중인 1:1 거래의 id(Room::_trades의 키, 0 = 거래 중 아님). 거래 상태 자체는 Room이 갖는다 (A4.1, D-158). Room 잡 안에서만 읽고 쓴다.
 	int tradeId = 0;
 
+	// 파티 번호의 사본(DG2, 0 = 파티 없음). 권위는 WorldService의 명부이고, 바뀔 때마다 서비스가 소유 Room 잡으로 알린다(Room::SetPlayerParty).
+	// 드랍 소유권 판정에 쓴다. 소유 Room 잡 안에서만 읽고 쓴다. partySeq = 마지막으로 적용한 알림의 순번(늦게 온 옛 알림을 거른다).
+	int partyId = 0;
+	uint32_t partySeq = 0;
+
 	// 액티브 칸 배치(A3.6, D-154): 칸 1~5에 올린 아이템 종류(빈 칸 0). 소유가 바뀌지 않는 설정값이라 메모리에 먼저 반영하고 저장한다.
 	// Room 잡 안에서만 읽고 쓴다.
 	QuickSlotArray quickSlots{};

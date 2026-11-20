@@ -137,6 +137,8 @@ public:
 	void BroadcastAOI(shared_ptr<class Character> viewableObj, shared_ptr<SendBuffer> sendBuffer, bool sendToSelf = false);
 
 	void PlayerChat(shared_ptr<Player> player, wstring msg);
+	// 파티 번호가 바뀌었다(DG2 — WorldService가 알림). 이 방이 그 플레이어의 소유 Room이 아니면(Room 이동 중) 소유 Room으로 넘긴다.
+	void SetPlayerParty(shared_ptr<Player> player, int partyId, uint32_t seq);
 	void PlayerPing(shared_ptr<Player> player, long long clientTime);
 	// 장착 요청(MC3.2·A3.3)을 검증한다. itemDbId = 내 인벤토리의 행(0 = 해제). 통과하면 DB 트랜잭션을 보내고(StartItemOp),
 	// 성공 결과가 돌아온 뒤(OnItemOpDone) 메모리에 반영해 SC_CHANGE_EQUIP을 AOI 전체(본인 포함)에 보낸다.
@@ -242,7 +244,7 @@ public:
 	void SpawnMonsterDrops(int monsterTemplateId, Protocol::PositionInfo pos, shared_ptr<Character> attacker);
 	// 드랍 하나를 만들어 주변 플레이어에게 SC_ADD_OBJECT를 보낸다. itemId 0 = 골드. ownerUID 0 = 소유권 없음.
 	// MaxDropsPerRoom에 닿으면 가장 오래된 것부터 지운 뒤 만든다. DropLifeSec 뒤 소멸을 예약한다.
-	shared_ptr<DropItem> CreateDrop(int itemId, int64_t count, const Protocol::PositionInfo& pos, int64_t ownerUID);
+	shared_ptr<DropItem> CreateDrop(int itemId, int64_t count, const Protocol::PositionInfo& pos, int64_t ownerUID, int ownerPartyId = 0);
 	// 드랍을 지우고 보고 있던 플레이어에게 SC_REMOVE_OBJECT를 보낸다(소멸·상한·줍기 공용). 없는 id면 false.
 	bool RemoveDrop(int dropId);
 	// 소멸 예약(ReserveJob)이 부른다. 이미 없거나(주움), 그 id의 새 드랍이거나, 줍는 중이면 아무것도 하지 않는다.

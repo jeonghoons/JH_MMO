@@ -31,4 +31,7 @@ protected:
 private:
 	UFUNCTION()
 	void OnChatTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
+
+	// "/"로 시작하는 입력을 명령으로 처리한다(DG2: /파티초대 이름, /파티탈퇴). 명령이었으면 true(채팅으로 보내지 않음)
+	bool HandleCommand(const FString& Input);
 };

@@ -40,7 +40,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 | PlayerStatTable | 플레이어 레벨별 기본 스탯(체형 공용) — 2026-11-07 MC3.1b에 StatTable에서 분리 |
 | ItemTable | 장비 아이템(슬롯, 등급, 티어, 스탯 보너스, 무기 타입, 외형 경로는 클라 전용) + 소비 아이템 — MC3.1 구현, 2026-11-16 A3.2에서 열 추가(`RequiredLevel`·`MaxStack`·`UseEffect`·`UseValue`·`UseCooldownMs`)와 HP 물약 8001([DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md)) |
 | DropTable | (2026-11-16 A3.2 서버 구현) 몬스터별 드랍 — 행마다 독립 확률, `ItemId` 0 = 골드. 서버 전용. 열은 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) |
-| EconomyTable | (2026-11-16 A3.2 서버 구현) 인벤토리 칸 수, 드랍 소유·소멸 시간, 줍기·거래 거리, 거래 시간 제한, 경매 기간·등록 수·가격 범위. 서버 전용. 열은 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) |
+| EconomyTable | (2026-11-16 A3.2 서버 구현) 인벤토리 칸 수, 드랍 소유·소멸 시간, 줍기·거래 거리, 거래 시간 제한, 경매 기간·등록 수·가격 범위, 파티 정원·초대 응답 시간(2026-11-20 DG2). 서버 전용. 열은 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) |
 | SkillTable | `WeaponType`(무기 타입 종속), 슬롯, 쿨타임, 판정 Shape, 타겟팅 타입, 범위, 데미지, 몽타주 경로(클라 전용) |
 | MonsterTable | 몬스터 종류별 스탯·스킬·리스폰 + 행동(배회·인식·추격 제한·복귀 방식, 2026-11-18 L3) + 크기·몸 반경·메시(2026-11-18 MN1, 메시는 클라 전용) (ID = `ObjectInfo.template_id`) |
 | SpawnTable | (2026-11-18 L3 서버 구현) 맵·구역별 스폰 몬스터 종류·스폰 지점당 수·리스폰 — 서버 전용 |

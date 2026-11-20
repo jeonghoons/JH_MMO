@@ -1,0 +1,5 @@
+PASS basic
+PASS rooms
+PASS leader
+PASS cut
+PASS errors

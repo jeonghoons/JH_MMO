@@ -6,6 +6,7 @@
 #include "Game/JMInventoryManager.h"
 #include "Game/JMTradeManager.h"
 #include "Game/JMShopManager.h"
+#include "Game/JMPartyManager.h"
 #include "UI/JMUIManager.h"
 #include "UI/ChatWidget.h"
 #include "UI/WidgetNames.h"
@@ -44,6 +45,9 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_PORTAL_LIST, &FPacketHandler::Handle_SC_PORTAL_LIST);
 	RegisterHandler(Protocol::SC_ROOM_CHANGE, &FPacketHandler::Handle_SC_ROOM_CHANGE);
 	RegisterHandler(Protocol::SC_MOVE_RESULT, &FPacketHandler::Handle_SC_MOVE_RESULT);
+	RegisterHandler(Protocol::SC_PARTY_INVITE, &FPacketHandler::Handle_SC_PARTY_INVITE);
+	RegisterHandler(Protocol::SC_PARTY_STATE, &FPacketHandler::Handle_SC_PARTY_STATE);
+	RegisterHandler(Protocol::SC_PARTY_RESULT, &FPacketHandler::Handle_SC_PARTY_RESULT);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -399,6 +403,32 @@ void FPacketHandler::Handle_SC_TRADE_END(TSharedPtr<NetworkSession>& session, Pr
 void FPacketHandler::Handle_SC_TRADE_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_RESULT_PACKET& pkt)
 {
 	if (UJMTradeManager* Trade = GetTradeManager(session)) Trade->HandleResult(pkt.request(), pkt.result());
+}
+
+// ---- 파티(DG2): 상태·안내는 UJMPartyManager가 맡는다 ----
+namespace
+{
+	UJMPartyManager* GetPartyManager(const TSharedPtr<NetworkSession>& session)
+	{
+		UNetworkManager* NetManager = session ? session->OwnerNetwork.Get() : nullptr;
+		UGameInstance* GameInstance = NetManager ? NetManager->GetGameInstance() : nullptr;
+		return GameInstance ? GameInstance->GetSubsystem<UJMPartyManager>() : nullptr;
+	}
+}
+
+void FPacketHandler::Handle_SC_PARTY_INVITE(TSharedPtr<NetworkSession>& session, Protocol::SC_PARTY_INVITE_PACKET& pkt)
+{
+	if (UJMPartyManager* Party = GetPartyManager(session)) Party->HandleInvite(pkt);
+}
+
+void FPacketHandler::Handle_SC_PARTY_STATE(TSharedPtr<NetworkSession>& session, Protocol::SC_PARTY_STATE_PACKET& pkt)
+{
+	if (UJMPartyManager* Party = GetPartyManager(session)) Party->HandleState(pkt);
+}
+
+void FPacketHandler::Handle_SC_PARTY_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_PARTY_RESULT_PACKET& pkt)
+{
+	if (UJMPartyManager* Party = GetPartyManager(session)) Party->HandleResult(pkt.request(), pkt.result());
 }
 
 void FPacketHandler::Handle_SC_CHAT(TSharedPtr<NetworkSession>& session, Protocol::SC_CHAT_PACKET& pkt)

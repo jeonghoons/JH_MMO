@@ -33,4 +33,8 @@ protected:
 	// Shop NPC window (WBP_Shop, parent UShopWidget). Shown and hidden by UJMShopManager (L4).
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> ShopWidgetClass;
+
+	// Party window (WBP_Party, parent UPartyWidget). Toggled with IA_Party, also shown by UJMPartyManager on invite (DG2).
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> PartyWidgetClass;
 };

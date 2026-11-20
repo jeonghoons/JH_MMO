@@ -79,6 +79,18 @@ namespace Metrics
 	inline std::atomic<int>       WorldChannels{ 0 };   // 만들어진 채널 수
 	inline std::atomic<int>       WorldRoster{ 0 };     // 접속자 명부 크기(로그인 ~ 정리 완료, 더미 봇 포함)
 	inline std::atomic<int>       WorldChannelMax{ 0 }; // 인원이 가장 많은 채널의 인원
+
+	// 파티(DG2): WorldService가 적는다. 앞의 셋은 지금 값, 나머지는 누적
+	inline std::atomic<int>       Parties{ 0 };             // 지금 있는 파티 수
+	inline std::atomic<int>       PartyMembers{ 0 };        // 파티에 든 사람 수(접속이 모두 끝나면 0이어야 한다)
+	inline std::atomic<int>       PartyInvitesPending{ 0 }; // 응답을 기다리는 초대 수
+	inline std::atomic<long long> PartyInvites{ 0 };        // 보낸 초대(검증 통과)
+	inline std::atomic<long long> PartyAccepted{ 0 };       // 수락해 파티에 들어간 수
+	inline std::atomic<long long> PartyDeclined{ 0 };
+	inline std::atomic<long long> PartyTimeout{ 0 };        // 응답 시간 초과
+	inline std::atomic<long long> PartyRejected{ 0 };       // 초대·수락이 거부된 수(SC_PARTY_RESULT)
+	inline std::atomic<long long> PartyCreated{ 0 };
+	inline std::atomic<long long> PartyDisbanded{ 0 };      // 한 명만 남아 없어진 파티
 	inline std::atomic<int>       Monsters{ 0 };      // 현재 월드에 살아 있거나 시체로 남아 있는 몬스터 수
 	inline std::atomic<long long> AttackRequests{ 0 };  // CS_ATTACK 수신 수(누적)
 	inline std::atomic<long long> AttackAccepted{ 0 };  // 쿨타임·상태 검사를 통과한 플레이어 공격 수(누적)

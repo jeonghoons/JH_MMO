@@ -1,6 +1,7 @@
 #pragma once
 #include "Job/JobQueue.h"
 #include "Job/Timer.h"
+#include "Protocol/Enum.pb.h"
 
 extern shared_ptr<Timer> GTimer;
 
@@ -60,6 +61,15 @@ public:
 	// Room 이동 ⑧: 도착 Room이 알린다 — 명부의 "지금 있는 Room"을 갱신한다.
 	void OnPlayerMoved(int sessionId, shared_ptr<Room> room);
 
+	// ---- 파티(DG2, D-217 — DESIGN_PARTY_DUNGEON §5). 패킷 핸들러가 Room을 거치지 않고 바로 넣는다 ----
+	// 초대: targetId(오브젝트 id)가 0이면 targetName으로 찾는다. 파티가 없는 사람 또는 파티장만. 거부는 본인에게 SC_PARTY_RESULT.
+	void PartyInvite(shared_ptr<Player> player, int targetId, wstring targetName);
+	// 받은 초대에 답한다. 수락하면 초대한 사람의 파티에 들어간다(파티가 없었으면 그 사람이 파티장인 파티가 생김).
+	void PartyRespond(shared_ptr<Player> player, bool accept);
+	void PartyLeave(shared_ptr<Player> player);
+	// 초대 응답 시간(EconomyTable.PartyInviteTimeoutSec)이 지났다. 그 사이 답했거나 새 초대로 바뀌었으면(seq 다름) 아무것도 하지 않는다.
+	void OnInviteTimeout(int targetSessionId, int seq);
+
 private:
 	struct RosterEntry
 	{
@@ -70,7 +80,23 @@ private:
 		weak_ptr<Room> room;      // 지금 있는 Room(입장 전에는 비어 있음). Room 이동(DG3b)에서 도착 Room이 갱신한다
 		bool isDummy = false;
 		bool entered = false;     // 입장 요청을 처리했다(두 번째 요청을 거른다)
-		int partyId = 0;          // DG2
+		int partyId = 0;          // 파티 번호(0 = 없음). Room 잡이 읽는 사본은 Player::partyId (NotifyPartyId로 알림)
+		int level = 0;            // 로그인 때의 레벨(파티 창 표시용 — 레벨이 오르는 기능이 생기면 갱신 통지를 넣는다)
+		long long lastInviteMs = 0;   // 마지막으로 초대를 보낸 시각(steady_clock ms) — 최소 간격 검사
+	};
+
+	// 파티(DG2). 저장하지 않는다. 구성원은 세션 id로 적는다(명부의 키).
+	struct Party
+	{
+		int id = 0;
+		int leader = 0;           // 파티장의 세션 id
+		vector<int> members;      // 들어온 순서(파티장이 나가면 맨 앞 사람이 파티장)
+	};
+	// 응답을 기다리는 초대. 받는 사람 한 명에 1건(_invites의 키 = 받는 사람의 세션 id).
+	struct PendingInvite
+	{
+		int from = 0;             // 보낸 사람의 세션 id
+		int seq = 0;              // 시간 초과 잡이 자기 초대인지 확인하는 순번
 	};
 
 	struct Channel
@@ -85,6 +111,20 @@ private:
 	Channel* CreateChannel(bool allowBroken);
 	Channel* PickChannel();
 	void PublishMetrics();
+
+	// 파티 도우미(서비스 잡 안에서만)
+	void SendTo(const RosterEntry& entry, shared_ptr<class SendBuffer> buffer);
+	void SendPartyResult(int sessionId, Protocol::PacketId request, Protocol::PartyResult result);
+	// 파티 전원에게 지금 상태를 보낸다(구성·파티장·있는 곳이 바뀔 때마다).
+	void BroadcastPartyState(const Party& party);
+	// 그 플레이어의 파티 번호를 바꾸고 소유 Room 잡으로 알린다(Player::partyId — 드랍 소유권 판정용).
+	void SetPartyId(int sessionId, RosterEntry& entry, int partyId);
+	// 파티에 넣는다. 그 사람에게 와 있던 다른 초대는 지운다(보낸 사람에게 TARGET_IN_PARTY).
+	void AddToParty(Party& party, int sessionId, RosterEntry& entry);
+	// 파티에서 뺀다(탈퇴·접속 해제 공통): 파티장이면 위임, 한 명만 남으면 해산. closed = 접속이 끝남(본인에게는 알리지 않음).
+	void RemoveFromParty(int sessionId, RosterEntry& entry, bool closed);
+	// 그 세션이 보냈거나 받은 대기 초대를 지운다(접속 해제). 상대에게 NO_TARGET.
+	void DropInvitesOf(int sessionId);
 
 private:
 	shared_ptr<JobQueue> _jobQueue;
@@ -101,4 +141,11 @@ private:
 	// 보조 색인(더미 봇 제외): 파티 초대·귓속말 등에서 쓴다(DG2)
 	unordered_map<int64_t, int> _uidIndex;              // PlayerUID → 세션 id
 	unordered_map<wstring, int> _nameIndex;             // 캐릭터 이름 → 세션 id
+
+	// 파티(DG2)
+	unordered_map<int, Party> _parties;                 // 파티 번호 → 파티
+	unordered_map<int, PendingInvite> _invites;         // 받는 사람의 세션 id → 대기 초대
+	int _nextPartyId = 0;
+	int _inviteSeq = 0;
+	uint32_t _partySeq = 0;                             // Room에 알리는 파티 번호 변경의 순번(늦게 도착한 옛 알림을 거른다)
 };

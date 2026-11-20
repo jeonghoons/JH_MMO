@@ -26,9 +26,15 @@ public:
 
 	// 소유권: 막타 플레이어의 PlayerId(Player::GetPlayerUID)와 만료 시각(steady_clock ms). 0 = 소유권 없음(누구나 주움).
 	// 만료는 타이머가 아니라 줍기 요청 때 시각 비교로 판정한다.
+	// 파티 공유(DG2, D-217): 막타 플레이어가 파티 중이었으면 그 파티 번호도 적는다. 소유 시간 동안 주울 수 있는 사람 =
+	// 막타 본인 또는 "줍는 순간" 같은 파티 번호인 사람(드랍 뒤에 파티에 든 사람은 되고, 떠난 사람은 안 됨).
 	int64_t ownerUID = 0;
+	int ownerPartyId = 0;
 	long long ownerUntilMs = 0;
-	bool CanPickup(int64_t playerUID, long long nowMs) const { return ownerUID == 0 || ownerUID == playerUID || nowMs >= ownerUntilMs; }
+	bool CanPickup(int64_t playerUID, int partyId, long long nowMs) const
+	{
+		return ownerUID == 0 || ownerUID == playerUID || (ownerPartyId != 0 && ownerPartyId == partyId) || nowMs >= ownerUntilMs;
+	}
 
 	// 사라지는 시각(steady_clock ms). 소멸 잡(Room::ExpireDrop)이 이 값으로 다시 확인한다(id가 다시 쓰였을 때 새 드랍을 지우지 않게).
 	long long expireAtMs = 0;

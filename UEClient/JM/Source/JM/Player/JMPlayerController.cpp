@@ -11,6 +11,7 @@
 #include "Game/JMInventoryManager.h"
 #include "Game/JMObjectManager.h"
 #include "Game/JMShopManager.h"
+#include "Game/JMPartyManager.h"
 
 void AJMPlayerController::BeginPlay()
 {
@@ -215,6 +216,51 @@ void AJMPlayerController::OnFreeCursorReleased()
 		ApplyCombatInputMode(this);
 	}
 }
+// ---- 개발용 파티 명령(DG2): 파티 창·G 키·채팅 명령이 보내는 것과 같은 요청을 콘솔로 보낸다. 검증은 모두 서버가 한다. ----
+void AJMPlayerController::PartyInvite(const FString& Name)
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	if (UJMPartyManager* Party = GameInstance ? GameInstance->GetSubsystem<UJMPartyManager>() : nullptr)
+	{
+		Party->InviteByName(Name);
+		UE_LOG(LogTemp, Log, TEXT("PartyInvite: %s"), *Name);
+	}
+}
+
+void AJMPlayerController::PartyRespond(int32 Accept)
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	if (UJMPartyManager* Party = GameInstance ? GameInstance->GetSubsystem<UJMPartyManager>() : nullptr)
+	{
+		UE_LOG(LogTemp, Log, TEXT("PartyRespond: accept=%d hasInvite=%d"), Accept, Party->HasInvite() ? 1 : 0);
+		Party->Respond(Accept != 0);
+	}
+}
+
+void AJMPlayerController::PartyLeave()
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	if (UJMPartyManager* Party = GameInstance ? GameInstance->GetSubsystem<UJMPartyManager>() : nullptr)
+	{
+		Party->Leave();
+	}
+}
+
+void AJMPlayerController::PartyShow()
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	const UJMPartyManager* Party = GameInstance ? GameInstance->GetSubsystem<UJMPartyManager>() : nullptr;
+	if (Party == nullptr) return;
+
+	FString Line = FString::Printf(TEXT("PartyShow: me=%d leader=%d members=%d invite=%s"), Party->GetMyId(), Party->GetLeaderId(), Party->GetMembers().Num(),
+		Party->HasInvite() ? *Party->GetInviteFromName() : TEXT("-"));
+	for (const FJMPartyMember& Member : Party->GetMembers())
+	{
+		Line += FString::Printf(TEXT(" [%d %s Lv.%d kind=%d]"), Member.ObjectId, *Member.Name, Member.Level, static_cast<int32>(Member.Kind));
+	}
+	UE_LOG(LogTemp, Log, TEXT("%s"), *Line);
+}
+
 void AJMPlayerController::AutoAttack(int32 Count, int32 Slot)
 {
 	// 근소한 거부 측정(CP1, D-213): 시전할 수 있게 되는 첫 프레임마다 시전한다.

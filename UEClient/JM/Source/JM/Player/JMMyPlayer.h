@@ -34,6 +34,12 @@ protected:
 	void OnInteractInput();
 	// T 키(A6.3a): 크로스헤어에 가장 가까운 플레이어에게 1:1 거래를 요청한다. 거리·상태 검증은 서버가 한다.
 	void OnTradeInput();
+	// P 키(DG2): 파티 창 여닫기
+	void OnPartyInput();
+	// G 키(DG2): 크로스헤어에 가장 가까운 플레이어를 파티에 초대한다. 채널·파티장·정원 검증은 서버가 한다.
+	void OnPartyInviteInput();
+	// 크로스헤어(화면 중앙)에 가장 가까운 다른 플레이어(살아 있는). 카메라 정면에서 약 25도 안에 없으면 nullptr. 거래·파티 초대가 함께 쓴다.
+	const class AJMPlayer* FindCrosshairPlayer() const;
 	// 줍기 안내(HUD)를 지금 가까운 드랍에 맞춘다. 대상이 바뀔 때만 HUD를 고친다.
 	void UpdateInteractPrompt();
 
@@ -107,6 +113,12 @@ protected:
 	// 거래 요청(T 키, A6.3a)
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> TradeAction;
+	// 파티 창 여닫기(P 키, DG2)
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> PartyAction;
+	// 파티 초대(G 키, DG2)
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> PartyInviteAction;
 
 	// 줍기 안내 대상(가장 가까운 드랍)과 다음 검사까지 남은 시간
 	TWeakObjectPtr<class ADropItemActor> InteractTarget;

@@ -82,6 +82,8 @@
 | `AuctionPageSize` | 20 | 목록 한 쪽 |
 | `AuctionExpireCheckSec` | 60 | 만료 검사 주기 |
 | `ShopRangeCm` | 400 | 상점 NPC 이용 거리(L4, D-202). 클라이언트에는 `SC_INVENTORY.shop_range_cm` |
+| `PartyMaxMembers` | 4 | 파티 정원(DG2, D-224 — 2~100) |
+| `PartyInviteTimeoutSec` | 30 | 파티 초대 응답 대기(1~600). 클라이언트에는 `SC_PARTY_INVITE.timeout_sec` |
 
 ## 아이템 인스턴스와 DB (D-153)
 
@@ -310,7 +312,7 @@
 - 거부·실패·성사 안내는 모두 시스템 메시지 창(D-050)입니다.
 
 ## 패킷 (번호 배정)
-새 번호는 `Enum.proto`의 마지막 번호 다음부터 이어 씁니다(2026-11-20 기준 CS 1035~, SC 2038~ — 파티가 CS 1035~1037·SC 2033~2035(DG2 예정), Room 이동이 SC 2036·2037(DG3b 구현, 거래 취소 사유 `TRADE_RESULT_MOVED` 17 추가), 2038은 던전 상태(DG3c 예정), `DESIGN_PARTY_DUNGEON.md`). 추가 절차는 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md).
+새 번호는 `Enum.proto`의 마지막 번호 다음부터 이어 씁니다(2026-11-20 기준 CS 1038~, SC 2038~ — 파티가 CS 1035~1037·SC 2033~2035(DG2 구현), Room 이동이 SC 2036·2037(DG3b 구현, 거래 취소 사유 `TRADE_RESULT_MOVED` 17 추가), 2038은 던전 상태(DG3c 예정), `DESIGN_PARTY_DUNGEON.md`). 추가 절차는 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md).
 
 | 항목 | CS | SC |
 |---|---|---|

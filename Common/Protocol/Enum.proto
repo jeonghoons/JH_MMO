@@ -34,6 +34,10 @@ enum PacketId {
     CS_SHOP_BUY = 1032;   // 상점 구매
     CS_SHOP_SELL = 1033;  // 상점 판매
     CS_PORTAL = 1034;     // 포털 사용 요청 (L5, D-203)
+    // 파티 (DG2, D-217). Room을 거치지 않고 WorldService가 처리한다
+    CS_PARTY_INVITE = 1035;   // 파티 초대 (대상 오브젝트 id 또는 캐릭터 이름)
+    CS_PARTY_RESPOND = 1036;  // 받은 초대에 수락·거절
+    CS_PARTY_LEAVE = 1037;    // 파티 탈퇴
 
     // Server -> Client
     SC_LOGIN = 2000;
@@ -64,7 +68,9 @@ enum PacketId {
     SC_TELEPORT = 2030;              // 서버가 정한 자리로 순간이동 (AOI, 본인 포함): 포털 이동 (L5, D-203)
     SC_PORTAL_LIST = 2031;           // 방 입장 직후 본인에게: 쓸 수 있는 포털의 위치·반경 (L5)
     SC_ATTACK_RESULT = 2032;         // 스킬·공격 거부 결과 (본인에게만, 거부일 때만. 요청 seq 포함 — CP1, D-211)
-    // 2033 ~ 2035: 파티(DG2)용으로 비워 둠 (DESIGN_PARTY_DUNGEON.md §5-3)
+    SC_PARTY_INVITE = 2033;          // 파티 초대를 받은 쪽에게 (DG2, D-217)
+    SC_PARTY_STATE = 2034;           // 파티 전체(파티장·파티원 목록). 바뀔 때마다 전원에게, 파티원 0명 = 파티 없음
+    SC_PARTY_RESULT = 2035;          // 파티 요청 거부·초대 결과 (본인에게)
     SC_ROOM_CHANGE = 2036;           // Room을 옮김(본인에게): 레벨·종류·채널·새 위치·이동 보정 순번 (DG3b, D-216)
     SC_MOVE_RESULT = 2037;           // Room 이동 거부(본인에게만, 거부일 때만)
 }
@@ -85,6 +91,23 @@ enum MoveResult {
     MOVE_RESULT_DUNGEON_CLEARED = 3;   // 클리어한 인스턴스 (DG3c)
     MOVE_RESULT_TIMEOUT = 4;           // 끝나지 않은 일(DB 작업)을 기다리다 시간 초과 — 다시 시도
     MOVE_RESULT_NOT_AVAILABLE = 5;     // 갈 수 없는 포털
+}
+
+// SC_PARTY_RESULT_PACKET.result (DG2 — DESIGN_PARTY_DUNGEON.md §5-3)
+enum PartyResult {
+    PARTY_RESULT_NONE = 0;
+    PARTY_RESULT_NO_TARGET = 1;        // 대상이 없음(접속하지 않음·자기 자신)
+    PARTY_RESULT_OTHER_CHANNEL = 2;    // 다른 채널
+    PARTY_RESULT_TARGET_IN_PARTY = 3;  // 대상이 이미 파티 중
+    PARTY_RESULT_TARGET_BUSY = 4;      // 대상에게 다른 초대가 와 있음
+    PARTY_RESULT_PARTY_FULL = 5;       // 정원(EconomyTable.PartyMaxMembers)
+    PARTY_RESULT_NOT_LEADER = 6;       // 파티장만 초대할 수 있음
+    PARTY_RESULT_IN_DUNGEON = 7;       // 던전 인스턴스 안 (DG3c)
+    PARTY_RESULT_DECLINED = 8;         // 상대가 거절 (초대한 쪽에게)
+    PARTY_RESULT_TIMEOUT = 9;          // 응답 시간 초과 (양쪽에게)
+    PARTY_RESULT_NO_INVITE = 10;       // 답할 초대가 없음
+    PARTY_RESULT_NOT_IN_PARTY = 11;    // 파티가 없는데 탈퇴
+    PARTY_RESULT_TOO_FREQUENT = 12;    // 초대 간격(1초) 미만
 }
 
 enum MoveState {

@@ -24,6 +24,7 @@
 #include "Game/JMObjectManager.h"
 #include "Game/JMTradeManager.h"
 #include "Game/JMShopManager.h"
+#include "Game/JMPartyManager.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -146,6 +147,8 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		if (InventoryAction) EnhancedInputComponent->BindAction(InventoryAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnInventoryInput);
 		if (InteractAction) EnhancedInputComponent->BindAction(InteractAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnInteractInput);
 		if (TradeAction) EnhancedInputComponent->BindAction(TradeAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnTradeInput);
+		if (PartyAction) EnhancedInputComponent->BindAction(PartyAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnPartyInput);
+		if (PartyInviteAction) EnhancedInputComponent->BindAction(PartyInviteAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnPartyInviteInput);
 		
 	}
 }
@@ -813,8 +816,24 @@ void AJMMyPlayer::OnTradeInput()
 	if (Trade == nullptr || ObjectManager == nullptr || FollowCamera == nullptr) return;
 	if (Trade->IsActive()) return;   // 이미 거래 창이 떠 있다
 
-	// 크로스헤어(화면 중앙)에 가장 가까운 다른 플레이어를 고른다. 카메라 정면에서 MinDot 각도 안에 있어야 한다.
 	// 거리(TradeRangeCm)·사망·거래 중 여부는 서버가 판정하고 거부 사유를 시스템 메시지로 알려 준다.
+	const AJMPlayer* Best = FindCrosshairPlayer();
+	if (Best == nullptr)
+	{
+		if (UJMUIManager* UIManager = GameInstance->GetSubsystem<UJMUIManager>())
+			UIManager->ShowSystemMessage(FText::FromString(TEXT("거래할 상대를 바라보고 다시 시도해 주세요.")));
+		return;
+	}
+	Trade->RequestTrade(Best->GetObjectInfo().id());
+}
+
+const AJMPlayer* AJMMyPlayer::FindCrosshairPlayer() const
+{
+	const UGameInstance* GameInstance = GetGameInstance();
+	const UJMObjectManager* ObjectManager = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
+	if (ObjectManager == nullptr || FollowCamera == nullptr) return nullptr;
+
+	// 카메라 정면에서 MinDot 각도 안에 있는 다른 플레이어 가운데 화면 중앙에 가장 가까운 사람.
 	constexpr float MinDot = 0.9f;   // 약 25도
 	const FVector CamLoc = FollowCamera->GetComponentLocation();
 	const FVector CamForward = FollowCamera->GetForwardVector();
@@ -827,14 +846,31 @@ void AJMMyPlayer::OnTradeInput()
 		const float Dot = FVector::DotProduct(CamForward, (Other->GetActorLocation() - CamLoc).GetSafeNormal());
 		if (Dot > BestDot) { BestDot = Dot; Best = Other; }
 	}
+	return Best;
+}
 
-	if (Best == nullptr)
+void AJMMyPlayer::OnPartyInput()
+{
+	if (UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr)
+	{
+		UIManager->ToggleWidget(WidgetNames::Party);
+	}
+}
+
+void AJMMyPlayer::OnPartyInviteInput()
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	UJMPartyManager* Party = GameInstance ? GameInstance->GetSubsystem<UJMPartyManager>() : nullptr;
+	if (Party == nullptr) return;
+
+	const AJMPlayer* Target = FindCrosshairPlayer();
+	if (Target == nullptr)
 	{
 		if (UJMUIManager* UIManager = GameInstance->GetSubsystem<UJMUIManager>())
-			UIManager->ShowSystemMessage(FText::FromString(TEXT("거래할 상대를 바라보고 다시 시도해 주세요.")));
+			UIManager->ShowSystemMessage(FText::FromString(TEXT("파티에 초대할 상대를 바라보고 다시 시도해 주세요. (멀리 있는 사람은 채팅창에 /파티초대 이름)")));
 		return;
 	}
-	Trade->RequestTrade(Best->GetObjectInfo().id());
+	Party->Invite(Target->GetObjectInfo().id());
 }
 
 void AJMMyPlayer::OnInventoryInput()

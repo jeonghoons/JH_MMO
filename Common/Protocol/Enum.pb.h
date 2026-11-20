@@ -75,6 +75,9 @@ enum PacketId : int {
   CS_SHOP_BUY = 1032,
   CS_SHOP_SELL = 1033,
   CS_PORTAL = 1034,
+  CS_PARTY_INVITE = 1035,
+  CS_PARTY_RESPOND = 1036,
+  CS_PARTY_LEAVE = 1037,
   SC_LOGIN = 2000,
   SC_SIGNUP = 2001,
   SC_ADD_OBJECT = 2003,
@@ -103,6 +106,9 @@ enum PacketId : int {
   SC_TELEPORT = 2030,
   SC_PORTAL_LIST = 2031,
   SC_ATTACK_RESULT = 2032,
+  SC_PARTY_INVITE = 2033,
+  SC_PARTY_STATE = 2034,
+  SC_PARTY_RESULT = 2035,
   SC_ROOM_CHANGE = 2036,
   SC_MOVE_RESULT = 2037,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
@@ -182,6 +188,42 @@ inline bool MoveResult_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, MoveResult* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<MoveResult>(
     MoveResult_descriptor(), name, value);
+}
+enum PartyResult : int {
+  PARTY_RESULT_NONE = 0,
+  PARTY_RESULT_NO_TARGET = 1,
+  PARTY_RESULT_OTHER_CHANNEL = 2,
+  PARTY_RESULT_TARGET_IN_PARTY = 3,
+  PARTY_RESULT_TARGET_BUSY = 4,
+  PARTY_RESULT_PARTY_FULL = 5,
+  PARTY_RESULT_NOT_LEADER = 6,
+  PARTY_RESULT_IN_DUNGEON = 7,
+  PARTY_RESULT_DECLINED = 8,
+  PARTY_RESULT_TIMEOUT = 9,
+  PARTY_RESULT_NO_INVITE = 10,
+  PARTY_RESULT_NOT_IN_PARTY = 11,
+  PARTY_RESULT_TOO_FREQUENT = 12,
+  PartyResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  PartyResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool PartyResult_IsValid(int value);
+constexpr PartyResult PartyResult_MIN = PARTY_RESULT_NONE;
+constexpr PartyResult PartyResult_MAX = PARTY_RESULT_TOO_FREQUENT;
+constexpr int PartyResult_ARRAYSIZE = PartyResult_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PartyResult_descriptor();
+template<typename T>
+inline const std::string& PartyResult_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, PartyResult>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function PartyResult_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    PartyResult_descriptor(), enum_t_value);
+}
+inline bool PartyResult_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, PartyResult* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<PartyResult>(
+    PartyResult_descriptor(), name, value);
 }
 enum MoveState : int {
   MOVE_STATE_NONE = 0,
@@ -573,6 +615,11 @@ template <> struct is_proto_enum< ::Protocol::MoveResult> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::MoveResult>() {
   return ::Protocol::MoveResult_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::PartyResult> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::PartyResult>() {
+  return ::Protocol::PartyResult_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::MoveState> : ::std::true_type {};
 template <>

@@ -1,0 +1,43 @@
+PASS basic
+PASS rooms
+PASS leader
+PASS cut
+PASS errors
+sessions=0 players=0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=2/2/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 18/14/1/0/6 7/7 
+GROUP PASS plain
+PASS loot
+sessions=0 players=0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=3/3/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 3/3/0/0/0 1/1 
+GROUP PASS loot
+PASS full
+PASS timeout
+sessions=0 players=0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 5/4/0/1/1 2/2 
+GROUP PASS small
+PASS channel
+sessions=0 players=0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=2/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 1/1/0/0/1 1/1 
+GROUP PASS channel
+PASS midmove
+sessions=0 players=0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=8/8/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 2/2/0/0/0 1/1 
+GROUP PASS midmove
+PARTY_EXIT 0
+PASS basic  (DB 아이템 89741, 골드 602750 + 0 = 602750)
+PASS starts  (DB 아이템 89741, 골드 602750 + 0 = 602750)
+PASS notavail  (DB 아이템 89741, 골드 602750 + 0 = 602750)
+PASS trade  (DB 아이템 89741, 골드 602750 + 0 = 602750)
+sessions=0 players=0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=4/4/1/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 
+GROUP PASS plain
+PASS wait  (DB 아이템 89741, 골드 602750 + 2 = 602752)
+PASS cut_wait  (DB 아이템 89741, 골드 602752 + 1 = 602753)
+sessions=0 players=0 login(total kick/busy/forced)=1/0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=2/1/0/0/1 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 
+GROUP PASS wait
+PASS timeout  (DB 아이템 89741, 골드 602753 + 1 = 602754)
+sessions=0 players=0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=2/1/0/1/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 
+GROUP PASS timeout
+PASS cut_a  (DB 아이템 89741, 골드 602754 + 0 = 602754)
+PASS cut_b  (DB 아이템 89741, 골드 602754 + 0 = 602754)
+PASS basic  (DB 아이템 89741, 골드 602754 + 0 = 602754)
+sessions=0 players=0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=4/2/0/0/2 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 
+GROUP PASS handoff
+PASS revive  (DB 아이템 89741, 골드 602754 + 0 = 602754)
+sessions=0 players=0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=2/2/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 
+GROUP PASS revive
+MOVE_EXIT 0

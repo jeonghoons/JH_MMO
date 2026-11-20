@@ -581,6 +581,8 @@ bool DataManager::Init()
 			{ "AuctionPageSize", &e.auctionPageSize, 1, 100 },
 			{ "AuctionExpireCheckSec", &e.auctionExpireCheckSec, 1, 3600 },
 			{ "ShopRangeCm", &e.shopRangeCm, 1, 5000 },
+			{ "PartyMaxMembers", &e.partyMaxMembers, 2, 100 },
+			{ "PartyInviteTimeoutSec", &e.partyInviteTimeoutSec, 1, 600 },
 		};
 
 		int economyId = 0;

@@ -70,5 +70,9 @@ private:
     static void Handle_SC_TRADE_STATE(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_STATE_PACKET& pkt);
     static void Handle_SC_TRADE_END(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_END_PACKET& pkt);
     static void Handle_SC_TRADE_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_RESULT_PACKET& pkt);
+    // 파티(DG2): 상태·안내는 UJMPartyManager가 맡는다
+    static void Handle_SC_PARTY_INVITE(TSharedPtr<NetworkSession>& session, Protocol::SC_PARTY_INVITE_PACKET& pkt);
+    static void Handle_SC_PARTY_STATE(TSharedPtr<NetworkSession>& session, Protocol::SC_PARTY_STATE_PACKET& pkt);
+    static void Handle_SC_PARTY_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_PARTY_RESULT_PACKET& pkt);
 };
 

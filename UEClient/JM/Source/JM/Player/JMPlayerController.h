@@ -57,6 +57,20 @@ public:
     UFUNCTION(Exec)
     void Portal(int32 PortalId = 0);
 
+    // Dev console commands (DG2 party): the same requests the party window / G key / chat command send, for checks without mouse input.
+    //   "PartyInvite <name>"     invites the character with that name (any room in my channel).
+    //   "PartyRespond <0|1>"     declines / accepts the pending invite.
+    //   "PartyLeave"             leaves my party.
+    //   "PartyShow"              logs my party (leader, members, where they are) and the pending invite.
+    UFUNCTION(Exec)
+    void PartyInvite(const FString& Name);
+    UFUNCTION(Exec)
+    void PartyRespond(int32 Accept = 1);
+    UFUNCTION(Exec)
+    void PartyLeave();
+    UFUNCTION(Exec)
+    void PartyShow();
+
     // Dev console command (MC4.1b): "NetMoveStats [reset 0/1]" logs remote-player move display stats
     // (screen speed / move stat, packet-arrival position error). Default resets after printing.
     UFUNCTION(Exec)

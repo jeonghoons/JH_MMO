@@ -112,6 +112,18 @@ void PacketHandler::Init()
     GPacketHandler[Protocol::CS_TRADE_CANCEL] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_TRADE_CANCEL_PACKET>(&PacketHandler::Handle_CS_TRADE_CANCEL, session, buffer, len);
         };
+
+    GPacketHandler[Protocol::CS_PARTY_INVITE] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_PARTY_INVITE_PACKET>(&PacketHandler::Handle_CS_PARTY_INVITE, session, buffer, len);
+        };
+
+    GPacketHandler[Protocol::CS_PARTY_RESPOND] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_PARTY_RESPOND_PACKET>(&PacketHandler::Handle_CS_PARTY_RESPOND, session, buffer, len);
+        };
+
+    GPacketHandler[Protocol::CS_PARTY_LEAVE] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_PARTY_LEAVE_PACKET>(&PacketHandler::Handle_CS_PARTY_LEAVE, session, buffer, len);
+        };
 }
 
 void PacketHandler::ProcessPacket(shared_ptr<GameSession> session, BYTE* buffer, int len)
@@ -367,6 +379,36 @@ void PacketHandler::Handle_CS_SET_QUICKSLOT(shared_ptr<GameSession> session, Pro
     if (room == nullptr) return;
 
     room->PushJob(&Room::PlayerSetQuickSlot, player, static_cast<int>(pkt.slot()), static_cast<int>(pkt.item_id()));
+}
+
+// ---- 파티(DG2, D-217). 파티는 Room 상태가 아니라 WorldService가 맡는다 — 방에 들어간 플레이어의 요청만 서비스 잡으로 넘긴다 ----
+void PacketHandler::Handle_CS_PARTY_INVITE(shared_ptr<GameSession> session, Protocol::CS_PARTY_INVITE_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->GetPlayer();
+    if (player == nullptr || player->GetCurrentRoom() == nullptr) return;
+
+    // 이름은 채팅과 같은 규칙으로 다듬는다(제어 문자·앞뒤 공백 제거, 길이 제한). id가 있으면 이름은 쓰지 않는다.
+    const int targetId = static_cast<int>(pkt.target_id());
+    wstring targetName = targetId == 0 ? SanitizeChat(pkt.target_name()) : wstring();
+    if (targetId < 0) return;
+
+    GWorld->PushJob(&WorldService::PartyInvite, player, targetId, targetName);
+}
+
+void PacketHandler::Handle_CS_PARTY_RESPOND(shared_ptr<GameSession> session, Protocol::CS_PARTY_RESPOND_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->GetPlayer();
+    if (player == nullptr || player->GetCurrentRoom() == nullptr) return;
+
+    GWorld->PushJob(&WorldService::PartyRespond, player, pkt.accept());
+}
+
+void PacketHandler::Handle_CS_PARTY_LEAVE(shared_ptr<GameSession> session, Protocol::CS_PARTY_LEAVE_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->GetPlayer();
+    if (player == nullptr || player->GetCurrentRoom() == nullptr) return;
+
+    GWorld->PushJob(&WorldService::PartyLeave, player);
 }
 
 void PacketHandler::Handle_CS_TRADE_REQUEST(shared_ptr<GameSession> session, Protocol::CS_TRADE_REQUEST_PACKET& pkt)

@@ -1,0 +1,11 @@
+done hunt_250_noparty_r1
+done hunt_250_party_r1
+done spread_250_noparty_r1
+done spread_250_party_r1
+done hunt_250_noparty_r2
+done hunt_250_party_r2
+done spread_250_noparty_r2
+done spread_250_party_r2
+done hunt_250_town_party
+done ch500_split_party
+[load] 끝

@@ -10,6 +10,7 @@
 #include "Game/JMInventoryManager.h"
 #include "Game/JMTradeManager.h"
 #include "Game/JMShopManager.h"
+#include "Game/JMPartyManager.h"
 #include "UI/JMUIManager.h"
 #include "SendBuffer.h"
 
@@ -351,9 +352,36 @@ void UNetworkManager::SendPortal(int32 PortalId)
 	SendProtocol(*this, pkt, Protocol::CS_PORTAL);
 }
 
+void UNetworkManager::SendPartyInvite(int32 TargetId, const FString& TargetName)
+{
+	Protocol::CS_PARTY_INVITE_PACKET pkt;
+	pkt.set_target_id(TargetId);
+	if (TargetId == 0) pkt.set_target_name(TCHAR_TO_UTF8(*TargetName));
+	SendProtocol(*this, pkt, Protocol::CS_PARTY_INVITE);
+}
+
+void UNetworkManager::SendPartyRespond(bool bAccept)
+{
+	Protocol::CS_PARTY_RESPOND_PACKET pkt;
+	pkt.set_accept(bAccept);
+	SendProtocol(*this, pkt, Protocol::CS_PARTY_RESPOND);
+}
+
+void UNetworkManager::SendPartyLeave()
+{
+	Protocol::CS_PARTY_LEAVE_PACKET pkt;
+	SendProtocol(*this, pkt, Protocol::CS_PARTY_LEAVE);
+}
+
 void UNetworkManager::ReturnToLogin(const FText& Message)
 {
 	DisconnectFromServer();
+
+	// 파티는 접속이 끝나면 서버에서 탈퇴된다. 사본은 레벨 전환(SwitchGameMapLevel)이 아니라 여기서 비운다(던전 레벨 전환에는 이어져야 함 — DG3c).
+	if (UJMPartyManager* Party = GetGameInstance()->GetSubsystem<UJMPartyManager>())
+	{
+		Party->Clear();
+	}
 
 	// 확인 메시지는 레벨 전환 뒤 새 레벨에서 다시 뜬다(UJMUIManager::ClearWidgets).
 	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())

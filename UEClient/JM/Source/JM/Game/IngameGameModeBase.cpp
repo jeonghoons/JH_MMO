@@ -30,6 +30,8 @@ void AIngameGameModeBase::BeginPlay()
 			if (TradeWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Trade, TradeWidgetClass, true, 125, false);
 			// 상점 창(L4): 숨겨 두었다가 SC_SHOP_OPEN이 오면 UJMShopManager가 띄운다. 거래 창과 같은 자리·같은 층(거래 중에는 상점을 쓸 수 없어 함께 뜨지 않는다).
 			if (ShopWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Shop, ShopWidgetClass, true, 126, false);
+			// 파티 창(DG2): 숨겨 두었다가 P 키(AJMMyPlayer::OnPartyInput)로 여닫고, 초대를 받으면 UJMPartyManager가 띄운다. 인벤토리(120)와 거래(125) 사이.
+			if (PartyWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Party, PartyWidgetClass, true, 124, false);
 
 			// 전투 입력 모드. 시스템 메시지 창(방 입장 대기 등)이 떠 있으면 커서를 유지한다.
 			UIManager->SetGameplayInput(true);

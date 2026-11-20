@@ -287,6 +287,8 @@ struct EconomyData
 	int auctionPageSize;         // 목록 한 쪽
 	int auctionExpireCheckSec;   // 만료 검사 주기
 	int shopRangeCm;             // 상점 NPC 이용 거리 (L4)
+	int partyMaxMembers;         // 파티 정원 (DG2, D-217)
+	int partyInviteTimeoutSec;   // 파티 초대 응답 대기
 };
 
 // EconomyTable의 유일한 행

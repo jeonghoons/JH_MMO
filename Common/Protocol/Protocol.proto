@@ -135,6 +135,20 @@ message CS_TRADE_CONFIRM_PACKET {
 message CS_TRADE_CANCEL_PACKET {
 }
 
+// ---- 파티 (DG2, D-217). 거부·초대 결과는 SC_PARTY_RESULT(request = 요청 패킷 id), 성사·변화는 SC_PARTY_STATE ----
+// 파티가 없는 사람 또는 파티장만 보낼 수 있다. 상대가 수락하면 파티가 없던 사람은 파티장이 된다.
+message CS_PARTY_INVITE_PACKET {
+	int32 target_id = 1;                 // 초대할 플레이어의 오브젝트 id. 0이면 target_name으로 찾는다
+	string target_name = 2;              // 캐릭터 이름 (다른 Room에 있어도 됨, 같은 채널만)
+}
+
+message CS_PARTY_RESPOND_PACKET {
+	bool accept = 1;
+}
+
+message CS_PARTY_LEAVE_PACKET {
+}
+
 // 스킬 조준(숫자키 → 범위 선택) 켜기/끄기. 상태가 바뀔 때만 보낸다.
 // 확정(CS_ATTACK)은 서버가 조준을 함께 해제하므로 끄기를 따로 보내지 않는다.
 message CS_SKILL_AIM_PACKET {
@@ -366,6 +380,35 @@ message SC_TRADE_END_PACKET {
 message SC_TRADE_RESULT_PACKET {
 	PacketId request = 1;                // 거부된 요청의 패킷 id
 	TradeResult result = 2;
+}
+
+// 파티 초대를 받았다(DG2). timeout_sec 안에 CS_PARTY_RESPOND로 답하지 않으면 서버가 지운다(양쪽에 SC_PARTY_RESULT TIMEOUT).
+message SC_PARTY_INVITE_PACKET {
+	int32 from_id = 1;                   // 초대한 플레이어의 오브젝트 id
+	string from_name = 2;
+	int32 timeout_sec = 3;               // EconomyTable.PartyInviteTimeoutSec
+}
+
+// 파티원 한 명. 다른 Room에 있을 수 있어 이름·레벨·있는 곳을 서버가 보낸다.
+message PartyMember {
+	int32 id = 1;                        // 오브젝트 id
+	string name = 2;
+	int32 level = 3;
+	RoomKind kind = 4;                   // 지금 있는 Room의 종류 (마을·사냥터·던전)
+}
+
+// 파티 전체(DG2). 구성·파티장·파티원이 있는 곳이 바뀔 때마다 전원에게 같은 내용을 보낸다.
+// members가 비어 있으면 "파티 없음"(탈퇴·해산) — 그때 party_id·leader_id는 0. members는 들어온 순서.
+message SC_PARTY_STATE_PACKET {
+	int32 party_id = 1;
+	int32 leader_id = 2;                 // 파티장의 오브젝트 id
+	repeated PartyMember members = 3;
+}
+
+// 파티 요청이 거부됐거나(본인에게) 보낸 초대의 결과(DECLINED·TIMEOUT)가 나왔다.
+message SC_PARTY_RESULT_PACKET {
+	PacketId request = 1;                // 관련 요청의 패킷 id
+	PartyResult result = 2;
 }
 
 // 서버가 이 연결을 끊기 직전에 본인에게 보낸다(A2.7). 받은 클라이언트는 스스로 연결을 닫고 로그인 화면으로 돌아간다.

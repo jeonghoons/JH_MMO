@@ -305,3 +305,25 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PORTAL_LIST(const vector<Portal
 	return MakeSendBuffer(packet, Protocol::SC_PORTAL_LIST);
 }
 
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PARTY_INVITE(int fromId, const wstring& fromName, int timeoutSec)
+{
+	Protocol::SC_PARTY_INVITE_PACKET packet;
+	packet.set_from_id(fromId);
+	packet.set_from_name(Utils::WStringToUTF8(fromName));
+	packet.set_timeout_sec(timeoutSec);
+	return MakeSendBuffer(packet, Protocol::SC_PARTY_INVITE);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PARTY_STATE(const Protocol::SC_PARTY_STATE_PACKET& packet)
+{
+	return MakeSendBuffer(packet, Protocol::SC_PARTY_STATE);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PARTY_RESULT(Protocol::PacketId request, Protocol::PartyResult result)
+{
+	Protocol::SC_PARTY_RESULT_PACKET packet;
+	packet.set_request(request);
+	packet.set_result(result);
+	return MakeSendBuffer(packet, Protocol::SC_PARTY_RESULT);
+}

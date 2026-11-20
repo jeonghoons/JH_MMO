@@ -55,5 +55,9 @@ private:
     static void Handle_CS_TRADE_LOCK(shared_ptr<GameSession> session, Protocol::CS_TRADE_LOCK_PACKET& pkt);
     static void Handle_CS_TRADE_CONFIRM(shared_ptr<GameSession> session, Protocol::CS_TRADE_CONFIRM_PACKET& pkt);
     static void Handle_CS_TRADE_CANCEL(shared_ptr<GameSession> session, Protocol::CS_TRADE_CANCEL_PACKET& pkt);
+    // 파티(DG2): Room을 거치지 않고 WorldService 잡으로 넘긴다
+    static void Handle_CS_PARTY_INVITE(shared_ptr<GameSession> session, Protocol::CS_PARTY_INVITE_PACKET& pkt);
+    static void Handle_CS_PARTY_RESPOND(shared_ptr<GameSession> session, Protocol::CS_PARTY_RESPOND_PACKET& pkt);
+    static void Handle_CS_PARTY_LEAVE(shared_ptr<GameSession> session, Protocol::CS_PARTY_LEAVE_PACKET& pkt);
 };
 

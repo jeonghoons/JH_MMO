@@ -5,6 +5,7 @@
 #include "Fonts/SlateFontInfo.h"
 #include "Network/NetworkManager.h"
 #include "UI/JMUIManager.h"
+#include "Game/JMPartyManager.h"
 
 void UChatWidget::FocusChatInput(APlayerController* PC)
 {
@@ -73,6 +74,38 @@ void UChatWidget::NativeConstruct()
 	}
 }
 
+bool UChatWidget::HandleCommand(const FString& Input)
+{
+	// "/"로 시작하면 채팅으로 보내지 않는다(DG2). 지금 있는 명령: "/파티초대 이름"(다른 Room에 있는 사람도 됨), "/파티탈퇴".
+	if (!Input.StartsWith(TEXT("/"))) return false;
+
+	UGameInstance* GameInstance = GetGameInstance();
+	UJMUIManager* UIManager = GameInstance ? GameInstance->GetSubsystem<UJMUIManager>() : nullptr;
+	UJMPartyManager* Party = GameInstance ? GameInstance->GetSubsystem<UJMPartyManager>() : nullptr;
+
+	FString Command, Argument;
+	if (!Input.Split(TEXT(" "), &Command, &Argument)) Command = Input;
+	Argument = Argument.TrimStartAndEnd();
+
+	if (Command == TEXT("/파티초대"))
+	{
+		if (Argument.IsEmpty())
+		{
+			if (UIManager) UIManager->ShowSystemMessage(FText::FromString(TEXT("사용법: /파티초대 캐릭터이름")));
+		}
+		else if (Party) Party->InviteByName(Argument);
+	}
+	else if (Command == TEXT("/파티탈퇴"))
+	{
+		if (Party) Party->Leave();
+	}
+	else if (UIManager)
+	{
+		UIManager->ShowSystemMessage(FText::FromString(TEXT("알 수 없는 명령입니다. (/파티초대 이름, /파티탈퇴)")));
+	}
+	return true;
+}
+
 void UChatWidget::OnChatTextCommitted(const FText& Text, ETextCommit::Type CommitMethod)
 {
 	// 1. 엔터키를 쳤을 때만 전송 로직 수행
@@ -81,7 +114,7 @@ void UChatWidget::OnChatTextCommitted(const FText& Text, ETextCommit::Type Commi
 		const FString ChatString = Text.ToString().TrimStartAndEnd();
 
 		// 내가 보낸 채팅도 서버가 방송한 SC_CHAT으로 기록에 표시된다.
-		if (!ChatString.IsEmpty())
+		if (!ChatString.IsEmpty() && !HandleCommand(ChatString))
 		{
 			if (UNetworkManager* NetManager = UNetworkManager::Get(this))
 			{

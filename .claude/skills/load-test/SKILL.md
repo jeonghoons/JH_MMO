@@ -32,6 +32,8 @@ description: LoadTest·DummyClient 봇으로 부하 시험, 연결 혼란 시험
 - 포털: `--portal-interval`(가장 가까운 포털에 요청 — 반경 밖이면 거부되므로 `DummySpawnZone`으로 포털 앞에 세움)
 - Room 이동(DG3b): 문 포털을 쓰면 `SC_TELEPORT` 대신 `SC_ROOM_CHANGE`가 옵니다 — 요약 `[summary] room: roomChange=… moveRejected=…`. hunt 봇은 마을에 있으면 가장 가까운 문 포털(101~103)로 걸어가 사냥터로 나가고, 죽어 마을에서 부활하면 다시 나갑니다.
 - Room 이동 오류 시험(원시 소켓, `Server/PerfData/2026-11-20_DG3b/`): `bash run_move_tests.sh [Debug|Release] [plain wait timeout handoff trade revive]` — 묶음마다 맞는 `[Debug]` 설정으로 서버를 띄워 `move_test.py` 시나리오를 돌리고 DB 아이템·골드 합계(`sqlcmd`)와 `[metrics]` 잔류·`roomMove`의 `abortBusy/orphan/ownerBad` 0을 판정합니다. 공용 코드 `movekit.py`(protobuf 해석, 걷기 — 서버의 이동 보정 `SC_MOVE`를 반영해야 이후 이동이 버려지지 않음), 측정 `run_one.sh`(`DUMMYROOM=`·`SERVER_EXE=`·`DATA=`)·`run_matrix.sh`·`summarize.py`·`chaos.sh`.
+- 파티(DG2): `--party-size N`(봇을 번호순으로 N명씩 묶어 묶음의 첫 봇 — 또는 지금 파티장인 봇 — 이 2초마다 한 명씩 오브젝트 id로 초대, 받은 초대는 모두 수락)·`--party-churn-sec S`(이 간격 ±50%마다 탈퇴 → 다시 초대됨: 위임·해산·거부 경로). 요약 `[summary] party: inParty=… by PartyResult: …` — 탈퇴를 섞으면 `TARGET_IN_PARTY`·`NOT_LEADER`·`TARGET_BUSY` 거부가 나오는 것이 정상. 더미 봇은 소유권 없는 드랍만 만들어 파티 공유 줍기는 지나가지 않음.
+- 파티 시험(원시 소켓, `Server/PerfData/2026-11-20_DG2/`): `bash run_party_tests.sh [Debug|Release] [plain loot small channel midmove]` — 묶음마다 설정·데이터 테이블 사본(`JH_DATA_DIR`)으로 서버를 띄워 `party_test.py` 시나리오를 돌리고 `[metrics]` 잔류(`party(now …)` 0/0/0 포함)를 판정합니다. 공용 코드는 DG3b의 `movekit.py`. 기다리기만 하는 클라이언트도 5초마다 핑을 보내야 유휴 타임아웃(60초)에 끊기지 않고, 시험 계정은 약해서 몬스터 처치는 시나리오당 한 번만(죽으면 마을에서 부활해 돌아옴). 부하 `run_load.sh`·`summarize.py`.
 - 핑: `--ping-interval`(기본 1초, 서버 유휴 타임아웃 60초보다 짧아야 함)
 
 ## 읽는 법

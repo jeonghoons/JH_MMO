@@ -434,6 +434,25 @@ void Room::NotifyClosedIfDone(const shared_ptr<Player>& player)
 	GWorld->PushJob(&WorldService::OnPlayerClosed, player->GetId(), player->GetPlayerUID(), player->isDummy);
 }
 
+void Room::SetPlayerParty(shared_ptr<Player> player, int partyId, uint32_t seq)
+{
+	if (player == nullptr) return;
+
+	// Player의 필드는 소유 Room 잡에서만 만진다(DG3b). 서비스가 알림을 넣은 뒤 Room을 옮겼으면 그 Room으로 넘긴다.
+	const shared_ptr<Room> owner = player->GetCurrentRoom();
+	if (owner != nullptr && owner.get() != this)
+	{
+		owner->PushJob(&Room::SetPlayerParty, player, partyId, seq);
+		return;
+	}
+
+	// 넘기는 동안 더 새 알림이 먼저 적용됐으면 버린다.
+	if (seq <= player->partySeq) return;
+	player->partySeq = seq;
+	player->partyId = partyId;
+	LOG_DEBUG("Party", "Player[{}] partyId={} (Room {})", player->GetId(), partyId, _info.roomId);
+}
+
 void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, uint32_t correctionSeq)
 {
 	if (nullptr == Id2Player(player->GetId()))
@@ -1298,7 +1317,7 @@ void Room::PlayerPickupItem(shared_ptr<Player> player, int dropId)
 
 	// 소유권: 만료는 타이머가 아니라 지금 시각과 비교한다(예약은 취소할 수 없다).
 	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
-	if (!drop->CanPickup(player->GetPlayerUID(), nowMs)) { reject(Protocol::ITEM_RESULT_NOT_OWNER); return; }
+	if (!drop->CanPickup(player->GetPlayerUID(), player->partyId, nowMs)) { reject(Protocol::ITEM_RESULT_NOT_OWNER); return; }
 
 	DB_ItemOp op;
 	op.kind = ItemOpKind::Pickup;
@@ -3077,11 +3096,17 @@ void Room::SpawnMonsterDrops(int monsterTemplateId, Protocol::PositionInfo pos, 
 	if (rolled.empty()) return;
 
 	// 소유권 = 막타 플레이어. 공격자를 알 수 없거나(투사체가 날아가는 동안 퇴장) 더미 봇(전원이 DB 한 행)이면 소유권 없이 만든다.
+	// 막타가 파티 중이면 파티 번호도 적는다(DG2 — 줍는 순간 같은 파티면 주울 수 있다). 그 사이 다른 Room으로 옮긴 공격자의 필드는 읽지 않는다.
 	int64_t ownerUID = 0;
+	int ownerPartyId = 0;
 	if (attacker != nullptr && attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER)
 	{
 		const shared_ptr<Player> killer = static_pointer_cast<Player>(attacker);
-		if (!killer->isDummy) ownerUID = killer->GetPlayerUID();
+		if (!killer->isDummy)
+		{
+			ownerUID = killer->GetPlayerUID();
+			if (IsInRoom(killer)) ownerPartyId = killer->partyId;
+		}
 	}
 
 	const float scatter = static_cast<float>(DataManager::GetEconomy().dropScatterCm);
@@ -3089,11 +3114,11 @@ void Room::SpawnMonsterDrops(int monsterTemplateId, Protocol::PositionInfo pos, 
 	{
 		// 사망 지점 둘레의 갈 수 있는 자리(내비메시 위). 못 찾으면 사망 지점 그대로.
 		const Protocol::PositionInfo dropPos = scatter > 0.f ? _gameMap.GetRandomPosNear(pos, scatter) : pos;
-		CreateDrop(r.itemId, r.count, dropPos, ownerUID);
+		CreateDrop(r.itemId, r.count, dropPos, ownerUID, ownerPartyId);
 	}
 }
 
-shared_ptr<DropItem> Room::CreateDrop(int itemId, int64_t count, const Protocol::PositionInfo& pos, int64_t ownerUID)
+shared_ptr<DropItem> Room::CreateDrop(int itemId, int64_t count, const Protocol::PositionInfo& pos, int64_t ownerUID, int ownerPartyId)
 {
 	const EconomyData& economy = DataManager::GetEconomy();
 	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
@@ -3116,6 +3141,7 @@ shared_ptr<DropItem> Room::CreateDrop(int itemId, int64_t count, const Protocol:
 	const shared_ptr<DropItem> drop = make_shared<DropItem>(NextDropId(), itemId, count, pos);
 	drop->SetOwnerRoom(shared_from_this());
 	drop->ownerUID = ownerUID;
+	drop->ownerPartyId = ownerUID != 0 ? ownerPartyId : 0;
 	drop->ownerUntilMs = ownerUID != 0 ? nowMs + static_cast<long long>(economy.dropOwnerSec) * 1000 : 0;
 	drop->expireAtMs = nowMs + static_cast<long long>(economy.dropLifeSec) * 1000;
 

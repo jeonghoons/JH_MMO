@@ -45,6 +45,10 @@ public:
 	static shared_ptr<SendBuffer> MAKE_SC_TRADE_STATE(const struct TradeSession& trade);
 	static shared_ptr<SendBuffer> MAKE_SC_TRADE_END(Protocol::TradeResult result);
 	static shared_ptr<SendBuffer> MAKE_SC_TRADE_RESULT(Protocol::PacketId request, Protocol::TradeResult result);
+	// 파티(DG2). 상태 패킷은 WorldService가 채워서 넘긴다(빈 패킷 = 파티 없음)
+	static shared_ptr<SendBuffer> MAKE_SC_PARTY_INVITE(int fromId, const wstring& fromName, int timeoutSec);
+	static shared_ptr<SendBuffer> MAKE_SC_PARTY_STATE(const Protocol::SC_PARTY_STATE_PACKET& packet);
+	static shared_ptr<SendBuffer> MAKE_SC_PARTY_RESULT(Protocol::PacketId request, Protocol::PartyResult result);
 	// 소비 아이템 사용 결과(A3.6): 쓴 종류, 사용 뒤 HP, 재사용 시간
 	static shared_ptr<SendBuffer> MAKE_SC_USE_ITEM(int objectId, int itemId, int hp, int cooldownMs);
 	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_HP(int objectId, int hp);
