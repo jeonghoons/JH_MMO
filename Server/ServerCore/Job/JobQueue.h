@@ -44,6 +44,11 @@ public:
 	// 부르지 않았거나 wakeFn이 없으면 간격 0(작업이 끝날 때마다 바로 보냄)으로 동작한다.
 	void SetSendBatch(int intervalMs, function<void(int)> wakeFn);
 
+	// 오너를 없애기 직전에 부르는 닫기 절차(DG3c). 이 큐의 작업 안에서만 부른다(Current() == this).
+	// 송신 간격을 0으로 바꾸고 깨우기를 떼어 낸 뒤 보낼 세션 목록을 지금 전부 내보낸다. 이 뒤로 이 큐에서 한 Send는
+	// 그 작업이 끝날 때 바로 나가므로, 목록에 남아 _flushPending이 켜진 채 멈추는 세션이 생기지 않는다.
+	void CloseSendBatch();
+
 	static long long NowUs()
 	{
 		return chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now().time_since_epoch()).count();

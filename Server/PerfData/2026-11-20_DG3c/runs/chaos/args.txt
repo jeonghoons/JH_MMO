@@ -1,0 +1,12 @@
+--bots 400 --ramp-rate 100 --threads 4 --move-interval 200 --body male --profile hunt --chaos --zone 19020,-18800,300 --party-size 2 --party-churn-sec 6 --dungeon --dungeon-stay-sec 8 --map ../MapResource/Export/Continent01/Logic/Continent01_Logic.json --dungeon-map ../MapResource/Export/Continent01_Dungeon/Logic/Continent01_Dungeon_Logic.json
+full exit 0
+kill 1 after 3s
+kill 2 after 4s
+kill 3 after 5s
+kill 4 after 6s
+kill 5 after 7s
+kill 6 after 8s
+kill 7 after 9s
+kill 8 after 10s
+kill 9 after 11s
+kill 10 after 12s

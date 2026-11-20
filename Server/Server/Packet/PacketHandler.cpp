@@ -235,8 +235,14 @@ void PacketHandler::Handle_CS_ENTER_ROOM(shared_ptr<GameSession> session, Protoc
 {
     // 로그인 전(DB 응답 전 포함)이거나 이미 방에 배정된 플레이어의 입장 요청은 무시한다.
     // 방 배정은 서비스 잡(WorldService::EnterWorld)에서 하므로 연달아 온 두 번째 요청은 여기를 지날 수 있고, 서비스가 한 번 더 거른다.
+    // 이미 방이 있는 플레이어의 요청은 "다른 레벨로 옮겨 와 그 레벨을 다 열었다"는 신호다(DG3c) — 그 방의 로딩 대기 목록에 있을 때만 쓰이고 그 밖은 버려진다.
     shared_ptr<Player> player = session->GetPlayer();
-    if (player == nullptr || player->GetCurrentRoom() != nullptr) return;
+    if (player == nullptr) return;
+    if (shared_ptr<Room> room = player->GetCurrentRoom())
+    {
+        room->PushJob(&Room::PlayerLoadDone, player);
+        return;
+    }
 
     GWorld->PushJob(&WorldService::EnterWorld, player);
 }

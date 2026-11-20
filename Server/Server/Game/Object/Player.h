@@ -170,13 +170,16 @@ public:
 		bool waiting = false;     // ② 끝나지 않은 일(DB 작업·저장)이 끝나기를 기다리는 중
 		bool transfer = false;    // ③ 이동 표시: 도착 Room을 물어본 뒤 떠나기까지. 이 동안 이 플레이어의 요청은 버린다
 		MoveReason reason = MoveReason::None;
-		string destArea;          // 도착 Room의 구역 이름(town / field)
-		bool hasDestPos = false;  // true = destPos에 도착(포털의 도착 마커), false = 도착 Room이 시작 지점을 고른다(부활)
+		MoveRequest request;      // 목적지(구역 Room / 다른 레벨 포털 / 정해진 인스턴스 — DG3c)
+		bool hasDestPos = false;  // true = destPos에 도착(같은 레벨 포털의 도착 마커), false = 도착 Room이 자리를 고른다(부활·내보냄·다른 레벨)
 		Protocol::PositionInfo destPos;
 		long long deadlineMs = 0; // 대기 시한(steady_clock ms)
+		bool crossLevel = false;  // 도착 Room의 레벨이 출발 Room과 다르다(떠날 때 출발 Room이 적는다) → 도착 Room이 로딩 대기에 둔다
 		bool Active() const { return waiting || transfer; }
 	};
 	RoomMoveState roomMove;
+	// 서버가 내보내려는데(Room::EjectPlayer) 다른 이동의 응답을 기다리는 중(transfer)이었다 — 그 이동이 취소되면 내보낸다. 소유 Room 잡 안에서만.
+	bool ejectPending = false;
 	// DB에 가 있는 이 플레이어의 작업이 있는가(아이템 작업 — 확정 중인 1:1 거래의 양쪽 포함, 진행 상황·액티브 칸 저장).
 	// Room::NotifyClosedIfDone과 Room 이동이 같은 조건을 본다 — DB로 가는 플레이어 작업을 추가하면 여기에 넣는다.
 	bool HasUnfinishedWork() const { return itemOp.inFlight || progressSave.inFlight || quickSlotSave.inFlight; }

@@ -32,6 +32,11 @@ struct BotConfig
 	int shopIntervalMs = 0;    // >0이면 이 간격(±50%)마다 시야 안의 상점 NPC에 구매(물약 1~3개)와 판매(인벤토리 행 하나에서 1개)를 번갈아 요청한다(L4). NPC 근처에 있어야 하므로 --zone과 함께 쓴다
 	int portalIntervalMs = 0;  // >0이면 이 간격(±50%)마다 가장 가까운 포털에 CS_PORTAL을 보낸다(L5). 반경 밖이면 서버가 버리므로 --zone으로 포털 앞에 세운다
 	int partySize = 0;         // --party-size N (DG2): 봇을 번호순으로 N명씩 묶어 파티를 맺는다(묶음의 첫 봇이 나머지를 오브젝트 id로 초대, 받은 초대는 모두 수락)
+	// --dungeon (DG3c): 사냥터 Room에 있으면 던전 입구(포털 100)를 요청한다(파티 중이면 파티장만 — 파티원은 따라 들어간다). 입구 반경 안에 있어야 하므로
+	// 서버를 [Debug] DummyRoom=field + DummySpawnZone=<입구>로 띄우거나 PortalNoRange=true로 띄운다.
+	bool dungeon = false;
+	int dungeonStaySec = 0;    // --dungeon-stay-sec S: 던전에 들어간 뒤 이 시간(±25%)이 지나면 출구 포털을 요청하고 다시 들어간다(서버 PortalNoRange=true 필요). 0 = 나오지 않음
+	std::string dungeonMapLogic;   // --dungeon-map: 던전 레벨의 로직 JSON(몬스터 스폰 위치) — 던전 안의 hunt 봇이 찾아갈 곳
 	int partyChurnSec = 0;     // --party-churn-sec S: 이 간격(±50%)마다 파티를 탈퇴한다(다시 초대돼 들어감 — 위임·해산·거부 경로 부하)
 	int giveIntervalMs = 0;    // >0이면 이 간격(±50%)마다 개발 지급 요청(물약 1~5개 또는 골드). 아이템 작업 부하·스택 시험(A3.3)
 	std::string outFile;
@@ -61,6 +66,9 @@ struct BotCounters
 	std::atomic<long long> shopBuySent{ 0 }, shopSellSent{ 0 };   // 상점 구매·판매 요청 (L4)
 	std::atomic<long long> roomChange{ 0 }, moveRejected{ 0 };    // 내 SC_ROOM_CHANGE(Room 이동) / SC_MOVE_RESULT(이동 거부, DG3b)
 		std::atomic<long long> moveRejectedBy[8]{};                   // SC_MOVE_RESULT를 MoveResult 값별로(4 = TIMEOUT, 5 = NOT_AVAILABLE)
+		// 던전(DG3c): 입구 요청 / 던전 Room 도착 / 출구 요청 / 받은 SC_DUNGEON_STATE(CLEARED)
+		std::atomic<long long> dungeonEnterSent{ 0 }, dungeonEntered{ 0 }, dungeonExitSent{ 0 }, dungeonCleared{ 0 };
+		std::atomic<int> inDungeon{ 0 };   // 지금 던전 Room에 있는 봇 수
 		std::atomic<long long> portalSent{ 0 }, portalMoved{ 0 };     // 포털 요청 / 내 SC_TELEPORT (L5)
 	// 파티(DG2): 보낸 초대 / 받은 초대(= 수락 송신) / 받은 SC_PARTY_STATE / 탈퇴 송신 / SC_PARTY_RESULT, PartyResult 값별
 	std::atomic<long long> partyInviteSent{ 0 }, partyInviteRecv{ 0 }, partyStateRecv{ 0 }, partyLeaveSent{ 0 }, partyResult{ 0 };
@@ -92,6 +100,7 @@ struct MonsterView
 
 extern BotConfig GConfig;
 extern BotCounters GStat;
+extern std::vector<std::pair<float, float>> GDungeonSpawns;   // --dungeon-map 의 몬스터 스폰 위치
 extern std::vector<std::pair<float, float>> GMonsterSpawns;   // 맵 로직 JSON에서 읽은 몬스터 스폰 위치
 
 namespace BotEngine

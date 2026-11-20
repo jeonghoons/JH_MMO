@@ -1,0 +1,106 @@
+[loadtest] host=127.0.0.1:8888 bots=200 ramp=20/s duration=90s threads=4 profile=hunt body=male chaos=0 out=C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100\loadtest.csv
+[bot] monster spawns loaded: 49 (../MapResource/Export/Continent01/Logic/Continent01_Logic.json)
+[bot] dungeon spawns loaded: 3 (../MapResource/Export/Continent01_Dungeon/Logic/Continent01_Dungeon_Logic.json)
+[bot] bot0 login: id=3 playerType=1 maxHp=650 attack=10 attackSpeed=1.00 moveSpeed=500.0 pos=(0, 0, 0)
+[bot] bot0 sees object id=3 type=1 playerType=1 template=0 pos=(19059,-19000)
+[bot] bot0 sees object id=100142 type=2 playerType=0 template=1002 pos=(19524,-15627)
+[bot] bot0 sees object id=2 type=1 playerType=1 template=0 pos=(19274,-18800)
+[bot] bot0 sees object id=100143 type=2 playerType=0 template=1002 pos=(19354,-14834)
+[bot] bot0 sees object id=100141 type=2 playerType=0 template=1002 pos=(19806,-14485)
+[bot] bot0 sees object id=4 type=1 playerType=1 template=0 pos=(19213,-19023)
+[bot] bot0 sees object id=5 type=1 playerType=1 template=0 pos=(18805,-18754)
+[bot] bot0 sees object id=6 type=1 playerType=1 template=0 pos=(19034,-19005)
+[bot] bot0 sees object id=7 type=1 playerType=1 template=0 pos=(18945,-18678)
+[bot] bot0 sees object id=8 type=1 playerType=1 template=0 pos=(18810,-18939)
+[bot] bot0 sees object id=9 type=1 playerType=1 template=0 pos=(18939,-18522)
+[bot] bot0 sees object id=10 type=1 playerType=1 template=0 pos=(19183,-18769)
+[bot] bot0 sees object id=11 type=1 playerType=1 template=0 pos=(18907,-18893)
+[bot] bot0 sees object id=12 type=1 playerType=1 template=0 pos=(19046,-18722)
+[bot] bot0 sees object id=13 type=1 playerType=1 template=0 pos=(18910,-18782)
+[bot] bot0 sees object id=14 type=1 playerType=1 template=0 pos=(19042,-18784)
+[bot] bot0 sees object id=15 type=1 playerType=1 template=0 pos=(18955,-18847)
+[bot] bot0 sees object id=16 type=1 playerType=1 template=0 pos=(18947,-18511)
+[bot] bot0 sees object id=17 type=1 playerType=1 template=0 pos=(19210,-18713)
+[bot] bot0 sees object id=19 type=1 playerType=1 template=0 pos=(18850,-18603)
+[bot] bot0 sees object id=18 type=1 playerType=1 template=0 pos=(18984,-18875)
+[bot] bot0 sees object id=20 type=1 playerType=1 template=0 pos=(19035,-18817)
+[bot] bot0 sees object id=21 type=1 playerType=1 template=0 pos=(19125,-18813)
+[bot] bot0 sees object id=22 type=1 playerType=1 template=0 pos=(18929,-18556)
+[bot] bot0 sees object id=23 type=1 playerType=1 template=0 pos=(19019,-18694)
+[bot] bot0 sees object id=25 type=1 playerType=1 template=0 pos=(18960,-18724)
+[bot] bot0 sees object id=24 type=1 playerType=1 template=0 pos=(19268,-18879)
+[bot] bot0 sees object id=26 type=1 playerType=1 template=0 pos=(19175,-18825)
+[bot] bot0 sees object id=27 type=1 playerType=1 template=0 pos=(18980,-18980)
+[bot] bot0 sees object id=28 type=1 playerType=1 template=0 pos=(19257,-18970)
+[bot] bot0 sees object id=29 type=1 playerType=1 template=0 pos=(19019,-18784)
+[bot] bot0 sees object id=30 type=1 playerType=1 template=0 pos=(18775,-18856)
+[bot] bot0 sees object id=31 type=1 playerType=1 template=0 pos=(19147,-18745)
+[bot] bot0 sees object id=32 type=1 playerType=1 template=0 pos=(18756,-18784)
+[bot] bot0 sees object id=33 type=1 playerType=1 template=0 pos=(18765,-18767)
+[bot] bot0 sees object id=34 type=1 playerType=1 template=0 pos=(19086,-18613)
+[bot] bot0 sees object id=35 type=1 playerType=1 template=0 pos=(18891,-18857)
+[bot] bot0 sees object id=36 type=1 playerType=1 template=0 pos=(18787,-18917)
+[bot] bot0 sees object id=37 type=1 playerType=1 template=0 pos=(19176,-18842)
+[bot] bot0 sees object id=38 type=1 playerType=1 template=0 pos=(18962,-18787)
+[bot] bot0 sees object id=40 type=1 playerType=1 template=0 pos=(18815,-19007)
+[bot] bot0 sees object id=39 type=1 playerType=1 template=0 pos=(19111,-18553)
+[bot] bot0 sees object id=41 type=1 playerType=1 template=0 pos=(18822,-18904)
+[bot] bot0 sees object id=42 type=1 playerType=1 template=0 pos=(18833,-18845)
+[bot] bot0 sees object id=43 type=1 playerType=1 template=0 pos=(18837,-18765)
+[bot] bot0 sees object id=44 type=1 playerType=1 template=0 pos=(19176,-18888)
+[bot] bot0 sees object id=45 type=1 playerType=1 template=0 pos=(19167,-18825)
+[bot] bot0 sees object id=46 type=1 playerType=1 template=0 pos=(19009,-18723)
+[bot] bot0 sees object id=47 type=1 playerType=1 template=0 pos=(18832,-18879)
+[bot] bot0 sees object id=48 type=1 playerType=1 template=0 pos=(18926,-18784)
+[bot] bot0 sees object id=49 type=1 playerType=1 template=0 pos=(19171,-18969)
+[bot] bot0 sees object id=50 type=1 playerType=1 template=0 pos=(19022,-19039)
+[bot] bot0 sees object id=51 type=1 playerType=1 template=0 pos=(19241,-18749)
+[bot] bot0 sees object id=52 type=1 playerType=1 template=0 pos=(19084,-18828)
+[bot] bot0 room change: kind=3 pos=(-2125, 144, 110) seq=1
+[bot] bot0 sees object id=3 type=1 playerType=1 template=0 pos=(-2125,144)
+[bot] bot0 sees object id=100202 type=2 playerType=0 template=1001 pos=(-660,-392)
+[bot] bot0 sees object id=100203 type=2 playerType=0 template=1001 pos=(-575,-452)
+[bot] bot0 sees object id=100204 type=2 playerType=0 template=1002 pos=(-481,-195)
+[bot] bot0 sees object id=100205 type=2 playerType=0 template=1001 pos=(-309,145)
+[bot] bot0 sees object id=100206 type=2 playerType=0 template=1001 pos=(27,172)
+[bot] bot0 sees object id=100207 type=2 playerType=0 template=1002 pos=(-196,390)
+[bot] bot0 sees object id=100208 type=2 playerType=0 template=1003 pos=(2209,-206)
+[bot] bot0 sees object id=2 type=1 playerType=1 template=0 pos=(-2329,84)
+[t=  5s] connected=100 inGame=100 connFail=0 closed=0 | ping p50/p95/p99/max=0.7/11.9/12.6/13.8 ms | sent/s=352 recv/s=12468 | server cpu=29% mem=31MB | maxBot=18.5KB/s botCpu=0%
+[bot] bot0 sees object id=1000000000 type=4 playerType=0 template=0 pos=(-1075,-268)
+[t= 10s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.4/10.6/11.6/12.8 ms | sent/s=804 recv/s=19329 | server cpu=40% mem=41MB | maxBot=15.6KB/s botCpu=28%
+[bot] bot0 sees object id=1000000001 type=4 playerType=0 template=0 pos=(-661,-386)
+[bot] bot0 sees object id=1000000002 type=4 playerType=0 template=8001 pos=(-660,-384)
+[t= 15s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/7.1/11.8/12.3 ms | sent/s=789 recv/s=5718 | server cpu=22% mem=43MB | maxBot=6.5KB/s botCpu=15%
+[bot] bot0 sees object id=1000000003 type=4 playerType=0 template=0 pos=(-598,-332)
+[bot] bot0 sees object id=1000000004 type=4 playerType=0 template=0 pos=(-630,-388)
+[t= 20s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/9.2/11.8/12.7 ms | sent/s=673 recv/s=2928 | server cpu=32% mem=43MB | maxBot=1.0KB/s botCpu=18%
+[t= 25s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.2/10.3/11.2/12.3 ms | sent/s=623 recv/s=2494 | server cpu=14% mem=43MB | maxBot=0.9KB/s botCpu=14%
+[bot] bot0 revived: hp=650 pos=(-2020, -34, 110) seq=8
+[t= 31s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.3/2.0/11.1/11.9 ms | sent/s=579 recv/s=2077 | server cpu=24% mem=44MB | maxBot=0.7KB/s botCpu=10%
+[t= 36s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.5/3.6/11.6/13.1 ms | sent/s=611 recv/s=1822 | server cpu=23% mem=44MB | maxBot=0.7KB/s botCpu=20%
+[bot] bot0 sees object id=1000000005 type=4 playerType=0 template=0 pos=(-1031,194)
+[bot] bot0 sees object id=1000000006 type=4 playerType=0 template=0 pos=(-422,347)
+[t= 41s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.6/2.2/12.0/14.2 ms | sent/s=619 recv/s=1599 | server cpu=38% mem=44MB | maxBot=0.6KB/s botCpu=17%
+[t= 46s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.6/3.0/12.1/13.3 ms | sent/s=653 recv/s=1344 | server cpu=19% mem=44MB | maxBot=0.5KB/s botCpu=14%
+[t= 51s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.3/3.9/11.1/12.1 ms | sent/s=665 recv/s=1297 | server cpu=17% mem=44MB | maxBot=0.5KB/s botCpu=10%
+[t= 56s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.3/2.0/11.3/12.2 ms | sent/s=620 recv/s=1192 | server cpu=12% mem=44MB | maxBot=0.4KB/s botCpu=10%
+[t= 61s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.3/1.5/11.9/12.2 ms | sent/s=596 recv/s=1147 | server cpu=6% mem=44MB | maxBot=0.4KB/s botCpu=5%
+[t= 66s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.3/2.6/12.0/14.2 ms | sent/s=596 recv/s=1167 | server cpu=15% mem=44MB | maxBot=0.4KB/s botCpu=9%
+[bot] bot0 revived: hp=650 pos=(-2383, -156, 110) seq=29
+[t= 71s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.3/1.8/11.5/12.3 ms | sent/s=634 recv/s=1232 | server cpu=16% mem=44MB | maxBot=0.4KB/s botCpu=9%
+[t= 76s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.4/2.2/11.2/12.1 ms | sent/s=630 recv/s=1297 | server cpu=14% mem=44MB | maxBot=0.4KB/s botCpu=8%
+[t= 81s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.3/2.1/11.2/12.2 ms | sent/s=622 recv/s=1259 | server cpu=10% mem=44MB | maxBot=0.4KB/s botCpu=9%
+[t= 87s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.3/1.4/11.9/12.2 ms | sent/s=604 recv/s=1257 | server cpu=10% mem=44MB | maxBot=0.4KB/s botCpu=7%
+[t= 90s] connected=200 inGame=200 connFail=0 closed=0 | ping p50/p95/p99/max=0.4/2.0/11.0/12.1 ms | sent/s=577 recv/s=1218 | server cpu=10% mem=44MB | maxBot=0.5KB/s botCpu=11%
+
+[summary] attempts=200 ok=200 fail=0 loginOk=200 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 1.0/3.4/3.9/4.4 ms (n=200)
+[summary] ping    p50/p95/p99/max = 0.3/5.3/11.7/14.2 ms (n=16896)
+[summary] moveCorrected=7306 pongs=16896 totalRecvBytes=19147170 peakBotRecv=18.5KB/s
+[summary] hunt: monsterAdded=2000 monsterDead(SC_DEAD)=1202 monsterRemoved(SC_REMOVE_OBJECT)=1802 damagePackets=19656
+[summary] attack: sent=21184 ok(own SC_ATTACK)=6217 rejected(SC_ATTACK_RESULT)=14967 by AttackResult: 2=1074 3=8994 4=998 7=16 8=2428 9=1457
+[summary] revive: selfDead(own SC_DEAD)=337 reviveSent(CS_REVIVE)=302 selfRevived(own SC_REVIVE)=302
+[summary] party: inParty(now)=200 inviteSent=100 inviteRecv(accepted)=100 stateRecv=600 leaveSent=0 result(SC_PARTY_RESULT)=0 by PartyResult:
+[summary] dungeon: enterSent=100 entered=200 exitSent=0 cleared=2 inDungeonNow=200
+[summary] room: roomChange(SC_ROOM_CHANGE)=200 moveRejected(SC_MOVE_RESULT)=0 by MoveResult:

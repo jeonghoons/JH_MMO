@@ -111,12 +111,13 @@ enum PacketId : int {
   SC_PARTY_RESULT = 2035,
   SC_ROOM_CHANGE = 2036,
   SC_MOVE_RESULT = 2037,
+  SC_DUNGEON_STATE = 2038,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_MOVE_RESULT;
+constexpr PacketId PacketId_MAX = SC_DUNGEON_STATE;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();
@@ -132,6 +133,58 @@ inline bool PacketId_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, PacketId* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<PacketId>(
     PacketId_descriptor(), name, value);
+}
+enum DungeonState : int {
+  DUNGEON_STATE_NONE = 0,
+  DUNGEON_STATE_IN_PROGRESS = 1,
+  DUNGEON_STATE_CLEARED = 2,
+  DungeonState_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  DungeonState_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool DungeonState_IsValid(int value);
+constexpr DungeonState DungeonState_MIN = DUNGEON_STATE_NONE;
+constexpr DungeonState DungeonState_MAX = DUNGEON_STATE_CLEARED;
+constexpr int DungeonState_ARRAYSIZE = DungeonState_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* DungeonState_descriptor();
+template<typename T>
+inline const std::string& DungeonState_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, DungeonState>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function DungeonState_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    DungeonState_descriptor(), enum_t_value);
+}
+inline bool DungeonState_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, DungeonState* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<DungeonState>(
+    DungeonState_descriptor(), name, value);
+}
+enum PortalKind : int {
+  PORTAL_KIND_NORMAL = 0,
+  PORTAL_KIND_DUNGEON_ENTER = 1,
+  PORTAL_KIND_DUNGEON_EXIT = 2,
+  PortalKind_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  PortalKind_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool PortalKind_IsValid(int value);
+constexpr PortalKind PortalKind_MIN = PORTAL_KIND_NORMAL;
+constexpr PortalKind PortalKind_MAX = PORTAL_KIND_DUNGEON_EXIT;
+constexpr int PortalKind_ARRAYSIZE = PortalKind_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PortalKind_descriptor();
+template<typename T>
+inline const std::string& PortalKind_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, PortalKind>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function PortalKind_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    PortalKind_descriptor(), enum_t_value);
+}
+inline bool PortalKind_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, PortalKind* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<PortalKind>(
+    PortalKind_descriptor(), name, value);
 }
 enum RoomKind : int {
   ROOM_KIND_NONE = 0,
@@ -605,6 +658,16 @@ template <> struct is_proto_enum< ::Protocol::PacketId> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::PacketId>() {
   return ::Protocol::PacketId_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::DungeonState> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::DungeonState>() {
+  return ::Protocol::DungeonState_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::PortalKind> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::PortalKind>() {
+  return ::Protocol::PortalKind_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::RoomKind> : ::std::true_type {};
 template <>

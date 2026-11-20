@@ -10,6 +10,8 @@ UE에서 맵 지오메트리를 다시 export할 때마다 NavGenerator를 다�
 ## 실행
 
 - 한 번에: `Server/MapResource/MapExport.bat <맵>`(UE 커맨드렛 `MapExportCommandlet` → NavGenerator). 이 환경에서는 bat을 전체 경로로 실행한다.
+- bat이 줄이 깨져 실행되지 않으면(2026-11-20 — `'MapExport'은(는) 내부 또는 외부 명령…`, 원인 미조사) 두 단계를 직접 실행한다: ① `"C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" <JM.uproject 전체 경로> -run=MapExport -Map=<맵> -unattended -nopause`(에디터가 켜져 있어도 됨, 출력 `[MapExport] … 익스포트 완료`) ② `Server/Server`에서 `../x64/Debug/NavGenerator.exe ../MapResource/Export/<맵>/Geometry/<맵>_Geo.bin Resource/Map/<맵>_Geo.nav`(작업 폴더에 생기는 `NavMesh_Output.obj`·`NavMesh_Samples.csv`는 지움).
+- 맵마다 따로 실행한다(출력 폴더가 맵 이름으로 나뉨 — `Continent01`, `Continent01_Dungeon`).
 - NavGenerator만: 빌드는 `msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:NavGenerator`.
 
 사용법: `NavGenerator.exe <GeoBinPath> <NavOutputPath>` (인자를 생략하면 기본 맵 `ParagonSample`을 사용해 `../MapResource/Export/<맵>/Geometry/<맵>_Geo.bin`을 읽어 `../Server/Resource/Map/<맵>_Geo.nav`로 출력). 

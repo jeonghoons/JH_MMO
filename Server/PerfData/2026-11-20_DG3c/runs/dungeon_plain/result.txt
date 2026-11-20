@@ -1,0 +1,5 @@
+PASS solo  (DB 아이템 89741, 골드 602758)
+PASS isolate  (DB 아이템 89741, 골드 602758)
+PASS cut_load  (DB 아이템 89741, 골드 602758)
+PASS dup_load  (DB 아이템 89741, 골드 602758)
+PASS revive  (DB 아이템 89741, 골드 602758)

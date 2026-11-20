@@ -1,0 +1,81 @@
+{
+	"mapName": "Continent01_Dungeon",
+	"version": 1,
+	"markers": [
+		{
+			"pointId": 0,
+			"type": "PlayerStart",
+			"area": "dungeon",
+			"position":
+			{
+				"x": -2200,
+				"y": 0,
+				"z": 100,
+				"yaw": 0
+			}
+		},
+		{
+			"pointId": 1,
+			"type": "MonsterSpawn",
+			"area": "dungeon",
+			"position":
+			{
+				"x": -585.26610312242951,
+				"y": -465.12136670371706,
+				"z": 100,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 300,
+			"maxCount": 2,
+			"zoneName": "hall"
+		},
+		{
+			"pointId": 2,
+			"type": "MonsterSpawn",
+			"area": "dungeon",
+			"position":
+			{
+				"x": -128.59516613910893,
+				"y": 220.63712814392034,
+				"z": 100,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 300,
+			"maxCount": 2,
+			"zoneName": "hall"
+		},
+		{
+			"pointId": 3,
+			"type": "MonsterSpawn",
+			"area": "dungeon",
+			"position":
+			{
+				"x": 2315.4843567706607,
+				"y": -57.276642107002338,
+				"z": 100,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1003,
+			"spawnRadius": 200,
+			"maxCount": 1,
+			"zoneName": "boss"
+		},
+		{
+			"pointId": 900,
+			"type": "PortalTrigger",
+			"area": "dungeon",
+			"position":
+			{
+				"x": -2800,
+				"y": 0,
+				"z": 100,
+				"yaw": 0
+			},
+			"triggerRadius": 200,
+			"targetMap": "Continent01",
+			"targetPointId": 100
+		}
+	]
+}

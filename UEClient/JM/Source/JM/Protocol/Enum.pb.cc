@@ -22,14 +22,14 @@ namespace _pbi = _pb::internal;
 
 namespace Protocol {
 }  // namespace Protocol
-static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[15];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[17];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_Enum_2eproto = nullptr;
 const uint32_t TableStruct_Enum_2eproto::offsets[1] = {};
 static constexpr ::_pbi::MigrationSchema* schemas = nullptr;
 static constexpr ::_pb::Message* const* file_default_instances = nullptr;
 
 const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\nEnum.proto\022\010Protocol*\363\t\n\010PacketId\022\014\n\010P"
+  "\n\nEnum.proto\022\010Protocol*\212\n\n\010PacketId\022\014\n\010P"
   "KT_NONE\020\000\022\r\n\010CS_LOGIN\020\350\007\022\016\n\tCS_SIGNUP\020\351\007"
   "\022\014\n\007CS_CHAT\020\353\007\022\014\n\007CS_MOVE\020\354\007\022\022\n\rCS_ENTER"
   "_ROOM\020\356\007\022\016\n\tCS_ATTACK\020\360\007\022\024\n\017CS_CHANGE_EQ"
@@ -60,100 +60,105 @@ const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   "\357\017\022\025\n\020SC_ATTACK_RESULT\020\360\017\022\024\n\017SC_PARTY_IN"
   "VITE\020\361\017\022\023\n\016SC_PARTY_STATE\020\362\017\022\024\n\017SC_PARTY"
   "_RESULT\020\363\017\022\023\n\016SC_ROOM_CHANGE\020\364\017\022\023\n\016SC_MO"
-  "VE_RESULT\020\365\017\"\006\010\352\007\020\352\007\"\006\010\355\007\020\355\007\"\006\010\357\007\020\357\007\"\006\010\322"
-  "\017\020\322\017\"\006\010\327\017\020\327\017*^\n\010RoomKind\022\022\n\016ROOM_KIND_NO"
-  "NE\020\000\022\022\n\016ROOM_KIND_TOWN\020\001\022\023\n\017ROOM_KIND_FI"
-  "ELD\020\002\022\025\n\021ROOM_KIND_DUNGEON\020\003*\265\001\n\nMoveRes"
-  "ult\022\024\n\020MOVE_RESULT_NONE\020\000\022\034\n\030MOVE_RESULT"
-  "_DUNGEON_FULL\020\001\022\032\n\026MOVE_RESULT_NOT_LEADE"
-  "R\020\002\022\037\n\033MOVE_RESULT_DUNGEON_CLEARED\020\003\022\027\n\023"
-  "MOVE_RESULT_TIMEOUT\020\004\022\035\n\031MOVE_RESULT_NOT"
-  "_AVAILABLE\020\005*\206\003\n\013PartyResult\022\025\n\021PARTY_RE"
-  "SULT_NONE\020\000\022\032\n\026PARTY_RESULT_NO_TARGET\020\001\022"
-  "\036\n\032PARTY_RESULT_OTHER_CHANNEL\020\002\022 \n\034PARTY"
-  "_RESULT_TARGET_IN_PARTY\020\003\022\034\n\030PARTY_RESUL"
-  "T_TARGET_BUSY\020\004\022\033\n\027PARTY_RESULT_PARTY_FU"
-  "LL\020\005\022\033\n\027PARTY_RESULT_NOT_LEADER\020\006\022\033\n\027PAR"
-  "TY_RESULT_IN_DUNGEON\020\007\022\031\n\025PARTY_RESULT_D"
-  "ECLINED\020\010\022\030\n\024PARTY_RESULT_TIMEOUT\020\t\022\032\n\026P"
-  "ARTY_RESULT_NO_INVITE\020\n\022\035\n\031PARTY_RESULT_"
-  "NOT_IN_PARTY\020\013\022\035\n\031PARTY_RESULT_TOO_FREQU"
-  "ENT\020\014*u\n\tMoveState\022\023\n\017MOVE_STATE_NONE\020\000\022"
-  "\023\n\017MOVE_STATE_IDLE\020\001\022\022\n\016MOVE_STATE_RUN\020\002"
-  "\022\023\n\017MOVE_STATE_JUMP\020\003\022\025\n\021MOVE_STATE_ATTA"
-  "CK\020\004*\233\001\n\nObjectType\022\024\n\020OBJECT_TYPE_NONE\020"
-  "\000\022\026\n\022OBJECT_TYPE_PLAYER\020\001\022\027\n\023OBJECT_TYPE"
-  "_MONSTER\020\002\022\023\n\017OBJECT_TYPE_NPC\020\003\022\024\n\020OBJEC"
-  "T_TYPE_ITEM\020\004\022\033\n\027OBJECT_TYPE_ENVIRONMENT"
-  "\020\005*b\n\nPlayerType\022\024\n\020PLAYER_TYPE_NONE\020\000\022\024"
-  "\n\020PLAYER_TYPE_MALE\020\001\022\026\n\022PLAYER_TYPE_FEMA"
-  "LE\020\002\"\004\010\003\020\003\"\004\010\004\020\004\"\004\010\005\020\005*\274\001\n\tEquipPart\022\023\n\017"
-  "EQUIP_PART_NONE\020\000\022\023\n\017EQUIP_PART_HEAD\020\001\022\022"
-  "\n\016EQUIP_PART_TOP\020\002\022\025\n\021EQUIP_PART_BOTTOM\020"
-  "\003\022\025\n\021EQUIP_PART_GLOVES\020\004\022\024\n\020EQUIP_PART_B"
-  "OOTS\020\005\022\025\n\021EQUIP_PART_WEAPON\020\006\022\026\n\022EQUIP_P"
-  "ART_OFFHAND\020\007*\307\003\n\013EquipResult\022\025\n\021EQUIP_R"
-  "ESULT_NONE\020\000\022\030\n\024EQUIP_RESULT_SUCCESS\020\001\022\030"
-  "\n\024EQUIP_RESULT_NO_ITEM\020\002\022\033\n\027EQUIP_RESULT"
-  "_WRONG_SLOT\020\003\022\027\n\023EQUIP_RESULT_ACTING\020\004\022\025"
-  "\n\021EQUIP_RESULT_DEAD\020\005\022\035\n\031EQUIP_RESULT_TO"
-  "O_FREQUENT\020\006\022\034\n\030EQUIP_RESULT_NOT_IN_ROOM"
-  "\020\007\022\033\n\027EQUIP_RESULT_NEED_SWORD\020\010\022\032\n\026EQUIP"
-  "_RESULT_NOT_OWNED\020\t\022\036\n\032EQUIP_RESULT_LEVE"
-  "L_TOO_LOW\020\n\022\037\n\033EQUIP_RESULT_INVENTORY_FU"
-  "LL\020\013\022\025\n\021EQUIP_RESULT_BUSY\020\014\022\031\n\025EQUIP_RES"
-  "ULT_IN_TRADE\020\r\022\031\n\025EQUIP_RESULT_DB_ERROR\020"
-  "\016\022\034\n\030EQUIP_RESULT_NOT_ALLOWED\020\017*\302\002\n\014Atta"
-  "ckResult\022\026\n\022ATTACK_RESULT_NONE\020\000\022\026\n\022ATTA"
-  "CK_RESULT_DEAD\020\001\022\032\n\026ATTACK_RESULT_HIT_ST"
-  "UN\020\002\022\030\n\024ATTACK_RESULT_ACTING\020\003\022\032\n\026ATTACK"
-  "_RESULT_COOLDOWN\020\004\022\032\n\026ATTACK_RESULT_NO_S"
-  "KILL\020\005\022\036\n\032ATTACK_RESULT_SWAP_PENDING\020\006\022\033"
-  "\n\027ATTACK_RESULT_NO_TARGET\020\007\022\035\n\031ATTACK_RE"
-  "SULT_TARGET_DEAD\020\010\022\031\n\025ATTACK_RESULT_TOO_"
-  "FAR\020\t\022\035\n\031ATTACK_RESULT_BAD_REQUEST\020\n*\302\004\n"
-  "\nItemResult\022\024\n\020ITEM_RESULT_NONE\020\000\022\027\n\023ITE"
-  "M_RESULT_SUCCESS\020\001\022\033\n\027ITEM_RESULT_NOT_IN"
-  "_ROOM\020\002\022\024\n\020ITEM_RESULT_DEAD\020\003\022\024\n\020ITEM_RE"
-  "SULT_BUSY\020\004\022\034\n\030ITEM_RESULT_TOO_FREQUENT\020"
-  "\005\022\033\n\027ITEM_RESULT_NOT_ALLOWED\020\006\022\027\n\023ITEM_R"
-  "ESULT_NO_ITEM\020\007\022\027\n\023ITEM_RESULT_TOO_FAR\020\010"
-  "\022\031\n\025ITEM_RESULT_NOT_OWNER\020\t\022\036\n\032ITEM_RESU"
-  "LT_INVENTORY_FULL\020\n\022\031\n\025ITEM_RESULT_GOLD_"
-  "FULL\020\013\022\030\n\024ITEM_RESULT_IN_TRADE\020\014\022\032\n\026ITEM"
-  "_RESULT_NOT_USABLE\020\r\022\027\n\023ITEM_RESULT_HP_F"
-  "ULL\020\016\022\030\n\024ITEM_RESULT_COOLDOWN\020\017\022\035\n\031ITEM_"
-  "RESULT_LEVEL_TOO_LOW\020\020\022\030\n\024ITEM_RESULT_DB"
-  "_ERROR\020\021\022\030\n\024ITEM_RESULT_BAD_SLOT\020\022\022\037\n\033IT"
-  "EM_RESULT_NOT_ENOUGH_GOLD\020\023\022\034\n\030ITEM_RESU"
-  "LT_NOT_SELLABLE\020\024*\367\003\n\013TradeResult\022\025\n\021TRA"
-  "DE_RESULT_NONE\020\000\022\030\n\024TRADE_RESULT_SUCCESS"
-  "\020\001\022\032\n\026TRADE_RESULT_NO_TARGET\020\002\022\030\n\024TRADE_"
-  "RESULT_TOO_FAR\020\003\022\034\n\030TRADE_RESULT_TARGET_"
-  "BUSY\020\004\022\031\n\025TRADE_RESULT_DECLINED\020\005\022\030\n\024TRA"
-  "DE_RESULT_TIMEOUT\020\006\022\032\n\026TRADE_RESULT_CANC"
-  "ELLED\020\007\022\025\n\021TRADE_RESULT_DEAD\020\010\022\035\n\031TRADE_"
-  "RESULT_DISCONNECTED\020\t\022\027\n\023TRADE_RESULT_LO"
-  "CKED\020\n\022\036\n\032TRADE_RESULT_INVALID_OFFER\020\013\022\037"
-  "\n\033TRADE_RESULT_INVENTORY_FULL\020\014\022\032\n\026TRADE"
-  "_RESULT_GOLD_FULL\020\r\022\025\n\021TRADE_RESULT_BUSY"
-  "\020\016\022\034\n\030TRADE_RESULT_NOT_ALLOWED\020\017\022\031\n\025TRAD"
-  "E_RESULT_DB_ERROR\020\020\022\026\n\022TRADE_RESULT_MOVE"
-  "D\020\021*t\n\nTradePhase\022\024\n\020TRADE_PHASE_NONE\020\000\022"
-  "\032\n\026TRADE_PHASE_REQUESTING\020\001\022\030\n\024TRADE_PHA"
-  "SE_OFFERING\020\002\022\032\n\026TRADE_PHASE_CONFIRMING\020"
-  "\003*\326\001\n\013LoginResult\022\025\n\021LOGIN_RESULT_NONE\020\000"
-  "\022\030\n\024LOGIN_RESULT_SUCCESS\020\001\022\033\n\027LOGIN_RESU"
-  "LT_NO_ACCOUNT\020\002\022\037\n\033LOGIN_RESULT_WRONG_PA"
-  "SSWORD\020\003\022\"\n\036LOGIN_RESULT_ALREADY_LOGGED_"
-  "IN\020\004\022\035\n\031LOGIN_RESULT_SERVER_ERROR\020\005\022\025\n\021L"
-  "OGIN_RESULT_BUSY\020\006*C\n\nKickReason\022\024\n\020KICK"
-  "_REASON_NONE\020\000\022\037\n\033KICK_REASON_DUPLICATE_"
-  "LOGIN\020\001b\006proto3"
+  "VE_RESULT\020\365\017\022\025\n\020SC_DUNGEON_STATE\020\366\017\"\006\010\352\007"
+  "\020\352\007\"\006\010\355\007\020\355\007\"\006\010\357\007\020\357\007\"\006\010\322\017\020\322\017\"\006\010\327\017\020\327\017*`\n\014D"
+  "ungeonState\022\026\n\022DUNGEON_STATE_NONE\020\000\022\035\n\031D"
+  "UNGEON_STATE_IN_PROGRESS\020\001\022\031\n\025DUNGEON_ST"
+  "ATE_CLEARED\020\002*a\n\nPortalKind\022\026\n\022PORTAL_KI"
+  "ND_NORMAL\020\000\022\035\n\031PORTAL_KIND_DUNGEON_ENTER"
+  "\020\001\022\034\n\030PORTAL_KIND_DUNGEON_EXIT\020\002*^\n\010Room"
+  "Kind\022\022\n\016ROOM_KIND_NONE\020\000\022\022\n\016ROOM_KIND_TO"
+  "WN\020\001\022\023\n\017ROOM_KIND_FIELD\020\002\022\025\n\021ROOM_KIND_D"
+  "UNGEON\020\003*\265\001\n\nMoveResult\022\024\n\020MOVE_RESULT_N"
+  "ONE\020\000\022\034\n\030MOVE_RESULT_DUNGEON_FULL\020\001\022\032\n\026M"
+  "OVE_RESULT_NOT_LEADER\020\002\022\037\n\033MOVE_RESULT_D"
+  "UNGEON_CLEARED\020\003\022\027\n\023MOVE_RESULT_TIMEOUT\020"
+  "\004\022\035\n\031MOVE_RESULT_NOT_AVAILABLE\020\005*\206\003\n\013Par"
+  "tyResult\022\025\n\021PARTY_RESULT_NONE\020\000\022\032\n\026PARTY"
+  "_RESULT_NO_TARGET\020\001\022\036\n\032PARTY_RESULT_OTHE"
+  "R_CHANNEL\020\002\022 \n\034PARTY_RESULT_TARGET_IN_PA"
+  "RTY\020\003\022\034\n\030PARTY_RESULT_TARGET_BUSY\020\004\022\033\n\027P"
+  "ARTY_RESULT_PARTY_FULL\020\005\022\033\n\027PARTY_RESULT"
+  "_NOT_LEADER\020\006\022\033\n\027PARTY_RESULT_IN_DUNGEON"
+  "\020\007\022\031\n\025PARTY_RESULT_DECLINED\020\010\022\030\n\024PARTY_R"
+  "ESULT_TIMEOUT\020\t\022\032\n\026PARTY_RESULT_NO_INVIT"
+  "E\020\n\022\035\n\031PARTY_RESULT_NOT_IN_PARTY\020\013\022\035\n\031PA"
+  "RTY_RESULT_TOO_FREQUENT\020\014*u\n\tMoveState\022\023"
+  "\n\017MOVE_STATE_NONE\020\000\022\023\n\017MOVE_STATE_IDLE\020\001"
+  "\022\022\n\016MOVE_STATE_RUN\020\002\022\023\n\017MOVE_STATE_JUMP\020"
+  "\003\022\025\n\021MOVE_STATE_ATTACK\020\004*\233\001\n\nObjectType\022"
+  "\024\n\020OBJECT_TYPE_NONE\020\000\022\026\n\022OBJECT_TYPE_PLA"
+  "YER\020\001\022\027\n\023OBJECT_TYPE_MONSTER\020\002\022\023\n\017OBJECT"
+  "_TYPE_NPC\020\003\022\024\n\020OBJECT_TYPE_ITEM\020\004\022\033\n\027OBJ"
+  "ECT_TYPE_ENVIRONMENT\020\005*b\n\nPlayerType\022\024\n\020"
+  "PLAYER_TYPE_NONE\020\000\022\024\n\020PLAYER_TYPE_MALE\020\001"
+  "\022\026\n\022PLAYER_TYPE_FEMALE\020\002\"\004\010\003\020\003\"\004\010\004\020\004\"\004\010\005"
+  "\020\005*\274\001\n\tEquipPart\022\023\n\017EQUIP_PART_NONE\020\000\022\023\n"
+  "\017EQUIP_PART_HEAD\020\001\022\022\n\016EQUIP_PART_TOP\020\002\022\025"
+  "\n\021EQUIP_PART_BOTTOM\020\003\022\025\n\021EQUIP_PART_GLOV"
+  "ES\020\004\022\024\n\020EQUIP_PART_BOOTS\020\005\022\025\n\021EQUIP_PART"
+  "_WEAPON\020\006\022\026\n\022EQUIP_PART_OFFHAND\020\007*\307\003\n\013Eq"
+  "uipResult\022\025\n\021EQUIP_RESULT_NONE\020\000\022\030\n\024EQUI"
+  "P_RESULT_SUCCESS\020\001\022\030\n\024EQUIP_RESULT_NO_IT"
+  "EM\020\002\022\033\n\027EQUIP_RESULT_WRONG_SLOT\020\003\022\027\n\023EQU"
+  "IP_RESULT_ACTING\020\004\022\025\n\021EQUIP_RESULT_DEAD\020"
+  "\005\022\035\n\031EQUIP_RESULT_TOO_FREQUENT\020\006\022\034\n\030EQUI"
+  "P_RESULT_NOT_IN_ROOM\020\007\022\033\n\027EQUIP_RESULT_N"
+  "EED_SWORD\020\010\022\032\n\026EQUIP_RESULT_NOT_OWNED\020\t\022"
+  "\036\n\032EQUIP_RESULT_LEVEL_TOO_LOW\020\n\022\037\n\033EQUIP"
+  "_RESULT_INVENTORY_FULL\020\013\022\025\n\021EQUIP_RESULT"
+  "_BUSY\020\014\022\031\n\025EQUIP_RESULT_IN_TRADE\020\r\022\031\n\025EQ"
+  "UIP_RESULT_DB_ERROR\020\016\022\034\n\030EQUIP_RESULT_NO"
+  "T_ALLOWED\020\017*\302\002\n\014AttackResult\022\026\n\022ATTACK_R"
+  "ESULT_NONE\020\000\022\026\n\022ATTACK_RESULT_DEAD\020\001\022\032\n\026"
+  "ATTACK_RESULT_HIT_STUN\020\002\022\030\n\024ATTACK_RESUL"
+  "T_ACTING\020\003\022\032\n\026ATTACK_RESULT_COOLDOWN\020\004\022\032"
+  "\n\026ATTACK_RESULT_NO_SKILL\020\005\022\036\n\032ATTACK_RES"
+  "ULT_SWAP_PENDING\020\006\022\033\n\027ATTACK_RESULT_NO_T"
+  "ARGET\020\007\022\035\n\031ATTACK_RESULT_TARGET_DEAD\020\010\022\031"
+  "\n\025ATTACK_RESULT_TOO_FAR\020\t\022\035\n\031ATTACK_RESU"
+  "LT_BAD_REQUEST\020\n*\302\004\n\nItemResult\022\024\n\020ITEM_"
+  "RESULT_NONE\020\000\022\027\n\023ITEM_RESULT_SUCCESS\020\001\022\033"
+  "\n\027ITEM_RESULT_NOT_IN_ROOM\020\002\022\024\n\020ITEM_RESU"
+  "LT_DEAD\020\003\022\024\n\020ITEM_RESULT_BUSY\020\004\022\034\n\030ITEM_"
+  "RESULT_TOO_FREQUENT\020\005\022\033\n\027ITEM_RESULT_NOT"
+  "_ALLOWED\020\006\022\027\n\023ITEM_RESULT_NO_ITEM\020\007\022\027\n\023I"
+  "TEM_RESULT_TOO_FAR\020\010\022\031\n\025ITEM_RESULT_NOT_"
+  "OWNER\020\t\022\036\n\032ITEM_RESULT_INVENTORY_FULL\020\n\022"
+  "\031\n\025ITEM_RESULT_GOLD_FULL\020\013\022\030\n\024ITEM_RESUL"
+  "T_IN_TRADE\020\014\022\032\n\026ITEM_RESULT_NOT_USABLE\020\r"
+  "\022\027\n\023ITEM_RESULT_HP_FULL\020\016\022\030\n\024ITEM_RESULT"
+  "_COOLDOWN\020\017\022\035\n\031ITEM_RESULT_LEVEL_TOO_LOW"
+  "\020\020\022\030\n\024ITEM_RESULT_DB_ERROR\020\021\022\030\n\024ITEM_RES"
+  "ULT_BAD_SLOT\020\022\022\037\n\033ITEM_RESULT_NOT_ENOUGH"
+  "_GOLD\020\023\022\034\n\030ITEM_RESULT_NOT_SELLABLE\020\024*\367\003"
+  "\n\013TradeResult\022\025\n\021TRADE_RESULT_NONE\020\000\022\030\n\024"
+  "TRADE_RESULT_SUCCESS\020\001\022\032\n\026TRADE_RESULT_N"
+  "O_TARGET\020\002\022\030\n\024TRADE_RESULT_TOO_FAR\020\003\022\034\n\030"
+  "TRADE_RESULT_TARGET_BUSY\020\004\022\031\n\025TRADE_RESU"
+  "LT_DECLINED\020\005\022\030\n\024TRADE_RESULT_TIMEOUT\020\006\022"
+  "\032\n\026TRADE_RESULT_CANCELLED\020\007\022\025\n\021TRADE_RES"
+  "ULT_DEAD\020\010\022\035\n\031TRADE_RESULT_DISCONNECTED\020"
+  "\t\022\027\n\023TRADE_RESULT_LOCKED\020\n\022\036\n\032TRADE_RESU"
+  "LT_INVALID_OFFER\020\013\022\037\n\033TRADE_RESULT_INVEN"
+  "TORY_FULL\020\014\022\032\n\026TRADE_RESULT_GOLD_FULL\020\r\022"
+  "\025\n\021TRADE_RESULT_BUSY\020\016\022\034\n\030TRADE_RESULT_N"
+  "OT_ALLOWED\020\017\022\031\n\025TRADE_RESULT_DB_ERROR\020\020\022"
+  "\026\n\022TRADE_RESULT_MOVED\020\021*t\n\nTradePhase\022\024\n"
+  "\020TRADE_PHASE_NONE\020\000\022\032\n\026TRADE_PHASE_REQUE"
+  "STING\020\001\022\030\n\024TRADE_PHASE_OFFERING\020\002\022\032\n\026TRA"
+  "DE_PHASE_CONFIRMING\020\003*\326\001\n\013LoginResult\022\025\n"
+  "\021LOGIN_RESULT_NONE\020\000\022\030\n\024LOGIN_RESULT_SUC"
+  "CESS\020\001\022\033\n\027LOGIN_RESULT_NO_ACCOUNT\020\002\022\037\n\033L"
+  "OGIN_RESULT_WRONG_PASSWORD\020\003\022\"\n\036LOGIN_RE"
+  "SULT_ALREADY_LOGGED_IN\020\004\022\035\n\031LOGIN_RESULT"
+  "_SERVER_ERROR\020\005\022\025\n\021LOGIN_RESULT_BUSY\020\006*C"
+  "\n\nKickReason\022\024\n\020KICK_REASON_NONE\020\000\022\037\n\033KI"
+  "CK_REASON_DUPLICATE_LOGIN\020\001b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_Enum_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Enum_2eproto = {
-    false, false, 4815, descriptor_table_protodef_Enum_2eproto,
+    false, false, 5035, descriptor_table_protodef_Enum_2eproto,
     "Enum.proto",
     &descriptor_table_Enum_2eproto_once, nullptr, 0, 0,
     schemas, file_default_instances, TableStruct_Enum_2eproto::offsets,
@@ -236,6 +241,37 @@ bool PacketId_IsValid(int value) {
     case 2035:
     case 2036:
     case 2037:
+    case 2038:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* DungeonState_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
+  return file_level_enum_descriptors_Enum_2eproto[1];
+}
+bool DungeonState_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PortalKind_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
+  return file_level_enum_descriptors_Enum_2eproto[2];
+}
+bool PortalKind_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
       return true;
     default:
       return false;
@@ -244,7 +280,7 @@ bool PacketId_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* RoomKind_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[1];
+  return file_level_enum_descriptors_Enum_2eproto[3];
 }
 bool RoomKind_IsValid(int value) {
   switch (value) {
@@ -260,7 +296,7 @@ bool RoomKind_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MoveResult_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[2];
+  return file_level_enum_descriptors_Enum_2eproto[4];
 }
 bool MoveResult_IsValid(int value) {
   switch (value) {
@@ -278,7 +314,7 @@ bool MoveResult_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PartyResult_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[3];
+  return file_level_enum_descriptors_Enum_2eproto[5];
 }
 bool PartyResult_IsValid(int value) {
   switch (value) {
@@ -303,7 +339,7 @@ bool PartyResult_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MoveState_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[4];
+  return file_level_enum_descriptors_Enum_2eproto[6];
 }
 bool MoveState_IsValid(int value) {
   switch (value) {
@@ -320,7 +356,7 @@ bool MoveState_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ObjectType_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[5];
+  return file_level_enum_descriptors_Enum_2eproto[7];
 }
 bool ObjectType_IsValid(int value) {
   switch (value) {
@@ -338,7 +374,7 @@ bool ObjectType_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PlayerType_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[6];
+  return file_level_enum_descriptors_Enum_2eproto[8];
 }
 bool PlayerType_IsValid(int value) {
   switch (value) {
@@ -353,7 +389,7 @@ bool PlayerType_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EquipPart_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[7];
+  return file_level_enum_descriptors_Enum_2eproto[9];
 }
 bool EquipPart_IsValid(int value) {
   switch (value) {
@@ -373,7 +409,7 @@ bool EquipPart_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EquipResult_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[8];
+  return file_level_enum_descriptors_Enum_2eproto[10];
 }
 bool EquipResult_IsValid(int value) {
   switch (value) {
@@ -401,7 +437,7 @@ bool EquipResult_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AttackResult_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[9];
+  return file_level_enum_descriptors_Enum_2eproto[11];
 }
 bool AttackResult_IsValid(int value) {
   switch (value) {
@@ -424,7 +460,7 @@ bool AttackResult_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ItemResult_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[10];
+  return file_level_enum_descriptors_Enum_2eproto[12];
 }
 bool ItemResult_IsValid(int value) {
   switch (value) {
@@ -457,7 +493,7 @@ bool ItemResult_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* TradeResult_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[11];
+  return file_level_enum_descriptors_Enum_2eproto[13];
 }
 bool TradeResult_IsValid(int value) {
   switch (value) {
@@ -487,7 +523,7 @@ bool TradeResult_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* TradePhase_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[12];
+  return file_level_enum_descriptors_Enum_2eproto[14];
 }
 bool TradePhase_IsValid(int value) {
   switch (value) {
@@ -503,7 +539,7 @@ bool TradePhase_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* LoginResult_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[13];
+  return file_level_enum_descriptors_Enum_2eproto[15];
 }
 bool LoginResult_IsValid(int value) {
   switch (value) {
@@ -522,7 +558,7 @@ bool LoginResult_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* KickReason_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[14];
+  return file_level_enum_descriptors_Enum_2eproto[16];
 }
 bool KickReason_IsValid(int value) {
   switch (value) {

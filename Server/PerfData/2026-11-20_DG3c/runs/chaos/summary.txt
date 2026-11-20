@@ -1,0 +1,9 @@
+server alive
+WARN/ERROR 줄 수: 0
+first | sessions=0 rooms=2 players=0 monsters=201 forced)=0/0/0 sessionObjs/handles idleKick/sendqKick)=1/310 chMax)=1/0/0 ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 
+peak dungeons | 250
+last  | sessions=0 rooms=2 players=0 monsters=201 forced)=0/0/0 sessionObjs/handles idleKick/sendqKick)=1/317 chMax)=1/0/0 ownerBad)=7957/7326/619/0/12 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/2600/2600 0 
+[summary] attempts=400 ok=400 fail=0 loginOk=400 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] party: inParty(now)=40 inviteSent=3321 inviteRecv(accepted)=638 stateRecv=4080 leaveSent=669 result(SC_PARTY_RESULT)=2734 by PartyResult: IN_DUNGEON=2683 NOT_IN_PARTY=51
+[summary] dungeon: enterSent=1619 entered=1340 exitSent=1414 cleared=0 inDungeonNow=254
+[summary] room: roomChange(SC_ROOM_CHANGE)=2761 moveRejected(SC_MOVE_RESULT)=619 by MoveResult: DUNGEON_FULL=452 NOT_LEADER=167

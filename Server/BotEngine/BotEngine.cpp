@@ -41,6 +41,7 @@ using BotEngine::NowUs;
 BotConfig GConfig;
 BotCounters GStat;
 vector<pair<float, float>> GMonsterSpawns;
+vector<pair<float, float>> GDungeonSpawns;
 
 static atomic<bool> GRunning{ true };
 static atomic<bool> GShuttingDown{ false };
@@ -137,6 +138,10 @@ struct Bot
 	// Room 이동(DG3b): SC_ROOM_CHANGE로 아는 Room 종류. roomKind 0 = 아직 모름(로그인 직후). inField는 사냥터 Room일 때 true
 	int roomKind = 0;
 	bool inField = false;
+	// 던전(DG3c, --dungeon): 지금 있는 레벨 이름(로그인 응답 → SC_ROOM_CHANGE), 다음 입구 요청 시각, 출구 요청 시각(0 = 안 나감)
+	string levelName;
+	long long nextDungeonEnterUs = 0;
+	long long dungeonExitAtUs = 0;
 	long long nextHuntPortalUs = 0;   // 사냥 봇이 마을 포털 요청을 다시 보낼 시각(응답이 없으면 1초 뒤)
 	// 파티(DG2, --party-size): 마지막 SC_PARTY_STATE의 파티장·구성원(오브젝트 id). 파티가 없으면 partyLeaderId 0
 	int partyLeaderId = 0;
@@ -202,6 +207,23 @@ static void SendMove(Bot& b, long long now, float nx, float ny, float yaw, Proto
 // 마을 Room의 문 포털은 101~103이고 사냥터 쪽은 201~203이다. 던전 입구(100)·정거장(110)은 다른 레벨로 가므로 봇은 쓰지 않는다.
 static constexpr float kPortalStopCm = 150.f;   // 사냥 봇이 포털 앞에서 멈추는 거리(포털 반경 300cm 안쪽)
 static constexpr float kPortalSendCm = 200.f;   // 이 거리 안에 들어오면 CS_PORTAL을 보낸다
+
+// 던전 포털 id(임시 던전 레벨, DG3c): 사냥터의 입구 100, 던전 안의 출구 900
+static constexpr int kDungeonEntrancePortal = 100;
+static constexpr int kDungeonExitPortal = 900;
+
+static bool HasPortal(const Bot& b, int id)
+{
+	for (const array<float, 3>& p : b.portals)
+		if (static_cast<int>(p[2]) == id) return true;
+	return false;
+}
+
+// hunt 봇이 찾아갈 몬스터 스폰 목록: 던전 Room 안이면 던전 레벨의 것
+static const vector<pair<float, float>>& HuntSpawns(const Bot& b)
+{
+	return b.roomKind == static_cast<int>(Protocol::ROOM_KIND_DUNGEON) ? GDungeonSpawns : GMonsterSpawns;
+}
 
 static bool IsTownDoorPortal(float id) { return id >= 101.f && id <= 103.f; }
 
@@ -384,6 +406,8 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 			samples.loginUs.push_back(static_cast<uint32_t>(NowUs() - b.loginSentUs));
 		}
 
+		b.levelName = pkt.map_name();
+
 		Protocol::CS_ENTER_ROOM_PACKET enter;
 		enter.set_result(true);
 		SendPacket(b, Protocol::CS_ENTER_ROOM, enter);
@@ -434,9 +458,9 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 			b.moveFailures = min(b.moveFailures + 3, 8);
 			b.hasGoal = false;   // 막혔으면 무작위 이동 목표를 새로 고른다
 			// 서버가 벽 통과를 막으므로 직선으로 못 가는 스폰이 있다. 같은 목표로 여러 번 막히면 다른 스폰을 고른다.
-			if (++b.blockedCount >= 6 && !GMonsterSpawns.empty())
+			if (++b.blockedCount >= 6 && !HuntSpawns(b).empty())
 			{
-				b.spawnTarget = rand() % static_cast<int>(GMonsterSpawns.size());
+				b.spawnTarget = rand() % static_cast<int>(HuntSpawns(b).size());
 				b.blockedCount = 0;
 			}
 		}
@@ -532,10 +556,32 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 	case Protocol::SC_ROOM_CHANGE:
 	{
 		// 내 Room이 바뀌었다(문 포털, 부활, 시험 키의 사냥터 배치). 이전 Room의 몬스터·포털·상점 NPC는 버리고,
-		// 뒤따르는 SC_ADD_OBJECT·SC_PORTAL_LIST로 다시 채운다. 죽은 상태(dead)는 건드리지 않는다(부활은 뒤따르는 SC_REVIVE). map_name은 지금은 무시한다.
+		// 뒤따르는 SC_ADD_OBJECT·SC_PORTAL_LIST로 다시 채운다. 죽은 상태(dead)는 건드리지 않는다(부활은 뒤따르는 SC_REVIVE).
+		// 레벨이 바뀌면(던전 입장·퇴장, DG3c) 실제 클라이언트는 그 레벨을 연 뒤 CS_ENTER_ROOM을 보낸다 — 봇은 열 것이 없어 곧바로 보낸다.
 		Protocol::SC_ROOM_CHANGE_PACKET pkt;
 		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
 		GStat.roomChange.fetch_add(1);
+		if (pkt.map_name() != b.levelName)
+		{
+			b.levelName = pkt.map_name();
+			Protocol::CS_ENTER_ROOM_PACKET loaded;
+			loaded.set_result(true);
+			SendPacket(b, Protocol::CS_ENTER_ROOM, loaded);
+		}
+		{
+			const bool wasDungeon = b.roomKind == static_cast<int>(Protocol::ROOM_KIND_DUNGEON);
+			const bool isDungeon = pkt.kind() == Protocol::ROOM_KIND_DUNGEON;
+			if (isDungeon != wasDungeon) GStat.inDungeon.fetch_add(isDungeon ? 1 : -1);
+			if (isDungeon)
+			{
+				GStat.dungeonEntered.fetch_add(1);
+				const int stayMs = GConfig.dungeonStaySec * 1000;
+				b.dungeonExitAtUs = stayMs > 0 ? NowUs() + (stayMs * 3 / 4 + rand() % (stayMs / 2 + 1)) * 1000LL : 0;
+			}
+			else
+				b.dungeonExitAtUs = 0;
+			b.nextDungeonEnterUs = NowUs() + 1500 * 1000LL;   // 포털 재사용 대기(1초) 뒤에 다시 요청
+		}
 		b.roomKind = static_cast<int>(pkt.kind());
 		b.inField = (pkt.kind() == Protocol::ROOM_KIND_FIELD);
 		b.monsters.clear();
@@ -555,6 +601,13 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		b.nextHuntPortalUs = 0;
 		if (b.index == 0)
 			printf("[bot] bot0 room change: kind=%d pos=(%.0f, %.0f, %.0f) seq=%u\n", static_cast<int>(pkt.kind()), b.x, b.y, b.z, pkt.correction_seq());
+		break;
+	}
+	case Protocol::SC_DUNGEON_STATE:
+	{
+		Protocol::SC_DUNGEON_STATE_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		if (pkt.state() == Protocol::DUNGEON_STATE_CLEARED) GStat.dungeonCleared.fetch_add(1);
 		break;
 	}
 	case Protocol::SC_MOVE_RESULT:
@@ -803,7 +856,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 				const bool canAct = !b.dead || GConfig.chaos;
 
 				// hunt 프로필은 주변에 알려진 몬스터가 없을 때만 무작위로 돌아다니며 몬스터를 찾는다.
-				if (canAct && GConfig.move && now >= b.nextMoveUs && (!GConfig.hunt || b.monsters.empty()))
+				if (canAct && GConfig.move && now >= b.nextMoveUs && (!GConfig.hunt || b.monsters.empty() || (GConfig.dungeon && b.roomKind != static_cast<int>(Protocol::ROOM_KIND_DUNGEON))))
 				{
 					b.nextMoveUs = now + GConfig.moveIntervalMs * 1000LL;
 					const float step = min(300.f, MaxStep(b, now));
@@ -843,26 +896,28 @@ static void WorkerMain(int workerIndex, int workerCount)
 							b.nextMoveUs = now + 60 * 1000LL;
 						}
 					}
-					else if (GConfig.zone && zoneDist > GConfig.zoneR && b.moveFailures < 3)
+					else if (GConfig.zone && b.roomKind != static_cast<int>(Protocol::ROOM_KIND_DUNGEON) && zoneDist > GConfig.zoneR && b.moveFailures < 3)
 					{
 						// 핫존 밖이면 중심 쪽으로 걸어간다(길 찾기 없음 — 막히면 아래 무작위 이동으로 잠시 비킨다).
 						const float stride = min({ 500.f, zoneDist, MaxStep(b, now) });
 						nx = b.x + zdx / zoneDist * stride; ny = b.y + zdy / zoneDist * stride;
 						yaw = atan2f(zdy, zdx) * 180.f / 3.14159265f;
 					}
-					else if (!GConfig.zone && GConfig.hunt && !GMonsterSpawns.empty() && b.moveFailures < 3)
+					else if ((!GConfig.zone || b.roomKind == static_cast<int>(Protocol::ROOM_KIND_DUNGEON)) && GConfig.hunt && !HuntSpawns(b).empty() && b.moveFailures < 3)
 					{
 						// 맵 정보가 있으면 가장 가까운 몬스터 스폰 쪽으로 한 걸음씩 다가간다. 막혀서 보정되면 잠시 무작위로 돌아다니고, 계속 막히면 목표를 바꾼다.
-						if (b.spawnTarget < 0)
+						// 던전 안에서는 던전 레벨의 스폰(--dungeon-map)을 쓴다(핫존은 입구 앞에 세우는 용도라 던전 안에서는 무시).
+						const vector<pair<float, float>>& spawns = HuntSpawns(b);
+						if (b.spawnTarget < 0 || b.spawnTarget >= static_cast<int>(spawns.size()))
 						{
 							float best = 1e30f;
-							for (int i = 0; i < static_cast<int>(GMonsterSpawns.size()); ++i)
+							for (int i = 0; i < static_cast<int>(spawns.size()); ++i)
 							{
-								const float sx = GMonsterSpawns[i].first - b.x, sy = GMonsterSpawns[i].second - b.y;
+								const float sx = spawns[i].first - b.x, sy = spawns[i].second - b.y;
 								if (sx * sx + sy * sy < best) { best = sx * sx + sy * sy; b.spawnTarget = i; }
 							}
 						}
-						const auto& spawn = GMonsterSpawns[b.spawnTarget];
+						const auto& spawn = spawns[b.spawnTarget];
 						const float dx = spawn.first - b.x, dy = spawn.second - b.y;
 						const float dist = sqrtf(dx * dx + dy * dy);
 						const float stride = min({ 500.f, dist, MaxStep(b, now) });
@@ -922,7 +977,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 							}
 						}
 					}
-					if (canAct && GConfig.hunt && now >= b.nextAttackUs && !b.monsters.empty())
+					if (canAct && GConfig.hunt && now >= b.nextAttackUs && !b.monsters.empty() && !(GConfig.dungeon && b.roomKind != static_cast<int>(Protocol::ROOM_KIND_DUNGEON)))   // --dungeon: outside the dungeon, do not attack (the portal request is dropped while casting)
 				{
 					b.nextAttackUs = now + 700 * 1000LL;
 
@@ -1184,6 +1239,42 @@ static void WorkerMain(int workerIndex, int workerCount)
 						}
 					}
 				}
+				// 던전(--dungeon, DG3c): 사냥터에서 입구를 요청한다. 파티를 맺는 중(--party-size)이면 묶음이 다 모였거나 입장 뒤 15초가 지난 파티장만
+				// (파티원은 파티장을 따라 들어가고, 뒤늦게 온 파티원은 인스턴스가 있을 때 스스로 요청해 합류한다 — NOT_LEADER 거부는 정상).
+				if (GConfig.dungeon && b.spawnKnown && !b.dead && now >= b.nextDungeonEnterUs)
+				{
+					if (b.roomKind == static_cast<int>(Protocol::ROOM_KIND_DUNGEON))
+					{
+						if (b.dungeonExitAtUs != 0 && now >= b.dungeonExitAtUs && HasPortal(b, kDungeonExitPortal))
+						{
+							b.nextDungeonEnterUs = now + 2000 * 1000LL;
+							Protocol::CS_PORTAL_PACKET portal;
+							portal.set_portal_id(kDungeonExitPortal);
+							SendPacket(b, Protocol::CS_PORTAL, portal);
+							GStat.dungeonExitSent.fetch_add(1);
+						}
+					}
+					else if (HasPortal(b, kDungeonEntrancePortal))
+					{
+						b.nextDungeonEnterUs = now + 2000 * 1000LL + (rand() % 1000) * 1000LL;
+						bool request = true;
+						if (GConfig.partySize > 1)
+						{
+							const bool full = static_cast<int>(b.partyMembers.size()) >= GConfig.partySize;
+							const bool waited = now - b.loginSentUs > 15 * 1000000LL;
+							if (b.partyLeaderId == 0) request = waited;                       // 파티가 안 맺어지면 혼자 들어간다
+							else if (b.partyLeaderId == b.objectId) request = full || waited;
+							else request = waited;                                            // 파티원: 파티장이 먼저 들어간 인스턴스에 합류
+						}
+						if (request)
+						{
+							Protocol::CS_PORTAL_PACKET portal;
+							portal.set_portal_id(kDungeonEntrancePortal);
+							SendPacket(b, Protocol::CS_PORTAL, portal);
+							GStat.dungeonEnterSent.fetch_add(1);
+						}
+					}
+				}
 				// 포털(--portal-interval, L5): 가장 가까운 포털에 요청한다. 반경 밖·재사용 대기·시전 중이면 서버가 응답 없이 버린다.
 				// --chaos면 5%는 없는 포털 id.
 				if (GConfig.portalIntervalMs > 0 && !b.portals.empty() && now >= b.nextPortalUs)
@@ -1302,7 +1393,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 void BotEngine::Usage(const char* program)
 {
 	printf("%s --bots N --ramp-rate R --duration S [--host H] [--port P] [--threads T]\n"
-		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--shop-interval ms] [--portal-interval ms] [--party-size N] [--party-churn-sec S] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
+		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--shop-interval ms] [--portal-interval ms] [--party-size N] [--party-churn-sec S] [--dungeon] [--dungeon-stay-sec S] [--dungeon-map logic.json] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
 		"         [--zone x,y,r]   (hotspot: bots walk to (x,y) and stay within radius r cm)\n",
 		program);
 }
@@ -1337,6 +1428,9 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--slot-interval") { if (!(v = next("--slot-interval"))) return false; GConfig.slotIntervalMs = atoi(v); }
 		else if (a == "--shop-interval") { if (!(v = next("--shop-interval"))) return false; GConfig.shopIntervalMs = atoi(v); }
 		else if (a == "--portal-interval") { if (!(v = next("--portal-interval"))) return false; GConfig.portalIntervalMs = atoi(v); }
+		else if (a == "--dungeon") GConfig.dungeon = true;
+		else if (a == "--dungeon-stay-sec") { if (!(v = next("--dungeon-stay-sec"))) return false; GConfig.dungeonStaySec = atoi(v); }
+		else if (a == "--dungeon-map") { if (!(v = next("--dungeon-map"))) return false; GConfig.dungeonMapLogic = v; }
 		else if (a == "--party-size") { if (!(v = next("--party-size"))) return false; GConfig.partySize = atoi(v); }
 		else if (a == "--party-churn-sec") { if (!(v = next("--party-churn-sec"))) return false; GConfig.partyChurnSec = atoi(v); }
 		else if (a == "--give-interval") { if (!(v = next("--give-interval"))) return false; GConfig.giveIntervalMs = atoi(v); }
@@ -1388,6 +1482,26 @@ static void LoadMonsterSpawns()
 		catch (const exception& e) { printf("[bot] map json error: %s\n", e.what()); }
 	}
 	else printf("[bot] map logic json not found; hunt bots will wander randomly (use --map <path>)\n");
+
+	// 던전 레벨의 스폰(--dungeon-map)
+	if (!GConfig.dungeonMapLogic.empty())
+	{
+		ifstream dungeonFile(GConfig.dungeonMapLogic);
+		if (dungeonFile.is_open())
+		{
+			try
+			{
+				nlohmann::json root;
+				dungeonFile >> root;
+				for (const auto& marker : root.at("markers"))
+					if (marker.at("type").get<string>() == "MonsterSpawn")
+						GDungeonSpawns.push_back({ marker.at("position").at("x").get<float>(), marker.at("position").at("y").get<float>() });
+				printf("[bot] dungeon spawns loaded: %zu (%s)\n", GDungeonSpawns.size(), GConfig.dungeonMapLogic.c_str());
+			}
+			catch (const exception& e) { printf("[bot] dungeon map json error: %s\n", e.what()); }
+		}
+		else printf("[bot] dungeon map logic json not found: %s\n", GConfig.dungeonMapLogic.c_str());
+	}
 }
 
 void BotEngine::Start()

@@ -2,7 +2,7 @@
 # 서버는 run_move_tests.sh가 시나리오에 맞는 [Debug] 설정으로 띄운다(DevCommands=true 필요). 판정 줄은 "PASS <이름>" / "FAIL <이름>: 이유".
 #   basic     마을 입장(몬스터 안 보임·마을 포털 3개) → 문 포털 → 사냥터(SC_ROOM_CHANGE → 내 SC_ADD_OBJECT → SC_PORTAL_LIST 순서) → 되돌아옴, 중복 요청 5번은 이동 1번
 #   starts    로그인 8번의 시작 지점이 4곳에 고르게 나뉨(지점마다 2번, 반경 3m 안)
-#   notavail  갈 수 없는 포털(던전 입구 100 — 사냥터 Room에서)은 SC_MOVE_RESULT NOT_AVAILABLE
+#   notavail  갈 수 없는 포털(정거장 110 — 사냥터 Room에서. 던전 입구 100은 DG3c에서 열림)은 SC_MOVE_RESULT NOT_AVAILABLE
 #   wait      (DbSaveDelayMs 1500) 골드 지급 직후 포털: 지급 결과가 먼저 오고 그 뒤 이동, 대기 중 지급은 BUSY, 골드는 정확히 +1
 #   timeout   (DbSaveDelayMs 7000) 지급 직후 포털: 5초 뒤 TIMEOUT, 마을에 남음, 지급은 반영, 그 뒤 포털은 정상
 #   cut_wait  (DbSaveDelayMs 1500) 지급 + 포털 뒤 대기 중에 접속을 끊음 → 곧바로 다시 로그인되고 골드 +1 반영
@@ -60,7 +60,7 @@ def t_basic():
     check("seq", seq == seq0 + 1, f"보정 순번 {seq0} -> {seq}")
     order = [p for _, p in c.log if p in (mk.SC_ROOM_CHANGE, mk.SC_ADD_OBJECT, mk.SC_PORTAL_LIST)]
     check("order", order[:3] == [mk.SC_ROOM_CHANGE, mk.SC_ADD_OBJECT, mk.SC_PORTAL_LIST], f"패킷 순서 {order[:4]}")
-    check("fportals", sorted(c.portals) == [201, 202, 203], f"사냥터 포털 목록 {sorted(c.portals)}")
+    check("fportals", sorted(c.portals) == [100, 201, 202, 203], f"사냥터 포털 목록 {sorted(c.portals)}")
     tx, ty = c.portals[pid + 100][0], c.portals[pid + 100][1]
     check("pos", math.hypot(x - tx, y - ty) < 10, f"도착 위치 ({x:.0f},{y:.0f}) != 포털 {pid + 100} ({tx:.0f},{ty:.0f})")
     # 사냥터에서 이동이 받아들여지는지(보정 순번이 이어지는지): 조금 걷고, 되돌아온다
@@ -95,7 +95,7 @@ def t_notavail():
     c = mk.Client("Test1").enter()
     to_field(c)
     time.sleep(1.1)
-    c.use_portal(100)   # 던전 입구(다른 레벨) — 멀리 있어도 사유는 "갈 수 없음"이 먼저다
+    c.use_portal(110)   # 정거장(이 서버가 띄우지 않는 레벨 — 던전 입구 100은 DG3c에서 열림). 멀리 있어도 사유는 "갈 수 없음"이 먼저다
     c.pump(1.5)
     check("notavail", [r for _, r in c.move_results] == [mk.MOVE_NOT_AVAILABLE], f"SC_MOVE_RESULT {c.move_results}")
     check("stay", len(c.room_changes) == 1, "이동이 일어남")
@@ -208,7 +208,7 @@ def t_trade():
 def t_revive():
     # 서버 설정: DummyRoom=field + DummySpawnZone=보스 옆(run_move_tests.sh의 revive 묶음). 더미는 사냥터 Room의 보스(선공, 인식 12m) 옆에 놓여 곧 맞아 죽는다.
     c = mk.Client("bot_raw", dummy=True, tag="dummy").enter()
-    check("field", sorted(c.portals) == [201, 202, 203] and c.monsters(), f"사냥터 Room이 아님: 포털 {sorted(c.portals)} 몬스터 {len(c.monsters())}")
+    check("field", sorted(c.portals) == [100, 201, 202, 203] and c.monsters(), f"사냥터 Room이 아님: 포털 {sorted(c.portals)} 몬스터 {len(c.monsters())}")
     c.pump_until(lambda: c.dead, 90.0, "보스에게 죽기")
     c.send(mk.CS_REVIVE)   # 대기 시간 전: 버려져야 한다
     c.pump(c.revive_delay / 1000.0 + 0.4)

@@ -1,0 +1,2 @@
+PASS full  (DB 아이템 89741, 골드 602758)
+PASS load_timeout  (DB 아이템 89741, 골드 602758)

@@ -197,6 +197,13 @@ namespace
 				else { err = where + "ViewAudit must be true/false: '" + e.value + "'"; return false; }
 				cfg.viewAuditFrom = from;
 			}
+			else if (name == "Debug.PortalNoRange")
+			{
+				if (e.value == "true" || e.value == "1") cfg.portalNoRange = true;
+				else if (e.value == "false" || e.value == "0" || e.value.empty()) cfg.portalNoRange = false;
+				else { err = where + "PortalNoRange must be true/false: '" + e.value + "'"; return false; }
+				cfg.portalNoRangeFrom = from;
+			}
 			else if (name == "Debug.DevCommands")
 			{
 				if (e.value == "true" || e.value == "1") cfg.devCommands = true;
@@ -213,6 +220,16 @@ namespace
 			{
 				if (!ParseInt(e.value, 100, 600000, cfg.moveWaitTimeoutMs)) { err = where + "MoveWaitTimeoutMs must be 100~600000: '" + e.value + "'"; return false; }
 				cfg.moveWaitTimeoutMsFrom = from;
+			}
+			else if (name == "World.MaxDungeonInstances")
+			{
+				if (!ParseInt(e.value, 0, 100000, cfg.maxDungeonInstances)) { err = where + "MaxDungeonInstances must be 0~100000: '" + e.value + "'"; return false; }
+				cfg.maxDungeonInstancesFrom = from;
+			}
+			else if (name == "World.LoadTimeoutSec")
+			{
+				if (!ParseInt(e.value, 1, 3600, cfg.loadTimeoutSec)) { err = where + "LoadTimeoutSec must be 1~3600: '" + e.value + "'"; return false; }
+				cfg.loadTimeoutSecFrom = from;
 			}
 			else if (name == "Debug.DummyRoom")
 			{
@@ -342,9 +359,12 @@ void ServerConfig::Print() const
 		LOG_INFO("Config", "Debug.DummySpawnZone      = {},{},{} x {}  ({})", z.x, z.y, z.r, z.count == 0 ? std::string("나머지") : std::to_string(z.count), dummySpawnZoneFrom);
 	LOG_INFO("Config", "Debug.ViewAudit           = {}  ({})", viewAudit, viewAuditFrom);
 	LOG_INFO("Config", "World.MoveWaitTimeoutMs   = {}  ({})", moveWaitTimeoutMs, moveWaitTimeoutMsFrom);
+	LOG_INFO("Config", "World.MaxDungeonInstances = {}  ({})", maxDungeonInstances, maxDungeonInstancesFrom);
+	LOG_INFO("Config", "World.LoadTimeoutSec      = {}  ({})", loadTimeoutSec, loadTimeoutSecFrom);
 	LOG_INFO("Config", "Debug.DummyRoom           = {}  ({})", dummyRoom, dummyRoomFrom);
 	LOG_INFO("Config", "Debug.MoveHandoffDelayMs  = {}  ({})", moveHandoffDelayMs, moveHandoffDelayMsFrom);
 	LOG_INFO("Config", "Debug.DbSaveDelayMs       = {}  ({})", dbSaveDelayMs, dbSaveDelayMsFrom);
 	LOG_INFO("Config", "Debug.DevCommands         = {}  ({})", devCommands, devCommandsFrom);
+	LOG_INFO("Config", "Debug.PortalNoRange       = {}  ({})", portalNoRange, portalNoRangeFrom);
 	LOG_INFO("Config", "Debug.DbItemFailEvery     = {}  ({})", dbItemFailEvery, dbItemFailEveryFrom);
 }

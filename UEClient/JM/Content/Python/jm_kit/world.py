@@ -260,7 +260,8 @@ def blockout(name):
             continue
         n = 0
         if kind == "box":
-            _spawn_shape(d, h, item["shape"], label, item["x"], item["y"], item["size"], item.get("yaw", 0.0))
+            # sink(m): 그만큼 지면 아래로 내린다 — 바닥 상자는 두께만큼 내려 윗면을 지면 높이에 맞춘다(Landscape 없는 레벨, DG3c)
+            _spawn_shape(d, h, item["shape"], label, item["x"], item["y"], item["size"], item.get("yaw", 0.0), sink=item.get("sink", 0.0))
             n = 1
         elif kind == "ring":
             rnd = random.Random(item.get("seed", 1))

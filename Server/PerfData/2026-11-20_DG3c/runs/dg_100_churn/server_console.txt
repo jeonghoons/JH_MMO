@@ -1,0 +1,1072 @@
+2026-11-21 00:42:09.619 INFO  [T6720] [Logger] 로그 파일: ../PerfData/2026-11-20_DG3c/runs/dg_100_churn/logs\GameServer_20261121_004209.log
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Network.BindIp            = 127.0.0.1  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Network.Port              = 8888  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Network.WorkerThreads     = 0 -> 6  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Network.SendFlushIntervalMs = 10  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Network.TimerResolutionMs = 1  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Network.AttackEarlyToleranceMs = 100  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Network.LoginWaitTimeoutSec = 10  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Network.LoginCloseForceSec = 30  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Network.IdleTimeoutSec    = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Network.SendQueueLimit    = 4000  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Database.ConnectionString = Driver={ODBC Driver 17 for SQL Server};Server=.\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Database.Connections      = 4  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Database.PlayerSaveIntervalSec = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Log.Level                 = Info  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Log.Dir                   = ../PerfData/2026-11-20_DG3c/runs/dg_100_churn/logs  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] World.MapName             = Continent01  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Debug.DummySpawnZone      = 19020,-18800,300 x 나머지  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Debug.ViewAudit           = false  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] World.MoveWaitTimeoutMs   = 5000  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] World.MaxDungeonInstances = 250  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] World.LoadTimeoutSec      = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Debug.DummyRoom           = field  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Debug.MoveHandoffDelayMs  = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Debug.DbSaveDelayMs       = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Debug.DevCommands         = false  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Debug.PortalNoRange       = true  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Config] Debug.DbItemFailEvery     = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100_churn\ServerConfig.ini)
+2026-11-21 00:42:09.619 INFO  [T6720] [Data] DataTable 경로: C:\Users\kjhkjh\KJH\JH_MMO\Common\DataTable
+2026-11-21 00:42:09.621 INFO  [T6720] [Data] 상점·NPC 로드 완료 (ShopTable 9행·상점 1곳, NpcTable 1행, 상점 이용 거리 400cm)
+2026-11-21 00:42:09.621 INFO  [T6720] [Data] 로드 완료 (PlayerStatTable 1행, SkillTable 8행, MonsterTable 3행, ItemTable 17행, MovementTable 1행, WorldTable 3행, DropTable 34행, SpawnTable 8행, EconomyTable: 인벤토리 30칸·골드 상한 2000000000·드랍 소유 30초/소멸 60초)
+2026-11-21 00:42:09.623 INFO  [T6720] [Server] 127.0.0.1:8888 에서 접속 대기 시작
+2026-11-21 00:42:09.664 INFO  [T6720] [DB] DB 서버 Connected
+2026-11-21 00:42:09.664 INFO  [T6720] [DB] DB 스키마 버전 7
+2026-11-21 00:42:09.665 INFO  [T6720] [Navmesh] 로드 성공.
+2026-11-21 00:42:09.666 INFO  [T6720] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 1, PortalTrigger 8, SafeZone 1)
+2026-11-21 00:42:09.666 INFO  [T6720] [World] 레벨 Continent01: 마을·사냥터 구역으로 나눔(채널마다 Room 2개)
+2026-11-21 00:42:09.666 INFO  [T6720] [Navmesh] 로드 성공.
+2026-11-21 00:42:09.666 INFO  [T6720] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:09.666 INFO  [T6720] [World] 던전 레벨 Continent01_Dungeon: 포털 100 로 입장 (인스턴스 상한 250)
+2026-11-21 00:42:09.667 INFO  [T6720] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 1, PortalTrigger 8, SafeZone 1)
+2026-11-21 00:42:09.667 INFO  [T6720] [Room] Room 1(채널 1, Continent01 구역 'town'): 몬스터 스폰 없음
+2026-11-21 00:42:09.667 INFO  [T6720] [Room] 마을 NPC 배치: id 900000000 종류 1001 상점 1 위치 (-14150, -2200, 2)
+2026-11-21 00:42:09.667 INFO  [T6720] [Room] 마을 NPC: 마커 1곳, 배치 1명
+2026-11-21 00:42:09.667 INFO  [T6720] [Room] Room 1 포털: 마커 8개 중 쓸 수 있는 것 3개, 시작 지점 4곳
+2026-11-21 00:42:09.668 INFO  [T6720] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 1, PortalTrigger 8, SafeZone 1)
+2026-11-21 00:42:09.669 INFO  [T6720] [Room] Room 2(채널 1, Continent01 구역 'field') 몬스터 스폰: 지점 49곳, 몬스터 201마리 (forest_boss 1, forest_n 60, meadow_e 55, meadow_n 30, meadow_w 55)
+2026-11-21 00:42:09.669 INFO  [T6720] [Room] Room 2 포털: 마커 8개 중 쓸 수 있는 것 4개, 시작 지점 0곳
+2026-11-21 00:42:09.669 INFO  [T6720] [World] 채널 1 생성 (레벨 Continent01, 마을 Room 1, 사냥터 Room 2, 2.9ms)
+2026-11-21 00:42:14.671 INFO  [T15356] [metrics] sessions=28 rooms=2 players=28 monsters=201 in/s=35 out/s=531 sendCalls/s=213 bufsPerSend=2.42 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=90/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.7/1.0/1.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.02/0.08/0.14 viewPlayers(avg/p99/max)=21.0/25/25 viewObjects(avg/p99/max)=25.3/31/31 sendQ(total/sessionMax)=76/33 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=234/0/0/113 flushGap(p50/p90/p99 ms)=11/31/46 sendWake(per s, late avg/p50/p99/max ms)=11 0.8/0.7/2.0/2.0 jobs(exec/repost per s)=79/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.1ms flushRunMax=0.6ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=1/4 flushRuns/s=29 conn(sessionObjs/handles idleKick/sendqKick)=29/348 0/0 world(channels/roster/chMax)=1/28/28 kind(town/field players)=0/28 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.14 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=6/12/0 6/6/0/0/0 6/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00
+2026-11-21 00:42:15.881 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:15.881 INFO  [T15756] [Room] Room 3(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:15.881 INFO  [T15756] [Room] Room 3 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:15.881 INFO  [T15756] [World] 던전 인스턴스 3 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 1개)
+2026-11-21 00:42:15.893 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:15.893 INFO  [T11988] [Room] Room 4(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:15.893 INFO  [T11988] [Room] Room 4 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:15.893 INFO  [T11988] [World] 던전 인스턴스 4 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 2개)
+2026-11-21 00:42:16.211 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:16.211 INFO  [T15756] [Room] Room 5(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:16.211 INFO  [T15756] [Room] Room 5 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:16.211 INFO  [T15756] [World] 던전 인스턴스 5 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 3개)
+2026-11-21 00:42:16.306 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:16.306 INFO  [T12068] [Room] Room 6(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:16.306 INFO  [T12068] [Room] Room 6 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:16.306 INFO  [T12068] [World] 던전 인스턴스 6 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 4개)
+2026-11-21 00:42:16.534 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:16.534 INFO  [T12084] [Room] Room 7(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:16.534 INFO  [T12084] [Room] Room 7 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:16.534 INFO  [T12084] [World] 던전 인스턴스 7 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 5개)
+2026-11-21 00:42:16.632 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:16.632 INFO  [T11500] [Room] Room 8(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:16.632 INFO  [T11500] [Room] Room 8 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:16.632 INFO  [T11500] [World] 던전 인스턴스 8 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 6개)
+2026-11-21 00:42:16.653 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:16.653 INFO  [T12084] [Room] Room 9(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:16.653 INFO  [T12084] [Room] Room 9 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:16.653 INFO  [T12084] [World] 던전 인스턴스 9 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 7개)
+2026-11-21 00:42:16.847 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:16.847 INFO  [T12084] [Room] Room 10(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:16.847 INFO  [T12084] [Room] Room 10 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:16.847 INFO  [T12084] [World] 던전 인스턴스 10 생성 (레벨 Continent01_Dungeon, 채널 1, 0.5ms, 지금 8개)
+2026-11-21 00:42:16.961 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:16.961 INFO  [T11500] [Room] Room 11(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:16.961 INFO  [T11500] [Room] Room 11 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:16.961 INFO  [T11500] [World] 던전 인스턴스 11 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 9개)
+2026-11-21 00:42:17.006 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:17.006 INFO  [T15756] [Room] Room 12(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:17.006 INFO  [T15756] [Room] Room 12 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:17.006 INFO  [T15756] [World] 던전 인스턴스 12 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 10개)
+2026-11-21 00:42:17.223 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:17.223 INFO  [T12084] [Room] Room 13(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:17.223 INFO  [T12084] [Room] Room 13 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:17.223 INFO  [T12084] [World] 던전 인스턴스 13 생성 (레벨 Continent01_Dungeon, 채널 1, 1.5ms, 지금 11개)
+2026-11-21 00:42:17.368 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:17.369 INFO  [T11500] [Room] Room 14(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:17.369 INFO  [T11500] [Room] Room 14 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:17.369 INFO  [T11500] [World] 던전 인스턴스 14 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 12개)
+2026-11-21 00:42:17.409 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:17.410 INFO  [T15756] [Room] Room 15(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:17.410 INFO  [T15756] [Room] Room 15 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:17.410 INFO  [T15756] [World] 던전 인스턴스 15 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 13개)
+2026-11-21 00:42:17.606 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:17.606 INFO  [T21368] [Room] Room 16(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:17.606 INFO  [T21368] [Room] Room 16 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:17.606 INFO  [T21368] [World] 던전 인스턴스 16 생성 (레벨 Continent01_Dungeon, 채널 1, 0.9ms, 지금 14개)
+2026-11-21 00:42:17.628 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:17.628 INFO  [T12084] [Room] Room 17(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:17.628 INFO  [T12084] [Room] Room 17 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:17.628 INFO  [T12084] [World] 던전 인스턴스 17 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 15개)
+2026-11-21 00:42:17.739 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:17.739 INFO  [T15756] [Room] Room 18(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:17.739 INFO  [T15756] [Room] Room 18 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:17.739 INFO  [T15756] [World] 던전 인스턴스 18 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 16개)
+2026-11-21 00:42:17.835 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:17.835 INFO  [T12068] [Room] Room 19(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:17.835 INFO  [T12068] [Room] Room 19 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:17.835 INFO  [T12068] [World] 던전 인스턴스 19 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 17개)
+2026-11-21 00:42:18.292 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:18.292 INFO  [T12068] [Room] Room 20(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:18.292 INFO  [T12068] [Room] Room 20 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:18.292 INFO  [T12068] [World] 던전 인스턴스 20 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 18개)
+2026-11-21 00:42:18.567 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:18.567 INFO  [T21368] [Room] Room 21(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:18.567 INFO  [T21368] [Room] Room 21 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:18.567 INFO  [T21368] [World] 던전 인스턴스 21 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 19개)
+2026-11-21 00:42:18.654 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:18.654 INFO  [T12084] [Room] Room 22(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:18.654 INFO  [T12084] [Room] Room 22 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:18.654 INFO  [T12084] [World] 던전 인스턴스 22 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 20개)
+2026-11-21 00:42:18.759 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:18.759 INFO  [T11988] [Room] Room 23(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:18.759 INFO  [T11988] [Room] Room 23 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:18.759 INFO  [T11988] [World] 던전 인스턴스 23 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 21개)
+2026-11-21 00:42:18.769 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:18.769 INFO  [T12084] [Room] Room 24(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:18.769 INFO  [T12084] [Room] Room 24 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:18.769 INFO  [T12084] [World] 던전 인스턴스 24 생성 (레벨 Continent01_Dungeon, 채널 1, 0.5ms, 지금 22개)
+2026-11-21 00:42:18.848 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:18.848 INFO  [T11500] [Room] Room 25(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:18.848 INFO  [T11500] [Room] Room 25 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:18.848 INFO  [T11500] [World] 던전 인스턴스 25 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 23개)
+2026-11-21 00:42:18.934 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:18.934 INFO  [T15756] [Room] Room 26(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:18.934 INFO  [T15756] [Room] Room 26 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:18.934 INFO  [T15756] [World] 던전 인스턴스 26 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 24개)
+2026-11-21 00:42:18.967 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:18.967 INFO  [T12084] [Room] Room 27(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:18.967 INFO  [T12084] [Room] Room 27 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:18.967 INFO  [T12084] [World] 던전 인스턴스 27 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 25개)
+2026-11-21 00:42:18.991 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:18.991 INFO  [T21368] [Room] Room 28(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:18.991 INFO  [T21368] [Room] Room 28 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:18.991 INFO  [T21368] [World] 던전 인스턴스 28 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 26개)
+2026-11-21 00:42:19.033 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:19.033 INFO  [T11500] [Room] Room 29(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:19.033 INFO  [T11500] [Room] Room 29 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:19.033 INFO  [T11500] [World] 던전 인스턴스 29 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 27개)
+2026-11-21 00:42:19.156 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:19.156 INFO  [T21368] [Room] Room 30(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:19.156 INFO  [T21368] [Room] Room 30 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:19.156 INFO  [T21368] [World] 던전 인스턴스 30 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 28개)
+2026-11-21 00:42:19.255 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:19.255 INFO  [T11500] [Room] Room 31(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:19.255 INFO  [T11500] [Room] Room 31 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:19.255 INFO  [T11500] [World] 던전 인스턴스 31 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 29개)
+2026-11-21 00:42:19.276 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:19.276 INFO  [T11988] [Room] Room 32(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:19.276 INFO  [T11988] [Room] Room 32 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:19.276 INFO  [T11988] [World] 던전 인스턴스 32 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 30개)
+2026-11-21 00:42:19.405 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:19.406 INFO  [T15756] [Room] Room 33(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:19.406 INFO  [T15756] [Room] Room 33 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:19.406 INFO  [T15756] [World] 던전 인스턴스 33 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 31개)
+2026-11-21 00:42:19.671 INFO  [T15356] [metrics] sessions=129 rooms=33 players=129 monsters=418 in/s=501 out/s=19924 sendCalls/s=4153 bufsPerSend=4.79 atk(req/ok per s)=37.6/17.6 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=1521/99/0/0/0/10 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.02/0.01/0.09/0.18/0.37 viewPlayers(avg/p99/max)=45.4/68/68 viewObjects(avg/p99/max)=50.7/73/73 sendQ(total/sessionMax)=189/82 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=189/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=100/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=31/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=4606/1/0/3684 flushGap(p50/p90/p99 ms)=11/19/127 sendWake(per s, late avg/p50/p99/max ms)=123 0.8/0.8/2.0/2.3 jobs(exec/repost per s)=880/1 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=1.5ms flushRunMax=1.0ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=28/37 flushRuns/s=285 conn(sessionObjs/handles idleKick/sendqKick)=130/449 0/0 world(channels/roster/chMax)=1/129/129 kind(town/field players)=0/67 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.37 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=62/62/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=54/108/0 54/54/0/0/0 54/0 roomsAlive=33 dungeon(now/created/closed players)=31/31/0 62 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.08
+2026-11-21 00:42:19.723 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:19.723 INFO  [T15756] [Room] Room 34(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:19.723 INFO  [T15756] [Room] Room 34 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:19.723 INFO  [T15756] [World] 던전 인스턴스 34 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 32개)
+2026-11-21 00:42:19.809 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:19.810 INFO  [T21368] [Room] Room 35(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:19.810 INFO  [T21368] [Room] Room 35 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:19.810 INFO  [T21368] [World] 던전 인스턴스 35 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 33개)
+2026-11-21 00:42:19.825 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:19.825 INFO  [T12084] [Room] Room 36(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:19.825 INFO  [T12084] [Room] Room 36 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:19.825 INFO  [T12084] [World] 던전 인스턴스 36 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 34개)
+2026-11-21 00:42:19.831 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:19.831 INFO  [T11988] [Room] Room 37(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:19.831 INFO  [T11988] [Room] Room 37 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:19.831 INFO  [T11988] [World] 던전 인스턴스 37 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 35개)
+2026-11-21 00:42:19.859 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:19.859 INFO  [T12084] [Room] Room 38(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:19.859 INFO  [T12084] [Room] Room 38 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:19.859 INFO  [T12084] [World] 던전 인스턴스 38 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 36개)
+2026-11-21 00:42:20.021 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.021 INFO  [T11500] [Room] Room 39(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.021 INFO  [T11500] [Room] Room 39 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.021 INFO  [T11500] [World] 던전 인스턴스 39 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 37개)
+2026-11-21 00:42:20.031 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.031 INFO  [T12084] [Room] Room 40(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.031 INFO  [T12084] [Room] Room 40 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.031 INFO  [T12084] [World] 던전 인스턴스 40 생성 (레벨 Continent01_Dungeon, 채널 1, 0.5ms, 지금 38개)
+2026-11-21 00:42:20.137 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.137 INFO  [T15756] [Room] Room 41(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.137 INFO  [T15756] [Room] Room 41 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.137 INFO  [T15756] [World] 던전 인스턴스 41 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 39개)
+2026-11-21 00:42:20.199 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.199 INFO  [T21368] [Room] Room 42(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.199 INFO  [T21368] [Room] Room 42 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.199 INFO  [T21368] [World] 던전 인스턴스 42 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 40개)
+2026-11-21 00:42:20.372 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.372 INFO  [T12084] [Room] Room 43(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.372 INFO  [T12084] [Room] Room 43 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.372 INFO  [T12084] [World] 던전 인스턴스 43 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 41개)
+2026-11-21 00:42:20.377 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.377 INFO  [T12068] [Room] Room 44(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.377 INFO  [T12068] [Room] Room 44 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.377 INFO  [T12068] [World] 던전 인스턴스 44 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 42개)
+2026-11-21 00:42:20.405 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.405 INFO  [T11988] [Room] Room 45(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.405 INFO  [T11988] [Room] Room 45 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.405 INFO  [T11988] [World] 던전 인스턴스 45 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 43개)
+2026-11-21 00:42:20.560 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.560 INFO  [T15756] [Room] Room 46(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.560 INFO  [T15756] [Room] Room 46 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.560 INFO  [T15756] [World] 던전 인스턴스 46 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 44개)
+2026-11-21 00:42:20.600 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.600 INFO  [T11988] [Room] Room 47(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.600 INFO  [T11988] [Room] Room 47 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.600 INFO  [T11988] [World] 던전 인스턴스 47 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 45개)
+2026-11-21 00:42:20.774 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.774 INFO  [T21368] [Room] Room 48(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.774 INFO  [T21368] [Room] Room 48 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.774 INFO  [T21368] [World] 던전 인스턴스 48 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 46개)
+2026-11-21 00:42:20.840 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.840 INFO  [T11500] [Room] Room 49(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.840 INFO  [T11500] [Room] Room 49 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.840 INFO  [T11500] [World] 던전 인스턴스 49 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 47개)
+2026-11-21 00:42:20.867 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.867 INFO  [T11500] [Room] Room 50(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.867 INFO  [T11500] [Room] Room 50 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.867 INFO  [T11500] [World] 던전 인스턴스 50 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 48개)
+2026-11-21 00:42:20.946 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:20.946 INFO  [T21368] [Room] Room 51(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:20.946 INFO  [T21368] [Room] Room 51 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:20.946 INFO  [T21368] [World] 던전 인스턴스 51 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 49개)
+2026-11-21 00:42:21.028 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:21.028 INFO  [T21368] [Room] Room 52(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:21.028 INFO  [T21368] [Room] Room 52 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:21.028 INFO  [T21368] [World] 던전 인스턴스 52 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 50개)
+2026-11-21 00:42:21.167 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:21.167 INFO  [T12084] [Room] Room 53(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:21.167 INFO  [T12084] [Room] Room 53 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:21.167 INFO  [T12084] [World] 던전 인스턴스 53 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 51개)
+2026-11-21 00:42:21.177 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:21.177 INFO  [T12068] [Room] Room 54(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:21.177 INFO  [T12068] [Room] Room 54 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:21.177 INFO  [T12068] [World] 던전 인스턴스 54 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 52개)
+2026-11-21 00:42:21.267 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:21.267 INFO  [T21368] [Room] Room 55(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:21.267 INFO  [T21368] [Room] Room 55 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:21.267 INFO  [T21368] [World] 던전 인스턴스 55 생성 (레벨 Continent01_Dungeon, 채널 1, 0.8ms, 지금 53개)
+2026-11-21 00:42:21.430 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:21.430 INFO  [T12084] [Room] Room 56(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:21.430 INFO  [T12084] [Room] Room 56 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:21.430 INFO  [T12084] [World] 던전 인스턴스 56 생성 (레벨 Continent01_Dungeon, 채널 1, 1.0ms, 지금 54개)
+2026-11-21 00:42:21.431 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:21.431 INFO  [T12084] [Room] Room 57(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:21.431 INFO  [T12084] [Room] Room 57 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:21.431 INFO  [T12084] [World] 던전 인스턴스 57 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 55개)
+2026-11-21 00:42:21.593 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:21.593 INFO  [T21368] [Room] Room 58(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:21.593 INFO  [T21368] [Room] Room 58 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:21.593 INFO  [T21368] [World] 던전 인스턴스 58 생성 (레벨 Continent01_Dungeon, 채널 1, 0.9ms, 지금 56개)
+2026-11-21 00:42:21.799 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:21.799 INFO  [T21368] [Room] Room 59(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:21.799 INFO  [T21368] [Room] Room 59 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:21.799 INFO  [T21368] [World] 던전 인스턴스 59 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 57개)
+2026-11-21 00:42:21.832 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:21.832 INFO  [T12068] [Room] Room 60(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:21.832 INFO  [T12068] [Room] Room 60 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:21.832 INFO  [T12068] [World] 던전 인스턴스 60 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 58개)
+2026-11-21 00:42:22.030 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.030 INFO  [T12084] [Room] Room 61(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.030 INFO  [T12084] [Room] Room 61 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.030 INFO  [T12084] [World] 던전 인스턴스 61 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 59개)
+2026-11-21 00:42:22.035 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.035 INFO  [T12068] [Room] Room 62(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.035 INFO  [T12068] [Room] Room 62 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.035 INFO  [T12068] [World] 던전 인스턴스 62 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 60개)
+2026-11-21 00:42:22.290 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.290 INFO  [T12084] [Room] Room 63(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.290 INFO  [T12084] [Room] Room 63 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.290 INFO  [T12084] [World] 던전 인스턴스 63 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 61개)
+2026-11-21 00:42:22.426 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.426 INFO  [T15756] [Room] Room 64(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.426 INFO  [T15756] [Room] Room 64 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.426 INFO  [T15756] [World] 던전 인스턴스 64 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 62개)
+2026-11-21 00:42:22.736 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.736 INFO  [T12068] [Room] Room 65(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.736 INFO  [T12068] [Room] Room 65 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.736 INFO  [T12068] [World] 던전 인스턴스 65 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 63개)
+2026-11-21 00:42:22.762 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.762 INFO  [T15756] [Room] Room 66(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.762 INFO  [T15756] [Room] Room 66 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.762 INFO  [T15756] [World] 던전 인스턴스 66 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 64개)
+2026-11-21 00:42:22.770 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.770 INFO  [T11988] [Room] Room 67(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.770 INFO  [T11988] [Room] Room 67 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.770 INFO  [T11988] [World] 던전 인스턴스 67 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 65개)
+2026-11-21 00:42:22.806 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.806 INFO  [T21368] [Room] Room 68(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.806 INFO  [T21368] [Room] Room 68 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.806 INFO  [T21368] [World] 던전 인스턴스 68 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 66개)
+2026-11-21 00:42:22.828 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.828 INFO  [T12084] [Room] Room 69(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.828 INFO  [T12084] [Room] Room 69 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.828 INFO  [T12084] [World] 던전 인스턴스 69 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 67개)
+2026-11-21 00:42:22.841 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.841 INFO  [T21368] [Room] Room 70(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.841 INFO  [T21368] [Room] Room 70 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.841 INFO  [T21368] [World] 던전 인스턴스 70 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 68개)
+2026-11-21 00:42:22.881 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:22.881 INFO  [T12084] [Room] Room 71(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:22.881 INFO  [T12084] [Room] Room 71 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:22.881 INFO  [T12084] [World] 던전 인스턴스 71 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 69개)
+2026-11-21 00:42:23.023 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:23.023 INFO  [T15756] [Room] Room 72(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:23.023 INFO  [T15756] [Room] Room 72 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:23.023 INFO  [T15756] [World] 던전 인스턴스 72 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 70개)
+2026-11-21 00:42:23.032 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:23.032 INFO  [T12068] [Room] Room 73(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:23.032 INFO  [T12068] [Room] Room 73 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:23.032 INFO  [T12068] [World] 던전 인스턴스 73 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 71개)
+2026-11-21 00:42:23.143 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:23.143 INFO  [T15756] [Room] Room 74(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:23.143 INFO  [T15756] [Room] Room 74 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:23.143 INFO  [T15756] [World] 던전 인스턴스 74 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 72개)
+2026-11-21 00:42:23.357 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:23.357 INFO  [T15756] [Room] Room 75(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:23.357 INFO  [T15756] [Room] Room 75 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:23.357 INFO  [T15756] [World] 던전 인스턴스 75 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 73개)
+2026-11-21 00:42:23.448 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:23.448 INFO  [T11988] [Room] Room 76(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:23.448 INFO  [T11988] [Room] Room 76 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:23.448 INFO  [T11988] [World] 던전 인스턴스 76 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 74개)
+2026-11-21 00:42:23.527 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:23.527 INFO  [T15756] [Room] Room 77(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:23.527 INFO  [T15756] [Room] Room 77 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:23.527 INFO  [T15756] [World] 던전 인스턴스 77 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 75개)
+2026-11-21 00:42:23.538 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:23.538 INFO  [T15756] [Room] Room 78(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:23.538 INFO  [T15756] [Room] Room 78 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:23.538 INFO  [T15756] [World] 던전 인스턴스 78 생성 (레벨 Continent01_Dungeon, 채널 1, 0.5ms, 지금 76개)
+2026-11-21 00:42:23.602 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:23.602 INFO  [T12084] [Room] Room 79(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:23.602 INFO  [T12084] [Room] Room 79 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:23.602 INFO  [T12084] [World] 던전 인스턴스 79 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 77개)
+2026-11-21 00:42:23.810 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:23.810 INFO  [T12068] [Room] Room 80(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:23.810 INFO  [T12068] [Room] Room 80 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:23.810 INFO  [T12068] [World] 던전 인스턴스 80 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 78개)
+2026-11-21 00:42:23.868 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:23.868 INFO  [T21368] [Room] Room 81(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:23.868 INFO  [T21368] [Room] Room 81 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:23.868 INFO  [T21368] [World] 던전 인스턴스 81 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 79개)
+2026-11-21 00:42:24.059 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.059 INFO  [T12068] [Room] Room 82(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.059 INFO  [T12068] [Room] Room 82 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.059 INFO  [T12068] [World] 던전 인스턴스 82 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 80개)
+2026-11-21 00:42:24.081 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.081 INFO  [T11500] [Room] Room 83(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.081 INFO  [T11500] [Room] Room 83 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.081 INFO  [T11500] [World] 던전 인스턴스 83 생성 (레벨 Continent01_Dungeon, 채널 1, 0.5ms, 지금 81개)
+2026-11-21 00:42:24.141 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.141 INFO  [T15756] [Room] Room 84(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.141 INFO  [T15756] [Room] Room 84 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.141 INFO  [T15756] [World] 던전 인스턴스 84 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 82개)
+2026-11-21 00:42:24.242 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.242 INFO  [T11988] [Room] Room 85(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.242 INFO  [T11988] [Room] Room 85 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.242 INFO  [T11988] [World] 던전 인스턴스 85 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 83개)
+2026-11-21 00:42:24.265 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.265 INFO  [T21368] [Room] Room 86(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.265 INFO  [T21368] [Room] Room 86 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.265 INFO  [T21368] [World] 던전 인스턴스 86 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 84개)
+2026-11-21 00:42:24.297 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.297 INFO  [T21368] [Room] Room 87(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.297 INFO  [T21368] [Room] Room 87 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.297 INFO  [T21368] [World] 던전 인스턴스 87 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 85개)
+2026-11-21 00:42:24.462 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.462 INFO  [T15756] [Room] Room 88(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.462 INFO  [T15756] [Room] Room 88 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.462 INFO  [T15756] [World] 던전 인스턴스 88 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 86개)
+2026-11-21 00:42:24.478 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.478 INFO  [T12068] [Room] Room 89(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.478 INFO  [T12068] [Room] Room 89 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.478 INFO  [T12068] [World] 던전 인스턴스 89 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 87개)
+2026-11-21 00:42:24.574 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.574 INFO  [T15756] [Room] Room 90(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.574 INFO  [T15756] [Room] Room 90 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.574 INFO  [T15756] [World] 던전 인스턴스 90 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 88개)
+2026-11-21 00:42:24.672 INFO  [T15356] [metrics] sessions=200 rooms=90 players=200 monsters=809 in/s=884 out/s=20941 sendCalls/s=5553 bufsPerSend=3.78 atk(req/ok per s)=184.0/61.4 zones(total created/hits)=24/72 move(total ok/speed/nav/bad/stale/rate)=3148/601/76/0/0/34 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.03/0.03/0.08/0.13/0.29 viewPlayers(avg/p99/max)=16.9/63/63 viewObjects(avg/p99/max)=22.9/67/68 sendQ(total/sessionMax)=55/75 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=189/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=713/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=88/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=71 38/71/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=5840/4/0/3889 flushGap(p50/p90/p99 ms)=11/76/127 sendWake(per s, late avg/p50/p99/max ms)=281 0.8/0.8/2.0/2.5 jobs(exec/repost per s)=2020/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=1.0ms flushRunMax=1.0ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=52/78 flushRuns/s=867 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/24 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.24 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=176/176/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=96/192/0 96/96/0/0/0 96/0 roomsAlive=90 dungeon(now/created/closed players)=88/88/0 176 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.12
+2026-11-21 00:42:24.791 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.791 INFO  [T12084] [Room] Room 91(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.791 INFO  [T12084] [Room] Room 91 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.791 INFO  [T12084] [World] 던전 인스턴스 91 생성 (레벨 Continent01_Dungeon, 채널 1, 0.8ms, 지금 89개)
+2026-11-21 00:42:24.791 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.792 INFO  [T12084] [Room] Room 92(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.792 INFO  [T12084] [Room] Room 92 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.792 INFO  [T12084] [World] 던전 인스턴스 92 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 90개)
+2026-11-21 00:42:24.864 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.864 INFO  [T11500] [Room] Room 93(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.864 INFO  [T11500] [Room] Room 93 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.864 INFO  [T11500] [World] 던전 인스턴스 93 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 91개)
+2026-11-21 00:42:24.922 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:24.923 INFO  [T12068] [Room] Room 94(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:24.923 INFO  [T12068] [Room] Room 94 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:24.923 INFO  [T12068] [World] 던전 인스턴스 94 생성 (레벨 Continent01_Dungeon, 채널 1, 0.8ms, 지금 92개)
+2026-11-21 00:42:25.018 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:25.018 INFO  [T15756] [Room] Room 95(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:25.018 INFO  [T15756] [Room] Room 95 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:25.018 INFO  [T15756] [World] 던전 인스턴스 95 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 93개)
+2026-11-21 00:42:25.444 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:25.444 INFO  [T12084] [Room] Room 96(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:25.444 INFO  [T12084] [Room] Room 96 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:25.444 INFO  [T12084] [World] 던전 인스턴스 96 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 94개)
+2026-11-21 00:42:25.656 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:25.656 INFO  [T12068] [Room] Room 97(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:25.656 INFO  [T12068] [Room] Room 97 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:25.656 INFO  [T12068] [World] 던전 인스턴스 97 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 95개)
+2026-11-21 00:42:25.819 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:25.819 INFO  [T11500] [Room] Room 98(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:25.819 INFO  [T11500] [Room] Room 98 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:25.819 INFO  [T11500] [World] 던전 인스턴스 98 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 96개)
+2026-11-21 00:42:26.025 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:26.025 INFO  [T11500] [Room] Room 99(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:26.025 INFO  [T11500] [Room] Room 99 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:26.025 INFO  [T11500] [World] 던전 인스턴스 99 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 97개)
+2026-11-21 00:42:26.039 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:26.039 INFO  [T11988] [Room] Room 100(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:26.039 INFO  [T11988] [Room] Room 100 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:26.039 INFO  [T11988] [World] 던전 인스턴스 100 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 98개)
+2026-11-21 00:42:26.161 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:26.161 INFO  [T11500] [Room] Room 101(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:26.161 INFO  [T11500] [Room] Room 101 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:26.161 INFO  [T11500] [World] 던전 인스턴스 101 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 99개)
+2026-11-21 00:42:26.442 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:26.442 INFO  [T11500] [Room] Room 102(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:26.442 INFO  [T11500] [Room] Room 102 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:26.442 INFO  [T11500] [World] 던전 인스턴스 102 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 100개)
+2026-11-21 00:42:29.674 INFO  [T15356] [metrics] sessions=200 rooms=102 players=200 monsters=837 in/s=754 out/s=3563 sendCalls/s=1980 bufsPerSend=1.80 atk(req/ok per s)=278.0/83.0 zones(total created/hits)=128/445 move(total ok/speed/nav/bad/stale/rate)=3639/1166/357/0/0/39 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.03/0.03/0.07/0.11/0.27 viewPlayers(avg/p99/max)=1.6/23/23 viewObjects(avg/p99/max)=8.2/27/28 sendQ(total/sessionMax)=0/29 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=1688/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=100/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=219 122/219/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1989/3/0/80 flushGap(p50/p90/p99 ms)=88/127/127 sendWake(per s, late avg/p50/p99/max ms)=239 0.8/0.8/2.0/2.4 jobs(exec/repost per s)=2185/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.9ms flushRunMax=0.8ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=47/82 flushRuns/s=1186 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.14 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=200/200/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/100/0 200 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.11
+2026-11-21 00:42:34.674 INFO  [T15356] [metrics] sessions=200 rooms=102 players=200 monsters=730 in/s=678 out/s=2941 sendCalls/s=1715 bufsPerSend=1.71 atk(req/ok per s)=281.4/73.6 zones(total created/hits)=270/1066 move(total ok/speed/nav/bad/stale/rate)=3974/1445/708/0/0/39 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.02/0.02/0.05/0.06/0.18 viewPlayers(avg/p99/max)=1.0/1/2 viewObjects(avg/p99/max)=6.9/8/8 sendQ(total/sessionMax)=0/13 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=173/1 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=2727/0 revive(total deaths/ok/reject/deadMove)=5/0/0/0 portal(total ok/reject)=106/6 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=407 228/407/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1714/3/0/0 flushGap(p50/p90/p99 ms)=100/127/127 sendWake(per s, late avg/p50/p99/max ms)=183 0.8/0.8/2.0/2.5 jobs(exec/repost per s)=2058/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.2ms flushRunMax=0.2ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=33/58 flushRuns/s=1134 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/4 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.16 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=206/206/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/100/0 196 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.06
+2026-11-21 00:42:35.923 INFO  [T15756] [World] 던전 인스턴스 6 닫음 (지금 99개)
+2026-11-21 00:42:35.923 INFO  [T12084] [Room] Room 6(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 4
+2026-11-21 00:42:37.177 INFO  [T11500] [World] 던전 인스턴스 36 닫음 (지금 98개)
+2026-11-21 00:42:37.178 INFO  [T12068] [Room] Room 36(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 2, 드랍 8
+2026-11-21 00:42:37.178 INFO  [T15756] [World] 던전 인스턴스 3 닫음 (지금 97개)
+2026-11-21 00:42:37.178 INFO  [T11988] [Room] Room 3(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 7
+2026-11-21 00:42:37.423 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:37.423 INFO  [T12084] [Room] Room 103(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:37.423 INFO  [T12084] [Room] Room 103 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:37.423 INFO  [T12084] [World] 던전 인스턴스 103 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 98개)
+2026-11-21 00:42:37.756 INFO  [T15756] [World] 던전 인스턴스 42 닫음 (지금 97개)
+2026-11-21 00:42:37.756 INFO  [T12084] [Room] Room 42(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 9
+2026-11-21 00:42:38.139 INFO  [T21368] [World] 던전 인스턴스 66 닫음 (지금 96개)
+2026-11-21 00:42:38.139 INFO  [T12084] [Room] Room 66(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 6, 드랍 3
+2026-11-21 00:42:38.198 INFO  [T21368] [World] 던전 인스턴스 18 닫음 (지금 95개)
+2026-11-21 00:42:38.198 INFO  [T15756] [Room] Room 18(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 7
+2026-11-21 00:42:38.222 INFO  [T15756] [World] 던전 인스턴스 57 닫음 (지금 94개)
+2026-11-21 00:42:38.222 INFO  [T12068] [Room] Room 57(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 6
+2026-11-21 00:42:38.584 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:38.585 INFO  [T11988] [Room] Room 104(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:38.585 INFO  [T11988] [Room] Room 104 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:38.585 INFO  [T11988] [World] 던전 인스턴스 104 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 95개)
+2026-11-21 00:42:38.684 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:38.684 INFO  [T15756] [Room] Room 105(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:38.684 INFO  [T15756] [Room] Room 105 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:38.684 INFO  [T15756] [World] 던전 인스턴스 105 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 96개)
+2026-11-21 00:42:38.684 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:38.684 INFO  [T15756] [Room] Room 106(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:38.684 INFO  [T15756] [Room] Room 106 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:38.684 INFO  [T15756] [World] 던전 인스턴스 106 생성 (레벨 Continent01_Dungeon, 채널 1, 0.2ms, 지금 97개)
+2026-11-21 00:42:38.727 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:38.727 INFO  [T11988] [Room] Room 107(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:38.727 INFO  [T11988] [Room] Room 107 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:38.727 INFO  [T11988] [World] 던전 인스턴스 107 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 98개)
+2026-11-21 00:42:39.609 INFO  [T15756] [World] 던전 인스턴스 39 닫음 (지금 97개)
+2026-11-21 00:42:39.609 INFO  [T12068] [Room] Room 39(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 6
+2026-11-21 00:42:39.639 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:39.639 INFO  [T11988] [Room] Room 108(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:39.639 INFO  [T11988] [Room] Room 108 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:39.639 INFO  [T11988] [World] 던전 인스턴스 108 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 98개)
+2026-11-21 00:42:39.676 INFO  [T15356] [metrics] sessions=200 rooms=100 players=200 monsters=635 in/s=724 out/s=3829 sendCalls/s=2238 bufsPerSend=1.71 atk(req/ok per s)=266.2/66.8 zones(total created/hits)=355/1444 move(total ok/speed/nav/bad/stale/rate)=4548/1712/908/0/0/43 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.02/0.02/0.04/0.06/0.17 viewPlayers(avg/p99/max)=1.4/14/14 viewObjects(avg/p99/max)=6.2/17/19 sendQ(total/sessionMax)=19/32 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=3724/0 revive(total deaths/ok/reject/deadMove)=10/5/0/0 portal(total ok/reject)=183/54 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=525 333/575/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=2269/6/0/254 flushGap(p50/p90/p99 ms)=39/127/127 sendWake(per s, late avg/p50/p99/max ms)=232 0.8/0.8/2.0/3.9 jobs(exec/repost per s)=2198/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.4ms flushRunMax=0.4ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=31/64 flushRuns/s=1160 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/20 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.12 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=289/284/5/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=100 dungeon(now/created/closed players)=98/106/8 180 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.06
+2026-11-21 00:42:39.713 INFO  [T12084] [World] 던전 인스턴스 26 닫음 (지금 97개)
+2026-11-21 00:42:39.713 INFO  [T15756] [Room] Room 26(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 3, 드랍 6
+2026-11-21 00:42:39.724 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:39.724 INFO  [T15756] [Room] Room 109(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:39.724 INFO  [T15756] [Room] Room 109 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:39.724 INFO  [T15756] [World] 던전 인스턴스 109 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 98개)
+2026-11-21 00:42:39.731 INFO  [T21368] [World] 던전 인스턴스 38 닫음 (지금 97개)
+2026-11-21 00:42:39.731 INFO  [T11988] [Room] Room 38(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 4
+2026-11-21 00:42:40.323 INFO  [T12084] [World] 던전 인스턴스 46 닫음 (지금 96개)
+2026-11-21 00:42:40.323 INFO  [T11988] [Room] Room 46(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 8
+2026-11-21 00:42:40.584 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:40.584 INFO  [T12084] [Room] Room 110(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:40.584 INFO  [T12084] [Room] Room 110 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:40.584 INFO  [T12084] [World] 던전 인스턴스 110 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 97개)
+2026-11-21 00:42:40.768 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:40.768 INFO  [T21368] [Room] Room 111(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:40.768 INFO  [T21368] [Room] Room 111 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:40.768 INFO  [T21368] [World] 던전 인스턴스 111 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 98개)
+2026-11-21 00:42:41.232 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:41.232 INFO  [T21368] [Room] Room 112(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:41.232 INFO  [T21368] [Room] Room 112 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:41.232 INFO  [T21368] [World] 던전 인스턴스 112 생성 (레벨 Continent01_Dungeon, 채널 1, 0.8ms, 지금 99개)
+2026-11-21 00:42:41.572 INFO  [T11500] [World] 던전 인스턴스 45 닫음 (지금 98개)
+2026-11-21 00:42:41.572 INFO  [T11988] [Room] Room 45(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 5
+2026-11-21 00:42:41.676 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:41.677 INFO  [T11988] [Room] Room 113(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:41.677 INFO  [T11988] [Room] Room 113 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:41.677 INFO  [T11988] [World] 던전 인스턴스 113 생성 (레벨 Continent01_Dungeon, 채널 1, 1.0ms, 지금 99개)
+2026-11-21 00:42:41.793 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:41.793 INFO  [T15756] [Room] Room 114(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:41.793 INFO  [T15756] [Room] Room 114 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:41.793 INFO  [T15756] [World] 던전 인스턴스 114 생성 (레벨 Continent01_Dungeon, 채널 1, 0.8ms, 지금 100개)
+2026-11-21 00:42:41.975 INFO  [T15756] [World] 던전 인스턴스 101 닫음 (지금 99개)
+2026-11-21 00:42:41.975 INFO  [T12084] [Room] Room 101(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 3
+2026-11-21 00:42:43.482 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:43.483 INFO  [T21368] [Room] Room 115(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:43.483 INFO  [T21368] [Room] Room 115 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:43.483 INFO  [T21368] [World] 던전 인스턴스 115 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 100개)
+2026-11-21 00:42:43.502 INFO  [T15756] [World] 던전 인스턴스 11 닫음 (지금 99개)
+2026-11-21 00:42:43.502 INFO  [T21368] [Room] Room 11(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 9
+2026-11-21 00:42:43.587 INFO  [T12068] [World] 던전 인스턴스 58 닫음 (지금 98개)
+2026-11-21 00:42:43.587 INFO  [T12084] [Room] Room 58(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 3, 드랍 9
+2026-11-21 00:42:43.879 INFO  [T11500] [World] 던전 인스턴스 55 닫음 (지금 97개)
+2026-11-21 00:42:43.879 INFO  [T21368] [Room] Room 55(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 6
+2026-11-21 00:42:44.052 INFO  [T11500] [World] 던전 인스턴스 12 닫음 (지금 96개)
+2026-11-21 00:42:44.052 INFO  [T15756] [Room] Room 12(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 2, 드랍 7
+2026-11-21 00:42:44.463 INFO  [T11500] [World] 던전 인스턴스 60 닫음 (지금 95개)
+2026-11-21 00:42:44.463 INFO  [T11988] [Room] Room 60(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 2, 드랍 7
+2026-11-21 00:42:44.677 INFO  [T15356] [metrics] sessions=200 rooms=97 players=200 monsters=571 in/s=798 out/s=5563 sendCalls/s=2889 bufsPerSend=1.92 atk(req/ok per s)=252.6/70.2 zones(total created/hits)=454/1676 move(total ok/speed/nav/bad/stale/rate)=5454/2064/980/0/0/44 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.03/0.02/0.07/0.12/0.29 viewPlayers(avg/p99/max)=2.7/20/20 viewObjects(avg/p99/max)=6.8/25/25 sendQ(total/sessionMax)=27/36 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=189/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=4637/0 revive(total deaths/ok/reject/deadMove)=15/10/0/0 portal(total ok/reject)=311/137 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=571 403/685/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=3001/11/0/835 flushGap(p50/p90/p99 ms)=14/127/127 sendWake(per s, late avg/p50/p99/max ms)=281 0.8/0.8/2.1/2.5 jobs(exec/repost per s)=2339/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=1.0ms flushRunMax=1.6ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=54/127 flushRuns/s=1214 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/20 tickLateP99(town/field ms)=2.0/3.0 tickBodyP99(town/field ms)=0.00/0.29 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=424/414/9/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=97 dungeon(now/created/closed players)=95/113/18 180 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.10
+2026-11-21 00:42:44.780 INFO  [T21368] [World] 던전 인스턴스 88 닫음 (지금 94개)
+2026-11-21 00:42:44.781 INFO  [T15756] [Room] Room 88(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 6
+2026-11-21 00:42:44.952 INFO  [T15756] [World] 던전 인스턴스 49 닫음 (지금 93개)
+2026-11-21 00:42:44.952 INFO  [T11500] [Room] Room 49(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 5
+2026-11-21 00:42:45.002 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:45.002 INFO  [T11988] [Room] Room 116(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:45.002 INFO  [T11988] [Room] Room 116 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:45.002 INFO  [T11988] [World] 던전 인스턴스 116 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 94개)
+2026-11-21 00:42:45.092 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:45.092 INFO  [T12068] [Room] Room 117(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:45.092 INFO  [T12068] [Room] Room 117 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:45.092 INFO  [T12068] [World] 던전 인스턴스 117 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 95개)
+2026-11-21 00:42:45.354 INFO  [T21368] [World] 던전 인스턴스 52 닫음 (지금 94개)
+2026-11-21 00:42:45.354 INFO  [T12084] [Room] Room 52(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 3, 드랍 6
+2026-11-21 00:42:45.384 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:45.384 INFO  [T12084] [Room] Room 118(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:45.384 INFO  [T12084] [Room] Room 118 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:45.384 INFO  [T12084] [World] 던전 인스턴스 118 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 95개)
+2026-11-21 00:42:45.384 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:45.384 INFO  [T12084] [Room] Room 119(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:45.384 INFO  [T12084] [Room] Room 119 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:45.384 INFO  [T12084] [World] 던전 인스턴스 119 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 96개)
+2026-11-21 00:42:45.448 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:45.448 INFO  [T15756] [Room] Room 120(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:45.448 INFO  [T15756] [Room] Room 120 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:45.448 INFO  [T15756] [World] 던전 인스턴스 120 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 97개)
+2026-11-21 00:42:45.556 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:45.556 INFO  [T21368] [Room] Room 121(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:45.556 INFO  [T21368] [Room] Room 121 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:45.556 INFO  [T21368] [World] 던전 인스턴스 121 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 98개)
+2026-11-21 00:42:46.237 INFO  [T12068] [World] 던전 인스턴스 90 닫음 (지금 97개)
+2026-11-21 00:42:46.237 INFO  [T15756] [Room] Room 90(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 9
+2026-11-21 00:42:46.285 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:46.285 INFO  [T12068] [Room] Room 122(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:46.285 INFO  [T12068] [Room] Room 122 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:46.285 INFO  [T12068] [World] 던전 인스턴스 122 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 98개)
+2026-11-21 00:42:46.455 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:46.455 INFO  [T12084] [Room] Room 123(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:46.455 INFO  [T12084] [Room] Room 123 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:46.455 INFO  [T12084] [World] 던전 인스턴스 123 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 99개)
+2026-11-21 00:42:46.486 INFO  [T12068] [World] 던전 인스턴스 47 닫음 (지금 98개)
+2026-11-21 00:42:46.486 INFO  [T11988] [Room] Room 47(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 3, 드랍 4
+2026-11-21 00:42:46.535 INFO  [T21368] [World] 던전 인스턴스 78 닫음 (지금 97개)
+2026-11-21 00:42:46.535 INFO  [T15756] [Room] Room 78(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 10
+2026-11-21 00:42:46.664 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:46.664 INFO  [T12068] [Room] Room 124(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:46.664 INFO  [T12068] [Room] Room 124 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:46.664 INFO  [T12068] [World] 던전 인스턴스 124 생성 (레벨 Continent01_Dungeon, 채널 1, 1.1ms, 지금 98개)
+2026-11-21 00:42:47.186 INFO  [T11500] [World] 던전 인스턴스 19 닫음 (지금 97개)
+2026-11-21 00:42:47.186 INFO  [T12084] [Room] Room 19(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 4
+2026-11-21 00:42:47.989 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:47.989 INFO  [T21368] [Room] Room 125(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:47.989 INFO  [T21368] [Room] Room 125 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:47.989 INFO  [T21368] [World] 던전 인스턴스 125 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 98개)
+2026-11-21 00:42:48.028 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:48.028 INFO  [T21368] [Room] Room 126(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:48.028 INFO  [T21368] [Room] Room 126 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:48.028 INFO  [T21368] [World] 던전 인스턴스 126 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 99개)
+2026-11-21 00:42:48.129 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:48.129 INFO  [T21368] [Room] Room 127(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:48.129 INFO  [T21368] [Room] Room 127 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:48.129 INFO  [T21368] [World] 던전 인스턴스 127 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 100개)
+2026-11-21 00:42:48.524 INFO  [T12068] [World] 던전 인스턴스 95 닫음 (지금 99개)
+2026-11-21 00:42:48.524 INFO  [T12084] [Room] Room 95(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 3, 드랍 7
+2026-11-21 00:42:49.678 INFO  [T15356] [metrics] sessions=200 rooms=101 players=200 monsters=572 in/s=787 out/s=4266 sendCalls/s=2403 bufsPerSend=1.78 atk(req/ok per s)=257.2/75.8 zones(total created/hits)=538/1919 move(total ok/speed/nav/bad/stale/rate)=6243/2523/1046/0/0/48 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.03/0.02/0.08/0.14/0.37 viewPlayers(avg/p99/max)=2.2/20/20 viewObjects(avg/p99/max)=6.1/24/25 sendQ(total/sessionMax)=3/30 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=189/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=5543/0 revive(total deaths/ok/reject/deadMove)=24/15/0/0 portal(total ok/reject)=408/217 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=639 468/804/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=2450/8/0/426 flushGap(p50/p90/p99 ms)=26/127/127 sendWake(per s, late avg/p50/p99/max ms)=280 0.8/0.7/2.0/2.3 jobs(exec/repost per s)=2319/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=1.1ms flushRunMax=1.7ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=56/134 flushRuns/s=1201 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/6 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.37 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=533/518/15/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=101 dungeon(now/created/closed players)=99/125/26 194 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.13
+2026-11-21 00:42:50.033 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:50.033 INFO  [T15756] [Room] Room 128(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:50.033 INFO  [T15756] [Room] Room 128 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:50.033 INFO  [T15756] [World] 던전 인스턴스 128 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 100개)
+2026-11-21 00:42:51.293 INFO  [T11988] [World] 던전 인스턴스 85 닫음 (지금 99개)
+2026-11-21 00:42:51.293 INFO  [T12068] [Room] Room 85(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 3, 드랍 11
+2026-11-21 00:42:51.715 INFO  [T12084] [World] 던전 인스턴스 86 닫음 (지금 98개)
+2026-11-21 00:42:51.715 INFO  [T11988] [Room] Room 86(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 2, 드랍 8
+2026-11-21 00:42:52.100 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:52.100 INFO  [T21368] [Room] Room 129(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:52.100 INFO  [T21368] [Room] Room 129 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:52.100 INFO  [T21368] [World] 던전 인스턴스 129 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 99개)
+2026-11-21 00:42:52.794 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:52.794 INFO  [T11988] [Room] Room 130(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:52.794 INFO  [T11988] [Room] Room 130 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:52.794 INFO  [T11988] [World] 던전 인스턴스 130 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 100개)
+2026-11-21 00:42:54.680 INFO  [T15356] [metrics] sessions=200 rooms=102 players=200 monsters=518 in/s=739 out/s=2794 sendCalls/s=1904 bufsPerSend=1.47 atk(req/ok per s)=261.4/72.8 zones(total created/hits)=617/2080 move(total ok/speed/nav/bad/stale/rate)=6933/2934/1125/0/0/50 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.02/0.01/0.07/0.14/0.45 viewPlayers(avg/p99/max)=1.3/12/12 viewObjects(avg/p99/max)=4.8/16/18 sendQ(total/sessionMax)=21/21 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=6486/0 revive(total deaths/ok/reject/deadMove)=36/24/0/0 portal(total ok/reject)=469/260 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=753 540/937/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1910/7/0/42 flushGap(p50/p90/p99 ms)=61/127/127 sendWake(per s, late avg/p50/p99/max ms)=241 0.8/0.8/2.0/2.5 jobs(exec/repost per s)=2208/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.5ms flushRunMax=1.2ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=45/111 flushRuns/s=1163 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/9 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.31 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=597/581/16/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/128/28 191 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.13
+2026-11-21 00:42:55.642 INFO  [T21368] [World] 던전 인스턴스 29 닫음 (지금 99개)
+2026-11-21 00:42:55.642 INFO  [T12084] [Room] Room 29(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 12
+2026-11-21 00:42:55.957 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:55.957 INFO  [T11500] [Room] Room 131(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:55.957 INFO  [T11500] [Room] Room 131 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:55.957 INFO  [T11500] [World] 던전 인스턴스 131 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 100개)
+2026-11-21 00:42:57.457 INFO  [T11988] [World] 던전 인스턴스 103 닫음 (지금 99개)
+2026-11-21 00:42:57.457 INFO  [T12084] [Room] Room 103(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 4
+2026-11-21 00:42:58.946 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:42:58.946 INFO  [T12068] [Room] Room 132(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:42:58.946 INFO  [T12068] [Room] Room 132 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:42:58.946 INFO  [T12068] [World] 던전 인스턴스 132 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 100개)
+2026-11-21 00:42:59.681 INFO  [T15356] [metrics] sessions=200 rooms=102 players=200 monsters=459 in/s=716 out/s=2245 sendCalls/s=1643 bufsPerSend=1.37 atk(req/ok per s)=261.4/73.6 zones(total created/hits)=716/2214 move(total ok/speed/nav/bad/stale/rate)=7569/3355/1197/0/0/50 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.02/0.01/0.06/0.11/0.25 viewPlayers(avg/p99/max)=1.2/10/10 viewObjects(avg/p99/max)=4.1/14/16 sendQ(total/sessionMax)=7/21 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=181/2 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=7425/0 revive(total deaths/ok/reject/deadMove)=44/35/0/0 portal(total ok/reject)=508/296 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=821 590/1021/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1642/4/0/11 flushGap(p50/p90/p99 ms)=83/127/127 sendWake(per s, late avg/p50/p99/max ms)=215 0.9/0.8/2.0/2.5 jobs(exec/repost per s)=2121/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.7ms flushRunMax=0.9ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=41/102 flushRuns/s=1106 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/6 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.19 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=638/622/16/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/130/30 194 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.10
+2026-11-21 00:43:01.584 INFO  [T15756] [World] 던전 인스턴스 107 닫음 (지금 99개)
+2026-11-21 00:43:01.584 INFO  [T12084] [Room] Room 107(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 6
+2026-11-21 00:43:03.086 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:03.086 INFO  [T12084] [Room] Room 133(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:03.086 INFO  [T12084] [Room] Room 133 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:03.086 INFO  [T12084] [World] 던전 인스턴스 133 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 100개)
+2026-11-21 00:43:03.428 INFO  [T15756] [World] 던전 인스턴스 110 닫음 (지금 99개)
+2026-11-21 00:43:03.428 INFO  [T21368] [Room] Room 110(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 6, 드랍 2
+2026-11-21 00:43:04.682 INFO  [T15356] [metrics] sessions=200 rooms=101 players=200 monsters=416 in/s=755 out/s=2315 sendCalls/s=1706 bufsPerSend=1.36 atk(req/ok per s)=263.0/75.8 zones(total created/hits)=787/2312 move(total ok/speed/nav/bad/stale/rate)=8238/3855/1256/0/0/51 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.01/0.05/0.08/0.41 viewPlayers(avg/p99/max)=1.2/10/10 viewObjects(avg/p99/max)=3.7/14/15 sendQ(total/sessionMax)=0/22 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=8361/0 revive(total deaths/ok/reject/deadMove)=52/44/0/0 portal(total ok/reject)=561/399 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=872 626/1080/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1708/7/0/23 flushGap(p50/p90/p99 ms)=61/127/127 sendWake(per s, late avg/p50/p99/max ms)=241 0.8/0.8/2.0/2.5 jobs(exec/repost per s)=2207/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.4ms flushRunMax=0.8ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=31/84 flushRuns/s=1107 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/13 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.13 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=692/675/17/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=101 dungeon(now/created/closed players)=99/131/32 187 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.08
+2026-11-21 00:43:04.928 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:04.928 INFO  [T11988] [Room] Room 134(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:04.928 INFO  [T11988] [Room] Room 134 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:04.928 INFO  [T11988] [World] 던전 인스턴스 134 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 100개)
+2026-11-21 00:43:05.116 INFO  [T12068] [World] 던전 인스턴스 63 닫음 (지금 99개)
+2026-11-21 00:43:05.116 INFO  [T15756] [Room] Room 63(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 10
+2026-11-21 00:43:05.263 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:05.263 INFO  [T11988] [Room] Room 135(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:05.263 INFO  [T11988] [Room] Room 135 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:05.263 INFO  [T11988] [World] 던전 인스턴스 135 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 100개)
+2026-11-21 00:43:05.821 INFO  [T11500] [World] 던전 인스턴스 127 닫음 (지금 99개)
+2026-11-21 00:43:05.821 INFO  [T11988] [Room] Room 127(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 7
+2026-11-21 00:43:06.198 INFO  [T12084] [World] 던전 인스턴스 120 닫음 (지금 98개)
+2026-11-21 00:43:06.198 INFO  [T15756] [Room] Room 120(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 4
+2026-11-21 00:43:07.321 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:07.321 INFO  [T11500] [Room] Room 136(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:07.321 INFO  [T11500] [Room] Room 136 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:07.321 INFO  [T11500] [World] 던전 인스턴스 136 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 99개)
+2026-11-21 00:43:07.702 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:07.702 INFO  [T12068] [Room] Room 137(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:07.702 INFO  [T12068] [Room] Room 137 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:07.702 INFO  [T12068] [World] 던전 인스턴스 137 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 100개)
+2026-11-21 00:43:08.321 INFO  [T21368] [World] 던전 인스턴스 119 닫음 (지금 99개)
+2026-11-21 00:43:08.321 INFO  [T11500] [Room] Room 119(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 7
+2026-11-21 00:43:09.232 INFO  [T12068] [World] 던전 인스턴스 118 닫음 (지금 98개)
+2026-11-21 00:43:09.232 INFO  [T21368] [Room] Room 118(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 6
+2026-11-21 00:43:09.682 INFO  [T15356] [metrics] sessions=200 rooms=100 players=199 monsters=393 in/s=781 out/s=2779 sendCalls/s=1874 bufsPerSend=1.48 atk(req/ok per s)=258.2/74.2 zones(total created/hits)=851/2417 move(total ok/speed/nav/bad/stale/rate)=8988/4319/1296/0/0/54 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.01/0.04/0.06/0.16 viewPlayers(avg/p99/max)=1.6/16/16 viewObjects(avg/p99/max)=3.9/21/22 sendQ(total/sessionMax)=1/28 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=9281/0 revive(total deaths/ok/reject/deadMove)=61/52/0/0 portal(total ok/reject)=637/564 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=895 658/1137/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1890/10/0/159 flushGap(p50/p90/p99 ms)=41/127/127 sendWake(per s, late avg/p50/p99/max ms)=240 0.8/0.8/2.0/2.5 jobs(exec/repost per s)=2245/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.6ms flushRunMax=0.5ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=25/66 flushRuns/s=1079 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/14 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.14 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=771/750/20/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=100 dungeon(now/created/closed players)=98/135/37 185 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.06
+2026-11-21 00:43:09.826 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:09.826 INFO  [T12084] [Room] Room 138(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:09.826 INFO  [T12084] [Room] Room 138 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:09.826 INFO  [T12084] [World] 던전 인스턴스 138 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 99개)
+2026-11-21 00:43:10.743 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:10.743 INFO  [T11988] [Room] Room 139(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:10.743 INFO  [T11988] [Room] Room 139 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:10.743 INFO  [T11988] [World] 던전 인스턴스 139 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 100개)
+2026-11-21 00:43:12.697 INFO  [T15756] [World] 던전 인스턴스 125 닫음 (지금 99개)
+2026-11-21 00:43:12.697 INFO  [T11500] [Room] Room 125(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 3, 드랍 11
+2026-11-21 00:43:13.583 INFO  [T12068] [World] 던전 인스턴스 27 닫음 (지금 98개)
+2026-11-21 00:43:13.583 INFO  [T11988] [Room] Room 27(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 10
+2026-11-21 00:43:13.672 INFO  [T12068] [World] 던전 인스턴스 128 닫음 (지금 97개)
+2026-11-21 00:43:13.672 INFO  [T12084] [Room] Room 128(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 7
+2026-11-21 00:43:13.789 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:13.789 INFO  [T12068] [Room] Room 140(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:13.789 INFO  [T12068] [Room] Room 140 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:13.789 INFO  [T12068] [World] 던전 인스턴스 140 생성 (레벨 Continent01_Dungeon, 채널 1, 0.6ms, 지금 98개)
+2026-11-21 00:43:14.109 INFO  [T12084] [World] 던전 인스턴스 129 닫음 (지금 97개)
+2026-11-21 00:43:14.109 INFO  [T15756] [Room] Room 129(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 8
+2026-11-21 00:43:14.129 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:14.130 INFO  [T21368] [Room] Room 141(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:14.130 INFO  [T21368] [Room] Room 141 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:14.130 INFO  [T21368] [World] 던전 인스턴스 141 생성 (레벨 Continent01_Dungeon, 채널 1, 1.0ms, 지금 98개)
+2026-11-21 00:43:14.460 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:14.460 INFO  [T11988] [Room] Room 142(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:14.460 INFO  [T11988] [Room] Room 142 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:14.460 INFO  [T11988] [World] 던전 인스턴스 142 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 99개)
+2026-11-21 00:43:14.683 INFO  [T15356] [metrics] sessions=200 rooms=101 players=200 monsters=394 in/s=772 out/s=2893 sendCalls/s=1893 bufsPerSend=1.53 atk(req/ok per s)=251.8/75.6 zones(total created/hits)=906/2499 move(total ok/speed/nav/bad/stale/rate)=9765/4754/1324/0/0/59 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.01/0.05/0.09/0.31 viewPlayers(avg/p99/max)=1.6/13/13 viewObjects(avg/p99/max)=3.6/18/19 sendQ(total/sessionMax)=0/26 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=10162/0 revive(total deaths/ok/reject/deadMove)=75/61/0/0 portal(total ok/reject)=717/715 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=900 680/1178/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1917/10/0/194 flushGap(p50/p90/p99 ms)=34/127/127 sendWake(per s, late avg/p50/p99/max ms)=229 0.8/0.8/2.0/2.5 jobs(exec/repost per s)=2230/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=1.0ms flushRunMax=1.3ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=33/94 flushRuns/s=1049 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/11 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.31 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=856/835/21/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=101 dungeon(now/created/closed players)=99/140/41 189 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.08
+2026-11-21 00:43:14.911 INFO  [T12084] [World] 던전 인스턴스 126 닫음 (지금 98개)
+2026-11-21 00:43:14.911 INFO  [T15756] [Room] Room 126(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 5
+2026-11-21 00:43:15.102 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:15.102 INFO  [T11988] [Room] Room 143(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:15.102 INFO  [T11988] [Room] Room 143 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:15.102 INFO  [T11988] [World] 던전 인스턴스 143 생성 (레벨 Continent01_Dungeon, 채널 1, 1.1ms, 지금 99개)
+2026-11-21 00:43:15.551 INFO  [T12084] [World] 던전 인스턴스 64 닫음 (지금 98개)
+2026-11-21 00:43:15.552 INFO  [T21368] [Room] Room 64(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 9
+2026-11-21 00:43:16.043 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:16.044 INFO  [T12068] [Room] Room 144(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:16.044 INFO  [T12068] [Room] Room 144 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:16.044 INFO  [T12068] [World] 던전 인스턴스 144 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 99개)
+2026-11-21 00:43:16.414 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:16.414 INFO  [T21368] [Room] Room 145(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:16.414 INFO  [T21368] [Room] Room 145 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:16.414 INFO  [T21368] [World] 던전 인스턴스 145 생성 (레벨 Continent01_Dungeon, 채널 1, 0.8ms, 지금 100개)
+2026-11-21 00:43:19.684 INFO  [T15356] [metrics] sessions=200 rooms=102 players=200 monsters=388 in/s=722 out/s=2168 sendCalls/s=1565 bufsPerSend=1.38 atk(req/ok per s)=252.0/72.6 zones(total created/hits)=962/2576 move(total ok/speed/nav/bad/stale/rate)=10441/5130/1356/0/0/68 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.01/0.05/0.10/0.39 viewPlayers(avg/p99/max)=1.2/9/9 viewObjects(avg/p99/max)=3.2/13/15 sendQ(total/sessionMax)=4/23 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=11059/0 revive(total deaths/ok/reject/deadMove)=94/75/0/0 portal(total ok/reject)=771/839 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=925 703/1217/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1570/6/0/42 flushGap(p50/p90/p99 ms)=68/127/127 sendWake(per s, late avg/p50/p99/max ms)=192 0.8/0.8/2.0/2.4 jobs(exec/repost per s)=2125/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=1.2ms flushRunMax=1.9ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=34/95 flushRuns/s=989 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/10 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.32 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=913/890/23/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/143/43 190 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.09
+2026-11-21 00:43:21.012 INFO  [T21368] [World] 던전 인스턴스 71 닫음 (지금 99개)
+2026-11-21 00:43:21.012 INFO  [T11988] [Room] Room 71(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 9
+2026-11-21 00:43:21.643 INFO  [T12068] [World] 던전 인스턴스 31 닫음 (지금 98개)
+2026-11-21 00:43:21.643 INFO  [T15756] [Room] Room 31(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 11
+2026-11-21 00:43:22.514 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:22.514 INFO  [T15756] [Room] Room 146(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:22.514 INFO  [T15756] [Room] Room 146 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:22.514 INFO  [T15756] [World] 던전 인스턴스 146 생성 (레벨 Continent01_Dungeon, 채널 1, 0.9ms, 지금 99개)
+2026-11-21 00:43:23.151 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:23.151 INFO  [T12084] [Room] Room 147(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:23.151 INFO  [T12084] [Room] Room 147 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:23.151 INFO  [T12084] [World] 던전 인스턴스 147 생성 (레벨 Continent01_Dungeon, 채널 1, 1.2ms, 지금 100개)
+2026-11-21 00:43:24.562 INFO  [T12068] [World] 던전 인스턴스 137 닫음 (지금 99개)
+2026-11-21 00:43:24.562 INFO  [T11988] [Room] Room 137(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 6
+2026-11-21 00:43:24.653 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:24.653 INFO  [T12084] [Room] Room 148(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:24.653 INFO  [T12084] [Room] Room 148 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:24.653 INFO  [T12084] [World] 던전 인스턴스 148 생성 (레벨 Continent01_Dungeon, 채널 1, 0.5ms, 지금 100개)
+2026-11-21 00:43:24.685 INFO  [T15356] [metrics] sessions=200 rooms=102 players=200 monsters=381 in/s=736 out/s=2439 sendCalls/s=1705 bufsPerSend=1.43 atk(req/ok per s)=252.2/74.2 zones(total created/hits)=1011/2655 move(total ok/speed/nav/bad/stale/rate)=11146/5508/1392/0/0/78 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.01/0.06/0.12/0.27 viewPlayers(avg/p99/max)=1.5/12/12 viewObjects(avg/p99/max)=3.4/16/17 sendQ(total/sessionMax)=5/25 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=11949/0 revive(total deaths/ok/reject/deadMove)=109/93/0/0 portal(total ok/reject)=839/957 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=891 722/1256/47/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1714/8/0/88 flushGap(p50/p90/p99 ms)=47/127/127 sendWake(per s, late avg/p50/p99/max ms)=203 0.8/0.8/2.0/4.6 jobs(exec/repost per s)=2167/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=1.3ms flushRunMax=1.4ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=38/115 flushRuns/s=1006 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/9 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.27 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=984/959/25/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/146/46 191 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.10
+2026-11-21 00:43:26.466 INFO  [T21368] [World] 던전 인스턴스 132 닫음 (지금 99개)
+2026-11-21 00:43:26.466 INFO  [T11988] [Room] Room 132(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 4
+2026-11-21 00:43:27.305 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:27.305 INFO  [T11988] [Room] Room 149(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:27.305 INFO  [T11988] [Room] Room 149 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:27.305 INFO  [T11988] [World] 던전 인스턴스 149 생성 (레벨 Continent01_Dungeon, 채널 1, 0.5ms, 지금 100개)
+2026-11-21 00:43:29.686 INFO  [T15356] [metrics] sessions=200 rooms=102 players=200 monsters=365 in/s=719 out/s=2077 sendCalls/s=1520 bufsPerSend=1.36 atk(req/ok per s)=254.2/73.0 zones(total created/hits)=1063/2713 move(total ok/speed/nav/bad/stale/rate)=11797/5886/1407/0/0/85 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.04/0.07/0.18 viewPlayers(avg/p99/max)=1.2/9/9 viewObjects(avg/p99/max)=3.0/12/14 sendQ(total/sessionMax)=9/23 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=181/2 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=12856/0 revive(total deaths/ok/reject/deadMove)=133/109/0/0 portal(total ok/reject)=893/1083 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=810 737/1280/148/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1521/7/0/19 flushGap(p50/p90/p99 ms)=74/127/127 sendWake(per s, late avg/p50/p99/max ms)=192 0.8/0.7/2.1/2.5 jobs(exec/repost per s)=2144/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.5ms flushRunMax=0.7ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=24/68 flushRuns/s=989 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/12 tickLateP99(town/field ms)=3.0/2.0 tickBodyP99(town/field ms)=0.00/0.18 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1039/1014/25/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/147/47 188 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.06
+2026-11-21 00:43:34.686 INFO  [T15356] [metrics] sessions=200 rooms=102 players=200 monsters=354 in/s=718 out/s=2559 sendCalls/s=1760 bufsPerSend=1.46 atk(req/ok per s)=239.2/71.2 zones(total created/hits)=1116/2786 move(total ok/speed/nav/bad/stale/rate)=12517/6212/1427/0/0/98 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.04/0.09/0.21 viewPlayers(avg/p99/max)=1.5/12/12 viewObjects(avg/p99/max)=3.2/17/18 sendQ(total/sessionMax)=12/25 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=13695/0 revive(total deaths/ok/reject/deadMove)=151/131/0/0 portal(total ok/reject)=966/1214 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=719 753/1306/265/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1779/9/0/158 flushGap(p50/p90/p99 ms)=38/127/127 sendWake(per s, late avg/p50/p99/max ms)=207 0.8/0.8/2.0/2.5 jobs(exec/repost per s)=2173/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.4ms flushRunMax=1.3ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=32/103 flushRuns/s=980 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/13 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.21 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1112/1087/25/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/147/47 187 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.08
+2026-11-21 00:43:34.984 INFO  [T21368] [World] 던전 인스턴스 143 닫음 (지금 99개)
+2026-11-21 00:43:34.984 INFO  [T12068] [Room] Room 143(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 8
+2026-11-21 00:43:36.485 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:36.485 INFO  [T21368] [Room] Room 150(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:36.485 INFO  [T21368] [Room] Room 150 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:36.485 INFO  [T21368] [World] 던전 인스턴스 150 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 100개)
+2026-11-21 00:43:37.780 INFO  [T11988] [World] 던전 인스턴스 141 닫음 (지금 99개)
+2026-11-21 00:43:37.780 INFO  [T11500] [Room] Room 141(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 11
+2026-11-21 00:43:38.851 INFO  [T11500] [World] 던전 인스턴스 134 닫음 (지금 98개)
+2026-11-21 00:43:38.851 INFO  [T15756] [Room] Room 134(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 2, 드랍 9
+2026-11-21 00:43:39.281 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:39.281 INFO  [T12068] [Room] Room 151(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:39.281 INFO  [T12068] [Room] Room 151 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:39.281 INFO  [T12068] [World] 던전 인스턴스 151 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 99개)
+2026-11-21 00:43:39.687 INFO  [T15356] [metrics] sessions=200 rooms=101 players=200 monsters=342 in/s=724 out/s=2660 sendCalls/s=1831 bufsPerSend=1.45 atk(req/ok per s)=234.2/68.8 zones(total created/hits)=1175/2865 move(total ok/speed/nav/bad/stale/rate)=13272/6553/1460/0/0/114 tickLate(avg/p50/p95/p99/max ms)=1.0/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.06/0.23 viewPlayers(avg/p99/max)=1.5/13/13 viewObjects(avg/p99/max)=3.1/17/18 sendQ(total/sessionMax)=5/24 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=14522/0 revive(total deaths/ok/reject/deadMove)=180/151/0/0 portal(total ok/reject)=1047/1314 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=592 765/1325/383/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1861/9/0/196 flushGap(p50/p90/p99 ms)=31/127/127 sendWake(per s, late avg/p50/p99/max ms)=215 0.8/0.8/2.0/2.5 jobs(exec/repost per s)=2179/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.8ms flushRunMax=0.7ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=21/63 flushRuns/s=992 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/12 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.23 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1195/1168/27/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=101 dungeon(now/created/closed players)=99/149/50 188 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.04
+2026-11-21 00:43:39.732 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:39.732 INFO  [T15756] [Room] Room 152(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:39.732 INFO  [T15756] [Room] Room 152 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:39.732 INFO  [T15756] [World] 던전 인스턴스 152 생성 (레벨 Continent01_Dungeon, 채널 1, 0.8ms, 지금 100개)
+2026-11-21 00:43:39.980 INFO  [T11988] [World] 던전 인스턴스 9 닫음 (지금 99개)
+2026-11-21 00:43:39.980 INFO  [T15756] [Room] Room 9(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:43:40.383 INFO  [T12068] [World] 던전 인스턴스 21 닫음 (지금 98개)
+2026-11-21 00:43:40.383 INFO  [T11988] [Room] Room 21(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 3
+2026-11-21 00:43:41.124 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:41.124 INFO  [T12084] [Room] Room 153(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:41.124 INFO  [T12084] [Room] Room 153 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:41.124 INFO  [T12084] [World] 던전 인스턴스 153 생성 (레벨 Continent01_Dungeon, 채널 1, 1.0ms, 지금 99개)
+2026-11-21 00:43:41.485 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:41.485 INFO  [T11988] [Room] Room 154(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:41.485 INFO  [T11988] [Room] Room 154 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:41.485 INFO  [T11988] [World] 던전 인스턴스 154 생성 (레벨 Continent01_Dungeon, 채널 1, 0.7ms, 지금 100개)
+2026-11-21 00:43:42.443 INFO  [T11988] [World] 던전 인스턴스 84 닫음 (지금 99개)
+2026-11-21 00:43:42.443 INFO  [T15756] [Room] Room 84(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 5
+2026-11-21 00:43:42.952 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:42.952 INFO  [T21368] [Room] Room 155(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:42.952 INFO  [T21368] [Room] Room 155 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:42.952 INFO  [T21368] [World] 던전 인스턴스 155 생성 (레벨 Continent01_Dungeon, 채널 1, 0.9ms, 지금 100개)
+2026-11-21 00:43:44.688 INFO  [T15356] [metrics] sessions=200 rooms=102 players=200 monsters=359 in/s=755 out/s=2542 sendCalls/s=1786 bufsPerSend=1.42 atk(req/ok per s)=251.2/74.2 zones(total created/hits)=1233/2930 move(total ok/speed/nav/bad/stale/rate)=14052/6973/1480/0/0/133 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/5.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.04/0.09/0.34 viewPlayers(avg/p99/max)=1.5/12/12 viewObjects(avg/p99/max)=3.1/16/17 sendQ(total/sessionMax)=18/24 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=15407/1 revive(total deaths/ok/reject/deadMove)=190/179/0/0 portal(total ok/reject)=1123/1404 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=527 776/1343/458/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1804/8/0/133 flushGap(p50/p90/p99 ms)=38/127/127 sendWake(per s, late avg/p50/p99/max ms)=228 0.8/0.8/2.1/2.9 jobs(exec/repost per s)=2216/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=1.0ms flushRunMax=1.3ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=30/97 flushRuns/s=1024 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/9 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.34 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1275/1247/28/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/153/53 191 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.07
+2026-11-21 00:43:49.689 INFO  [T15356] [metrics] sessions=200 rooms=102 players=200 monsters=344 in/s=724 out/s=2085 sendCalls/s=1615 bufsPerSend=1.29 atk(req/ok per s)=252.6/75.0 zones(total created/hits)=1286/2956 move(total ok/speed/nav/bad/stale/rate)=14730/7391/1506/0/0/137 tickLate(avg/p50/p95/p99/max ms)=1.0/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.04/0.08/0.24 viewPlayers(avg/p99/max)=1.3/10/10 viewObjects(avg/p99/max)=2.9/15/16 sendQ(total/sessionMax)=8/23 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=16295/1 revive(total deaths/ok/reject/deadMove)=205/188/0/0 portal(total ok/reject)=1176/1498 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=449 792/1366/559/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1622/7/0/65 flushGap(p50/p90/p99 ms)=53/127/127 sendWake(per s, late avg/p50/p99/max ms)=211 0.8/0.8/2.0/2.5 jobs(exec/repost per s)=2170/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.5ms flushRunMax=0.9ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=28/91 flushRuns/s=1008 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/10 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.20 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1328/1300/28/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/153/53 190 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.07
+2026-11-21 00:43:49.699 INFO  [T11500] [Room] Room 75 던전 클리어 (안에 2명)
+2026-11-21 00:43:49.699 INFO  [T11988] [World] 던전 인스턴스 75 클리어 — 60초 뒤 남은 사람을 마을로 내보냅니다
+2026-11-21 00:43:52.733 INFO  [T11500] [World] 던전 인스턴스 113 닫음 (지금 99개)
+2026-11-21 00:43:52.733 INFO  [T15756] [Room] Room 113(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 8
+2026-11-21 00:43:52.738 INFO  [T21368] [World] 던전 인스턴스 25 닫음 (지금 98개)
+2026-11-21 00:43:52.738 INFO  [T11500] [Room] Room 25(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 2
+2026-11-21 00:43:52.755 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:52.755 INFO  [T11500] [Room] Room 156(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:52.755 INFO  [T11500] [Room] Room 156 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:52.755 INFO  [T11500] [World] 던전 인스턴스 156 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 99개)
+2026-11-21 00:43:53.795 INFO  [T15756] [World] 던전 인스턴스 123 닫음 (지금 98개)
+2026-11-21 00:43:53.795 INFO  [T12084] [Room] Room 123(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 9
+2026-11-21 00:43:54.237 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:54.237 INFO  [T12084] [Room] Room 157(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:54.237 INFO  [T12084] [Room] Room 157 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:54.237 INFO  [T12084] [World] 던전 인스턴스 157 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 99개)
+2026-11-21 00:43:54.690 INFO  [T15356] [metrics] sessions=200 rooms=101 players=200 monsters=339 in/s=741 out/s=2287 sendCalls/s=1735 bufsPerSend=1.32 atk(req/ok per s)=253.4/74.4 zones(total created/hits)=1332/3005 move(total ok/speed/nav/bad/stale/rate)=15443/7799/1539/0/0/148 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.06/0.23 viewPlayers(avg/p99/max)=1.3/10/10 viewObjects(avg/p99/max)=2.8/14/16 sendQ(total/sessionMax)=2/23 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=17190/1 revive(total deaths/ok/reject/deadMove)=217/204/0/0 portal(total ok/reject)=1245/1593 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=356 805/1400/667/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1746/7/0/89 flushGap(p50/p90/p99 ms)=37/127/127 sendWake(per s, late avg/p50/p99/max ms)=222 0.8/0.8/2.3/2.5 jobs(exec/repost per s)=2211/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.4ms flushRunMax=1.2ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=22/73 flushRuns/s=1023 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/15 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.23 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1399/1367/32/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=101 dungeon(now/created/closed players)=99/155/56 185 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.05
+2026-11-21 00:43:55.296 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:55.296 INFO  [T11500] [Room] Room 158(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:55.296 INFO  [T11500] [Room] Room 158 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:55.296 INFO  [T11500] [World] 던전 인스턴스 158 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 100개)
+2026-11-21 00:43:57.299 INFO  [T11500] [World] 던전 인스턴스 75 닫음 (지금 99개)
+2026-11-21 00:43:57.299 INFO  [T12084] [Room] Room 75(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 0, 드랍 12
+2026-11-21 00:43:59.230 INFO  [T12084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:43:59.230 INFO  [T12084] [Room] Room 159(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:43:59.230 INFO  [T12084] [Room] Room 159 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:43:59.230 INFO  [T12084] [World] 던전 인스턴스 159 생성 (레벨 Continent01_Dungeon, 채널 1, 0.8ms, 지금 100개)
+2026-11-21 00:43:59.340 INFO  [T12084] [World] 던전 인스턴스 152 닫음 (지금 99개)
+2026-11-21 00:43:59.340 INFO  [T15756] [Room] Room 152(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 3, 드랍 11
+2026-11-21 00:43:59.692 INFO  [T15356] [metrics] sessions=200 rooms=101 players=200 monsters=340 in/s=741 out/s=2307 sendCalls/s=1680 bufsPerSend=1.37 atk(req/ok per s)=252.6/75.8 zones(total created/hits)=1374/3045 move(total ok/speed/nav/bad/stale/rate)=16154/8225/1564/0/0/154 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/3.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.07/0.20 viewPlayers(avg/p99/max)=1.4/12/12 viewObjects(avg/p99/max)=3.0/17/18 sendQ(total/sessionMax)=11/25 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=18074/2 revive(total deaths/ok/reject/deadMove)=228/216/0/0 portal(total ok/reject)=1304/1718 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=283 813/1418/735/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1705/7/0/138 flushGap(p50/p90/p99 ms)=45/127/127 sendWake(per s, late avg/p50/p99/max ms)=227 0.8/0.7/2.0/3.1 jobs(exec/repost per s)=2190/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.8ms flushRunMax=0.9ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=25/80 flushRuns/s=999 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/14 tickLateP99(town/field ms)=3.0/3.0 tickBodyP99(town/field ms)=0.00/0.20 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1460/1426/34/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=101 dungeon(now/created/closed players)=99/157/58 186 tickLateP99(dungeon ms)=3.0 tickBodyP99(dungeon ms)=0.06
+2026-11-21 00:43:59.871 INFO  [T12084] [World] 던전 인스턴스 94 닫음 (지금 98개)
+2026-11-21 00:43:59.871 INFO  [T11500] [Room] Room 94(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 2
+2026-11-21 00:44:00.200 INFO  [T15756] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:44:00.200 INFO  [T15756] [Room] Room 160(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:44:00.200 INFO  [T15756] [Room] Room 160 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:44:00.200 INFO  [T15756] [World] 던전 인스턴스 160 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 99개)
+2026-11-21 00:44:00.582 INFO  [T21368] [World] 던전 인스턴스 112 닫음 (지금 98개)
+2026-11-21 00:44:00.582 INFO  [T12068] [Room] Room 112(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 4
+2026-11-21 00:44:00.843 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:44:00.843 INFO  [T11988] [Room] Room 161(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:44:00.843 INFO  [T11988] [Room] Room 161 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:44:00.843 INFO  [T11988] [World] 던전 인스턴스 161 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 99개)
+2026-11-21 00:44:02.082 INFO  [T11988] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:44:02.082 INFO  [T11988] [Room] Room 162(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:44:02.082 INFO  [T11988] [Room] Room 162 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:44:02.082 INFO  [T11988] [World] 던전 인스턴스 162 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 100개)
+2026-11-21 00:44:03.387 INFO  [T12084] [World] 던전 인스턴스 59 닫음 (지금 99개)
+2026-11-21 00:44:03.387 INFO  [T11988] [Room] Room 59(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:03.902 INFO  [T11500] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:44:03.902 INFO  [T11500] [Room] Room 163(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:44:03.902 INFO  [T11500] [Room] Room 163 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:44:03.902 INFO  [T11500] [World] 던전 인스턴스 163 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 100개)
+2026-11-21 00:44:04.693 INFO  [T15356] [metrics] sessions=200 rooms=102 players=199 monsters=355 in/s=764 out/s=2402 sendCalls/s=1692 bufsPerSend=1.42 atk(req/ok per s)=262.2/80.0 zones(total created/hits)=1416/3111 move(total ok/speed/nav/bad/stale/rate)=16858/8668/1588/0/0/162 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.07/0.19 viewPlayers(avg/p99/max)=1.3/11/11 viewObjects(avg/p99/max)=2.9/15/17 sendQ(total/sessionMax)=21/24 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=18985/2 revive(total deaths/ok/reject/deadMove)=237/228/0/0 portal(total ok/reject)=1375/1868 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=260 825/1437/771/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1702/9/0/100 flushGap(p50/p90/p99 ms)=45/127/127 sendWake(per s, late avg/p50/p99/max ms)=220 0.8/0.8/2.1/3.0 jobs(exec/repost per s)=2228/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.4ms flushRunMax=0.9ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=22/68 flushRuns/s=1011 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/6 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.19 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1535/1499/36/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=102 dungeon(now/created/closed players)=100/161/61 193 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.06
+2026-11-21 00:44:06.693 INFO  [T12068] [World] 던전 인스턴스 35 닫음 (지금 99개)
+2026-11-21 00:44:06.693 INFO  [T12084] [Room] Room 35(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:07.138 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:44:07.138 INFO  [T12068] [Room] Room 164(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:44:07.138 INFO  [T12068] [Room] Room 164 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:44:07.138 INFO  [T12068] [World] 던전 인스턴스 164 생성 (레벨 Continent01_Dungeon, 채널 1, 0.9ms, 지금 100개)
+2026-11-21 00:44:08.594 INFO  [T11988] [World] 던전 인스턴스 151 닫음 (지금 99개)
+2026-11-21 00:44:08.594 INFO  [T21368] [Room] Room 151(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 6
+2026-11-21 00:44:08.646 INFO  [T11988] [World] 던전 인스턴스 147 닫음 (지금 98개)
+2026-11-21 00:44:08.646 INFO  [T12068] [Room] Room 147(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 2, 드랍 8
+2026-11-21 00:44:09.694 INFO  [T15356] [metrics] sessions=200 rooms=100 players=200 monsters=346 in/s=733 out/s=2187 sendCalls/s=1646 bufsPerSend=1.33 atk(req/ok per s)=255.2/77.8 zones(total created/hits)=1457/3129 move(total ok/speed/nav/bad/stale/rate)=17519/9084/1621/0/0/165 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.04/0.08/0.21 viewPlayers(avg/p99/max)=1.3/12/12 viewObjects(avg/p99/max)=2.9/16/18 sendQ(total/sessionMax)=1/22 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=19872/2 revive(total deaths/ok/reject/deadMove)=250/235/0/0 portal(total ok/reject)=1436/2010 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=227 835/1453/806/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1657/8/0/80 flushGap(p50/p90/p99 ms)=48/127/127 sendWake(per s, late avg/p50/p99/max ms)=211 0.8/0.8/2.0/2.6 jobs(exec/repost per s)=2179/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=1.0ms flushRunMax=0.9ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=27/88 flushRuns/s=997 conn(sessionObjs/handles idleKick/sendqKick)=201/520 0/0 world(channels/roster/chMax)=1/200/200 kind(town/field players)=0/6 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.18 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1597/1560/37/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=100/200/0 100/100/0/0/0 100/0 roomsAlive=100 dungeon(now/created/closed players)=98/162/64 194 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.07
+2026-11-21 00:44:10.077 INFO  [T12084] [World] 던전 인스턴스 77 닫음 (지금 97개)
+2026-11-21 00:44:10.077 INFO  [T12068] [Room] Room 77(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:10.098 INFO  [T21368] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:44:10.098 INFO  [T21368] [Room] Room 165(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:44:10.098 INFO  [T21368] [Room] Room 165 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:44:10.098 INFO  [T21368] [World] 던전 인스턴스 165 생성 (레벨 Continent01_Dungeon, 채널 1, 0.5ms, 지금 98개)
+2026-11-21 00:44:10.147 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:44:10.147 INFO  [T12068] [Room] Room 166(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:44:10.147 INFO  [T12068] [Room] Room 166 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:44:10.147 INFO  [T12068] [World] 던전 인스턴스 166 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 99개)
+2026-11-21 00:44:10.756 INFO  [T15756] [World] 던전 인스턴스 22 닫음 (지금 98개)
+2026-11-21 00:44:10.756 INFO  [T12084] [Room] Room 22(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:10.959 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:44:10.959 INFO  [T12068] [Room] Room 167(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:44:10.959 INFO  [T12068] [Room] Room 167 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:44:10.959 INFO  [T12068] [World] 던전 인스턴스 167 생성 (레벨 Continent01_Dungeon, 채널 1, 0.4ms, 지금 99개)
+2026-11-21 00:44:12.256 INFO  [T12068] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:44:12.256 INFO  [T12068] [Room] Room 168(채널 1, Continent01_Dungeon 구역 'dungeon') 몬스터 스폰: 지점 3곳, 몬스터 7마리 (boss 1, hall 6)
+2026-11-21 00:44:12.256 INFO  [T12068] [Room] Room 168 포털: 마커 1개 중 쓸 수 있는 것 1개, 시작 지점 1곳
+2026-11-21 00:44:12.256 INFO  [T12068] [World] 던전 인스턴스 168 생성 (레벨 Continent01_Dungeon, 채널 1, 0.3ms, 지금 100개)
+2026-11-21 00:44:13.088 INFO  [T15756] [World] 던전 인스턴스 89 닫음 (지금 99개)
+2026-11-21 00:44:13.088 INFO  [T21368] [Room] Room 89(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.272 INFO  [T11988] [World] 던전 인스턴스 105 닫음 (지금 98개)
+2026-11-21 00:44:13.272 INFO  [T11988] [World] 던전 인스턴스 131 닫음 (지금 97개)
+2026-11-21 00:44:13.272 INFO  [T11988] [World] 던전 인스턴스 149 닫음 (지금 96개)
+2026-11-21 00:44:13.272 INFO  [T12084] [Room] Room 105(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 2
+2026-11-21 00:44:13.272 INFO  [T12084] [Room] Room 131(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 4
+2026-11-21 00:44:13.272 INFO  [T21368] [Room] Room 149(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 9
+2026-11-21 00:44:13.272 INFO  [T11988] [World] 던전 인스턴스 8 닫음 (지금 95개)
+2026-11-21 00:44:13.273 INFO  [T11988] [World] 던전 인스턴스 116 닫음 (지금 94개)
+2026-11-21 00:44:13.273 INFO  [T12084] [Room] Room 8(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.273 INFO  [T11988] [World] 던전 인스턴스 14 닫음 (지금 93개)
+2026-11-21 00:44:13.273 INFO  [T11500] [Room] Room 116(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 1
+2026-11-21 00:44:13.273 INFO  [T12084] [Room] Room 14(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.273 INFO  [T11500] [World] 던전 인스턴스 121 닫음 (지금 92개)
+2026-11-21 00:44:13.273 INFO  [T11988] [World] 던전 인스턴스 15 닫음 (지금 91개)
+2026-11-21 00:44:13.273 INFO  [T11500] [Room] Room 121(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 4
+2026-11-21 00:44:13.273 INFO  [T11988] [Room] Room 15(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.273 INFO  [T15756] [World] 던전 인스턴스 32 닫음 (지금 90개)
+2026-11-21 00:44:13.273 INFO  [T15756] [World] 던전 인스턴스 136 닫음 (지금 89개)
+2026-11-21 00:44:13.273 INFO  [T11988] [Room] Room 32(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.273 INFO  [T11500] [Room] Room 136(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 8
+2026-11-21 00:44:13.273 INFO  [T12068] [World] 던전 인스턴스 23 닫음 (지금 88개)
+2026-11-21 00:44:13.273 INFO  [T12068] [World] 던전 인스턴스 114 닫음 (지금 87개)
+2026-11-21 00:44:13.273 INFO  [T12068] [World] 던전 인스턴스 28 닫음 (지금 86개)
+2026-11-21 00:44:13.273 INFO  [T12068] [World] 던전 인스턴스 104 닫음 (지금 85개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 24 닫음 (지금 84개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 156 닫음 (지금 83개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 53 닫음 (지금 82개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 166 닫음 (지금 81개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 164 닫음 (지금 80개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 162 닫음 (지금 79개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 157 닫음 (지금 78개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 50 닫음 (지금 77개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 106 닫음 (지금 76개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 139 닫음 (지금 75개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 108 닫음 (지금 74개)
+2026-11-21 00:44:13.274 INFO  [T12068] [World] 던전 인스턴스 158 닫음 (지금 73개)
+2026-11-21 00:44:13.274 INFO  [T12068] [Room] Room 23(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.274 INFO  [T12084] [Room] Room 28(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.274 INFO  [T11988] [Room] Room 104(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.274 INFO  [T12068] [Room] Room 114(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.274 INFO  [T15756] [Room] Room 24(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.274 INFO  [T15756] [Room] Room 156(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 7
+2026-11-21 00:44:13.274 INFO  [T15756] [Room] Room 53(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.274 INFO  [T15756] [Room] Room 166(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 7, 드랍 2
+2026-11-21 00:44:13.274 INFO  [T21368] [Room] Room 164(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 7, 드랍 0
+2026-11-21 00:44:13.274 INFO  [T12084] [Room] Room 162(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 6, 드랍 8
+2026-11-21 00:44:13.274 INFO  [T11500] [Room] Room 157(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 3, 드랍 9
+2026-11-21 00:44:13.274 INFO  [T11988] [Room] Room 50(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.274 INFO  [T15756] [Room] Room 106(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.274 INFO  [T15756] [Room] Room 139(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 6
+2026-11-21 00:44:13.274 INFO  [T12084] [Room] Room 108(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.274 INFO  [T15756] [Room] Room 158(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 4, 드랍 4
+2026-11-21 00:44:13.274 INFO  [T11988] [World] 던전 인스턴스 69 닫음 (지금 72개)
+2026-11-21 00:44:13.274 INFO  [T11988] [World] 던전 인스턴스 163 닫음 (지금 71개)
+2026-11-21 00:44:13.274 INFO  [T11988] [World] 던전 인스턴스 54 닫음 (지금 70개)
+2026-11-21 00:44:13.274 INFO  [T11988] [World] 던전 인스턴스 79 닫음 (지금 69개)
+2026-11-21 00:44:13.276 INFO  [T11500] [Room] Room 69(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.276 INFO  [T12068] [Room] Room 163(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 6, 드랍 3
+2026-11-21 00:44:13.276 INFO  [T15756] [Room] Room 54(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 10
+2026-11-21 00:44:13.276 INFO  [T15756] [Room] Room 79(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 148 닫음 (지금 68개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 65 닫음 (지금 67개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 70 닫음 (지금 66개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 144 닫음 (지금 65개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 74 닫음 (지금 64개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 146 닫음 (지금 63개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 68 닫음 (지금 62개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 145 닫음 (지금 61개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 82 닫음 (지금 60개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 130 닫음 (지금 59개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 4 닫음 (지금 58개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 161 닫음 (지금 57개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 87 닫음 (지금 56개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 155 닫음 (지금 55개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 5 닫음 (지금 54개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 124 닫음 (지금 53개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 7 닫음 (지금 52개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 83 닫음 (지금 51개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 142 닫음 (지금 50개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 10 닫음 (지금 49개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 91 닫음 (지금 48개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 154 닫음 (지금 47개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 140 닫음 (지금 46개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 13 닫음 (지금 45개)
+2026-11-21 00:44:13.276 INFO  [T12068] [World] 던전 인스턴스 160 닫음 (지금 44개)
+2026-11-21 00:44:13.277 INFO  [T12068] [Room] Room 148(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 10
+2026-11-21 00:44:13.277 INFO  [T15756] [Room] Room 65(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.277 INFO  [T12084] [Room] Room 70(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.277 INFO  [T15756] [Room] Room 144(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 8
+2026-11-21 00:44:13.277 INFO  [T12084] [Room] Room 74(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.277 INFO  [T11988] [Room] Room 146(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 10
+2026-11-21 00:44:13.277 INFO  [T21368] [Room] Room 82(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.277 INFO  [T12068] [Room] Room 145(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 9
+2026-11-21 00:44:13.278 INFO  [T15756] [Room] Room 68(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T11988] [Room] Room 130(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 1
+2026-11-21 00:44:13.278 INFO  [T12068] [Room] Room 155(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 3, 드랍 8
+2026-11-21 00:44:13.278 INFO  [T11500] [Room] Room 4(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T15756] [Room] Room 5(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T12084] [Room] Room 87(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T21368] [Room] Room 161(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 5, 드랍 4
+2026-11-21 00:44:13.278 INFO  [T11988] [Room] Room 124(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T12084] [Room] Room 7(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T12068] [Room] Room 83(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T21368] [Room] Room 142(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 12
+2026-11-21 00:44:13.278 INFO  [T12068] [Room] Room 91(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T12068] [Room] Room 154(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 16
+2026-11-21 00:44:13.278 INFO  [T11500] [Room] Room 10(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T12068] [Room] Room 140(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 8
+2026-11-21 00:44:13.278 INFO  [T15756] [Room] Room 13(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 17 닫음 (지금 43개)
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 97 닫음 (지금 42개)
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 30 닫음 (지금 41개)
+2026-11-21 00:44:13.278 INFO  [T12084] [Room] Room 160(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 6, 드랍 2
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 115 닫음 (지금 40개)
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 41 닫음 (지금 39개)
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 37 닫음 (지금 38개)
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 16 닫음 (지금 37개)
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 168 닫음 (지금 36개)
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 20 닫음 (지금 35개)
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 153 닫음 (지금 34개)
+2026-11-21 00:44:13.278 INFO  [T21368] [World] 던전 인스턴스 150 닫음 (지금 33개)
+2026-11-21 00:44:13.278 INFO  [T11500] [Room] Room 17(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T12084] [Room] Room 97(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T12068] [Room] Room 115(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.278 INFO  [T15756] [Room] Room 41(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T11988] [Room] Room 30(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T12084] [Room] Room 16(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T12068] [Room] Room 37(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T11500] [Room] Room 168(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 7, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T21368] [World] 던전 인스턴스 165 닫음 (지금 32개)
+2026-11-21 00:44:13.279 INFO  [T15756] [Room] Room 20(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T11988] [Room] Room 150(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 7
+2026-11-21 00:44:13.279 INFO  [T12068] [Room] Room 165(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 7, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T11500] [Room] Room 153(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 2, 드랍 11
+2026-11-21 00:44:13.279 INFO  [T21368] [World] 던전 인스턴스 111 닫음 (지금 31개)
+2026-11-21 00:44:13.279 INFO  [T21368] [World] 던전 인스턴스 44 닫음 (지금 30개)
+2026-11-21 00:44:13.279 INFO  [T11500] [Room] Room 111(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 3
+2026-11-21 00:44:13.279 INFO  [T12068] [Room] Room 44(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T21368] [World] 던전 인스턴스 34 닫음 (지금 29개)
+2026-11-21 00:44:13.279 INFO  [T21368] [World] 던전 인스턴스 133 닫음 (지금 28개)
+2026-11-21 00:44:13.279 INFO  [T21368] [World] 던전 인스턴스 33 닫음 (지금 27개)
+2026-11-21 00:44:13.279 INFO  [T12084] [Room] Room 34(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T21368] [World] 던전 인스턴스 40 닫음 (지금 26개)
+2026-11-21 00:44:13.279 INFO  [T21368] [World] 던전 인스턴스 117 닫음 (지금 25개)
+2026-11-21 00:44:13.279 INFO  [T11988] [Room] Room 33(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T21368] [World] 던전 인스턴스 43 닫음 (지금 24개)
+2026-11-21 00:44:13.279 INFO  [T15756] [Room] Room 133(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 4
+2026-11-21 00:44:13.279 INFO  [T15756] [Room] Room 117(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 4
+2026-11-21 00:44:13.279 INFO  [T15756] [Room] Room 43(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T21368] [World] 던전 인스턴스 48 닫음 (지금 23개)
+2026-11-21 00:44:13.279 INFO  [T15756] [Room] Room 48(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T11500] [Room] Room 40(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T12068] [World] 던전 인스턴스 56 닫음 (지금 22개)
+2026-11-21 00:44:13.279 INFO  [T12068] [World] 던전 인스턴스 109 닫음 (지금 21개)
+2026-11-21 00:44:13.279 INFO  [T21368] [Room] Room 56(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T12068] [World] 던전 인스턴스 138 닫음 (지금 20개)
+2026-11-21 00:44:13.279 INFO  [T12068] [World] 던전 인스턴스 51 닫음 (지금 19개)
+2026-11-21 00:44:13.279 INFO  [T15756] [Room] Room 51(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.279 INFO  [T11988] [Room] Room 138(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 13
+2026-11-21 00:44:13.279 INFO  [T11500] [Room] Room 109(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 7
+2026-11-21 00:44:13.279 INFO  [T12068] [World] 던전 인스턴스 135 닫음 (지금 18개)
+2026-11-21 00:44:13.279 INFO  [T12068] [World] 던전 인스턴스 62 닫음 (지금 17개)
+2026-11-21 00:44:13.279 INFO  [T11988] [Room] Room 135(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 7
+2026-11-21 00:44:13.279 INFO  [T12084] [Room] Room 62(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 61 닫음 (지금 16개)
+2026-11-21 00:44:13.280 INFO  [T11988] [Room] Room 61(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 93 닫음 (지금 15개)
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 73 닫음 (지금 14개)
+2026-11-21 00:44:13.280 INFO  [T21368] [Room] Room 93(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 67 닫음 (지금 13개)
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 72 닫음 (지금 12개)
+2026-11-21 00:44:13.280 INFO  [T11988] [Room] Room 72(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 2
+2026-11-21 00:44:13.280 INFO  [T15756] [Room] Room 67(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 76 닫음 (지금 11개)
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 81 닫음 (지금 10개)
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 159 닫음 (지금 9개)
+2026-11-21 00:44:13.280 INFO  [T11988] [Room] Room 81(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.280 INFO  [T12084] [Room] Room 73(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.280 INFO  [T21368] [Room] Room 159(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 6, 드랍 2
+2026-11-21 00:44:13.280 INFO  [T11500] [Room] Room 76(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 80 닫음 (지금 8개)
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 102 닫음 (지금 7개)
+2026-11-21 00:44:13.280 INFO  [T11500] [Room] Room 80(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.280 INFO  [T21368] [Room] Room 102(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 100 닫음 (지금 6개)
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 122 닫음 (지금 5개)
+2026-11-21 00:44:13.280 INFO  [T12068] [World] 던전 인스턴스 92 닫음 (지금 4개)
+2026-11-21 00:44:13.281 INFO  [T12084] [Room] Room 100(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.281 INFO  [T15756] [Room] Room 92(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.281 INFO  [T12068] [World] 던전 인스턴스 96 닫음 (지금 3개)
+2026-11-21 00:44:13.281 INFO  [T21368] [Room] Room 122(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 10
+2026-11-21 00:44:13.281 INFO  [T11500] [Room] Room 96(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.281 INFO  [T12068] [World] 던전 인스턴스 99 닫음 (지금 2개)
+2026-11-21 00:44:13.281 INFO  [T12068] [World] 던전 인스턴스 98 닫음 (지금 1개)
+2026-11-21 00:44:13.281 INFO  [T12068] [World] 던전 인스턴스 167 닫음 (지금 0개)
+2026-11-21 00:44:13.281 INFO  [T12084] [Room] Room 99(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:13.281 INFO  [T11988] [Room] Room 167(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 7, 드랍 0
+2026-11-21 00:44:13.281 INFO  [T15756] [Room] Room 98(채널 1, Continent01_Dungeon 구역 'dungeon') 닫음: 남아 있던 몬스터 1, 드랍 0
+2026-11-21 00:44:14.695 INFO  [T15356] [metrics] sessions=0 rooms=2 players=0 monsters=201 in/s=517 out/s=1508 sendCalls/s=1087 bufsPerSend=1.38 atk(req/ok per s)=185.2/54.6 zones(total created/hits)=1495/3183 move(total ok/speed/nav/bad/stale/rate)=17966/9335/1647/0/0/172 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.07/0.20 viewPlayers(avg/p99/max)=1.2/8/8 viewObjects(avg/p99/max)=2.9/12/13 sendQ(total/sessionMax)=0/21 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=185/3 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=20524/2 revive(total deaths/ok/reject/deadMove)=262/247/0/0 portal(total ok/reject)=1477/2111 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 845/1473/818/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1090/4/0/24 flushGap(p50/p90/p99 ms)=64/127/127 sendWake(per s, late avg/p50/p99/max ms)=133 0.9/0.8/2.0/2.4 jobs(exec/repost per s)=1628/0 jobWait(p50/p90/p99 ms)=0/0/1 jobRunMax=1.1ms flushRunMax=1.2ms jobDispatch(p50/p90/p99 ms)=0/0/1 busy(job/flush ms per s)=22/49 flushRuns/s=685 conn(sessionObjs/handles idleKick/sendqKick)=1/320 0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 tickLateP99(town/field ms)=2.0/3.0 tickBodyP99(town/field ms)=0.00/0.20 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1642/1601/39/0/2 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 100/100/0/0/0 100/100 roomsAlive=2 dungeon(now/created/closed players)=0/166/166 0 tickLateP99(dungeon ms)=2.0 tickBodyP99(dungeon ms)=0.06

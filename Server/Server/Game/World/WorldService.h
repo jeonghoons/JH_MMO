@@ -6,6 +6,8 @@
 extern shared_ptr<Timer> GTimer;
 
 class Room;
+struct MoveRequest;   // Game/Room/Room.h
+struct MoveGrant;
 class Player;
 class GameSession;
 
@@ -55,11 +57,20 @@ public:
 	// 같은 신호가 두 번 오거나 명부에 없는 세션이어도 된다(세션 id는 다시 쓰이지 않는다). 더미 봇이 아니면 로비에 이어서 알린다.
 	void OnPlayerClosed(int sessionId, int64_t playerUID, bool isDummy);
 
-	// Room 이동 ④(DG3b, D-216): 그 채널에서 구역 destArea의 Room을 찾아 출발 Room 잡(Room::OnMoveResolved)으로 알려 준다. 없으면 nullptr.
+	// Room 이동 ④(DG3b·DG3c, D-216·D-218): 도착 Room을 정해 출발 Room 잡(Room::OnMoveResolved)으로 알려 준다. 갈 수 없으면 dest 없이 사유를 준다.
+	//   ChannelArea = 그 채널의 구역 Room, LevelPortal = 다른 레벨 포털(던전 입구 → 인스턴스를 찾거나 만듦, 던전 출구 → 자기 채널의 사냥터),
+	//   Instance = 파티장을 따라 이미 정해진 인스턴스로.
+	// 던전으로 보낼 때는 그 인스턴스에 자리를 잡아 둔다(들어오는 중인 사람이 있으면 닫지 않는다) — 가지 못하면 출발 Room이 OnMoveAborted로 돌려준다.
 	// player는 넘겨주기만 한다 — 이 서비스는 그 필드를 읽지 않는다(필드는 소유 Room 잡의 것).
-	void RequestMove(shared_ptr<Player> player, shared_ptr<Room> source, int channel, string destArea);
-	// Room 이동 ⑧: 도착 Room이 알린다 — 명부의 "지금 있는 Room"을 갱신한다.
+	void RequestMove(shared_ptr<Player> player, shared_ptr<Room> source, int channel, MoveRequest request);
+	// 잡아 둔 인스턴스 자리를 돌려받는다(출발 Room에서 이동이 취소됨). 여러 번 와도 된다.
+	void OnMoveAborted(int sessionId, int instanceId);
+	// Room 이동 ⑧: 도착 Room이 알린다 — 명부의 "지금 있는 Room"을 갱신한다. 던전에서 나왔으면 인스턴스에서 빼고(비면 닫음),
+	// 던전에 들어왔는데 그 사이 자격을 잃었으면(파티 탈퇴·내보내는 중) 마을로 내보낸다.
 	void OnPlayerMoved(int sessionId, shared_ptr<Room> room);
+	// 던전 Room이 알린다: 우두머리를 잡았다(D-218). 새 입장을 막고 DungeonClearExitSec 뒤 남은 사람을 마을로 내보낸다.
+	void OnDungeonCleared(int instanceId);
+	void OnInstanceClearTimeout(int instanceId);
 
 	// ---- 파티(DG2, D-217 — DESIGN_PARTY_DUNGEON §5). 패킷 핸들러가 Room을 거치지 않고 바로 넣는다 ----
 	// 초대: targetId(오브젝트 id)가 0이면 targetName으로 찾는다. 파티가 없는 사람 또는 파티장만. 거부는 본인에게 SC_PARTY_RESULT.
@@ -83,6 +94,7 @@ private:
 		int partyId = 0;          // 파티 번호(0 = 없음). Room 잡이 읽는 사본은 Player::partyId (NotifyPartyId로 알림)
 		int level = 0;            // 로그인 때의 레벨(파티 창 표시용 — 레벨이 오르는 기능이 생기면 갱신 통지를 넣는다)
 		long long lastInviteMs = 0;   // 마지막으로 초대를 보낸 시각(steady_clock ms) — 최소 간격 검사
+		int instanceId = 0;       // 자리를 잡은 던전 인스턴스(0 = 없음). 들어가는 중·안에 있는 동안 — 나오거나 접속이 끝나면 0 (DG3c)
 	};
 
 	// 파티(DG2). 저장하지 않는다. 구성원은 세션 id로 적는다(명부의 키).
@@ -91,6 +103,7 @@ private:
 		int id = 0;
 		int leader = 0;           // 파티장의 세션 id
 		vector<int> members;      // 들어온 순서(파티장이 나가면 맨 앞 사람이 파티장)
+		int instanceId = 0;       // 이 파티의 던전 인스턴스(0 = 없음, 파티당 하나 — DG3c)
 	};
 	// 응답을 기다리는 초대. 받는 사람 한 명에 1건(_invites의 키 = 받는 사람의 세션 id).
 	struct PendingInvite
@@ -106,6 +119,29 @@ private:
 		shared_ptr<Room> field;    // 사냥터 Room(구역으로 나뉜 레벨만 — DG3b)
 		int population = 0;        // 이 채널에 배정된 접속자 수(명부 항목 수)
 	};
+
+	// 던전 인스턴스(DG3c, D-218·D-225). id = 그 Room의 roomId. 안에 있는 사람과 들어오는 중인 사람(members)이 0이 되면 바로 닫는다.
+	struct Instance
+	{
+		int id = 0;
+		shared_ptr<Room> room;
+		int channel = 0;              // 만든 사람의 채널(파티는 같은 채널 사람으로만 이뤄진다)
+		int ownerPartyId = 0;         // 주인 = 파티(0이 아니면) 또는 혼자인 플레이어(ownerSessionId). 둘 다 0 = 주인 없음(남은 사람이 나가면 닫힌다)
+		int ownerSessionId = 0;
+		bool cleared = false;         // 우두머리를 잡았다 — 새로 들어올 수 없다
+		bool ejecting = false;        // 클리어 뒤 시간이 다 돼 내보내는 중 — 뒤늦게 로딩을 마친 사람도 내보낸다
+		unordered_set<int> members;   // 자리를 잡은 세션(들어오는 중 + 안에 있음)
+	};
+	// 인스턴스를 만든다. 실패하면 nullptr과 사유(상한 = DUNGEON_FULL, 맵 오류 = NOT_AVAILABLE).
+	Instance* CreateInstance(int channel, const string& levelName, Protocol::MoveResult& outResult);
+	// 던전 입구 요청의 판정(DESIGN_PARTY_DUNGEON §6-2 표). 통과하면 grant에 도착 Room·인스턴스·함께 갈 파티원을 채운다.
+	void ResolveDungeonEnter(int sessionId, const shared_ptr<Room>& source, const string& levelName, MoveGrant& grant);
+	void JoinInstance(Instance& instance, int sessionId, RosterEntry& entry);
+	// 인스턴스에서 뺀다(여러 번 불러도 됨). 비면 닫는다.
+	void LeaveInstance(int sessionId, int instanceId);
+	void CloseInstance(int instanceId);
+	// 그 세션의 플레이어를 인스턴스 Room에서 마을로 내보내게 한다(Room::EjectPlayer). 아직 도착 전이면 도착 때 OnPlayerMoved가 다시 본다.
+	void EjectFromInstance(const RosterEntry& entry, const Instance& instance);
 
 	// 새 채널과 그 Room(구역으로 나뉜 레벨이면 마을·사냥터 둘)을 만든다. 실패하면 nullptr(채널 목록은 그대로).
 	Channel* CreateChannel(bool allowBroken);
@@ -147,5 +183,10 @@ private:
 	unordered_map<int, PendingInvite> _invites;         // 받는 사람의 세션 id → 대기 초대
 	int _nextPartyId = 0;
 	int _inviteSeq = 0;
+	// 던전 인스턴스(DG3c). 키 = 인스턴스 id(= roomId)
+	unordered_map<int, Instance> _instances;
+	// 시작 레벨의 포털 마커 id → 그 마커의 구역(던전 출구로 나온 사람이 갈 Room을 정한다). Init에서 채운다
+	unordered_map<int, string> _worldPortalAreas;
+
 	uint32_t _partySeq = 0;                             // Room에 알리는 파티 번호 변경의 순번(늦게 도착한 옛 알림을 거른다)
 };

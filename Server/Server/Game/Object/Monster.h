@@ -68,6 +68,8 @@ public:
 	// respawnMs = SpawnTable.RespawnSec(ms). 0이면 MonsterTable.RespawnSec 을 쓴다.
 	int GetRespawnMs() const { return _respawnMs; }
 	void SetSpawnInfo(int index, int respawnMs) { _spawnIndex = index; _respawnMs = respawnMs; }
+	// 던전의 우두머리(DG3c): 죽으면 Room::OnBossDead
+	void SetBoss(bool boss) { _isBoss = boss; }
 
 	// 홈 = 실제로 스폰된 자리(Room::SpawnMonster가 넣는다). 배회의 중심이고 추격 제한(LeashRangeCm)의 기준이다.
 	void SetHome(const Protocol::PositionInfo& pos) { _homePos = pos; _hasHome = true; }
@@ -109,6 +111,7 @@ private:
 
 	int _spawnIndex = -1;
 	int _respawnMs = 0;
+	bool _isBoss = false;
 
 	Protocol::PositionInfo _homePos;
 	bool _hasHome = false;

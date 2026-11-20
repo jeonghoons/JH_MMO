@@ -521,7 +521,7 @@ bool DataManager::Init()
 		return false;
 	}
 
-	// WorldTable: Name(=worldId), MapName, CellSizeCm, QuadSplitCount, QuadMinSizeCm, ViewRadiusCm, ViewHysteresisCm, ReviveDelaySec, ReviveHpPercent, ChannelCapacity, PortalCooldownMs
+	// WorldTable: Name(=worldId), MapName, CellSizeCm, QuadSplitCount, QuadMinSizeCm, ViewRadiusCm, ViewHysteresisCm, ReviveDelaySec, ReviveHpPercent, ChannelCapacity, PortalCooldownMs, LevelKind, DungeonClearExitSec
 	CsvFile world;
 	if (!world.Load((dir / "WorldTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
@@ -529,6 +529,23 @@ bool DataManager::Init()
 	for (const CsvRow& row : world.Rows())
 	{
 		WorldData d{};
+		std::string levelKind;
+		if (!row.GetString("LevelKind", levelKind, err) || !row.GetInt("DungeonClearExitSec", d.dungeonClearExitSec, err))
+		{
+			LOG_ERROR("Data", "{}", err);
+			return false;
+		}
+		if (levelKind != "world" && levelKind != "dungeon")
+		{
+			LOG_ERROR("Data", "{} line {}: LevelKind 는 world 또는 dungeon 이어야 합니다 ('{}')", world.Path(), row.Line(), levelKind);
+			return false;
+		}
+		d.isDungeon = (levelKind == "dungeon");
+		if (d.isDungeon ? (d.dungeonClearExitSec < 1 || d.dungeonClearExitSec > 3600) : (d.dungeonClearExitSec != 0))
+		{
+			LOG_ERROR("Data", "{} line {}: DungeonClearExitSec 는 dungeon 행이면 1~3600, world 행이면 0 이어야 합니다", world.Path(), row.Line());
+			return false;
+		}
 		if (!row.GetInt("Name", d.id, err) || !row.GetString("MapName", d.mapName, err) ||
 			!row.GetInt("CellSizeCm", d.cellSizeCm, err) || !row.GetInt("QuadSplitCount", d.quadSplitCount, err) ||
 			!row.GetInt("QuadMinSizeCm", d.quadMinSizeCm, err) ||
@@ -710,10 +727,10 @@ bool DataManager::Init()
 				LOG_ERROR("Data", "{}MonsterTemplateId {} 가 MonsterTable에 없습니다", where, d.monsterTemplateId);
 				return false;
 			}
-			if (d.countPerSpawn < 1 || d.countPerSpawn > 20 || respawnSec < 0 || respawnSec > 86400 ||
-				(respawnSec != 0 && respawnSec * 1000 < spawnMonster->deathRemoveDelayMs))
+			if (d.countPerSpawn < 1 || d.countPerSpawn > 20 || respawnSec < -1 || respawnSec > 86400 ||
+				(respawnSec > 0 && respawnSec * 1000 < spawnMonster->deathRemoveDelayMs))
 			{
-				LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (1 <= CountPerSpawn <= 20, RespawnSec 은 0(MonsterTable 값) 또는 그 몬스터의 DeathRemoveDelaySec 이상 86400 이하)", where);
+				LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (1 <= CountPerSpawn <= 20, RespawnSec 은 -1(다시 나오지 않음), 0(MonsterTable 값) 또는 그 몬스터의 DeathRemoveDelaySec 이상 86400 이하)", where);
 				return false;
 			}
 			const std::string key = d.mapName + "/" + d.zone;
@@ -722,7 +739,7 @@ bool DataManager::Init()
 				LOG_ERROR("Data", "{}(MapName '{}', Zone '{}', MonsterTemplateId {}) 조합이 중복되었습니다", where, d.mapName, d.zone, d.monsterTemplateId);
 				return false;
 			}
-			d.respawnMs = respawnSec * 1000;
+			d.respawnMs = respawnSec < 0 ? -1 : respawnSec * 1000;
 			_spawnTable[key].push_back(d);
 			++spawnRows;
 		}

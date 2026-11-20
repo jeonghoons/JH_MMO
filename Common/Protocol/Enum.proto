@@ -73,6 +73,21 @@ enum PacketId {
     SC_PARTY_RESULT = 2035;          // 파티 요청 거부·초대 결과 (본인에게)
     SC_ROOM_CHANGE = 2036;           // Room을 옮김(본인에게): 레벨·종류·채널·새 위치·이동 보정 순번 (DG3b, D-216)
     SC_MOVE_RESULT = 2037;           // Room 이동 거부(본인에게만, 거부일 때만)
+    SC_DUNGEON_STATE = 2038;         // 던전 인스턴스 상태(안에 있는 사람에게): 입장 직후 한 번, 클리어 때 전원 (DG3c, D-218)
+}
+
+// 던전 인스턴스 상태 (SC_DUNGEON_STATE_PACKET.state — DG3c)
+enum DungeonState {
+    DUNGEON_STATE_NONE = 0;
+    DUNGEON_STATE_IN_PROGRESS = 1;   // 진행 중
+    DUNGEON_STATE_CLEARED = 2;       // 우두머리를 잡음 — remain_sec 뒤 마을로 내보냄
+}
+
+// 포털 종류 (PortalInfo.kind — 클라이언트 안내 문구 구분, DG3c D-225)
+enum PortalKind {
+    PORTAL_KIND_NORMAL = 0;          // 같은 레벨 안의 이동(문 포털 등)
+    PORTAL_KIND_DUNGEON_ENTER = 1;   // 던전 입구
+    PORTAL_KIND_DUNGEON_EXIT = 2;    // 던전 출구
 }
 
 // Room 종류 (SC_ROOM_CHANGE_PACKET.kind — DG3b, D-215)

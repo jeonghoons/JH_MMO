@@ -128,6 +128,11 @@ namespace Metrics
 	inline std::atomic<long long> DbResultOrphan{ 0 };     // DB 결과가 왔는데 그 플레이어가 (접속은 살아 있는 채) 다른 Room에 있음 → 접속을 끊음
 	inline std::atomic<long long> OwnerViolation{ 0 };     // 도착 처리 때 플레이어의 소유 Room이 이 Room이 아님
 
+	// 던전 인스턴스(DG3c — WorldService). 접속이 모두 끝난 뒤 DungeonInstances가 0이 아니면 닫기가 빠진 것이다
+	inline std::atomic<int>       DungeonInstances{ 0 };   // 지금 있는 인스턴스 수
+	inline std::atomic<long long> DungeonCreated{ 0 };     // 만든 수(누적)
+	inline std::atomic<long long> DungeonClosed{ 0 };      // 닫은 수(누적)
+
 	inline SampleStat TickLate;     // Room 틱이 예정보다 늦어진 시간(us) (Timer/JobQueue/IOCP 대기 지연)
 	inline SampleStat TickBody;     // Room::Update 본문 처리 시간(us)
 	// Room 종류별 틱 표본(DG3b — 채널 인원을 마을·사냥터에 나눠 잴 때 어느 쪽이 느린지 본다). [0] = 마을, [1] = 사냥터, [2] = 던전

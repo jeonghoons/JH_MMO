@@ -187,6 +187,9 @@ int main(int argc, char** argv)
 	}
 	if (GStat.portalSent.load() > 0)
 		printf("[summary] portal: sent=%lld moved(SC_TELEPORT)=%lld\n", GStat.portalSent.load(), GStat.portalMoved.load());
+	if (GStat.dungeonEnterSent.load() > 0 || GStat.dungeonEntered.load() > 0)
+		printf("[summary] dungeon: enterSent=%lld entered=%lld exitSent=%lld cleared=%lld inDungeonNow=%d\n",
+			GStat.dungeonEnterSent.load(), GStat.dungeonEntered.load(), GStat.dungeonExitSent.load(), GStat.dungeonCleared.load(), GStat.inDungeon.load());
 	if (GStat.roomChange.load() > 0 || GStat.moveRejected.load() > 0)
 	{
 		printf("[summary] room: roomChange(SC_ROOM_CHANGE)=%lld moveRejected(SC_MOVE_RESULT)=%lld by MoveResult:",

@@ -49,6 +49,14 @@ public:
         _timerQueue.Push(item);
     }
 
+    // 이미 만든 작업을 예약한다(오너를 약한 참조로 잡는 작업 등 — Room::ReserveJob).
+    void Reserve(DWORD milliseconds, shared_ptr<JobQueue> jobQueue, shared_ptr<Job> job)
+    {
+        TimePoint executeTime = std::chrono::steady_clock::now() + std::chrono::milliseconds(milliseconds);
+        TimerItem item = TimerItem(executeTime, std::move(job), jobQueue);
+        _timerQueue.Push(item);
+    }
+
 private:
     void Run();
 

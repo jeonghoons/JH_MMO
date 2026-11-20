@@ -129,6 +129,8 @@ void Monster::OnDead(std::shared_ptr<Character> attacker)
 
 		// 드랍 롤(A3.4, D-157): DropTable의 이 몬스터 행을 각각 굴려 사망 지점 둘레에 떨어뜨린다. 소유권은 막타(attacker).
 		room->SpawnMonsterDrops(_objectInfo.template_id(), GetPosition(), attacker);
+
+		if (_isBoss) room->OnBossDead();
 	}
 }
 

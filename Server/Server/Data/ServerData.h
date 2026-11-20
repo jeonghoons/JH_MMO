@@ -359,7 +359,7 @@ struct SpawnData
 	std::string zone;         // 스폰 마커의 zoneName
 	int monsterTemplateId;    // MonsterTable ID
 	int countPerSpawn;        // 스폰 지점 하나에 놓는 수
-	int respawnMs;            // 사망 후 리스폰까지. 0 = MonsterTable.RespawnSec 을 쓴다
+	int respawnMs;            // 사망 후 리스폰까지. 0 = MonsterTable.RespawnSec 을 쓴다, -1 = 다시 나오지 않는다(RespawnSec -1 — 던전, DG3c)
 };
 
 // MovementTable 중 서버가 쓰는 열. 이동 속도 자체는 스탯(PlayerStatTable·MonsterTable의 MoveSpeed)을 쓰고, 여기는 검증 허용치만 둔다.
@@ -394,6 +394,8 @@ struct WorldData
 	int reviveHpPercent;   // 부활 HP = 최대 HP × 이 값 / 100 (최소 1)
 	int channelCapacity;   // 채널 하나의 정원(그 채널의 모든 Room 인원 합). 로그인 때 인원이 이 값 미만인 가장 낮은 채널에 배정하고, 모두 찼으면 새 채널을 만든다(WorldService, D-215). Room별 정원은 없다
 	int portalCooldownMs;  // 포털을 쓴 뒤 다시 쓸 수 있을 때까지의 시간 (L5, D-203)
+	bool isDungeon;        // LevelKind 열이 dungeon — 인스턴스로만 여는 레벨(DG3c, D-225). world = 채널마다 Room을 두는 레벨. 던전 행의 ChannelCapacity는 쓰지 않는다
+	int dungeonClearExitSec; // 던전: 우두머리를 잡은 뒤 이 시간이 지나면 안에 있는 사람을 마을로 내보낸다(D-218). world 행은 0
 };
 
 class DataManager

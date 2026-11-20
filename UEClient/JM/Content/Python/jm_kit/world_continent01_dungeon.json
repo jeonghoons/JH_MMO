@@ -1,0 +1,40 @@
+{
+  "_comment": "임시 던전 레벨 Continent01_Dungeon 정의(DG3c-1, D-225 — 회색 블록아웃, 실제 맵은 DG4에서 다시 만든다). 단위 m, x = 북(+)·남(-), y = 동(+)·서(-). Landscape 없이 평평한 바닥 상자(윗면 높이 0)와 벽 상자만 쓴다(world_build_landscape를 부르지 않음). 구성: 시작 방(x -30~-18, 출구 포털) → 통로 → 몬스터 방(x -10~10) → 통로 → 우두머리 방(x 16~30). 서버는 구역 이름 boss의 스폰을 우두머리로 본다(SpawnTable).",
+  "level": "/Game/Maps/Continent01_Dungeon",
+  "size": 64,
+  "spacing_cm": 100.0,
+  "z_scale": 100.0,
+  "rolling": [],
+  "border": { "inner_m": 500.0, "width_m": 10.0, "height_m": 0.0 },
+  "flats": [],
+  "mounds": [],
+  "blockout": [
+    { "kind": "box", "label": "Floor", "shape": "Cube", "x": 0, "y": 0, "size": [62, 42, 1], "sink": 1.0 },
+
+    { "kind": "box", "label": "Wall_S", "shape": "Cube", "x": -30.5, "y": 0, "size": [1, 42, 8] },
+    { "kind": "box", "label": "Wall_N", "shape": "Cube", "x": 30.5, "y": 0, "size": [1, 42, 8] },
+    { "kind": "box", "label": "Wall_E", "shape": "Cube", "x": 0, "y": 20.5, "size": [62, 1, 8] },
+    { "kind": "box", "label": "Wall_W", "shape": "Cube", "x": 0, "y": -20.5, "size": [62, 1, 8] },
+
+    { "kind": "box", "label": "Fill_Start_E", "shape": "Cube", "x": -24, "y": 14, "size": [12, 12, 8] },
+    { "kind": "box", "label": "Fill_Start_W", "shape": "Cube", "x": -24, "y": -14, "size": [12, 12, 8] },
+    { "kind": "box", "label": "Fill_Pass1_E", "shape": "Cube", "x": -14, "y": 11.5, "size": [8, 17, 8] },
+    { "kind": "box", "label": "Fill_Pass1_W", "shape": "Cube", "x": -14, "y": -11.5, "size": [8, 17, 8] },
+    { "kind": "box", "label": "Fill_Hall_E", "shape": "Cube", "x": 0, "y": 15, "size": [20, 10, 8] },
+    { "kind": "box", "label": "Fill_Hall_W", "shape": "Cube", "x": 0, "y": -15, "size": [20, 10, 8] },
+    { "kind": "box", "label": "Fill_Pass2_E", "shape": "Cube", "x": 13, "y": 11.5, "size": [6, 17, 8] },
+    { "kind": "box", "label": "Fill_Pass2_W", "shape": "Cube", "x": 13, "y": -11.5, "size": [6, 17, 8] },
+    { "kind": "box", "label": "Fill_Boss_E", "shape": "Cube", "x": 23, "y": 16, "size": [14, 8, 8] },
+    { "kind": "box", "label": "Fill_Boss_W", "shape": "Cube", "x": 23, "y": -16, "size": [14, 8, 8] }
+  ],
+  "markers": {
+    "player_start": { "x": -22.0, "y": 0, "yaw": 0, "area": "dungeon" },
+    "portals": [
+      { "id": 900, "label": "Exit", "area": "dungeon", "x": -28.0, "y": 0, "radius_cm": 200, "target_map": "Continent01", "target_point": 100 }
+    ],
+    "monster": [
+      { "zone": "hall", "area": "dungeon", "x": 0, "y": 0, "half_x": 6, "half_y": 6, "count": 2, "min_gap_m": 6.0, "seed": 31, "template_id": 1001, "radius_cm": 300, "max_count": 2 },
+      { "zone": "boss", "area": "dungeon", "x": 24, "y": 0, "half_x": 1, "half_y": 1, "count": 1, "min_gap_m": 1.0, "seed": 32, "template_id": 1003, "radius_cm": 200, "max_count": 1 }
+    ]
+  }
+}

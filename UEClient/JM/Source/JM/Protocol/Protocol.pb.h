@@ -168,6 +168,9 @@ extern SC_DAMAGE_PACKETDefaultTypeInternal _SC_DAMAGE_PACKET_default_instance_;
 class SC_DEAD_PACKET;
 struct SC_DEAD_PACKETDefaultTypeInternal;
 extern SC_DEAD_PACKETDefaultTypeInternal _SC_DEAD_PACKET_default_instance_;
+class SC_DUNGEON_STATE_PACKET;
+struct SC_DUNGEON_STATE_PACKETDefaultTypeInternal;
+extern SC_DUNGEON_STATE_PACKETDefaultTypeInternal _SC_DUNGEON_STATE_PACKET_default_instance_;
 class SC_INVENTORY_PACKET;
 struct SC_INVENTORY_PACKETDefaultTypeInternal;
 extern SC_INVENTORY_PACKETDefaultTypeInternal _SC_INVENTORY_PACKET_default_instance_;
@@ -285,6 +288,7 @@ template<> ::Protocol::SC_CHANGE_HP_PACKET* Arena::CreateMaybeMessage<::Protocol
 template<> ::Protocol::SC_CHAT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHAT_PACKET>(Arena*);
 template<> ::Protocol::SC_DAMAGE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_DAMAGE_PACKET>(Arena*);
 template<> ::Protocol::SC_DEAD_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_DEAD_PACKET>(Arena*);
+template<> ::Protocol::SC_DUNGEON_STATE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_DUNGEON_STATE_PACKET>(Arena*);
 template<> ::Protocol::SC_INVENTORY_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_INVENTORY_PACKET>(Arena*);
 template<> ::Protocol::SC_INVENTORY_UPDATE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_INVENTORY_UPDATE_PACKET>(Arena*);
 template<> ::Protocol::SC_ITEM_RESULT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ITEM_RESULT_PACKET>(Arena*);
@@ -7036,6 +7040,7 @@ class PortalInfo final :
     kYFieldNumber = 3,
     kZFieldNumber = 4,
     kRadiusCmFieldNumber = 5,
+    kKindFieldNumber = 6,
   };
   // int32 portal_id = 1;
   void clear_portal_id();
@@ -7082,6 +7087,15 @@ class PortalInfo final :
   void _internal_set_radius_cm(float value);
   public:
 
+  // .Protocol.PortalKind kind = 6;
+  void clear_kind();
+  ::Protocol::PortalKind kind() const;
+  void set_kind(::Protocol::PortalKind value);
+  private:
+  ::Protocol::PortalKind _internal_kind() const;
+  void _internal_set_kind(::Protocol::PortalKind value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.PortalInfo)
  private:
   class _Internal;
@@ -7095,6 +7109,166 @@ class PortalInfo final :
     float y_;
     float z_;
     float radius_cm_;
+    int kind_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class SC_DUNGEON_STATE_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_DUNGEON_STATE_PACKET) */ {
+ public:
+  inline SC_DUNGEON_STATE_PACKET() : SC_DUNGEON_STATE_PACKET(nullptr) {}
+  ~SC_DUNGEON_STATE_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_DUNGEON_STATE_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_DUNGEON_STATE_PACKET(const SC_DUNGEON_STATE_PACKET& from);
+  SC_DUNGEON_STATE_PACKET(SC_DUNGEON_STATE_PACKET&& from) noexcept
+    : SC_DUNGEON_STATE_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_DUNGEON_STATE_PACKET& operator=(const SC_DUNGEON_STATE_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_DUNGEON_STATE_PACKET& operator=(SC_DUNGEON_STATE_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_DUNGEON_STATE_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_DUNGEON_STATE_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_DUNGEON_STATE_PACKET*>(
+               &_SC_DUNGEON_STATE_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    42;
+
+  friend void swap(SC_DUNGEON_STATE_PACKET& a, SC_DUNGEON_STATE_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_DUNGEON_STATE_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_DUNGEON_STATE_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_DUNGEON_STATE_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_DUNGEON_STATE_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_DUNGEON_STATE_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_DUNGEON_STATE_PACKET& from) {
+    SC_DUNGEON_STATE_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_DUNGEON_STATE_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_DUNGEON_STATE_PACKET";
+  }
+  protected:
+  explicit SC_DUNGEON_STATE_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kStateFieldNumber = 1,
+    kRemainSecFieldNumber = 2,
+  };
+  // .Protocol.DungeonState state = 1;
+  void clear_state();
+  ::Protocol::DungeonState state() const;
+  void set_state(::Protocol::DungeonState value);
+  private:
+  ::Protocol::DungeonState _internal_state() const;
+  void _internal_set_state(::Protocol::DungeonState value);
+  public:
+
+  // int32 remain_sec = 2;
+  void clear_remain_sec();
+  int32_t remain_sec() const;
+  void set_remain_sec(int32_t value);
+  private:
+  int32_t _internal_remain_sec() const;
+  void _internal_set_remain_sec(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_DUNGEON_STATE_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int state_;
+    int32_t remain_sec_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -7150,7 +7324,7 @@ class SC_PORTAL_LIST_PACKET final :
                &_SC_PORTAL_LIST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    43;
 
   friend void swap(SC_PORTAL_LIST_PACKET& a, SC_PORTAL_LIST_PACKET& b) {
     a.Swap(&b);
@@ -7307,7 +7481,7 @@ class SC_ROOM_CHANGE_PACKET final :
                &_SC_ROOM_CHANGE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    44;
 
   friend void swap(SC_ROOM_CHANGE_PACKET& a, SC_ROOM_CHANGE_PACKET& b) {
     a.Swap(&b);
@@ -7513,7 +7687,7 @@ class SC_MOVE_RESULT_PACKET final :
                &_SC_MOVE_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    45;
 
   friend void swap(SC_MOVE_RESULT_PACKET& a, SC_MOVE_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -7661,7 +7835,7 @@ class SC_CHANGE_EQUIP_PACKET final :
                &_SC_CHANGE_EQUIP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    46;
 
   friend void swap(SC_CHANGE_EQUIP_PACKET& a, SC_CHANGE_EQUIP_PACKET& b) {
     a.Swap(&b);
@@ -7851,7 +8025,7 @@ class SC_CHANGE_EQUIP_RESULT_PACKET final :
                &_SC_CHANGE_EQUIP_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    47;
 
   friend void swap(SC_CHANGE_EQUIP_RESULT_PACKET& a, SC_CHANGE_EQUIP_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -8032,7 +8206,7 @@ class SC_INVENTORY_PACKET final :
                &_SC_INVENTORY_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    47;
+    48;
 
   friend void swap(SC_INVENTORY_PACKET& a, SC_INVENTORY_PACKET& b) {
     a.Swap(&b);
@@ -8269,7 +8443,7 @@ class SC_INVENTORY_UPDATE_PACKET final :
                &_SC_INVENTORY_UPDATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    48;
+    49;
 
   friend void swap(SC_INVENTORY_UPDATE_PACKET& a, SC_INVENTORY_UPDATE_PACKET& b) {
     a.Swap(&b);
@@ -8487,7 +8661,7 @@ class SC_USE_ITEM_PACKET final :
                &_SC_USE_ITEM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    49;
+    50;
 
   friend void swap(SC_USE_ITEM_PACKET& a, SC_USE_ITEM_PACKET& b) {
     a.Swap(&b);
@@ -8668,7 +8842,7 @@ class SC_CHANGE_HP_PACKET final :
                &_SC_CHANGE_HP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    50;
+    51;
 
   friend void swap(SC_CHANGE_HP_PACKET& a, SC_CHANGE_HP_PACKET& b) {
     a.Swap(&b);
@@ -8827,7 +9001,7 @@ class SC_ITEM_RESULT_PACKET final :
                &_SC_ITEM_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    51;
+    52;
 
   friend void swap(SC_ITEM_RESULT_PACKET& a, SC_ITEM_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -8986,7 +9160,7 @@ class ShopItem final :
                &_ShopItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    52;
+    53;
 
   friend void swap(ShopItem& a, ShopItem& b) {
     a.Swap(&b);
@@ -9145,7 +9319,7 @@ class SC_SHOP_OPEN_PACKET final :
                &_SC_SHOP_OPEN_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    53;
+    54;
 
   friend void swap(SC_SHOP_OPEN_PACKET& a, SC_SHOP_OPEN_PACKET& b) {
     a.Swap(&b);
@@ -9313,7 +9487,7 @@ class SC_SKILL_AIM_PACKET final :
                &_SC_SKILL_AIM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    54;
+    55;
 
   friend void swap(SC_SKILL_AIM_PACKET& a, SC_SKILL_AIM_PACKET& b) {
     a.Swap(&b);
@@ -9494,7 +9668,7 @@ class SC_PONG_PACKET final :
                &_SC_PONG_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    55;
+    56;
 
   friend void swap(SC_PONG_PACKET& a, SC_PONG_PACKET& b) {
     a.Swap(&b);
@@ -9642,7 +9816,7 @@ class SC_TRADE_REQUEST_PACKET final :
                &_SC_TRADE_REQUEST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    56;
+    57;
 
   friend void swap(SC_TRADE_REQUEST_PACKET& a, SC_TRADE_REQUEST_PACKET& b) {
     a.Swap(&b);
@@ -9817,7 +9991,7 @@ class SC_TRADE_STATE_PACKET final :
                &_SC_TRADE_STATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    57;
+    58;
 
   friend void swap(SC_TRADE_STATE_PACKET& a, SC_TRADE_STATE_PACKET& b) {
     a.Swap(&b);
@@ -9985,7 +10159,7 @@ class SC_TRADE_END_PACKET final :
                &_SC_TRADE_END_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    58;
+    59;
 
   friend void swap(SC_TRADE_END_PACKET& a, SC_TRADE_END_PACKET& b) {
     a.Swap(&b);
@@ -10133,7 +10307,7 @@ class SC_TRADE_RESULT_PACKET final :
                &_SC_TRADE_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    59;
+    60;
 
   friend void swap(SC_TRADE_RESULT_PACKET& a, SC_TRADE_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -10292,7 +10466,7 @@ class SC_PARTY_INVITE_PACKET final :
                &_SC_PARTY_INVITE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    60;
+    61;
 
   friend void swap(SC_PARTY_INVITE_PACKET& a, SC_PARTY_INVITE_PACKET& b) {
     a.Swap(&b);
@@ -10467,7 +10641,7 @@ class PartyMember final :
                &_PartyMember_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    61;
+    62;
 
   friend void swap(PartyMember& a, PartyMember& b) {
     a.Swap(&b);
@@ -10653,7 +10827,7 @@ class SC_PARTY_STATE_PACKET final :
                &_SC_PARTY_STATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    62;
+    63;
 
   friend void swap(SC_PARTY_STATE_PACKET& a, SC_PARTY_STATE_PACKET& b) {
     a.Swap(&b);
@@ -10832,7 +11006,7 @@ class SC_PARTY_RESULT_PACKET final :
                &_SC_PARTY_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    63;
+    64;
 
   friend void swap(SC_PARTY_RESULT_PACKET& a, SC_PARTY_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -10991,7 +11165,7 @@ class SC_KICK_PACKET final :
                &_SC_KICK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    64;
+    65;
 
   friend void swap(SC_KICK_PACKET& a, SC_KICK_PACKET& b) {
     a.Swap(&b);
@@ -13761,6 +13935,70 @@ inline void PortalInfo::set_radius_cm(float value) {
   // @@protoc_insertion_point(field_set:Protocol.PortalInfo.radius_cm)
 }
 
+// .Protocol.PortalKind kind = 6;
+inline void PortalInfo::clear_kind() {
+  _impl_.kind_ = 0;
+}
+inline ::Protocol::PortalKind PortalInfo::_internal_kind() const {
+  return static_cast< ::Protocol::PortalKind >(_impl_.kind_);
+}
+inline ::Protocol::PortalKind PortalInfo::kind() const {
+  // @@protoc_insertion_point(field_get:Protocol.PortalInfo.kind)
+  return _internal_kind();
+}
+inline void PortalInfo::_internal_set_kind(::Protocol::PortalKind value) {
+  
+  _impl_.kind_ = value;
+}
+inline void PortalInfo::set_kind(::Protocol::PortalKind value) {
+  _internal_set_kind(value);
+  // @@protoc_insertion_point(field_set:Protocol.PortalInfo.kind)
+}
+
+// -------------------------------------------------------------------
+
+// SC_DUNGEON_STATE_PACKET
+
+// .Protocol.DungeonState state = 1;
+inline void SC_DUNGEON_STATE_PACKET::clear_state() {
+  _impl_.state_ = 0;
+}
+inline ::Protocol::DungeonState SC_DUNGEON_STATE_PACKET::_internal_state() const {
+  return static_cast< ::Protocol::DungeonState >(_impl_.state_);
+}
+inline ::Protocol::DungeonState SC_DUNGEON_STATE_PACKET::state() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_DUNGEON_STATE_PACKET.state)
+  return _internal_state();
+}
+inline void SC_DUNGEON_STATE_PACKET::_internal_set_state(::Protocol::DungeonState value) {
+  
+  _impl_.state_ = value;
+}
+inline void SC_DUNGEON_STATE_PACKET::set_state(::Protocol::DungeonState value) {
+  _internal_set_state(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_DUNGEON_STATE_PACKET.state)
+}
+
+// int32 remain_sec = 2;
+inline void SC_DUNGEON_STATE_PACKET::clear_remain_sec() {
+  _impl_.remain_sec_ = 0;
+}
+inline int32_t SC_DUNGEON_STATE_PACKET::_internal_remain_sec() const {
+  return _impl_.remain_sec_;
+}
+inline int32_t SC_DUNGEON_STATE_PACKET::remain_sec() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_DUNGEON_STATE_PACKET.remain_sec)
+  return _internal_remain_sec();
+}
+inline void SC_DUNGEON_STATE_PACKET::_internal_set_remain_sec(int32_t value) {
+  
+  _impl_.remain_sec_ = value;
+}
+inline void SC_DUNGEON_STATE_PACKET::set_remain_sec(int32_t value) {
+  _internal_set_remain_sec(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_DUNGEON_STATE_PACKET.remain_sec)
+}
+
 // -------------------------------------------------------------------
 
 // SC_PORTAL_LIST_PACKET
@@ -15578,6 +15816,8 @@ inline void SC_KICK_PACKET::set_reason(::Protocol::KickReason value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

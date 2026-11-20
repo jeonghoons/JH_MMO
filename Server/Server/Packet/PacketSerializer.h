@@ -26,7 +26,9 @@ public:
 	// 순간이동(L5): object의 지금 위치(이미 옮긴 뒤)와 본인용 보정 순번
 	static shared_ptr<SendBuffer> MAKE_SC_TELEPORT(shared_ptr<GameObject> object, uint32_t correctionSeq);
 	// 쓸 수 있는 포털 목록(L5). 방 입장 직후 본인에게
-	static shared_ptr<SendBuffer> MAKE_SC_PORTAL_LIST(const vector<struct PortalTriggerPoint>& portals);
+	// kinds[i] = portals[i]의 종류(안내 문구 구분, DG3c). 짧으면 나머지는 NORMAL
+	static shared_ptr<SendBuffer> MAKE_SC_PORTAL_LIST(const vector<struct PortalTriggerPoint>& portals, const vector<Protocol::PortalKind>& kinds);
+	static shared_ptr<SendBuffer> MAKE_SC_DUNGEON_STATE(Protocol::DungeonState state, int remainSec);
 	// Room 이동(DG3b): object의 지금 위치(도착 자리로 옮긴 뒤)와 보정 순번, 도착 Room의 레벨·종류·채널
 	static shared_ptr<SendBuffer> MAKE_SC_ROOM_CHANGE(shared_ptr<GameObject> object, const string& mapName, Protocol::RoomKind kind, int channel, uint32_t correctionSeq);
 	static shared_ptr<SendBuffer> MAKE_SC_MOVE_RESULT(Protocol::MoveResult result);

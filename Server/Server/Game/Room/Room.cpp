@@ -13,8 +13,54 @@
 
 Room::Room(shared_ptr<Timer> timer, HANDLE iocpHandle, RoomInfo info) : _info(std::move(info)), _timer(timer), _jobQueue(make_shared<JobQueue>(iocpHandle))
 {
+	s_alive.fetch_add(1);
 }
-Room::~Room() = default;
+Room::~Room()
+{
+	s_alive.fetch_sub(1);
+	LOG_DEBUG("Room", "Room {} 소멸", _info.roomId);
+}
+
+void Room::Close()
+{
+	if (_closed.load()) return;
+
+	// 닫기 전에 비어 있어야 한다(WorldService가 안에 있는 사람·들어오는 사람이 0일 때만 닫는다). 남아 있으면 그 접속을 끊는다
+	// — 퇴장 잡은 닫힌 방에서도 평소대로 돌아 저장·정리 신호까지 간다.
+	if (!_players.empty() || !_loading.empty())
+	{
+		LOG_ERROR("Room", "Room {}: 플레이어 {}명(로딩 대기 {}명)이 남은 채 닫습니다 — 접속을 끊습니다", _info.roomId, _players.size(), _loading.size());
+		for (const auto& [id, player] : _players)
+			if (shared_ptr<Session> session = player->GetSession())
+				session->ForceClose(L"Room: closed with players inside");
+		for (const auto& [id, entry] : _loading)
+			if (shared_ptr<Session> session = entry.player->GetSession())
+				session->ForceClose(L"Room: closed with players inside");
+	}
+
+	_closed.store(true);
+
+	// 몬스터·드랍·장판·NPC를 버린다. 보고 있는 사람이 없으므로 SC_REMOVE_OBJECT는 보내지 않는다. 전역 지표는 여기서 맞춘다.
+	const size_t monsterCount = _monsters.size(), dropCount = _drops.size();
+	Metrics::Monsters.fetch_sub(static_cast<int>(monsterCount));
+	Metrics::Drops.fetch_sub(static_cast<int>(dropCount));
+	for (auto it = _objects.begin(); it != _objects.end();)
+	{
+		if (_monsters.count(it->first)) it = _objects.erase(it);
+		else ++it;
+	}
+	_monsters.clear();
+	_drops.clear();
+	_dropOrder.clear();
+	_zones.clear();
+	_npcs.clear();
+
+	// 잡 큐의 보낼 세션 목록을 모두 내보낸다(Server/CLAUDE.md "송신 묶기" 주의 ②) — 방금 이 방을 떠난 세션이 목록에 남아 있을 수 있다.
+	_jobQueue->CloseSendBatch();
+
+	GRoomManager->Remove(_info.roomId);
+	LOG_INFO("Room", "Room {}(채널 {}, {} 구역 '{}') 닫음: 남아 있던 몬스터 {}, 드랍 {}", _info.roomId, _info.channel, _info.levelName, _info.area, monsterCount, dropCount);
+}
 
 bool Room::InitRoom(bool allowBroken)
 {
@@ -99,18 +145,33 @@ bool Room::InitRoom(bool allowBroken)
 
 	// 포털 목록(L5): 도착지가 정해지는 포털만 모아 패킷을 한 번 만들어 둔다.
 	{
-		// 이 Room 구역에 있고 도착지가 이 서버 안(같은 Room 또는 같은 레벨의 다른 구역 Room)인 포털만.
+		// 이 Room 구역에 있고 도착지가 이 서버 안(같은 Room, 같은 레벨의 다른 구역 Room, WorldTable에 있는 다른 레벨 — DG3c)인 포털만.
 		vector<PortalTriggerPoint> usable;
+		vector<Protocol::PortalKind> kinds;
 		Protocol::PositionInfo unusedPos;
 		string unusedArea;
 		for (const PortalTriggerPoint& portal : _gameMap.GetPortalTriggers())
 		{
 			if (!_gameMap.InArea(portal.Area)) continue;
 			const PortalRoute route = ResolvePortalTarget(portal, unusedPos, unusedArea);
-			if (route == PortalRoute::SameRoom || route == PortalRoute::OtherRoom) usable.push_back(portal);
+			if (route == PortalRoute::SameRoom || route == PortalRoute::OtherRoom)
+			{
+				usable.push_back(portal);
+				kinds.push_back(Protocol::PORTAL_KIND_NORMAL);
+			}
+			else if (route == PortalRoute::OtherLevel)
+			{
+				const WorldData* target = DataManager::GetWorldData(portal.TargetMap);
+				if (target == nullptr) continue;   // 이 서버가 띄우지 않는 레벨(정거장)
+				usable.push_back(portal);
+				kinds.push_back(target->isDungeon ? Protocol::PORTAL_KIND_DUNGEON_ENTER
+					: (_info.kind == RoomKind::Dungeon ? Protocol::PORTAL_KIND_DUNGEON_EXIT : Protocol::PORTAL_KIND_NORMAL));
+			}
 		}
 		if (!usable.empty())
-			_portalListBuffer = PacketSerializer::MAKE_SC_PORTAL_LIST(usable);
+			_portalListBuffer = PacketSerializer::MAKE_SC_PORTAL_LIST(usable, kinds);
+		if (_info.kind == RoomKind::Dungeon && _bossAlive == 0)
+			LOG_ERROR("Room", "Room {}: 던전 레벨 '{}' 에 우두머리 스폰(구역 '{}')이 없어 클리어할 수 없습니다", _info.roomId, _info.levelName, ZONE_BOSS);
 		LOG_INFO("Room", "Room {} 포털: 마커 {}개 중 쓸 수 있는 것 {}개, 시작 지점 {}곳", _info.roomId, _gameMap.GetPortalTriggers().size(), usable.size(), _startIndices.size());
 	}
 
@@ -191,6 +252,7 @@ void Room::OnSendWake(long long dueUs)
 
 void Room::Update(long long elapsedTime)
 {
+	if (_closed.load()) return;   // 닫힌 방은 틱을 다시 예약하지 않는다(DG3c)
 	long long currentTick = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 	ReserveJob(100, &Room::Update, currentTick);
 
@@ -224,6 +286,7 @@ void Room::Update(long long elapsedTime)
 		if (GServerConfig.viewAudit) AuditViews();
 		UpdateSaves(currentTick);
 		UpdateTrades(currentTick);
+		if (!_loading.empty()) UpdateLoading(currentTick);
 
 		const int nodes = _gameMap.GetAoi().NodeCount(), depth = _gameMap.GetAoi().MaxDepth();
 		int prev = Metrics::AoiNodes.load();
@@ -368,6 +431,17 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 			owner->PushJob(&Room::PlayerLeaveRoom, player);
 			return;
 		}
+		// 로딩 대기 중에 끊겼다(DG3c): 목록에서 빼고, 떠난 Room이 하지 않은 마지막 저장을 여기서 요청한다.
+		if (const auto loadingIt = _loading.find(playerId); loadingIt != _loading.end() && loadingIt->second.player == player)
+		{
+			LOG_DEBUG("Room", "Player[{}] Leave: 로딩 대기 중 끊김", playerId);
+			_loading.erase(loadingIt);
+			Metrics::RoomMoveCanceled.fetch_add(1);
+			RequestProgressSave(player);
+			RequestQuickSlotSave(player);
+			NotifyClosedIfDone(player);
+			return;
+		}
 		LOG_DEBUG("Room", "Player[{}] Leave: 방에 없음(입장 취소·중복 퇴장)", playerId);
 		NotifyClosedIfDone(player);
 		return;
@@ -379,6 +453,7 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 		Metrics::RoomMoveCanceled.fetch_add(1);
 		player->roomMove = {};
 	}
+	player->ejectPending = false;
 
 	ViewUpdate result = _gameMap.LeaveMap(playerId, player->_viewList);
 	if (!result.leaved.empty()) {
@@ -644,7 +719,9 @@ void Room::PlayerRevive(shared_ptr<Player> player)
 	// 이 방의 사람들에게는 떠날 때 SC_REMOVE_OBJECT만 간다.
 	if (_info.kind == RoomKind::Field && !_info.area.empty())
 	{
-		BeginMove(player, Player::MoveReason::Revive, AREA_TOWN, nullptr);
+		MoveRequest request;
+		request.area = AREA_TOWN;
+		BeginMove(player, Player::MoveReason::Revive, request, nullptr);
 		return;
 	}
 
@@ -685,7 +762,7 @@ void Room::PlayerRevive(shared_ptr<Player> player)
 
 PortalRoute Room::ResolvePortalTarget(const PortalTriggerPoint& portal, Protocol::PositionInfo& outPos, string& outArea) const
 {
-	// 다른 레벨로 가는 포털(던전 입구·정거장)은 아직 받지 않는다(레벨이 바뀌는 이동 — DG3c).
+	// 다른 레벨로 가는 포털(던전 입구·던전 출구·정거장). 도착 Room과 자리는 서비스와 도착 Room이 정한다(DG3c) — 받을지는 부르는 쪽이 WorldTable로 본다.
 	if (portal.TargetMap != _info.levelName) return PortalRoute::OtherLevel;
 
 	// 도착 마커는 다른 구역에 있을 수 있다(마커 목록은 레벨 전체).
@@ -715,23 +792,25 @@ void Room::PlayerUsePortal(shared_ptr<Player> player, int portalId)
 	string targetArea;
 	PortalRoute route = PortalRoute::None;
 	const char* reason = nullptr;
+	bool unavailable = false;
 	if (player->GetStat().IsDead()) reason = "dead";
 	else if (player->IsCasting() || player->IsMoveLocked(nowMs)) reason = "acting";
 	else if (!player->portalCooldown.IsReady()) reason = "too-frequent";
 	else if ((portal = _gameMap.FindPortal(portalId)) == nullptr || !_gameMap.InArea(portal->Area)) reason = "no-portal";
-	else if ((route = ResolvePortalTarget(*portal, targetPos, targetArea)) == PortalRoute::None || route == PortalRoute::OtherLevel) reason = "no-target";
+	else if ((route = ResolvePortalTarget(*portal, targetPos, targetArea)) == PortalRoute::None) reason = "no-target";
+	else if (route == PortalRoute::OtherLevel && DataManager::GetWorldData(portal->TargetMap) == nullptr) { reason = "no-target"; unavailable = true; }   // 이 서버가 띄우지 않는 레벨(정거장)
 	else
 	{
 		const float dx = player->GetPosition().x() - portal->Pos.X, dy = player->GetPosition().y() - portal->Pos.Y;
 		const float range = portal->TriggerRadius + rule->moveSlackCm + rule->navToleranceCm;
-		if (dx * dx + dy * dy > range * range) reason = "too-far";
+		if (dx * dx + dy * dy > range * range && !GServerConfig.portalNoRange) reason = "too-far";
 	}
 	if (reason != nullptr)
 	{
 		LOG_DEBUG("Portal", "거부 player={} portal={} reason={}", player->GetId(), portalId, reason);
 		Metrics::PortalReject.fetch_add(1);
-		// 갈 수 없는 포털(다른 레벨)만 사유를 알린다. 재사용 대기를 걸어 응답을 도배에 쓰지 못하게 한다.
-		if (route == PortalRoute::OtherLevel)
+		// 갈 수 없는 포털(이 서버에 없는 레벨)만 사유를 알린다. 재사용 대기를 걸어 응답을 도배에 쓰지 못하게 한다.
+		if (unavailable)
 		{
 			player->portalCooldown.Reset(world->portalCooldownMs);
 			Metrics::RoomMoveRejected.fetch_add(1);
@@ -752,6 +831,19 @@ void Room::PlayerUsePortal(shared_ptr<Player> player, int portalId)
 			session->Send(PacketSerializer::MAKE_SC_SKILL_AIM(player->GetId(), 0, false, player->aim.seq));
 	}
 
+	// 다른 레벨로 가는 포털(던전 입구·출구, DG3c): 도착 Room(인스턴스 생성·합류 포함)은 서비스가, 자리는 도착 Room이 정한다.
+	if (route == PortalRoute::OtherLevel)
+	{
+		Metrics::PortalUsed.fetch_add(1);
+		LOG_DEBUG("Portal", "player={} portal={} -> 레벨 '{}' 지점 {}", player->GetId(), portalId, portal->TargetMap, portal->TargetPointId);
+		MoveRequest request;
+		request.kind = MoveRequest::Kind::LevelPortal;
+		request.levelName = portal->TargetMap;
+		request.pointId = portal->TargetPointId;
+		BeginMove(player, Player::MoveReason::Portal, request, nullptr);
+		return;
+	}
+
 	// 위치: 방향은 그대로, 속도는 0.
 	Protocol::PositionInfo newPos = player->GetPosition();
 	newPos.set_x(targetPos.x());
@@ -766,7 +858,9 @@ void Room::PlayerUsePortal(shared_ptr<Player> player, int portalId)
 	{
 		Metrics::PortalUsed.fetch_add(1);
 		LOG_DEBUG("Portal", "player={} portal={} -> {} (구역 '{}' Room으로 이동)", player->GetId(), portalId, portal->TargetPointId, targetArea);
-		BeginMove(player, Player::MoveReason::Portal, targetArea, &newPos);
+		MoveRequest request;
+		request.area = targetArea;
+		BeginMove(player, Player::MoveReason::Portal, request, &newPos);
 		return;
 	}
 	player->SetPosition(newPos);
@@ -885,7 +979,7 @@ void Room::PlaceNewPlayer(const shared_ptr<Player>& player)
 	player->spawnPosition = pos;
 }
 
-void Room::BeginMove(const shared_ptr<Player>& player, Player::MoveReason reason, const string& destArea, const Protocol::PositionInfo* destPos)
+void Room::BeginMove(const shared_ptr<Player>& player, Player::MoveReason reason, const MoveRequest& request, const Protocol::PositionInfo* destPos)
 {
 	Player::RoomMoveState& move = player->roomMove;
 	if (move.Active()) return;
@@ -896,7 +990,7 @@ void Room::BeginMove(const shared_ptr<Player>& player, Player::MoveReason reason
 	move = {};
 	move.waiting = true;
 	move.reason = reason;
-	move.destArea = destArea;
+	move.request = request;
 	if (destPos != nullptr)
 	{
 		move.hasDestPos = true;
@@ -912,7 +1006,7 @@ void Room::TryAdvanceMove(const shared_ptr<Player>& player)
 	if (player == nullptr || !player->roomMove.waiting) return;
 	if (!IsInRoom(player)) return;   // 그 사이 접속 해제로 나갔다(퇴장이 이동 상태를 지웠다)
 
-	// 대기 중에 죽으면 포털 이동은 취소한다(부활 이동은 죽은 채로 간다).
+	// 대기 중에 죽으면 포털 이동은 취소한다(부활·따라가기·내보냄은 죽은 채로 간다).
 	if (player->roomMove.reason == Player::MoveReason::Portal && player->GetStat().IsDead())
 	{
 		CancelMove(player, Protocol::MOVE_RESULT_NONE);
@@ -923,57 +1017,122 @@ void Room::TryAdvanceMove(const shared_ptr<Player>& player)
 	// ③ 이동 표시. 이 뒤로 이 플레이어의 요청은 버리고(중복 요청 포함), 새 DB 작업도 시작하지 않는다.
 	player->roomMove.waiting = false;
 	player->roomMove.transfer = true;
-	GWorld->PushJob(&WorldService::RequestMove, player, shared_from_this(), player->channel, player->roomMove.destArea);
+	GWorld->PushJob(&WorldService::RequestMove, player, shared_from_this(), player->channel, player->roomMove.request);
 }
 
 void Room::CancelMove(const shared_ptr<Player>& player, Protocol::MoveResult notify)
 {
 	if (!player->roomMove.Active()) return;
 	LOG_DEBUG("RoomMove", "취소 player={} result={}", player->GetId(), Protocol::MoveResult_Name(notify));
+	const Player::MoveReason reason = player->roomMove.reason;
 	player->roomMove = {};
 
 	if (notify == Protocol::MOVE_RESULT_TIMEOUT) Metrics::RoomMoveTimeout.fetch_add(1);
-	else if (notify == Protocol::MOVE_RESULT_NOT_AVAILABLE) Metrics::RoomMoveRejected.fetch_add(1);
-	else Metrics::RoomMoveCanceled.fetch_add(1);
+	else if (notify == Protocol::MOVE_RESULT_NONE) Metrics::RoomMoveCanceled.fetch_add(1);
+	else Metrics::RoomMoveRejected.fetch_add(1);   // 갈 수 없음(NOT_AVAILABLE·DUNGEON_FULL·NOT_LEADER·DUNGEON_CLEARED)
 
-	if (notify != Protocol::MOVE_RESULT_NONE)
+	// 파티장을 따라가려던 이동·서버가 내보내려던 이동은 본인이 요청한 것이 아니라 사유를 알리지 않는다.
+	if (notify != Protocol::MOVE_RESULT_NONE && reason != Player::MoveReason::Follow && reason != Player::MoveReason::Eject)
 	{
 		if (shared_ptr<Session> session = player->GetSession())
 			session->Send(PacketSerializer::MAKE_SC_MOVE_RESULT(notify));
+	}
+
+	// 다른 이동의 응답을 기다리느라 미뤄 둔 내보내기(EjectPlayer)를 이어서 한다. 접속이 끊긴 사람은 퇴장 잡이 정리한다.
+	if (player->ejectPending)
+	{
+		player->ejectPending = false;
+		const shared_ptr<GameSession> session = player->GetSession();
+		if (IsInRoom(player) && session != nullptr && session->IsConnected())
+			EjectPlayer(player);
 	}
 }
 
 void Room::UpdateMoves(long long nowMs)
 {
+	// CancelMove → EjectPlayer가 이동 상태를 다시 켤 수 있지만 _players 자체는 바뀌지 않는다.
 	for (const auto& [id, player] : _players)
 	{
 		if (!player->roomMove.waiting) continue;
 		if (nowMs >= player->roomMove.deadlineMs)
-			CancelMove(player, Protocol::MOVE_RESULT_TIMEOUT);
+		{
+			// 서버가 내보내는 이동은 포기하지 않는다(남으면 닫혀야 할 인스턴스에 사람이 남는다) — 시한만 다시 잡고 계속 기다린다.
+			if (player->roomMove.reason == Player::MoveReason::Eject)
+			{
+				LOG_WARN("RoomMove", "내보내기 대기가 {}ms를 넘겼습니다 (PlayerId {}, itemOp {} progress {} quickSlot {}) — 계속 기다립니다", GServerConfig.moveWaitTimeoutMs,
+					player->GetPlayerUID(), player->itemOp.inFlight, player->progressSave.inFlight, player->quickSlotSave.inFlight);
+				player->roomMove.deadlineMs = nowMs + GServerConfig.moveWaitTimeoutMs;
+				TryAdvanceMove(player);
+			}
+			else
+				CancelMove(player, Protocol::MOVE_RESULT_TIMEOUT);
+		}
 		else
 			TryAdvanceMove(player);
 	}
 }
 
-void Room::OnMoveResolved(shared_ptr<Player> player, shared_ptr<Room> dest)
+void Room::EjectPlayer(shared_ptr<Player> player)
 {
-	if (player == nullptr || !IsInRoom(player)) return;   // 그 사이 접속 해제로 나갔다
-	if (!player->roomMove.transfer) return;
+	// 방에 없으면(이미 나갔거나, 아직 로딩 대기 중이거나, 접속이 끝남) 할 일이 없다 — 로딩을 마치면 서비스가 다시 본다(WorldService::OnPlayerMoved).
+	if (player == nullptr || !IsInRoom(player)) return;
+
+	Player::RoomMoveState& move = player->roomMove;
+	if (move.transfer)
+	{
+		// 다른 이동(출구 포털 등)의 응답을 기다리는 중: 그 이동이 되면 어차피 이 방을 떠나고, 취소되면 CancelMove가 이어서 내보낸다.
+		player->ejectPending = true;
+		return;
+	}
+	if (move.waiting && move.reason == Player::MoveReason::Eject) return;   // 이미 내보내는 중
+
+	// 대기 중이던 다른 이동(출구 포털)은 내보내기로 바꾼다.
+	if (move.waiting)
+	{
+		Metrics::RoomMoveCanceled.fetch_add(1);
+		move = {};
+	}
+	MoveRequest request;
+	request.area = AREA_TOWN;
+	LOG_DEBUG("RoomMove", "내보내기 player={} Room {} -> 마을", player->GetId(), _info.roomId);
+	BeginMove(player, Player::MoveReason::Eject, request, nullptr);
+}
+
+void Room::EjectAll()
+{
+	// BeginMove는 _players를 바꾸지 않는다(떠나기는 서비스의 응답 잡에서).
+	for (const auto& [id, player] : _players)
+		EjectPlayer(player);
+}
+
+void Room::OnMoveResolved(shared_ptr<Player> player, MoveGrant grant)
+{
+	// 가지 못하게 되면 서비스가 잡아 둔 인스턴스 자리를 돌려준다(자리가 남으면 그 인스턴스가 닫히지 않는다).
+	auto releaseSeat = [&]() {
+		if (grant.instanceId != 0 && player != nullptr)
+			GWorld->PushJob(&WorldService::OnMoveAborted, player->GetId(), grant.instanceId);
+	};
+
+	if (player == nullptr || !IsInRoom(player)) { releaseSeat(); return; }   // 그 사이 접속 해제로 나갔다
+	if (!player->roomMove.transfer) { releaseSeat(); return; }
 
 	const shared_ptr<GameSession> session = player->GetSession();
 	if (session == nullptr || !session->IsConnected())
 	{
 		// 퇴장 잡이 뒤따라온다 — 여기서는 이동만 취소한다.
+		releaseSeat();
 		CancelMove(player, Protocol::MOVE_RESULT_NONE);
 		return;
 	}
-	if (dest == nullptr || dest.get() == this)
+	if (grant.dest == nullptr || grant.dest.get() == this)
 	{
-		CancelMove(player, Protocol::MOVE_RESULT_NOT_AVAILABLE);
+		releaseSeat();
+		CancelMove(player, grant.dest == nullptr ? grant.result : Protocol::MOVE_RESULT_NOT_AVAILABLE);
 		return;
 	}
 	if (player->roomMove.reason == Player::MoveReason::Portal && player->GetStat().IsDead())
 	{
+		releaseSeat();
 		CancelMove(player, Protocol::MOVE_RESULT_NONE);
 		return;
 	}
@@ -983,6 +1142,7 @@ void Room::OnMoveResolved(shared_ptr<Player> player, shared_ptr<Room> dest)
 		LOG_ERROR("RoomMove", "떠나기 직전에 끝나지 않은 DB 작업이 있습니다 (PlayerId {}, itemOp {} progress {} quickSlot {}) — 이동을 취소합니다",
 			player->GetPlayerUID(), player->itemOp.inFlight, player->progressSave.inFlight, player->quickSlotSave.inFlight);
 		Metrics::RoomMoveAbortBusy.fetch_add(1);
+		releaseSeat();
 		CancelMove(player, Protocol::MOVE_RESULT_TIMEOUT);
 		return;
 	}
@@ -1004,16 +1164,65 @@ void Room::OnMoveResolved(shared_ptr<Player> player, shared_ptr<Room> dest)
 	player->npcView.clear();
 	if (player->IsSkillAiming())
 		player->SetSkillAim(nullptr, chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count());
+	player->ejectPending = false;   // 이 방을 떠난다 — 미뤄 둔 내보내기는 필요 없다
+	// 레벨이 바뀌면 도착 Room이 클라이언트의 로딩을 기다린다(DG3c).
+	player->roomMove.crossLevel = grant.dest->GetInfo().levelName != _info.levelName;
 
-	LOG_DEBUG("RoomMove", "player={} Room {} -> Room {}", playerId, _info.roomId, dest->GetRoomId());
+	LOG_DEBUG("RoomMove", "player={} Room {} -> Room {}", playerId, _info.roomId, grant.dest->GetRoomId());
 
 	// 소유 Room을 먼저 바꾸고 들어오기 잡을 넣는다(WorldService::EnterWorld와 같은 순서) — 이 뒤에 끊긴 세션의 퇴장 잡은 도착 Room으로 간다.
 	// 이 줄 뒤로 이 Room은 이 플레이어의 필드를 만지지 않는다.
-	player->SetOwnerRoom(dest);
+	player->SetOwnerRoom(grant.dest);
 	if (GServerConfig.moveHandoffDelayMs > 0)
-		dest->ReserveJob(static_cast<DWORD>(GServerConfig.moveHandoffDelayMs), &Room::PlayerArriveRoom, player);
+		grant.dest->ReserveJobAlways(static_cast<DWORD>(GServerConfig.moveHandoffDelayMs), &Room::PlayerArriveRoom, player);
 	else
-		dest->PushJob(&Room::PlayerArriveRoom, player);
+		grant.dest->PushJob(&Room::PlayerArriveRoom, player);
+
+	// 파티장의 던전 입장: 같은 방의 파티원도 그 인스턴스로 보낸다(D-218). 멀리 있어도, 전투·거래 중이어도, 죽어 있어도 간다.
+	// 이미 다른 이동 중인 사람과 끝나지 않은 DB 작업이 시한(MoveWaitTimeoutMs)을 넘긴 사람은 남는다(나중에 입구에서 합류).
+	for (const int followerId : grant.followers)
+	{
+		const shared_ptr<Player> follower = Id2Player(followerId);
+		if (follower == nullptr || follower->roomMove.Active()) continue;
+		const shared_ptr<GameSession> followerSession = follower->GetSession();
+		if (followerSession == nullptr || !followerSession->IsConnected()) continue;
+
+		MoveRequest request;
+		request.kind = MoveRequest::Kind::Instance;
+		request.instanceId = grant.instanceId;
+		BeginMove(follower, Player::MoveReason::Follow, request, nullptr);
+	}
+}
+
+Protocol::PositionInfo Room::PickPositionNearPortal(const PortalTriggerPoint& portal)
+{
+	Protocol::PositionInfo pos;
+	pos.set_x(portal.Pos.X);
+	pos.set_y(portal.Pos.Y);
+	pos.set_z(portal.Pos.Z);
+
+	// 반경 바로 밖의 고리(반경 + 50 ~ 250cm) 안에서 걷는 자리. 마커 z는 지면 + 100cm이고 내비메시 보정은 지면 높이를 주므로 같은 만큼 올린다.
+	constexpr float RING_MIN_CM = 50.f, RING_MAX_CM = 250.f, UP_CM = 100.f;
+	NavmeshManager* nav = GetNavManager();
+	for (int i = 0; i < 12 && nav != nullptr; ++i)
+	{
+		const float angle = Utils::GetRandom<float>(0.f, 6.2831853f);
+		const float dist = portal.TriggerRadius + Utils::GetRandom<float>(RING_MIN_CM, RING_MAX_CM);
+		Protocol::PositionInfo candidate;
+		candidate.set_x(portal.Pos.X + cosf(angle) * dist);
+		candidate.set_y(portal.Pos.Y + sinf(angle) * dist);
+		candidate.set_z(portal.Pos.Z);
+		if (!nav->AdjustPositionToNavMesh(candidate)) continue;
+		const float dx = candidate.x() - portal.Pos.X, dy = candidate.y() - portal.Pos.Y;
+		const float d = sqrtf(dx * dx + dy * dy);
+		if (d > portal.TriggerRadius + RING_MAX_CM + 100.f) continue;   // 보정이 멀리 끌고 갔다
+		if (_gameMap.IsInOtherAreaZone(candidate.x(), candidate.y())) continue;   // 다른 구역 Room의 땅
+		pos.set_x(candidate.x());
+		pos.set_y(candidate.y());
+		pos.set_z(candidate.z() + UP_CM);
+		break;
+	}
+	return pos;
 }
 
 void Room::PlayerArriveRoom(shared_ptr<Player> player)
@@ -1030,19 +1239,38 @@ void Room::PlayerArriveRoom(shared_ptr<Player> player)
 	player->roomMove = {};
 
 	// 떠난 뒤 이 잡 사이에 끊겼으면 들이지 않는다. 퇴장 잡이 먼저 왔든 뒤에 오든 정리 신호는 이 Room에서 한 번 나간다.
+	// 떠난 Room은 저장을 요청하지 않았으므로 여기서 마지막 진행 상황을 저장한다(값이 DB와 다를 때만 보낸다).
 	const shared_ptr<GameSession> session = player->GetSession();
 	if (session == nullptr || !session->IsConnected())
 	{
 		LOG_DEBUG("RoomMove", "Player[{}] 들어오기 취소: 세션 끊김", player->GetId());
 		Metrics::RoomMoveCanceled.fetch_add(1);
+		RequestProgressSave(player);
+		RequestQuickSlotSave(player);
 		NotifyClosedIfDone(player);
+		return;
+	}
+	if (_closed.load())
+	{
+		// 서비스는 들어오는 사람이 있는 인스턴스를 닫지 않는다. 왔다면 자리 관리에 구멍이 있는 것 — 어느 방에도 없는 채 남지 않게 끊는다(퇴장 잡이 정리한다).
+		LOG_ERROR("RoomMove", "닫힌 Room {} 에 플레이어 {} 가 도착했습니다 — 접속을 끊습니다", _info.roomId, player->GetId());
+		session->ForceClose(L"RoomMove: arrived at a closed room");
 		return;
 	}
 
 	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 
-	// 위치: 포털은 도착 마커(방향 유지), 부활은 이 Room의 시작 지점 가운데 하나. 속도는 0.
-	Protocol::PositionInfo pos = move.hasDestPos ? move.destPos : PickStartPosition();
+	// 위치: 같은 레벨 포털은 도착 마커(방향 유지), 다른 레벨의 포털 마커를 가리키면 그 마커 바로 밖(던전 출구 → 입구 앞),
+	// 그 밖(부활·내보냄·던전 입장)은 이 Room의 시작 지점 가운데 하나. 속도는 0.
+	Protocol::PositionInfo pos;
+	const PortalTriggerPoint* arrivePortal = nullptr;
+	if (move.hasDestPos)
+		pos = move.destPos;
+	else if (move.request.kind == MoveRequest::Kind::LevelPortal && move.request.pointId != 0
+		&& (arrivePortal = _gameMap.FindPortal(move.request.pointId)) != nullptr)
+		pos = PickPositionNearPortal(*arrivePortal);
+	else
+		pos = PickStartPosition();
 	pos.set_v_x(0.f);
 	pos.set_v_y(0.f);
 	pos.set_v_z(0.f);
@@ -1056,6 +1284,76 @@ void Room::PlayerArriveRoom(shared_ptr<Player> player)
 		player->deadAtMs = 0;
 		Metrics::Revives.fetch_add(1);
 	}
+	// 시전 중에 끌려온 사람(파티장 따라가기·내보냄)의 행동 잠금을 푼다(D-225). 죽은 채 온 사람은 여기서 부활 요청을 보낸다.
+	else if (move.reason == Player::MoveReason::Follow || move.reason == Player::MoveReason::Eject)
+		player->ClearActionLocks();
+
+	// 이동 전에 보낸 이동 패킷이 뒤늦게 와도 버려지도록 보정 순번을 올린다(0으로 되돌리지 않는다 — 클라이언트의 순번과 이어져야 한다). 이동 예산은 0에서 다시.
+	// 스킬 쿨타임·포털 재사용 대기·아이템 재사용 시간·주기 저장 시각은 그대로 이어진다.
+	Player::MoveGuard& guard = player->moveGuard;
+	++guard.correctionSeq;
+	guard.budgetCm = 0.f;
+	guard.lastAccrueMs = nowMs;
+
+	session->Send(PacketSerializer::MAKE_SC_ROOM_CHANGE(player, _info.levelName, ToProtoKind(_info.kind), _info.channel, guard.correctionSeq));
+
+	// 레벨이 바뀌면 클라이언트가 그 레벨을 열고 CS_ENTER_ROOM을 보낼 때까지 기다린다 — 그동안 시야·전투에 넣지 않는다(DG3c).
+	if (move.crossLevel)
+	{
+		LoadingEntry entry;
+		entry.player = player;
+		entry.reason = move.reason;
+		entry.deadlineMs = nowMs + static_cast<long long>(GServerConfig.loadTimeoutSec) * 1000;
+		_loading[player->GetId()] = std::move(entry);
+		LOG_DEBUG("RoomMove", "Player[{}] 로딩 대기: Room {} 레벨 '{}'", player->GetId(), _info.roomId, _info.levelName);
+		return;
+	}
+	FinishArrive(player, move.reason);
+}
+
+void Room::PlayerLoadDone(shared_ptr<Player> player)
+{
+	if (player == nullptr) return;
+	const auto it = _loading.find(player->GetId());
+	if (it == _loading.end() || it->second.player != player) return;   // 로딩 대기 중이 아니다(처음 입장의 중복 요청·같은 레벨 이동)
+
+	const Player::MoveReason reason = it->second.reason;
+	_loading.erase(it);
+
+	const shared_ptr<GameSession> session = player->GetSession();
+	if (session == nullptr || !session->IsConnected())
+	{
+		Metrics::RoomMoveCanceled.fetch_add(1);
+		RequestProgressSave(player);
+		RequestQuickSlotSave(player);
+		NotifyClosedIfDone(player);
+		return;
+	}
+
+	// 로딩하는 동안의 시간은 이동 예산에 넣지 않는다.
+	player->moveGuard.budgetCm = 0.f;
+	player->moveGuard.lastAccrueMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	FinishArrive(player, reason);
+}
+
+void Room::UpdateLoading(long long nowMs)
+{
+	for (const auto& [id, entry] : _loading)
+	{
+		if (nowMs < entry.deadlineMs) continue;
+		// 끊으면 퇴장 잡이 이 Room으로 와서 목록에서 빼고 정리한다(PlayerLeaveRoom). ForceClose는 여러 번 불러도 한 번만 동작한다.
+		if (shared_ptr<GameSession> session = entry.player->GetSession())
+		{
+			LOG_WARN("RoomMove", "로딩 대기 {}초를 넘겼습니다 (PlayerId {}, Room {}) — 접속을 끊습니다", GServerConfig.loadTimeoutSec, entry.player->GetPlayerUID(), _info.roomId);
+			session->ForceClose(L"RoomMove: load timeout");
+		}
+	}
+}
+
+void Room::FinishArrive(const shared_ptr<Player>& player, Player::MoveReason reason)
+{
+	const shared_ptr<GameSession> session = player->GetSession();
+	if (session == nullptr) return;
 
 	if (false == AddObject(player))
 	{
@@ -1066,20 +1364,14 @@ void Room::PlayerArriveRoom(shared_ptr<Player> player)
 	if (_players.emplace(player->GetId(), player).second)
 		_playerCount.fetch_add(1);
 
-	// 이동 전에 보낸 이동 패킷이 뒤늦게 와도 버려지도록 보정 순번을 올린다(0으로 되돌리지 않는다 — 클라이언트의 순번과 이어져야 한다). 이동 예산은 0에서 다시.
-	// 스킬 쿨타임·포털 재사용 대기·아이템 재사용 시간·주기 저장 시각은 그대로 이어진다.
-	Player::MoveGuard& guard = player->moveGuard;
-	++guard.correctionSeq;
-	guard.budgetCm = 0.f;
-	guard.lastAccrueMs = nowMs;
-
-	session->Send(PacketSerializer::MAKE_SC_ROOM_CHANGE(player, _info.levelName, ToProtoKind(_info.kind), _info.channel, guard.correctionSeq));
 	session->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(player));
 	if (_portalListBuffer != nullptr)
 		session->Send(_portalListBuffer);
 	// 부활 이동: 본인에게만 알린다(이 Room의 다른 사람은 아래 SC_ADD_OBJECT로 살아 있는 모습을 처음 본다).
-	if (move.reason == Player::MoveReason::Revive)
-		session->Send(PacketSerializer::MAKE_SC_REVIVE(player, guard.correctionSeq));
+	if (reason == Player::MoveReason::Revive)
+		session->Send(PacketSerializer::MAKE_SC_REVIVE(player, player->moveGuard.correctionSeq));
+	if (_info.kind == RoomKind::Dungeon)
+		session->Send(MakeDungeonStatePacket());
 
 	ViewUpdate result = _gameMap.EnterMap(player->GetId(), player->GetPosition());
 	if (!result.entered.empty())
@@ -1091,13 +1383,36 @@ void Room::PlayerArriveRoom(shared_ptr<Player> player)
 	UpdateNpcView(player);
 
 	Metrics::RoomMoveDone.fetch_add(1);
-	LOG_DEBUG("RoomMove", "Player[{}] 들어옴: Room {} pos=({:.0f},{:.0f},{:.0f}) seq={}", player->GetId(), _info.roomId, pos.x(), pos.y(), pos.z(), guard.correctionSeq);
+	LOG_DEBUG("RoomMove", "Player[{}] 들어옴: Room {} pos=({:.0f},{:.0f},{:.0f}) seq={}", player->GetId(), _info.roomId,
+		player->GetPosition().x(), player->GetPosition().y(), player->GetPosition().z(), player->moveGuard.correctionSeq);
 
 	// 대기·이동 중에 미뤄 둔 액티브 칸 저장(값이 DB와 다를 때만 보낸다). 진행 상황은 주기 저장이 이어받는다.
 	RequestQuickSlotSave(player);
 
-	// ⑧ 명부의 "지금 있는 Room" 갱신
+	// ⑧ 명부의 "지금 있는 Room" 갱신. 던전이면 서비스가 이 사람이 아직 들어올 자격이 있는지도 본다(그 사이 파티 탈퇴 → 내보냄).
 	GWorld->PushJob(&WorldService::OnPlayerMoved, player->GetId(), shared_from_this());
+}
+
+shared_ptr<SendBuffer> Room::MakeDungeonStatePacket() const
+{
+	if (!_cleared)
+		return PacketSerializer::MAKE_SC_DUNGEON_STATE(Protocol::DUNGEON_STATE_IN_PROGRESS, 0);
+	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	const long long remainMs = static_cast<long long>(_world->dungeonClearExitSec) * 1000 - (nowMs - _clearedAtMs);
+	return PacketSerializer::MAKE_SC_DUNGEON_STATE(Protocol::DUNGEON_STATE_CLEARED, static_cast<int>(max<long long>(0, (remainMs + 999) / 1000)));
+}
+
+void Room::OnBossDead()
+{
+	if (_info.kind != RoomKind::Dungeon || _cleared) return;
+	if (--_bossAlive > 0) return;
+
+	// 클리어(D-218): 안에 있는 전원에게 알리고, 서비스가 DungeonClearExitSec 뒤 남은 사람을 마을로 내보낸다. 새로 들어올 수는 없다.
+	_cleared = true;
+	_clearedAtMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	LOG_INFO("Room", "Room {} 던전 클리어 (안에 {}명)", _info.roomId, _players.size());
+	Broadcast(MakeDungeonStatePacket());
+	GWorld->PushJob(&WorldService::OnDungeonCleared, _info.roomId);
 }
 
 void Room::CheckDbResultOwner(const shared_ptr<Player>& player, const char* what)
@@ -2785,6 +3100,7 @@ void Room::ExecuteSkillHit(int attackerId, int skillId, int targetId, float aimY
 
 void Room::CreateZone(shared_ptr<Character> attacker, const SkillData& skill, float x, float y, int damage)
 {
+	if (_closed.load()) return;
 	SkillZone zone;
 	zone.attackerId = attacker->GetId();
 	zone.x = x;
@@ -2881,6 +3197,7 @@ void Room::NpcEnterRoom(shared_ptr<Monster> monster)
 
 void Room::SpawnMonster(int spawnIndex, int templateId, int respawnMs)
 {
+	if (_closed.load()) return;
 	const auto& spawns = _gameMap.GetMonsterSpawns();
 	if (spawnIndex < 0 || spawnIndex >= static_cast<int>(spawns.size())) return;
 
@@ -2897,6 +3214,12 @@ void Room::SpawnMonster(int spawnIndex, int templateId, int respawnMs)
 	shared_ptr<Monster> monster = make_shared<Monster>(templateId);
 	monster->SetId(MonsterIdGenerator());
 	monster->SetSpawnInfo(spawnIndex, respawnMs);
+	// 던전의 우두머리(구역 이름 boss — D-225): 전부 죽으면 클리어(OnBossDead)
+	if (_info.kind == RoomKind::Dungeon && spawn.ZoneName == ZONE_BOSS)
+	{
+		monster->SetBoss(true);
+		++_bossAlive;
+	}
 
 	Protocol::PositionInfo spawnPos;
 	spawnPos.set_x(spawn.Pos.X);
@@ -2954,6 +3277,9 @@ void Room::RemoveMonster(int monsterId)
 	RemoveObject(monsterId);
 	_monsters.erase(monsterId);
 	Metrics::Monsters.fetch_sub(1);
+
+	// SpawnTable.RespawnSec -1 = 다시 나오지 않는다(던전, DG3c)
+	if (spawnRespawnMs < 0) return;
 
 	// 사망 시점부터 RespawnSec가 지난 뒤 같은 마커에서 같은 종류로 새로 만든다. (이미 deathRemoveDelay만큼 지났으므로 그만큼 뺀다)
 	const MonsterData* data = DataManager::GetMonsterData(templateId);
@@ -3120,6 +3446,8 @@ void Room::SpawnMonsterDrops(int monsterTemplateId, Protocol::PositionInfo pos, 
 
 shared_ptr<DropItem> Room::CreateDrop(int itemId, int64_t count, const Protocol::PositionInfo& pos, int64_t ownerUID, int ownerPartyId)
 {
+	// 닫힌 방에는 만들지 않는다(접속이 끊긴 사람의 버리기 DB 결과가 닫힌 뒤에 올 수 있다 — DB에서는 이미 지워졌다).
+	if (_closed.load()) return nullptr;
 	const EconomyData& economy = DataManager::GetEconomy();
 	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 
@@ -3272,4 +3600,16 @@ void RoomManager::Add(shared_ptr<Room> room)
 {
 	RWLock::WriteGuard lock(_lock);
 	_rooms.insert({ room->GetRoomId(), room });
+}
+
+void RoomManager::Remove(int roomId)
+{
+	shared_ptr<Room> keep;   // 락 밖에서 놓는다(마지막 참조면 여기서 Room이 소멸한다)
+	{
+		RWLock::WriteGuard lock(_lock);
+		const auto it = _rooms.find(roomId);
+		if (it == _rooms.end()) return;
+		keep = std::move(it->second);
+		_rooms.erase(it);
+	}
 }

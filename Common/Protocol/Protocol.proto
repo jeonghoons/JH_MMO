@@ -254,6 +254,13 @@ message PortalInfo {
 	float y = 3;
 	float z = 4;
 	float radius_cm = 5;
+	PortalKind kind = 6;   // 안내 문구 구분(DG3c)
+}
+
+// 던전 인스턴스 상태(DG3c, D-218). 입장을 마친 직후 본인에게 한 번, 우두머리를 잡으면 안에 있는 전원에게.
+message SC_DUNGEON_STATE_PACKET {
+	DungeonState state = 1;
+	int32 remain_sec = 2;    // CLEARED일 때: 마을로 내보내기까지 남은 시간(초). 그 밖은 0
 }
 
 // 방 입장 직후 본인에게 한 번(L5). 지금 쓸 수 있는 포털만 담는다(도착지가 없는 포털은 빠진다).

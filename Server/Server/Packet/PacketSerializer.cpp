@@ -289,17 +289,28 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MOVE_RESULT(Protocol::MoveResul
 	return MakeSendBuffer(packet, Protocol::SC_MOVE_RESULT);
 }
 
-shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PORTAL_LIST(const vector<PortalTriggerPoint>& portals)
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_DUNGEON_STATE(Protocol::DungeonState state, int remainSec)
+{
+	Protocol::SC_DUNGEON_STATE_PACKET packet;
+	packet.set_state(state);
+	packet.set_remain_sec(remainSec);
+
+	return MakeSendBuffer(packet, Protocol::SC_DUNGEON_STATE);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_PORTAL_LIST(const vector<PortalTriggerPoint>& portals, const vector<Protocol::PortalKind>& kinds)
 {
 	Protocol::SC_PORTAL_LIST_PACKET packet;
-	for (const PortalTriggerPoint& portal : portals)
+	for (size_t i = 0; i < portals.size(); ++i)
 	{
+		const PortalTriggerPoint& portal = portals[i];
 		Protocol::PortalInfo* info = packet.add_portals();
 		info->set_portal_id(portal.PointId);
 		info->set_x(portal.Pos.X);
 		info->set_y(portal.Pos.Y);
 		info->set_z(portal.Pos.Z);
 		info->set_radius_cm(portal.TriggerRadius);
+		info->set_kind(i < kinds.size() ? kinds[i] : Protocol::PORTAL_KIND_NORMAL);
 	}
 
 	return MakeSendBuffer(packet, Protocol::SC_PORTAL_LIST);

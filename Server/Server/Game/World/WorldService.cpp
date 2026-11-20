@@ -21,6 +21,22 @@ bool WorldService::Init()
 		probe.LoadMapData(GServerConfig.mapName);
 		_levelSplit = probe.HasArea(AREA_TOWN) && probe.HasArea(AREA_FIELD);
 		LOG_INFO("World", "레벨 {}: {}", GServerConfig.mapName, _levelSplit ? "마을·사냥터 구역으로 나눔(채널마다 Room 2개)" : "구역 없음(채널마다 Room 1개)");
+
+		// 포털 마커의 구역(DG3c): 다른 레벨에서 이 레벨의 포털 앞으로 돌아오는 사람(던전 출구)이 갈 Room을 정한다.
+		// 이 레벨에서 갈 수 있는 던전 레벨은 여기서 한 번 읽어 맵 오류를 시작 로그에 남기고 내비메시를 올려 둔다(첫 인스턴스 생성이 서비스 큐를 오래 잡지 않게).
+		std::set<string> dungeonLevels;
+		for (const PortalTriggerPoint& portal : probe.GetPortalTriggers())
+		{
+			_worldPortalAreas[portal.PointId] = portal.Area;
+			const WorldData* target = portal.TargetMap != GServerConfig.mapName ? DataManager::GetWorldData(portal.TargetMap) : nullptr;
+			if (target == nullptr || !target->isDungeon || !dungeonLevels.insert(portal.TargetMap).second) continue;
+			GameMap dungeonProbe;
+			const bool ok = dungeonProbe.LoadMapData(portal.TargetMap, AREA_DUNGEON);
+			if (ok)
+				LOG_INFO("World", "던전 레벨 {}: 포털 {} 로 입장 (인스턴스 상한 {})", portal.TargetMap, portal.PointId, GServerConfig.maxDungeonInstances);
+			else
+				LOG_ERROR("World", "던전 레벨 {} 의 맵 리소스를 읽지 못했습니다 — 포털 {} 로는 들어갈 수 없습니다", portal.TargetMap, portal.PointId);
+		}
 	}
 
 	if (CreateChannel(true) == nullptr)
@@ -197,6 +213,9 @@ void WorldService::OnPlayerClosed(int sessionId, int64_t playerUID, bool isDummy
 		DropInvitesOf(sessionId);
 		if (entry.partyId != 0)
 			RemoveFromParty(sessionId, entry, true);
+		// 던전 인스턴스(DG3c): 자리를 돌려준다(안에 있었든 들어가는 중이었든). 비면 닫힌다.
+		if (entry.instanceId != 0)
+			LeaveInstance(sessionId, entry.instanceId);
 
 		if (entry.channel >= 1 && entry.channel <= static_cast<int>(_channels.size()))
 			--_channels[entry.channel - 1].population;
@@ -217,23 +236,242 @@ void WorldService::OnPlayerClosed(int sessionId, int64_t playerUID, bool isDummy
 		GLobby->PushJob(&AuthLobby::OnPlayerClosed, playerUID, sessionId);
 }
 
-void WorldService::RequestMove(shared_ptr<Player> player, shared_ptr<Room> source, int channel, string destArea)
+void WorldService::RequestMove(shared_ptr<Player> player, shared_ptr<Room> source, int channel, MoveRequest request)
 {
 	if (player == nullptr || source == nullptr) return;
+	const int sessionId = player->GetId();
 
-	shared_ptr<Room> dest;
-	if (channel >= 1 && channel <= static_cast<int>(_channels.size()))
+	// 그 채널의 구역 Room. 구역으로 나뉘지 않은 레벨은 Room 하나가 전부를 맡는다.
+	auto channelRoom = [&](const string& area) -> shared_ptr<Room>
 	{
+		if (channel < 1 || channel > static_cast<int>(_channels.size())) return nullptr;
 		const Channel& ch = _channels[channel - 1];
-		if (destArea == AREA_TOWN) dest = ch.town;
-		else if (destArea == AREA_FIELD) dest = ch.field;
+		if (!_levelSplit || area == AREA_TOWN) return ch.town;
+		if (area == AREA_FIELD) return ch.field;
+		return nullptr;
+	};
+
+	MoveGrant grant;
+	grant.result = Protocol::MOVE_RESULT_NOT_AVAILABLE;   // dest가 없을 때의 기본 사유
+	switch (request.kind)
+	{
+	case MoveRequest::Kind::ChannelArea:
+		grant.dest = channelRoom(request.area);
+		break;
+
+	case MoveRequest::Kind::LevelPortal:
+	{
+		const WorldData* world = DataManager::GetWorldData(request.levelName);
+		if (world == nullptr) break;
+		if (world->isDungeon)
+			ResolveDungeonEnter(sessionId, source, request.levelName, grant);
+		else if (request.levelName == GServerConfig.mapName)
+		{
+			// 던전 출구 등: 시작 레벨의 그 포털 마커가 있는 구역 Room(자기 채널). 자리는 도착 Room이 마커 앞으로 정한다.
+			const auto areaIt = _worldPortalAreas.find(request.pointId);
+			grant.dest = channelRoom(areaIt != _worldPortalAreas.end() && !areaIt->second.empty() ? areaIt->second : string(AREA_TOWN));
+		}
+		break;
 	}
 
-	// 결과(없으면 nullptr)를 출발 Room에 알린다. 떠나기·취소 판단은 그 Room이 한다.
+	case MoveRequest::Kind::Instance:
+	{
+		// 파티장을 따라가는 파티원: 그 인스턴스가 아직 있고 클리어 전이며 여전히 그 파티의 구성원일 때만. 아니면 알리지 않고 남는다.
+		grant.result = Protocol::MOVE_RESULT_NONE;
+		const auto meIt = _roster.find(sessionId);
+		const auto instIt = _instances.find(request.instanceId);
+		if (meIt == _roster.end() || instIt == _instances.end()) break;
+		RosterEntry& me = meIt->second;
+		Instance& instance = instIt->second;
+		if (instance.cleared || me.instanceId != 0 || instance.ownerPartyId == 0 || me.partyId != instance.ownerPartyId) break;
+		JoinInstance(instance, sessionId, me);
+		grant.dest = instance.room;
+		grant.instanceId = instance.id;
+		break;
+	}
+	}
+
+	// 결과(갈 수 없으면 dest 없이 사유)를 출발 Room에 알린다. 떠나기·취소 판단은 그 Room이 한다.
 	if (GServerConfig.moveHandoffDelayMs > 0)
-		source->ReserveJob(static_cast<DWORD>(GServerConfig.moveHandoffDelayMs), &Room::OnMoveResolved, player, dest);
+		source->ReserveJobAlways(static_cast<DWORD>(GServerConfig.moveHandoffDelayMs), &Room::OnMoveResolved, player, grant);
 	else
-		source->PushJob(&Room::OnMoveResolved, player, dest);
+		source->PushJob(&Room::OnMoveResolved, player, grant);
+}
+
+void WorldService::ResolveDungeonEnter(int sessionId, const shared_ptr<Room>& source, const string& levelName, MoveGrant& grant)
+{
+	const auto meIt = _roster.find(sessionId);
+	if (meIt == _roster.end()) { grant.result = Protocol::MOVE_RESULT_NONE; return; }   // 그 사이 접속이 끝났다
+	RosterEntry& me = meIt->second;
+	if (me.instanceId != 0) return;   // 이미 어느 인스턴스에 자리가 있다(올 수 없는 경로) — NOT_AVAILABLE
+
+	Party* party = nullptr;
+	if (me.partyId != 0)
+	{
+		if (const auto partyIt = _parties.find(me.partyId); partyIt != _parties.end())
+			party = &partyIt->second;
+	}
+
+	Instance* instance = nullptr;
+	if (party != nullptr)
+	{
+		// 파티의 인스턴스가 있으면 누구든 합류하고, 없으면 파티장만 만든다(D-218).
+		if (party->instanceId != 0)
+		{
+			const auto instIt = _instances.find(party->instanceId);
+			if (instIt != _instances.end()) instance = &instIt->second;
+			else party->instanceId = 0;
+		}
+		if (instance != nullptr)
+		{
+			if (instance->cleared) { grant.result = Protocol::MOVE_RESULT_DUNGEON_CLEARED; return; }
+		}
+		else
+		{
+			if (party->leader != sessionId) { grant.result = Protocol::MOVE_RESULT_NOT_LEADER; return; }
+			instance = CreateInstance(me.channel, levelName, grant.result);
+			if (instance == nullptr) return;
+			instance->ownerPartyId = party->id;
+			party->instanceId = instance->id;
+		}
+
+		// 파티장이 들어가면 같은 Room의 파티원이 함께 간다(다른 Room의 파티원은 입구에서 합류). 각자의 자리는 그 사람의 요청 때 잡는다.
+		if (party->leader == sessionId)
+		{
+			for (const int memberId : party->members)
+			{
+				if (memberId == sessionId) continue;
+				const auto memberIt = _roster.find(memberId);
+				if (memberIt == _roster.end() || memberIt->second.instanceId != 0) continue;
+				if (memberIt->second.room.lock() != source) continue;
+				grant.followers.push_back(memberId);
+			}
+		}
+	}
+	else
+	{
+		// 혼자: 1인 인스턴스(주인 = 본인). 나가면 바로 닫히므로 "내 인스턴스가 이미 있음"은 없다(D-225).
+		instance = CreateInstance(me.channel, levelName, grant.result);
+		if (instance == nullptr) return;
+		instance->ownerSessionId = sessionId;
+	}
+
+	JoinInstance(*instance, sessionId, me);
+	grant.dest = instance->room;
+	grant.instanceId = instance->id;
+}
+
+WorldService::Instance* WorldService::CreateInstance(int channel, const string& levelName, Protocol::MoveResult& outResult)
+{
+	if (static_cast<int>(_instances.size()) >= GServerConfig.maxDungeonInstances)
+	{
+		outResult = Protocol::MOVE_RESULT_DUNGEON_FULL;
+		return nullptr;
+	}
+
+	const long long startUs = Metrics::NowUs();
+	RoomInfo info;
+	info.roomId = ++_nextRoomId;
+	info.kind = RoomKind::Dungeon;
+	info.channel = channel;
+	info.area = AREA_DUNGEON;
+	info.levelName = levelName;
+	shared_ptr<Room> room = make_shared<Room>(GTimer, _iocpHandle, info);
+	if (false == room->InitRoom(false))
+	{
+		LOG_ERROR("World", "던전 인스턴스(레벨 {})를 만들지 못했습니다", levelName);
+		outResult = Protocol::MOVE_RESULT_NOT_AVAILABLE;
+		return nullptr;
+	}
+	GRoomManager->Add(room);
+
+	Instance instance;
+	instance.id = info.roomId;
+	instance.room = room;
+	instance.channel = channel;
+	Instance* created = &_instances.emplace(instance.id, std::move(instance)).first->second;
+	Metrics::DungeonCreated.fetch_add(1);
+	Metrics::DungeonInstances.store(static_cast<int>(_instances.size()));
+	LOG_INFO("World", "던전 인스턴스 {} 생성 (레벨 {}, 채널 {}, {:.1f}ms, 지금 {}개)", created->id, levelName, channel, (Metrics::NowUs() - startUs) / 1000.0, _instances.size());
+	return created;
+}
+
+void WorldService::JoinInstance(Instance& instance, int sessionId, RosterEntry& entry)
+{
+	instance.members.insert(sessionId);
+	entry.instanceId = instance.id;
+}
+
+void WorldService::LeaveInstance(int sessionId, int instanceId)
+{
+	if (instanceId == 0) return;
+	if (const auto rosterIt = _roster.find(sessionId); rosterIt != _roster.end() && rosterIt->second.instanceId == instanceId)
+		rosterIt->second.instanceId = 0;
+
+	const auto it = _instances.find(instanceId);
+	if (it == _instances.end()) return;
+	Instance& instance = it->second;
+	instance.members.erase(sessionId);
+	if (instance.ownerSessionId == sessionId) instance.ownerSessionId = 0;
+
+	// 안에 있는 사람도 들어오는 사람도 없으면 바로 닫는다(D-225).
+	if (instance.members.empty())
+		CloseInstance(instanceId);
+}
+
+void WorldService::CloseInstance(int instanceId)
+{
+	const auto it = _instances.find(instanceId);
+	if (it == _instances.end()) return;
+	Instance& instance = it->second;
+
+	if (instance.ownerPartyId != 0)
+	{
+		if (const auto partyIt = _parties.find(instance.ownerPartyId); partyIt != _parties.end() && partyIt->second.instanceId == instanceId)
+			partyIt->second.instanceId = 0;
+	}
+	// 목록에서 먼저 뺀다 — 이 뒤의 입장 요청은 새 인스턴스를 만든다. Room은 자기 잡에서 정리하고 사라진다(Room::Close).
+	const shared_ptr<Room> room = instance.room;
+	_instances.erase(it);
+	room->PushJob(&Room::Close);
+	Metrics::DungeonClosed.fetch_add(1);
+	Metrics::DungeonInstances.store(static_cast<int>(_instances.size()));
+	LOG_INFO("World", "던전 인스턴스 {} 닫음 (지금 {}개)", instanceId, _instances.size());
+}
+
+void WorldService::EjectFromInstance(const RosterEntry& entry, const Instance& instance)
+{
+	const shared_ptr<GameSession> session = entry.session.lock();
+	if (session == nullptr) return;
+	const shared_ptr<Player> player = session->GetPlayer();
+	if (player == nullptr) return;
+	instance.room->PushJob(&Room::EjectPlayer, player);
+}
+
+void WorldService::OnMoveAborted(int sessionId, int instanceId)
+{
+	LeaveInstance(sessionId, instanceId);
+}
+
+void WorldService::OnDungeonCleared(int instanceId)
+{
+	const auto it = _instances.find(instanceId);
+	if (it == _instances.end() || it->second.cleared) return;
+	Instance& instance = it->second;
+	instance.cleared = true;
+
+	const WorldData* world = instance.room->GetWorldData();
+	const int exitSec = world != nullptr ? world->dungeonClearExitSec : 60;
+	LOG_INFO("World", "던전 인스턴스 {} 클리어 — {}초 뒤 남은 사람을 마을로 내보냅니다", instanceId, exitSec);
+	ReserveJob(static_cast<DWORD>(exitSec) * 1000, &WorldService::OnInstanceClearTimeout, instanceId);
+}
+
+void WorldService::OnInstanceClearTimeout(int instanceId)
+{
+	const auto it = _instances.find(instanceId);
+	if (it == _instances.end()) return;   // 그 사이 모두 나가 닫혔다(인스턴스 id는 다시 쓰이지 않는다)
+	it->second.ejecting = true;
+	it->second.room->PushJob(&Room::EjectAll);
 }
 
 void WorldService::OnPlayerMoved(int sessionId, shared_ptr<Room> room)
@@ -241,6 +479,32 @@ void WorldService::OnPlayerMoved(int sessionId, shared_ptr<Room> room)
 	const auto it = _roster.find(sessionId);
 	if (it == _roster.end()) return;   // 그 사이 접속이 끝나 정리됐다
 	it->second.room = room;
+
+	// 던전에서 나왔다: 인스턴스에서 뺀다(비면 닫힌다).
+	const int roomId = room->GetRoomId();
+	if (it->second.instanceId != 0 && it->second.instanceId != roomId)
+		LeaveInstance(sessionId, it->second.instanceId);
+
+	// 던전에 들어왔다: 이동·로딩하는 사이 자격을 잃었으면(파티 탈퇴, 클리어 뒤 내보내는 중) 마을로 내보낸다.
+	if (room->GetInfo().kind == RoomKind::Dungeon)
+	{
+		const RosterEntry& entry = it->second;
+		const auto instIt = _instances.find(roomId);
+		bool allowed = instIt != _instances.end() && entry.instanceId == roomId && !instIt->second.ejecting;
+		if (allowed)
+		{
+			const Instance& instance = instIt->second;
+			allowed = instance.ownerPartyId != 0 ? (entry.partyId == instance.ownerPartyId)
+				: (instance.ownerSessionId == 0 || instance.ownerSessionId == sessionId);
+		}
+		if (!allowed)
+		{
+			LOG_DEBUG("World", "세션 {} 은 던전 Room {} 에 있을 자격이 없어 마을로 내보냅니다", sessionId, roomId);
+			if (const shared_ptr<GameSession> session = entry.session.lock())
+				if (const shared_ptr<Player> player = session->GetPlayer())
+					room->PushJob(&Room::EjectPlayer, player);
+		}
+	}
 
 	// 파티원이면 "있는 곳"이 바뀌었으므로 전원에게 다시 알린다(DG2).
 	if (it->second.partyId != 0)
@@ -266,6 +530,7 @@ void WorldService::PublishMetrics()
 	Metrics::Parties.store(static_cast<int>(_parties.size()));
 	Metrics::PartyMembers.store(partyMembers);
 	Metrics::PartyInvitesPending.store(static_cast<int>(_invites.size()));
+	Metrics::DungeonInstances.store(static_cast<int>(_instances.size()));
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -380,6 +645,16 @@ void WorldService::RemoveFromParty(int sessionId, RosterEntry& entry, bool close
 	party.members.erase(remove(party.members.begin(), party.members.end(), sessionId), party.members.end());
 	LOG_DEBUG("Party", "파티 {} 에서 session {} 나감({}), 남은 {}명", partyId, sessionId, closed ? "접속 해제" : "탈퇴", party.members.size());
 
+	// 던전(DG3c, D-218): 파티의 인스턴스 안에서(또는 들어가는 중에) 탈퇴한 사람은 마을로 내보낸다. 접속이 끝난 사람은 OnPlayerClosed가 자리를 돌려준다.
+	Instance* instance = nullptr;
+	if (party.instanceId != 0)
+	{
+		if (const auto instIt = _instances.find(party.instanceId); instIt != _instances.end())
+			instance = &instIt->second;
+	}
+	if (instance != nullptr && !closed && entry.instanceId == instance->id)
+		EjectFromInstance(entry, *instance);
+
 	// 한 명만 남으면 파티가 없어진다.
 	if (party.members.size() <= 1)
 	{
@@ -390,6 +665,13 @@ void WorldService::RemoveFromParty(int sessionId, RosterEntry& entry, bool close
 				SetPartyId(lastId, it->second, 0);
 				SendTo(it->second, PacketSerializer::MAKE_SC_PARTY_STATE(Protocol::SC_PARTY_STATE_PACKET()));
 			}
+		}
+		// 파티가 없어지면 인스턴스의 주인은 남은 한 사람(그 안에 자리가 있을 때)으로 바뀐다. 밖에 있으면 주인 없음 — 안의 사람이 나가면 닫힌다.
+		if (instance != nullptr)
+		{
+			const int lastId = party.members.empty() ? 0 : party.members.front();
+			instance->ownerPartyId = 0;
+			instance->ownerSessionId = (lastId != 0 && instance->members.count(lastId) > 0) ? lastId : 0;
 		}
 		_parties.erase(partyIt);
 		Metrics::PartyDisbanded.fetch_add(1);
@@ -450,6 +732,8 @@ void WorldService::PartyInvite(shared_ptr<Player> player, int targetId, wstring 
 	RosterEntry& target = targetIt->second;
 
 	if (target.channel != me.channel) { reject(Protocol::PARTY_RESULT_OTHER_CHANNEL); return; }
+	// 던전 인스턴스 안에 있는(들어가는 중 포함) 사람은 초대할 수도 초대받을 수도 없다(D-218).
+	if (me.instanceId != 0 || target.instanceId != 0) { reject(Protocol::PARTY_RESULT_IN_DUNGEON); return; }
 
 	const EconomyData& economy = DataManager::GetEconomy();
 	if (me.partyId != 0)
@@ -514,6 +798,7 @@ void WorldService::PartyRespond(shared_ptr<Player> player, bool accept)
 		PublishMetrics();
 	};
 	if (me.partyId != 0) { fail(Protocol::PARTY_RESULT_TARGET_IN_PARTY); return; }
+	if (me.instanceId != 0 || from.instanceId != 0) { fail(Protocol::PARTY_RESULT_IN_DUNGEON); return; }
 
 	Party* party = nullptr;
 	if (from.partyId != 0)

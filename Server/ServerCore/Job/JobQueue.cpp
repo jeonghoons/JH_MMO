@@ -66,6 +66,15 @@ void JobQueue::SetSendBatch(int intervalMs, function<void(int)> wakeFn)
 	_sendIntervalMs = _sendWakeFn ? max(0, intervalMs) : 0;
 }
 
+void JobQueue::CloseSendBatch()
+{
+	_sendIntervalMs = 0;
+	_sendWakeFn = nullptr;
+	_sendWakeAtMs = 0;
+	_nextSendDueMs = 0;	// 간격이 0이면 모든 세션의 보낼 시각이 0이다
+	FlushDueSends(NowMs());
+}
+
 void JobQueue::AddPendingSend(shared_ptr<Session> session)
 {
 	const long long due = (_sendIntervalMs > 0) ? session->LastFlushMs() + _sendIntervalMs : 0;

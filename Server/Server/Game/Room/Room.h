@@ -19,7 +19,34 @@ class SendBuffer;
 class GameObject;
 class Character;
 class Player;
-enum class Player_MoveReason { None, Portal, Revive };   // Player::RoomMoveState.reason (Player.h가 이 헤더를 include하므로 여기 둔다)
+// Player::RoomMoveState.reason (Player.h가 이 헤더를 include하므로 여기 둔다).
+// Follow = 파티장의 던전 입장에 함께 감, Eject = 서버가 마을로 내보냄(던전 안 파티 탈퇴·클리어 뒤 시간 종료) — 둘은 죽은 채로도 간다(DG3c).
+enum class Player_MoveReason { None, Portal, Revive, Follow, Eject };
+
+// Room 이동의 목적지 요청(출발 Room → WorldService::RequestMove, DG3c).
+struct MoveRequest
+{
+	enum class Kind
+	{
+		ChannelArea,   // 내 채널의 구역 Room(area = town / field): 문 포털·부활·내보냄
+		LevelPortal,   // 다른 레벨로 가는 포털(levelName·pointId): 던전 입구·던전 출구
+		Instance       // 이미 정해진 던전 인스턴스(instanceId): 파티장을 따라 들어감
+	};
+	Kind kind = Kind::ChannelArea;
+	string area;
+	string levelName;
+	int pointId = 0;       // 도착 레벨의 포털 마커(그 앞에 선다). 0 = 도착 Room의 시작 지점
+	int instanceId = 0;
+};
+
+// 서비스의 답(WorldService::RequestMove → 출발 Room의 OnMoveResolved).
+struct MoveGrant
+{
+	shared_ptr<class Room> dest;                                   // nullptr = 갈 수 없음
+	Protocol::MoveResult result = Protocol::MOVE_RESULT_NONE;      // 거부 사유(NONE이면 알리지 않고 취소)
+	int instanceId = 0;                                            // 0이 아니면 그 인스턴스에 자리를 잡아 두었다 — 가지 못하면 OnMoveAborted로 돌려준다
+	vector<int> followers;                                         // 파티장의 던전 입장: 함께 갈 같은 Room 파티원(세션 id)
+};
 class Monster;
 class DropItem;
 class TownNpc;
@@ -61,6 +88,8 @@ enum class RoomKind { Town, Field, Dungeon };
 // 구역 이름(맵 마커의 area, DG3b — DESIGN_PARTY_DUNGEON §2-3). 같은 레벨을 마을 Room과 사냥터 Room이 나눠 쓴다.
 inline const char* const AREA_TOWN = "town";
 inline const char* const AREA_FIELD = "field";
+inline const char* const AREA_DUNGEON = "dungeon";   // 던전 인스턴스 Room의 구역 이름(DG3c). 던전 레벨의 마커는 이 이름이거나 비어 있다
+inline const char* const ZONE_BOSS = "boss";         // 던전 레벨에서 우두머리 스폰의 구역 이름(SpawnTable.Zone) — 전부 잡으면 클리어
 
 // 포털의 도착지 종류(Room::ResolvePortalTarget)
 enum class PortalRoute
@@ -68,7 +97,7 @@ enum class PortalRoute
 	None,        // 도착지가 없다(짝 마커 없음)
 	SameRoom,    // 이 Room 안의 다른 자리(순간이동)
 	OtherRoom,   // 같은 레벨의 다른 구역 = 같은 채널의 다른 Room(Room 이동)
-	OtherLevel   // 다른 레벨(던전 입구·정거장 — 아직 받지 않음, DG3c)
+	OtherLevel   // 다른 레벨(던전 입구·던전 출구 — WorldTable에 있는 레벨만 받는다. 정거장은 거부, DG3c)
 };
 
 // Room의 정체. 만들 때 정하고 바뀌지 않는다(어느 스레드에서 읽어도 된다).
@@ -106,12 +135,36 @@ public:
 		_jobQueue->Push(shared_from_this(), memFunc, std::forward<Arguments>(args)...);
 	}
 
+	// 예약 작업은 Room을 약한 참조로 잡는다(DG3c, 감사 F8) — 예약만으로는 Room이 살아남지 않는다.
+	// 닫힌 방(Close)은 새 예약을 받지 않고, 닫히기 전에 예약된 작업도 실행 때 닫힘을 보고 아무것도 하지 않는다.
+	// 그래서 스킬 판정·지연 피해·몬스터 스폰/제거·드랍 소멸·Update 재예약이 모두 여기서 멈춘다.
 	template<typename... Arguments>
 	void ReserveJob(DWORD ectime, void(Room::* memFunc)(Arguments...), Arguments... args)
+	{
+		if (_closed.load()) return;
+		shared_ptr<Job> job = make_shared<Job>([weakRoom = weak_from_this(), memFunc, args...]() mutable {
+			shared_ptr<Room> room = weakRoom.lock();
+			if (room == nullptr || room->_closed.load()) return;
+			(room.get()->*memFunc)(args...);
+		});
+		_timer->Reserve(ectime, _jobQueue, std::move(job));
+	}
+	// 닫힘과 상관없이 반드시 실행되는 예약(Room을 강하게 잡는다). Room 이동의 인계 지연([Debug] MoveHandoffDelayMs) 전용 —
+	// 이 작업이 버려지면 플레이어가 어느 방에도 없는 채 남는다.
+	template<typename... Arguments>
+	void ReserveJobAlways(DWORD ectime, void(Room::* memFunc)(Arguments...), Arguments... args)
 	{
 		_timer->Reserve(ectime, _jobQueue, shared_from_this(), memFunc, std::forward<Arguments>(args)...);
 	}
 	void Update(long long elapsedTime);
+
+	// 방을 닫는다(DG3c — WorldService가 목록에서 뺀 뒤 넣는 Room 잡). 플레이어가 없을 때만 부른다.
+	// 닫힘 표시 → 몬스터·드랍·장판·NPC 정리(지표 감소) → 잡 큐의 보낼 세션 목록 내보내기 → RoomManager에서 제거.
+	// 닫힌 뒤에도 PushJob으로 오는 작업(늦게 도착한 퇴장·DB 결과)은 평소대로 돈다.
+	void Close();
+	bool IsClosed() const { return _closed.load(); }
+	// 살아 있는 Room 객체 수([metrics] roomsAlive — 닫은 Room이 실제로 풀렸는지 본다)
+	static int AliveCount() { return s_alive.load(); }
 	// 송신 묶기의 깨우기용 작업(P1b). 하는 일은 지표 기록뿐이고, 이 작업이 끝난 뒤 잡 큐가 때가 된 세션을 보낸다.
 	// dueUs = 깨우기로 예약한 시각(Metrics::NowUs 기준) — 실제 실행이 얼마나 늦었는지 잰다.
 	void OnSendWake(long long dueUs);
@@ -212,11 +265,21 @@ public:
 
 	// ---- Room 간 이동(DG3b, D-216 — DESIGN_PARTY_DUNGEON §4-2). 순서: BeginMove(②) → TryAdvanceMove(③) → WorldService::RequestMove(④)
 	//      → OnMoveResolved(⑤ 떠나기, 출발 Room) → PlayerArriveRoom(⑥⑦ 들어오기, 도착 Room) → WorldService::OnPlayerMoved(⑧) ----
-	// ⑤ 서비스가 도착 Room을 알려 줬다(없으면 nullptr). 그 사이 끊김·사망·끝나지 않은 일이 생겼으면 취소하고, 아니면 이 방에서 빼고 도착 Room에 넘긴다.
-	void OnMoveResolved(shared_ptr<Player> player, shared_ptr<Room> dest);
-	// ⑥⑦ 다른 Room에서 넘어온 플레이어를 들인다: 위치·보정 순번 → SC_ROOM_CHANGE → 본인 SC_ADD_OBJECT → SC_PORTAL_LIST → (부활이면 SC_REVIVE) → 시야.
+	// ⑤ 서비스가 도착 Room을 알려 줬다(없으면 grant.dest가 nullptr). 그 사이 끊김·사망·끝나지 않은 일이 생겼으면 취소하고(잡아 둔 인스턴스 자리는 돌려준다),
+	// 아니면 이 방에서 빼고 도착 Room에 넘긴다. 파티장의 던전 입장이면 떠난 뒤 같은 방 파티원의 이동을 시작한다(grant.followers).
+	void OnMoveResolved(shared_ptr<Player> player, MoveGrant grant);
+	// ⑥ 다른 Room에서 넘어온 플레이어를 받는다: 위치·보정 순번 → SC_ROOM_CHANGE. 레벨이 같으면 바로 FinishArrive(⑦),
+	// 다르면 클라이언트가 레벨을 열고 CS_ENTER_ROOM을 보낼 때까지 로딩 대기 목록에 둔다(시야·전투 밖 — DG3c).
 	// 인벤토리·로그인 보정은 다시 보내지 않고 쿨타임·포털 재사용 대기는 이어진다.
 	void PlayerArriveRoom(shared_ptr<Player> player);
+	// 로딩 대기 중인 플레이어가 레벨을 다 열었다(CS_ENTER_ROOM). 대기 목록에 없으면(처음 입장의 중복 요청·같은 레벨 이동) 버린다.
+	void PlayerLoadDone(shared_ptr<Player> player);
+	// 서버가 이 방의 플레이어를 자기 채널의 마을로 내보낸다(던전 안 파티 탈퇴·자격 없음 — WorldService가 넣는다). 방에 없으면 아무것도 하지 않는다.
+	void EjectPlayer(shared_ptr<Player> player);
+	// 방 안의 전원을 마을로 내보낸다(클리어 뒤 시간 종료).
+	void EjectAll();
+	// 우두머리가 죽었다(Monster::OnDead가 같은 Room 잡 안에서 부른다). 남은 우두머리가 없으면 클리어: 전원에게 SC_DUNGEON_STATE, 서비스에 알림.
+	void OnBossDead();
 
 	// 슬롯(0 = 기본 공격)의 스킬을 시전한다. 사거리/대상/방향은 서버가 검증·보정하며, 실패하면 아무 일도 일어나지 않는다.
 	// seq: 플레이어가 보낸 CS_ATTACK.seq(몬스터는 0). SC_ATTACK·SC_ATTACK_RESULT에 그대로 싣는다 (CP1, D-211)
@@ -295,7 +358,14 @@ private:
 
 	// ---- Room 간 이동 내부(DG3b) ----
 	// ② 이동 요청을 받았다: 확정 전 거래를 취소하고(MOVED) 끝나지 않은 일이 끝나기를 기다린다. destPos가 nullptr이면 도착 Room이 시작 지점을 고른다.
-	void BeginMove(const shared_ptr<Player>& player, Player_MoveReason reason, const string& destArea, const Protocol::PositionInfo* destPos);
+	void BeginMove(const shared_ptr<Player>& player, Player_MoveReason reason, const MoveRequest& request, const Protocol::PositionInfo* destPos);
+	// ⑦ 들어오기를 마친다: _objects·_players 등록 → 본인 SC_ADD_OBJECT → SC_PORTAL_LIST → (부활이면 SC_REVIVE) → (던전이면 SC_DUNGEON_STATE) → 시야 → 서비스에 알림(⑧).
+	void FinishArrive(const shared_ptr<Player>& player, Player_MoveReason reason);
+	// 1초마다: 로딩 대기 시한([World] LoadTimeoutSec)을 넘긴 접속을 끊는다.
+	void UpdateLoading(long long nowMs);
+	// 포털 마커 바로 밖(반경 + 0.5~2.5m)의 걷는 자리. 던전 출구로 나온 사람이 입구 포털 앞에 서게 한다. 못 찾으면 마커 자리.
+	Protocol::PositionInfo PickPositionNearPortal(const struct PortalTriggerPoint& portal);
+	shared_ptr<SendBuffer> MakeDungeonStatePacket() const;
 	// 대기 중인 플레이어의 끝나지 않은 일이 모두 끝났으면 이동 표시를 켜고 서비스에 도착 Room을 묻는다(③). DB 결과 처리 끝마다 부른다.
 	void TryAdvanceMove(const shared_ptr<Player>& player);
 	// 이동을 취소한다(대기·이동 표시 해제). notify가 NONE이 아니면 본인에게 SC_MOVE_RESULT.
@@ -337,6 +407,8 @@ private:
 	int NextDropId();
 
 	RoomInfo _info;
+	atomic<bool> _closed = false;   // Close()가 켠다. Room 잡이 쓰고 예약하는 쪽(다른 스레드 포함)은 읽기만
+	inline static atomic<int> s_alive = 0;
 	const WorldData* _world = nullptr;
 	atomic<int> _playerCount = 0;   // = _players.size(). 입장·퇴장 때 맞춘다
 	int _tickCount = 0;  // Update 횟수. 1초(10틱)마다 시야 인원 지표·시야 감사를 하는 데 쓴다
@@ -361,6 +433,21 @@ private:
 	unordered_map<int, TradeSession> _trades;
 	int _nextTradeId = 0;
 
+	// 로딩 대기(DG3c): 다른 레벨에서 넘어와 클라이언트가 레벨을 여는 중인 플레이어. _players·_objects·시야에는 아직 없다.
+	// 소유 Room은 이미 이 Room이라 끊기면 퇴장 잡이 여기로 온다(PlayerLeaveRoom이 이 목록에서 뺀다).
+	struct LoadingEntry
+	{
+		shared_ptr<Player> player;
+		Player_MoveReason reason = Player_MoveReason::None;
+		long long deadlineMs = 0;
+	};
+	unordered_map<int, LoadingEntry> _loading;
+
+	// 던전(DG3c): 살아 있는 우두머리 수, 클리어 여부와 시각
+	int _bossAlive = 0;
+	bool _cleared = false;
+	long long _clearedAtMs = 0;
+
 	// 이 Room 구역의 PlayerStart(GameMap::GetPlayerStarts의 색인)와 다음에 고를 차례(DG3b)
 	vector<int> _startIndices;
 	size_t _nextStart = 0;
@@ -373,11 +460,12 @@ private:
 };
 
 // roomId → Room 보관소. 배정·생성 판단은 WorldService가 한다(DG3a). 지표 리포터 스레드가 순회한다.
-// Room을 빼는 함수는 아직 없다 — 넣을 때는 그 Room 잡 큐의 보낼 세션 목록을 먼저 내보내는 닫기 절차가 필요하다(Server/CLAUDE.md "송신 묶기", DG3c).
+// Remove는 Room::Close만 부른다 — 그 Room 잡 큐의 보낼 세션 목록을 먼저 내보낸 뒤여야 한다(Server/CLAUDE.md "송신 묶기", DG3c).
 class RoomManager
 {
 public:
 	void Add(shared_ptr<Room> room);
+	void Remove(int roomId);
 
 	// 모든 Room에 대해 fn(room)을 부른다(읽기 락 안). fn 안에서 Room의 잡 큐 상태를 건드리지 않는다.
 	template<typename Fn>

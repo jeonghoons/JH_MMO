@@ -1,0 +1,4 @@
+PASS cut_a  (DB 아이템 89741, 골드 602758)
+PASS cut_b  (DB 아이템 89741, 골드 602758)
+PASS party_cut  (DB 아이템 89741, 골드 602758)
+PASS solo  (DB 아이템 89741, 골드 602758)

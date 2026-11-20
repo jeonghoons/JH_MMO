@@ -1,0 +1,3 @@
+PASS party  (DB 아이템 89741, 골드 602758)
+PASS leave  (DB 아이템 89741, 골드 602758)
+PASS churn  (DB 아이템 89741, 골드 602758)

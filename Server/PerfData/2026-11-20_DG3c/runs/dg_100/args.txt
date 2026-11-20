@@ -1,0 +1,4 @@
+1795189119 --bots 200 --ramp-rate 20 --duration 90 --threads 4 --move-interval 200 --body male --profile hunt --party-size 2 --dungeon --map ../MapResource/Export/Continent01/Logic/Continent01_Logic.json --dungeon-map ../MapResource/Export/Continent01_Dungeon/Logic/Continent01_Dungeon_Logic.json --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG3c\runs\dg_100\loadtest.csv --zone 19020,-18800,300
+exe after data repo dummyRoom field
+loadtest exit 0
+run_id 20261121_003836

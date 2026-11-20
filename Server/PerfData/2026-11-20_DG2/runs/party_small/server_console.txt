@@ -1,126 +1,130 @@
-2026-11-20 18:16:46.262 INFO  [T8712] [Logger] 로그 파일: ../PerfData/2026-11-20_DG2/runs/party_small/logs\GameServer_20261120_181646.log
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Network.BindIp            = 127.0.0.1  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Network.Port              = 8888  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Network.WorkerThreads     = 0 -> 6  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Network.SendFlushIntervalMs = 10  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Network.TimerResolutionMs = 1  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Network.AttackEarlyToleranceMs = 100  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Network.LoginWaitTimeoutSec = 10  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Network.LoginCloseForceSec = 30  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Network.IdleTimeoutSec    = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Network.SendQueueLimit    = 4000  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Database.ConnectionString = Driver={ODBC Driver 17 for SQL Server};Server=.\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Database.Connections      = 4  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Database.PlayerSaveIntervalSec = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Log.Level                 = Debug  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Log.Dir                   = ../PerfData/2026-11-20_DG2/runs/party_small/logs  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] World.MapName             = Continent01  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Debug.DummySpawnZone      = (끔: 맵 전체 무작위)  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Debug.ViewAudit           = false  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] World.MoveWaitTimeoutMs   = 5000  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Debug.DummyRoom           = town  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Debug.MoveHandoffDelayMs  = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Debug.DbSaveDelayMs       = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Debug.DevCommands         = true  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Config] Debug.DbItemFailEvery     = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
-2026-11-20 18:16:46.262 INFO  [T8712] [Data] DataTable 경로: C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\data
-2026-11-20 18:16:46.270 INFO  [T8712] [Data] 상점·NPC 로드 완료 (ShopTable 9행·상점 1곳, NpcTable 1행, 상점 이용 거리 400cm)
-2026-11-20 18:16:46.270 INFO  [T8712] [Data] 로드 완료 (PlayerStatTable 1행, SkillTable 8행, MonsterTable 3행, ItemTable 17행, MovementTable 1행, WorldTable 2행, DropTable 34행, SpawnTable 5행, EconomyTable: 인벤토리 30칸·골드 상한 2000000000·드랍 소유 30초/소멸 60초)
-2026-11-20 18:16:46.273 INFO  [T8712] [Server] 127.0.0.1:8888 에서 접속 대기 시작
-2026-11-20 18:16:46.313 INFO  [T8712] [DB] DB 서버 Connected
-2026-11-20 18:16:46.313 INFO  [T8712] [DB] DB 스키마 버전 7
-2026-11-20 18:16:46.314 INFO  [T8712] [Navmesh] 로드 성공.
-2026-11-20 18:16:46.315 INFO  [T8712] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 1, PortalTrigger 8, SafeZone 1)
-2026-11-20 18:16:46.315 INFO  [T8712] [World] 레벨 Continent01: 마을·사냥터 구역으로 나눔(채널마다 Room 2개)
-2026-11-20 18:16:46.315 INFO  [T8712] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 1, PortalTrigger 8, SafeZone 1)
-2026-11-20 18:16:46.316 INFO  [T8712] [Room] Room 1(채널 1, Continent01 구역 'town'): 몬스터 스폰 없음
-2026-11-20 18:16:46.316 INFO  [T8712] [Room] 마을 NPC 배치: id 900000000 종류 1001 상점 1 위치 (-14150, -2200, 2)
-2026-11-20 18:16:46.316 INFO  [T8712] [Room] 마을 NPC: 마커 1곳, 배치 1명
-2026-11-20 18:16:46.316 INFO  [T8712] [Room] Room 1 포털: 마커 8개 중 쓸 수 있는 것 3개, 시작 지점 4곳
-2026-11-20 18:16:46.316 INFO  [T8712] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 1, PortalTrigger 8, SafeZone 1)
-2026-11-20 18:16:46.318 INFO  [T8712] [Room] Room 2(채널 1, Continent01 구역 'field') 몬스터 스폰: 지점 49곳, 몬스터 201마리 (forest_boss 1, forest_n 60, meadow_e 55, meadow_n 30, meadow_w 55)
-2026-11-20 18:16:46.318 INFO  [T8712] [Room] Room 2 포털: 마커 8개 중 쓸 수 있는 것 3개, 시작 지점 0곳
-2026-11-20 18:16:46.318 INFO  [T8712] [World] 채널 1 생성 (레벨 Continent01, 마을 Room 1, 사냥터 Room 2, 2.9ms)
-2026-11-20 18:16:46.760 DEBUG [T1264] [Session] DisConnect[1] :Recv 0
-2026-11-20 18:16:46.760 DEBUG [T4952] [Session] ~Session[1]
-2026-11-20 18:16:49.937 DEBUG [T4952] [Lobby] [Test1] - 로그인 성공 및 객체 생성 완료
-2026-11-20 18:16:49.937 DEBUG [T1264] [World] 세션 2 등록: 채널 1 (인원 1)
-2026-11-20 18:16:49.937 DEBUG [T1264] [Room] Client[2] Enter Room
-2026-11-20 18:16:50.504 DEBUG [T1264] [Lobby] [Test2] - 로그인 성공 및 객체 생성 완료
-2026-11-20 18:16:50.504 DEBUG [T4952] [World] 세션 3 등록: 채널 1 (인원 2)
-2026-11-20 18:16:50.504 DEBUG [T4952] [Room] Client[3] Enter Room
-2026-11-20 18:16:51.067 DEBUG [T4952] [Lobby] [Test3] - 로그인 성공 및 객체 생성 완료
-2026-11-20 18:16:51.067 DEBUG [T1264] [World] 세션 4 등록: 채널 1 (인원 3)
-2026-11-20 18:16:51.068 DEBUG [T1264] [Room] Client[4] Enter Room
-2026-11-20 18:16:51.319 INFO  [T2756] [metrics] sessions=3 rooms=2 players=3 monsters=201 in/s=1 out/s=3 sendCalls/s=1 bufsPerSend=2.14 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.03/0.03 viewPlayers(avg/p99/max)=0.5/1/1 viewObjects(avg/p99/max)=0.5/1/1 sendQ(total/sessionMax)=0/4 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1/0/0/0 flushGap(p50/p90/p99 ms)=11/127/127 sendWake(per s, late avg/p50/p99/max ms)=1 0.8/0.1/2.0/2.0 jobs(exec/repost per s)=23/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.1ms flushRunMax=0.2ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=1/0 flushRuns/s=1 conn(sessionObjs/handles idleKick/sendqKick)=4/314 0/0 world(channels/roster/chMax)=1/3/3 kind(town/field players)=3/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.03 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0
-2026-11-20 18:16:51.636 DEBUG [T1264] [Lobby] [Test4] - 로그인 성공 및 객체 생성 완료
-2026-11-20 18:16:51.636 DEBUG [T4952] [World] 세션 5 등록: 채널 1 (인원 4)
-2026-11-20 18:16:51.637 DEBUG [T3664] [Room] Client[5] Enter Room
-2026-11-20 18:16:52.196 DEBUG [T1264] [Party] 초대 2 → 3
-2026-11-20 18:16:52.334 DEBUG [T1264] [Party] 파티 1: 2 의 초대를 3 가 수락, 2명
-2026-11-20 18:16:52.334 DEBUG [T3664] [Party] Player[2] partyId=1 (Room 1)
-2026-11-20 18:16:52.334 DEBUG [T3664] [Party] Player[3] partyId=1 (Room 1)
-2026-11-20 18:16:53.350 DEBUG [T1264] [Party] 초대 2 → 4
-2026-11-20 18:16:53.487 DEBUG [T1264] [Party] 파티 1: 2 의 초대를 4 가 수락, 3명
-2026-11-20 18:16:53.487 DEBUG [T3664] [Party] Player[4] partyId=1 (Room 1)
-2026-11-20 18:16:54.511 DEBUG [T1264] [Party] 결과 session=2 request=CS_PARTY_INVITE result=PARTY_RESULT_PARTY_FULL
-2026-11-20 18:16:54.661 DEBUG [T1264] [Party] 파티 1 에서 session 4 나감(탈퇴), 남은 2명
-2026-11-20 18:16:54.661 DEBUG [T3664] [Party] Player[4] partyId=0 (Room 1)
-2026-11-20 18:16:55.665 DEBUG [T1264] [Party] 초대 2 → 5
-2026-11-20 18:16:55.788 DEBUG [T4952] [Party] 파티 1: 2 의 초대를 5 가 수락, 3명
-2026-11-20 18:16:55.788 DEBUG [T3664] [Party] Player[5] partyId=1 (Room 1)
-2026-11-20 18:16:56.321 INFO  [T2756] [metrics] sessions=4 rooms=2 players=4 monsters=201 in/s=3 out/s=5 sendCalls/s=4 bufsPerSend=1.19 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.03/0.09 viewPlayers(avg/p99/max)=1.0/2/2 viewObjects(avg/p99/max)=1.0/2/2 sendQ(total/sessionMax)=0/5 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=4/0/0/0 flushGap(p50/p90/p99 ms)=127/127/127 sendWake(per s, late avg/p50/p99/max ms)=0 0.3/0.3/0.3/0.3 jobs(exec/repost per s)=25/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.9ms flushRunMax=0.3ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=1/0 flushRuns/s=3 conn(sessionObjs/handles idleKick/sendqKick)=5/317 0/0 world(channels/roster/chMax)=1/4/4 kind(town/field players)=4/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.09 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=1/3/0 3/3/0/0/1 1/0
-2026-11-20 18:16:56.363 DEBUG [T3664] [Session] DisConnect[2] :Recv 0
-2026-11-20 18:16:56.363 DEBUG [T4952] [Room] Player[2] Leave
-2026-11-20 18:16:56.363 DEBUG [T3664] [Session] ~Session[2]
-2026-11-20 18:16:56.363 DEBUG [T4952] [Object] ~Player[2]
-2026-11-20 18:16:56.363 DEBUG [T3664] [Party] 파티 1 에서 session 2 나감(접속 해제), 남은 2명
-2026-11-20 18:16:56.363 DEBUG [T1264] [Session] DisConnect[3] :Recv 0
-2026-11-20 18:16:56.363 DEBUG [T3664] [World] 세션 2 정리: 채널 1
-2026-11-20 18:16:56.363 DEBUG [T1264] [Session] ~Session[3]
-2026-11-20 18:16:56.363 DEBUG [T1264] [Session] DisConnect[4] :Recv 0
-2026-11-20 18:16:56.363 DEBUG [T4952] [Room] Player[3] Leave
-2026-11-20 18:16:56.363 DEBUG [T4952] [Object] ~Player[3]
-2026-11-20 18:16:56.363 DEBUG [T3684] [Party] 파티 1 에서 session 3 나감(접속 해제), 남은 1명
-2026-11-20 18:16:56.363 DEBUG [T4952] [Room] Player[4] Leave
-2026-11-20 18:16:56.363 DEBUG [T1264] [Session] ~Session[4]
-2026-11-20 18:16:56.363 DEBUG [T3684] [World] 세션 3 정리: 채널 1
-2026-11-20 18:16:56.363 DEBUG [T4952] [Object] ~Player[4]
-2026-11-20 18:16:56.363 DEBUG [T11336] [Session] DisConnect[5] :Recv 0
-2026-11-20 18:16:56.363 DEBUG [T3684] [World] 세션 4 정리: 채널 1
-2026-11-20 18:16:56.363 DEBUG [T4952] [Party] Player[5] partyId=0 (Room 1)
-2026-11-20 18:16:56.363 DEBUG [T11336] [Session] ~Session[5]
-2026-11-20 18:16:56.363 DEBUG [T4952] [Room] Player[5] Leave
-2026-11-20 18:16:56.363 DEBUG [T4952] [Object] ~Player[5]
-2026-11-20 18:16:56.363 DEBUG [T3664] [World] 세션 5 정리: 채널 1
-2026-11-20 18:16:59.391 DEBUG [T4952] [Lobby] [Test1] - 로그인 성공 및 객체 생성 완료
-2026-11-20 18:16:59.391 DEBUG [T3664] [World] 세션 6 등록: 채널 1 (인원 1)
-2026-11-20 18:16:59.391 DEBUG [T3664] [Room] Client[6] Enter Room
-2026-11-20 18:16:59.967 DEBUG [T3664] [Lobby] [Test2] - 로그인 성공 및 객체 생성 완료
-2026-11-20 18:16:59.967 DEBUG [T4952] [World] 세션 7 등록: 채널 1 (인원 2)
-2026-11-20 18:16:59.967 DEBUG [T4952] [Room] Client[7] Enter Room
-2026-11-20 18:17:00.530 DEBUG [T3664] [Party] 초대 6 → 7
-2026-11-20 18:17:01.322 INFO  [T2756] [metrics] sessions=2 rooms=2 players=2 monsters=201 in/s=1 out/s=3 sendCalls/s=2 bufsPerSend=1.89 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.02/0.03/0.03 viewPlayers(avg/p99/max)=1.0/1/1 viewObjects(avg/p99/max)=1.0/1/1 sendQ(total/sessionMax)=0/5 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=2/0/0/0 flushGap(p50/p90/p99 ms)=127/127/127 sendWake(per s, late avg/p50/p99/max ms)=0 0.5/0.1/0.9/0.9 jobs(exec/repost per s)=25/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.1ms flushRunMax=0.1ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=1/0 flushRuns/s=2 conn(sessionObjs/handles idleKick/sendqKick)=3/318 0/0 world(channels/roster/chMax)=1/2/2 kind(town/field players)=2/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.03 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/1 4/3/0/0/1 1/1
-2026-11-20 18:17:03.531 DEBUG [T4952] [Party] 결과 session=6 request=CS_PARTY_INVITE result=PARTY_RESULT_TIMEOUT
-2026-11-20 18:17:03.531 DEBUG [T4952] [Party] 결과 session=7 request=CS_PARTY_RESPOND result=PARTY_RESULT_TIMEOUT
-2026-11-20 18:17:03.677 DEBUG [T3664] [Party] 결과 session=7 request=CS_PARTY_RESPOND result=PARTY_RESULT_NO_INVITE
-2026-11-20 18:17:03.800 DEBUG [T3664] [Party] 초대 6 → 7
-2026-11-20 18:17:03.938 DEBUG [T3664] [Party] 파티 2: 6 의 초대를 7 가 수락, 2명
-2026-11-20 18:17:03.938 DEBUG [T11336] [Party] Player[6] partyId=2 (Room 1)
-2026-11-20 18:17:03.938 DEBUG [T11336] [Party] Player[7] partyId=2 (Room 1)
-2026-11-20 18:17:06.323 INFO  [T2756] [metrics] sessions=2 rooms=2 players=2 monsters=201 in/s=1 out/s=2 sendCalls/s=2 bufsPerSend=1.00 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.03/0.03 viewPlayers(avg/p99/max)=1.0/1/1 viewObjects(avg/p99/max)=1.0/1/1 sendQ(total/sessionMax)=0/1 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=2/0/0/0 flushGap(p50/p90/p99 ms)=127/127/127 sendWake(per s, late avg/p50/p99/max ms)=0 0.0/0.0/0.0/0.0 jobs(exec/repost per s)=22/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.1ms flushRunMax=0.1ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=1/0 flushRuns/s=1 conn(sessionObjs/handles idleKick/sendqKick)=3/319 0/0 world(channels/roster/chMax)=1/2/2 kind(town/field players)=2/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.03 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=1/2/0 5/4/0/1/1 2/1
-2026-11-20 18:17:08.420 DEBUG [T4952] [Session] DisConnect[6] :Recv 0
-2026-11-20 18:17:08.420 DEBUG [T11336] [Room] Player[6] Leave
-2026-11-20 18:17:08.420 DEBUG [T4952] [Session] ~Session[6]
-2026-11-20 18:17:08.420 DEBUG [T11336] [Object] ~Player[6]
-2026-11-20 18:17:08.420 DEBUG [T3664] [Session] DisConnect[7] :Recv 0
-2026-11-20 18:17:08.420 DEBUG [T4952] [Party] 파티 2 에서 session 6 나감(접속 해제), 남은 1명
-2026-11-20 18:17:08.420 DEBUG [T11336] [Room] Player[7] Leave
-2026-11-20 18:17:08.420 DEBUG [T4952] [World] 세션 6 정리: 채널 1
-2026-11-20 18:17:08.420 DEBUG [T11336] [Party] Player[7] partyId=0 (Room 1)
-2026-11-20 18:17:08.420 DEBUG [T4952] [World] 세션 7 정리: 채널 1
-2026-11-20 18:17:08.421 DEBUG [T3664] [Object] ~Player[7]
-2026-11-20 18:17:08.421 DEBUG [T3664] [Session] ~Session[7]
-2026-11-20 18:17:11.324 INFO  [T2756] [metrics] sessions=0 rooms=2 players=0 monsters=201 in/s=0 out/s=0 sendCalls/s=0 bufsPerSend=0.00 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=1.0/1.0/2.0/3.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.03/0.03 viewPlayers(avg/p99/max)=1.0/1/1 viewObjects(avg/p99/max)=1.0/1/1 sendQ(total/sessionMax)=0/1 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=0/0/0/0 flushGap(p50/p90/p99 ms)=127/127/127 sendWake(per s, late avg/p50/p99/max ms)=0 0.0/0.0/0.0/0.0 jobs(exec/repost per s)=21/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.1ms flushRunMax=0.0ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=1/0 flushRuns/s=0 conn(sessionObjs/handles idleKick/sendqKick)=1/317 0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 tickLateP99(town/field ms)=2.0/3.0 tickBodyP99(town/field ms)=0.00/0.03 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 5/4/0/1/1 2/2
-2026-11-20 18:17:16.325 INFO  [T2756] [metrics] sessions=0 rooms=2 players=0 monsters=201 in/s=0 out/s=0 sendCalls/s=0 bufsPerSend=0.00 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=1.0/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.03/0.03 viewPlayers(avg/p99/max)=0.0/0/0 viewObjects(avg/p99/max)=0.0/0/0 sendQ(total/sessionMax)=0/0 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=0/0/0/0 flushGap(p50/p90/p99 ms)=0/0/0 sendWake(per s, late avg/p50/p99/max ms)=0 0.0/0.0/0.0/0.0 jobs(exec/repost per s)=20/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.1ms flushRunMax=0.0ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=0/0 flushRuns/s=0 conn(sessionObjs/handles idleKick/sendqKick)=1/317 0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.03 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 5/4/0/1/1 2/2
-2026-11-20 18:17:21.325 INFO  [T2756] [metrics] sessions=0 rooms=2 players=0 monsters=201 in/s=0 out/s=0 sendCalls/s=0 bufsPerSend=0.00 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.01/0.00/0.03/0.03/0.03 viewPlayers(avg/p99/max)=0.0/0/0 viewObjects(avg/p99/max)=0.0/0/0 sendQ(total/sessionMax)=0/0 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=0/0/0/0 flushGap(p50/p90/p99 ms)=0/0/0 sendWake(per s, late avg/p50/p99/max ms)=0 0.0/0.0/0.0/0.0 jobs(exec/repost per s)=20/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.1ms flushRunMax=0.0ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=1/0 flushRuns/s=0 conn(sessionObjs/handles idleKick/sendqKick)=1/317 0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.03 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 5/4/0/1/1 2/2
+2026-11-21 00:17:29.093 INFO  [T13084] [Logger] 로그 파일: ../PerfData/2026-11-20_DG2/runs/party_small/logs\GameServer_20261121_001729.log
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Network.BindIp            = 127.0.0.1  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Network.Port              = 8888  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Network.WorkerThreads     = 0 -> 6  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Network.SendFlushIntervalMs = 10  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Network.TimerResolutionMs = 1  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Network.AttackEarlyToleranceMs = 100  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Network.LoginWaitTimeoutSec = 10  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Network.LoginCloseForceSec = 30  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Network.IdleTimeoutSec    = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Network.SendQueueLimit    = 4000  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Database.ConnectionString = Driver={ODBC Driver 17 for SQL Server};Server=.\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Database.Connections      = 4  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Database.PlayerSaveIntervalSec = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Log.Level                 = Debug  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Log.Dir                   = ../PerfData/2026-11-20_DG2/runs/party_small/logs  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] World.MapName             = Continent01  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Debug.DummySpawnZone      = (끔: 맵 전체 무작위)  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Debug.ViewAudit           = false  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] World.MoveWaitTimeoutMs   = 5000  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] World.MaxDungeonInstances = 250  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] World.LoadTimeoutSec      = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Debug.DummyRoom           = town  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Debug.MoveHandoffDelayMs  = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Debug.DbSaveDelayMs       = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Debug.DevCommands         = true  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Debug.PortalNoRange       = false  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.093 INFO  [T13084] [Config] Debug.DbItemFailEvery     = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\ServerConfig.ini)
+2026-11-21 00:17:29.094 INFO  [T13084] [Data] DataTable 경로: C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-20_DG2\runs\party_small\data
+2026-11-21 00:17:29.109 INFO  [T13084] [Data] 상점·NPC 로드 완료 (ShopTable 9행·상점 1곳, NpcTable 1행, 상점 이용 거리 400cm)
+2026-11-21 00:17:29.109 INFO  [T13084] [Data] 로드 완료 (PlayerStatTable 1행, SkillTable 8행, MonsterTable 3행, ItemTable 17행, MovementTable 1행, WorldTable 3행, DropTable 34행, SpawnTable 8행, EconomyTable: 인벤토리 30칸·골드 상한 2000000000·드랍 소유 30초/소멸 60초)
+2026-11-21 00:17:29.113 INFO  [T13084] [Server] 127.0.0.1:8888 에서 접속 대기 시작
+2026-11-21 00:17:29.165 INFO  [T13084] [DB] DB 서버 Connected
+2026-11-21 00:17:29.166 INFO  [T13084] [DB] DB 스키마 버전 7
+2026-11-21 00:17:29.167 INFO  [T13084] [Navmesh] 로드 성공.
+2026-11-21 00:17:29.178 INFO  [T13084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 1, PortalTrigger 8, SafeZone 1)
+2026-11-21 00:17:29.179 INFO  [T13084] [World] 레벨 Continent01: 마을·사냥터 구역으로 나눔(채널마다 Room 2개)
+2026-11-21 00:17:29.179 INFO  [T13084] [Navmesh] 로드 성공.
+2026-11-21 00:17:29.181 INFO  [T13084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 3, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-21 00:17:29.181 INFO  [T13084] [World] 던전 레벨 Continent01_Dungeon: 포털 100 로 입장 (인스턴스 상한 250)
+2026-11-21 00:17:29.192 INFO  [T13084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 1, PortalTrigger 8, SafeZone 1)
+2026-11-21 00:17:29.193 INFO  [T13084] [Room] Room 1(채널 1, Continent01 구역 'town'): 몬스터 스폰 없음
+2026-11-21 00:17:29.193 INFO  [T13084] [Room] 마을 NPC 배치: id 900000000 종류 1001 상점 1 위치 (-14150, -2200, 2)
+2026-11-21 00:17:29.193 INFO  [T13084] [Room] 마을 NPC: 마커 1곳, 배치 1명
+2026-11-21 00:17:29.193 INFO  [T13084] [Room] Room 1 포털: 마커 8개 중 쓸 수 있는 것 3개, 시작 지점 4곳
+2026-11-21 00:17:29.203 INFO  [T13084] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 1, PortalTrigger 8, SafeZone 1)
+2026-11-21 00:17:29.223 INFO  [T13084] [Room] Room 2(채널 1, Continent01 구역 'field') 몬스터 스폰: 지점 49곳, 몬스터 201마리 (forest_boss 1, forest_n 60, meadow_e 55, meadow_n 30, meadow_w 55)
+2026-11-21 00:17:29.223 INFO  [T13084] [Room] Room 2 포털: 마커 8개 중 쓸 수 있는 것 4개, 시작 지점 0곳
+2026-11-21 00:17:29.224 INFO  [T13084] [World] 채널 1 생성 (레벨 Continent01, 마을 Room 1, 사냥터 Room 2, 42.3ms)
+2026-11-21 00:17:29.577 DEBUG [T17180] [Session] DisConnect[1] :Recv 0
+2026-11-21 00:17:29.577 DEBUG [T17180] [Session] ~Session[1]
+2026-11-21 00:17:32.740 DEBUG [T17180] [Lobby] [Test1] - 로그인 성공 및 객체 생성 완료
+2026-11-21 00:17:32.740 DEBUG [T4972] [World] 세션 2 등록: 채널 1 (인원 1)
+2026-11-21 00:17:32.740 DEBUG [T4972] [Room] Client[2] Enter Room
+2026-11-21 00:17:33.305 DEBUG [T4972] [Lobby] [Test2] - 로그인 성공 및 객체 생성 완료
+2026-11-21 00:17:33.305 DEBUG [T17180] [World] 세션 3 등록: 채널 1 (인원 2)
+2026-11-21 00:17:33.305 DEBUG [T17180] [Room] Client[3] Enter Room
+2026-11-21 00:17:33.871 DEBUG [T17180] [Lobby] [Test3] - 로그인 성공 및 객체 생성 완료
+2026-11-21 00:17:33.871 DEBUG [T4972] [World] 세션 4 등록: 채널 1 (인원 3)
+2026-11-21 00:17:33.872 DEBUG [T4972] [Room] Client[4] Enter Room
+2026-11-21 00:17:34.226 INFO  [T7280] [metrics] sessions=3 rooms=2 players=3 monsters=201 in/s=1 out/s=3 sendCalls/s=1 bufsPerSend=2.29 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=1.0/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.04/0.01/0.09/0.11/0.14 viewPlayers(avg/p99/max)=0.5/1/1 viewObjects(avg/p99/max)=0.5/1/1 sendQ(total/sessionMax)=0/5 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1/0/0/0 flushGap(p50/p90/p99 ms)=10/127/127 sendWake(per s, late avg/p50/p99/max ms)=1 0.6/0.5/0.9/0.9 jobs(exec/repost per s)=23/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.3ms flushRunMax=0.3ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=2/0 flushRuns/s=1 conn(sessionObjs/handles idleKick/sendqKick)=4/314 0/0 world(channels/roster/chMax)=1/3/3 kind(town/field players)=3/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.01/0.14 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00
+2026-11-21 00:17:34.435 DEBUG [T4972] [Lobby] [Test4] - 로그인 성공 및 객체 생성 완료
+2026-11-21 00:17:34.435 DEBUG [T17180] [World] 세션 5 등록: 채널 1 (인원 4)
+2026-11-21 00:17:34.436 DEBUG [T17180] [Room] Client[5] Enter Room
+2026-11-21 00:17:35.000 DEBUG [T17180] [Party] 초대 2 → 3
+2026-11-21 00:17:35.137 DEBUG [T4972] [Party] Player[2] partyId=1 (Room 1)
+2026-11-21 00:17:35.137 DEBUG [T17180] [Party] 파티 1: 2 의 초대를 3 가 수락, 2명
+2026-11-21 00:17:35.137 DEBUG [T4972] [Party] Player[3] partyId=1 (Room 1)
+2026-11-21 00:17:36.161 DEBUG [T17180] [Party] 초대 2 → 4
+2026-11-21 00:17:36.297 DEBUG [T4972] [Party] Player[4] partyId=1 (Room 1)
+2026-11-21 00:17:36.297 DEBUG [T17180] [Party] 파티 1: 2 의 초대를 4 가 수락, 3명
+2026-11-21 00:17:37.329 DEBUG [T17180] [Party] 결과 session=2 request=CS_PARTY_INVITE result=PARTY_RESULT_PARTY_FULL
+2026-11-21 00:17:37.444 DEBUG [T4972] [Party] Player[4] partyId=0 (Room 1)
+2026-11-21 00:17:37.444 DEBUG [T17180] [Party] 파티 1 에서 session 4 나감(탈퇴), 남은 2명
+2026-11-21 00:17:38.480 DEBUG [T17180] [Party] 초대 2 → 5
+2026-11-21 00:17:38.616 DEBUG [T4972] [Party] 파티 1: 2 의 초대를 5 가 수락, 3명
+2026-11-21 00:17:38.616 DEBUG [T3600] [Party] Player[5] partyId=1 (Room 1)
+2026-11-21 00:17:39.136 DEBUG [T3600] [Room] Player[2] Leave
+2026-11-21 00:17:39.136 DEBUG [T17180] [Session] DisConnect[2] :Recv 0
+2026-11-21 00:17:39.136 DEBUG [T4972] [Session] DisConnect[3] :Recv 0
+2026-11-21 00:17:39.136 DEBUG [T17180] [Session] ~Session[2]
+2026-11-21 00:17:39.136 DEBUG [T4972] [Session] ~Session[3]
+2026-11-21 00:17:39.136 DEBUG [T21172] [Session] DisConnect[4] :Recv 0
+2026-11-21 00:17:39.136 DEBUG [T17180] [Session] DisConnect[5] :Recv 0
+2026-11-21 00:17:39.136 DEBUG [T21172] [Session] ~Session[4]
+2026-11-21 00:17:39.136 DEBUG [T3600] [Object] ~Player[2]
+2026-11-21 00:17:39.136 DEBUG [T17180] [Session] ~Session[5]
+2026-11-21 00:17:39.136 DEBUG [T4972] [Party] 파티 1 에서 session 2 나감(접속 해제), 남은 2명
+2026-11-21 00:17:39.136 DEBUG [T3600] [Room] Player[3] Leave
+2026-11-21 00:17:39.136 DEBUG [T3600] [Object] ~Player[3]
+2026-11-21 00:17:39.137 DEBUG [T4972] [World] 세션 2 정리: 채널 1
+2026-11-21 00:17:39.137 DEBUG [T3600] [Room] Player[4] Leave
+2026-11-21 00:17:39.137 DEBUG [T3600] [Object] ~Player[4]
+2026-11-21 00:17:39.137 DEBUG [T4972] [Party] 파티 1 에서 session 3 나감(접속 해제), 남은 1명
+2026-11-21 00:17:39.137 DEBUG [T3600] [Room] Player[5] Leave
+2026-11-21 00:17:39.137 DEBUG [T4972] [World] 세션 3 정리: 채널 1
+2026-11-21 00:17:39.137 DEBUG [T3600] [Object] ~Player[5]
+2026-11-21 00:17:39.137 DEBUG [T4972] [World] 세션 4 정리: 채널 1
+2026-11-21 00:17:39.137 DEBUG [T4972] [World] 세션 5 정리: 채널 1
+2026-11-21 00:17:39.228 INFO  [T7280] [metrics] sessions=0 rooms=2 players=0 monsters=201 in/s=3 out/s=5 sendCalls/s=4 bufsPerSend=1.19 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.04/0.01/0.08/0.09/0.20 viewPlayers(avg/p99/max)=1.0/2/2 viewObjects(avg/p99/max)=1.0/2/2 sendQ(total/sessionMax)=0/5 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=4/0/0/0 flushGap(p50/p90/p99 ms)=127/127/127 sendWake(per s, late avg/p50/p99/max ms)=0 1.0/1.0/1.0/1.0 jobs(exec/repost per s)=27/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=6.7ms flushRunMax=0.2ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=3/0 flushRuns/s=3 conn(sessionObjs/handles idleKick/sendqKick)=1/314 0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.01/0.20 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 3/3/0/0/1 1/1 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00
+2026-11-21 00:17:42.161 DEBUG [T4972] [Lobby] [Test1] - 로그인 성공 및 객체 생성 완료
+2026-11-21 00:17:42.161 DEBUG [T17180] [World] 세션 6 등록: 채널 1 (인원 1)
+2026-11-21 00:17:42.161 DEBUG [T17180] [Room] Client[6] Enter Room
+2026-11-21 00:17:42.726 DEBUG [T4972] [Lobby] [Test2] - 로그인 성공 및 객체 생성 완료
+2026-11-21 00:17:42.726 DEBUG [T17180] [World] 세션 7 등록: 채널 1 (인원 2)
+2026-11-21 00:17:42.726 DEBUG [T17180] [Room] Client[7] Enter Room
+2026-11-21 00:17:43.294 DEBUG [T17180] [Party] 초대 6 → 7
+2026-11-21 00:17:44.229 INFO  [T7280] [metrics] sessions=2 rooms=2 players=2 monsters=201 in/s=1 out/s=3 sendCalls/s=1 bufsPerSend=2.17 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.04/0.02/0.08/0.11/0.11 viewPlayers(avg/p99/max)=0.7/1/1 viewObjects(avg/p99/max)=0.7/1/1 sendQ(total/sessionMax)=0/5 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1/0/0/0 flushGap(p50/p90/p99 ms)=12/127/127 sendWake(per s, late avg/p50/p99/max ms)=0 1.8/1.8/1.8/1.8 jobs(exec/repost per s)=22/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.2ms flushRunMax=0.1ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=2/0 flushRuns/s=1 conn(sessionObjs/handles idleKick/sendqKick)=3/316 0/0 world(channels/roster/chMax)=1/2/2 kind(town/field players)=2/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.02/0.11 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/1 4/3/0/0/1 1/1 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00
+2026-11-21 00:17:46.295 DEBUG [T4972] [Party] 결과 session=6 request=CS_PARTY_INVITE result=PARTY_RESULT_TIMEOUT
+2026-11-21 00:17:46.295 DEBUG [T4972] [Party] 결과 session=7 request=CS_PARTY_RESPOND result=PARTY_RESULT_TIMEOUT
+2026-11-21 00:17:46.413 DEBUG [T4972] [Party] 결과 session=7 request=CS_PARTY_RESPOND result=PARTY_RESULT_NO_INVITE
+2026-11-21 00:17:46.549 DEBUG [T4972] [Party] 초대 6 → 7
+2026-11-21 00:17:46.671 DEBUG [T17180] [Party] Player[6] partyId=2 (Room 1)
+2026-11-21 00:17:46.671 DEBUG [T4972] [Party] 파티 2: 6 의 초대를 7 가 수락, 2명
+2026-11-21 00:17:46.671 DEBUG [T17180] [Party] Player[7] partyId=2 (Room 1)
+2026-11-21 00:17:49.230 INFO  [T7280] [metrics] sessions=2 rooms=2 players=2 monsters=201 in/s=1 out/s=2 sendCalls/s=2 bufsPerSend=1.00 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.04/0.01/0.08/0.11/0.14 viewPlayers(avg/p99/max)=1.0/1/1 viewObjects(avg/p99/max)=1.0/1/1 sendQ(total/sessionMax)=0/1 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=2/0/0/0 flushGap(p50/p90/p99 ms)=127/127/127 sendWake(per s, late avg/p50/p99/max ms)=0 0.0/0.0/0.0/0.0 jobs(exec/repost per s)=22/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.2ms flushRunMax=0.1ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=2/0 flushRuns/s=1 conn(sessionObjs/handles idleKick/sendqKick)=3/316 0/0 world(channels/roster/chMax)=1/2/2 kind(town/field players)=2/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.01/0.14 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=1/2/0 5/4/0/1/1 2/1 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00
+2026-11-21 00:17:51.144 DEBUG [T17180] [Session] DisConnect[6] :Recv 0
+2026-11-21 00:17:51.144 DEBUG [T4972] [Room] Player[6] Leave
+2026-11-21 00:17:51.144 DEBUG [T3600] [Session] DisConnect[7] :Recv 0
+2026-11-21 00:17:51.144 DEBUG [T17180] [Session] ~Session[6]
+2026-11-21 00:17:51.144 DEBUG [T3600] [Session] ~Session[7]
+2026-11-21 00:17:51.144 DEBUG [T4972] [Object] ~Player[6]
+2026-11-21 00:17:51.144 DEBUG [T3600] [Party] 파티 2 에서 session 6 나감(접속 해제), 남은 1명
+2026-11-21 00:17:51.144 DEBUG [T4972] [Room] Player[7] Leave
+2026-11-21 00:17:51.144 DEBUG [T3600] [World] 세션 6 정리: 채널 1
+2026-11-21 00:17:51.144 DEBUG [T4972] [Object] ~Player[7]
+2026-11-21 00:17:51.144 DEBUG [T3600] [World] 세션 7 정리: 채널 1
+2026-11-21 00:17:54.231 INFO  [T7280] [metrics] sessions=0 rooms=2 players=0 monsters=201 in/s=0 out/s=0 sendCalls/s=0 bufsPerSend=0.00 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.04/0.01/0.08/0.22/0.22 viewPlayers(avg/p99/max)=1.0/1/1 viewObjects(avg/p99/max)=1.0/1/1 sendQ(total/sessionMax)=0/0 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=0/0/0/0 flushGap(p50/p90/p99 ms)=0/0/0 sendWake(per s, late avg/p50/p99/max ms)=0 0.0/0.0/0.0/0.0 jobs(exec/repost per s)=21/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.3ms flushRunMax=0.0ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=2/0 flushRuns/s=0 conn(sessionObjs/handles idleKick/sendqKick)=1/314 0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.01/0.22 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 5/4/0/1/1 2/2 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00
+2026-11-21 00:17:59.233 INFO  [T7280] [metrics] sessions=0 rooms=2 players=0 monsters=201 in/s=0 out/s=0 sendCalls/s=0 bufsPerSend=0.00 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=1.0/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.04/0.06/0.08/0.09/0.09 viewPlayers(avg/p99/max)=0.0/0/0 viewObjects(avg/p99/max)=0.0/0/0 sendQ(total/sessionMax)=0/0 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=0/0/0/0 flushGap(p50/p90/p99 ms)=0/0/0 sendWake(per s, late avg/p50/p99/max ms)=0 0.0/0.0/0.0/0.0 jobs(exec/repost per s)=20/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.1ms flushRunMax=0.0ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=1/0 flushRuns/s=0 conn(sessionObjs/handles idleKick/sendqKick)=1/314 0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.09 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 5/4/0/1/1 2/2 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00
+2026-11-21 00:18:04.234 INFO  [T7280] [metrics] sessions=0 rooms=2 players=0 monsters=201 in/s=0 out/s=0 sendCalls/s=0 bufsPerSend=0.00 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=0/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=1.0/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.04/0.00/0.09/0.11/0.11 viewPlayers(avg/p99/max)=0.0/0/0 viewObjects(avg/p99/max)=0.0/0/0 sendQ(total/sessionMax)=0/0 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=169/0 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=0/0/0/0 flushGap(p50/p90/p99 ms)=0/0/0 sendWake(per s, late avg/p50/p99/max ms)=0 0.0/0.0/0.0/0.0 jobs(exec/repost per s)=20/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.3ms flushRunMax=0.0ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=1/0 flushRuns/s=0 conn(sessionObjs/handles idleKick/sendqKick)=1/314 0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.00/0.11 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 5/4/0/1/1 2/2 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00
