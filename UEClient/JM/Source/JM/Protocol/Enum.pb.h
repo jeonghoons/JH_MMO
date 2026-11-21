@@ -70,6 +70,12 @@ enum PacketId : int {
   CS_TRADE_LOCK = 1021,
   CS_TRADE_CONFIRM = 1022,
   CS_TRADE_CANCEL = 1023,
+  CS_AUCTION_SEARCH = 1024,
+  CS_AUCTION_REGISTER = 1025,
+  CS_AUCTION_BUY = 1026,
+  CS_AUCTION_CANCEL = 1027,
+  CS_AUCTION_MY = 1028,
+  CS_MAIL_CLAIM = 1029,
   CS_MOVE_ITEM = 1030,
   CS_SHOP_OPEN = 1031,
   CS_SHOP_BUY = 1032,
@@ -100,6 +106,9 @@ enum PacketId : int {
   SC_TRADE_STATE = 2021,
   SC_TRADE_END = 2022,
   SC_TRADE_RESULT = 2023,
+  SC_AUCTION_LIST = 2024,
+  SC_AUCTION_MY = 2025,
+  SC_AUCTION_RESULT = 2026,
   SC_KICK = 2027,
   SC_CHANGE_HP = 2028,
   SC_SHOP_OPEN = 2029,
@@ -550,6 +559,105 @@ inline bool TradeResult_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<TradeResult>(
     TradeResult_descriptor(), name, value);
 }
+enum AuctionResult : int {
+  AUCTION_RESULT_NONE = 0,
+  AUCTION_RESULT_SUCCESS = 1,
+  AUCTION_RESULT_NOT_IN_ROOM = 2,
+  AUCTION_RESULT_DEAD = 3,
+  AUCTION_RESULT_BUSY = 4,
+  AUCTION_RESULT_TOO_FREQUENT = 5,
+  AUCTION_RESULT_NOT_ALLOWED = 6,
+  AUCTION_RESULT_NO_LISTING = 7,
+  AUCTION_RESULT_SOLD = 8,
+  AUCTION_RESULT_OWN_ITEM = 9,
+  AUCTION_RESULT_NOT_ENOUGH_GOLD = 10,
+  AUCTION_RESULT_LISTING_LIMIT = 11,
+  AUCTION_RESULT_BAD_PRICE = 12,
+  AUCTION_RESULT_NO_ITEM = 13,
+  AUCTION_RESULT_IN_TRADE = 14,
+  AUCTION_RESULT_INVENTORY_FULL = 15,
+  AUCTION_RESULT_GOLD_FULL = 16,
+  AUCTION_RESULT_DB_ERROR = 17,
+  AUCTION_RESULT_TOO_FAR = 18,
+  AUCTION_RESULT_IN_DUNGEON = 19,
+  AUCTION_RESULT_TRY_LATER = 20,
+  AUCTION_RESULT_NO_MAIL = 21,
+  AuctionResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  AuctionResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool AuctionResult_IsValid(int value);
+constexpr AuctionResult AuctionResult_MIN = AUCTION_RESULT_NONE;
+constexpr AuctionResult AuctionResult_MAX = AUCTION_RESULT_NO_MAIL;
+constexpr int AuctionResult_ARRAYSIZE = AuctionResult_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AuctionResult_descriptor();
+template<typename T>
+inline const std::string& AuctionResult_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, AuctionResult>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function AuctionResult_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    AuctionResult_descriptor(), enum_t_value);
+}
+inline bool AuctionResult_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, AuctionResult* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AuctionResult>(
+    AuctionResult_descriptor(), name, value);
+}
+enum MailKind : int {
+  MAIL_KIND_NONE = 0,
+  MAIL_KIND_SALE_GOLD = 1,
+  MAIL_KIND_BOUGHT_ITEM = 2,
+  MAIL_KIND_EXPIRED = 3,
+  MAIL_KIND_CANCELLED = 4,
+  MailKind_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  MailKind_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool MailKind_IsValid(int value);
+constexpr MailKind MailKind_MIN = MAIL_KIND_NONE;
+constexpr MailKind MailKind_MAX = MAIL_KIND_CANCELLED;
+constexpr int MailKind_ARRAYSIZE = MailKind_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MailKind_descriptor();
+template<typename T>
+inline const std::string& MailKind_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, MailKind>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function MailKind_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    MailKind_descriptor(), enum_t_value);
+}
+inline bool MailKind_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, MailKind* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<MailKind>(
+    MailKind_descriptor(), name, value);
+}
+enum NpcKind : int {
+  NPC_KIND_NONE = 0,
+  NPC_KIND_SHOP = 1,
+  NPC_KIND_AUCTION = 2,
+  NpcKind_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  NpcKind_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool NpcKind_IsValid(int value);
+constexpr NpcKind NpcKind_MIN = NPC_KIND_NONE;
+constexpr NpcKind NpcKind_MAX = NPC_KIND_AUCTION;
+constexpr int NpcKind_ARRAYSIZE = NpcKind_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* NpcKind_descriptor();
+template<typename T>
+inline const std::string& NpcKind_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, NpcKind>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function NpcKind_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    NpcKind_descriptor(), enum_t_value);
+}
+inline bool NpcKind_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, NpcKind* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<NpcKind>(
+    NpcKind_descriptor(), name, value);
+}
 enum TradePhase : int {
   TRADE_PHASE_NONE = 0,
   TRADE_PHASE_REQUESTING = 1,
@@ -723,6 +831,21 @@ template <> struct is_proto_enum< ::Protocol::TradeResult> : ::std::true_type {}
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::TradeResult>() {
   return ::Protocol::TradeResult_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::AuctionResult> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::AuctionResult>() {
+  return ::Protocol::AuctionResult_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::MailKind> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::MailKind>() {
+  return ::Protocol::MailKind_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::NpcKind> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::NpcKind>() {
+  return ::Protocol::NpcKind_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::TradePhase> : ::std::true_type {};
 template <>

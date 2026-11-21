@@ -742,7 +742,7 @@ void AJMMyPlayer::UpdateInteractPrompt()
 		// 경계에서 서버가 TOO_FAR로 거부하지 않게 안내는 이용 거리보다 조금 안쪽에서만 띄운다.
 		const float ShopRange = Inventory ? static_cast<float>(Inventory->GetShopRangeCm()) - 30.f : 0.f;
 		float NpcDistSq = 0.f;
-		if (ObjectManager && ShopRange > 0.f) NearestNpcId = ObjectManager->FindNearestNpc(GetActorLocation(), ShopRange, NpcDistSq);
+		if (ObjectManager && ShopRange > 0.f) NearestNpcId = ObjectManager->FindNearestNpc(GetActorLocation(), ShopRange, NpcDistSq, static_cast<int32>(Protocol::NPC_KIND_SHOP));
 		if (NearestNpcId != 0 && Nearest != nullptr)
 		{
 			if (FVector::DistSquared2D(GetActorLocation(), Nearest->GetActorLocation()) <= NpcDistSq) NearestNpcId = 0;

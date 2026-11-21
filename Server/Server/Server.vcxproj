@@ -164,6 +164,7 @@
     <ClInclude Include="DB\DbQueries.h" />
     <ClInclude Include="Data\ServerConfig.h" />
     <ClInclude Include="Data\ServerData.h" />
+    <ClInclude Include="Game\Auction\AuctionService.h" />
     <ClInclude Include="Game\Combat\CombatProcessor.h" />
     <ClInclude Include="Game\Item\Inventory.h" />
     <ClInclude Include="Game\Lobby\AuthLobby.h" />
@@ -190,6 +191,7 @@
     <ClCompile Include="DB\DatabaseWorker.cpp" />
     <ClCompile Include="Data\ServerConfig.cpp" />
     <ClCompile Include="Data\ServerData.cpp" />
+    <ClCompile Include="Game\Auction\AuctionService.cpp" />
     <ClCompile Include="Game\Combat\CombatProcessor.cpp" />
     <ClCompile Include="Game\Item\Inventory.cpp" />
     <ClCompile Include="Game\Lobby\AuthLobby.cpp" />

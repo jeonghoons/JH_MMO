@@ -46,9 +46,15 @@ struct TableStruct_Struct_2eproto {
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Struct_2eproto;
 namespace Protocol {
+class AuctionListingInfo;
+struct AuctionListingInfoDefaultTypeInternal;
+extern AuctionListingInfoDefaultTypeInternal _AuctionListingInfo_default_instance_;
 class ItemInfo;
 struct ItemInfoDefaultTypeInternal;
 extern ItemInfoDefaultTypeInternal _ItemInfo_default_instance_;
+class MailInfo;
+struct MailInfoDefaultTypeInternal;
+extern MailInfoDefaultTypeInternal _MailInfo_default_instance_;
 class ObjectInfo;
 struct ObjectInfoDefaultTypeInternal;
 extern ObjectInfoDefaultTypeInternal _ObjectInfo_default_instance_;
@@ -66,7 +72,9 @@ struct TradeOfferItemDefaultTypeInternal;
 extern TradeOfferItemDefaultTypeInternal _TradeOfferItem_default_instance_;
 }  // namespace Protocol
 PROTOBUF_NAMESPACE_OPEN
+template<> ::Protocol::AuctionListingInfo* Arena::CreateMaybeMessage<::Protocol::AuctionListingInfo>(Arena*);
 template<> ::Protocol::ItemInfo* Arena::CreateMaybeMessage<::Protocol::ItemInfo>(Arena*);
+template<> ::Protocol::MailInfo* Arena::CreateMaybeMessage<::Protocol::MailInfo>(Arena*);
 template<> ::Protocol::ObjectInfo* Arena::CreateMaybeMessage<::Protocol::ObjectInfo>(Arena*);
 template<> ::Protocol::PositionInfo* Arena::CreateMaybeMessage<::Protocol::PositionInfo>(Arena*);
 template<> ::Protocol::StatInfo* Arena::CreateMaybeMessage<::Protocol::StatInfo>(Arena*);
@@ -626,6 +634,7 @@ class ObjectInfo final :
     kAimSkillIdFieldNumber = 9,
     kLevelFieldNumber = 11,
     kItemCountFieldNumber = 12,
+    kNpcKindFieldNumber = 13,
   };
   // repeated int32 equip_items = 8;
   int equip_items_size() const;
@@ -762,6 +771,15 @@ class ObjectInfo final :
   void _internal_set_item_count(int64_t value);
   public:
 
+  // .Protocol.NpcKind npc_kind = 13;
+  void clear_npc_kind();
+  ::Protocol::NpcKind npc_kind() const;
+  void set_npc_kind(::Protocol::NpcKind value);
+  private:
+  ::Protocol::NpcKind _internal_npc_kind() const;
+  void _internal_set_npc_kind(::Protocol::NpcKind value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.ObjectInfo)
  private:
   class _Internal;
@@ -782,6 +800,7 @@ class ObjectInfo final :
     int32_t aim_skill_id_;
     int32_t level_;
     int64_t item_count_;
+    int npc_kind_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1345,6 +1364,412 @@ class ItemInfo final :
     int32_t item_id_;
     int equip_part_;
     int32_t slot_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Struct_2eproto;
+};
+// -------------------------------------------------------------------
+
+class AuctionListingInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.AuctionListingInfo) */ {
+ public:
+  inline AuctionListingInfo() : AuctionListingInfo(nullptr) {}
+  ~AuctionListingInfo() override;
+  explicit PROTOBUF_CONSTEXPR AuctionListingInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  AuctionListingInfo(const AuctionListingInfo& from);
+  AuctionListingInfo(AuctionListingInfo&& from) noexcept
+    : AuctionListingInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline AuctionListingInfo& operator=(const AuctionListingInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline AuctionListingInfo& operator=(AuctionListingInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const AuctionListingInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const AuctionListingInfo* internal_default_instance() {
+    return reinterpret_cast<const AuctionListingInfo*>(
+               &_AuctionListingInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    6;
+
+  friend void swap(AuctionListingInfo& a, AuctionListingInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(AuctionListingInfo* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(AuctionListingInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  AuctionListingInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<AuctionListingInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const AuctionListingInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const AuctionListingInfo& from) {
+    AuctionListingInfo::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(AuctionListingInfo* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.AuctionListingInfo";
+  }
+  protected:
+  explicit AuctionListingInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kListingIdFieldNumber = 1,
+    kCountFieldNumber = 3,
+    kItemIdFieldNumber = 2,
+    kRemainSecFieldNumber = 5,
+    kPriceFieldNumber = 4,
+    kMineFieldNumber = 6,
+  };
+  // int64 listing_id = 1;
+  void clear_listing_id();
+  int64_t listing_id() const;
+  void set_listing_id(int64_t value);
+  private:
+  int64_t _internal_listing_id() const;
+  void _internal_set_listing_id(int64_t value);
+  public:
+
+  // int64 count = 3;
+  void clear_count();
+  int64_t count() const;
+  void set_count(int64_t value);
+  private:
+  int64_t _internal_count() const;
+  void _internal_set_count(int64_t value);
+  public:
+
+  // int32 item_id = 2;
+  void clear_item_id();
+  int32_t item_id() const;
+  void set_item_id(int32_t value);
+  private:
+  int32_t _internal_item_id() const;
+  void _internal_set_item_id(int32_t value);
+  public:
+
+  // int32 remain_sec = 5;
+  void clear_remain_sec();
+  int32_t remain_sec() const;
+  void set_remain_sec(int32_t value);
+  private:
+  int32_t _internal_remain_sec() const;
+  void _internal_set_remain_sec(int32_t value);
+  public:
+
+  // int64 price = 4;
+  void clear_price();
+  int64_t price() const;
+  void set_price(int64_t value);
+  private:
+  int64_t _internal_price() const;
+  void _internal_set_price(int64_t value);
+  public:
+
+  // bool mine = 6;
+  void clear_mine();
+  bool mine() const;
+  void set_mine(bool value);
+  private:
+  bool _internal_mine() const;
+  void _internal_set_mine(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.AuctionListingInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int64_t listing_id_;
+    int64_t count_;
+    int32_t item_id_;
+    int32_t remain_sec_;
+    int64_t price_;
+    bool mine_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Struct_2eproto;
+};
+// -------------------------------------------------------------------
+
+class MailInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.MailInfo) */ {
+ public:
+  inline MailInfo() : MailInfo(nullptr) {}
+  ~MailInfo() override;
+  explicit PROTOBUF_CONSTEXPR MailInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  MailInfo(const MailInfo& from);
+  MailInfo(MailInfo&& from) noexcept
+    : MailInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline MailInfo& operator=(const MailInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline MailInfo& operator=(MailInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const MailInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const MailInfo* internal_default_instance() {
+    return reinterpret_cast<const MailInfo*>(
+               &_MailInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    7;
+
+  friend void swap(MailInfo& a, MailInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(MailInfo* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(MailInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  MailInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<MailInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const MailInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const MailInfo& from) {
+    MailInfo::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(MailInfo* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.MailInfo";
+  }
+  protected:
+  explicit MailInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kMailIdFieldNumber = 1,
+    kGoldFieldNumber = 3,
+    kKindFieldNumber = 2,
+    kItemIdFieldNumber = 4,
+    kCountFieldNumber = 5,
+    kListingIdFieldNumber = 6,
+  };
+  // int64 mail_id = 1;
+  void clear_mail_id();
+  int64_t mail_id() const;
+  void set_mail_id(int64_t value);
+  private:
+  int64_t _internal_mail_id() const;
+  void _internal_set_mail_id(int64_t value);
+  public:
+
+  // int64 gold = 3;
+  void clear_gold();
+  int64_t gold() const;
+  void set_gold(int64_t value);
+  private:
+  int64_t _internal_gold() const;
+  void _internal_set_gold(int64_t value);
+  public:
+
+  // .Protocol.MailKind kind = 2;
+  void clear_kind();
+  ::Protocol::MailKind kind() const;
+  void set_kind(::Protocol::MailKind value);
+  private:
+  ::Protocol::MailKind _internal_kind() const;
+  void _internal_set_kind(::Protocol::MailKind value);
+  public:
+
+  // int32 item_id = 4;
+  void clear_item_id();
+  int32_t item_id() const;
+  void set_item_id(int32_t value);
+  private:
+  int32_t _internal_item_id() const;
+  void _internal_set_item_id(int32_t value);
+  public:
+
+  // int64 count = 5;
+  void clear_count();
+  int64_t count() const;
+  void set_count(int64_t value);
+  private:
+  int64_t _internal_count() const;
+  void _internal_set_count(int64_t value);
+  public:
+
+  // int64 listing_id = 6;
+  void clear_listing_id();
+  int64_t listing_id() const;
+  void set_listing_id(int64_t value);
+  private:
+  int64_t _internal_listing_id() const;
+  void _internal_set_listing_id(int64_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.MailInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int64_t mail_id_;
+    int64_t gold_;
+    int kind_;
+    int32_t item_id_;
+    int64_t count_;
+    int64_t listing_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -2046,6 +2471,26 @@ inline void ObjectInfo::set_item_count(int64_t value) {
   // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.item_count)
 }
 
+// .Protocol.NpcKind npc_kind = 13;
+inline void ObjectInfo::clear_npc_kind() {
+  _impl_.npc_kind_ = 0;
+}
+inline ::Protocol::NpcKind ObjectInfo::_internal_npc_kind() const {
+  return static_cast< ::Protocol::NpcKind >(_impl_.npc_kind_);
+}
+inline ::Protocol::NpcKind ObjectInfo::npc_kind() const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.npc_kind)
+  return _internal_npc_kind();
+}
+inline void ObjectInfo::_internal_set_npc_kind(::Protocol::NpcKind value) {
+  
+  _impl_.npc_kind_ = value;
+}
+inline void ObjectInfo::set_npc_kind(::Protocol::NpcKind value) {
+  _internal_set_npc_kind(value);
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.npc_kind)
+}
+
 // -------------------------------------------------------------------
 
 // TradeOfferItem
@@ -2338,9 +2783,261 @@ inline void ItemInfo::set_slot(int32_t value) {
   // @@protoc_insertion_point(field_set:Protocol.ItemInfo.slot)
 }
 
+// -------------------------------------------------------------------
+
+// AuctionListingInfo
+
+// int64 listing_id = 1;
+inline void AuctionListingInfo::clear_listing_id() {
+  _impl_.listing_id_ = int64_t{0};
+}
+inline int64_t AuctionListingInfo::_internal_listing_id() const {
+  return _impl_.listing_id_;
+}
+inline int64_t AuctionListingInfo::listing_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.AuctionListingInfo.listing_id)
+  return _internal_listing_id();
+}
+inline void AuctionListingInfo::_internal_set_listing_id(int64_t value) {
+  
+  _impl_.listing_id_ = value;
+}
+inline void AuctionListingInfo::set_listing_id(int64_t value) {
+  _internal_set_listing_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.AuctionListingInfo.listing_id)
+}
+
+// int32 item_id = 2;
+inline void AuctionListingInfo::clear_item_id() {
+  _impl_.item_id_ = 0;
+}
+inline int32_t AuctionListingInfo::_internal_item_id() const {
+  return _impl_.item_id_;
+}
+inline int32_t AuctionListingInfo::item_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.AuctionListingInfo.item_id)
+  return _internal_item_id();
+}
+inline void AuctionListingInfo::_internal_set_item_id(int32_t value) {
+  
+  _impl_.item_id_ = value;
+}
+inline void AuctionListingInfo::set_item_id(int32_t value) {
+  _internal_set_item_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.AuctionListingInfo.item_id)
+}
+
+// int64 count = 3;
+inline void AuctionListingInfo::clear_count() {
+  _impl_.count_ = int64_t{0};
+}
+inline int64_t AuctionListingInfo::_internal_count() const {
+  return _impl_.count_;
+}
+inline int64_t AuctionListingInfo::count() const {
+  // @@protoc_insertion_point(field_get:Protocol.AuctionListingInfo.count)
+  return _internal_count();
+}
+inline void AuctionListingInfo::_internal_set_count(int64_t value) {
+  
+  _impl_.count_ = value;
+}
+inline void AuctionListingInfo::set_count(int64_t value) {
+  _internal_set_count(value);
+  // @@protoc_insertion_point(field_set:Protocol.AuctionListingInfo.count)
+}
+
+// int64 price = 4;
+inline void AuctionListingInfo::clear_price() {
+  _impl_.price_ = int64_t{0};
+}
+inline int64_t AuctionListingInfo::_internal_price() const {
+  return _impl_.price_;
+}
+inline int64_t AuctionListingInfo::price() const {
+  // @@protoc_insertion_point(field_get:Protocol.AuctionListingInfo.price)
+  return _internal_price();
+}
+inline void AuctionListingInfo::_internal_set_price(int64_t value) {
+  
+  _impl_.price_ = value;
+}
+inline void AuctionListingInfo::set_price(int64_t value) {
+  _internal_set_price(value);
+  // @@protoc_insertion_point(field_set:Protocol.AuctionListingInfo.price)
+}
+
+// int32 remain_sec = 5;
+inline void AuctionListingInfo::clear_remain_sec() {
+  _impl_.remain_sec_ = 0;
+}
+inline int32_t AuctionListingInfo::_internal_remain_sec() const {
+  return _impl_.remain_sec_;
+}
+inline int32_t AuctionListingInfo::remain_sec() const {
+  // @@protoc_insertion_point(field_get:Protocol.AuctionListingInfo.remain_sec)
+  return _internal_remain_sec();
+}
+inline void AuctionListingInfo::_internal_set_remain_sec(int32_t value) {
+  
+  _impl_.remain_sec_ = value;
+}
+inline void AuctionListingInfo::set_remain_sec(int32_t value) {
+  _internal_set_remain_sec(value);
+  // @@protoc_insertion_point(field_set:Protocol.AuctionListingInfo.remain_sec)
+}
+
+// bool mine = 6;
+inline void AuctionListingInfo::clear_mine() {
+  _impl_.mine_ = false;
+}
+inline bool AuctionListingInfo::_internal_mine() const {
+  return _impl_.mine_;
+}
+inline bool AuctionListingInfo::mine() const {
+  // @@protoc_insertion_point(field_get:Protocol.AuctionListingInfo.mine)
+  return _internal_mine();
+}
+inline void AuctionListingInfo::_internal_set_mine(bool value) {
+  
+  _impl_.mine_ = value;
+}
+inline void AuctionListingInfo::set_mine(bool value) {
+  _internal_set_mine(value);
+  // @@protoc_insertion_point(field_set:Protocol.AuctionListingInfo.mine)
+}
+
+// -------------------------------------------------------------------
+
+// MailInfo
+
+// int64 mail_id = 1;
+inline void MailInfo::clear_mail_id() {
+  _impl_.mail_id_ = int64_t{0};
+}
+inline int64_t MailInfo::_internal_mail_id() const {
+  return _impl_.mail_id_;
+}
+inline int64_t MailInfo::mail_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.MailInfo.mail_id)
+  return _internal_mail_id();
+}
+inline void MailInfo::_internal_set_mail_id(int64_t value) {
+  
+  _impl_.mail_id_ = value;
+}
+inline void MailInfo::set_mail_id(int64_t value) {
+  _internal_set_mail_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.MailInfo.mail_id)
+}
+
+// .Protocol.MailKind kind = 2;
+inline void MailInfo::clear_kind() {
+  _impl_.kind_ = 0;
+}
+inline ::Protocol::MailKind MailInfo::_internal_kind() const {
+  return static_cast< ::Protocol::MailKind >(_impl_.kind_);
+}
+inline ::Protocol::MailKind MailInfo::kind() const {
+  // @@protoc_insertion_point(field_get:Protocol.MailInfo.kind)
+  return _internal_kind();
+}
+inline void MailInfo::_internal_set_kind(::Protocol::MailKind value) {
+  
+  _impl_.kind_ = value;
+}
+inline void MailInfo::set_kind(::Protocol::MailKind value) {
+  _internal_set_kind(value);
+  // @@protoc_insertion_point(field_set:Protocol.MailInfo.kind)
+}
+
+// int64 gold = 3;
+inline void MailInfo::clear_gold() {
+  _impl_.gold_ = int64_t{0};
+}
+inline int64_t MailInfo::_internal_gold() const {
+  return _impl_.gold_;
+}
+inline int64_t MailInfo::gold() const {
+  // @@protoc_insertion_point(field_get:Protocol.MailInfo.gold)
+  return _internal_gold();
+}
+inline void MailInfo::_internal_set_gold(int64_t value) {
+  
+  _impl_.gold_ = value;
+}
+inline void MailInfo::set_gold(int64_t value) {
+  _internal_set_gold(value);
+  // @@protoc_insertion_point(field_set:Protocol.MailInfo.gold)
+}
+
+// int32 item_id = 4;
+inline void MailInfo::clear_item_id() {
+  _impl_.item_id_ = 0;
+}
+inline int32_t MailInfo::_internal_item_id() const {
+  return _impl_.item_id_;
+}
+inline int32_t MailInfo::item_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.MailInfo.item_id)
+  return _internal_item_id();
+}
+inline void MailInfo::_internal_set_item_id(int32_t value) {
+  
+  _impl_.item_id_ = value;
+}
+inline void MailInfo::set_item_id(int32_t value) {
+  _internal_set_item_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.MailInfo.item_id)
+}
+
+// int64 count = 5;
+inline void MailInfo::clear_count() {
+  _impl_.count_ = int64_t{0};
+}
+inline int64_t MailInfo::_internal_count() const {
+  return _impl_.count_;
+}
+inline int64_t MailInfo::count() const {
+  // @@protoc_insertion_point(field_get:Protocol.MailInfo.count)
+  return _internal_count();
+}
+inline void MailInfo::_internal_set_count(int64_t value) {
+  
+  _impl_.count_ = value;
+}
+inline void MailInfo::set_count(int64_t value) {
+  _internal_set_count(value);
+  // @@protoc_insertion_point(field_set:Protocol.MailInfo.count)
+}
+
+// int64 listing_id = 6;
+inline void MailInfo::clear_listing_id() {
+  _impl_.listing_id_ = int64_t{0};
+}
+inline int64_t MailInfo::_internal_listing_id() const {
+  return _impl_.listing_id_;
+}
+inline int64_t MailInfo::listing_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.MailInfo.listing_id)
+  return _internal_listing_id();
+}
+inline void MailInfo::_internal_set_listing_id(int64_t value) {
+  
+  _impl_.listing_id_ = value;
+}
+inline void MailInfo::set_listing_id(int64_t value) {
+  _internal_set_listing_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.MailInfo.listing_id)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

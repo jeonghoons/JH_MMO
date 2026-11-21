@@ -10,6 +10,7 @@
 #include "Data/ServerData.h"
 #include "Utils/Metrics.h"
 #include "DB/DatabaseWorker.h"
+#include "Game/Auction/AuctionService.h"
 
 Room::Room(shared_ptr<Timer> timer, HANDLE iocpHandle, RoomInfo info) : _info(std::move(info)), _timer(timer), _jobQueue(make_shared<JobQueue>(iocpHandle))
 {
@@ -1900,6 +1901,202 @@ void Room::PlayerShopSell(shared_ptr<Player> player, int npcId, int64_t itemDbId
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// 경매장 (A4.3, D-159·D-234·D-235 — DESIGN_ITEMS_TRADE "경매장")
+// ---------------------------------------------------------------------------------------------------------------
+namespace
+{
+	// 거부를 본인에게 알린다. 성공은 결과 적용(ApplyItemOpResult)에서 보낸다.
+	void SendAuctionReject(const shared_ptr<Player>& player, Protocol::PacketId request, Protocol::AuctionResult result, int64_t id)
+	{
+		Metrics::AuctionRejected.fetch_add(1);
+		LOG_DEBUG("Auction", "거부 player={} request={} id={} result={}", player->GetId(), Protocol::PacketId_Name(request), id, Protocol::AuctionResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_AUCTION_RESULT(request, result, id));
+	}
+
+	Protocol::AuctionResult ToAuctionResult(Protocol::ItemResult result)
+	{
+		switch (result)
+		{
+		case Protocol::ITEM_RESULT_SUCCESS: return Protocol::AUCTION_RESULT_SUCCESS;
+		case Protocol::ITEM_RESULT_NOT_IN_ROOM: return Protocol::AUCTION_RESULT_NOT_IN_ROOM;
+		case Protocol::ITEM_RESULT_TOO_FREQUENT: return Protocol::AUCTION_RESULT_TOO_FREQUENT;
+		case Protocol::ITEM_RESULT_BUSY: return Protocol::AUCTION_RESULT_BUSY;
+		default: return Protocol::AUCTION_RESULT_NOT_ALLOWED;
+		}
+	}
+}
+
+Protocol::AuctionResult Room::CheckAuctionRequest(const shared_ptr<Player>& player, AuctionRequest kind, int npcId)
+{
+	if (false == IsInRoom(player)) return Protocol::AUCTION_RESULT_NOT_IN_ROOM;
+	// 더미 봇은 전원이 DB 한 행을 쓴다 — 검색(DB 행을 건드리지 않음)만 받는다. 부하 시험의 조회 부하용(D-235).
+	const bool isDummy = player->isDummy || player->GetPlayerUID() == 0;
+	if (isDummy && kind != AuctionRequest::Search) return Protocol::AUCTION_RESULT_NOT_ALLOWED;
+	if (player->GetStat().IsDead()) return Protocol::AUCTION_RESULT_DEAD;
+	// 던전 안에서는 경매를 쓸 수 없다(D-234).
+	if (_info.kind == RoomKind::Dungeon) return Protocol::AUCTION_RESULT_IN_DUNGEON;
+
+	if (kind == AuctionRequest::Search || kind == AuctionRequest::My)
+	{
+		if (!player->auctionQuery.IsReady()) return Protocol::AUCTION_RESULT_TOO_FREQUENT;
+		return Protocol::AUCTION_RESULT_SUCCESS;
+	}
+
+	// 아이템·골드가 바뀌는 요청: 요청 간격 → Room 이동 중·진행 중인 작업(BUSY)
+	const Protocol::ItemResult check = CheckItemRequest(player);
+	if (check != Protocol::ITEM_RESULT_SUCCESS) return ToAuctionResult(check);
+
+	if (kind == AuctionRequest::NpcChange)
+	{
+		// 등록·취소·수령은 경매 NPC 근처에서만(D-234). 서버에 "창을 연 상태"는 없고 요청마다 본다(상점과 같음).
+		const shared_ptr<TownNpc> npc = GetNpc(npcId);
+		if (npc == nullptr || !npc->IsAuction()) return Protocol::AUCTION_RESULT_TOO_FAR;
+
+		const Protocol::PositionInfo& myPos = player->GetPosition();
+		const Protocol::PositionInfo& npcPos = npc->GetPosition();
+		const float dx = npcPos.x() - myPos.x(), dy = npcPos.y() - myPos.y();
+		const float range = static_cast<float>(DataManager::GetEconomy().shopRangeCm);
+		if (dx * dx + dy * dy > range * range) return Protocol::AUCTION_RESULT_TOO_FAR;
+	}
+	return Protocol::AUCTION_RESULT_SUCCESS;
+}
+
+void Room::PlayerAuctionSearch(shared_ptr<Player> player, int slot, int page)
+{
+	if (player == nullptr) return;
+
+	const Protocol::AuctionResult check = CheckAuctionRequest(player, AuctionRequest::Search, 0);
+	if (check != Protocol::AUCTION_RESULT_SUCCESS) { SendAuctionReject(player, Protocol::CS_AUCTION_SEARCH, check, 0); return; }
+	if (slot < 0 || slot >= AuctionService::FILTER_COUNT || page < 0) { SendAuctionReject(player, Protocol::CS_AUCTION_SEARCH, Protocol::AUCTION_RESULT_NOT_ALLOWED, 0); return; }
+
+	const shared_ptr<GameSession> session = player->GetSession();
+	if (session == nullptr) return;
+
+	player->auctionQuery.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	GAuction->PushJob(&AuctionService::Search, session, player->GetPlayerUID(), slot, page);
+}
+
+void Room::PlayerAuctionMy(shared_ptr<Player> player)
+{
+	if (player == nullptr) return;
+
+	const Protocol::AuctionResult check = CheckAuctionRequest(player, AuctionRequest::My, 0);
+	if (check != Protocol::AUCTION_RESULT_SUCCESS) { SendAuctionReject(player, Protocol::CS_AUCTION_MY, check, 0); return; }
+
+	const shared_ptr<GameSession> session = player->GetSession();
+	if (session == nullptr) return;
+
+	// 수령함은 DB에서 읽는다 — 혼잡 기준(D-235)에 든다. 서비스가 답을 보낼 때(AuctionService::OnMailRead) 진행 수를 줄인다.
+	if (!AuctionService::TryBeginDbWork()) { SendAuctionReject(player, Protocol::CS_AUCTION_MY, Protocol::AUCTION_RESULT_TRY_LATER, 0); return; }
+
+	player->auctionQuery.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	GAuction->PushJob(&AuctionService::QueryMy, session, player->GetPlayerUID());
+}
+
+void Room::PlayerAuctionRegister(shared_ptr<Player> player, int npcId, int64_t itemDbId, int count, int64_t price)
+{
+	if (player == nullptr) return;
+	auto reject = [&](Protocol::AuctionResult result) { SendAuctionReject(player, Protocol::CS_AUCTION_REGISTER, result, 0); };
+
+	const Protocol::AuctionResult check = CheckAuctionRequest(player, AuctionRequest::NpcChange, npcId);
+	if (check != Protocol::AUCTION_RESULT_SUCCESS) { reject(check); return; }
+
+	// 인벤토리 위치의 내 행만 올린다(장착 중인 것은 먼저 해제해야 한다). 스택은 일부만 올릴 수 있다.
+	const ItemInstance* owned = player->inventory.Find(itemDbId);
+	if (owned == nullptr || owned->equipPart != 0 || count < 1 || count > owned->count) { reject(Protocol::AUCTION_RESULT_NO_ITEM); return; }
+	if (DataManager::GetItemData(owned->itemId) == nullptr) { reject(Protocol::AUCTION_RESULT_NO_ITEM); return; }
+	// 1:1 거래에 올린 행은 일부만 올렸어도 등록할 수 없다.
+	if (IsItemInTrade(player, itemDbId)) { reject(Protocol::AUCTION_RESULT_IN_TRADE); return; }
+
+	const EconomyData& economy = DataManager::GetEconomy();
+	if (price < economy.auctionMinPrice || price > economy.auctionMaxPrice) { reject(Protocol::AUCTION_RESULT_BAD_PRICE); return; }
+
+	// 혼잡 기준(D-235). 여기를 지나면 결과 적용(ApplyItemOpResult)에서 진행 수를 줄인다.
+	if (!AuctionService::TryBeginDbWork()) { reject(Protocol::AUCTION_RESULT_TRY_LATER); return; }
+
+	DB_ItemOp op;
+	op.kind = ItemOpKind::AuctionRegister;
+	op.itemId = owned->itemId;
+	op.auctionDbId = itemDbId;
+	op.auctionExpectCount = owned->count;
+	op.auctionCount = count;
+	op.auctionSlot = owned->slot;
+	op.auctionPrice = price;
+	op.auctionDurationSec = economy.auctionDurationSec;
+
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+void Room::PlayerAuctionBuy(shared_ptr<Player> player, int64_t listingId)
+{
+	if (player == nullptr) return;
+	auto reject = [&](Protocol::AuctionResult result) { SendAuctionReject(player, Protocol::CS_AUCTION_BUY, result, listingId); };
+
+	const Protocol::AuctionResult check = CheckAuctionRequest(player, AuctionRequest::Change, 0);
+	if (check != Protocol::AUCTION_RESULT_SUCCESS) { reject(check); return; }
+	if (listingId <= 0) { reject(Protocol::AUCTION_RESULT_NO_LISTING); return; }
+
+	if (!AuctionService::TryBeginDbWork()) { reject(Protocol::AUCTION_RESULT_TRY_LATER); return; }
+
+	// 등록의 존재·값·판매자는 서비스의 목록이 안다. 여기서는 보유 골드를 실어 보내 서비스가 값과 비교하게 한다.
+	// 산 물건은 수령함으로 가므로 빈 칸은 보지 않는다.
+	DB_ItemOp op;
+	op.kind = ItemOpKind::AuctionBuy;
+	op.listingId = listingId;
+	op.auctionGold = player->GetGold();
+
+	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+void Room::PlayerAuctionCancel(shared_ptr<Player> player, int npcId, int64_t listingId)
+{
+	if (player == nullptr) return;
+	auto reject = [&](Protocol::AuctionResult result) { SendAuctionReject(player, Protocol::CS_AUCTION_CANCEL, result, listingId); };
+
+	const Protocol::AuctionResult check = CheckAuctionRequest(player, AuctionRequest::NpcChange, npcId);
+	if (check != Protocol::AUCTION_RESULT_SUCCESS) { reject(check); return; }
+	if (listingId <= 0) { reject(Protocol::AUCTION_RESULT_NO_LISTING); return; }
+
+	if (!AuctionService::TryBeginDbWork()) { reject(Protocol::AUCTION_RESULT_TRY_LATER); return; }
+
+	DB_ItemOp op;
+	op.kind = ItemOpKind::AuctionCancel;
+	op.listingId = listingId;
+
+	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+void Room::PlayerMailClaim(shared_ptr<Player> player, int npcId, int64_t mailId)
+{
+	if (player == nullptr) return;
+	auto reject = [&](Protocol::AuctionResult result) { SendAuctionReject(player, Protocol::CS_MAIL_CLAIM, result, mailId); };
+
+	const Protocol::AuctionResult check = CheckAuctionRequest(player, AuctionRequest::NpcChange, npcId);
+	if (check != Protocol::AUCTION_RESULT_SUCCESS) { reject(check); return; }
+	if (mailId <= 0) { reject(Protocol::AUCTION_RESULT_NO_MAIL); return; }
+
+	if (!AuctionService::TryBeginDbWork()) { reject(Protocol::AUCTION_RESULT_TRY_LATER); return; }
+
+	// 우편이 아이템인지 골드인지는 메모리에 없다(수령함은 DB에만 있다). 아이템일 때 들어갈 빈 칸을 골라 보내고,
+	// 빈 칸이 없으면 -1을 보낸다 — 골드 우편이면 그대로 받고, 아이템 우편이면 DB가 INVENTORY_FULL로 거부한다. 받은 아이템은 스택에 합치지 않는다.
+	const EconomyData& economy = DataManager::GetEconomy();
+	const vector<int> freeSlots = player->inventory.FreeSlots(economy.inventorySlots, 1);
+
+	DB_ItemOp op;
+	op.kind = ItemOpKind::MailClaim;
+	op.mailId = mailId;
+	op.claimSlot = freeSlots.empty() ? -1 : freeSlots[0];
+	op.goldMax = economy.goldMax;
+
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // 1:1 거래 (A4.1·A4.2, D-158 — DESIGN_ITEMS_TRADE "1:1 거래")
 // ---------------------------------------------------------------------------------------------------------------
 namespace
@@ -2531,7 +2728,11 @@ void Room::StartItemOp(const shared_ptr<Player>& player, DB_ItemOp op)
 	player->itemOp.weaponSwapPending = (op.kind == ItemOpKind::Equip && op.equipPart == Protocol::EQUIP_PART_WEAPON);
 	Metrics::ItemOpSent.fetch_add(1);
 	Metrics::ItemOpInFlight.fetch_add(1);
-	GDBWorker->PushDBJob(&DatabaseWorker::ExecItemOp, shared_from_this(), player, op);
+	// 경매 등록·구매·취소(A4.3)는 경매 서비스가 목록으로 먼저 검증한다(서비스 → DB → 서비스 → OnItemOpDone). 수령은 다른 작업처럼 DB로 바로 간다.
+	if (op.kind == ItemOpKind::AuctionRegister || op.kind == ItemOpKind::AuctionBuy || op.kind == ItemOpKind::AuctionCancel)
+		GAuction->PushJob(&AuctionService::BeginOp, shared_from_this(), player, op);
+	else
+		GDBWorker->PushDBJob(&DatabaseWorker::ExecItemOp, shared_from_this(), player, op);
 }
 
 void Room::OnItemOpDone(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpResult result)
@@ -2550,7 +2751,7 @@ void Room::ApplyItemOpResult(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpR
 
 	const long long totalUs = Metrics::NowUs() - op.requestUs;
 	Metrics::ItemOpTotalUs.Add(totalUs);
-	if (!result.success)
+	if (!result.success && result.auctionResult == 0)   // 경매의 사유 있는 거부(서비스·DB가 판단, 바뀐 것 없음)는 DB 실패로 세지 않는다
 		Metrics::ItemOpFailed.fetch_add(1);
 
 	// 방을 나간 플레이어(접속 해제)는 메모리·패킷 반영을 건너뛴다. DB에는 이미 들어갔고 다음 로그인 때 읽는다.
@@ -2825,6 +3026,82 @@ void Room::ApplyItemOpResult(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpR
 		setEquipPart(op.moveDbId, 0, op.moveTo);
 		if (op.moveOtherDbId != 0) setEquipPart(op.moveOtherDbId, 0, op.moveFrom);
 		if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, {}, player->GetGold()));
+		break;
+	}
+	case ItemOpKind::AuctionRegister:
+	case ItemOpKind::AuctionBuy:
+	case ItemOpKind::AuctionCancel:
+	case ItemOpKind::MailClaim:
+	{
+		// 요청 핸들러의 TryBeginDbWork와 짝이다. 서비스가 거부해 DB에 가지 않았어도, 플레이어가 방을 나갔어도 여기로 온다.
+		AuctionService::EndDbWork();
+
+		Protocol::PacketId request = Protocol::CS_MAIL_CLAIM;
+		int64_t targetId = op.mailId;
+		if (op.kind == ItemOpKind::AuctionRegister) { request = Protocol::CS_AUCTION_REGISTER; targetId = 0; }
+		else if (op.kind == ItemOpKind::AuctionBuy) { request = Protocol::CS_AUCTION_BUY; targetId = op.listingId; }
+		else if (op.kind == ItemOpKind::AuctionCancel) { request = Protocol::CS_AUCTION_CANCEL; targetId = op.listingId; }
+
+		if (!result.success)
+		{
+			// 사유가 있으면 서비스나 DB가 거부한 것(바뀐 것 없음), 없으면 DB 실패다.
+			const Protocol::AuctionResult reason = result.auctionResult != 0
+				? static_cast<Protocol::AuctionResult>(result.auctionResult) : Protocol::AUCTION_RESULT_DB_ERROR;
+			Metrics::AuctionRejected.fetch_add(1);
+			LOG_DEBUG("Auction", "실패 player={} uid={} request={} id={} result={}", player->GetId(), op.playerUID, Protocol::PacketId_Name(request), targetId, Protocol::AuctionResult_Name(reason));
+			if (session) session->Send(PacketSerializer::MAKE_SC_AUCTION_RESULT(request, reason, targetId));
+			break;
+		}
+		if (op.kind == ItemOpKind::MailClaim) Metrics::AuctionClaimed.fetch_add(1);
+		if (!inRoom) break;
+
+		vector<int64_t> removed;
+		if (op.kind == ItemOpKind::AuctionRegister)
+		{
+			// 올린 수량이 인벤토리에서 빠진다: 통째면 행이 사라지고(DB에서는 경매 보관으로 옮겨짐), 일부면 그만큼 줄어든다.
+			targetId = result.listingId;
+			if (const ItemInstance* found = player->inventory.Find(op.auctionDbId))
+			{
+				if (op.auctionCount >= op.auctionExpectCount)
+				{
+					player->inventory.Remove(op.auctionDbId);
+					removed.push_back(op.auctionDbId);
+				}
+				else
+				{
+					ItemInstance left = *found;
+					left.count = op.auctionExpectCount - op.auctionCount;
+					player->inventory.Set(left);
+					changed.push_back(left);
+				}
+			}
+		}
+		else if (op.kind == ItemOpKind::MailClaim && result.claimDbId != 0)
+		{
+			// 받은 아이템은 기존 스택에 합치지 않고 고른 빈 칸에 한 행으로 들어온다.
+			if (DataManager::GetItemData(result.claimItemId) != nullptr)
+			{
+				const ItemInstance got{ result.claimDbId, result.claimItemId, result.claimCount, 0, op.claimSlot };
+				player->inventory.Set(got);
+				changed.push_back(got);
+			}
+			else
+			{
+				// ItemTable에 없는 종류: 로그인 때처럼 메모리에는 올리지 않고 그 칸만 비워 둔다(DB 행은 그대로).
+				LOG_WARN("Item", "수령한 아이템 종류 {} 가 ItemTable에 없습니다 (PlayerId {}, ItemDbId {})", result.claimItemId, op.playerUID, result.claimDbId);
+				player->inventory.ReserveSlot(op.claimSlot);
+			}
+		}
+		// 구매는 골드만 줄고(산 물건은 수령함), 취소는 인벤토리가 바뀌지 않는다(아이템은 수령함).
+		if (result.gold >= 0)
+			player->SetGold(result.gold);
+
+		if (session)
+		{
+			if (op.kind != ItemOpKind::AuctionCancel)
+				session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, removed, player->GetGold()));
+			session->Send(PacketSerializer::MAKE_SC_AUCTION_RESULT(request, Protocol::AUCTION_RESULT_SUCCESS, targetId));
+		}
 		break;
 	}
 	case ItemOpKind::LoginFix:

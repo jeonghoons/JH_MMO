@@ -74,6 +74,25 @@ void PacketHandler::Init()
     GPacketHandler[Protocol::CS_SHOP_SELL] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_SHOP_SELL_PACKET>(&PacketHandler::Handle_CS_SHOP_SELL, session, buffer, len);
         };
+    // 경매장 (A4.3)
+    GPacketHandler[Protocol::CS_AUCTION_SEARCH] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_AUCTION_SEARCH_PACKET>(&PacketHandler::Handle_CS_AUCTION_SEARCH, session, buffer, len);
+        };
+    GPacketHandler[Protocol::CS_AUCTION_REGISTER] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_AUCTION_REGISTER_PACKET>(&PacketHandler::Handle_CS_AUCTION_REGISTER, session, buffer, len);
+        };
+    GPacketHandler[Protocol::CS_AUCTION_BUY] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_AUCTION_BUY_PACKET>(&PacketHandler::Handle_CS_AUCTION_BUY, session, buffer, len);
+        };
+    GPacketHandler[Protocol::CS_AUCTION_CANCEL] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_AUCTION_CANCEL_PACKET>(&PacketHandler::Handle_CS_AUCTION_CANCEL, session, buffer, len);
+        };
+    GPacketHandler[Protocol::CS_AUCTION_MY] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_AUCTION_MY_PACKET>(&PacketHandler::Handle_CS_AUCTION_MY, session, buffer, len);
+        };
+    GPacketHandler[Protocol::CS_MAIL_CLAIM] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_MAIL_CLAIM_PACKET>(&PacketHandler::Handle_CS_MAIL_CLAIM, session, buffer, len);
+        };
     GPacketHandler[Protocol::CS_PORTAL] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
         return ParseAndHandle<Protocol::CS_PORTAL_PACKET>(&PacketHandler::Handle_CS_PORTAL, session, buffer, len);
         };
@@ -543,4 +562,72 @@ void PacketHandler::Handle_CS_ATTACK(shared_ptr<GameSession> session, Protocol::
     if (!std::isfinite(pkt.aim_yaw()) || !std::isfinite(pkt.aim_x()) || !std::isfinite(pkt.aim_y())) return;
 
     room->PushJob(&Room::CastSkill, static_pointer_cast<Character>(player), slot, pkt.target_id(), pkt.aim_yaw(), pkt.aim_x(), pkt.aim_y(), static_cast<uint32_t>(pkt.seq()));
+}
+
+// ---- 경매장 (A4.3). 검증은 Room 잡에서 한다 ----
+void PacketHandler::Handle_CS_AUCTION_SEARCH(shared_ptr<GameSession> session, Protocol::CS_AUCTION_SEARCH_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->GetPlayer();
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::PlayerAuctionSearch, player, static_cast<int>(pkt.slot()), static_cast<int>(pkt.page()));
+}
+
+void PacketHandler::Handle_CS_AUCTION_REGISTER(shared_ptr<GameSession> session, Protocol::CS_AUCTION_REGISTER_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->GetPlayer();
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::PlayerAuctionRegister, player, static_cast<int>(pkt.npc_id()), static_cast<int64_t>(pkt.item_db_id()),
+        static_cast<int>(pkt.count()), static_cast<int64_t>(pkt.price()));
+}
+
+void PacketHandler::Handle_CS_AUCTION_BUY(shared_ptr<GameSession> session, Protocol::CS_AUCTION_BUY_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->GetPlayer();
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::PlayerAuctionBuy, player, static_cast<int64_t>(pkt.listing_id()));
+}
+
+void PacketHandler::Handle_CS_AUCTION_CANCEL(shared_ptr<GameSession> session, Protocol::CS_AUCTION_CANCEL_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->GetPlayer();
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::PlayerAuctionCancel, player, static_cast<int>(pkt.npc_id()), static_cast<int64_t>(pkt.listing_id()));
+}
+
+void PacketHandler::Handle_CS_AUCTION_MY(shared_ptr<GameSession> session, Protocol::CS_AUCTION_MY_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->GetPlayer();
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::PlayerAuctionMy, player);
+}
+
+void PacketHandler::Handle_CS_MAIL_CLAIM(shared_ptr<GameSession> session, Protocol::CS_MAIL_CLAIM_PACKET& pkt)
+{
+    shared_ptr<Player> player = session->GetPlayer();
+    if (player == nullptr) return;
+
+    shared_ptr<Room> room = player->GetCurrentRoom();
+    if (room == nullptr) return;
+
+    room->PushJob(&Room::PlayerMailClaim, player, static_cast<int>(pkt.npc_id()), static_cast<int64_t>(pkt.mail_id()));
 }

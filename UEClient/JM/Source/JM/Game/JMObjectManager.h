@@ -64,7 +64,10 @@ public:
 	ADropItemActor* FindNearestDrop(const FVector& From, float RangeCm) const;
 
 	// 마을 NPC(L4). From에서 RangeCm 안(수평 거리 — 서버와 같은 기준)의 가장 가까운 NPC. 없으면 0
-	int32 FindNearestNpc(const FVector& From, float RangeCm, float& OutDistSq) const;
+	// KindFilter = 찾을 NPC의 일(Protocol::NpcKind — 상점·경매, A4.3·D-234). 0이면 가리지 않는다
+	int32 FindNearestNpc(const FVector& From, float RangeCm, float& OutDistSq, int32 KindFilter = 0) const;
+	// 그 NPC가 하는 일(Protocol::NpcKind). 없는 NPC면 0
+	int32 GetNpcKind(int32 NpcId) const;
 	FString GetNpcName(int32 NpcId) const;
 	bool GetNpcLocation(int32 NpcId, FVector& OutLocation) const;
 

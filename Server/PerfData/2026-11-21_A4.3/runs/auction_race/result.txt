@@ -1,0 +1,4 @@
+  race: 이긴 수 {'Test2': 4, 'Test3': 4}
+PASS race  (DB 아이템 89863, 골드 608408)
+  cancelrace: 취소 4, 구매 4
+PASS cancelrace  (DB 아이템 89871, 골드 608808)

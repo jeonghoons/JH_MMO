@@ -266,6 +266,56 @@ CREATE TABLE [dbo].[Trade_Log](
  CONSTRAINT [PK_Trade_Log] PRIMARY KEY CLUSTERED ([TradeId] ASC)
 ) ON [PRIMARY]
 GO
+/****** 개체: Table [dbo].[Auction_Listing] — 경매 등록 1건 = 1행. State 1 판매 중 · 2 팔림 · 3 만료 · 4 취소. ExpireAt은 UTC (A4.3) ******/
+CREATE TABLE [dbo].[Auction_Listing](
+	[ListingId] [bigint] IDENTITY(1,1) NOT NULL,
+	[SellerId] [bigint] NOT NULL,
+	[ItemDbId] [bigint] NOT NULL,
+	[ItemId] [int] NOT NULL,
+	[Count] [int] NOT NULL,
+	[Price] [bigint] NOT NULL,
+	[State] [tinyint] NOT NULL CONSTRAINT [DF_Auction_Listing_State] DEFAULT ((1)),
+	[BuyerId] [bigint] NULL,
+	[CreatedAt] [datetime2](0) NOT NULL CONSTRAINT [DF_Auction_Listing_CreatedAt] DEFAULT (sysdatetime()),
+	[ExpireAt] [datetime2](0) NOT NULL,
+	[ClosedAt] [datetime2](0) NULL,
+ CONSTRAINT [PK_Auction_Listing] PRIMARY KEY CLUSTERED ([ListingId] ASC)
+) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [IX_Auction_Listing_State] ON [dbo].[Auction_Listing] ([State] ASC, [ExpireAt] ASC)
+GO
+CREATE NONCLUSTERED INDEX [IX_Auction_Listing_Seller] ON [dbo].[Auction_Listing] ([SellerId] ASC, [State] ASC)
+GO
+ALTER TABLE [dbo].[Auction_Listing]  WITH CHECK ADD  CONSTRAINT [FK_Auction_Listing_Player_Info] FOREIGN KEY([SellerId])
+REFERENCES [dbo].[Player_Info] ([PlayerId])
+GO
+ALTER TABLE [dbo].[Auction_Listing]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Listing_State] CHECK  (([State]>=(1) AND [State]<=(4)))
+GO
+ALTER TABLE [dbo].[Auction_Listing]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Listing_Count] CHECK  (([Count]>=(1)))
+GO
+ALTER TABLE [dbo].[Auction_Listing]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Listing_Price] CHECK  (([Price]>=(1)))
+GO
+/****** 개체: Table [dbo].[Player_Mail] — 수령함 1건 = 1행. Kind 1 판매 대금(Gold) · 2 구매품 · 3 만료 반환 · 4 취소 반환(ItemDbId = Player_Item.Location 4). 받으면 지운다 (A4.3) ******/
+CREATE TABLE [dbo].[Player_Mail](
+	[MailId] [bigint] IDENTITY(1,1) NOT NULL,
+	[PlayerId] [bigint] NOT NULL,
+	[Kind] [tinyint] NOT NULL,
+	[Gold] [bigint] NOT NULL CONSTRAINT [DF_Player_Mail_Gold] DEFAULT ((0)),
+	[ItemDbId] [bigint] NULL,
+	[ListingId] [bigint] NOT NULL,
+	[CreatedAt] [datetime2](0) NOT NULL CONSTRAINT [DF_Player_Mail_CreatedAt] DEFAULT (sysdatetime()),
+ CONSTRAINT [PK_Player_Mail] PRIMARY KEY CLUSTERED ([MailId] ASC)
+) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [IX_Player_Mail_Player] ON [dbo].[Player_Mail] ([PlayerId] ASC, [MailId] ASC)
+GO
+ALTER TABLE [dbo].[Player_Mail]  WITH CHECK ADD  CONSTRAINT [FK_Player_Mail_Player_Info] FOREIGN KEY([PlayerId])
+REFERENCES [dbo].[Player_Info] ([PlayerId])
+GO
+ALTER TABLE [dbo].[Player_Mail]  WITH CHECK ADD  CONSTRAINT [CK_Player_Mail_Kind] CHECK  (([Kind]>=(1) AND [Kind]<=(4)))
+GO
+ALTER TABLE [dbo].[Player_Mail]  WITH CHECK ADD  CONSTRAINT [CK_Player_Mail_Gold] CHECK  (([Gold]>=(0)))
+GO
 /****** 개체: Table [dbo].[Schema_Version] — 적용한 마이그레이션(migrations/NNNN_*.sql) 1개 = 행 1개 ******/
 CREATE TABLE [dbo].[Schema_Version](
 	[Version] [int] NOT NULL,
@@ -282,7 +332,8 @@ INSERT INTO [dbo].[Schema_Version] ([Version], [Name]) VALUES
 	(4, N'0004_2026-11-16_a33_player_item (schema.sql)'),
 	(5, N'0005_2026-11-16_a61_bag_slot (schema.sql)'),
 	(6, N'0006_2026-11-17_a36_quick_slot (schema.sql)'),
-	(7, N'0007_2026-11-17_a42_trade_log (schema.sql)')
+	(7, N'0007_2026-11-17_a42_trade_log (schema.sql)'),
+	(8, N'0008_2026-11-21_a43_auction (schema.sql)')
 GO
 USE [master]
 GO

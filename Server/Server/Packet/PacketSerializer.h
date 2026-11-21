@@ -55,6 +55,9 @@ public:
 	static shared_ptr<SendBuffer> MAKE_SC_USE_ITEM(int objectId, int itemId, int hp, int cooldownMs);
 	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_HP(int objectId, int hp);
 	static shared_ptr<SendBuffer> MAKE_SC_ITEM_RESULT(Protocol::PacketId request, Protocol::ItemResult result);
+	// 경매 요청의 결과(A4.3, 성공·거부 모두). id = 대상 listing_id(등록 성공이면 새 등록, 수령이면 mail_id).
+	// 검색 결과·내 목록(SC_AUCTION_LIST·SC_AUCTION_MY)은 AuctionService가 직접 채워 MakeSendBuffer로 만든다.
+	static shared_ptr<SendBuffer> MAKE_SC_AUCTION_RESULT(Protocol::PacketId request, Protocol::AuctionResult result, int64_t id);
 	// seq는 본인에게 보내는 거부·시간 초과에만 채운다 (그 밖은 0)
 	static shared_ptr<SendBuffer> MAKE_SC_SKILL_AIM(int objectId, int skillId, bool active, uint32_t seq);
 

@@ -29,7 +29,14 @@ enum PacketId {
     CS_TRADE_LOCK = 1021;      // 내 제시 잠금·풀기
     CS_TRADE_CONFIRM = 1022;   // 확정 (양쪽 잠금 뒤에만)
     CS_TRADE_CANCEL = 1023;    // 취소 (요청 중·제시·잠금 어느 때나)
-    CS_MOVE_ITEM = 1030;  // 인벤토리 칸 옮기기·맞바꾸기 (A6.1). 1024~1029는 A4.3 예약
+    // 경매장 (A4.3, D-159·D-234). 조회·구매·내 목록은 던전 밖 어디서나, 등록·취소·수령은 경매 NPC 근처에서만
+    CS_AUCTION_SEARCH = 1024;   // 판매 중인 등록 검색 (슬롯 필터 + 쪽)
+    CS_AUCTION_REGISTER = 1025; // 인벤토리 아이템을 경매에 등록 (스택 일부 가능)
+    CS_AUCTION_BUY = 1026;      // 등록 하나를 통째로 즉시 구매 (산 물건은 수령함으로)
+    CS_AUCTION_CANCEL = 1027;   // 내 등록 취소 (아이템은 수령함으로)
+    CS_AUCTION_MY = 1028;       // 내 등록 + 수령함 조회
+    CS_MAIL_CLAIM = 1029;       // 수령함에서 한 건 받기
+    CS_MOVE_ITEM = 1030;  // 인벤토리 칸 옮기기·맞바꾸기 (A6.1)
     CS_SHOP_OPEN = 1031;  // 상점 NPC 품목 요청 (L4, D-202)
     CS_SHOP_BUY = 1032;   // 상점 구매
     CS_SHOP_SELL = 1033;  // 상점 판매
@@ -62,7 +69,10 @@ enum PacketId {
     SC_TRADE_STATE = 2021;           // 거래 상태 전체: 단계, 양쪽 제시·잠금·확정 (두 사람에게, 바뀔 때마다)
     SC_TRADE_END = 2022;             // 거래가 끝났다: 성사 또는 취소 사유 (두 사람에게)
     SC_TRADE_RESULT = 2023;          // 거래 요청 거부 결과 (본인에게, 거부일 때만. 확정 재검증 실패는 두 사람에게)
-    SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유). 2024~2026은 A4.3 예약(DESIGN_ITEMS_TRADE)
+    SC_AUCTION_LIST = 2024;          // 검색 결과 한 쪽 (본인, A4.3)
+    SC_AUCTION_MY = 2025;            // 내 등록 + 수령함 (본인)
+    SC_AUCTION_RESULT = 2026;        // 경매 요청 결과 (본인, 성공·거부 모두): 요청 패킷 id + AuctionResult + 대상 id
+    SC_KICK = 2027;                  // 서버가 연결을 끊기 직전 본인에게 (사유)
     SC_CHANGE_HP = 2028;             // 피해·아이템 사용이 아닌 HP 변화 (AOI): 몬스터가 홈으로 돌아가 회복 (L3, D-193)
     SC_SHOP_OPEN = 2029;             // 상점 품목·구매가 (본인, L4)
     SC_TELEPORT = 2030;              // 서버가 정한 자리로 순간이동 (AOI, 본인 포함): 포털 이동 (L5, D-203)
@@ -245,6 +255,48 @@ enum TradeResult {
     TRADE_RESULT_NOT_ALLOWED = 15;     // 더미 봇, 지금 단계에서 받을 수 없는 요청
     TRADE_RESULT_DB_ERROR = 16;        // DB 실패 — 바뀐 것 없음
     TRADE_RESULT_MOVED = 17;           // 한쪽이 다른 Room으로 이동함 (SC_TRADE_END — DG3b)
+}
+
+// SC_AUCTION_RESULT_PACKET.result (A4.3 — DESIGN_ITEMS_TRADE "경매장"). 성공도 이 패킷으로 알린다(아이템·골드는 SC_INVENTORY_UPDATE로 따로).
+enum AuctionResult {
+    AUCTION_RESULT_NONE = 0;
+    AUCTION_RESULT_SUCCESS = 1;
+    AUCTION_RESULT_NOT_IN_ROOM = 2;
+    AUCTION_RESULT_DEAD = 3;
+    AUCTION_RESULT_BUSY = 4;             // 이 플레이어의 다른 아이템 작업이 진행 중·Room 이동 중 (클라는 문구를 띄우지 않음)
+    AUCTION_RESULT_TOO_FREQUENT = 5;     // 요청 간격 (클라는 문구를 띄우지 않음)
+    AUCTION_RESULT_NOT_ALLOWED = 6;      // 더미 봇(검색은 허용), 범위 밖 값
+    AUCTION_RESULT_NO_LISTING = 7;       // 없는 등록·이미 끝난 등록·내 것이 아닌 등록(취소)
+    AUCTION_RESULT_SOLD = 8;             // 다른 요청이 먼저 처리 중이거나 이미 팔림
+    AUCTION_RESULT_OWN_ITEM = 9;         // 내가 올린 물품은 살 수 없음
+    AUCTION_RESULT_NOT_ENOUGH_GOLD = 10;
+    AUCTION_RESULT_LISTING_LIMIT = 11;   // EconomyTable.AuctionMaxListings
+    AUCTION_RESULT_BAD_PRICE = 12;       // EconomyTable.AuctionMinPrice ~ AuctionMaxPrice 밖
+    AUCTION_RESULT_NO_ITEM = 13;         // 인벤토리 위치의 내 아이템이 아님(장착 중 포함)·수량 오류
+    AUCTION_RESULT_IN_TRADE = 14;        // 1:1 거래에 올린 아이템
+    AUCTION_RESULT_INVENTORY_FULL = 15;  // 수령: 빈 칸 없음
+    AUCTION_RESULT_GOLD_FULL = 16;       // 수령: 골드 상한 초과
+    AUCTION_RESULT_DB_ERROR = 17;        // DB 실패 — 바뀐 것 없음
+    AUCTION_RESULT_TOO_FAR = 18;         // 등록·취소·수령: 경매 NPC가 없거나 이용 거리(EconomyTable.ShopRangeCm) 밖 (D-234)
+    AUCTION_RESULT_IN_DUNGEON = 19;      // 던전 안에서는 경매를 쓸 수 없음 (D-234)
+    AUCTION_RESULT_TRY_LATER = 20;       // 경매 요청이 몰려 있음 — 잠시 뒤에 다시 (ServerConfig AuctionDbMaxInFlight, D-235)
+    AUCTION_RESULT_NO_MAIL = 21;         // 수령: 없는 우편
+}
+
+// 수령함 한 건의 종류 (MailInfo.kind = DB Player_Mail.Kind)
+enum MailKind {
+    MAIL_KIND_NONE = 0;
+    MAIL_KIND_SALE_GOLD = 1;     // 판매 대금 (골드)
+    MAIL_KIND_BOUGHT_ITEM = 2;   // 구매품 (아이템)
+    MAIL_KIND_EXPIRED = 3;       // 만료 반환 (아이템)
+    MAIL_KIND_CANCELLED = 4;     // 취소 반환 (아이템)
+}
+
+// NPC가 하는 일 (ObjectInfo.npc_kind — 클라이언트의 F 키 안내 구분, D-234). 한 NPC는 하나만 한다
+enum NpcKind {
+    NPC_KIND_NONE = 0;
+    NPC_KIND_SHOP = 1;       // 상점 (L4)
+    NPC_KIND_AUCTION = 2;    // 경매 관리인 — 등록·취소·수령은 이 NPC 근처에서만 (A4.3)
 }
 
 // SC_TRADE_STATE_PACKET.phase

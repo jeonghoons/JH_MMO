@@ -44,6 +44,13 @@ private:
     static void Handle_CS_SHOP_BUY(shared_ptr<GameSession> session, Protocol::CS_SHOP_BUY_PACKET& pkt);
     static void Handle_CS_SHOP_SELL(shared_ptr<GameSession> session, Protocol::CS_SHOP_SELL_PACKET& pkt);
     static void Handle_CS_PORTAL(shared_ptr<GameSession> session, Protocol::CS_PORTAL_PACKET& pkt);
+    // 경매장 (A4.3). 모두 Room 잡으로 넘긴다(Room::PlayerAuction*·PlayerMailClaim)
+    static void Handle_CS_AUCTION_SEARCH(shared_ptr<GameSession> session, Protocol::CS_AUCTION_SEARCH_PACKET& pkt);
+    static void Handle_CS_AUCTION_REGISTER(shared_ptr<GameSession> session, Protocol::CS_AUCTION_REGISTER_PACKET& pkt);
+    static void Handle_CS_AUCTION_BUY(shared_ptr<GameSession> session, Protocol::CS_AUCTION_BUY_PACKET& pkt);
+    static void Handle_CS_AUCTION_CANCEL(shared_ptr<GameSession> session, Protocol::CS_AUCTION_CANCEL_PACKET& pkt);
+    static void Handle_CS_AUCTION_MY(shared_ptr<GameSession> session, Protocol::CS_AUCTION_MY_PACKET& pkt);
+    static void Handle_CS_MAIL_CLAIM(shared_ptr<GameSession> session, Protocol::CS_MAIL_CLAIM_PACKET& pkt);
     static void Handle_CS_PICKUP_ITEM(shared_ptr<GameSession> session, Protocol::CS_PICKUP_ITEM_PACKET& pkt);
     static void Handle_CS_DROP_ITEM(shared_ptr<GameSession> session, Protocol::CS_DROP_ITEM_PACKET& pkt);
     static void Handle_CS_USE_ITEM(shared_ptr<GameSession> session, Protocol::CS_USE_ITEM_PACKET& pkt);

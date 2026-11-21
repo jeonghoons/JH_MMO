@@ -2096,6 +2096,15 @@
         "y": -22.0,
         "yaw": 180.0,
         "template_id": 1001
+      },
+      {
+        "id": 401,
+        "label": "Auction_Manager",
+        "area": "town",
+        "x": -156.0,
+        "y": 35.0,
+        "yaw": -90.0,
+        "template_id": 1002
       }
     ],
     "safe_zones": [

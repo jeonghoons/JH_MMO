@@ -56,7 +56,18 @@ enum class ItemOpKind
 	Trade,      // 1:1 거래 확정: 양쪽 아이템 이동 + 골드 증감 + Trade_Log 1행 (조립식 쿼리, A4.2). playerUID = 요청한 쪽(A)
 	ShopBuy,    // 상점 구매: Pickup과 같은 계획·쿼리(fills·newCounts)에 goldDelta = -총액 (L4, D-202)
 	ShopSell,   // 상점 판매: 행 DELETE(전량) 또는 수량 감소(일부) + 골드 증액 (고정 쿼리, L4)
+	// 경매장(A4.3). 앞의 셋은 Room → AuctionService → DB → AuctionService → Room으로 돌고(Room::StartAuctionOp), 수령은 서비스를 거치지 않는다
+	AuctionRegister,   // 등록: 아이템을 경매 보관(Location 3)으로 + Auction_Listing 1행. 스택 일부면 원래 행 수량 감소 + 새 행
+	AuctionBuy,        // 즉시 구매: 등록 State 1 → 2 + 골드 차감 + 아이템을 구매자 수령함(Location 4)으로 + Player_Mail 2행(구매품·판매 대금)
+	AuctionCancel,     // 취소: 등록 State 1 → 4 + 아이템을 판매자 수령함으로 + Player_Mail 1행
+	MailClaim,         // 수령: 아이템이면 Location 4 → 1(빈 칸), 골드면 증액(상한 안) + Player_Mail 행 삭제
 };
+
+// 경매 종류의 아이템 작업인가(혼잡 카운터·결과 패킷이 다르다 — A4.3)
+inline bool IsAuctionOp(ItemOpKind kind)
+{
+	return kind == ItemOpKind::AuctionRegister || kind == ItemOpKind::AuctionBuy || kind == ItemOpKind::AuctionCancel || kind == ItemOpKind::MailClaim;
+}
 
 struct DB_ItemOp {
 	ItemOpKind kind = ItemOpKind::Give;
@@ -124,6 +135,21 @@ struct DB_ItemOp {
 	int64_t sellDbId = 0;                     // 팔 행
 	int32_t sellExpectCount = 0;              // 그 행의 지금 수량(기대 상태)
 	int32_t sellCount = 0;                    // 파는 수량(1 ~ sellExpectCount, 같으면 행을 지운다)
+
+	// 경매장(A4.3). AuctionRegister — 올리는 종류는 itemId에 담는다
+	int64_t auctionDbId = 0;                  // 올릴 행
+	int32_t auctionExpectCount = 0;           // 그 행의 지금 수량(기대 상태)
+	int32_t auctionCount = 0;                 // 올리는 수량(1 ~ auctionExpectCount, 같으면 행을 통째로 경매 보관으로 옮긴다)
+	int32_t auctionSlot = -1;                 // 그 행이 지금 있는 칸(기대 상태)
+	int64_t auctionPrice = 0;                 // 묶음 전체의 값. AuctionBuy에서는 서비스가 목록의 값을 적는다(로그용)
+	int32_t auctionDurationSec = 0;           // 등록 기간(EconomyTable.AuctionDurationSec)
+	// AuctionBuy·AuctionCancel
+	int64_t listingId = 0;                    // 대상 등록
+	int64_t auctionGold = 0;                  // AuctionBuy: 요청 때의 보유 골드(서비스가 가격과 비교한다 — 서비스는 Player를 만지지 않는다)
+	int64_t auctionSellerUID = 0;             // AuctionBuy: 서비스가 목록에서 적는다(판매자 — 판매 알림을 붙일 자리)
+	// MailClaim — 골드 상한은 goldMax에 담는다
+	int64_t mailId = 0;
+	int32_t claimSlot = -1;                   // 아이템이면 들어갈 인벤토리 칸(-1 = 빈 칸 없음 — 아이템 우편이면 DB가 INVENTORY_FULL로 거부)
 };
 
 struct DB_ItemOpResult {
@@ -132,6 +158,33 @@ struct DB_ItemOpResult {
 	std::vector<int64_t> newDbIds;   // Give: newCounts 순서대로 발급된 ItemDbId
 	int64_t gold = -1;               // 골드를 바꿨으면 바뀐 뒤 잔액, 아니면 -1
 	int64_t gold2 = -1;              // Trade: 상대(B)의 바뀐 뒤 잔액, 골드가 오가지 않았으면 -1
+	// 경매장(A4.3)
+	int32_t auctionResult = 0;       // 실패 사유(Protocol::AuctionResult, 0 = 없음): 서비스가 거부했거나(DB에 가지 않음) DB가 사유를 알려 줌(수령)
+	int64_t listingId = 0;           // AuctionRegister: 새 등록의 ListingId
+	int64_t claimDbId = 0;           // MailClaim: 받은 아이템 행(골드 우편이면 0)
+	int32_t claimItemId = 0;
+	int32_t claimCount = 0;
+	std::vector<int64_t> expiredIds; // 만료 묶음: 실제로 만료 처리된 ListingId
+};
+
+// 판매 중인 경매 등록 한 건(Auction_Listing State 1). 서버 시작 때와 판매자 목록을 다시 맞출 때 읽는다 (A4.3)
+struct DB_AuctionListing {
+	int64_t listingId = 0;
+	int64_t sellerUID = 0;
+	int32_t itemId = 0;
+	int32_t count = 0;
+	int64_t price = 0;
+	int32_t remainSec = 0;           // 만료까지 남은 초(지났으면 0 이하). DB 시계 기준 — 받은 쪽이 서버 시계로 바꾼다
+};
+
+// 수령함 한 건(Player_Mail + 아이템이면 그 Player_Item 행의 종류·수량) (A4.3)
+struct DB_MailRow {
+	int64_t mailId = 0;
+	int32_t kind = 0;                // 1 판매 대금 · 2 구매품 · 3 만료 반환 · 4 취소 반환
+	int64_t gold = 0;
+	int32_t itemId = 0;              // 아이템 우편이 아니면 0
+	int32_t count = 0;
+	int64_t listingId = 0;
 };
 
 struct DB_PlayerData {
@@ -243,6 +296,7 @@ struct NpcData
 	int templateId;
 	std::string displayName;   // UTF-8
 	int shopId;                // 0 = 상점 없음
+	int auction;               // 1 = 경매 관리인(등록·취소·수령은 이 NPC 근처에서만 — A4.3, D-234). 상점과 겸하지 않는다
 	int body;                  // Protocol::PlayerType (1 MALE, 2 FEMALE)
 	int equip[NPC_EQUIP_SLOTS]; // 슬롯 순서(Head·Top·Bottom·Gloves·Boots·Weapon·Offhand)의 itemId, 0 = 없음
 };

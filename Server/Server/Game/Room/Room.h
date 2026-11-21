@@ -214,6 +214,18 @@ public:
 	void PlayerShopBuy(shared_ptr<Player> player, int npcId, int itemId, int count);
 	// 판매: 인벤토리 위치의 내 행 → 수량(스택 일부 가능) → SellPrice > 0 → 골드 상한을 검증하고 행 삭제(또는 수량 감소) + 골드 증액을 한 트랜잭션에 한다.
 	void PlayerShopSell(shared_ptr<Player> player, int npcId, int64_t itemDbId, int count);
+	// ---- 경매장 (A4.3, D-159·D-234·D-235 — DESIGN_ITEMS_TRADE "경매장") ----
+	// 쓰는 곳(D-234): 검색·구매·내 목록은 던전 밖 어디서나, 등록·취소·수령은 경매 NPC(TownNpc::IsAuction) 근처에서만.
+	// 결과는 본인에게 SC_AUCTION_RESULT(성공·거부 모두), 아이템·골드 변화는 SC_INVENTORY_UPDATE.
+	// 검색·내 목록: 여기서는 검증만 하고 경매 서비스가 세션에 직접 답한다(itemOp를 쓰지 않는다). 더미 봇도 검색은 할 수 있다.
+	void PlayerAuctionSearch(shared_ptr<Player> player, int slot, int page);
+	void PlayerAuctionMy(shared_ptr<Player> player);
+	// 등록·구매·취소: 검증하고 itemOp를 켠 뒤 경매 서비스로 보낸다(StartItemOp) → 서비스가 목록으로 검증 → DB → 서비스 → OnItemOpDone.
+	void PlayerAuctionRegister(shared_ptr<Player> player, int npcId, int64_t itemDbId, int count, int64_t price);
+	void PlayerAuctionBuy(shared_ptr<Player> player, int64_t listingId);
+	void PlayerAuctionCancel(shared_ptr<Player> player, int npcId, int64_t listingId);
+	// 수령: 서비스를 거치지 않고 Room → DB → Room. 우편 내용(아이템인지 골드인지)은 DB가 읽어 판단한다 — 여기서는 들어갈 빈 칸만 골라 보낸다.
+	void PlayerMailClaim(shared_ptr<Player> player, int npcId, int64_t mailId);
 
 	// 소비 아이템 사용(A3.6, D-154). itemDbId가 0이면 itemId 종류 중 수량이 적은 스택부터 고른다(액티브 칸).
 	// 검증(보유 → 사용 효과 → 레벨 → 생존 → HP 최대 → 재사용 시간 → 요청 간격·진행 중인 작업) 뒤 DB에서 1개를 줄이고,
@@ -389,7 +401,19 @@ private:
 	// 아이템 요청의 공통 검사: 방 안 → 더미 봇 아님 → 요청 간격 → 진행 중인 작업 없음. 통과하면 ITEM_RESULT_SUCCESS.
 	Protocol::ItemResult CheckItemRequest(const shared_ptr<Player>& player);
 	// itemOp를 켜고 DB 작업을 보낸다. 결과는 OnItemOpDone으로 돌아온다.
+	// 경매 등록·구매·취소는 DB로 바로 가지 않고 경매 서비스(AuctionService::BeginOp)를 거친다 — 서비스가 거부해도 OnItemOpDone으로 돌아온다.
 	void StartItemOp(const shared_ptr<Player>& player, DB_ItemOp op);
+
+	// ---- 경매장(A4.3) ----
+	enum class AuctionRequest
+	{
+		Search,      // 검색: 요청 간격만 본다. 더미 봇 허용
+		My,          // 내 등록 + 수령함 조회: 요청 간격만 본다
+		Change,      // 구매: 아이템 요청 공통 검사(요청 간격·진행 중인 작업·Room 이동)
+		NpcChange,   // 등록·취소·수령: Change + 경매 NPC 존재·이용 거리(EconomyTable.ShopRangeCm)
+	};
+	// 경매 요청 공통 검증: 방 안 → 더미 봇(검색만 허용) → 생존 → 던전 아님 → 요청 간격(·진행 중인 작업) → 경매 NPC·거리. 통과하면 SUCCESS.
+	Protocol::AuctionResult CheckAuctionRequest(const shared_ptr<Player>& player, AuctionRequest kind, int npcId);
 
 	// 플레이어의 드랍 시야(Player::dropView)를 지금 위치 기준으로 맞춘다: 반경 R 안에 새로 들어온 드랍은 SC_ADD_OBJECT,
 	// R+H 밖으로 멀어진 드랍은 SC_REMOVE_OBJECT. 플레이어 위치가 바뀌는 곳(PlayerMove·PlayerRevive)과 입장 때 부른다.

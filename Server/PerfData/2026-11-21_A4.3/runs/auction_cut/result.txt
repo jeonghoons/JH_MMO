@@ -1,0 +1,2 @@
+PASS cut  (DB 아이템 89856, 골드 606408)
+PASS movewait  (DB 아이템 89857, 골드 606408)

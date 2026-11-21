@@ -34,6 +34,10 @@ struct ServerConfig
 	std::string dbConnectionString = "Driver={ODBC Driver 17 for SQL Server};Server=.\\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;";
 	int dbConnections = 4;
 	int playerSaveIntervalSec = 60; // 진행 상황(레벨·경험치·HP·골드) 주기 저장 간격(A2.5). 값이 달라진 플레이어만 저장한다
+	// 경매 혼잡 기준(D-235): 경매 종류의 DB 작업(등록·구매·취소·수령·수령함 읽기·만료 묶음)이 이 수를 넘게 진행 중이면
+	// 새 요청을 AUCTION_RESULT_TRY_LATER로 거부한다. 0이면 끔. 값은 PL1·A5.4 측정으로 조정한다
+	int auctionDbMaxInFlight = 16;
+	std::string auctionDbMaxInFlightFrom = "default";
 
 	// [Log] — Logger(ServerCore Utils/Logger)에 넘긴다
 	LogLevel logLevel = LogLevel::Info;

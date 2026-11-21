@@ -22,6 +22,9 @@
     <Filter Include="Game">
       <UniqueIdentifier>{6A43D4FE-574F-5572-89BE-9093AF987C50}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\Auction">
+      <UniqueIdentifier>{3F9A6C12-8D4E-5B7A-A1C3-2E5D7F9B4A60}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Game\Combat">
       <UniqueIdentifier>{9D5BFADA-BF3F-5A2F-8491-72DE6036E9A6}</UniqueIdentifier>
     </Filter>
@@ -68,6 +71,9 @@
     </ClInclude>
     <ClInclude Include="Game\Combat\CombatProcessor.h">
       <Filter>Game\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Auction\AuctionService.h">
+      <Filter>Game\Auction</Filter>
     </ClInclude>
     <ClInclude Include="Game\Lobby\AuthLobby.h">
       <Filter>Game\Lobby</Filter>
@@ -149,6 +155,9 @@
     </ClCompile>
     <ClCompile Include="Game\Combat\CombatProcessor.cpp">
       <Filter>Game\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Auction\AuctionService.cpp">
+      <Filter>Game\Auction</Filter>
     </ClCompile>
     <ClCompile Include="Game\Lobby\AuthLobby.cpp">
       <Filter>Game\Lobby</Filter>

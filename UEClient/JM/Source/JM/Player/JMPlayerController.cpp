@@ -87,7 +87,7 @@ void AJMPlayerController::ShopOpen()
 
 	// 시야 안의 가장 가까운 NPC(거리 제한 없이 고른다 — 멀면 서버가 TOO_FAR로 거부한다).
 	float DistSq = 0.f;
-	const int32 NpcId = ObjectManager->FindNearestNpc(MyPawn->GetActorLocation(), 1000000.f, DistSq);
+	const int32 NpcId = ObjectManager->FindNearestNpc(MyPawn->GetActorLocation(), 1000000.f, DistSq, static_cast<int32>(Protocol::NPC_KIND_SHOP));
 	if (NpcId == 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ShopOpen: 시야 안에 NPC가 없습니다."));

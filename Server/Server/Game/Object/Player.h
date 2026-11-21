@@ -113,6 +113,8 @@ public:
 		Cooldown interval;       // 아이템 요청 최소 간격(EconomyTable.ItemMinIntervalMs). 장착은 equipCooldown을 쓴다
 	};
 	ItemOpState itemOp;
+	// 경매 조회(검색·내 목록) 요청의 최소 간격(EconomyTable.ItemMinIntervalMs). 조회는 itemOp를 쓰지 않아 간격을 따로 잰다 (A4.3). Room 잡 안에서만
+	Cooldown auctionQuery;
 
 	// 지금 클라이언트에 보이는 바닥 드랍 id(A3.4). 캐릭터 시야(_viewList)와 따로 관리한다(Room::UpdateDropView).
 	// Room 잡 안에서만 읽고 쓴다. 방에 들어올 때·나갈 때 비운다.

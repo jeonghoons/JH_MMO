@@ -12,8 +12,10 @@ class TownNpc : public StaticObject
 {
 public:
 	TownNpc(int id, const NpcData& data, const MapPosition& pos)
-		: StaticObject(Protocol::ObjectType::OBJECT_TYPE_NPC), _shopId(data.shopId)
+		: StaticObject(Protocol::ObjectType::OBJECT_TYPE_NPC), _shopId(data.shopId), _auction(data.auction == 1)
 	{
+		// 클라이언트가 F 키 안내(상점·경매장)를 가르는 값(D-234)
+		_objectInfo.set_npc_kind(_auction ? Protocol::NPC_KIND_AUCTION : (_shopId != 0 ? Protocol::NPC_KIND_SHOP : Protocol::NPC_KIND_NONE));
 		_objectInfo.set_id(id);
 		_objectInfo.set_template_id(data.templateId);
 		_objectInfo.set_name(data.displayName);
@@ -30,7 +32,10 @@ public:
 	int GetTemplateId() const { return _objectInfo.template_id(); }
 	// 이 NPC가 여는 상점(ShopTable.ShopId). 0 = 상점 없음
 	int GetShopId() const { return _shopId; }
+	// 경매 관리인인가(A4.3 — 경매 등록·취소·수령은 이 NPC 근처에서만)
+	bool IsAuction() const { return _auction; }
 
 private:
 	int _shopId = 0;
+	bool _auction = false;
 };

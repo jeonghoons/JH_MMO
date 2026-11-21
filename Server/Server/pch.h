@@ -28,6 +28,7 @@ using namespace DirectX;
 #include "Packet/PacketSerializer.h"
 #include "Game/Lobby/AuthLobby.h"
 #include "Game/World/WorldService.h"
+#include "Game/Auction/AuctionService.h"
 #include "Utils/MathUtils.h"
 #include "Data/ServerData.h"
 #include "Data/ServerConfig.h"
@@ -38,3 +39,4 @@ extern shared_ptr<Timer> GTimer;
 extern shared_ptr<DatabaseWorker> GDBWorker;
 extern shared_ptr<AuthLobby> GLobby;
 extern shared_ptr<WorldService> GWorld;
+extern shared_ptr<AuctionService> GAuction;

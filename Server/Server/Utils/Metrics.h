@@ -91,6 +91,17 @@ namespace Metrics
 	inline std::atomic<long long> PartyRejected{ 0 };       // 초대·수락이 거부된 수(SC_PARTY_RESULT)
 	inline std::atomic<long long> PartyCreated{ 0 };
 	inline std::atomic<long long> PartyDisbanded{ 0 };      // 한 명만 남아 없어진 파티
+	// 경매장(A4.3): AuctionService·Room이 적는다. 앞의 둘은 지금 값, 나머지는 누적
+	inline std::atomic<int>       AuctionListings{ 0 };     // 판매 중인 등록 수(서비스의 메모리 목록)
+	inline std::atomic<int>       AuctionDbInFlight{ 0 };   // 진행 중인 경매 DB 작업 수 = 혼잡 기준(D-235)이 보는 값. 접속이 모두 끝나면 0이어야 한다
+	inline std::atomic<long long> AuctionSearches{ 0 };     // 검색 요청(서비스가 답한 수)
+	inline std::atomic<long long> AuctionRegistered{ 0 };
+	inline std::atomic<long long> AuctionBought{ 0 };
+	inline std::atomic<long long> AuctionCancelled{ 0 };
+	inline std::atomic<long long> AuctionClaimed{ 0 };      // 수령한 우편 수
+	inline std::atomic<long long> AuctionExpired{ 0 };      // 만료 반환한 등록 수
+	inline std::atomic<long long> AuctionRejected{ 0 };     // 거부·실패(SC_AUCTION_RESULT, 성공이 아닌 것 — TRY_LATER 포함)
+	inline std::atomic<long long> AuctionTryLater{ 0 };     // 혼잡 기준에 걸려 받지 않은 수(만료 묶음을 미룬 것 포함)
 	inline std::atomic<int>       Monsters{ 0 };      // 현재 월드에 살아 있거나 시체로 남아 있는 몬스터 수
 	inline std::atomic<long long> AttackRequests{ 0 };  // CS_ATTACK 수신 수(누적)
 	inline std::atomic<long long> AttackAccepted{ 0 };  // 쿨타임·상태 검사를 통과한 플레이어 공격 수(누적)

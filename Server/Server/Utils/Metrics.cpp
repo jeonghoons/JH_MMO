@@ -29,7 +29,8 @@ namespace
 		"job_dispatch_p50_ms,job_dispatch_p99_ms,job_busy_ms_ps,flush_busy_ms_ps,flush_runs_ps,send_kick_ps,"
 		"session_objects,handles,sendq_total,idle_kicks,sendq_kicks,channels,roster,channel_max,"
 		"town_players,field_players,tick_late_p99_town_ms,tick_late_p99_field_ms,tick_body_p99_town_ms,tick_body_p99_field_ms,room_moves,"
-		"rooms_alive,monsters,drops,dungeon_players,tick_late_p99_dungeon_ms,tick_body_p99_dungeon_ms,dungeons,dungeons_created,dungeons_closed";
+		"rooms_alive,monsters,drops,dungeon_players,tick_late_p99_dungeon_ms,tick_body_p99_dungeon_ms,dungeons,dungeons_created,dungeons_closed,"
+		"auction_listings,auction_db_inflight,auction_search_ps,auction_try_later";
 
 	// 누적 카운터의 구간 증가량을 초당 값으로 바꾼다.
 	struct RateCounter
@@ -130,6 +131,7 @@ namespace
 		long long prevAtkOk = Metrics::AttackAccepted.load();
 		RateCounter sendFlushes(NetStats::SendFlushes), sendContinues(NetStats::SendContinues), sendDirect(NetStats::SendDirect), sendKicks(NetStats::SendKicks);
 		RateCounter sendWakes(NetStats::SendWakes), jobsExecuted(NetStats::JobsExecuted), jobReposts(NetStats::JobReposts);
+		RateCounter auctionSearches(Metrics::AuctionSearches);
 		MsBucketStat flushGap(NetStats::FlushGapMs), jobWait(NetStats::JobWaitMs), jobDispatch(NetStats::JobDispatchMs);
 		RateCounter jobRunSum(NetStats::JobRunSumUs), flushRunSum(NetStats::FlushRunSumUs), flushRuns(NetStats::FlushRuns);
 
@@ -208,6 +210,7 @@ namespace
 			const double jobRunMaxMs = NetStats::JobRunMaxUs.exchange(0) / 1000.0;
 			const double flushRunMaxMs = NetStats::FlushRunMaxUs.exchange(0) / 1000.0;
 			const Metrics::Percentiles wakeLate = Metrics::SendWakeLate.TakeAndReset();
+			const double auctionSearchPs = auctionSearches.Take();
 
 			LOG_INFO("metrics",
 				"sessions={} rooms={} players={} monsters={} in/s={:.0f} out/s={:.0f} sendCalls/s={:.0f} bufsPerSend={:.2f} atk(req/ok per s)={:.1f}/{:.1f} zones(total created/hits)={}/{} "
@@ -228,7 +231,8 @@ namespace
 				"kind(town/field players)={}/{} tickLateP99(town/field ms)={:.1f}/{:.1f} tickBodyP99(town/field ms)={:.2f}/{:.2f} "
 				"roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)={}/{}/{}/{}/{} {}/{}/{} "
 				"party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)={}/{}/{} {}/{}/{}/{}/{} {}/{} "
-				"roomsAlive={} dungeon(now/created/closed players)={}/{}/{} {} tickLateP99(dungeon ms)={:.1f} tickBodyP99(dungeon ms)={:.2f}",
+				"roomsAlive={} dungeon(now/created/closed players)={}/{}/{} {} tickLateP99(dungeon ms)={:.1f} tickBodyP99(dungeon ms)={:.2f} "
+				"auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater)={}/{} {:.1f} {}/{}/{}/{}/{} {}/{}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, sendCallsPs, bufsPerSend, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
@@ -262,7 +266,10 @@ namespace
 				Metrics::PartyInvites.load(), Metrics::PartyAccepted.load(), Metrics::PartyDeclined.load(), Metrics::PartyTimeout.load(), Metrics::PartyRejected.load(),
 				Metrics::PartyCreated.load(), Metrics::PartyDisbanded.load(),
 				roomsAlive, Metrics::DungeonInstances.load(), Metrics::DungeonCreated.load(), Metrics::DungeonClosed.load(), kindPlayers[2],
-				lateKind[2].p99 / 1000.0, bodyKind[2].p99 / 1000.0);
+				lateKind[2].p99 / 1000.0, bodyKind[2].p99 / 1000.0,
+				Metrics::AuctionListings.load(), Metrics::AuctionDbInFlight.load(), auctionSearchPs,
+				Metrics::AuctionRegistered.load(), Metrics::AuctionBought.load(), Metrics::AuctionCancelled.load(), Metrics::AuctionClaimed.load(), Metrics::AuctionExpired.load(),
+				Metrics::AuctionRejected.load(), Metrics::AuctionTryLater.load());
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << runId << "," << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","
@@ -279,7 +286,8 @@ namespace
 				<< bodyKind[0].p99 / 1000.0 << "," << bodyKind[1].p99 / 1000.0 << "," << Metrics::RoomMoveDone.load() << ","
 				<< roomsAlive << "," << Metrics::Monsters.load() << "," << Metrics::Drops.load() << "," << kindPlayers[2] << ","
 				<< lateKind[2].p99 / 1000.0 << "," << bodyKind[2].p99 / 1000.0 << ","
-				<< Metrics::DungeonInstances.load() << "," << Metrics::DungeonCreated.load() << "," << Metrics::DungeonClosed.load() << "\n";
+				<< Metrics::DungeonInstances.load() << "," << Metrics::DungeonCreated.load() << "," << Metrics::DungeonClosed.load() << ","
+				<< Metrics::AuctionListings.load() << "," << Metrics::AuctionDbInFlight.load() << "," << auctionSearchPs << "," << Metrics::AuctionTryLater.load() << "\n";
 			csv.flush();
 		}
 	}

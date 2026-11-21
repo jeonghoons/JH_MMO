@@ -807,7 +807,7 @@ bool DataManager::Init()
 		}
 	}
 
-	// NpcTable(서버 전용, L4·D-202): Name(=npcTemplateId, 1001~), DisplayName, ShopId(0 = 상점 없음), Body(Male/Female),
+	// NpcTable(서버 전용, L4·D-202): Name(=npcTemplateId, 1001~), DisplayName, ShopId(0 = 상점 없음), Auction(1 = 경매 관리인, A4.3·D-234), Body(Male/Female),
 	//                               Head, Top, Bottom, Gloves, Boots, Weapon, Offhand (장착 외형 itemId, 0 = 없음)
 	CsvFile npc;
 	if (!npc.Load((dir / "NpcTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
@@ -818,7 +818,7 @@ bool DataManager::Init()
 			NpcData d{};
 			std::string body;
 			if (!row.GetInt("Name", d.templateId, err) || !row.GetString("DisplayName", d.displayName, err) ||
-				!row.GetInt("ShopId", d.shopId, err) || !row.GetString("Body", body, err))
+				!row.GetInt("ShopId", d.shopId, err) || !row.GetInt("Auction", d.auction, err) || !row.GetString("Body", body, err))
 			{
 				LOG_ERROR("Data", "{}", err);
 				return false;
@@ -839,6 +839,12 @@ bool DataManager::Init()
 			if (d.shopId < 0 || (d.shopId != 0 && _shopTable.find(d.shopId) == _shopTable.end()))
 			{
 				LOG_ERROR("Data", "{}ShopId {} 가 ShopTable에 없습니다 (상점이 없으면 0)", where, d.shopId);
+				return false;
+			}
+			// 한 NPC는 상점과 경매 가운데 하나만 한다(D-234 — 클라이언트의 F 키 안내가 NPC마다 하나)
+			if ((d.auction != 0 && d.auction != 1) || (d.auction == 1 && d.shopId != 0))
+			{
+				LOG_ERROR("Data", "{}Auction 은 0 또는 1이고, 1이면 ShopId 가 0이어야 합니다 (Auction {}, ShopId {})", where, d.auction, d.shopId);
 				return false;
 			}
 			if (body == "Male") d.body = 1;

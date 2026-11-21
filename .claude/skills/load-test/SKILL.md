@@ -26,6 +26,8 @@ description: LoadTest·DummyClient 봇으로 부하 시험, 연결 혼란 시험
 - `DevCommands=true`(개발 지급 명령 `CS_DEV_GIVE`를 받음)
 - `DbItemFailEvery=<n>`(아이템 트랜잭션을 n번에 한 번 일부러 롤백 — DB 실패 때 메모리·DB가 그대로인지 시험, D-162).
 
+경매 혼잡 기준은 시험 키가 아니라 운영 값 `[Database] AuctionDbMaxInFlight`(기본 16, 0 = 끔 — D-235)입니다. `DbSaveDelayMs`와 함께 1로 낮추면 `TRY_LATER` 경로를 볼 수 있습니다(`DbSaveDelayMs`는 수령함 읽기에도 걸림).
+
 ## 기능별 봇 인자
 
 - 개발 지급·칸 옮기기: `--give-gear`·`--give-interval`·`--slot-interval`(서버 `DevCommands=true` 필요)
@@ -37,6 +39,7 @@ description: LoadTest·DummyClient 봇으로 부하 시험, 연결 혼란 시험
 - 파티 시험(원시 소켓, `Server/PerfData/2026-11-20_DG2/`): `bash run_party_tests.sh [Debug|Release] [plain loot small channel midmove]` — 묶음마다 설정·데이터 테이블 사본(`JH_DATA_DIR`)으로 서버를 띄워 `party_test.py` 시나리오를 돌리고 `[metrics]` 잔류(`party(now …)` 0/0/0 포함)를 판정합니다. 공용 코드는 DG3b의 `movekit.py`. 기다리기만 하는 클라이언트도 5초마다 핑을 보내야 유휴 타임아웃(60초)에 끊기지 않고, 시험 계정은 약해서 몬스터 처치는 시나리오당 한 번만(죽으면 마을에서 부활해 돌아옴). 부하 `run_load.sh`·`summarize.py`.
 - 던전(DG3c-1): `--dungeon`(사냥터 Room에 있으면 입구 포털 100을 요청 — `--party-size`와 함께면 묶음이 다 모인 파티장만, 파티원은 따라 들어감. 던전 밖에서는 공격하지 않음 — 시전 중이면 서버가 포털 요청을 버림)·`--dungeon-stay-sec S`(들어간 뒤 이 시간 ±25%에 출구 900을 요청하고 다시 들어감 — 서버 `PortalNoRange=true` 필요)·`--dungeon-map <던전 로직 JSON>`(던전 안 hunt 봇이 찾아갈 스폰). 봇은 레벨이 다른 `SC_ROOM_CHANGE`를 받으면 곧바로 `CS_ENTER_ROOM`(로딩 끝)을 보냅니다. 입구 앞에 세우려면 서버 `DummyRoom=field` + `DummySpawnZone=19020,-18800,300`(봇 `--zone`도 같은 값). 요약 `[summary] dungeon: enterSent=… entered=… exitSent=… cleared=… inDungeonNow=…`.
 - 던전 시험(원시 소켓, `Server/PerfData/2026-11-20_DG3c/`): `bash run_dungeon_tests.sh [Debug|Release] [plain party handoff limits clear]` — 묶음마다 설정·데이터 테이블 사본(`tweak_tables.py`)으로 서버를 띄워 `dungeon_test.py` 시나리오(혼자 입장·출구, 격리, 파티 동반 입장·탈퇴 시 내보냄, 로딩 대기 중 끊김·중복 로그인·시한, 인계 구간 끊김, 상한, 클리어)를 돌리고 DB 아이템·골드 합계와 `[metrics]` 잔류를 판정합니다: `dungeon(now/created/closed players)`의 `now` 0·`created` = `closed`, `roomsAlive` = `rooms` = 시험 전 값, `monsters` = 시험 전 값, `drops` 0. 모든 묶음은 `PortalNoRange=true`. 시험 클라이언트는 레벨이 바뀌면 `CS_ENTER_ROOM`을 보내야 들어가집니다(`auto_load`). 측정은 `run_load.sh`(회귀 `hunt_250`·`spread_250` + 인스턴스 50·100·250개 + 입장·퇴장 반복) → `summarize.py`.
+- 경매 시험(A4.3, 원시 소켓, `Server/PerfData/2026-11-21_A4.3/`): `bash run_auction_tests.sh [Debug|Release] [plain race expire limits fail busy cut restart]` — 묶음마다 **서버를 띄우기 전에** `reset_db.sql`로 시험 계정(Test1~Test4)의 경매 흔적(등록·우편·경매 보관/수령함 아이템·지급받은 시험 아이템)을 지우고 골드를 1000으로 맞춘 뒤, 설정·`EconomyTable` 사본(`tweak_tables.py <폴더> <열=값>…`)으로 서버를 띄워 `auction_test.py` 시나리오를 돌립니다(`restart` 묶음은 중간에 서버를 다시 띄움). 판정: 시나리오마다 DB 합계(아이템 수량 합, 보유 골드 + 수령함 골드 — 지급한 만큼만 증가)와 경매 데이터 정합(`db_broken` 0), 묶음마다 `[metrics]` 잔류 0·`auction(... dbInFlight)` 0·서비스 목록 수 = DB의 판매 중 등록 수·ERROR 0. 모든 묶음은 `DevCommands=true`·`PortalNoRange=true`. 경매 NPC까지는 꺾임점을 따라 걷습니다(`route_to_npc` — 마을 소품을 옮기면 함께 고침). 회귀(앞 항목의 시나리오 + 더미 250명 사냥 램프)는 `run_regress.sh`. 더미 봇은 검색(`CS_AUCTION_SEARCH`)만 받아지고 봇의 경매 프로필은 아직 없습니다(A5.2).
 - 핑: `--ping-interval`(기본 1초, 서버 유휴 타임아웃 60초보다 짧아야 함)
 
 ## 읽는 법

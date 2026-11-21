@@ -149,6 +149,11 @@ namespace
 				if (!ParseInt(e.value, 1, 3600, cfg.playerSaveIntervalSec)) { err = where + "PlayerSaveIntervalSec must be 1~3600: '" + e.value + "'"; return false; }
 				cfg.playerSaveIntervalSecFrom = from;
 			}
+			else if (name == "Database.AuctionDbMaxInFlight")
+			{
+				if (!ParseInt(e.value, 0, 100000, cfg.auctionDbMaxInFlight)) { err = where + "AuctionDbMaxInFlight must be 0~100000: '" + e.value + "'"; return false; }
+				cfg.auctionDbMaxInFlightFrom = from;
+			}
 			else if (name == "Log.Level")
 			{
 				if (!ParseLogLevel(e.value, cfg.logLevel)) { err = where + "Level must be Debug/Info/Warn/Error: '" + e.value + "'"; return false; }
@@ -350,6 +355,7 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "Database.ConnectionString = {}  ({})", MaskSecrets(dbConnectionString), dbConnectionStringFrom);
 	LOG_INFO("Config", "Database.Connections      = {}  ({})", dbConnections, dbConnectionsFrom);
 	LOG_INFO("Config", "Database.PlayerSaveIntervalSec = {}  ({})", playerSaveIntervalSec, playerSaveIntervalSecFrom);
+	LOG_INFO("Config", "Database.AuctionDbMaxInFlight = {}  ({})", auctionDbMaxInFlight, auctionDbMaxInFlightFrom);
 	LOG_INFO("Config", "Log.Level                 = {}  ({})", LogLevelName(logLevel), logLevelFrom);
 	LOG_INFO("Config", "Log.Dir                   = {}  ({})", logDir.empty() ? "(파일 출력 안 함)" : logDir, logDirFrom);
 	LOG_INFO("Config", "World.MapName             = {}  ({})", mapName, mapNameFrom);

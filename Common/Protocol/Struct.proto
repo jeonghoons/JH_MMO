@@ -36,6 +36,7 @@ message ObjectInfo {
 	string name = 10;         // 플레이어 캐릭터 이름(UTF-8). 몬스터는 빈 문자열
 	int32 level = 11;         // 플레이어 레벨(경험치 보상 전까지 시작 레벨 고정, A2.3b). 몬스터는 0
 	int64 item_count = 12;    // 바닥 드랍(OBJECT_TYPE_ITEM)의 수량. template_id = ItemTable ID(0 = 골드, 이때는 금액). 그 밖은 0 (A3.4)
+	NpcKind npc_kind = 13;    // NPC(OBJECT_TYPE_NPC)가 하는 일: 상점·경매. 그 밖은 0 (A4.3, D-234)
 }
 
 // 아이템 한 개(스택이면 한 묶음) = DB Player_Item 한 행 (A3.3, D-153)
@@ -63,4 +64,22 @@ message ItemInfo {
 	int32 slot = 5;           // 인벤토리 칸 번호(0부터). 장착 중이면 -1. 서버가 DB(Player_Item.BagSlot)에 저장한다 (A6.1)
 }
 
+// 경매 등록 한 건 (A4.3). 검색 결과(SC_AUCTION_LIST)와 내 등록(SC_AUCTION_MY)에 쓴다
+message AuctionListingInfo {
+	int64 listing_id = 1;
+	int32 item_id = 2;        // ItemTable ID
+	int64 count = 3;          // 묶음 수량 (구매는 통째로만)
+	int64 price = 4;          // 묶음 전체의 값
+	int32 remain_sec = 5;     // 만료까지 남은 초 (0 = 곧 만료)
+	bool mine = 6;            // 내가 올린 등록 (살 수 없음)
+}
 
+// 수령함 한 건 (A4.3). gold 또는 item 가운데 하나만 채워진다
+message MailInfo {
+	int64 mail_id = 1;
+	MailKind kind = 2;
+	int64 gold = 3;           // 판매 대금 (그 밖은 0)
+	int32 item_id = 4;        // 아이템 종류 (판매 대금이면 0)
+	int64 count = 5;          // 아이템 수량
+	int64 listing_id = 6;     // 이 우편을 만든 등록
+}

@@ -234,7 +234,7 @@ ADropItemActor* UJMObjectManager::FindNearestDrop(const FVector& From, float Ran
 	return Nearest;
 }
 
-int32 UJMObjectManager::FindNearestNpc(const FVector& From, float RangeCm, float& OutDistSq) const
+int32 UJMObjectManager::FindNearestNpc(const FVector& From, float RangeCm, float& OutDistSq, int32 KindFilter) const
 {
 	int32 NearestId = 0;
 	float BestSq = RangeCm * RangeCm;
@@ -242,6 +242,7 @@ int32 UJMObjectManager::FindNearestNpc(const FVector& From, float RangeCm, float
 	{
 		const AJMCharacterBase* Npc = Pair.Value.Get();
 		if (!IsValid(Npc)) continue;
+		if (KindFilter != 0 && static_cast<int32>(Npc->GetObjectInfo().npc_kind()) != KindFilter) continue;
 		// 캐릭터 액터의 위치는 캡슐 중심이지만 수평 거리만 보므로 서버 위치(발밑)와 같은 값이다.
 		const float DistSq = FVector::DistSquared2D(From, Npc->GetActorLocation());
 		if (DistSq <= BestSq)
@@ -252,6 +253,12 @@ int32 UJMObjectManager::FindNearestNpc(const FVector& From, float RangeCm, float
 	}
 	OutDistSq = BestSq;
 	return NearestId;
+}
+
+int32 UJMObjectManager::GetNpcKind(int32 NpcId) const
+{
+	const TObjectPtr<AJMCharacterBase>* Found = Npcs.Find(NpcId);
+	return (Found && *Found) ? static_cast<int32>((*Found)->GetObjectInfo().npc_kind()) : 0;
 }
 
 FString UJMObjectManager::GetNpcName(int32 NpcId) const

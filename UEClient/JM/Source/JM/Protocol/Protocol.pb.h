@@ -51,6 +51,21 @@ namespace Protocol {
 class CS_ATTACK_PACKET;
 struct CS_ATTACK_PACKETDefaultTypeInternal;
 extern CS_ATTACK_PACKETDefaultTypeInternal _CS_ATTACK_PACKET_default_instance_;
+class CS_AUCTION_BUY_PACKET;
+struct CS_AUCTION_BUY_PACKETDefaultTypeInternal;
+extern CS_AUCTION_BUY_PACKETDefaultTypeInternal _CS_AUCTION_BUY_PACKET_default_instance_;
+class CS_AUCTION_CANCEL_PACKET;
+struct CS_AUCTION_CANCEL_PACKETDefaultTypeInternal;
+extern CS_AUCTION_CANCEL_PACKETDefaultTypeInternal _CS_AUCTION_CANCEL_PACKET_default_instance_;
+class CS_AUCTION_MY_PACKET;
+struct CS_AUCTION_MY_PACKETDefaultTypeInternal;
+extern CS_AUCTION_MY_PACKETDefaultTypeInternal _CS_AUCTION_MY_PACKET_default_instance_;
+class CS_AUCTION_REGISTER_PACKET;
+struct CS_AUCTION_REGISTER_PACKETDefaultTypeInternal;
+extern CS_AUCTION_REGISTER_PACKETDefaultTypeInternal _CS_AUCTION_REGISTER_PACKET_default_instance_;
+class CS_AUCTION_SEARCH_PACKET;
+struct CS_AUCTION_SEARCH_PACKETDefaultTypeInternal;
+extern CS_AUCTION_SEARCH_PACKETDefaultTypeInternal _CS_AUCTION_SEARCH_PACKET_default_instance_;
 class CS_CHANGE_EQUIP_PACKET;
 struct CS_CHANGE_EQUIP_PACKETDefaultTypeInternal;
 extern CS_CHANGE_EQUIP_PACKETDefaultTypeInternal _CS_CHANGE_EQUIP_PACKET_default_instance_;
@@ -69,6 +84,9 @@ extern CS_ENTER_ROOM_PACKETDefaultTypeInternal _CS_ENTER_ROOM_PACKET_default_ins
 class CS_LOGIN_PACKET;
 struct CS_LOGIN_PACKETDefaultTypeInternal;
 extern CS_LOGIN_PACKETDefaultTypeInternal _CS_LOGIN_PACKET_default_instance_;
+class CS_MAIL_CLAIM_PACKET;
+struct CS_MAIL_CLAIM_PACKETDefaultTypeInternal;
+extern CS_MAIL_CLAIM_PACKETDefaultTypeInternal _CS_MAIL_CLAIM_PACKET_default_instance_;
 class CS_MOVE_ITEM_PACKET;
 struct CS_MOVE_ITEM_PACKETDefaultTypeInternal;
 extern CS_MOVE_ITEM_PACKETDefaultTypeInternal _CS_MOVE_ITEM_PACKET_default_instance_;
@@ -150,6 +168,15 @@ extern SC_ATTACK_PACKETDefaultTypeInternal _SC_ATTACK_PACKET_default_instance_;
 class SC_ATTACK_RESULT_PACKET;
 struct SC_ATTACK_RESULT_PACKETDefaultTypeInternal;
 extern SC_ATTACK_RESULT_PACKETDefaultTypeInternal _SC_ATTACK_RESULT_PACKET_default_instance_;
+class SC_AUCTION_LIST_PACKET;
+struct SC_AUCTION_LIST_PACKETDefaultTypeInternal;
+extern SC_AUCTION_LIST_PACKETDefaultTypeInternal _SC_AUCTION_LIST_PACKET_default_instance_;
+class SC_AUCTION_MY_PACKET;
+struct SC_AUCTION_MY_PACKETDefaultTypeInternal;
+extern SC_AUCTION_MY_PACKETDefaultTypeInternal _SC_AUCTION_MY_PACKET_default_instance_;
+class SC_AUCTION_RESULT_PACKET;
+struct SC_AUCTION_RESULT_PACKETDefaultTypeInternal;
+extern SC_AUCTION_RESULT_PACKETDefaultTypeInternal _SC_AUCTION_RESULT_PACKET_default_instance_;
 class SC_CHANGE_EQUIP_PACKET;
 struct SC_CHANGE_EQUIP_PACKETDefaultTypeInternal;
 extern SC_CHANGE_EQUIP_PACKETDefaultTypeInternal _SC_CHANGE_EQUIP_PACKET_default_instance_;
@@ -249,12 +276,18 @@ extern ShopItemDefaultTypeInternal _ShopItem_default_instance_;
 }  // namespace Protocol
 PROTOBUF_NAMESPACE_OPEN
 template<> ::Protocol::CS_ATTACK_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_ATTACK_PACKET>(Arena*);
+template<> ::Protocol::CS_AUCTION_BUY_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_AUCTION_BUY_PACKET>(Arena*);
+template<> ::Protocol::CS_AUCTION_CANCEL_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_AUCTION_CANCEL_PACKET>(Arena*);
+template<> ::Protocol::CS_AUCTION_MY_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_AUCTION_MY_PACKET>(Arena*);
+template<> ::Protocol::CS_AUCTION_REGISTER_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_AUCTION_REGISTER_PACKET>(Arena*);
+template<> ::Protocol::CS_AUCTION_SEARCH_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_AUCTION_SEARCH_PACKET>(Arena*);
 template<> ::Protocol::CS_CHANGE_EQUIP_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_CHANGE_EQUIP_PACKET>(Arena*);
 template<> ::Protocol::CS_CHAT_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_CHAT_PACKET>(Arena*);
 template<> ::Protocol::CS_DEV_GIVE_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_DEV_GIVE_PACKET>(Arena*);
 template<> ::Protocol::CS_DROP_ITEM_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_DROP_ITEM_PACKET>(Arena*);
 template<> ::Protocol::CS_ENTER_ROOM_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_ENTER_ROOM_PACKET>(Arena*);
 template<> ::Protocol::CS_LOGIN_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_LOGIN_PACKET>(Arena*);
+template<> ::Protocol::CS_MAIL_CLAIM_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_MAIL_CLAIM_PACKET>(Arena*);
 template<> ::Protocol::CS_MOVE_ITEM_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_MOVE_ITEM_PACKET>(Arena*);
 template<> ::Protocol::CS_MOVE_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_MOVE_PACKET>(Arena*);
 template<> ::Protocol::CS_PARTY_INVITE_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_PARTY_INVITE_PACKET>(Arena*);
@@ -282,6 +315,9 @@ template<> ::Protocol::PortalInfo* Arena::CreateMaybeMessage<::Protocol::PortalI
 template<> ::Protocol::SC_ADD_OBJECT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ADD_OBJECT_PACKET>(Arena*);
 template<> ::Protocol::SC_ATTACK_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ATTACK_PACKET>(Arena*);
 template<> ::Protocol::SC_ATTACK_RESULT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ATTACK_RESULT_PACKET>(Arena*);
+template<> ::Protocol::SC_AUCTION_LIST_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_AUCTION_LIST_PACKET>(Arena*);
+template<> ::Protocol::SC_AUCTION_MY_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_AUCTION_MY_PACKET>(Arena*);
+template<> ::Protocol::SC_AUCTION_RESULT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_AUCTION_RESULT_PACKET>(Arena*);
 template<> ::Protocol::SC_CHANGE_EQUIP_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHANGE_EQUIP_PACKET>(Arena*);
 template<> ::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET>(Arena*);
 template<> ::Protocol::SC_CHANGE_HP_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_CHANGE_HP_PACKET>(Arena*);
@@ -2941,6 +2977,930 @@ class CS_SHOP_SELL_PACKET final :
 };
 // -------------------------------------------------------------------
 
+class CS_AUCTION_SEARCH_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_AUCTION_SEARCH_PACKET) */ {
+ public:
+  inline CS_AUCTION_SEARCH_PACKET() : CS_AUCTION_SEARCH_PACKET(nullptr) {}
+  ~CS_AUCTION_SEARCH_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR CS_AUCTION_SEARCH_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  CS_AUCTION_SEARCH_PACKET(const CS_AUCTION_SEARCH_PACKET& from);
+  CS_AUCTION_SEARCH_PACKET(CS_AUCTION_SEARCH_PACKET&& from) noexcept
+    : CS_AUCTION_SEARCH_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline CS_AUCTION_SEARCH_PACKET& operator=(const CS_AUCTION_SEARCH_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CS_AUCTION_SEARCH_PACKET& operator=(CS_AUCTION_SEARCH_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CS_AUCTION_SEARCH_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CS_AUCTION_SEARCH_PACKET* internal_default_instance() {
+    return reinterpret_cast<const CS_AUCTION_SEARCH_PACKET*>(
+               &_CS_AUCTION_SEARCH_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    16;
+
+  friend void swap(CS_AUCTION_SEARCH_PACKET& a, CS_AUCTION_SEARCH_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CS_AUCTION_SEARCH_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CS_AUCTION_SEARCH_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CS_AUCTION_SEARCH_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<CS_AUCTION_SEARCH_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const CS_AUCTION_SEARCH_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const CS_AUCTION_SEARCH_PACKET& from) {
+    CS_AUCTION_SEARCH_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(CS_AUCTION_SEARCH_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.CS_AUCTION_SEARCH_PACKET";
+  }
+  protected:
+  explicit CS_AUCTION_SEARCH_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kSlotFieldNumber = 1,
+    kPageFieldNumber = 2,
+  };
+  // int32 slot = 1;
+  void clear_slot();
+  int32_t slot() const;
+  void set_slot(int32_t value);
+  private:
+  int32_t _internal_slot() const;
+  void _internal_set_slot(int32_t value);
+  public:
+
+  // int32 page = 2;
+  void clear_page();
+  int32_t page() const;
+  void set_page(int32_t value);
+  private:
+  int32_t _internal_page() const;
+  void _internal_set_page(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.CS_AUCTION_SEARCH_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t slot_;
+    int32_t page_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class CS_AUCTION_REGISTER_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_AUCTION_REGISTER_PACKET) */ {
+ public:
+  inline CS_AUCTION_REGISTER_PACKET() : CS_AUCTION_REGISTER_PACKET(nullptr) {}
+  ~CS_AUCTION_REGISTER_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR CS_AUCTION_REGISTER_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  CS_AUCTION_REGISTER_PACKET(const CS_AUCTION_REGISTER_PACKET& from);
+  CS_AUCTION_REGISTER_PACKET(CS_AUCTION_REGISTER_PACKET&& from) noexcept
+    : CS_AUCTION_REGISTER_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline CS_AUCTION_REGISTER_PACKET& operator=(const CS_AUCTION_REGISTER_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CS_AUCTION_REGISTER_PACKET& operator=(CS_AUCTION_REGISTER_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CS_AUCTION_REGISTER_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CS_AUCTION_REGISTER_PACKET* internal_default_instance() {
+    return reinterpret_cast<const CS_AUCTION_REGISTER_PACKET*>(
+               &_CS_AUCTION_REGISTER_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    17;
+
+  friend void swap(CS_AUCTION_REGISTER_PACKET& a, CS_AUCTION_REGISTER_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CS_AUCTION_REGISTER_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CS_AUCTION_REGISTER_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CS_AUCTION_REGISTER_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<CS_AUCTION_REGISTER_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const CS_AUCTION_REGISTER_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const CS_AUCTION_REGISTER_PACKET& from) {
+    CS_AUCTION_REGISTER_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(CS_AUCTION_REGISTER_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.CS_AUCTION_REGISTER_PACKET";
+  }
+  protected:
+  explicit CS_AUCTION_REGISTER_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kItemDbIdFieldNumber = 2,
+    kNpcIdFieldNumber = 1,
+    kCountFieldNumber = 3,
+    kPriceFieldNumber = 4,
+  };
+  // int64 item_db_id = 2;
+  void clear_item_db_id();
+  int64_t item_db_id() const;
+  void set_item_db_id(int64_t value);
+  private:
+  int64_t _internal_item_db_id() const;
+  void _internal_set_item_db_id(int64_t value);
+  public:
+
+  // int32 npc_id = 1;
+  void clear_npc_id();
+  int32_t npc_id() const;
+  void set_npc_id(int32_t value);
+  private:
+  int32_t _internal_npc_id() const;
+  void _internal_set_npc_id(int32_t value);
+  public:
+
+  // int32 count = 3;
+  void clear_count();
+  int32_t count() const;
+  void set_count(int32_t value);
+  private:
+  int32_t _internal_count() const;
+  void _internal_set_count(int32_t value);
+  public:
+
+  // int64 price = 4;
+  void clear_price();
+  int64_t price() const;
+  void set_price(int64_t value);
+  private:
+  int64_t _internal_price() const;
+  void _internal_set_price(int64_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.CS_AUCTION_REGISTER_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int64_t item_db_id_;
+    int32_t npc_id_;
+    int32_t count_;
+    int64_t price_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class CS_AUCTION_BUY_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_AUCTION_BUY_PACKET) */ {
+ public:
+  inline CS_AUCTION_BUY_PACKET() : CS_AUCTION_BUY_PACKET(nullptr) {}
+  ~CS_AUCTION_BUY_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR CS_AUCTION_BUY_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  CS_AUCTION_BUY_PACKET(const CS_AUCTION_BUY_PACKET& from);
+  CS_AUCTION_BUY_PACKET(CS_AUCTION_BUY_PACKET&& from) noexcept
+    : CS_AUCTION_BUY_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline CS_AUCTION_BUY_PACKET& operator=(const CS_AUCTION_BUY_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CS_AUCTION_BUY_PACKET& operator=(CS_AUCTION_BUY_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CS_AUCTION_BUY_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CS_AUCTION_BUY_PACKET* internal_default_instance() {
+    return reinterpret_cast<const CS_AUCTION_BUY_PACKET*>(
+               &_CS_AUCTION_BUY_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    18;
+
+  friend void swap(CS_AUCTION_BUY_PACKET& a, CS_AUCTION_BUY_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CS_AUCTION_BUY_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CS_AUCTION_BUY_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CS_AUCTION_BUY_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<CS_AUCTION_BUY_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const CS_AUCTION_BUY_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const CS_AUCTION_BUY_PACKET& from) {
+    CS_AUCTION_BUY_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(CS_AUCTION_BUY_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.CS_AUCTION_BUY_PACKET";
+  }
+  protected:
+  explicit CS_AUCTION_BUY_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kListingIdFieldNumber = 1,
+  };
+  // int64 listing_id = 1;
+  void clear_listing_id();
+  int64_t listing_id() const;
+  void set_listing_id(int64_t value);
+  private:
+  int64_t _internal_listing_id() const;
+  void _internal_set_listing_id(int64_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.CS_AUCTION_BUY_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int64_t listing_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class CS_AUCTION_CANCEL_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_AUCTION_CANCEL_PACKET) */ {
+ public:
+  inline CS_AUCTION_CANCEL_PACKET() : CS_AUCTION_CANCEL_PACKET(nullptr) {}
+  ~CS_AUCTION_CANCEL_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR CS_AUCTION_CANCEL_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  CS_AUCTION_CANCEL_PACKET(const CS_AUCTION_CANCEL_PACKET& from);
+  CS_AUCTION_CANCEL_PACKET(CS_AUCTION_CANCEL_PACKET&& from) noexcept
+    : CS_AUCTION_CANCEL_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline CS_AUCTION_CANCEL_PACKET& operator=(const CS_AUCTION_CANCEL_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CS_AUCTION_CANCEL_PACKET& operator=(CS_AUCTION_CANCEL_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CS_AUCTION_CANCEL_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CS_AUCTION_CANCEL_PACKET* internal_default_instance() {
+    return reinterpret_cast<const CS_AUCTION_CANCEL_PACKET*>(
+               &_CS_AUCTION_CANCEL_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    19;
+
+  friend void swap(CS_AUCTION_CANCEL_PACKET& a, CS_AUCTION_CANCEL_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CS_AUCTION_CANCEL_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CS_AUCTION_CANCEL_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CS_AUCTION_CANCEL_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<CS_AUCTION_CANCEL_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const CS_AUCTION_CANCEL_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const CS_AUCTION_CANCEL_PACKET& from) {
+    CS_AUCTION_CANCEL_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(CS_AUCTION_CANCEL_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.CS_AUCTION_CANCEL_PACKET";
+  }
+  protected:
+  explicit CS_AUCTION_CANCEL_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kListingIdFieldNumber = 2,
+    kNpcIdFieldNumber = 1,
+  };
+  // int64 listing_id = 2;
+  void clear_listing_id();
+  int64_t listing_id() const;
+  void set_listing_id(int64_t value);
+  private:
+  int64_t _internal_listing_id() const;
+  void _internal_set_listing_id(int64_t value);
+  public:
+
+  // int32 npc_id = 1;
+  void clear_npc_id();
+  int32_t npc_id() const;
+  void set_npc_id(int32_t value);
+  private:
+  int32_t _internal_npc_id() const;
+  void _internal_set_npc_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.CS_AUCTION_CANCEL_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int64_t listing_id_;
+    int32_t npc_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class CS_AUCTION_MY_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:Protocol.CS_AUCTION_MY_PACKET) */ {
+ public:
+  inline CS_AUCTION_MY_PACKET() : CS_AUCTION_MY_PACKET(nullptr) {}
+  explicit PROTOBUF_CONSTEXPR CS_AUCTION_MY_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  CS_AUCTION_MY_PACKET(const CS_AUCTION_MY_PACKET& from);
+  CS_AUCTION_MY_PACKET(CS_AUCTION_MY_PACKET&& from) noexcept
+    : CS_AUCTION_MY_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline CS_AUCTION_MY_PACKET& operator=(const CS_AUCTION_MY_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CS_AUCTION_MY_PACKET& operator=(CS_AUCTION_MY_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CS_AUCTION_MY_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CS_AUCTION_MY_PACKET* internal_default_instance() {
+    return reinterpret_cast<const CS_AUCTION_MY_PACKET*>(
+               &_CS_AUCTION_MY_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    20;
+
+  friend void swap(CS_AUCTION_MY_PACKET& a, CS_AUCTION_MY_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CS_AUCTION_MY_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CS_AUCTION_MY_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CS_AUCTION_MY_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<CS_AUCTION_MY_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
+  inline void CopyFrom(const CS_AUCTION_MY_PACKET& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
+  void MergeFrom(const CS_AUCTION_MY_PACKET& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
+  }
+  public:
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.CS_AUCTION_MY_PACKET";
+  }
+  protected:
+  explicit CS_AUCTION_MY_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // @@protoc_insertion_point(class_scope:Protocol.CS_AUCTION_MY_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+  };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class CS_MAIL_CLAIM_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_MAIL_CLAIM_PACKET) */ {
+ public:
+  inline CS_MAIL_CLAIM_PACKET() : CS_MAIL_CLAIM_PACKET(nullptr) {}
+  ~CS_MAIL_CLAIM_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR CS_MAIL_CLAIM_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  CS_MAIL_CLAIM_PACKET(const CS_MAIL_CLAIM_PACKET& from);
+  CS_MAIL_CLAIM_PACKET(CS_MAIL_CLAIM_PACKET&& from) noexcept
+    : CS_MAIL_CLAIM_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline CS_MAIL_CLAIM_PACKET& operator=(const CS_MAIL_CLAIM_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CS_MAIL_CLAIM_PACKET& operator=(CS_MAIL_CLAIM_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CS_MAIL_CLAIM_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CS_MAIL_CLAIM_PACKET* internal_default_instance() {
+    return reinterpret_cast<const CS_MAIL_CLAIM_PACKET*>(
+               &_CS_MAIL_CLAIM_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    21;
+
+  friend void swap(CS_MAIL_CLAIM_PACKET& a, CS_MAIL_CLAIM_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CS_MAIL_CLAIM_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CS_MAIL_CLAIM_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CS_MAIL_CLAIM_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<CS_MAIL_CLAIM_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const CS_MAIL_CLAIM_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const CS_MAIL_CLAIM_PACKET& from) {
+    CS_MAIL_CLAIM_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(CS_MAIL_CLAIM_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.CS_MAIL_CLAIM_PACKET";
+  }
+  protected:
+  explicit CS_MAIL_CLAIM_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kMailIdFieldNumber = 2,
+    kNpcIdFieldNumber = 1,
+  };
+  // int64 mail_id = 2;
+  void clear_mail_id();
+  int64_t mail_id() const;
+  void set_mail_id(int64_t value);
+  private:
+  int64_t _internal_mail_id() const;
+  void _internal_set_mail_id(int64_t value);
+  public:
+
+  // int32 npc_id = 1;
+  void clear_npc_id();
+  int32_t npc_id() const;
+  void set_npc_id(int32_t value);
+  private:
+  int32_t _internal_npc_id() const;
+  void _internal_set_npc_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.CS_MAIL_CLAIM_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int64_t mail_id_;
+    int32_t npc_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
 class CS_PORTAL_PACKET final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.CS_PORTAL_PACKET) */ {
  public:
@@ -2989,7 +3949,7 @@ class CS_PORTAL_PACKET final :
                &_CS_PORTAL_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    22;
 
   friend void swap(CS_PORTAL_PACKET& a, CS_PORTAL_PACKET& b) {
     a.Swap(&b);
@@ -3137,7 +4097,7 @@ class CS_TRADE_REQUEST_PACKET final :
                &_CS_TRADE_REQUEST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    23;
 
   friend void swap(CS_TRADE_REQUEST_PACKET& a, CS_TRADE_REQUEST_PACKET& b) {
     a.Swap(&b);
@@ -3285,7 +4245,7 @@ class CS_TRADE_RESPOND_PACKET final :
                &_CS_TRADE_RESPOND_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    24;
 
   friend void swap(CS_TRADE_RESPOND_PACKET& a, CS_TRADE_RESPOND_PACKET& b) {
     a.Swap(&b);
@@ -3433,7 +4393,7 @@ class CS_TRADE_SET_OFFER_PACKET final :
                &_CS_TRADE_SET_OFFER_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    25;
 
   friend void swap(CS_TRADE_SET_OFFER_PACKET& a, CS_TRADE_SET_OFFER_PACKET& b) {
     a.Swap(&b);
@@ -3601,7 +4561,7 @@ class CS_TRADE_LOCK_PACKET final :
                &_CS_TRADE_LOCK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    26;
 
   friend void swap(CS_TRADE_LOCK_PACKET& a, CS_TRADE_LOCK_PACKET& b) {
     a.Swap(&b);
@@ -3748,7 +4708,7 @@ class CS_TRADE_CONFIRM_PACKET final :
                &_CS_TRADE_CONFIRM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    27;
 
   friend void swap(CS_TRADE_CONFIRM_PACKET& a, CS_TRADE_CONFIRM_PACKET& b) {
     a.Swap(&b);
@@ -3866,7 +4826,7 @@ class CS_TRADE_CANCEL_PACKET final :
                &_CS_TRADE_CANCEL_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    28;
 
   friend void swap(CS_TRADE_CANCEL_PACKET& a, CS_TRADE_CANCEL_PACKET& b) {
     a.Swap(&b);
@@ -3985,7 +4945,7 @@ class CS_PARTY_INVITE_PACKET final :
                &_CS_PARTY_INVITE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    29;
 
   friend void swap(CS_PARTY_INVITE_PACKET& a, CS_PARTY_INVITE_PACKET& b) {
     a.Swap(&b);
@@ -4149,7 +5109,7 @@ class CS_PARTY_RESPOND_PACKET final :
                &_CS_PARTY_RESPOND_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    30;
 
   friend void swap(CS_PARTY_RESPOND_PACKET& a, CS_PARTY_RESPOND_PACKET& b) {
     a.Swap(&b);
@@ -4296,7 +5256,7 @@ class CS_PARTY_LEAVE_PACKET final :
                &_CS_PARTY_LEAVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    31;
 
   friend void swap(CS_PARTY_LEAVE_PACKET& a, CS_PARTY_LEAVE_PACKET& b) {
     a.Swap(&b);
@@ -4415,7 +5375,7 @@ class CS_SKILL_AIM_PACKET final :
                &_CS_SKILL_AIM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    26;
+    32;
 
   friend void swap(CS_SKILL_AIM_PACKET& a, CS_SKILL_AIM_PACKET& b) {
     a.Swap(&b);
@@ -4585,7 +5545,7 @@ class CS_PING_PACKET final :
                &_CS_PING_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    27;
+    33;
 
   friend void swap(CS_PING_PACKET& a, CS_PING_PACKET& b) {
     a.Swap(&b);
@@ -4732,7 +5692,7 @@ class CS_REVIVE_PACKET final :
                &_CS_REVIVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    28;
+    34;
 
   friend void swap(CS_REVIVE_PACKET& a, CS_REVIVE_PACKET& b) {
     a.Swap(&b);
@@ -4851,7 +5811,7 @@ class SC_LOGIN_INFO_PACKET final :
                &_SC_LOGIN_INFO_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    29;
+    35;
 
   friend void swap(SC_LOGIN_INFO_PACKET& a, SC_LOGIN_INFO_PACKET& b) {
     a.Swap(&b);
@@ -5035,7 +5995,7 @@ class SC_SIGNUP_PACKET final :
                &_SC_SIGNUP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    30;
+    36;
 
   friend void swap(SC_SIGNUP_PACKET& a, SC_SIGNUP_PACKET& b) {
     a.Swap(&b);
@@ -5183,7 +6143,7 @@ class SC_ADD_OBJECT_PACKET final :
                &_SC_ADD_OBJECT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    31;
+    37;
 
   friend void swap(SC_ADD_OBJECT_PACKET& a, SC_ADD_OBJECT_PACKET& b) {
     a.Swap(&b);
@@ -5340,7 +6300,7 @@ class SC_REMOVE_OBJECT_PACKET final :
                &_SC_REMOVE_OBJECT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    32;
+    38;
 
   friend void swap(SC_REMOVE_OBJECT_PACKET& a, SC_REMOVE_OBJECT_PACKET& b) {
     a.Swap(&b);
@@ -5488,7 +6448,7 @@ class SC_CHAT_PACKET final :
                &_SC_CHAT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    33;
+    39;
 
   friend void swap(SC_CHAT_PACKET& a, SC_CHAT_PACKET& b) {
     a.Swap(&b);
@@ -5668,7 +6628,7 @@ class SC_MOVE_PACKET final :
                &_SC_MOVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    34;
+    40;
 
   friend void swap(SC_MOVE_PACKET& a, SC_MOVE_PACKET& b) {
     a.Swap(&b);
@@ -5847,7 +6807,7 @@ class SC_ATTACK_PACKET final :
                &_SC_ATTACK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    35;
+    41;
 
   friend void swap(SC_ATTACK_PACKET& a, SC_ATTACK_PACKET& b) {
     a.Swap(&b);
@@ -6072,7 +7032,7 @@ class SC_ATTACK_RESULT_PACKET final :
                &_SC_ATTACK_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    42;
 
   friend void swap(SC_ATTACK_RESULT_PACKET& a, SC_ATTACK_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -6253,7 +7213,7 @@ class SC_DAMAGE_PACKET final :
                &_SC_DAMAGE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    43;
 
   friend void swap(SC_DAMAGE_PACKET& a, SC_DAMAGE_PACKET& b) {
     a.Swap(&b);
@@ -6434,7 +7394,7 @@ class SC_DEAD_PACKET final :
                &_SC_DEAD_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    38;
+    44;
 
   friend void swap(SC_DEAD_PACKET& a, SC_DEAD_PACKET& b) {
     a.Swap(&b);
@@ -6593,7 +7553,7 @@ class SC_REVIVE_PACKET final :
                &_SC_REVIVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    39;
+    45;
 
   friend void swap(SC_REVIVE_PACKET& a, SC_REVIVE_PACKET& b) {
     a.Swap(&b);
@@ -6783,7 +7743,7 @@ class SC_TELEPORT_PACKET final :
                &_SC_TELEPORT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    40;
+    46;
 
   friend void swap(SC_TELEPORT_PACKET& a, SC_TELEPORT_PACKET& b) {
     a.Swap(&b);
@@ -6962,7 +7922,7 @@ class PortalInfo final :
                &_PortalInfo_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    47;
 
   friend void swap(PortalInfo& a, PortalInfo& b) {
     a.Swap(&b);
@@ -7165,7 +8125,7 @@ class SC_DUNGEON_STATE_PACKET final :
                &_SC_DUNGEON_STATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    48;
 
   friend void swap(SC_DUNGEON_STATE_PACKET& a, SC_DUNGEON_STATE_PACKET& b) {
     a.Swap(&b);
@@ -7324,7 +8284,7 @@ class SC_PORTAL_LIST_PACKET final :
                &_SC_PORTAL_LIST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    49;
 
   friend void swap(SC_PORTAL_LIST_PACKET& a, SC_PORTAL_LIST_PACKET& b) {
     a.Swap(&b);
@@ -7481,7 +8441,7 @@ class SC_ROOM_CHANGE_PACKET final :
                &_SC_ROOM_CHANGE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    50;
 
   friend void swap(SC_ROOM_CHANGE_PACKET& a, SC_ROOM_CHANGE_PACKET& b) {
     a.Swap(&b);
@@ -7687,7 +8647,7 @@ class SC_MOVE_RESULT_PACKET final :
                &_SC_MOVE_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    51;
 
   friend void swap(SC_MOVE_RESULT_PACKET& a, SC_MOVE_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -7835,7 +8795,7 @@ class SC_CHANGE_EQUIP_PACKET final :
                &_SC_CHANGE_EQUIP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    52;
 
   friend void swap(SC_CHANGE_EQUIP_PACKET& a, SC_CHANGE_EQUIP_PACKET& b) {
     a.Swap(&b);
@@ -8025,7 +8985,7 @@ class SC_CHANGE_EQUIP_RESULT_PACKET final :
                &_SC_CHANGE_EQUIP_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    47;
+    53;
 
   friend void swap(SC_CHANGE_EQUIP_RESULT_PACKET& a, SC_CHANGE_EQUIP_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -8206,7 +9166,7 @@ class SC_INVENTORY_PACKET final :
                &_SC_INVENTORY_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    48;
+    54;
 
   friend void swap(SC_INVENTORY_PACKET& a, SC_INVENTORY_PACKET& b) {
     a.Swap(&b);
@@ -8443,7 +9403,7 @@ class SC_INVENTORY_UPDATE_PACKET final :
                &_SC_INVENTORY_UPDATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    49;
+    55;
 
   friend void swap(SC_INVENTORY_UPDATE_PACKET& a, SC_INVENTORY_UPDATE_PACKET& b) {
     a.Swap(&b);
@@ -8661,7 +9621,7 @@ class SC_USE_ITEM_PACKET final :
                &_SC_USE_ITEM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    50;
+    56;
 
   friend void swap(SC_USE_ITEM_PACKET& a, SC_USE_ITEM_PACKET& b) {
     a.Swap(&b);
@@ -8842,7 +9802,7 @@ class SC_CHANGE_HP_PACKET final :
                &_SC_CHANGE_HP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    51;
+    57;
 
   friend void swap(SC_CHANGE_HP_PACKET& a, SC_CHANGE_HP_PACKET& b) {
     a.Swap(&b);
@@ -9001,7 +9961,7 @@ class SC_ITEM_RESULT_PACKET final :
                &_SC_ITEM_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    52;
+    58;
 
   friend void swap(SC_ITEM_RESULT_PACKET& a, SC_ITEM_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -9160,7 +10120,7 @@ class ShopItem final :
                &_ShopItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    53;
+    59;
 
   friend void swap(ShopItem& a, ShopItem& b) {
     a.Swap(&b);
@@ -9319,7 +10279,7 @@ class SC_SHOP_OPEN_PACKET final :
                &_SC_SHOP_OPEN_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    54;
+    60;
 
   friend void swap(SC_SHOP_OPEN_PACKET& a, SC_SHOP_OPEN_PACKET& b) {
     a.Swap(&b);
@@ -9439,6 +10399,598 @@ class SC_SHOP_OPEN_PACKET final :
 };
 // -------------------------------------------------------------------
 
+class SC_AUCTION_LIST_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_AUCTION_LIST_PACKET) */ {
+ public:
+  inline SC_AUCTION_LIST_PACKET() : SC_AUCTION_LIST_PACKET(nullptr) {}
+  ~SC_AUCTION_LIST_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_AUCTION_LIST_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_AUCTION_LIST_PACKET(const SC_AUCTION_LIST_PACKET& from);
+  SC_AUCTION_LIST_PACKET(SC_AUCTION_LIST_PACKET&& from) noexcept
+    : SC_AUCTION_LIST_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_AUCTION_LIST_PACKET& operator=(const SC_AUCTION_LIST_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_AUCTION_LIST_PACKET& operator=(SC_AUCTION_LIST_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_AUCTION_LIST_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_AUCTION_LIST_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_AUCTION_LIST_PACKET*>(
+               &_SC_AUCTION_LIST_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    61;
+
+  friend void swap(SC_AUCTION_LIST_PACKET& a, SC_AUCTION_LIST_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_AUCTION_LIST_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_AUCTION_LIST_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_AUCTION_LIST_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_AUCTION_LIST_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_AUCTION_LIST_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_AUCTION_LIST_PACKET& from) {
+    SC_AUCTION_LIST_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_AUCTION_LIST_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_AUCTION_LIST_PACKET";
+  }
+  protected:
+  explicit SC_AUCTION_LIST_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kListingsFieldNumber = 5,
+    kSlotFieldNumber = 1,
+    kPageFieldNumber = 2,
+    kTotalCountFieldNumber = 3,
+    kPageSizeFieldNumber = 4,
+  };
+  // repeated .Protocol.AuctionListingInfo listings = 5;
+  int listings_size() const;
+  private:
+  int _internal_listings_size() const;
+  public:
+  void clear_listings();
+  ::Protocol::AuctionListingInfo* mutable_listings(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo >*
+      mutable_listings();
+  private:
+  const ::Protocol::AuctionListingInfo& _internal_listings(int index) const;
+  ::Protocol::AuctionListingInfo* _internal_add_listings();
+  public:
+  const ::Protocol::AuctionListingInfo& listings(int index) const;
+  ::Protocol::AuctionListingInfo* add_listings();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo >&
+      listings() const;
+
+  // int32 slot = 1;
+  void clear_slot();
+  int32_t slot() const;
+  void set_slot(int32_t value);
+  private:
+  int32_t _internal_slot() const;
+  void _internal_set_slot(int32_t value);
+  public:
+
+  // int32 page = 2;
+  void clear_page();
+  int32_t page() const;
+  void set_page(int32_t value);
+  private:
+  int32_t _internal_page() const;
+  void _internal_set_page(int32_t value);
+  public:
+
+  // int32 total_count = 3;
+  void clear_total_count();
+  int32_t total_count() const;
+  void set_total_count(int32_t value);
+  private:
+  int32_t _internal_total_count() const;
+  void _internal_set_total_count(int32_t value);
+  public:
+
+  // int32 page_size = 4;
+  void clear_page_size();
+  int32_t page_size() const;
+  void set_page_size(int32_t value);
+  private:
+  int32_t _internal_page_size() const;
+  void _internal_set_page_size(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_AUCTION_LIST_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo > listings_;
+    int32_t slot_;
+    int32_t page_;
+    int32_t total_count_;
+    int32_t page_size_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class SC_AUCTION_MY_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_AUCTION_MY_PACKET) */ {
+ public:
+  inline SC_AUCTION_MY_PACKET() : SC_AUCTION_MY_PACKET(nullptr) {}
+  ~SC_AUCTION_MY_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_AUCTION_MY_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_AUCTION_MY_PACKET(const SC_AUCTION_MY_PACKET& from);
+  SC_AUCTION_MY_PACKET(SC_AUCTION_MY_PACKET&& from) noexcept
+    : SC_AUCTION_MY_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_AUCTION_MY_PACKET& operator=(const SC_AUCTION_MY_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_AUCTION_MY_PACKET& operator=(SC_AUCTION_MY_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_AUCTION_MY_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_AUCTION_MY_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_AUCTION_MY_PACKET*>(
+               &_SC_AUCTION_MY_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    62;
+
+  friend void swap(SC_AUCTION_MY_PACKET& a, SC_AUCTION_MY_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_AUCTION_MY_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_AUCTION_MY_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_AUCTION_MY_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_AUCTION_MY_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_AUCTION_MY_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_AUCTION_MY_PACKET& from) {
+    SC_AUCTION_MY_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_AUCTION_MY_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_AUCTION_MY_PACKET";
+  }
+  protected:
+  explicit SC_AUCTION_MY_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kListingsFieldNumber = 1,
+    kMailsFieldNumber = 2,
+    kMailMoreFieldNumber = 3,
+    kMaxListingsFieldNumber = 4,
+    kMinPriceFieldNumber = 5,
+    kMaxPriceFieldNumber = 6,
+  };
+  // repeated .Protocol.AuctionListingInfo listings = 1;
+  int listings_size() const;
+  private:
+  int _internal_listings_size() const;
+  public:
+  void clear_listings();
+  ::Protocol::AuctionListingInfo* mutable_listings(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo >*
+      mutable_listings();
+  private:
+  const ::Protocol::AuctionListingInfo& _internal_listings(int index) const;
+  ::Protocol::AuctionListingInfo* _internal_add_listings();
+  public:
+  const ::Protocol::AuctionListingInfo& listings(int index) const;
+  ::Protocol::AuctionListingInfo* add_listings();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo >&
+      listings() const;
+
+  // repeated .Protocol.MailInfo mails = 2;
+  int mails_size() const;
+  private:
+  int _internal_mails_size() const;
+  public:
+  void clear_mails();
+  ::Protocol::MailInfo* mutable_mails(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::MailInfo >*
+      mutable_mails();
+  private:
+  const ::Protocol::MailInfo& _internal_mails(int index) const;
+  ::Protocol::MailInfo* _internal_add_mails();
+  public:
+  const ::Protocol::MailInfo& mails(int index) const;
+  ::Protocol::MailInfo* add_mails();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::MailInfo >&
+      mails() const;
+
+  // bool mail_more = 3;
+  void clear_mail_more();
+  bool mail_more() const;
+  void set_mail_more(bool value);
+  private:
+  bool _internal_mail_more() const;
+  void _internal_set_mail_more(bool value);
+  public:
+
+  // int32 max_listings = 4;
+  void clear_max_listings();
+  int32_t max_listings() const;
+  void set_max_listings(int32_t value);
+  private:
+  int32_t _internal_max_listings() const;
+  void _internal_set_max_listings(int32_t value);
+  public:
+
+  // int64 min_price = 5;
+  void clear_min_price();
+  int64_t min_price() const;
+  void set_min_price(int64_t value);
+  private:
+  int64_t _internal_min_price() const;
+  void _internal_set_min_price(int64_t value);
+  public:
+
+  // int64 max_price = 6;
+  void clear_max_price();
+  int64_t max_price() const;
+  void set_max_price(int64_t value);
+  private:
+  int64_t _internal_max_price() const;
+  void _internal_set_max_price(int64_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_AUCTION_MY_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo > listings_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::MailInfo > mails_;
+    bool mail_more_;
+    int32_t max_listings_;
+    int64_t min_price_;
+    int64_t max_price_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class SC_AUCTION_RESULT_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_AUCTION_RESULT_PACKET) */ {
+ public:
+  inline SC_AUCTION_RESULT_PACKET() : SC_AUCTION_RESULT_PACKET(nullptr) {}
+  ~SC_AUCTION_RESULT_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_AUCTION_RESULT_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_AUCTION_RESULT_PACKET(const SC_AUCTION_RESULT_PACKET& from);
+  SC_AUCTION_RESULT_PACKET(SC_AUCTION_RESULT_PACKET&& from) noexcept
+    : SC_AUCTION_RESULT_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_AUCTION_RESULT_PACKET& operator=(const SC_AUCTION_RESULT_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_AUCTION_RESULT_PACKET& operator=(SC_AUCTION_RESULT_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_AUCTION_RESULT_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_AUCTION_RESULT_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_AUCTION_RESULT_PACKET*>(
+               &_SC_AUCTION_RESULT_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    63;
+
+  friend void swap(SC_AUCTION_RESULT_PACKET& a, SC_AUCTION_RESULT_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_AUCTION_RESULT_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_AUCTION_RESULT_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_AUCTION_RESULT_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_AUCTION_RESULT_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_AUCTION_RESULT_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_AUCTION_RESULT_PACKET& from) {
+    SC_AUCTION_RESULT_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_AUCTION_RESULT_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_AUCTION_RESULT_PACKET";
+  }
+  protected:
+  explicit SC_AUCTION_RESULT_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kRequestFieldNumber = 1,
+    kResultFieldNumber = 2,
+    kIdFieldNumber = 3,
+  };
+  // .Protocol.PacketId request = 1;
+  void clear_request();
+  ::Protocol::PacketId request() const;
+  void set_request(::Protocol::PacketId value);
+  private:
+  ::Protocol::PacketId _internal_request() const;
+  void _internal_set_request(::Protocol::PacketId value);
+  public:
+
+  // .Protocol.AuctionResult result = 2;
+  void clear_result();
+  ::Protocol::AuctionResult result() const;
+  void set_result(::Protocol::AuctionResult value);
+  private:
+  ::Protocol::AuctionResult _internal_result() const;
+  void _internal_set_result(::Protocol::AuctionResult value);
+  public:
+
+  // int64 id = 3;
+  void clear_id();
+  int64_t id() const;
+  void set_id(int64_t value);
+  private:
+  int64_t _internal_id() const;
+  void _internal_set_id(int64_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_AUCTION_RESULT_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int request_;
+    int result_;
+    int64_t id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
 class SC_SKILL_AIM_PACKET final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_SKILL_AIM_PACKET) */ {
  public:
@@ -9487,7 +11039,7 @@ class SC_SKILL_AIM_PACKET final :
                &_SC_SKILL_AIM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    55;
+    64;
 
   friend void swap(SC_SKILL_AIM_PACKET& a, SC_SKILL_AIM_PACKET& b) {
     a.Swap(&b);
@@ -9668,7 +11220,7 @@ class SC_PONG_PACKET final :
                &_SC_PONG_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    56;
+    65;
 
   friend void swap(SC_PONG_PACKET& a, SC_PONG_PACKET& b) {
     a.Swap(&b);
@@ -9816,7 +11368,7 @@ class SC_TRADE_REQUEST_PACKET final :
                &_SC_TRADE_REQUEST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    57;
+    66;
 
   friend void swap(SC_TRADE_REQUEST_PACKET& a, SC_TRADE_REQUEST_PACKET& b) {
     a.Swap(&b);
@@ -9991,7 +11543,7 @@ class SC_TRADE_STATE_PACKET final :
                &_SC_TRADE_STATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    58;
+    67;
 
   friend void swap(SC_TRADE_STATE_PACKET& a, SC_TRADE_STATE_PACKET& b) {
     a.Swap(&b);
@@ -10159,7 +11711,7 @@ class SC_TRADE_END_PACKET final :
                &_SC_TRADE_END_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    59;
+    68;
 
   friend void swap(SC_TRADE_END_PACKET& a, SC_TRADE_END_PACKET& b) {
     a.Swap(&b);
@@ -10307,7 +11859,7 @@ class SC_TRADE_RESULT_PACKET final :
                &_SC_TRADE_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    60;
+    69;
 
   friend void swap(SC_TRADE_RESULT_PACKET& a, SC_TRADE_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -10466,7 +12018,7 @@ class SC_PARTY_INVITE_PACKET final :
                &_SC_PARTY_INVITE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    61;
+    70;
 
   friend void swap(SC_PARTY_INVITE_PACKET& a, SC_PARTY_INVITE_PACKET& b) {
     a.Swap(&b);
@@ -10641,7 +12193,7 @@ class PartyMember final :
                &_PartyMember_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    62;
+    71;
 
   friend void swap(PartyMember& a, PartyMember& b) {
     a.Swap(&b);
@@ -10827,7 +12379,7 @@ class SC_PARTY_STATE_PACKET final :
                &_SC_PARTY_STATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    63;
+    72;
 
   friend void swap(SC_PARTY_STATE_PACKET& a, SC_PARTY_STATE_PACKET& b) {
     a.Swap(&b);
@@ -11006,7 +12558,7 @@ class SC_PARTY_RESULT_PACKET final :
                &_SC_PARTY_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    64;
+    73;
 
   friend void swap(SC_PARTY_RESULT_PACKET& a, SC_PARTY_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -11165,7 +12717,7 @@ class SC_KICK_PACKET final :
                &_SC_KICK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    65;
+    74;
 
   friend void swap(SC_KICK_PACKET& a, SC_KICK_PACKET& b) {
     a.Swap(&b);
@@ -12267,6 +13819,250 @@ inline void CS_SHOP_SELL_PACKET::_internal_set_count(int32_t value) {
 inline void CS_SHOP_SELL_PACKET::set_count(int32_t value) {
   _internal_set_count(value);
   // @@protoc_insertion_point(field_set:Protocol.CS_SHOP_SELL_PACKET.count)
+}
+
+// -------------------------------------------------------------------
+
+// CS_AUCTION_SEARCH_PACKET
+
+// int32 slot = 1;
+inline void CS_AUCTION_SEARCH_PACKET::clear_slot() {
+  _impl_.slot_ = 0;
+}
+inline int32_t CS_AUCTION_SEARCH_PACKET::_internal_slot() const {
+  return _impl_.slot_;
+}
+inline int32_t CS_AUCTION_SEARCH_PACKET::slot() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_SEARCH_PACKET.slot)
+  return _internal_slot();
+}
+inline void CS_AUCTION_SEARCH_PACKET::_internal_set_slot(int32_t value) {
+  
+  _impl_.slot_ = value;
+}
+inline void CS_AUCTION_SEARCH_PACKET::set_slot(int32_t value) {
+  _internal_set_slot(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_SEARCH_PACKET.slot)
+}
+
+// int32 page = 2;
+inline void CS_AUCTION_SEARCH_PACKET::clear_page() {
+  _impl_.page_ = 0;
+}
+inline int32_t CS_AUCTION_SEARCH_PACKET::_internal_page() const {
+  return _impl_.page_;
+}
+inline int32_t CS_AUCTION_SEARCH_PACKET::page() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_SEARCH_PACKET.page)
+  return _internal_page();
+}
+inline void CS_AUCTION_SEARCH_PACKET::_internal_set_page(int32_t value) {
+  
+  _impl_.page_ = value;
+}
+inline void CS_AUCTION_SEARCH_PACKET::set_page(int32_t value) {
+  _internal_set_page(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_SEARCH_PACKET.page)
+}
+
+// -------------------------------------------------------------------
+
+// CS_AUCTION_REGISTER_PACKET
+
+// int32 npc_id = 1;
+inline void CS_AUCTION_REGISTER_PACKET::clear_npc_id() {
+  _impl_.npc_id_ = 0;
+}
+inline int32_t CS_AUCTION_REGISTER_PACKET::_internal_npc_id() const {
+  return _impl_.npc_id_;
+}
+inline int32_t CS_AUCTION_REGISTER_PACKET::npc_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_REGISTER_PACKET.npc_id)
+  return _internal_npc_id();
+}
+inline void CS_AUCTION_REGISTER_PACKET::_internal_set_npc_id(int32_t value) {
+  
+  _impl_.npc_id_ = value;
+}
+inline void CS_AUCTION_REGISTER_PACKET::set_npc_id(int32_t value) {
+  _internal_set_npc_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_REGISTER_PACKET.npc_id)
+}
+
+// int64 item_db_id = 2;
+inline void CS_AUCTION_REGISTER_PACKET::clear_item_db_id() {
+  _impl_.item_db_id_ = int64_t{0};
+}
+inline int64_t CS_AUCTION_REGISTER_PACKET::_internal_item_db_id() const {
+  return _impl_.item_db_id_;
+}
+inline int64_t CS_AUCTION_REGISTER_PACKET::item_db_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_REGISTER_PACKET.item_db_id)
+  return _internal_item_db_id();
+}
+inline void CS_AUCTION_REGISTER_PACKET::_internal_set_item_db_id(int64_t value) {
+  
+  _impl_.item_db_id_ = value;
+}
+inline void CS_AUCTION_REGISTER_PACKET::set_item_db_id(int64_t value) {
+  _internal_set_item_db_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_REGISTER_PACKET.item_db_id)
+}
+
+// int32 count = 3;
+inline void CS_AUCTION_REGISTER_PACKET::clear_count() {
+  _impl_.count_ = 0;
+}
+inline int32_t CS_AUCTION_REGISTER_PACKET::_internal_count() const {
+  return _impl_.count_;
+}
+inline int32_t CS_AUCTION_REGISTER_PACKET::count() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_REGISTER_PACKET.count)
+  return _internal_count();
+}
+inline void CS_AUCTION_REGISTER_PACKET::_internal_set_count(int32_t value) {
+  
+  _impl_.count_ = value;
+}
+inline void CS_AUCTION_REGISTER_PACKET::set_count(int32_t value) {
+  _internal_set_count(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_REGISTER_PACKET.count)
+}
+
+// int64 price = 4;
+inline void CS_AUCTION_REGISTER_PACKET::clear_price() {
+  _impl_.price_ = int64_t{0};
+}
+inline int64_t CS_AUCTION_REGISTER_PACKET::_internal_price() const {
+  return _impl_.price_;
+}
+inline int64_t CS_AUCTION_REGISTER_PACKET::price() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_REGISTER_PACKET.price)
+  return _internal_price();
+}
+inline void CS_AUCTION_REGISTER_PACKET::_internal_set_price(int64_t value) {
+  
+  _impl_.price_ = value;
+}
+inline void CS_AUCTION_REGISTER_PACKET::set_price(int64_t value) {
+  _internal_set_price(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_REGISTER_PACKET.price)
+}
+
+// -------------------------------------------------------------------
+
+// CS_AUCTION_BUY_PACKET
+
+// int64 listing_id = 1;
+inline void CS_AUCTION_BUY_PACKET::clear_listing_id() {
+  _impl_.listing_id_ = int64_t{0};
+}
+inline int64_t CS_AUCTION_BUY_PACKET::_internal_listing_id() const {
+  return _impl_.listing_id_;
+}
+inline int64_t CS_AUCTION_BUY_PACKET::listing_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_BUY_PACKET.listing_id)
+  return _internal_listing_id();
+}
+inline void CS_AUCTION_BUY_PACKET::_internal_set_listing_id(int64_t value) {
+  
+  _impl_.listing_id_ = value;
+}
+inline void CS_AUCTION_BUY_PACKET::set_listing_id(int64_t value) {
+  _internal_set_listing_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_BUY_PACKET.listing_id)
+}
+
+// -------------------------------------------------------------------
+
+// CS_AUCTION_CANCEL_PACKET
+
+// int32 npc_id = 1;
+inline void CS_AUCTION_CANCEL_PACKET::clear_npc_id() {
+  _impl_.npc_id_ = 0;
+}
+inline int32_t CS_AUCTION_CANCEL_PACKET::_internal_npc_id() const {
+  return _impl_.npc_id_;
+}
+inline int32_t CS_AUCTION_CANCEL_PACKET::npc_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_CANCEL_PACKET.npc_id)
+  return _internal_npc_id();
+}
+inline void CS_AUCTION_CANCEL_PACKET::_internal_set_npc_id(int32_t value) {
+  
+  _impl_.npc_id_ = value;
+}
+inline void CS_AUCTION_CANCEL_PACKET::set_npc_id(int32_t value) {
+  _internal_set_npc_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_CANCEL_PACKET.npc_id)
+}
+
+// int64 listing_id = 2;
+inline void CS_AUCTION_CANCEL_PACKET::clear_listing_id() {
+  _impl_.listing_id_ = int64_t{0};
+}
+inline int64_t CS_AUCTION_CANCEL_PACKET::_internal_listing_id() const {
+  return _impl_.listing_id_;
+}
+inline int64_t CS_AUCTION_CANCEL_PACKET::listing_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_CANCEL_PACKET.listing_id)
+  return _internal_listing_id();
+}
+inline void CS_AUCTION_CANCEL_PACKET::_internal_set_listing_id(int64_t value) {
+  
+  _impl_.listing_id_ = value;
+}
+inline void CS_AUCTION_CANCEL_PACKET::set_listing_id(int64_t value) {
+  _internal_set_listing_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_CANCEL_PACKET.listing_id)
+}
+
+// -------------------------------------------------------------------
+
+// CS_AUCTION_MY_PACKET
+
+// -------------------------------------------------------------------
+
+// CS_MAIL_CLAIM_PACKET
+
+// int32 npc_id = 1;
+inline void CS_MAIL_CLAIM_PACKET::clear_npc_id() {
+  _impl_.npc_id_ = 0;
+}
+inline int32_t CS_MAIL_CLAIM_PACKET::_internal_npc_id() const {
+  return _impl_.npc_id_;
+}
+inline int32_t CS_MAIL_CLAIM_PACKET::npc_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_MAIL_CLAIM_PACKET.npc_id)
+  return _internal_npc_id();
+}
+inline void CS_MAIL_CLAIM_PACKET::_internal_set_npc_id(int32_t value) {
+  
+  _impl_.npc_id_ = value;
+}
+inline void CS_MAIL_CLAIM_PACKET::set_npc_id(int32_t value) {
+  _internal_set_npc_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_MAIL_CLAIM_PACKET.npc_id)
+}
+
+// int64 mail_id = 2;
+inline void CS_MAIL_CLAIM_PACKET::clear_mail_id() {
+  _impl_.mail_id_ = int64_t{0};
+}
+inline int64_t CS_MAIL_CLAIM_PACKET::_internal_mail_id() const {
+  return _impl_.mail_id_;
+}
+inline int64_t CS_MAIL_CLAIM_PACKET::mail_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_MAIL_CLAIM_PACKET.mail_id)
+  return _internal_mail_id();
+}
+inline void CS_MAIL_CLAIM_PACKET::_internal_set_mail_id(int64_t value) {
+  
+  _impl_.mail_id_ = value;
+}
+inline void CS_MAIL_CLAIM_PACKET::set_mail_id(int64_t value) {
+  _internal_set_mail_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_MAIL_CLAIM_PACKET.mail_id)
 }
 
 // -------------------------------------------------------------------
@@ -15124,6 +16920,349 @@ SC_SHOP_OPEN_PACKET::items() const {
 
 // -------------------------------------------------------------------
 
+// SC_AUCTION_LIST_PACKET
+
+// int32 slot = 1;
+inline void SC_AUCTION_LIST_PACKET::clear_slot() {
+  _impl_.slot_ = 0;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::_internal_slot() const {
+  return _impl_.slot_;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::slot() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.slot)
+  return _internal_slot();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_slot(int32_t value) {
+  
+  _impl_.slot_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_slot(int32_t value) {
+  _internal_set_slot(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.slot)
+}
+
+// int32 page = 2;
+inline void SC_AUCTION_LIST_PACKET::clear_page() {
+  _impl_.page_ = 0;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::_internal_page() const {
+  return _impl_.page_;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::page() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.page)
+  return _internal_page();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_page(int32_t value) {
+  
+  _impl_.page_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_page(int32_t value) {
+  _internal_set_page(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.page)
+}
+
+// int32 total_count = 3;
+inline void SC_AUCTION_LIST_PACKET::clear_total_count() {
+  _impl_.total_count_ = 0;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::_internal_total_count() const {
+  return _impl_.total_count_;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::total_count() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.total_count)
+  return _internal_total_count();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_total_count(int32_t value) {
+  
+  _impl_.total_count_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_total_count(int32_t value) {
+  _internal_set_total_count(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.total_count)
+}
+
+// int32 page_size = 4;
+inline void SC_AUCTION_LIST_PACKET::clear_page_size() {
+  _impl_.page_size_ = 0;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::_internal_page_size() const {
+  return _impl_.page_size_;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::page_size() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.page_size)
+  return _internal_page_size();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_page_size(int32_t value) {
+  
+  _impl_.page_size_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_page_size(int32_t value) {
+  _internal_set_page_size(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.page_size)
+}
+
+// repeated .Protocol.AuctionListingInfo listings = 5;
+inline int SC_AUCTION_LIST_PACKET::_internal_listings_size() const {
+  return _impl_.listings_.size();
+}
+inline int SC_AUCTION_LIST_PACKET::listings_size() const {
+  return _internal_listings_size();
+}
+inline ::Protocol::AuctionListingInfo* SC_AUCTION_LIST_PACKET::mutable_listings(int index) {
+  // @@protoc_insertion_point(field_mutable:Protocol.SC_AUCTION_LIST_PACKET.listings)
+  return _impl_.listings_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo >*
+SC_AUCTION_LIST_PACKET::mutable_listings() {
+  // @@protoc_insertion_point(field_mutable_list:Protocol.SC_AUCTION_LIST_PACKET.listings)
+  return &_impl_.listings_;
+}
+inline const ::Protocol::AuctionListingInfo& SC_AUCTION_LIST_PACKET::_internal_listings(int index) const {
+  return _impl_.listings_.Get(index);
+}
+inline const ::Protocol::AuctionListingInfo& SC_AUCTION_LIST_PACKET::listings(int index) const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.listings)
+  return _internal_listings(index);
+}
+inline ::Protocol::AuctionListingInfo* SC_AUCTION_LIST_PACKET::_internal_add_listings() {
+  return _impl_.listings_.Add();
+}
+inline ::Protocol::AuctionListingInfo* SC_AUCTION_LIST_PACKET::add_listings() {
+  ::Protocol::AuctionListingInfo* _add = _internal_add_listings();
+  // @@protoc_insertion_point(field_add:Protocol.SC_AUCTION_LIST_PACKET.listings)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo >&
+SC_AUCTION_LIST_PACKET::listings() const {
+  // @@protoc_insertion_point(field_list:Protocol.SC_AUCTION_LIST_PACKET.listings)
+  return _impl_.listings_;
+}
+
+// -------------------------------------------------------------------
+
+// SC_AUCTION_MY_PACKET
+
+// repeated .Protocol.AuctionListingInfo listings = 1;
+inline int SC_AUCTION_MY_PACKET::_internal_listings_size() const {
+  return _impl_.listings_.size();
+}
+inline int SC_AUCTION_MY_PACKET::listings_size() const {
+  return _internal_listings_size();
+}
+inline ::Protocol::AuctionListingInfo* SC_AUCTION_MY_PACKET::mutable_listings(int index) {
+  // @@protoc_insertion_point(field_mutable:Protocol.SC_AUCTION_MY_PACKET.listings)
+  return _impl_.listings_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo >*
+SC_AUCTION_MY_PACKET::mutable_listings() {
+  // @@protoc_insertion_point(field_mutable_list:Protocol.SC_AUCTION_MY_PACKET.listings)
+  return &_impl_.listings_;
+}
+inline const ::Protocol::AuctionListingInfo& SC_AUCTION_MY_PACKET::_internal_listings(int index) const {
+  return _impl_.listings_.Get(index);
+}
+inline const ::Protocol::AuctionListingInfo& SC_AUCTION_MY_PACKET::listings(int index) const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_MY_PACKET.listings)
+  return _internal_listings(index);
+}
+inline ::Protocol::AuctionListingInfo* SC_AUCTION_MY_PACKET::_internal_add_listings() {
+  return _impl_.listings_.Add();
+}
+inline ::Protocol::AuctionListingInfo* SC_AUCTION_MY_PACKET::add_listings() {
+  ::Protocol::AuctionListingInfo* _add = _internal_add_listings();
+  // @@protoc_insertion_point(field_add:Protocol.SC_AUCTION_MY_PACKET.listings)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo >&
+SC_AUCTION_MY_PACKET::listings() const {
+  // @@protoc_insertion_point(field_list:Protocol.SC_AUCTION_MY_PACKET.listings)
+  return _impl_.listings_;
+}
+
+// repeated .Protocol.MailInfo mails = 2;
+inline int SC_AUCTION_MY_PACKET::_internal_mails_size() const {
+  return _impl_.mails_.size();
+}
+inline int SC_AUCTION_MY_PACKET::mails_size() const {
+  return _internal_mails_size();
+}
+inline ::Protocol::MailInfo* SC_AUCTION_MY_PACKET::mutable_mails(int index) {
+  // @@protoc_insertion_point(field_mutable:Protocol.SC_AUCTION_MY_PACKET.mails)
+  return _impl_.mails_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::MailInfo >*
+SC_AUCTION_MY_PACKET::mutable_mails() {
+  // @@protoc_insertion_point(field_mutable_list:Protocol.SC_AUCTION_MY_PACKET.mails)
+  return &_impl_.mails_;
+}
+inline const ::Protocol::MailInfo& SC_AUCTION_MY_PACKET::_internal_mails(int index) const {
+  return _impl_.mails_.Get(index);
+}
+inline const ::Protocol::MailInfo& SC_AUCTION_MY_PACKET::mails(int index) const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_MY_PACKET.mails)
+  return _internal_mails(index);
+}
+inline ::Protocol::MailInfo* SC_AUCTION_MY_PACKET::_internal_add_mails() {
+  return _impl_.mails_.Add();
+}
+inline ::Protocol::MailInfo* SC_AUCTION_MY_PACKET::add_mails() {
+  ::Protocol::MailInfo* _add = _internal_add_mails();
+  // @@protoc_insertion_point(field_add:Protocol.SC_AUCTION_MY_PACKET.mails)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::MailInfo >&
+SC_AUCTION_MY_PACKET::mails() const {
+  // @@protoc_insertion_point(field_list:Protocol.SC_AUCTION_MY_PACKET.mails)
+  return _impl_.mails_;
+}
+
+// bool mail_more = 3;
+inline void SC_AUCTION_MY_PACKET::clear_mail_more() {
+  _impl_.mail_more_ = false;
+}
+inline bool SC_AUCTION_MY_PACKET::_internal_mail_more() const {
+  return _impl_.mail_more_;
+}
+inline bool SC_AUCTION_MY_PACKET::mail_more() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_MY_PACKET.mail_more)
+  return _internal_mail_more();
+}
+inline void SC_AUCTION_MY_PACKET::_internal_set_mail_more(bool value) {
+  
+  _impl_.mail_more_ = value;
+}
+inline void SC_AUCTION_MY_PACKET::set_mail_more(bool value) {
+  _internal_set_mail_more(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_MY_PACKET.mail_more)
+}
+
+// int32 max_listings = 4;
+inline void SC_AUCTION_MY_PACKET::clear_max_listings() {
+  _impl_.max_listings_ = 0;
+}
+inline int32_t SC_AUCTION_MY_PACKET::_internal_max_listings() const {
+  return _impl_.max_listings_;
+}
+inline int32_t SC_AUCTION_MY_PACKET::max_listings() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_MY_PACKET.max_listings)
+  return _internal_max_listings();
+}
+inline void SC_AUCTION_MY_PACKET::_internal_set_max_listings(int32_t value) {
+  
+  _impl_.max_listings_ = value;
+}
+inline void SC_AUCTION_MY_PACKET::set_max_listings(int32_t value) {
+  _internal_set_max_listings(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_MY_PACKET.max_listings)
+}
+
+// int64 min_price = 5;
+inline void SC_AUCTION_MY_PACKET::clear_min_price() {
+  _impl_.min_price_ = int64_t{0};
+}
+inline int64_t SC_AUCTION_MY_PACKET::_internal_min_price() const {
+  return _impl_.min_price_;
+}
+inline int64_t SC_AUCTION_MY_PACKET::min_price() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_MY_PACKET.min_price)
+  return _internal_min_price();
+}
+inline void SC_AUCTION_MY_PACKET::_internal_set_min_price(int64_t value) {
+  
+  _impl_.min_price_ = value;
+}
+inline void SC_AUCTION_MY_PACKET::set_min_price(int64_t value) {
+  _internal_set_min_price(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_MY_PACKET.min_price)
+}
+
+// int64 max_price = 6;
+inline void SC_AUCTION_MY_PACKET::clear_max_price() {
+  _impl_.max_price_ = int64_t{0};
+}
+inline int64_t SC_AUCTION_MY_PACKET::_internal_max_price() const {
+  return _impl_.max_price_;
+}
+inline int64_t SC_AUCTION_MY_PACKET::max_price() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_MY_PACKET.max_price)
+  return _internal_max_price();
+}
+inline void SC_AUCTION_MY_PACKET::_internal_set_max_price(int64_t value) {
+  
+  _impl_.max_price_ = value;
+}
+inline void SC_AUCTION_MY_PACKET::set_max_price(int64_t value) {
+  _internal_set_max_price(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_MY_PACKET.max_price)
+}
+
+// -------------------------------------------------------------------
+
+// SC_AUCTION_RESULT_PACKET
+
+// .Protocol.PacketId request = 1;
+inline void SC_AUCTION_RESULT_PACKET::clear_request() {
+  _impl_.request_ = 0;
+}
+inline ::Protocol::PacketId SC_AUCTION_RESULT_PACKET::_internal_request() const {
+  return static_cast< ::Protocol::PacketId >(_impl_.request_);
+}
+inline ::Protocol::PacketId SC_AUCTION_RESULT_PACKET::request() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_RESULT_PACKET.request)
+  return _internal_request();
+}
+inline void SC_AUCTION_RESULT_PACKET::_internal_set_request(::Protocol::PacketId value) {
+  
+  _impl_.request_ = value;
+}
+inline void SC_AUCTION_RESULT_PACKET::set_request(::Protocol::PacketId value) {
+  _internal_set_request(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_RESULT_PACKET.request)
+}
+
+// .Protocol.AuctionResult result = 2;
+inline void SC_AUCTION_RESULT_PACKET::clear_result() {
+  _impl_.result_ = 0;
+}
+inline ::Protocol::AuctionResult SC_AUCTION_RESULT_PACKET::_internal_result() const {
+  return static_cast< ::Protocol::AuctionResult >(_impl_.result_);
+}
+inline ::Protocol::AuctionResult SC_AUCTION_RESULT_PACKET::result() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_RESULT_PACKET.result)
+  return _internal_result();
+}
+inline void SC_AUCTION_RESULT_PACKET::_internal_set_result(::Protocol::AuctionResult value) {
+  
+  _impl_.result_ = value;
+}
+inline void SC_AUCTION_RESULT_PACKET::set_result(::Protocol::AuctionResult value) {
+  _internal_set_result(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_RESULT_PACKET.result)
+}
+
+// int64 id = 3;
+inline void SC_AUCTION_RESULT_PACKET::clear_id() {
+  _impl_.id_ = int64_t{0};
+}
+inline int64_t SC_AUCTION_RESULT_PACKET::_internal_id() const {
+  return _impl_.id_;
+}
+inline int64_t SC_AUCTION_RESULT_PACKET::id() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_RESULT_PACKET.id)
+  return _internal_id();
+}
+inline void SC_AUCTION_RESULT_PACKET::_internal_set_id(int64_t value) {
+  
+  _impl_.id_ = value;
+}
+inline void SC_AUCTION_RESULT_PACKET::set_id(int64_t value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_RESULT_PACKET.id)
+}
+
+// -------------------------------------------------------------------
+
 // SC_SKILL_AIM_PACKET
 
 // int32 object_id = 1;
@@ -15816,6 +17955,24 @@ inline void SC_KICK_PACKET::set_reason(::Protocol::KickReason value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

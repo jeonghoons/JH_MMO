@@ -103,6 +103,8 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 한 행 = 상점 하나가 파는 품목 하나(D-201). `Name`(행 ID, 1001 이상·중복 불가), `ShopId`(1 이상), `ItemId`(ItemTable ID), `BuyPrice`(1개 값, 1 ~ `EconomyTable.GoldMax`이고 그 아이템의 `SellPrice` 이상 — 사서 되팔아 골드가 늘지 않게). (`ShopId`, `ItemId`) 중복·없는 `ItemId`·범위 위반은 서버 시작을 중단합니다. EconomyTable·ItemTable 뒤에 읽고, 조회는 `DataManager::GetShopItems(shopId)`·`FindShopItem(shopId, itemId)`. 현재 행(`ShopId` 1, 초안): 1001 HP 물약 8001 = 30, 1002~1009 천 장비 1101·2101·3101·4101·5101·6101·6102·7101 = 각 100. 품목을 늘릴 때는 행만 추가합니다. 구매가는 `SC_SHOP_OPEN`으로 클라이언트에 전달하고 UE는 임포트하지 않습니다.
 
 ### NpcTable (서버 전용, 2026-11-18 L4)
+`Auction`(2026-11-21 A4.3·D-234, `ShopId` 뒤): 1 = 경매 관리인(경매 등록·취소·수령은 이 NPC 근처에서만), 0 = 아님. 1이면 `ShopId`는 0이어야 합니다(한 NPC가 상점과 경매를 겸하면 시작 중단). 클라이언트에는 `ObjectInfo.npc_kind`로 알립니다. 현재 행에 1002 "경매 관리인"(Female, 천 상의·하의·장갑·신발) 추가.
+
 한 행 = NPC 종류 하나(D-202). `Name`(종류 ID, 1001 이상·중복 불가 = `Npc` 마커의 `npcTemplateId` = `ObjectInfo.template_id`), `DisplayName`(비어 있지 않음, `ObjectInfo.name`으로 전달), `ShopId`(0 = 상점 없음, 아니면 ShopTable에 행이 있는 값), `Body`(`Male`/`Female` — `ObjectInfo.player_type`), 장착 외형 7열 `Head`·`Top`·`Bottom`·`Gloves`·`Boots`·`Weapon`·`Offhand`(0 = 없음, 아니면 그 슬롯의 ItemTable ID — `ObjectInfo.equip_items`). 어기면 서버 시작을 중단합니다. ItemTable·ShopTable 뒤에 읽고, 조회는 `DataManager::GetNpcData(templateId)`. 마커의 종류가 이 테이블에 없으면 서버는 그 마커를 배치하지 않고 ERROR를 남깁니다(중단하지 않음). 현재 행(초안): 1001 "잡화 상인" — `ShopId` 1, `Male`, 판금 상의 2301·판금 하의 3301·천 장갑 4101·판금 장화 5301. UE는 임포트하지 않습니다(외형·이름은 `ObjectInfo`로 받음).
 
 ### DropTable (서버 전용, 2026-11-16 A3.2)

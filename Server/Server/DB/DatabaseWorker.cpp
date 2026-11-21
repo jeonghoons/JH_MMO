@@ -20,6 +20,18 @@ DatabaseWorker::DatabaseWorker(HANDLE iocpHandle, int num_connections, const wst
 	if (false == CheckSchemaVersion())
 		exit(-1);
 
+	// 판매 중인 경매 등록(A4.3)도 스레드를 만들기 전에 읽는다 — 읽지 못한 채 뜨면 목록이 비어, 있는 등록이 검색되지도 만료되지도 않는다.
+	{
+		DBConnection* dbConn = _dbConnectionPool->Pop();
+		const bool read = ReadListings(dbConn, 0, _initialAuctionListings);
+		_dbConnectionPool->Push(dbConn);
+		if (!read)
+		{
+			LOG_ERROR("DB", "판매 중인 경매 등록(Auction_Listing)을 읽지 못했습니다.");
+			exit(-1);
+		}
+	}
+
 	for (int i = 0; i < num_connections; ++i) {
 		_threads.emplace_back(&DatabaseWorker::Run, this);
 	}
@@ -214,6 +226,18 @@ void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, s
 
 void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player, DB_ItemOp op)
 {
+	DB_ItemOpResult result = RunItemOp(op);
+	room->PushJob(&Room::OnItemOpDone, player, op, result);
+}
+
+void DatabaseWorker::ExecAuctionOp(shared_ptr<Room> room, shared_ptr<Player> player, DB_ItemOp op)
+{
+	DB_ItemOpResult result = RunItemOp(op);
+	GAuction->PushJob(&AuctionService::OnOpDone, room, player, op, result);
+}
+
+DB_ItemOpResult DatabaseWorker::RunItemOp(DB_ItemOp& op)
+{
 	DBConnection* dbConn = _dbConnectionPool->Pop();
 	dbConn->Unbind();
 
@@ -310,9 +334,50 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 		built = DbQueries::BuildItemLoginFix(op);
 		query = built.c_str();
 		break;
+	case ItemOpKind::AuctionRegister:
+		kindName = "AuctionRegister";
+		dbConn->BindParam(3, &op.auctionDbId, &paramLen[2]);
+		dbConn->BindParam(4, &op.auctionExpectCount, &paramLen[3]);
+		dbConn->BindParam(5, &op.auctionCount, &paramLen[4]);
+		dbConn->BindParam(6, &op.auctionSlot, &paramLen[5]);
+		dbConn->BindParam(7, &op.itemId, &paramLen[6]);
+		dbConn->BindParam(8, &op.auctionPrice, &paramLen[7]);
+		dbConn->BindParam(9, &op.auctionDurationSec, &paramLen[8]);
+		query = DbQueries::AuctionRegister.c_str();
+		break;
+	case ItemOpKind::AuctionBuy:
+		kindName = "AuctionBuy";
+		dbConn->BindParam(3, &op.listingId, &paramLen[2]);
+		query = DbQueries::AuctionBuy.c_str();
+		break;
+	case ItemOpKind::AuctionCancel:
+		kindName = "AuctionCancel";
+		dbConn->BindParam(3, &op.listingId, &paramLen[2]);
+		query = DbQueries::AuctionCancel.c_str();
+		break;
+	case ItemOpKind::MailClaim:
+	{
+		// 받을 수 없는 사유(없는 우편·칸 없음·골드 상한)는 쿼리가 판단해 AuctionResult 값으로 돌려준다. 값만 넣어 한 번 만든다.
+		static const wstring mailClaimQuery = DbQueries::BuildMailClaim(
+			Protocol::AUCTION_RESULT_NO_MAIL, Protocol::AUCTION_RESULT_INVENTORY_FULL, Protocol::AUCTION_RESULT_GOLD_FULL);
+		kindName = "MailClaim";
+		dbConn->BindParam(3, &op.mailId, &paramLen[2]);
+		dbConn->BindParam(4, &op.claimSlot, &paramLen[3]);
+		dbConn->BindParam(5, &op.goldMax, &paramLen[4]);
+		query = mailClaimQuery.c_str();
+		break;
+	}
 	}
 
-	// 결과 행: Ok, Kind(0 상태 · 1 새 ItemDbId · 2 골드 잔액), V  (DbQueries.h "아이템 트랜잭션")
+	DB_ItemOpResult result = RunItemQuery(dbConn, query, kindName, playerUID, op.forceFail);
+	_dbConnectionPool->Push(dbConn);
+	return result;
+}
+
+DB_ItemOpResult DatabaseWorker::RunItemQuery(DBConnection* dbConn, const wchar_t* query, const char* kindName, int64_t playerUID, bool forceFail)
+{
+
+	// 결과 행: Ok, Kind(0 상태 · 1 새 ItemDbId · 2·3 골드 잔액 · 4~9 경매), V  (DbQueries.h "아이템 트랜잭션")
 	int32_t outOk = 0;
 	int32_t outKind = 0;
 	int64_t outValue = 0;
@@ -336,15 +401,26 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 		// 끝까지 읽는다(중간에 멈추면 배치의 나머지 결과가 연결에 남는다).
 		while (dbConn->Fetch())
 		{
-			if (outOk != 1) { sawFail = true; errorCode = outValue; continue; }
+			if (outOk != 1)
+			{
+				sawFail = true;
+				// Kind 9 = 쿼리가 알려 준 거부 사유(수령: 없는 우편·칸 없음·골드 상한). 그 밖은 오류 번호(0 = 조건 불일치)
+				if (outKind == 9) result.auctionResult = static_cast<int32_t>(outValue);
+				else errorCode = outValue;
+				continue;
+			}
 			if (outKind == 0) sawStatus = true;
 			else if (outKind == 1) result.newDbIds.push_back(outValue);
 			else if (outKind == 2) result.gold = outValue;
 			else if (outKind == 3) result.gold2 = outValue;
+			else if (outKind == 4) result.listingId = outValue;
+			else if (outKind == 5) result.claimDbId = outValue;
+			else if (outKind == 6) result.claimItemId = static_cast<int32_t>(outValue);
+			else if (outKind == 7) result.claimCount = static_cast<int32_t>(outValue);
+			else if (outKind == 8) result.expiredIds.push_back(outValue);
 		}
 	}
 	const long long endUs = Metrics::NowUs();
-	_dbConnectionPool->Push(dbConn);
 
 	// 성공 행을 읽었을 때만 성공이다. 실행 실패·행 없음·실패 행은 모두 "바뀐 것 없음"(롤백)으로 본다.
 	result.success = executed && sawStatus && !sawFail;
@@ -355,15 +431,143 @@ void DatabaseWorker::ExecItemOp(shared_ptr<Room> room, shared_ptr<Player> player
 		result.newDbIds.clear();
 		result.gold = -1;
 		result.gold2 = -1;
-		if (op.forceFail)
+		result.listingId = 0;
+		result.claimDbId = 0;
+		result.claimItemId = 0;
+		result.claimCount = 0;
+		result.expiredIds.clear();
+		if (forceFail)
 			LOG_DEBUG("DB", "아이템 작업 강제 롤백 (PlayerId {}, {})", playerUID, kindName);
+		else if (result.auctionResult != 0)
+			LOG_DEBUG("DB", "아이템 작업 거부 (PlayerId {}, {}, 사유 {})", playerUID, kindName, result.auctionResult);
 		else
 			LOG_ERROR("DB", "아이템 작업 실패 (PlayerId {}, {}, executed {}, 오류 번호 {} — 0이면 조건 불일치로 롤백)", playerUID, kindName, executed, errorCode);
 	}
+	else
+	{
+		result.auctionResult = 0;
+	}
 
 	Metrics::ItemOpExecUs.Add(endUs - startUs);   // DB 실행 시간
+	return result;
+}
 
-	room->PushJob(&Room::OnItemOpDone, player, op, result);
+void DatabaseWorker::ExecAuctionExpire(vector<int64_t> listingIds)
+{
+	DBConnection* dbConn = _dbConnectionPool->Pop();
+	dbConn->Unbind();
+
+	// 공통 파라미터(1 PlayerId, 2 Fail)는 틀이 요구하므로 0으로 넣는다. 만료는 요청한 플레이어가 없다.
+	int64_t noPlayer = 0;
+	int32_t noFail = 0;
+	SQLLEN paramLen[2] = { 0 };
+	dbConn->BindParam(1, &noPlayer, &paramLen[0]);
+	dbConn->BindParam(2, &noFail, &paramLen[1]);
+
+	const wstring query = DbQueries::BuildAuctionExpire(listingIds);
+	DB_ItemOpResult result = RunItemQuery(dbConn, query.c_str(), "AuctionExpire", 0, false);
+	_dbConnectionPool->Push(dbConn);
+
+	GAuction->PushJob(&AuctionService::OnExpireDone, listingIds, result);
+}
+
+bool DatabaseWorker::ReadListings(DBConnection* dbConn, int64_t sellerUID, vector<DB_AuctionListing>& out)
+{
+	dbConn->Unbind();
+
+	SQLLEN paramLen = 0;
+	if (sellerUID != 0)
+		dbConn->BindParam(1, &sellerUID, &paramLen);
+
+	DB_AuctionListing row;
+	SQLLEN colLen[6] = { 0 };
+	dbConn->BindCol(1, &row.listingId, &colLen[0]);
+	dbConn->BindCol(2, &row.sellerUID, &colLen[1]);
+	dbConn->BindCol(3, &row.itemId, &colLen[2]);
+	dbConn->BindCol(4, &row.count, &colLen[3]);
+	dbConn->BindCol(5, &row.price, &colLen[4]);
+	dbConn->BindCol(6, &row.remainSec, &colLen[5]);
+
+	const bool executed = dbConn->Execute(sellerUID != 0 ? DbQueries::SelectSellerListings : DbQueries::SelectActiveListings);
+	if (executed)
+	{
+		while (dbConn->Fetch())
+			out.push_back(row);
+	}
+	dbConn->Unbind();
+	return executed;
+}
+
+void DatabaseWorker::ReadSellerListings(int64_t sellerUID)
+{
+	DBConnection* dbConn = _dbConnectionPool->Pop();
+	vector<DB_AuctionListing> rows;
+	const bool read = ReadListings(dbConn, sellerUID, rows);
+	_dbConnectionPool->Push(dbConn);
+
+	GAuction->PushJob(&AuctionService::OnSellerRead, sellerUID, rows, read);
+}
+
+void DatabaseWorker::ReadListingState(int64_t listingId)
+{
+	DBConnection* dbConn = _dbConnectionPool->Pop();
+	dbConn->Unbind();
+
+	SQLLEN paramLen = 0;
+	dbConn->BindParam(1, &listingId, &paramLen);
+	int32_t outState = 0;
+	SQLLEN colLen = 0;
+	dbConn->BindCol(1, &outState, &colLen);
+
+	// -1 = 읽지 못함, 0 = 없는 등록, 그 밖 = Auction_Listing.State
+	int state = -1;
+	if (dbConn->Execute(DbQueries::SelectListingState))
+		state = dbConn->Fetch() ? outState : 0;
+	dbConn->Unbind();
+	_dbConnectionPool->Push(dbConn);
+
+	GAuction->PushJob(&AuctionService::OnListingVerified, listingId, state);
+}
+
+void DatabaseWorker::ReadMail(shared_ptr<GameSession> session, int64_t playerUID, int limit)
+{
+	DBConnection* dbConn = _dbConnectionPool->Pop();
+	dbConn->Unbind();
+
+	SQLLEN paramLen = 0;
+	dbConn->BindParam(1, &playerUID, &paramLen);
+
+	DB_MailRow row;
+	SQLLEN colLen[6] = { 0 };
+	dbConn->BindCol(1, &row.mailId, &colLen[0]);
+	dbConn->BindCol(2, &row.kind, &colLen[1]);
+	dbConn->BindCol(3, &row.gold, &colLen[2]);
+	dbConn->BindCol(4, &row.itemId, &colLen[3]);
+	dbConn->BindCol(5, &row.count, &colLen[4]);
+	dbConn->BindCol(6, &row.listingId, &colLen[5]);
+
+	// 시험용: 실행을 일부러 늦춘다([Debug] DbSaveDelayMs — 경매 혼잡 기준 시험)
+	if (GServerConfig.dbSaveDelayMs > 0) ::Sleep(GServerConfig.dbSaveDelayMs);
+
+	// 보여 줄 수보다 한 건 더 읽어 "더 있음"을 안다.
+	vector<DB_MailRow> rows;
+	const wstring query = DbQueries::BuildSelectMail(limit + 1);
+	const bool executed = dbConn->Execute(query.c_str());
+	if (executed)
+	{
+		while (dbConn->Fetch())
+			rows.push_back(row);
+	}
+	dbConn->Unbind();
+	_dbConnectionPool->Push(dbConn);
+
+	bool more = false;
+	if (static_cast<int>(rows.size()) > limit)
+	{
+		more = true;
+		rows.resize(limit);
+	}
+	GAuction->PushJob(&AuctionService::OnMailRead, session, playerUID, rows, more, executed);
 }
 
 void DatabaseWorker::SaveQuickSlots(shared_ptr<Room> room, shared_ptr<Player> player, int64_t playerUID, QuickSlotArray slots)

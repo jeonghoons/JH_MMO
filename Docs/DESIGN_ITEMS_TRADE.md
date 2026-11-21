@@ -3,7 +3,8 @@
 목표 구조만 기록합니다. 구현 순서는 [ROADMAP.md](ROADMAP.md) 마일스톤 1(1-3·1-4)을 따르고, 이 문서의 테이블·패킷은 해당 항목을 구현할 때 만듭니다.
 (2026-11-16 A3.1 작성, 결정 D-152~D-159. 장비 외형·슬롯은 [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), CSV 규약은 [DESIGN_DATA.md](DESIGN_DATA.md), 동시성 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md))
 
-## 현재 상태 (2026-11-18)
+## 현재 상태 (2026-11-21)
+- A4.3 완료(2026-11-21, Claude 테스트): 경매장 서버 — 전역 `AuctionService`, `Auction_Listing`·`Player_Mail`(마이그레이션 0008), 패킷 CS 1024~1029·SC 2024~2026, 경매 NPC(`NpcTable.Auction`). 쓰는 곳과 혼잡 기준이 설계에서 바뀌었습니다(D-234·D-235). 구현 내용은 아래 "A4.3 구현 메모". 경매 창(A6.3b)은 아직 없습니다.
 - L4 완료(2026-11-19, Claude 테스트 + 사용자 PIE 확인): 상점 NPC(구매·판매, D-201·D-202). 설계와 구현 메모는 아래 "상점 NPC (L4)". A3.1 때는 범위 밖이었으나 D-167로 마일스톤 1에 들어왔습니다.
 - A6.3a 완료(2026-11-17, 사용자 PIE 확인): 거래 UI(`UJMTradeManager`·`UTradeWidget`/`WBP_Trade`, T 키). 구현 내용은 아래 "A6.3a 구현 메모".
 - A4.1·A4.2 완료(2026-11-17): 1:1 거래 서버(상태기계·패킷·한 트랜잭션 교환·`Trade_Log`, 마이그레이션 0007). 구현 내용은 아래 "A4.1·A4.2 구현 메모". 거래 UI(A6.3a)와 경매 코드는 아직 없습니다.
@@ -245,23 +246,36 @@
 - **시험(TESTING 2026-11-17 A4.1·A4.2)**: 100회 반복에서 합계 보존·`Trade_Log` 행 수 일치. 거래 중 사망 취소는 확인하지 못했습니다.
 
 ## 경매장 (A4.3, D-159)
-- **즉시 구매만**, 수수료 없음, 어디서나 키로 엽니다(사망 중 불가). 팔린 대금·산 아이템·만료·취소 반환은 모두 **수령함**에 쌓이고 경매 창에서 직접 받습니다.
+- **즉시 구매만**, 수수료 없음. 팔린 대금·산 아이템·만료·취소 반환은 모두 **수령함**에 쌓이고 경매 창에서 직접 받습니다.
+- **쓰는 곳(D-234 — 처음 설계의 "어디서나 키로"를 바꿈)**: **검색·구매·내 등록/수령함 보기**는 던전 밖 어디서나(K 키), **등록·취소·수령**은 마을의 **경매 NPC**("경매 관리인", `NpcTable.Auction` 1) 근처(`EconomyTable.ShopRangeCm`)에서만(F 키). 인벤토리에 아이템·골드가 들고 나는 일은 모두 NPC 앞에서만 일어납니다. 사망 중과 던전 안에서는 어느 요청도 받지 않습니다(`DEAD`·`IN_DUNGEON`). NPC에서만 열게 하면 NPC 주변에 사람이 몰리므로 가장 잦은 조회·구매는 어디서나 둡니다. 서버에 "창을 연 상태"는 없고 요청마다 검증합니다(상점과 같음).
+- **혼잡 기준(D-235)**: 경매 종류의 DB 작업(등록·구매·취소·수령·수령함 읽기·만료 묶음)이 `ServerConfig` `[Database] AuctionDbMaxInFlight`(제안값 16, 0 = 끔)건 넘게 진행 중이면 새 요청을 `TRY_LATER`("잠시 뒤에 다시 요청")로 거부합니다 — 경매가 DB 작업 스레드를 독차지해 줍기·장착이 늦어지지 않게. 값은 PL1·A5.4 측정으로 조정합니다. 부하 테스트의 경매 프로필은 조회 비율을 높게 잡습니다(더미 봇도 검색은 됨).
 - **`AuctionService`**(`GAuction`): `AuthLobby`처럼 자체 JobQueue를 가진 전역 서비스이고 수명은 프로세스와 같습니다. 시작 때 판매 중인 등록을 전부 읽어 메모리 목록을 만듭니다(권위는 DB, 목록은 검색·중복 구매 차단용).
-- **요청 경로**: 패킷 → 요청자의 Room 잡(검증, `itemOp` 켬) → `GAuction` 잡 → `DatabaseWorker` → `GAuction` 잡(목록 갱신) → 요청자의 Room 잡(메모리·패킷 반영, `itemOp` 끔). Room과 서비스는 서로의 상태를 직접 만지지 않고 잡으로만 주고받습니다. 결과가 돌아왔을 때 요청자가 방에 없으면 반영만 건너뜁니다.
-- **등록** `CS_AUCTION_REGISTER(item_db_id, count, price)`: Room에서 인벤토리 위치·거래 중 아님·수량(1 ~ 그 행의 `Count`)·가격 범위 확인, 서비스에서 1인 등록 수 확인. 성공하면 그 수량이 인벤토리에서 빠져 에스크로(`Location` 3)로 갑니다. `price`는 등록 묶음 전체의 가격이고, 구매는 등록 단위 통째로만 합니다.
+- **요청 경로(등록·구매·취소)**: 패킷 → 요청자의 Room 잡(검증, `itemOp` 켬) → `GAuction` 잡 → `DatabaseWorker` → `GAuction` 잡(목록 갱신) → 요청자의 Room 잡(메모리·패킷 반영, `itemOp` 끔). Room과 서비스는 서로의 상태를 직접 만지지 않고 잡으로만 주고받습니다. 결과가 돌아왔을 때 요청자가 방에 없으면 반영만 건너뜁니다. `itemOp`가 켜져 있는 동안에는 Room 이동이 기다리므로(DG3b) 결과가 옛 Room으로 돌아오는 일이 없습니다.
+- **조회(검색·내 목록)는 `itemOp`를 쓰지 않습니다**: Room 잡은 검증만 하고 서비스가 세션에 직접 답합니다(파티와 같은 방식). 읽기 전용이라 Room 이동·퇴장 정리와 무관합니다.
+- **등록** `CS_AUCTION_REGISTER(npc_id, item_db_id, count, price)`: Room에서 인벤토리 위치·거래 중 아님·수량(1 ~ 그 행의 `Count`)·가격 범위 확인, 서비스에서 1인 등록 수 확인. 성공하면 그 수량이 인벤토리에서 빠져 에스크로(`Location` 3)로 갑니다. `price`는 등록 묶음 전체의 가격이고, 구매는 등록 단위 통째로만 합니다.
 - **처리 중 표시**: 구매·취소·만료는 모두 서비스 목록의 그 등록에 **처리 중** 표시를 한 뒤 DB로 보냅니다(DB 작업 스레드가 여러 개라 같은 등록의 두 트랜잭션이 동시에 돌 수 있음). 표시된 등록에 온 다른 요청은 거부하고 만료 검사는 건너뜁니다. DB 결과가 성공이면 목록에서 빼고, **실패·조건 불일치(바뀐 행 0)면 반드시 표시를 풉니다.**
 - **구매** `CS_AUCTION_BUY(listing_id)`: 서비스가 목록에서 판매 중·본인 물품 아님·처리 중 아님을 확인합니다. 같은 등록에 온 다른 구매는 `SOLD`로 거부하므로 한 명만 삽니다. 골드 부족·만료는 트랜잭션 조건에서 걸러 롤백합니다. 구매자는 골드만 줄고 아이템은 수령함으로 갑니다. **판매자의 Room에는 아무것도 보내지 않습니다**(오프라인·다른 Room이어도 같음).
-- **취소** `CS_AUCTION_CANCEL(listing_id)`: 본인의 판매 중 등록만. 아이템은 수령함으로.
-- **만료**: 서비스가 `AuctionExpireCheckSec`마다 기간이 지난 등록을 만료 처리하고 수령함으로 돌려줍니다. 서버가 꺼져 있던 동안 지난 것은 시작 후 첫 검사에서 처리합니다.
-- **조회**: `CS_AUCTION_SEARCH(slot, page)` → 서비스 목록에서 슬롯 필터(0 = 전체), 가격 오름차순, `AuctionPageSize`개씩 `SC_AUCTION_LIST`(패킷 상한 8192바이트 안). `CS_AUCTION_MY` → 내 등록(서비스 목록) + 수령함 `SC_AUCTION_MY`. 수령함은 메모리에 두지 않고 요청 때 DB에서 오래된 것부터 `AuctionPageSize`개를 읽습니다(Room → 서비스 → DB → 서비스 → Room). 수령하면 다음 것이 보입니다.
-- **수령** `CS_MAIL_CLAIM(mail_id)`: 한 건씩. 서비스를 거치지 않고 Room → DB → Room. 아이템은 빈 칸, 골드는 상한을 확인합니다.
+- **취소** `CS_AUCTION_CANCEL(npc_id, listing_id)`: 본인의 판매 중 등록만. 아이템은 수령함으로.
+- **만료**: 서비스가 `AuctionExpireCheckSec`마다 기간이 지난 등록을 만료 처리하고 수령함으로 돌려줍니다. 서버가 꺼져 있던 동안 지난 것은 시작 후 첫 검사에서 처리합니다. 한 번에 50건까지 한 트랜잭션으로 묶고, 밀린 것이 남으면 1초 뒤 다시 합니다.
+- **조회**: `CS_AUCTION_SEARCH(slot, page)` → 서비스 목록에서 슬롯 필터(0 = 전체, 1~7 = 장비 슬롯, 8 = 슬롯 없는 아이템), 가격 오름차순(필터별로 정렬해 둔 색인 — 요청마다 정렬하지 않음), `AuctionPageSize`개씩 `SC_AUCTION_LIST`(패킷 상한 8192바이트 안). `CS_AUCTION_MY` → 내 등록(서비스 목록) + 수령함 `SC_AUCTION_MY`. 수령함은 메모리에 두지 않고 요청 때 DB에서 오래된 것부터 `AuctionPageSize`개를 읽습니다(Room → 서비스 → DB → 서비스 → Room). 수령하면 다음 것이 보입니다.
+- **수령** `CS_MAIL_CLAIM(npc_id, mail_id)`: 한 건씩. 서비스를 거치지 않고 Room → DB → Room. 아이템은 빈 칸, 골드는 상한을 확인합니다.
+
+### A4.3 구현 메모 (2026-11-21, D-234·D-235)
+- **서비스** `AuctionService`(`Game/Auction/AuctionService`, 전역 `GAuction`): 판매 중 목록(`_listings`), 판매자별 등록(`_bySeller` — 1인 등록 수·내 등록), 필터별 가격순 색인(`_index[9]`, 등록·제거 때 제자리에 넣고 뺌). 시작 때 `DatabaseWorker` 생성자가 DB 스레드를 만들기 전에 판매 중 등록을 읽어 두고(실패하면 시작 중단) `AuctionService::Init`이 넘겨받습니다. 남은 시간은 DB가 `DATEDIFF`로 초 단위로 주고 서비스가 자기 시계로 바꿉니다(`ExpireAt`은 UTC). **만료 시각 판단은 서비스가 하고 쿼리는 `State`만 조건으로 봅니다.**
+- **Room** `Room::CheckAuctionRequest`(방 안 → 더미 봇(검색만 허용) → 생존 → 던전 아님 → 요청 간격 → [바꾸는 요청] `CheckItemRequest`(Room 이동 중·진행 중인 작업 `BUSY`) → [등록·취소·수령] 경매 NPC·거리 `TOO_FAR`) → `PlayerAuctionSearch`·`My`·`Register`·`Buy`·`Cancel`·`PlayerMailClaim`. 등록·구매·취소는 `Room::StartItemOp`가 DB 대신 `AuctionService::BeginOp`로 보내고, 결과는 다른 아이템 작업처럼 `Room::OnItemOpDone`으로 돌아옵니다(`ItemOpKind::AuctionRegister`·`AuctionBuy`·`AuctionCancel`·`MailClaim`). 조회의 요청 간격은 `Player::auctionQuery`(아이템 요청 간격과 따로).
+- **서비스의 거부도 Room으로 돌아옵니다**: `BeginOp`가 거부하면(등록 수 초과 `LISTING_LIMIT`, 없는 등록 `NO_LISTING`, 처리 중 `SOLD`, 본인 물품 `OWN_ITEM`, 기간 지남 `NO_LISTING`, 골드 부족 `NOT_ENOUGH_GOLD`) 결과에 사유(`DB_ItemOpResult::auctionResult`)를 적어 `OnItemOpDone`으로 보냅니다 — 빠지면 그 플레이어의 `itemOp.inFlight`가 남아 다음 로그인·Room 이동·던전 인스턴스 닫기가 막힙니다. 서비스는 `Player` 필드를 만지지 않으므로 구매의 골드 비교는 Room이 `DB_ItemOp::auctionGold`에 실어 보낸 값으로 합니다(DB의 `Gold >= 가격` 조건이 두 번째 방어선).
+- **실패한 구매·취소·만료 뒤**: 롤백이든 결과 불명이든 서비스가 그 등록의 DB `State`를 다시 읽어(`VerifyListing`) 판매 중이면 처리 중 표시를 풀고 아니면 목록에서 뺍니다. 그동안 그 등록에 온 요청은 `SOLD`입니다. 결과를 알 수 없는 등록은 그 판매자의 판매 중 등록을 다시 읽어 목록에 없는 것을 넣습니다(`ResyncSeller`).
+- **쿼리**(`DbQueries.h`, 모두 아이템 트랜잭션 틀): `AuctionRegister`(통째면 `Location` 1 → 3·`BagSlot` -1, 일부면 원래 행 수량 감소 + 경매 보관 새 행), `AuctionBuy`, `AuctionCancel`, `BuildMailClaim`(우편 내용은 메모리에 없어 쿼리가 읽어 판단 — 받을 수 없는 사유는 실패 행 `Kind` 9로 `NO_MAIL`·`INVENTORY_FULL`·`GOLD_FULL`을 돌려줌), `BuildAuctionExpire`(묶음 — 실제로 만료한 id를 `Kind` 8로), 읽기 `SelectActiveListings`·`SelectSellerListings`·`SelectListingState`·`BuildSelectMail`. 결과 `Kind` 4 = 새 `ListingId`, 5·6·7 = 수령한 아이템.
+- **구현하면서 정한 것(설계에 없던 세부 — 바꾸려면 알려 주세요)**: ① 더미 봇도 검색은 됩니다(DB 행을 건드리지 않음 — 부하 시험의 조회 부하용). ② `SC_AUCTION_RESULT`는 성공도 알립니다(`id` = 등록 성공이면 새 등록, 수령이면 우편). ③ 기간이 지났지만 아직 만료 처리 전인 등록은 검색에 남고(남은 시간 0) 구매하면 `NO_LISTING`입니다. ④ 거래 중에도 경매를 쓸 수 있고 거래에 올린 행의 등록만 `IN_TRADE`입니다. ⑤ 수령은 빈 칸이 없으면 칸 -1을 보내 골드 우편은 받고 아이템 우편은 `INVENTORY_FULL`로 거부됩니다. ⑥ 검색 필터 8 = 슬롯 없는 아이템(소비 등). ⑦ `SC_AUCTION_MY`에 1인 등록 수 상한·가격 범위를 싣습니다(클라이언트 입력 안내용).
+- **지표** `[metrics] auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater)` — 접속이 모두 끝난 뒤 `dbInFlight`가 0이 아니면 `TryBeginDbWork`·`EndDbWork` 짝이 빠진 경로가 있는 것이고, `listings`는 DB의 판매 중 등록 수와 같아야 합니다.
+- **시험(TESTING 2026-11-21 A4.3)**: 원시 소켓 14개 시나리오(`Server/PerfData/2026-11-21_A4.3/`). 사망 중 거부(`DEAD`)와 결과 불명(연결이 끊긴 COMMIT) 뒤의 `ResyncSeller`는 확인하지 못했습니다.
 
 ## 상점 NPC (L4, D-201·D-202)
 마을의 상점 NPC에게서 골드로 아이템을 사고, 가진 아이템을 골드로 팝니다. 다른 아이템 작업과 같은 `itemOp` 경로(검증 → DB 한 트랜잭션 → 성공 뒤 반영)를 탑니다.
 
 ### 데이터
 - **`ShopTable.csv`**(서버 전용): 한 행 = 상점 하나가 파는 품목 하나. `Name`(행 ID 1001~), `ShopId`(1 이상), `ItemId`(ItemTable ID), `BuyPrice`(1개 값, 1 ~ `GoldMax`). (`ShopId`, `ItemId`) 중복·없는 `ItemId`는 시작 중단. **`BuyPrice`는 그 아이템의 `SellPrice` 이상**이어야 합니다(사서 되팔아 골드를 불리는 경로 차단 — 어기면 시작 중단). 품목을 늘릴 때는 행만 추가합니다. 초안(`ShopId` 1): HP 물약 30, 천 장비 8종(1101·2101·3101·4101·5101·6101·6102·7101) 각 100.
-- **`NpcTable.csv`**(서버 전용): 한 행 = NPC 종류 하나. `Name`(= 마커의 `npcTemplateId` = `ObjectInfo.template_id`, 1001~), `DisplayName`, `ShopId`(0 = 상점 없음, 아니면 ShopTable에 있는 값), `Body`(`Male`/`Female`), 장착 외형 7열 `Head`·`Top`·`Bottom`·`Gloves`·`Boots`·`Weapon`·`Offhand`(ItemTable ID 또는 0, 슬롯이 맞아야 함). 외형은 매니퀸 + 기존 장비입니다(D-170).
+- **`NpcTable.csv`**(서버 전용): 한 행 = NPC 종류 하나. `Name`(= 마커의 `npcTemplateId` = `ObjectInfo.template_id`, 1001~), `DisplayName`, `ShopId`(0 = 상점 없음, 아니면 ShopTable에 있는 값), `Auction`(1 = 경매 관리인, A4.3·D-234 — 상점과 겸하지 않음. 클라이언트에는 `ObjectInfo.npc_kind`), `Body`(`Male`/`Female`), 장착 외형 7열 `Head`·`Top`·`Bottom`·`Gloves`·`Boots`·`Weapon`·`Offhand`(ItemTable ID 또는 0, 슬롯이 맞아야 함). 외형은 매니퀸 + 기존 장비입니다(D-170).
 - `ItemTable.SellPrice`, `EconomyTable.ShopRangeCm`은 위 "데이터" 절.
 - 열별 허용 범위와 현재 행은 [DESIGN_DATA.md](DESIGN_DATA.md).
 
@@ -308,11 +322,11 @@
   - 안내: `SC_TRADE_RESULT`·`SC_TRADE_END` 사유를 시스템 메시지 창으로. 내가 누른 취소·거절로 끝난 것은 띄우지 않습니다.
   - 창 위젯은 `SelfHitTestInvisible`로 보입니다(`UJMUIManager`) — 화면 전체를 덮는 위젯 자체가 클릭을 받으면 위 창(거래)이 아래 창(인벤토리)을 막기 때문입니다. 창 안의 패널·버튼은 그대로 클릭됩니다.
 - **상점 창**(L4, NPC 근처에서 F 키): 위 "상점 NPC (L4)"의 "클라이언트".
-- **경매 창**(K 키): 검색(슬롯 필터, 쪽 넘기기)·구매, 등록(인벤토리에서 골라 수량·가격 입력), 내 등록(취소), 수령함(수령) 탭.
+- **경매 창**(A6.3b, D-234): K 키 = 조회 모드(검색·구매·내 등록/수령함 보기), 경매 NPC 앞 F 키 = 등록·취소·수령까지. 검색(슬롯 필터, 쪽 넘기기)·구매, 등록(인벤토리에서 골라 수량·가격 입력), 내 등록(취소), 수령함(수령) 탭.
 - 거부·실패·성사 안내는 모두 시스템 메시지 창(D-050)입니다.
 
 ## 패킷 (번호 배정)
-새 번호는 `Enum.proto`의 마지막 번호 다음부터 이어 씁니다(2026-11-20 기준 CS 1038~, SC 2038~ — 파티가 CS 1035~1037·SC 2033~2035(DG2 구현), Room 이동이 SC 2036·2037(DG3b 구현, 거래 취소 사유 `TRADE_RESULT_MOVED` 17 추가), 2038은 던전 상태(DG3c 예정), `DESIGN_PARTY_DUNGEON.md`). 추가 절차는 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md).
+새 번호는 `Enum.proto`의 마지막 번호 다음부터 이어 씁니다(2026-11-21 기준 CS 1038~, SC 2039~ — 파티가 CS 1035~1037·SC 2033~2035(DG2 구현), Room 이동이 SC 2036·2037(DG3b 구현, 거래 취소 사유 `TRADE_RESULT_MOVED` 17 추가), 2038은 던전 상태(DG3c 예정), `DESIGN_PARTY_DUNGEON.md`). 추가 절차는 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md).
 
 | 항목 | CS | SC |
 |---|---|---|
@@ -320,7 +334,7 @@
 | A3.5 | 1013 `PICKUP_ITEM`, 1014 `DROP_ITEM` | (드랍 표시는 기존 `ADD_OBJECT`·`REMOVE_OBJECT`) |
 | A3.6 | 1015 `USE_ITEM`, 1016 `SET_QUICKSLOT` | 2019 `USE_ITEM`(AOI). 배치 응답은 `INVENTORY_UPDATE.quick_slots` |
 | A4.2 | 1018 `TRADE_REQUEST`, 1019 `TRADE_RESPOND`, 1020 `TRADE_SET_OFFER`, 1021 `TRADE_LOCK`, 1022 `TRADE_CONFIRM`, 1023 `TRADE_CANCEL` | 2020 `TRADE_REQUEST`(상대), 2021 `TRADE_STATE`(두 사람), 2022 `TRADE_END`(두 사람), 2023 `TRADE_RESULT`(본인, 거부) |
-| A4.3 | 1024 `AUCTION_SEARCH`, 1025 `AUCTION_REGISTER`, 1026 `AUCTION_BUY`, 1027 `AUCTION_CANCEL`, 1028 `AUCTION_MY`, 1029 `MAIL_CLAIM` | 2024 `AUCTION_LIST`, 2025 `AUCTION_MY`, 2026 `AUCTION_RESULT`(본인: 요청 패킷 id + `AuctionResult` + `listing_id`) |
+| A4.3 | 1024 `AUCTION_SEARCH`, 1025 `AUCTION_REGISTER`, 1026 `AUCTION_BUY`, 1027 `AUCTION_CANCEL`, 1028 `AUCTION_MY`, 1029 `MAIL_CLAIM` (등록·취소·수령에는 `npc_id`) | 2024 `AUCTION_LIST`, 2025 `AUCTION_MY`, 2026 `AUCTION_RESULT`(본인, 성공·거부 모두: 요청 패킷 id + `AuctionResult` + `id`). `ObjectInfo.npc_kind`(13, `NpcKind` — 상점·경매) 추가 |
 | A2.7 | — | 2027 `KICK`(끊기 직전 본인, 사유) |
 | A6.1 | 1030 `MOVE_ITEM`(칸 옮기기·맞바꾸기) | (성공은 `INVENTORY_UPDATE`, 거부는 `ITEM_RESULT`) |
 | L4 | 1031 `SHOP_OPEN`, 1032 `SHOP_BUY`, 1033 `SHOP_SELL` | 2029 `SHOP_OPEN`(본인, 품목·구매가). 구매·판매 성공은 `INVENTORY_UPDATE`, 거부는 `ITEM_RESULT`. `INVENTORY`에 `shop_range_cm` 추가. NPC 표시는 기존 `ADD_OBJECT`·`REMOVE_OBJECT` |
@@ -330,7 +344,7 @@
   - `ItemResult`: `NOT_IN_ROOM`, `DEAD`, `BUSY`, `TOO_FREQUENT`, `NOT_ALLOWED`, `NO_ITEM`, `TOO_FAR`, `NOT_OWNER`, `INVENTORY_FULL`, `GOLD_FULL`, `IN_TRADE`, `NOT_USABLE`, `HP_FULL`, `COOLDOWN`, `LEVEL_TOO_LOW`, `DB_ERROR`, `BAD_SLOT`(18, A6.1), `NOT_ENOUGH_GOLD`(19, L4), `NOT_SELLABLE`(20, L4).
   - `EquipResult` 추가: `NOT_OWNED`(9), `LEVEL_TOO_LOW`(10), `INVENTORY_FULL`(11), `BUSY`(12), `IN_TRADE`(13), `DB_ERROR`(14), `NOT_ALLOWED`(15, 더미 봇 — D-161).
   - `TradeResult`: `NO_TARGET`, `TOO_FAR`, `TARGET_BUSY`, `DECLINED`, `TIMEOUT`, `CANCELLED`, `DEAD`, `DISCONNECTED`, `LOCKED`, `INVALID_OFFER`, `INVENTORY_FULL`, `GOLD_FULL`, `BUSY`, `NOT_ALLOWED`, `DB_ERROR`.
-  - `AuctionResult`: `NO_LISTING`, `SOLD`, `OWN_ITEM`, `NOT_ENOUGH_GOLD`, `LISTING_LIMIT`, `BAD_PRICE`, `NO_ITEM`, `IN_TRADE`, `INVENTORY_FULL`, `GOLD_FULL`, `BUSY`, `DEAD`, `NOT_ALLOWED`, `DB_ERROR`.
+  - `AuctionResult`(구현 순서, 2부터): `NOT_IN_ROOM`, `DEAD`, `BUSY`, `TOO_FREQUENT`, `NOT_ALLOWED`, `NO_LISTING`, `SOLD`, `OWN_ITEM`, `NOT_ENOUGH_GOLD`, `LISTING_LIMIT`, `BAD_PRICE`, `NO_ITEM`, `IN_TRADE`, `INVENTORY_FULL`, `GOLD_FULL`, `DB_ERROR`, `TOO_FAR`(18, 경매 NPC 거리 — D-234), `IN_DUNGEON`(19), `TRY_LATER`(20, 혼잡 — D-235), `NO_MAIL`(21). 그 밖에 `MailKind`(판매 대금·구매품·만료 반환·취소 반환).
   - `LoginResult` 추가: `BUSY`(6, 이전 접속 정리 중).
 - 클라이언트는 결과 코드별 문구를 `ShowSystemMessage`로 띄웁니다(`BUSY`·`TOO_FREQUENT`는 띄우지 않음).
 
@@ -368,7 +382,7 @@
 - 줍기·장착·물약이 모두 DB 왕복을 기다립니다. 부하 단계(A5.4)에서 병목이면 골드 줍기 묶음 처리 등을 그때 검토합니다.
 - 버리기로 거래 절차 없이 아이템을 넘길 수 있습니다(소유권 없는 드랍). 도배는 요청 간격과 `MaxDropsPerRoom`으로만 막습니다.
 - 인벤토리에서 스택을 합칠 수 없어, 거래·수령으로 받은 물약은 덜 찬 스택이 여러 칸으로 남을 수 있습니다(사용·액티브 칸 수량은 종류 합계라 쓰는 데는 지장 없음).
-- 팔렸다는 알림 패킷이 없습니다. 판매자는 경매 창을 다시 열어야 수령함에서 대금을 봅니다.
+- 팔렸다는 알림 패킷이 없습니다. 판매자는 경매 창을 다시 열어야 수령함에서 대금을 봅니다 — 콘텐츠 다듬기에서 시스템 메시지 + UI 표시로 넣을 예정입니다(D-234, 붙일 자리는 `AuctionService::OnOpDone`의 구매 성공 분기).
 - 수령함에는 상한이 없습니다(받지 않으면 계속 쌓임). 경매 검색은 요청마다 목록을 걸러 정렬하므로 등록이 많아지면 A5.4에서 정렬된 색인을 검토합니다.
 - 로그인 보정이나 거래로 인벤토리가 칸 상한을 넘은 상태가 생길 수 있고, 그동안은 새로 들어오는 것만 막습니다.
 - 레벨업이 A2.3b라 `RequiredLevel` 거부는 CSV 값을 올린 원시 소켓 시험으로만 확인합니다.

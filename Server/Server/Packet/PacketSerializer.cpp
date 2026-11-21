@@ -219,6 +219,15 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::PacketId 
 	return MakeSendBuffer(packet, Protocol::SC_ITEM_RESULT);
 }
 
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_AUCTION_RESULT(Protocol::PacketId request, Protocol::AuctionResult result, int64_t id)
+{
+	Protocol::SC_AUCTION_RESULT_PACKET packet;
+	packet.set_request(request);
+	packet.set_result(result);
+	packet.set_id(id);
+	return MakeSendBuffer(packet, Protocol::SC_AUCTION_RESULT);
+}
+
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_SKILL_AIM(int objectId, int skillId, bool active, uint32_t seq)
 {
 	Protocol::SC_SKILL_AIM_PACKET packet;

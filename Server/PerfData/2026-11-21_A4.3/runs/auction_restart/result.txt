@@ -1,0 +1,2 @@
+PASS restart1  (DB 아이템 89858, 골드 606408)
+PASS restart2  (DB 아이템 89858, 골드 606408)

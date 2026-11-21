@@ -14,6 +14,7 @@ shared_ptr<DatabaseWorker> GDBWorker = nullptr;
 unique_ptr<RoomManager> GRoomManager = nullptr;
 shared_ptr<AuthLobby> GLobby = nullptr;
 shared_ptr<WorldService> GWorld = nullptr;
+shared_ptr<AuctionService> GAuction = nullptr;
 
 
 
@@ -100,6 +101,9 @@ int main(int argc, char* argv[])
 	if (GWorld->Init() == false)
 		LOG_ERROR("World", "채널 1을 만들지 못했습니다 — 로그인한 플레이어가 들어갈 Room이 없습니다. (ServerConfig [World] MapName = {})", GServerConfig.mapName);
 	GLobby = make_shared<AuthLobby>(service->GetIocpInstance()->GetHandle());
+	// 경매장 서비스(A4.3): DatabaseWorker가 시작 때 읽어 둔 판매 중인 등록으로 목록을 만들고 만료 검사를 시작한다.
+	GAuction = make_shared<AuctionService>(service->GetIocpInstance()->GetHandle());
+	GAuction->Init(GDBWorker->TakeInitialAuctionListings());
 	// 연결 정리(A5.0): 받지 않는 클라이언트의 송신 큐 상한(D-221)과 유휴 세션 검사(D-220)
 	Session::SetSendQueueLimit(GServerConfig.sendQueueLimit);
 	GLobby->StartIdleCheck(service);
