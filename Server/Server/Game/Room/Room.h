@@ -198,7 +198,8 @@ public:
 	// 거부·DB 실패는 SC_CHANGE_EQUIP_RESULT를 본인에게만.
 	void PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part, int64_t itemDbId);
 	// 개발 지급 명령(A3.3, [Debug] DevCommands). itemId 0 = 골드. 다른 아이템 작업과 같은 경로를 탄다.
-	void PlayerDevGive(shared_ptr<Player> player, int itemId, int64_t count);
+	// exp > 0이면 아이템 대신 경험치만 준다(A2.3b — DB 작업 없이 ApplyExpGain, 진행 상황 저장이 DB에 남긴다).
+	void PlayerDevGive(shared_ptr<Player> player, int itemId, int64_t count, int64_t exp);
 	// 인벤토리 칸 옮기기(A6.1): 대상 칸이 비어 있으면 옮기고, 다른 아이템이 있으면 맞바꾼다. 칸 위치도 DB가 권위라 itemOp 경로를 탄다.
 	void PlayerMoveItem(shared_ptr<Player> player, int64_t itemDbId, int toSlot);
 	// 줍기(A3.5): 드랍 존재 → 줍는 중 아님 → 거리 → 소유권 → 빈 칸·골드 상한을 검증하고, 드랍에 줍는 중 표시를 한 뒤 DB로 보낸다.
@@ -317,6 +318,17 @@ public:
 	// 몬스터가 죽었을 때 DropTable을 굴려 걸린 행마다 사망 지점 DropScatterCm 안(내비메시 위)에 드랍을 하나씩 만든다.
 	// attacker(막타)가 개별 계정 플레이어면 DropOwnerSec 동안 소유권을 준다. nullptr(투사체가 날아가는 동안 퇴장)·더미 봇이면 소유권 없음.
 	void SpawnMonsterDrops(int monsterTemplateId, Protocol::PositionInfo pos, shared_ptr<Character> attacker);
+
+	// ---- 성장·MP(A2.3b, D-253·D-254) ----
+	// 몬스터 처치 경험치(Monster::OnDead가 드랍 롤 전에 같은 Room 잡 안에서 부른다). 받는 사람 = 막타 플레이어(이 방에 있고 더미 봇이 아님 —
+	// 드랍 소유권과 같은 규칙) + 같은 파티(≠0)·막타의 시야(_viewList) 안·살아 있는 이 방의 파티원(더미 봇 제외).
+	// n명이면 한 사람 몫 = floor(MonsterTable.Exp × (1 + 0.1 × (n − 1)) / n).
+	void GrantKillExp(shared_ptr<Character> killer, int monsterTemplateId);
+	// 경험치를 더하고(Player::AddExp) 알린다: 레벨이 오르면 SC_LEVEL_UP(AOI, 본인 포함) + 명부 레벨 갱신(WorldService), 항상 본인에게 SC_GAIN_EXP.
+	void ApplyExpGain(const shared_ptr<Player>& player, int64_t amount);
+	// 1초에 한 번(Update): 살아 있는 플레이어의 MP(초당 최대치의 1%·전투 밖 5%)와 HP(전투 밖에서만 5초마다 20%) 자연 회복.
+	// 값이 바뀐 때만 MP는 본인에게 SC_CHANGE_MP, HP는 AOI(본인 포함)에 SC_CHANGE_HP.
+	void UpdateRegen(long long nowMs);
 	// 드랍 하나를 만들어 주변 플레이어에게 SC_ADD_OBJECT를 보낸다. itemId 0 = 골드. ownerUID 0 = 소유권 없음.
 	// MaxDropsPerRoom에 닿으면 가장 오래된 것부터 지운 뒤 만든다. DropLifeSec 뒤 소멸을 예약한다.
 	shared_ptr<DropItem> CreateDrop(int itemId, int64_t count, const Protocol::PositionInfo& pos, int64_t ownerUID, int ownerPartyId = 0);

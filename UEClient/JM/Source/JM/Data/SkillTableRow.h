@@ -52,6 +52,9 @@ struct FSkillTableRow : public FTableRowBase
 	// 스킬 조준(MC4.2d-1): 조준 중 이동 속도 배율(0 < 값 <= 1), 최대 유지 시간(0 = 조준할 수 없는 스킬). 서버도 같은 값으로 검증한다
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float AimMoveSpeedMul = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 AimMaxMs = 0;
+	// 성장·MP(A2.3b, D-253): 시전에 드는 MP(서버가 검사·차감 — 부족하면 ATTACK_RESULT_NOT_ENOUGH_MP), 공격력 반영 %(피해 = BaseDamage + 공격력 × AttackScale / 100, 서버 계산)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 MpCost = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 AttackScale = 100;
 
 	// 클라이언트 전용(서버 로더는 읽지 않음). 시전 몽타주. 비어 있으면 캐릭터의 기본 공격 몽타주(`AJMCharacterBase::CurrentAttackMontage`)를 쓴다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UAnimMontage> Montage;
@@ -61,6 +64,9 @@ struct FSkillTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UParticleSystem> Fx;
 	// 이펙트가 배율 1일 때 덮는 반지름. 재생 배율 = Radius / FxBaseRadius 이므로 조준 인디케이터(Radius)와 크기가 같아진다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float FxBaseRadius = 0.f;
+	// 클라이언트 전용(서버 로더는 읽지 않음, D-254). 맞은 대상 위치에 한 번 재생하는 피격 이펙트. 비어 있으면 재생하지 않는다.
+	// SC_DAMAGE에는 스킬 ID가 없으므로 공격자의 마지막 SC_ATTACK 스킬로 찾는다. 투사체(HitShape Projectile)의 Fx는 날아가는 화살 몸체다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UParticleSystem> HitFx;
 
 	// 클라이언트 전용(서버 로더는 읽지 않음). 전투 HUD 스킬 슬롯 아이콘. 비어 있으면 키 글자만 표시한다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UTexture2D> Icon;

@@ -12,6 +12,14 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ADD_OBJECT(shared_ptr<GameObjec
 	return MakeSendBuffer(packet, Protocol::SC_ADD_OBJECT);
 }
 
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ADD_OBJECT_SELF(shared_ptr<Player> player)
+{
+	Protocol::SC_ADD_OBJECT_PACKET packet;
+	packet.mutable_object_info()->CopyFrom(player->GetInfo());
+	packet.mutable_object_info()->set_exp(player->GetExp());   // 다른 사람에게 가는 ObjectInfo에는 싣지 않는다
+	return MakeSendBuffer(packet, Protocol::SC_ADD_OBJECT);
+}
+
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_REMOVE_OBJECT(int objectId)
 {
 	Protocol::SC_REMOVE_OBJECT_PACKET packet; 
@@ -193,6 +201,30 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHANGE_HP(int objectId, int hp)
 	packet.set_object_id(objectId);
 	packet.set_hp(hp);
 	return MakeSendBuffer(packet, Protocol::SC_CHANGE_HP);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_GAIN_EXP(int64_t exp, int64_t gained)
+{
+	Protocol::SC_GAIN_EXP_PACKET packet;
+	packet.set_exp(exp);
+	packet.set_gained(gained);
+	return MakeSendBuffer(packet, Protocol::SC_GAIN_EXP);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_LEVEL_UP(int objectId, int level, const Protocol::StatInfo& stat)
+{
+	Protocol::SC_LEVEL_UP_PACKET packet;
+	packet.set_object_id(objectId);
+	packet.set_level(level);
+	packet.mutable_stat()->CopyFrom(stat);
+	return MakeSendBuffer(packet, Protocol::SC_LEVEL_UP);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_CHANGE_MP(int mp)
+{
+	Protocol::SC_CHANGE_MP_PACKET packet;
+	packet.set_mp(mp);
+	return MakeSendBuffer(packet, Protocol::SC_CHANGE_MP);
 }
 
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_INVENTORY_UPDATE(const vector<ItemInstance>& changed, const vector<int64_t>& removed, int64_t gold, const QuickSlotArray* quickSlots)

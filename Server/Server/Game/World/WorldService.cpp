@@ -598,6 +598,16 @@ void WorldService::BroadcastPartyState(const Party& party)
 	}
 }
 
+void WorldService::OnPlayerLevelChanged(int sessionId, int level)
+{
+	const auto it = _roster.find(sessionId);
+	if (it == _roster.end() || level <= it->second.level) return;
+	it->second.level = level;
+	if (it->second.partyId == 0) return;
+	if (const auto partyIt = _parties.find(it->second.partyId); partyIt != _parties.end())
+		BroadcastPartyState(partyIt->second);
+}
+
 void WorldService::SetPartyId(int sessionId, RosterEntry& entry, int partyId)
 {
 	entry.partyId = partyId;

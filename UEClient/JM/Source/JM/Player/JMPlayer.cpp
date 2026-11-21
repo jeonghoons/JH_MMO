@@ -59,6 +59,14 @@ void AJMPlayer::SetSheatheData(bool bInCanSheathe, float DelaySec, UAnimMontage*
 	SheatheDelaySec = DelaySec;
 	SheatheMontage = Montage;
 	SheatheSwapSec = SwapSec;
+	// 넣을 수 없는 무기(SheatheDelaySec 0 또는 BackSocket 없음)는 항상 손에 든다.
+	// 무기를 바꿀 때 ResetWeaponToBack이 등으로 옮겨 두므로 여기서 손으로 돌려야 한다(아이템에 BackSocket이 있으면 등에 남는 문제 — D-248 뒤 한손검).
+	if (!bCanSheathe)
+	{
+		bWeaponDrawn = false;
+		if (Equipment) Equipment->SetWeaponOnBack(false);
+		return;
+	}
 	// 로드가 늦게 끝나는 사이 조준·공격으로 이미 꺼냈으면 그대로 둔다
 	if (bCanSheathe && (bWeaponDrawn || IsSkillAiming()))
 	{

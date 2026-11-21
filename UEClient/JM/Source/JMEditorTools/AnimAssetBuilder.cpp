@@ -676,6 +676,38 @@ FString UAnimAssetBuilder::CreateMontageFromSequences(const TArray<FString>& Seq
 	return Out + FString::Printf(TEXT("  total length=%.3f\nsaved\n"), Montage->GetPlayLength());
 }
 
+FString UAnimAssetBuilder::SetMontageSegmentPlayRates(const FString& MontagePath, const TArray<float>& Rates)
+{
+	UAnimMontage* Montage = LoadObject<UAnimMontage>(nullptr, *MontagePath);
+	if (Montage == nullptr || Montage->SlotAnimTracks.Num() == 0) return Fail(TEXT("montage load failed: ") + MontagePath);
+	FAnimTrack& Track = Montage->SlotAnimTracks[0].AnimTrack;
+	if (Rates.Num() != Track.AnimSegments.Num())
+		return Fail(FString::Printf(TEXT("Rates count %d != segment count %d"), Rates.Num(), Track.AnimSegments.Num()));
+	for (float R : Rates)
+	{
+		if (FMath::IsNearlyZero(R)) return Fail(TEXT("rate 0 is not allowed"));
+	}
+
+	// 배율이 바뀌면 구간 길이 = (끝 - 시작) / |배율|이 바뀌므로 시작 시각을 앞에서부터 다시 잇는다.
+	FString Out = FString::Printf(TEXT("montage %s\n"), *Montage->GetName());
+	float Pos = 0.f;
+	for (int32 i = 0; i < Track.AnimSegments.Num(); ++i)
+	{
+		FAnimSegment& Segment = Track.AnimSegments[i];
+		Segment.AnimPlayRate = Rates[i];
+		Segment.StartPos = Pos;
+		Pos += Segment.GetLength();
+		Out += FString::Printf(TEXT("  segment %d %s rate=%.2f start=%.3f length=%.3f\n"), i,
+			Segment.GetAnimReference() ? *Segment.GetAnimReference()->GetName() : TEXT("(none)"), Rates[i], Segment.StartPos, Segment.GetLength());
+	}
+	Montage->SetCompositeLength(Track.GetLength());
+	Montage->RefreshCacheData();
+	Montage->PostEditChange();
+	Montage->MarkPackageDirty();
+	if (!SaveAsset(Montage)) return Fail(TEXT("save failed: ") + Montage->GetPathName());
+	return Out + FString::Printf(TEXT("  total length=%.3f\nsaved\n"), Montage->GetPlayLength());
+}
+
 FString UAnimAssetBuilder::CreateBlendSpace2D(const FString& PackagePath, const FString& SkeletonPath, const FString& XAxisName, float XMin, float XMax,
 	const FString& YAxisName, float YMin, float YMax, const TArray<FString>& SequencePaths, const TArray<float>& XValues, const TArray<float>& YValues,
 	const TArray<float>& RateScales)

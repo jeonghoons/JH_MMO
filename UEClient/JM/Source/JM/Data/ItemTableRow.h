@@ -17,7 +17,8 @@ enum class EWeaponType : uint8
 	Unarmed,
 	Sword,
 	Bow,
-	Monster
+	TwoHandSword,   // 4 = WeaponTypeTable 행 이름·스킬 ID 첫 자리(4001·4002, D-240·D-253). 방패 불가
+	Monster         // 몬스터 스킬(9xxx)용 — WeaponTypeTable 행 없음. 숫자로 저장하는 곳이 없어 TwoHandSword 뒤로 밀려도 된다(에셋은 이름으로 저장)
 };
 
 // 장비 슬롯. 번호 = itemId 첫째 자리 = Protocol::EquipPart (MC3.2)

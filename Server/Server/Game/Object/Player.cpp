@@ -48,7 +48,7 @@ void Player::SetEquippedItem(Protocol::EquipPart part, int itemId)
 
 void Player::RecalcStat()
 {
-	// 레벨은 DB에서 온다(InitFromDb, 그 전에는 시작 레벨). 행이 있는지는 InitFromDb가 확인했다. 성장은 A2.3b.
+	// 레벨은 DB에서 오고(InitFromDb, 그 전에는 시작 레벨) 경험치로 오른다(AddExp, A2.3b). 행이 있는지는 InitFromDb·AddExp가 확인했다.
 	const StatData* base = DataManager::GetPlayerStatData(_objectInfo.level());
 	if (base == nullptr) return;
 
@@ -63,8 +63,46 @@ void Player::RecalcStat()
 			bonusMaxHp += item->bonusMaxHp;
 		}
 	}
-	_statInfo.ApplyFinalStat(*base, bonusAttackDamage, bonusMaxHp);
+	// 장비의 최대 MP(투구)는 IT3에서 ItemTable 열을 더할 때 넣는다(지금은 0 — D-253)
+	_statInfo.ApplyFinalStat(*base, bonusAttackDamage, bonusMaxHp, 0);
 	_maxSpeed = _statInfo.GetMoveSpeed();
+}
+
+Player::ExpGain Player::AddExp(int64_t amount)
+{
+	ExpGain result;
+	result.oldLevel = result.newLevel = _objectInfo.level();
+	const int maxLevel = DataManager::GetPlayerMaxLevel();
+	if (amount <= 0 || result.oldLevel >= maxLevel)
+	{
+		// 최대 레벨에서는 쌓지 않는다(D-253 — 경험치 0으로 고정)
+		if (result.oldLevel >= maxLevel) _dbPlayerData.exp = 0;
+		return result;
+	}
+	result.gained = amount;
+
+	int level = result.oldLevel;
+	// 넘침 방지: 남은 레벨 전부의 필요량을 넘는 양은 의미가 없다(개발 지급은 Room이 상한을 본다)
+	int64_t exp = _dbPlayerData.exp + std::min<int64_t>(amount, INT64_MAX / 2);
+	while (level < maxLevel)
+	{
+		const StatData* row = DataManager::GetPlayerStatData(level);
+		if (row == nullptr || row->expToNext <= 0 || exp < row->expToNext) break;
+		exp -= row->expToNext;
+		++level;
+	}
+	if (level >= maxLevel) exp = 0;
+	_dbPlayerData.exp = exp;
+	result.newLevel = level;
+
+	if (level != result.oldLevel)
+	{
+		// 새 레벨 행 + 장비 보너스로 다시 계산하고 HP·MP를 가득 채운다(D-253). 죽어 있으면 HP는 그대로(FillHpMp)
+		_objectInfo.set_level(level);
+		RecalcStat();
+		_statInfo.FillHpMp();
+	}
+	return result;
 }
 
 Player::~Player()
@@ -284,6 +322,8 @@ bool Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 	const int maxHp = _statInfo.GetMaxHp();
 	const int hp = data.neverSaved ? maxHp : (data.hp > 0 ? std::min(data.hp, maxHp) : ReviveHp(maxHp, CurrentWorldData()));
 	_objectInfo.mutable_stat()->set_hp(hp);
+	// MP는 저장하지 않는다 — 로그인 때 가득(D-254)
+	_statInfo.SetMp(_statInfo.GetMaxMp());
 
 	// DB에 있는 값을 기억한다. 위에서 HP를 고쳤다면 스냅숏이 달라 다음 저장 때 DB에도 반영된다.
 	lastSavedProgress = DB_PlayerProgress{ data.level, data.exp, data.hp };
@@ -294,7 +334,7 @@ DB_PlayerProgress Player::MakeProgressSnapshot() const
 {
 	DB_PlayerProgress snapshot;
 	snapshot.level = _objectInfo.level();
-	snapshot.exp = _dbPlayerData.exp;
+	snapshot.exp = _dbPlayerData.exp;   // 메모리의 지금 경험치(AddExp가 갱신 — A2.3b)
 	snapshot.hp = _statInfo.IsDead() ? ReviveHp(_statInfo.GetMaxHp(), CurrentWorldData()) : _statInfo.GetHp();
 	return snapshot;
 }

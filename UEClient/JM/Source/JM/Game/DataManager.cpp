@@ -192,7 +192,7 @@ void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
 		}
 	}
 	// 무기 타입별 레이어 AnimBP(MC4.2): 무기 교체 순간 레이어를 바로 연결할 수 있게 미리 로드
-	for (EWeaponType WeaponType : { EWeaponType::Unarmed, EWeaponType::Sword, EWeaponType::Bow })
+	for (EWeaponType WeaponType : { EWeaponType::Unarmed, EWeaponType::Sword, EWeaponType::Bow, EWeaponType::TwoHandSword })
 	{
 		if (const FWeaponTypeTableRow* Row = FindWeaponType(WeaponType))
 			AddPath(Row->AnimLayer.ToSoftObjectPath());
@@ -227,6 +227,7 @@ void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
 			if (Row == nullptr) continue;
 			AddPath(Row->Montage.ToSoftObjectPath());
 			AddPath(Row->Fx.ToSoftObjectPath());
+			AddPath(Row->HitFx.ToSoftObjectPath());
 			AddPath(Row->Icon.ToSoftObjectPath());
 		}
 	}

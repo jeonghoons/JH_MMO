@@ -370,20 +370,39 @@ struct SkillData
 	int tickMs;          // Zone: 한 대상에게 피해를 주는 최소 간격
 	float aimMoveSpeedMul; // 스킬 조준 중 이동 속도 배율 (0 < 값 <= 1, MC4.2d-1)
 	int aimMaxMs;          // 스킬 조준 최대 유지 시간. 0 = 조준할 수 없는 스킬 (기본 공격은 항상 0)
+	int mpCost;            // 시전에 드는 MP(플레이어만 — 몬스터는 MP가 없어 무시). 0 이상 (A2.3b, D-253)
+	int attackScale;       // 공격력 반영(정수 %, 0~1000): 피해 = baseDamage + 시전자 공격력 × attackScale / 100 (D-112·D-253)
 };
 
+// 피해 공식(D-112·D-253): 스킬 BaseDamage + 시전자 공격력 × AttackScale ÷ 100 (정수, 플레이어·몬스터 공통, 시전 순간 확정)
+inline int ComputeSkillDamage(const SkillData& skill, int attackDamage)
+{
+	return skill.baseDamage + static_cast<int>(static_cast<long long>(attackDamage) * skill.attackScale / 100);
+}
+
 // 캐릭터 기본 스탯 묶음. 플레이어는 PlayerStatTable(레벨별, 체형 공용), 몬스터는 MonsterTable(종류별)에서 읽는다.
-// 피해 = 스킬 BaseDamage + 시전자 attackDamage (시전 순간 확정). 플레이어는 여기에 장비 보너스가 더해진다(MC3.2).
+// 피해 = 스킬 BaseDamage + 시전자 attackDamage × 스킬 AttackScale ÷ 100 (시전 순간 확정 — ComputeSkillDamage). 플레이어는 여기에 장비 보너스가 더해진다(MC3.2).
 struct StatData
 {
 	int maxHp;
 	int attackDamage;
 	float attackSpeed;  // 기본 공격 애니메이션 재생 배율 (행동 시간·판정 시점 ÷ attackSpeed)
 	float moveSpeed;
+	int maxMp = 0;      // 플레이어만(PlayerStatTable.MaxMp, A2.3b). 몬스터는 MP가 없어 0
+	int expToNext = 0;  // 플레이어만(PlayerStatTable.ExpToNext): 이 레벨에서 다음 레벨까지 경험치. 최대 레벨 행은 0
 };
 
-// 플레이어가 처음 갖는 레벨. 레벨 저장·성장은 A2.3·A2.5 (그 전까지 모든 플레이어가 이 레벨의 스탯을 쓴다).
+// 플레이어가 처음 갖는 레벨. 최대 레벨은 PlayerStatTable의 마지막 행(DataManager::GetPlayerMaxLevel, 지금 30 — D-251).
 constexpr int PLAYER_START_LEVEL = 1;
+
+// 전투 판정·자연 회복(A2.3b, D-253·D-254 — Docs/DESIGN_BALANCE.md §3). 지금은 서버 상수(테이블 열로 옮길지는 미정).
+constexpr long long COMBAT_HOLD_MS = 5000;     // 마지막으로 때리거나 맞은 뒤 이 시간 동안 전투 중
+constexpr int MP_REGEN_PERCENT_COMBAT = 1;     // MP: 초당 최대치의 1%(전투 중)
+constexpr int MP_REGEN_PERCENT_IDLE = 5;       //     초당 최대치의 5%(전투 밖)
+constexpr int HP_REGEN_INTERVAL_SEC = 5;       // HP: 전투 밖에서만 5초마다
+constexpr int HP_REGEN_PERCENT = 20;           //     최대치의 20%
+// 회복량 = 최대치 × 비율 ÷ 100을 반올림, 최소 1
+inline int RegenAmount(int maxValue, int percent) { return std::max(1, static_cast<int>((static_cast<long long>(maxValue) * percent + 50) / 100)); }
 
 struct MonsterData
 {
@@ -399,6 +418,8 @@ struct MonsterData
 	int returnMode;           // 복귀 방식: 0 = 걸어서 복귀(피해 받음, HP 유지) / 1 = 복귀 중 피해 무시 + 홈 도착 시 HP 전량 회복
 	float scale;              // 크기 배율(클라이언트 표시용 — 서버는 범위만 검사한다) (MN1, D-198)
 	int bodyRadiusCm;         // 몸 반경: 이 몬스터를 맞히는 판정(부채꼴 반경·직선 폭·장판 반경·대상 지정 사거리)에 더한다. 기준 캡슐 반경 42cm × scale
+	int level;                // 표시 레벨(이름표용 — 서버 판정에는 쓰지 않는다, A2.3b). 1 이상
+	int exp;                  // 처치 경험치(막타 + 시야 안 파티원이 나눈다 — Room::GrantKillExp). 0 이상
 };
 
 // 몬스터 복귀 방식(MonsterTable.ReturnMode)
@@ -551,6 +572,8 @@ public:
 		if (it != _playerStatTable.end()) return &it->second;
 		return nullptr;
 	}
+	// 최대 레벨 = PlayerStatTable의 마지막 레벨(1부터 빠짐없이 이어짐을 로더가 확인했다). 이 레벨에서는 경험치를 쌓지 않는다 (A2.3b)
+	static int GetPlayerMaxLevel() { return _playerMaxLevel; }
 
 	static const WorldData* GetWorldData(const std::string& mapName)
 	{
@@ -562,6 +585,7 @@ public:
 private:
 	static inline std::unordered_map<int, SkillData> _skillTable;
 	static inline std::unordered_map<int, StatData> _playerStatTable; // key = Level
+	static inline int _playerMaxLevel = PLAYER_START_LEVEL;
 	static inline std::unordered_map<int, MonsterData> _monsterTable;
 	static inline std::unordered_map<int, MovementData> _movementTable;
 	static inline std::unordered_map<std::string, WorldData> _worldTable; // key = mapName

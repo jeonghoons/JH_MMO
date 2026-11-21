@@ -14,6 +14,8 @@ public:
 		info->set_attack_damage(data.attackDamage);
 		info->set_attack_speed(data.attackSpeed);
 		info->set_move_speed(data.moveSpeed);
+		info->set_max_mp(data.maxMp);   // 몬스터는 0
+		info->set_mp(data.maxMp);
 		Init(info);
 	}
 
@@ -23,9 +25,21 @@ public:
 	int GetAttackDamage() const { return _statInfo ? _statInfo->attack_damage() : 0; }
 	float GetAttackSpeed() const { return _statInfo ? _statInfo->attack_speed() : 0.f; }
 	float GetMoveSpeed() const { return _statInfo ? _statInfo->move_speed() : 0.f; }
+	int GetMp() const { return _statInfo ? _statInfo->mp() : 0; }
+	int GetMaxMp() const { return _statInfo ? _statInfo->max_mp() : 0; }
+	// MP를 0 ~ 최대치 안으로 넣는다(스킬 소모·자연 회복 — A2.3b). 패킷은 부른 쪽이 보낸다
+	void SetMp(int mp) { if (_statInfo) _statInfo->set_mp(std::clamp(mp, 0, _statInfo->max_mp())); }
+	// HP·MP를 최대치로(레벨업 — D-253). 죽어 있으면 HP는 그대로 둔다(되살리지 않음 — 부활은 CS_REVIVE)
+	void FillHpMp()
+	{
+		if (_statInfo == nullptr) return;
+		if (_statInfo->hp() > 0) _statInfo->set_hp(_statInfo->max_hp());
+		_statInfo->set_mp(_statInfo->max_mp());
+	}
 
-	// 장비 반영 후 최종 스탯을 넣는다(플레이어, MC3.2). HP는 새 최대치로 자르기만 하고 회복하지 않는다.
-	void ApplyFinalStat(const StatData& base, int bonusAttackDamage, int bonusMaxHp)
+	// 장비 반영 후 최종 스탯을 넣는다(플레이어, MC3.2). HP·MP는 새 최대치로 자르기만 하고 회복하지 않는다.
+	// bonusMaxMp = 장비의 최대 MP(투구 — IT3에서 ItemTable 열을 더한다, 지금은 0)
+	void ApplyFinalStat(const StatData& base, int bonusAttackDamage, int bonusMaxHp, int bonusMaxMp)
 	{
 		if (_statInfo == nullptr) return;
 		const int maxHp = base.maxHp + bonusMaxHp;
@@ -34,6 +48,9 @@ public:
 		_statInfo->set_attack_damage(base.attackDamage + bonusAttackDamage);
 		_statInfo->set_attack_speed(base.attackSpeed);
 		_statInfo->set_move_speed(base.moveSpeed);
+		const int maxMp = base.maxMp + bonusMaxMp;
+		_statInfo->set_max_mp(maxMp);
+		_statInfo->set_mp(std::min(_statInfo->mp(), maxMp));
 	}
 
 	bool IsDead() const { return _statInfo == nullptr || _statInfo->hp() <= 0; }

@@ -53,6 +53,7 @@ message CS_CHANGE_EQUIP_PACKET {
 message CS_DEV_GIVE_PACKET {
 	int32 item_id = 1;   // ItemTable ID. 0 = 골드
 	int64 count = 2;     // 수량(골드는 금액). 1 이상
+	int64 exp = 3;       // 경험치 지급(A2.3b, D-254). 0보다 크면 item_id·count는 보지 않고 경험치만 준다(여러 레벨을 한 번에 올릴 수 있음)
 }
 
 // 바닥 드랍 줍기(A3.5). 성공은 SC_REMOVE_OBJECT(보던 사람 전원) + SC_INVENTORY_UPDATE(본인), 거부는 SC_ITEM_RESULT(request = CS_PICKUP_ITEM).
@@ -363,9 +364,30 @@ message SC_USE_ITEM_PACKET {
 }
 
 // 피해(SC_DAMAGE)·아이템 사용(SC_USE_ITEM)이 아닌 HP 변화(L3, D-193). 클라이언트는 피격 연출 없이 HP만 반영한다.
+// 몬스터가 홈으로 돌아가 회복, 플레이어 자연 회복(전투 밖 5초마다 — A2.3b, D-253·D-254)
 message SC_CHANGE_HP_PACKET {
 	int32 object_id = 1;
 	int32 hp = 2;                       // 바뀐 뒤 HP
+}
+
+// ---- 성장·MP (A2.3b, D-253·D-254) ----
+// 경험치를 얻었다(본인에게, 처치·개발 지급마다 항상). 레벨이 올랐으면 SC_LEVEL_UP이 먼저 가고, exp는 새 레벨 안의 값이다.
+// 최대 레벨(30)에서는 쌓지 않으므로 exp 0, 이미 최대 레벨이었으면 gained도 0
+message SC_GAIN_EXP_PACKET {
+	int64 exp = 1;                      // 지금 레벨 안의 누적 경험치(다음 레벨까지 = PlayerStatTable.ExpToNext)
+	int64 gained = 2;                   // 이번에 얻은 양(파티 분배 뒤 내 몫)
+}
+
+// 레벨업(AOI 방송, 본인 포함). 여러 레벨이 한 번에 올라도 한 번만 보낸다. stat은 새 레벨 + 장비의 최종 스탯이고 HP·MP가 가득 차 있다
+message SC_LEVEL_UP_PACKET {
+	int32 object_id = 1;
+	int32 level = 2;
+	StatInfo stat = 3;
+}
+
+// MP 변화(본인에게): 스킬 소모, 자연 회복(값이 바뀐 때만)
+message SC_CHANGE_MP_PACKET {
+	int32 mp = 1;                       // 바뀐 뒤 MP
 }
 
 // 아이템 요청 거부를 요청한 본인에게만 보낸다(장착 거부는 SC_CHANGE_EQUIP_RESULT).

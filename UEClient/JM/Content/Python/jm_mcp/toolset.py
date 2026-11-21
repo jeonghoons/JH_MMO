@@ -861,6 +861,20 @@ class AnimBuilderTools(unreal.ToolsetDefinition):
 
     @toolset_registry.tool_call
     @staticmethod
+    def anim_set_montage_segment_rates(montage_path: str, rates: str) -> str:
+        """몽타주 구간별 재생 배율을 바꾼다(-1 = 거꾸로 — 꺼내기 동작을 뒤집어 넣기 동작으로, D-254). 구간 시작 시각을 다시 잇는다.
+
+        Args:
+            montage_path: 몽타주 경로.
+            rates: 구간 순서대로 배율을 쉼표로(예 "-1,-1"). 개수 = 구간 수, 0 불가.
+
+        Returns:
+            결과 텍스트(구간별 시작·길이, 전체 길이). 노티파이는 옮기지 않으므로 그 뒤 anim_set_montage_marker로 다시 단다.
+        """
+        return unreal.AnimAssetBuilder.set_montage_segment_play_rates(montage_path, [float(v) for v in _csv_list(rates)])
+
+    @toolset_registry.tool_call
+    @staticmethod
     def anim_create_blendspace_2d(package_path: str, skeleton_path: str, x_axis_name: str, x_min: float, x_max: float,
                                   y_axis_name: str, y_min: float, y_max: float, sequence_paths: str, x_values: str, y_values: str,
                                   rate_scales: str | None = None) -> str:

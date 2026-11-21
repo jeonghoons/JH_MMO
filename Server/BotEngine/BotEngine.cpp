@@ -750,6 +750,14 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		}
 		break;
 	}
+	// 성장·MP(A2.3b): 봇은 값을 쓰지 않고 수만 센다(더미 봇은 경험치를 받지 않는다 — 드랍 소유권과 같은 규칙)
+	case Protocol::SC_CHANGE_MP:
+		GStat.mpChangeRecv.fetch_add(1);
+		break;
+	case Protocol::SC_GAIN_EXP:
+	case Protocol::SC_LEVEL_UP:
+		GStat.expRecv.fetch_add(1);
+		break;
 	default:
 		break;
 	}

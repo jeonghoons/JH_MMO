@@ -127,6 +127,9 @@ void Monster::OnDead(std::shared_ptr<Character> attacker)
 		const int removeDelayMs = data ? data->deathRemoveDelayMs : 3000;
 		room->ReserveJob(removeDelayMs, &Room::RemoveMonster, GetId());
 
+		// 처치 경험치(A2.3b, D-254): 드랍 롤보다 먼저. 막타 + 시야 안 파티원이 나눈다.
+		room->GrantKillExp(attacker, _objectInfo.template_id());
+
 		// 드랍 롤(A3.4, D-157): DropTable의 이 몬스터 행을 각각 굴려 사망 지점 둘레에 떨어뜨린다. 소유권은 막타(attacker).
 		room->SpawnMonsterDrops(_objectInfo.template_id(), GetPosition(), attacker);
 

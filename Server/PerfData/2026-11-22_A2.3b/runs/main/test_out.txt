@@ -1,0 +1,56 @@
+== main (server pid 22948, DevCommands=true, data repo)
+PASS login-self-exp
+PASS login-mp-full
+PASS login-stat
+PASS other-no-exp
+[   2.21] Test1 level=1 exp=55 stat={'max_hp': 650, 'hp': 300, 'atk': 0, 'max_mp': 100, 'mp': 100} / Test2 level=5 exp=0 stat={'max_hp': 1050, 'hp': 1050, 'atk': 18, 'max_mp': 140, 'mp': 140}
+[  14.81] HP 회복 Test1 300 → [430, 560, 650] 시각 [4.18, 9.2, 14.25] 간격 [5.02, 5.05] (입장 2.21)
+PASS hp-regen-values
+PASS hp-regen-interval
+PASS hp-regen-aoi
+PASS mp-full-no-packet
+PASS mp-spend
+PASS mp-before-attack
+[  19.86] MP 회복 Test2 120 → [127, 134, 140] 간격 [1.01, 1.0]
+PASS mp-regen-idle
+PASS mp-regen-interval
+PASS mp-regen-stops
+PASS kill-exp-solo
+PASS kill-exp-not-others
+[ 153.40] Test2 → 몬스터 피해 [(68, 182), (138, 44), (44, 0)] (기대 2002 138 / 2001 68), 몬스터 HP 250, 내 시전 [(38.57, 2001), (43.66, 2001), (47.39, 2001), (55.16, 2001), (58.18, 2001), (60.91, 2001), (63.66, 2001), (67.71, 2001), (71.56, 2001), (74.12, 2001), (76.51, 2001), (81.48, 2001), (86.71, 2001), (93.21, 2001), (95.58, 2001), (102.93, 2001), (107.16, 2001), (111.3, 2001), (115.01, 2001), (117.15, 2001), (119.49, 2001), (125.49, 2001), (130.42, 2001), (133.73, 2001), (136.75, 2001), (138.36, 2001), (147.05, 2001), (148.7, 2002), (151.19, 2001)], 거부 []
+PASS damage-formula-sword
+PASS damage-formula-monster
+[ 165.44] Test2 MP [(148.7, 120), (149.39, 121), (150.38, 122), (151.39, 123), (152.37, 124), (153.43, 125), (154.39, 126), (155.4, 127), (156.41, 128), (157.42, 135), (158.45, 140)] 마지막 타격 151.83
+PASS mp-regen-combat
+PASS mp-regen-after-combat
+[ 165.44] Test2 HP 회복 [(161.46, 1050)] (마지막 타격 151.83)
+PASS hp-regen-after-combat
+[ 243.58] 파티 분배: Test1 [(241.47059869766235, 110, 55)] Test2 [(241.44496512413025, 155, 55)] Test3 [] (1인 몫 100, 2인 몫 55)
+PASS party-share-2
+PASS party-other-room-excluded
+[ 244.78] DEV 4000: Test1 levelups [(243.57602858543396, 2, 4, {'max_hp': 950, 'hp': 950, 'atk': 6, 'max_mp': 130, 'mp': 130})] exp (243.57606720924377, 1110, 4000) 기대 level 4 exp 1110 stat {'max_hp': 950, 'atk': 6, 'max_mp': 130}
+PASS levelup-once
+PASS levelup-stat
+PASS levelup-full
+PASS levelup-exp
+PASS levelup-aoi
+PASS levelup-order
+PASS party-level-update
+PASS cap-level
+PASS cap-stat
+PASS cap-no-more
+PASS dev-exp-bad--5
+PASS dev-exp-bad-1000000001
+PASS cap-kill
+[ 267.92] Test4 레벨 5로 올림(DEV 5000) stat {'max_hp': 1050, 'hp': 1050, 'atk': 18, 'max_mp': 140, 'mp': 140}
+[ 319.77] Test4(활, 공격력 18) → 몬스터 피해 [35, 35, 54, 54, 54] (기대 3001 54, 3002 틱 35)
+PASS damage-formula-bow
+[ 328.54] 재접속: Test1 level 30 exp 0 stat {'max_hp': 3550, 'hp': 3550, 'atk': 58, 'max_mp': 390, 'mp': 390} / Test2 level 5 exp 210 stat {'max_hp': 1050, 'hp': 1050, 'atk': 18, 'max_mp': 140, 'mp': 140} (나갈 때 MP 127)
+PASS relogin-level-exp
+PASS relogin-mp-full
+PASS db-saved
+
+합계 PASS 39 / FAIL 0
+ERROR 줄 수: 0
+WARN 줄 수: 0
+2026-11-22 02:24:28.181 INFO  [T17020] [metrics] sessions=0 rooms=2 players=0 monsters=201 in/s=0 out/s=0 sendCalls/s=0 bufsPerSend=0.00 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=1/2 move(total ok/speed/nav/bad/stale/rate)=937/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/3.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.05/0.01/0.13/0.16/0.16 viewPlayers(avg/p99/max)=0.0/0/0 viewObjects(avg/p99/max)=0.0/0/0 sendQ(total/sessionMax)=0/0 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=173/1 itemOp(total sent/fail/busy inflight)=2/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=7/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=1/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=3/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=1 4/5/4/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=0/0/0/0 flushGap(p50/p90/p99 ms)=0/0/0 sendWake(per s, late avg/p50/p99/max ms)=0 0.0/0.0/0.0/0.0 jobs(exec/repost per s)=20/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=0.3ms flushRunMax=0.0ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=2/0 flushRuns/s=0 conn(sessionObjs/handles idleKick/sendqKick)=1/315 0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 tickLateP99(town/field ms)=3.0/3.0 tickBodyP99(town/field ms)=0.01/0.16 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=3/3/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 2/2/0/0/0 1/1 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater)=0/0 0.0 0/0/0/0/0 0/0

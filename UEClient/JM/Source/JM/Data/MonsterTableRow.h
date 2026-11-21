@@ -30,6 +30,9 @@ struct FMonsterTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float Scale = 1.f;
 	// 서버 판정용 몸 반경(기준 캡슐 반경 42cm × Scale). 클라이언트는 쓰지 않는다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 BodyRadiusCm = 0;
+	// 표시 레벨(이름표용, A2.3b — 서버 판정에는 쓰지 않음)과 처치 경험치(서버가 나눠 준다 — 클라이언트는 쓰지 않는다)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 Level = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 Exp = 0;
 	// 이 종류의 스켈레탈 메시(스킨). 스켈레톤은 BP_Npc의 AnimBP와 같아야 한다. 비면 BP_Npc의 기본 메시를 그대로 쓴다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<USkeletalMesh> Mesh;
 };

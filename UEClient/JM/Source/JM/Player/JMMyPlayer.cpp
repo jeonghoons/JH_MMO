@@ -525,7 +525,7 @@ void AJMMyPlayer::CastSkillSlot(int32 Slot)
 
 	// 이펙트(장판은 내가 조준한 지점 — 서버도 같은 식으로 사거리 보정을 한다)
 	if (UJMObjectManager* ObjectManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMObjectManager>() : nullptr)
-		ObjectManager->SpawnSkillFx(this, *Skill, Aim.Yaw, Aim.Point.X, Aim.Point.Y, &PendingCast.FxComp, &PendingCast.FxTimer);
+		ObjectManager->SpawnSkillFx(this, *Skill, Aim.TargetId, Aim.Yaw, Aim.Point.X, Aim.Point.Y, &PendingCast.FxComp, &PendingCast.FxTimer);
 
 	// 쿨타임 표시(길이는 SkillTable 값 = 서버가 적용하는 값)
 	if (Skill->CooldownMs > 0)
@@ -622,6 +622,13 @@ void AJMMyPlayer::RollbackCast(uint32 Seq, int32 Result, int32 RemainMs)
 	UE_LOG(LogTemp, Log, TEXT("[Cast] 거부 → 되돌림 seq=%u skill=%d result=%d remain=%dms (%.0fms 뒤)"), Seq, SkillId, Result, RemainMs,
 		GetWorld() ? (GetWorld()->GetTimeSeconds() - PendingCast.StartTime) * 1000.0 : 0.0);
 	UndoPendingCast();
+
+	// MP 부족(A2.3b, D-254): 되돌리기만 한다(남은 시간 없음). 안내 문구·HUD 표시는 MP HUD 항목에서
+	if (Result == Protocol::ATTACK_RESULT_NOT_ENOUGH_MP)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[Cast] MP 부족 skill=%d mp=%d/%d"), SkillId, GetObjectInfo().stat().mp(), GetObjectInfo().stat().max_mp());
+		return;
+	}
 
 	// 서버 기준 남은 시간에 로컬 시각을 맞춘다(그 전에는 다시 보내지 않게).
 	if (RemainMs <= 0) return;

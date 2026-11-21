@@ -80,6 +80,9 @@ public:
 	void PartyLeave(shared_ptr<Player> player);
 	// 초대 응답 시간(EconomyTable.PartyInviteTimeoutSec)이 지났다. 그 사이 답했거나 새 초대로 바뀌었으면(seq 다름) 아무것도 하지 않는다.
 	void OnInviteTimeout(int targetSessionId, int seq);
+	// 레벨이 올랐다(A2.3b — 소유 Room 잡이 Room::ApplyExpGain에서 넣는다). 명부의 레벨을 갱신하고 파티 중이면 파티원 전원에게 SC_PARTY_STATE를 다시 보낸다.
+	// 레벨은 오르기만 하므로 지금 값보다 크지 않으면 버린다(Room을 건너며 늦게 온 옛 알림).
+	void OnPlayerLevelChanged(int sessionId, int level);
 
 private:
 	struct RosterEntry
@@ -92,7 +95,7 @@ private:
 		bool isDummy = false;
 		bool entered = false;     // 입장 요청을 처리했다(두 번째 요청을 거른다)
 		int partyId = 0;          // 파티 번호(0 = 없음). Room 잡이 읽는 사본은 Player::partyId (NotifyPartyId로 알림)
-		int level = 0;            // 로그인 때의 레벨(파티 창 표시용 — 레벨이 오르는 기능이 생기면 갱신 통지를 넣는다)
+		int level = 0;            // 레벨(파티 창 표시용). 로그인 때 적고 레벨업 때 OnPlayerLevelChanged가 갱신한다(A2.3b)
 		long long lastInviteMs = 0;   // 마지막으로 초대를 보낸 시각(steady_clock ms) — 최소 간격 검사
 		int instanceId = 0;       // 자리를 잡은 던전 인스턴스(0 = 없음). 들어가는 중·안에 있는 동안 — 나오거나 접속이 끝나면 0 (DG3c)
 	};

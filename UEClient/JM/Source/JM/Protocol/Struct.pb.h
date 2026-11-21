@@ -436,6 +436,8 @@ class StatInfo final :
     kAttackDamageFieldNumber = 3,
     kAttackSpeedFieldNumber = 4,
     kMoveSpeedFieldNumber = 5,
+    kMaxMpFieldNumber = 6,
+    kMpFieldNumber = 7,
   };
   // int32 max_hp = 1;
   void clear_max_hp();
@@ -482,6 +484,24 @@ class StatInfo final :
   void _internal_set_move_speed(float value);
   public:
 
+  // int32 max_mp = 6;
+  void clear_max_mp();
+  int32_t max_mp() const;
+  void set_max_mp(int32_t value);
+  private:
+  int32_t _internal_max_mp() const;
+  void _internal_set_max_mp(int32_t value);
+  public:
+
+  // int32 mp = 7;
+  void clear_mp();
+  int32_t mp() const;
+  void set_mp(int32_t value);
+  private:
+  int32_t _internal_mp() const;
+  void _internal_set_mp(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.StatInfo)
  private:
   class _Internal;
@@ -495,6 +515,8 @@ class StatInfo final :
     int32_t attack_damage_;
     float attack_speed_;
     float move_speed_;
+    int32_t max_mp_;
+    int32_t mp_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -634,6 +656,7 @@ class ObjectInfo final :
     kAimSkillIdFieldNumber = 9,
     kLevelFieldNumber = 11,
     kItemCountFieldNumber = 12,
+    kExpFieldNumber = 14,
     kNpcKindFieldNumber = 13,
   };
   // repeated int32 equip_items = 8;
@@ -771,6 +794,15 @@ class ObjectInfo final :
   void _internal_set_item_count(int64_t value);
   public:
 
+  // int64 exp = 14;
+  void clear_exp();
+  int64_t exp() const;
+  void set_exp(int64_t value);
+  private:
+  int64_t _internal_exp() const;
+  void _internal_set_exp(int64_t value);
+  public:
+
   // .Protocol.NpcKind npc_kind = 13;
   void clear_npc_kind();
   ::Protocol::NpcKind npc_kind() const;
@@ -800,6 +832,7 @@ class ObjectInfo final :
     int32_t aim_skill_id_;
     int32_t level_;
     int64_t item_count_;
+    int64_t exp_;
     int npc_kind_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -2050,6 +2083,46 @@ inline void StatInfo::set_move_speed(float value) {
   // @@protoc_insertion_point(field_set:Protocol.StatInfo.move_speed)
 }
 
+// int32 max_mp = 6;
+inline void StatInfo::clear_max_mp() {
+  _impl_.max_mp_ = 0;
+}
+inline int32_t StatInfo::_internal_max_mp() const {
+  return _impl_.max_mp_;
+}
+inline int32_t StatInfo::max_mp() const {
+  // @@protoc_insertion_point(field_get:Protocol.StatInfo.max_mp)
+  return _internal_max_mp();
+}
+inline void StatInfo::_internal_set_max_mp(int32_t value) {
+  
+  _impl_.max_mp_ = value;
+}
+inline void StatInfo::set_max_mp(int32_t value) {
+  _internal_set_max_mp(value);
+  // @@protoc_insertion_point(field_set:Protocol.StatInfo.max_mp)
+}
+
+// int32 mp = 7;
+inline void StatInfo::clear_mp() {
+  _impl_.mp_ = 0;
+}
+inline int32_t StatInfo::_internal_mp() const {
+  return _impl_.mp_;
+}
+inline int32_t StatInfo::mp() const {
+  // @@protoc_insertion_point(field_get:Protocol.StatInfo.mp)
+  return _internal_mp();
+}
+inline void StatInfo::_internal_set_mp(int32_t value) {
+  
+  _impl_.mp_ = value;
+}
+inline void StatInfo::set_mp(int32_t value) {
+  _internal_set_mp(value);
+  // @@protoc_insertion_point(field_set:Protocol.StatInfo.mp)
+}
+
 // -------------------------------------------------------------------
 
 // ObjectInfo
@@ -2489,6 +2562,26 @@ inline void ObjectInfo::_internal_set_npc_kind(::Protocol::NpcKind value) {
 inline void ObjectInfo::set_npc_kind(::Protocol::NpcKind value) {
   _internal_set_npc_kind(value);
   // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.npc_kind)
+}
+
+// int64 exp = 14;
+inline void ObjectInfo::clear_exp() {
+  _impl_.exp_ = int64_t{0};
+}
+inline int64_t ObjectInfo::_internal_exp() const {
+  return _impl_.exp_;
+}
+inline int64_t ObjectInfo::exp() const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.exp)
+  return _internal_exp();
+}
+inline void ObjectInfo::_internal_set_exp(int64_t value) {
+  
+  _impl_.exp_ = value;
+}
+inline void ObjectInfo::set_exp(int64_t value) {
+  _internal_set_exp(value);
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.exp)
 }
 
 // -------------------------------------------------------------------

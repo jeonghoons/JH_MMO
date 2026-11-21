@@ -10,9 +10,16 @@
   Tools/Balance/preview/dash_*.json — 그래프 페이지(claude.ai Data 아티팩트)가 읽는 데이터
 
 표준 라이브러리만 씁니다. 실행: python -I Tools/Balance/balance.py
-(Common/DataTable에 직접 쓰는 --write는 IT3·A2.3b에서 추가합니다.)
+  --write  : 위 미리보기를 만든 뒤 Common/DataTable의 해당 CSV에 이 스크립트가 맡은 수치 열만 덮어쓰고 바뀐 줄을 보여 준다(A2.3b).
+             외형·경로 열(Mesh, Fx, Montage, Icon …)과 맡지 않은 열은 그대로 둔다. 새 열은 정해진 자리에 끼워 넣는다.
+             예외: SKILL_ASSET_FILL의 외형 값은 그 칸이 비어 있을 때만 채운다(이미 있는 값은 덮지 않음).
+             같은 CSV에 다시 돌려도 결과가 같다 — 다른 줄에서 CSV를 고친 뒤 합칠 때는 그쪽 CSV에 다시 돌리면 된다.
+  --diff   : --write가 바꿀 줄만 보여 주고 쓰지 않는다.
+  지금 --write가 맡는 테이블: PlayerStatTable·MonsterTable·SkillTable (A2.3b). ItemTable·DropTable·ShopTable은 IT3에서 추가.
 """
 import csv
+import difflib
+import io
 import json
 import math
 import os
@@ -20,6 +27,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "preview")
+DATA = os.path.normpath(os.path.join(HERE, "..", "..", "Common", "DataTable"))
 
 # ============================================================ 쉬운 숫자 (여기만 고침)
 LEVEL_MAX = 30
@@ -73,6 +81,15 @@ WEAPON_SKILLS = {"Sword": (2001, 2002), "Bow": (3001, 3002), "TwoHandSword": (40
 MONSTER_BASE_DAMAGE = 10                 # 9001~9005 BaseDamage 모두 10 (한 대 피해 = 공격력 + 10)
 MONSTER_ATTACK_SPEED = {False: 1.0, True: 0.5}   # MonsterTable.AttackSpeed — 우두머리는 2초에 한 번, 대신 한 대가 셈
 MONSTER_ANIM_SEC = 1.0                   # 몬스터 공격 AnimMs 1000 (공격 간격 = AnimMs ÷ AttackSpeed, 경직은 빼고 계산)
+MONSTER_HIT_STUN_MS = {False: 800, True: 0}      # MonsterTable.HitStunMs — 일반 800 그대로, 우두머리 0(묶어 두지 못하게)
+MONSTER_SKILL_IDS = (9001, 9002, 9003, 9004, 9005)   # 몬스터 기본 공격 스킬(모두 BaseDamage = MONSTER_BASE_DAMAGE)
+# --write가 SkillTable의 클라이언트 전용 외형 칸을 채우는 값(D-254). 칸이 비어 있을 때만 쓴다 — 이미 다른 값이 있으면 그대로 둔다.
+SKILL_ASSET_FILL = {
+    1001: {"HitFx": "/Game/FX/Hit/P_Hit_Blunt.P_Hit_Blunt"},     # 맨손: 피격자 위치 1회
+    2001: {"HitFx": "/Game/FX/Hit/P_Hit_Slash.P_Hit_Slash"},     # 검 기본 공격
+    3001: {"HitFx": "/Game/FX/Hit/P_Hit_Arrow.P_Hit_Arrow",      # 활 기본 공격: 맞은 자리
+           "Fx": "/Game/FX/Proj/P_Proj_Arrow.P_Proj_Arrow"},     # 화살 액터
+}
 MONSTERS = {
     # id: (이름, 표시 레벨, 경험치, 기준 레벨, 기준 등급, 처치 시간 기준(초), 맞아 죽는 시간 기준(초), 우두머리)
     1001: ("초원 하급", 5, 100, 5, 0, 4.5, 25.0, False),
@@ -365,6 +382,110 @@ def checks(lines, grades):
     return errors
 
 
+# ============================================================ Common/DataTable 반영 (--write, A2.3b)
+
+
+def fmt_num(v):
+    """CSV 표기: 정수는 그대로, 실수는 소수 한 자리 이상(1.0, 0.5)."""
+    if isinstance(v, float):
+        return f"{v:.1f}" if v == round(v, 1) else repr(v)
+    return str(v)
+
+
+def merge_table(name, new_cols, updates, fill_if_empty=None, add_rows=None):
+    """CSV 한 개에 이 스크립트가 맡은 칸만 덮어쓴 새 내용을 돌려준다(쓰지는 않음).
+    new_cols : [(열 이름, 이 열 뒤에 넣음, 기본값)] — 없을 때만 끼워 넣는다(있으면 자리·값 그대로 두고 updates로 덮음)
+    updates  : {ID: {열: 값}} — 그 행의 그 칸을 덮는다. 없는 ID는 오류(add_rows로만 행을 만든다)
+    fill_if_empty : {ID: {열: 값}} — 그 칸이 비어 있을 때만 채운다(외형 열 예외)
+    add_rows : {ID: {열: 값}} — 없는 행이면 이 값으로 만든다(나머지 칸은 template 행 = 첫 행의 값). 있으면 updates와 같게 덮는다
+    """
+    path = os.path.join(DATA, name)
+    with open(path, encoding="utf-8", newline="") as f:
+        before = f.read()
+    rows = list(csv.reader(io.StringIO(before)))
+    header, body = rows[0], [r for r in rows[1:] if r]
+    for col, after, default in new_cols:
+        if col in header:
+            continue
+        at = header.index(after) + 1
+        header.insert(at, col)
+        for r in body:
+            r.insert(at, default)
+    idx = {c: i for i, c in enumerate(header)}
+    by_id = {r[0]: r for r in body}
+    for rid, cols in (add_rows or {}).items():
+        if str(rid) not in by_id:
+            r = list(body[0])
+            r[0] = str(rid)
+            body.append(r)
+            by_id[str(rid)] = r
+        updates = dict(updates)
+        updates[rid] = {**updates.get(rid, {}), **cols}
+    for rid, cols in updates.items():
+        r = by_id.get(str(rid))
+        if r is None:
+            raise SystemExit(f"[--write] {name}: 행 {rid} 이 없습니다")
+        for col, v in cols.items():
+            r[idx[col]] = fmt_num(v)
+    for rid, cols in (fill_if_empty or {}).items():
+        r = by_id.get(str(rid))
+        if r is None:
+            continue
+        for col, v in cols.items():
+            if r[idx[col]] == "":
+                r[idx[col]] = v
+    body.sort(key=lambda r: int(r[0]))
+    out = io.StringIO()
+    w = csv.writer(out, lineterminator="\n")
+    w.writerow(header)
+    w.writerows(body)
+    return path, before, out.getvalue()
+
+
+def datatable_plan():
+    """A2.3b가 맡는 세 테이블의 새 내용. [(경로, 이전, 이후)]"""
+    plans = []
+    # PlayerStatTable: 레벨 1~30 (Name = 1000 + 레벨). AttackSpeed·MoveSpeed는 첫 행 값 그대로(맡지 않음)
+    stat_rows = {}
+    for r in level_rows():
+        stat_rows[1000 + r["level"]] = {"Level": r["level"], "MaxHp": r["hp"], "AttackDamage": r["atk"], "MaxMp": r["mp"], "ExpToNext": r["expToNext"]}
+    plans.append(merge_table("PlayerStatTable.csv", [("MaxMp", "MoveSpeed", "0"), ("ExpToNext", "MaxMp", "0")], {}, add_rows=stat_rows))
+    # MonsterTable: 표시 레벨·경험치(새 열), HP·공격력·공격 속도·경직
+    mon = {mid: {"Level": m["level"], "Exp": m["exp"], "MaxHp": m["hp"], "AttackDamage": m["attack"], "AttackSpeed": float(m["attackSpeed"]),
+                 "HitStunMs": MONSTER_HIT_STUN_MS[m["boss"]]} for mid, m in MONS.items()}
+    plans.append(merge_table("MonsterTable.csv", [("Level", "BodyRadiusCm", "1"), ("Exp", "Level", "0")], mon))
+    # SkillTable: MpCost·AttackScale(새 열, 기본 0·100), BaseDamage. 아직 CSV에 없는 스킬(양손검 4001·4002 — WT1)은 건너뛴다
+    with open(os.path.join(DATA, "SkillTable.csv"), encoding="utf-8", newline="") as f:
+        existing = {r[0] for r in list(csv.reader(f))[1:] if r}
+    sk = {}
+    for sid, s in SKILLS.items():
+        if str(sid) in existing:
+            sk[sid] = {"BaseDamage": s[2], "MpCost": s[5], "AttackScale": s[7]}
+    for sid in MONSTER_SKILL_IDS:
+        sk[sid] = {"BaseDamage": MONSTER_BASE_DAMAGE}
+    plans.append(merge_table("SkillTable.csv", [("MpCost", "AimMaxMs", "0"), ("AttackScale", "MpCost", "100"), ("HitFx", "FxBaseRadius", "")],
+                             sk, fill_if_empty=SKILL_ASSET_FILL))
+    return plans
+
+
+def write_datatables(really_write):
+    changed = 0
+    for path, before, after in datatable_plan():
+        name = os.path.basename(path)
+        if before == after:
+            print(f"[--write] {name}: 바뀐 것 없음")
+            continue
+        changed += 1
+        diff = difflib.unified_diff(before.splitlines(), after.splitlines(), f"a/{name}", f"b/{name}", lineterm="", n=0)
+        print("\n".join(diff))
+        if really_write:
+            with open(path, "w", encoding="utf-8", newline="") as f:
+                f.write(after)
+            print(f"[--write] {name}: 씀")
+    if not really_write:
+        print(f"[--diff] 바뀔 파일 {changed}개 (쓰지 않음)")
+
+
 def main():
     L = ["# IT1 검사표 (balance.py가 만든 파일 — 직접 고치지 않음)", ""]
     levels = level_rows()
@@ -444,6 +565,14 @@ def main():
     with open(os.path.join(OUT, "report.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(L) + "\n")
     sys.stdout.reconfigure(encoding="utf-8")
+    if "--write" in sys.argv or "--diff" in sys.argv:
+        # 검사표는 파일에만 남기고, 화면에는 CSV 변경만 보인다
+        if errs:
+            print("\n".join(L))
+            print("[--write] 검사 오류가 있어 CSV를 쓰지 않습니다")
+            return 1
+        write_datatables("--write" in sys.argv)
+        return 0
     print("\n".join(L))
     return 1 if errs else 0
 

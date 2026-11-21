@@ -205,6 +205,7 @@
 | Q1 퀘스트 | `QuestTable`(미리보기 `QuestTable.preview.csv`) + 진행 저장, NPC 1003 |
 
 - 반영할 때는 `balance.py`에 `--write`를 더해 `Common/DataTable`의 해당 열만 덮어씁니다(외형 열은 건드리지 않음).
+- **A2.3b 반영 메모(2026-11-22)**: `python -I Tools/Balance/balance.py --write`(바꿀 줄만 보려면 `--diff`)가 `PlayerStatTable`(30행, `MaxMp`·`ExpToNext`)·`MonsterTable`(`Level`·`Exp` — `BodyRadiusCm` 뒤, HP·공격력·공격 속도·경직)·`SkillTable`(`MpCost`·`AttackScale` — `AimMaxMs` 뒤, `HitFx` — `FxBaseRadius` 뒤, `BaseDamage`)을 씁니다. 외형 칸은 `SKILL_ASSET_FILL`(1001·2001·3001 `HitFx`, 3001 `Fx` = `P_Proj_Arrow`)을 **비어 있을 때만** 채웁니다. 다시 돌려도 결과가 같아, 다른 줄에서 CSV를 고친 뒤 합칠 때는 합친 CSV에 다시 돌리면 됩니다. 양손검 4001·4002는 CSV에 행이 없어 건너뜁니다(WT1). 전투 판정 5초·회복 비율은 지금 서버 상수(`ServerData.h`)입니다.
 
 ## 11. 사용자 검사 결과 (2026-11-22, D-253)
 

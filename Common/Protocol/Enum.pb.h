@@ -121,12 +121,15 @@ enum PacketId : int {
   SC_ROOM_CHANGE = 2036,
   SC_MOVE_RESULT = 2037,
   SC_DUNGEON_STATE = 2038,
+  SC_GAIN_EXP = 2039,
+  SC_LEVEL_UP = 2040,
+  SC_CHANGE_MP = 2041,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_DUNGEON_STATE;
+constexpr PacketId PacketId_MAX = SC_CHANGE_MP;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();
@@ -452,12 +455,13 @@ enum AttackResult : int {
   ATTACK_RESULT_TARGET_DEAD = 8,
   ATTACK_RESULT_TOO_FAR = 9,
   ATTACK_RESULT_BAD_REQUEST = 10,
+  ATTACK_RESULT_NOT_ENOUGH_MP = 11,
   AttackResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   AttackResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool AttackResult_IsValid(int value);
 constexpr AttackResult AttackResult_MIN = ATTACK_RESULT_NONE;
-constexpr AttackResult AttackResult_MAX = ATTACK_RESULT_BAD_REQUEST;
+constexpr AttackResult AttackResult_MAX = ATTACK_RESULT_NOT_ENOUGH_MP;
 constexpr int AttackResult_ARRAYSIZE = AttackResult_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AttackResult_descriptor();

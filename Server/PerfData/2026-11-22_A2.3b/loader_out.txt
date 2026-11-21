@@ -1,0 +1,12 @@
+ok exit=0 
+maxmp0 exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\maxmp0\PlayerStatTable.csv line 2: 값이 허용 범위를 벗어났습니다 (M
+exp_neg exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\exp_neg\PlayerStatTable.csv line 5: 값이 허용 범위를 벗어났습니다 (
+exp_zero exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\exp_zero\PlayerStatTable.csv: Level 4 의 ExpToNext 0 — 최대 레벨(30) 행�
+max_nonzero exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\max_nonzero\PlayerStatTable.csv: Level 30 의 ExpToNext 100 — 최대 레벨(30
+level_gap exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\level_gap\PlayerStatTable.csv: Level 이 1부터 이어지지 않습니다 (Leve
+no_mpcol exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\no_mpcol\PlayerStatTable.csv: column 'MaxMp' does not exist
+mpcost_neg exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\mpcost_neg\SkillTable.csv line 4: 값이 허용 범위를 벗어났습니다 (Mp
+scale_big exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\scale_big\SkillTable.csv line 5: 값이 허용 범위를 벗어났습니다 (MpC
+scale_neg exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\scale_neg\SkillTable.csv line 5: 값이 허용 범위를 벗어났습니다 (MpC
+mon_lv0 exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\mon_lv0\MonsterTable.csv line 2: 값이 허용 범위를 벗어났습니다 (Lev
+mon_expneg exit=127 C:\Users\kjhkjh\KJH\JH_MMO_wt_a23b\Server\PerfData\2026-11-22_A2.3b\runs\loader\mon_expneg\MonsterTable.csv line 2: 값이 허용 범위를 벗어났습니다 (

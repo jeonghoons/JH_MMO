@@ -67,6 +67,10 @@ private:
     static void Handle_SC_DUNGEON_STATE(TSharedPtr<NetworkSession>& session, Protocol::SC_DUNGEON_STATE_PACKET& pkt);
     static void Handle_SC_USE_ITEM(TSharedPtr<NetworkSession>& session, Protocol::SC_USE_ITEM_PACKET& pkt);
     static void Handle_SC_CHANGE_HP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_HP_PACKET& pkt);
+    // 성장·MP(A2.3b, D-254)
+    static void Handle_SC_GAIN_EXP(TSharedPtr<NetworkSession>& session, Protocol::SC_GAIN_EXP_PACKET& pkt);
+    static void Handle_SC_LEVEL_UP(TSharedPtr<NetworkSession>& session, Protocol::SC_LEVEL_UP_PACKET& pkt);
+    static void Handle_SC_CHANGE_MP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_MP_PACKET& pkt);
     static void Handle_SC_TRADE_REQUEST(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_REQUEST_PACKET& pkt);
     static void Handle_SC_TRADE_STATE(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_STATE_PACKET& pkt);
     static void Handle_SC_TRADE_END(TSharedPtr<NetworkSession>& session, Protocol::SC_TRADE_END_PACKET& pkt);

@@ -65,8 +65,14 @@ public:
 	StatComponent& GetStat() { return _statInfo; }
 	const StatComponent& GetStat() const { return _statInfo; }
 
-	void RemoveView(int objectId);	
+	void RemoveView(int objectId);
 	vector<int>	_viewList;
+
+	// 전투 판정(A2.3b, D-254): 마지막으로 때리거나 맞은 시각(steady_clock ms). 플레이어만 쓴다(자연 회복 — Room::UpdateRegen).
+	// 그 플레이어의 소유 Room 잡에서만 쓴다(Character::OnDamaged가 같은 Room인지 확인한다).
+	long long lastCombatMs = 0;
+	// 전투 중 = 지금 - lastCombatMs < COMBAT_HOLD_MS(ServerData.h)
+	bool IsInCombat(long long nowMs) const;
 protected:
 	StatComponent _statInfo;
 	Cooldown _hitTimer;

@@ -37,6 +37,9 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_ITEM_RESULT, &FPacketHandler::Handle_SC_ITEM_RESULT);
 	RegisterHandler(Protocol::SC_USE_ITEM, &FPacketHandler::Handle_SC_USE_ITEM);
 	RegisterHandler(Protocol::SC_CHANGE_HP, &FPacketHandler::Handle_SC_CHANGE_HP);
+	RegisterHandler(Protocol::SC_GAIN_EXP, &FPacketHandler::Handle_SC_GAIN_EXP);
+	RegisterHandler(Protocol::SC_LEVEL_UP, &FPacketHandler::Handle_SC_LEVEL_UP);
+	RegisterHandler(Protocol::SC_CHANGE_MP, &FPacketHandler::Handle_SC_CHANGE_MP);
 	RegisterHandler(Protocol::SC_TRADE_REQUEST, &FPacketHandler::Handle_SC_TRADE_REQUEST);
 	RegisterHandler(Protocol::SC_TRADE_STATE, &FPacketHandler::Handle_SC_TRADE_STATE);
 	RegisterHandler(Protocol::SC_TRADE_END, &FPacketHandler::Handle_SC_TRADE_END);
@@ -222,7 +225,7 @@ void FPacketHandler::Handle_SC_MOVE_OBJECT(TSharedPtr<NetworkSession>& session, 
 void FPacketHandler::Handle_SC_ATTACK(TSharedPtr<NetworkSession>& session, Protocol::SC_ATTACK_PACKET& pkt)
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
-		ObjectManager->HandleAttack(pkt.attacker_id(), pkt.skill_id(), pkt.aim_yaw(), pkt.aim_x(), pkt.aim_y(), pkt.cooldown_ms(), pkt.seq());
+		ObjectManager->HandleAttack(pkt.attacker_id(), pkt.skill_id(), pkt.target_id(), pkt.aim_yaw(), pkt.aim_x(), pkt.aim_y(), pkt.cooldown_ms(), pkt.seq());
 }
 
 void FPacketHandler::Handle_SC_ATTACK_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_ATTACK_RESULT_PACKET& pkt)
@@ -357,6 +360,25 @@ void FPacketHandler::Handle_SC_CHANGE_HP(TSharedPtr<NetworkSession>& session, Pr
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandleChangeHp(pkt.object_id(), pkt.hp());
+}
+
+// ---- 성장·MP(A2.3b, D-254): 서버 값을 내 캐릭터(레벨업은 그 오브젝트)의 ObjectInfo에 반영만 한다. HUD 경험치·MP 표시는 다음 항목 ----
+void FPacketHandler::Handle_SC_GAIN_EXP(TSharedPtr<NetworkSession>& session, Protocol::SC_GAIN_EXP_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleGainExp(static_cast<int64>(pkt.exp()), static_cast<int64>(pkt.gained()));
+}
+
+void FPacketHandler::Handle_SC_LEVEL_UP(TSharedPtr<NetworkSession>& session, Protocol::SC_LEVEL_UP_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleLevelUp(pkt.object_id(), pkt.level(), pkt.stat());
+}
+
+void FPacketHandler::Handle_SC_CHANGE_MP(TSharedPtr<NetworkSession>& session, Protocol::SC_CHANGE_MP_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+		ObjectManager->HandleChangeMp(pkt.mp());
 }
 
 void FPacketHandler::Handle_SC_ITEM_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_ITEM_RESULT_PACKET& pkt)

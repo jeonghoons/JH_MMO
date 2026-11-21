@@ -337,7 +337,7 @@
 - 거부·실패·성사 안내는 모두 시스템 메시지 창(D-050)입니다(경매의 성공 안내만 창 안 한 줄 — A6.3b).
 
 ## 패킷 (번호 배정)
-새 번호는 `Enum.proto`의 마지막 번호 다음부터 이어 씁니다(2026-11-21 기준 CS 1038~, SC 2039~ — 파티가 CS 1035~1037·SC 2033~2035(DG2 구현), Room 이동이 SC 2036·2037(DG3b 구현, 거래 취소 사유 `TRADE_RESULT_MOVED` 17 추가), 2038은 던전 상태(DG3c 예정), `DESIGN_PARTY_DUNGEON.md`). 추가 절차는 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md).
+새 번호는 `Enum.proto`의 마지막 번호 다음부터 이어 씁니다(2026-11-22 기준 CS 1038~, SC 2042~ — 파티가 CS 1035~1037·SC 2033~2035(DG2 구현), Room 이동이 SC 2036·2037(DG3b 구현, 거래 취소 사유 `TRADE_RESULT_MOVED` 17 추가), 2038은 던전 상태(DG3c 구현), `DESIGN_PARTY_DUNGEON.md`, 2039~2041은 성장·MP(A2.3b)). 추가 절차는 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md).
 
 | 항목 | CS | SC |
 |---|---|---|
@@ -349,6 +349,7 @@
 | A2.7 | — | 2027 `KICK`(끊기 직전 본인, 사유) |
 | A6.1 | 1030 `MOVE_ITEM`(칸 옮기기·맞바꾸기) | (성공은 `INVENTORY_UPDATE`, 거부는 `ITEM_RESULT`) |
 | L4 | 1031 `SHOP_OPEN`, 1032 `SHOP_BUY`, 1033 `SHOP_SELL` | 2029 `SHOP_OPEN`(본인, 품목·구매가). 구매·판매 성공은 `INVENTORY_UPDATE`, 거부는 `ITEM_RESULT`. `INVENTORY`에 `shop_range_cm` 추가. NPC 표시는 기존 `ADD_OBJECT`·`REMOVE_OBJECT` |
+| A2.3b 성장·MP (D-254) | 1017 `DEV_GIVE`에 `exp`(3번, int64 — `[Debug] DevCommands`일 때만, 0보다 크면 경험치만) | 2039 `GAIN_EXP`(본인: 지금 레벨 안의 누적 `exp` + `gained`), 2040 `LEVEL_UP`(AOI 본인 포함: `object_id`·`level`·`StatInfo` — HP·MP 가득), 2041 `CHANGE_MP`(본인: `mp`). HP 자연 회복은 기존 2028 `CHANGE_HP`(AOI). `StatInfo`에 `max_mp`(6)·`mp`(7), `ObjectInfo.exp`(14, 본인에게 보내는 것에만), `AttackResult` `NOT_ENOUGH_MP`(11) |
 
 - 구조체 `ItemInfo`(`item_db_id`, `item_id`, `count`, `equip_part` — 0 = 인벤토리, `slot` — 인벤토리 칸 번호·장착 중이면 -1), `ObjectInfo.item_count`(12번), `CS_CHANGE_EQUIP_PACKET`은 `item_id`(2번)를 `reserved`로 막고 `item_db_id`(3번)를 추가합니다. `item_db_id`·`listing_id`·`mail_id`·골드·가격·수량 필드는 int64입니다.
 - 결과 enum은 기능별로 둡니다(D-114 방식). 새 enum은 기존 관례대로 `*_NONE` = 0, `*_SUCCESS` = 1로 시작하고 아래 값이 2부터 이어집니다.

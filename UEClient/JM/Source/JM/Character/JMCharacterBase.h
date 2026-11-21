@@ -43,6 +43,11 @@ public:
 	virtual void OnDamaged(int32_t Damage, int32_t RemainHP);
 	// 서버가 알려 준 HP를 그대로 반영한다(물약 회복 등 — 피격 연출 없음, A3.6)
 	void SetServerHp(int32 Hp) { ObjectInfo.mutable_stat()->set_hp(Hp); }
+	// 성장·MP(A2.3b, D-254): 서버가 알려 준 값을 그대로 반영한다. 경험치는 내 캐릭터에만 온다(SC_GAIN_EXP·본인 SC_ADD_OBJECT)
+	void SetServerMp(int32 Mp) { ObjectInfo.mutable_stat()->set_mp(Mp); }
+	void SetServerExp(int64 Exp) { ObjectInfo.set_exp(Exp); }
+	// 레벨업(SC_LEVEL_UP): 새 레벨과 최종 스탯(HP·MP 가득). 이동 속도는 레벨과 무관해 그대로다
+	void ApplyServerLevel(int32 Level, const Protocol::StatInfo& Stat) { ObjectInfo.set_level(Level); ObjectInfo.mutable_stat()->CopyFrom(Stat); }
 	virtual void OnDead();
 	// 부활(SC_REVIVE, A2.4): 사망 상태·멈춘 사망 몽타주를 풀고 서버가 정한 위치로 순간이동, HP 반영.
 	virtual void OnRevive(const Protocol::PositionInfo& Pos, int32 Hp);

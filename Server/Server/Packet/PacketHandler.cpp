@@ -310,7 +310,7 @@ void PacketHandler::Handle_CS_DEV_GIVE(shared_ptr<GameSession> session, Protocol
     if (room == nullptr) return;
 
     // [Debug] DevCommands 여부·수량·빈 칸 검증과 DB 트랜잭션은 Room 잡에서 한다.
-    room->PushJob(&Room::PlayerDevGive, player, static_cast<int>(pkt.item_id()), static_cast<int64_t>(pkt.count()));
+    room->PushJob(&Room::PlayerDevGive, player, static_cast<int>(pkt.item_id()), static_cast<int64_t>(pkt.count()), static_cast<int64_t>(pkt.exp()));
 }
 
 void PacketHandler::Handle_CS_MOVE_ITEM(shared_ptr<GameSession> session, Protocol::CS_MOVE_ITEM_PACKET& pkt)

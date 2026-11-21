@@ -140,7 +140,7 @@ bool DataManager::Init()
 
 	std::string err;
 
-	// PlayerStatTable: Name, Level, MaxHp, AttackDamage, AttackSpeed, MoveSpeed (체형 공용, 조회 키 = Level)
+	// PlayerStatTable: Name, Level, MaxHp, AttackDamage, AttackSpeed, MoveSpeed, MaxMp, ExpToNext (체형 공용, 조회 키 = Level)
 	CsvFile stat;
 	if (!stat.Load((dir / "PlayerStatTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
@@ -148,7 +148,8 @@ bool DataManager::Init()
 	{
 		int id = 0, level = 0;
 		StatData d{};
-		if (!row.GetInt("Name", id, err) || !row.GetInt("Level", level, err) || !ReadStat(stat, row, d, err))
+		if (!row.GetInt("Name", id, err) || !row.GetInt("Level", level, err) || !ReadStat(stat, row, d, err) ||
+			!row.GetInt("MaxMp", d.maxMp, err) || !row.GetInt("ExpToNext", d.expToNext, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
@@ -156,6 +157,11 @@ bool DataManager::Init()
 		if (level < 1)
 		{
 			LOG_ERROR("Data", "{} line {}: Level 은 1 이상이어야 합니다", stat.Path(), row.Line());
+			return false;
+		}
+		if (d.maxMp <= 0 || d.expToNext < 0)
+		{
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (MaxMp>0, ExpToNext>=0)", stat.Path(), row.Line());
 			return false;
 		}
 		if (_playerStatTable.count(level))
@@ -170,9 +176,27 @@ bool DataManager::Init()
 		LOG_ERROR("Data", "{}: 시작 레벨 {} 행이 없습니다", stat.Path(), PLAYER_START_LEVEL);
 		return false;
 	}
+	// 레벨은 1부터 빠짐없이 이어져야 하고(경험치로 한 칸씩 오른다), 마지막 행 = 최대 레벨만 ExpToNext 0이다 (A2.3b, D-251·D-253)
+	_playerMaxLevel = static_cast<int>(_playerStatTable.size());
+	for (int level = PLAYER_START_LEVEL; level <= _playerMaxLevel; ++level)
+	{
+		const StatData* row = GetPlayerStatData(level);
+		if (row == nullptr)
+		{
+			LOG_ERROR("Data", "{}: Level 이 1부터 이어지지 않습니다 (Level {} 행이 없음)", stat.Path(), level);
+			return false;
+		}
+		const bool isMax = (level == _playerMaxLevel);
+		if (isMax ? row->expToNext != 0 : row->expToNext <= 0)
+		{
+			LOG_ERROR("Data", "{}: Level {} 의 ExpToNext {} — 최대 레벨({}) 행만 0이고 나머지는 0보다 커야 합니다", stat.Path(), level, row->expToNext, _playerMaxLevel);
+			return false;
+		}
+	}
 
 	// SkillTable: Name(=skillId), WeaponType, Slot, TargetingType, HitShape, HitDelayMs, CooldownMs, AnimMs, CastRange,
-	//             Radius, Angle, Range, Width, BaseDamage, ProjSpeed, DurationMs, TickMs, AimMoveSpeedMul, AimMaxMs
+	//             Radius, Angle, Range, Width, BaseDamage, ProjSpeed, DurationMs, TickMs, AimMoveSpeedMul, AimMaxMs, MpCost, AttackScale
+	// (Fx·FxBaseRadius·HitFx·Montage·Icon은 클라이언트 전용이라 읽지 않는다)
 	CsvFile skill;
 	if (!skill.Load((dir / "SkillTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
@@ -190,13 +214,21 @@ bool DataManager::Init()
 			!row.GetFloat("Range", d.range, err) || !row.GetFloat("Width", d.width, err) ||
 			!row.GetInt("BaseDamage", d.baseDamage, err) || !row.GetFloat("ProjSpeed", d.projSpeed, err) ||
 			!row.GetInt("DurationMs", d.durationMs, err) || !row.GetInt("TickMs", d.tickMs, err) ||
-			!row.GetFloat("AimMoveSpeedMul", d.aimMoveSpeedMul, err) || !row.GetInt("AimMaxMs", d.aimMaxMs, err))
+			!row.GetFloat("AimMoveSpeedMul", d.aimMoveSpeedMul, err) || !row.GetInt("AimMaxMs", d.aimMaxMs, err) ||
+			!row.GetInt("MpCost", d.mpCost, err) || !row.GetInt("AttackScale", d.attackScale, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
 		}
 
 		const std::string where = skill.Path() + " line " + std::to_string(row.Line()) + ": ";
+
+		// MP·공격력 반영(A2.3b, D-253): 몬스터 스킬의 MpCost는 무시하지만(몬스터는 MP 없음) 범위는 같게 본다
+		if (d.mpCost < 0 || d.attackScale < 0 || d.attackScale > 1000)
+		{
+			LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (MpCost>=0, 0 <= AttackScale <= 1000)", where);
+			return false;
+		}
 
 		if (!ParseWeaponType(weapon, d.weaponType) || d.weaponType == WeaponType::None)
 		{
@@ -271,7 +303,7 @@ bool DataManager::Init()
 		return false;
 	}
 	// MonsterTable: Name(=monsterTemplateId, 1001~), SkillId, MaxHp, AttackDamage, AttackSpeed, MoveSpeed,
-	//               RespawnSec, DeathRemoveDelaySec, HitStunMs, WanderRadiusCm, AggroRangeCm, LeashRangeCm, ReturnMode, Scale, BodyRadiusCm
+	//               RespawnSec, DeathRemoveDelaySec, HitStunMs, WanderRadiusCm, AggroRangeCm, LeashRangeCm, ReturnMode, Scale, BodyRadiusCm, Level, Exp
 	// (Mesh 등 외형 열은 클라이언트 전용이라 읽지 않는다)
 	CsvFile monster;
 	if (!monster.Load((dir / "MonsterTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
@@ -287,9 +319,16 @@ bool DataManager::Init()
 			!row.GetInt("WanderRadiusCm", wanderRadiusCm, err) ||
 			!row.GetInt("AggroRangeCm", d.aggroRangeCm, err) || !row.GetInt("LeashRangeCm", d.leashRangeCm, err) ||
 			!row.GetInt("ReturnMode", d.returnMode, err) ||
-			!row.GetFloat("Scale", d.scale, err) || !row.GetInt("BodyRadiusCm", d.bodyRadiusCm, err))
+			!row.GetFloat("Scale", d.scale, err) || !row.GetInt("BodyRadiusCm", d.bodyRadiusCm, err) ||
+			!row.GetInt("Level", d.level, err) || !row.GetInt("Exp", d.exp, err))
 		{
 			LOG_ERROR("Data", "{}", err);
+			return false;
+		}
+		// 표시 레벨·처치 경험치(A2.3b, D-253)
+		if (d.level < 1 || d.exp < 0)
+		{
+			LOG_ERROR("Data", "{} line {}: 값이 허용 범위를 벗어났습니다 (Level>=1, Exp>=0)", monster.Path(), row.Line());
 			return false;
 		}
 		// 행동 범위(L3, D-193): 인식 범위 0 = 비선공. 추격 제한은 홈 기준이라 배회 반경보다 좁으면 배회만으로 복귀에 걸린다.

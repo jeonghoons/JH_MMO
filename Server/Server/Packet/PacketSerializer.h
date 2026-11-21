@@ -6,6 +6,8 @@ class PacketSerializer
 
 public:
 	static shared_ptr<SendBuffer> MAKE_SC_ADD_OBJECT(shared_ptr<GameObject> object);
+	// 내 캐릭터 입장(본인에게만): ObjectInfo에 본인만 받는 값(경험치 — A2.3b, D-254)을 더한다
+	static shared_ptr<SendBuffer> MAKE_SC_ADD_OBJECT_SELF(shared_ptr<class Player> player);
 
 	static shared_ptr<SendBuffer> MAKE_SC_REMOVE_OBJECT(int objectId);
 
@@ -54,6 +56,10 @@ public:
 	// 소비 아이템 사용 결과(A3.6): 쓴 종류, 사용 뒤 HP, 재사용 시간
 	static shared_ptr<SendBuffer> MAKE_SC_USE_ITEM(int objectId, int itemId, int hp, int cooldownMs);
 	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_HP(int objectId, int hp);
+	// 성장·MP(A2.3b, D-254): 경험치(본인), 레벨업(AOI, 새 스탯 — HP·MP 가득), MP 변화(본인)
+	static shared_ptr<SendBuffer> MAKE_SC_GAIN_EXP(int64_t exp, int64_t gained);
+	static shared_ptr<SendBuffer> MAKE_SC_LEVEL_UP(int objectId, int level, const Protocol::StatInfo& stat);
+	static shared_ptr<SendBuffer> MAKE_SC_CHANGE_MP(int mp);
 	static shared_ptr<SendBuffer> MAKE_SC_ITEM_RESULT(Protocol::PacketId request, Protocol::ItemResult result);
 	// 경매 요청의 결과(A4.3, 성공·거부 모두). id = 대상 listing_id(등록 성공이면 새 등록, 수령이면 mail_id).
 	// 검색 결과·내 목록(SC_AUCTION_LIST·SC_AUCTION_MY)은 AuctionService가 직접 채워 MakeSendBuffer로 만든다.

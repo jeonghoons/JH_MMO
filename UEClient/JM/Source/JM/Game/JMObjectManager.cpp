@@ -21,6 +21,7 @@
 #include "Game/DropItemActor.h"
 #include "Game/JMShopManager.h"
 #include "Game/JMAuctionManager.h"
+#include "Game/ProjectileFx.h"
 
 void UJMObjectManager::ClearObjects()
 {
@@ -28,6 +29,7 @@ void UJMObjectManager::ClearObjects()
 	Drops.Empty();
 	Npcs.Empty();
 	Portals.Empty();
+	LastAttackSkill.Empty();
 	MyPlayer = nullptr;
 	// 던전 상태는 Room에 딸린 값이다. 레벨 전환 너머로 넘길 값(TravelCarry·MyReviveReadySec)은 여기서 지우지 않는다(ResetRoomTravel).
 	ClearDungeonState();
@@ -330,8 +332,11 @@ void UJMObjectManager::HandleAttackResult(int32 Result, uint32 Seq, int32 Remain
 	if (MyPlayer) MyPlayer->RollbackCast(Seq, Result, RemainMs);
 }
 
-void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY, int32 CooldownMs, uint32 Seq)
+void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, int32 TargetId, float AimYaw, float AimX, float AimY, int32 CooldownMs, uint32 Seq)
 {
+	// 피격 이펙트용(D-254). 내 시전도 SC_ATTACK이 오므로 아래의 확정 return보다 먼저 적는다.
+	LastAttackSkill.Add(AttackerId, SkillId);
+
 	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(AttackerId))
 	{
 		AJMCharacterBase* Attacker = *FoundActor;
@@ -355,7 +360,7 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYa
 
 		Attacker->OnAttack(Skill);
 
-		if (Skill) SpawnSkillFx(Attacker, *Skill, AimYaw, AimX, AimY);
+		if (Skill) SpawnSkillFx(Attacker, *Skill, TargetId, AimYaw, AimX, AimY);
 
 		// 내 시전만 HUD 쿨타임에 반영한다. 길이는 서버가 적용한 값이다.
 		if (Skill && Attacker == MyPlayer)
@@ -366,7 +371,7 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, float AimYa
 	}
 }
 
-void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTableRow& Skill, float AimYaw, float AimX, float AimY,
+void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTableRow& Skill, int32 TargetId, float AimYaw, float AimX, float AimY,
 	TWeakObjectPtr<UParticleSystemComponent>* OutComp, FTimerHandle* OutTimer)
 {
 	UWorld* World = GetWorld();
@@ -400,6 +405,39 @@ void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTabl
 		else
 		{
 			DrawDebugCircle(World, Center, Skill.Radius, 48, FColor(255, 80, 80), false, DurationSec, 0, 4.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+		}
+		return;
+	}
+
+	// 투사체(D-254): 타격 시점(= 시위를 놓는 순간)에 화살 연출을 대상 쪽으로 날린다. 판정·피해는 서버가 따로 계산한다(SC_DAMAGE).
+	if (Skill.HitShape == ESkillHitShape::Projectile)
+	{
+		if (Fx == nullptr || Skill.ProjSpeed <= 0.f) return;
+
+		TWeakObjectPtr<AJMCharacterBase> WeakAttacker = Attacker;
+		TWeakObjectPtr<AJMCharacterBase> WeakTarget;
+		if (TargetId != 0)
+		{
+			if (TObjectPtr<AJMCharacterBase>* FoundTarget = Objects.Find(TargetId)) WeakTarget = *FoundTarget;
+		}
+		TWeakObjectPtr<UParticleSystem> WeakFx = Fx;
+		const float Speed = Skill.ProjSpeed;
+		const float MaxRange = FMath::Max(Skill.Range, Skill.CastRange) * 1.2f + 100.f;
+		auto Launch = [WeakAttacker, WeakTarget, WeakFx, AimYaw, Speed, MaxRange]()
+			{
+				if (!WeakAttacker.IsValid() || !WeakFx.IsValid()) return;
+				AProjectileFx::Launch(WeakAttacker.Get(), WeakTarget.Get(), WeakFx.Get(), AimYaw, Speed, MaxRange);
+			};
+
+		if (Skill.HitDelayMs > 0)
+		{
+			FTimerHandle Handle;
+			World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(Attacker, Launch), Skill.HitDelayMs / 1000.f / Attacker->GetAttackPlayRate(&Skill), false);
+			if (OutTimer) *OutTimer = Handle;
+		}
+		else
+		{
+			Launch();
 		}
 		return;
 	}
@@ -457,6 +495,34 @@ void UJMObjectManager::HandleChangeHp(int32 ObjectId, int32 Hp)
 	}
 }
 
+void UJMObjectManager::HandleGainExp(int64 Exp, int64 Gained)
+{
+	if (MyPlayer == nullptr) return;
+	MyPlayer->SetServerExp(Exp);
+	UE_LOG(LogTemp, Log, TEXT("[Growth] exp=%lld (+%lld) level=%d"), Exp, Gained, MyPlayer->GetObjectInfo().level());
+}
+
+void UJMObjectManager::HandleChangeMp(int32 Mp)
+{
+	if (MyPlayer == nullptr) return;
+	MyPlayer->SetServerMp(Mp);
+	UE_LOG(LogTemp, Verbose, TEXT("[Growth] mp=%d/%d"), Mp, MyPlayer->GetObjectInfo().stat().max_mp());
+}
+
+void UJMObjectManager::HandleLevelUp(int32 ObjectId, int32 Level, const Protocol::StatInfo& Stat)
+{
+	TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(ObjectId);
+	if (FoundActor == nullptr || *FoundActor == nullptr) return;
+
+	(*FoundActor)->ApplyServerLevel(Level, Stat);
+	UE_LOG(LogTemp, Log, TEXT("[Growth] level up object=%d level=%d hp=%d/%d mp=%d/%d atk=%d"), ObjectId, Level,
+		Stat.hp(), Stat.max_hp(), Stat.mp(), Stat.max_mp(), Stat.attack_damage());
+	if (*FoundActor == MyPlayer)
+	{
+		if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetHp(Stat.hp(), Stat.max_hp());
+	}
+}
+
 void UJMObjectManager::HandleDamage(int32 AttackerId, int32 TargetId, int32 Damage, int32 RemainHp)
 {
 	if (TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(TargetId))
@@ -464,12 +530,35 @@ void UJMObjectManager::HandleDamage(int32 AttackerId, int32 TargetId, int32 Dama
 		if (*FoundActor == nullptr) return;
 
 		(*FoundActor)->OnDamaged(Damage, RemainHp);
+		SpawnHitFx(AttackerId, *FoundActor);
 
 		if (*FoundActor == MyPlayer)
 		{
 			if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetHp(RemainHp, MyPlayer->GetObjectInfo().stat().max_hp());
 		}
 	}
+}
+
+void UJMObjectManager::SpawnHitFx(int32 AttackerId, AJMCharacterBase* Target)
+{
+	if (Target == nullptr) return;
+	const int32* SkillId = LastAttackSkill.Find(AttackerId);
+	if (SkillId == nullptr) return;
+
+	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const FSkillTableRow* Skill = DataManager ? DataManager->FindSkillById(*SkillId) : nullptr;
+	if (Skill == nullptr || Skill->HitFx.IsNull()) return;
+
+	UParticleSystem* HitFx = Skill->HitFx.LoadSynchronous();   // 미리 로드됨(UDataManager) — 보통 바로 돌아온다
+	if (HitFx == nullptr) return;
+
+	// 몸 가운데(캡슐 중심)에서 공격자 쪽을 보게 재생한다.
+	FRotator Facing = Target->GetActorRotation();
+	if (TObjectPtr<AJMCharacterBase>* FoundAttacker = Objects.Find(AttackerId))
+	{
+		if (*FoundAttacker) Facing = (FoundAttacker->Get()->GetActorLocation() - Target->GetActorLocation()).GetSafeNormal2D().Rotation();
+	}
+	UGameplayStatics::SpawnEmitterAtLocation(Target->GetWorld(), HitFx, Target->GetActorLocation(), Facing);
 }
 
 
@@ -559,6 +648,8 @@ void UJMObjectManager::HandleRoomChange(const Protocol::SC_ROOM_CHANGE_PACKET& P
 
 	// 던전 상태는 옛 Room의 것이다. 나갈 때 해제 패킷이 없으므로 여기서 지운다(새 Room이 던전이면 SC_DUNGEON_STATE가 다시 온다).
 	ClearDungeonState();
+	// 옛 Room 공격자의 마지막 스킬(피격 이펙트용)도 버린다.
+	LastAttackSkill.Empty();
 
 	// 레벨 이름은 PIE 접두사를 뺀 짧은 이름으로 비교한다. 레벨 전환이 걸려 있으면(아직 옛 레벨이 열려 있음) 가는 중인 레벨이 기준이다.
 	const FString NewMap = UTF8_TO_TCHAR(Pkt.map_name().c_str());

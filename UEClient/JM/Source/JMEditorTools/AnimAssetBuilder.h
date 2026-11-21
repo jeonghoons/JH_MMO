@@ -75,6 +75,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
 	static FString CreateMontageFromSequences(const TArray<FString>& SequencePaths, const FString& PackagePath, const FString& SlotName, bool bAutoBlendOut, float SkillHitTimeSec);
 
+	// 몽타주 첫 슬롯 트랙의 구간별 재생 배율을 바꾸고 구간 시작 시각을 다시 잇는다(-1 = 거꾸로 재생 — 꺼내기 동작을 뒤집어 넣기 동작으로, D-254).
+	// Rates 개수는 구간 수와 같아야 하고 0은 안 된다. 노티파이는 옮기지 않으므로 배율을 바꾼 뒤 SetMontageMarker로 다시 단다.
+	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
+	static FString SetMontageSegmentPlayRates(const FString& MontagePath, const TArray<float>& Rates);
+
 	// 시퀀스를 Samples개로 나눠 본의 루트 기준 위치(앞쪽 = 메시 공간 Y, 위 = Z, 옆 = X)를 표로 돌려준다. 타격 시점(손이 가장 앞으로 뻗는 순간) 고르기용.
 	UFUNCTION(BlueprintCallable, Category = "JM|AnimAssetBuilder")
 	static FString MeasureBoneReach(const FString& SequencePath, const FString& BoneName, int32 Samples);

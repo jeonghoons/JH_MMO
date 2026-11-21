@@ -22,7 +22,8 @@ public:
 	void HandleMove(const Protocol::ObjectInfo& ObjInfo, uint32 CorrectionSeq);
 	// CooldownMs: 서버가 적용한 쿨타임(SC_ATTACK.cooldown_ms). 내 시전이면 HUD 슬롯에 표시한다.
 	// Seq: 시전자가 보낸 요청 순번(SC_ATTACK.seq). 내 시전은 입력 때 이미 시작했으므로(CP1) 순번이 있으면 다시 재생하지 않는다.
-	void HandleAttack(int32 AttackerId, int32 SkillId, float AimYaw, float AimX, float AimY, int32 CooldownMs, uint32 Seq);
+	// TargetId: 대상 지정 스킬의 대상(SC_ATTACK.target_id). 투사체 연출이 이 대상을 향해 날아간다.
+	void HandleAttack(int32 AttackerId, int32 SkillId, int32 TargetId, float AimYaw, float AimX, float AimY, int32 CooldownMs, uint32 Seq);
 	// SC_ATTACK_RESULT(CP1): 서버가 내 시전을 거부했다. Result = Protocol::AttackResult
 	void HandleAttackResult(int32 Result, uint32 Seq, int32 RemainMs);
 	void HandleDamage(int32 AttackerId, int32 TargetId, int32 Damage, int32 RemainHp);
@@ -59,6 +60,12 @@ public:
 	void HandleUseItem(int32 ObjectId, int32 ItemId, int32 Hp, int32 CooldownMs);
 	// SC_CHANGE_HP(L3): 피격 연출 없이 HP만 반영(몬스터가 홈으로 돌아가 회복). 내 캐릭터면 HUD HP까지.
 	void HandleChangeHp(int32 ObjectId, int32 Hp);
+	// 성장·MP(A2.3b, D-254). 값만 반영하고 로그를 남긴다(경험치·MP HUD는 다음 항목).
+	// SC_GAIN_EXP: 내 캐릭터의 경험치(지금 레벨 안의 누적). SC_CHANGE_MP: 내 캐릭터의 MP.
+	void HandleGainExp(int64 Exp, int64 Gained);
+	void HandleChangeMp(int32 Mp);
+	// SC_LEVEL_UP(AOI, 본인 포함): 그 캐릭터의 레벨·스탯(HP·MP 가득). 내 캐릭터면 HUD HP까지.
+	void HandleLevelUp(int32 ObjectId, int32 Level, const Protocol::StatInfo& Stat);
 
 	// From에서 수평 거리 RangeCm 안의 가장 가까운 바닥 드랍(A6.2). 없으면 nullptr. 서버도 수평 거리로 판정한다.
 	ADropItemActor* FindNearestDrop(const FVector& From, float RangeCm) const;
@@ -75,9 +82,10 @@ public:
 	// OutKind = 그 포털의 종류(Protocol::PortalKind — 일반·던전 입구·던전 출구, 안내 문구용)
 	int32 FindNearestPortal(const FVector& From, float& OutDistSq, int32* OutKind = nullptr) const;
 
-	// SkillTable의 Fx를 HitShape에 맞춰 재생한다. 장판은 조준 지점에 DurationMs 동안, 부채꼴·직선은 타격 시점에 시전자 발밑에서 1회.
+	// SkillTable의 Fx를 HitShape에 맞춰 재생한다. 장판은 조준 지점에 DurationMs 동안, 부채꼴·직선은 타격 시점에 시전자 발밑에서 1회,
+	// 투사체는 타격 시점(HitDelayMs = 시위를 놓는 순간)에 화살 연출(AProjectileFx)을 TargetId 쪽으로 ProjSpeed로 날린다(D-254 — 판정은 서버).
 	// OutComp·OutTimer(CP1): 내 캐릭터가 먼저 시작한 이펙트를 거부 때 지울 수 있게 장판 컴포넌트와 타이머(장판 끄기 또는 타격 시점 대기)를 돌려준다.
-	void SpawnSkillFx(AJMCharacterBase* Attacker, const struct FSkillTableRow& Skill, float AimYaw, float AimX, float AimY,
+	void SpawnSkillFx(AJMCharacterBase* Attacker, const struct FSkillTableRow& Skill, int32 TargetId, float AimYaw, float AimX, float AimY,
 		TWeakObjectPtr<class UParticleSystemComponent>* OutComp = nullptr, FTimerHandle* OutTimer = nullptr);
 
 private:
@@ -110,6 +118,11 @@ public:
 
 private:
 	void ClearDungeonState();
+
+	// 피격 이펙트(D-254): SC_DAMAGE에는 스킬 ID가 없어 공격자별 마지막 SC_ATTACK 스킬을 적어 둔다(공격자 id → 스킬 id).
+	// 몬스터 스킬(9xxx)은 SkillTable에 없을 수 있어 그때는 재생하지 않는다. Room이 바뀌면 비운다.
+	TMap<int32, int32> LastAttackSkill;
+	void SpawnHitFx(int32 AttackerId, AJMCharacterBase* Target);
 
 	// 레벨이 바뀌는 Room 이동에서 새 레벨의 내 캐릭터에 넘길 값(DG3c-2). 이 매니저는 GameInstance 수명이라 레벨 전환에도 남는다.
 	// 서버는 Room 이동 때 보정 순번을 +1만 하고 쿨타임도 이어 가는데, SC_ADD_OBJECT에는 그 값이 없어 SC_ROOM_CHANGE에서 받아 둬야 한다.

@@ -84,6 +84,10 @@ enum PacketId {
     SC_ROOM_CHANGE = 2036;           // Room을 옮김(본인에게): 레벨·종류·채널·새 위치·이동 보정 순번 (DG3b, D-216)
     SC_MOVE_RESULT = 2037;           // Room 이동 거부(본인에게만, 거부일 때만)
     SC_DUNGEON_STATE = 2038;         // 던전 인스턴스 상태(안에 있는 사람에게): 입장 직후 한 번, 클리어 때 전원 (DG3c, D-218)
+    // 성장·MP (A2.3b, D-253·D-254)
+    SC_GAIN_EXP = 2039;              // 경험치를 얻음 (본인): 지금 레벨 안의 누적 경험치 + 이번에 얻은 양
+    SC_LEVEL_UP = 2040;              // 레벨업 (AOI, 본인 포함): 새 레벨 + 새 스탯(HP·MP 가득)
+    SC_CHANGE_MP = 2041;             // MP 변화 (본인): 스킬 소모·자연 회복
 }
 
 // 던전 인스턴스 상태 (SC_DUNGEON_STATE_PACKET.state — DG3c)
@@ -208,6 +212,7 @@ enum AttackResult {
     ATTACK_RESULT_TARGET_DEAD = 8;
     ATTACK_RESULT_TOO_FAR = 9;       // 대상이 사거리 밖
     ATTACK_RESULT_BAD_REQUEST = 10;  // 값이 올바르지 않음
+    ATTACK_RESULT_NOT_ENOUGH_MP = 11; // MP가 스킬의 MpCost보다 적음 (A2.3b, D-254)
 }
 
 // SC_ITEM_RESULT_PACKET.result. 성공은 SC_INVENTORY_UPDATE로 알리므로 거부일 때만 보낸다. (DESIGN_ITEMS_TRADE "패킷")

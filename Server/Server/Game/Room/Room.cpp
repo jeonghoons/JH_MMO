@@ -285,6 +285,7 @@ void Room::Update(long long elapsedTime)
 	if (++_tickCount % 10 == 0)
 	{
 		if (GServerConfig.viewAudit) AuditViews();
+		UpdateRegen(currentTick);
 		UpdateSaves(currentTick);
 		UpdateTrades(currentTick);
 		if (!_loading.empty()) UpdateLoading(currentTick);
@@ -373,7 +374,7 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 
 	LOG_DEBUG("Room", "Client[{}] Enter Room", player->GetId());
 
-	enterSession->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(player));
+	enterSession->Send(PacketSerializer::MAKE_SC_ADD_OBJECT_SELF(player));
 
 	// 포털 목록(L5): 지금 쓸 수 있는(도착지가 정해지는) 포털만 본인에게 한 번. 목록은 InitRoom에서 만들어 둔다.
 	if (_portalListBuffer != nullptr)
@@ -1365,7 +1366,7 @@ void Room::FinishArrive(const shared_ptr<Player>& player, Player::MoveReason rea
 	if (_players.emplace(player->GetId(), player).second)
 		_playerCount.fetch_add(1);
 
-	session->Send(PacketSerializer::MAKE_SC_ADD_OBJECT(player));
+	session->Send(PacketSerializer::MAKE_SC_ADD_OBJECT_SELF(player));
 	if (_portalListBuffer != nullptr)
 		session->Send(_portalListBuffer);
 	// 부활 이동: 본인에게만 알린다(이 Room의 다른 사람은 아래 SC_ADD_OBJECT로 살아 있는 모습을 처음 본다).
@@ -1528,12 +1529,12 @@ void Room::PlayerChangeEquip(shared_ptr<Player> player, Protocol::EquipPart part
 	StartItemOp(player, op);
 }
 
-void Room::PlayerDevGive(shared_ptr<Player> player, int itemId, int64_t count)
+void Room::PlayerDevGive(shared_ptr<Player> player, int itemId, int64_t count, int64_t exp)
 {
 	if (player == nullptr) return;
 
 	auto reject = [&](Protocol::ItemResult result) {
-		LOG_DEBUG("Item", "지급 거부 player={} item={} count={} result={}", player->GetId(), itemId, count, Protocol::ItemResult_Name(result));
+		LOG_DEBUG("Item", "지급 거부 player={} item={} count={} exp={} result={}", player->GetId(), itemId, count, exp, Protocol::ItemResult_Name(result));
 		if (shared_ptr<Session> session = player->GetSession())
 			session->Send(PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::CS_DEV_GIVE, result));
 	};
@@ -1543,6 +1544,17 @@ void Room::PlayerDevGive(shared_ptr<Player> player, int itemId, int64_t count)
 	if (check != Protocol::ITEM_RESULT_SUCCESS) { reject(check); return; }
 
 	const EconomyData& economy = DataManager::GetEconomy();
+
+	// 경험치 지급(A2.3b, D-254): 아이템 작업이 아니라 메모리에 바로 더하고, DB에는 진행 상황 저장(주기·퇴장)이 남긴다.
+	// 음수는 받지 않는다(레벨을 내리는 경로는 없다 — 시험 계정을 되돌릴 때는 DB를 직접 고친다).
+	if (exp != 0)
+	{
+		constexpr int64_t DEV_EXP_MAX = 1'000'000'000;
+		if (exp < 0 || exp > DEV_EXP_MAX) { reject(Protocol::ITEM_RESULT_NO_ITEM); return; }
+		player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+		ApplyExpGain(player, exp);
+		return;
+	}
 	DB_ItemOp op;
 	op.kind = ItemOpKind::Give;
 	if (itemId == 0)
@@ -3343,6 +3355,16 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 		}
 	}
 
+	// MP(A2.3b, D-253·D-254): 대상·사거리 검사를 통과한 뒤 마지막으로 본다. 몬스터는 MP가 없어 MpCost를 무시한다.
+	if (casterIsPlayer && skill->mpCost > 0)
+	{
+		StatComponent& stat = caster->GetStat();
+		if (stat.GetMp() < skill->mpCost) return reject(Protocol::ATTACK_RESULT_NOT_ENOUGH_MP);
+		stat.SetMp(stat.GetMp() - skill->mpCost);
+		if (shared_ptr<Session> session = static_pointer_cast<Player>(caster)->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_CHANGE_MP(stat.GetMp()));
+	}
+
 	// 여기부터 시전이 확정된다. 조준 해제는 SC_ATTACK이 알린다.
 	aimNotice.pending = false;
 	caster->GetMutablePosition()->set_yaw(yaw);
@@ -3358,9 +3380,9 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 
 	BroadcastAOI(caster, PacketSerializer::MAKE_SC_ATTACK(caster->GetId(), skill->skillId, targetId, yaw, ax, ay, static_cast<int>(timing.cooldownMs), seq), true);
 
-	// 피해 = 스킬 BaseDamage + 시전자 공격력. 시전 순간에 확정해 즉시 판정·투사체·장판에 같은 값을 쓴다
+	// 피해 = 스킬 BaseDamage + 시전자 공격력 × AttackScale ÷ 100 (D-112·D-253). 시전 순간에 확정해 즉시 판정·투사체·장판(틱마다 같은 값)에 쓴다
 	// (판정 전에 무기를 바꿔도 이미 나간 공격은 그대로 — DESIGN_COMBAT_SKILL.md). 방어력 감소는 나중(Character::OnDamaged).
-	const int damage = skill->baseDamage + caster->GetStat().GetAttackDamage();
+	const int damage = ComputeSkillDamage(*skill, caster->GetStat().GetAttackDamage());
 
 	ReserveJob(static_cast<DWORD>(timing.hitDelayMs), &Room::ExecuteSkillHit, caster->GetId(), skill->skillId, targetId, yaw, ax, ay, damage);
 }
@@ -3718,6 +3740,82 @@ void Room::SpawnMonsterDrops(int monsterTemplateId, Protocol::PositionInfo pos, 
 		// 사망 지점 둘레의 갈 수 있는 자리(내비메시 위). 못 찾으면 사망 지점 그대로.
 		const Protocol::PositionInfo dropPos = scatter > 0.f ? _gameMap.GetRandomPosNear(pos, scatter) : pos;
 		CreateDrop(r.itemId, r.count, dropPos, ownerUID, ownerPartyId);
+	}
+}
+
+void Room::GrantKillExp(shared_ptr<Character> killer, int monsterTemplateId)
+{
+	const MonsterData* data = DataManager::GetMonsterData(monsterTemplateId);
+	if (data == nullptr || data->exp <= 0) return;
+
+	// 막타: 이 방에 있는 개별 계정 플레이어만(드랍 소유권과 같은 규칙 — 더미 봇은 전원이 DB 한 행). 다른 Room으로 옮긴 공격자의 필드는 읽지 않는다.
+	if (killer == nullptr || killer->GetType() != Protocol::ObjectType::OBJECT_TYPE_PLAYER) return;
+	const shared_ptr<Player> lastHitter = static_pointer_cast<Player>(killer);
+	if (lastHitter->isDummy || !IsInRoom(lastHitter)) return;
+
+	// 받는 사람 = 막타 + 같은 파티(≠0)·막타의 시야 안·살아 있는 이 방의 파티원(D-254). 시야 목록에는 이 방의 오브젝트만 있다.
+	vector<shared_ptr<Player>> receivers{ lastHitter };
+	if (lastHitter->partyId != 0)
+	{
+		for (const int viewId : lastHitter->_viewList)
+		{
+			const shared_ptr<Player> member = Id2Player(viewId);
+			if (member == nullptr || member == lastHitter || member->isDummy) continue;
+			if (member->partyId != lastHitter->partyId || member->GetStat().IsDead()) continue;
+			receivers.push_back(member);
+		}
+	}
+
+	// 한 사람 몫 = floor(경험치 × (1 + 0.1 × (n − 1)) / n) = floor(경험치 × (9 + n) / (10 × n)) — 정수로 계산한다
+	const int64_t n = static_cast<int64_t>(receivers.size());
+	const int64_t share = static_cast<int64_t>(data->exp) * (9 + n) / (10 * n);
+	LOG_DEBUG("Exp", "처치 경험치 monster={} exp={} receivers={} share={}", monsterTemplateId, data->exp, n, share);
+	for (const shared_ptr<Player>& receiver : receivers)
+		ApplyExpGain(receiver, share);
+}
+
+void Room::ApplyExpGain(const shared_ptr<Player>& player, int64_t amount)
+{
+	if (player == nullptr) return;
+	const Player::ExpGain gain = player->AddExp(amount);
+
+	if (gain.LeveledUp())
+	{
+		LOG_DEBUG("Exp", "레벨업 player={} {} → {}", player->GetId(), gain.oldLevel, gain.newLevel);
+		player->hpRegenSec = 0;
+		BroadcastAOI(player, PacketSerializer::MAKE_SC_LEVEL_UP(player->GetId(), gain.newLevel, player->GetInfo().stat()), true);
+		// 파티 창 레벨(DG2): 명부는 서비스 잡의 것이다 — 서비스가 갱신하고 파티원에게 SC_PARTY_STATE를 다시 보낸다.
+		GWorld->PushJob(&WorldService::OnPlayerLevelChanged, player->GetId(), gain.newLevel);
+	}
+
+	if (shared_ptr<Session> session = player->GetSession())
+		session->Send(PacketSerializer::MAKE_SC_GAIN_EXP(player->GetExp(), gain.gained));
+}
+
+void Room::UpdateRegen(long long nowMs)
+{
+	for (const auto& [id, player] : _players)
+	{
+		StatComponent& stat = player->GetStat();
+		if (stat.IsDead()) { player->hpRegenSec = 0; continue; }
+		const bool inCombat = player->IsInCombat(nowMs);
+
+		// MP: 초당 최대치의 1%(전투 중)·5%(전투 밖), 가득 차면 멈춤. 바뀐 때만 본인에게
+		const int mp = stat.GetMp(), maxMp = stat.GetMaxMp();
+		if (mp < maxMp)
+		{
+			stat.SetMp(mp + RegenAmount(maxMp, inCombat ? MP_REGEN_PERCENT_COMBAT : MP_REGEN_PERCENT_IDLE));
+			if (shared_ptr<Session> session = player->GetSession())
+				session->Send(PacketSerializer::MAKE_SC_CHANGE_MP(stat.GetMp()));
+		}
+
+		// HP: 전투 밖에서만, 덜 찬 채로 5초가 지날 때마다 최대치의 20%. 전투에 들어가면 센 시간을 버린다
+		const int hp = stat.GetHp(), maxHp = stat.GetMaxHp();
+		if (inCombat || hp >= maxHp) { player->hpRegenSec = 0; continue; }
+		if (++player->hpRegenSec < HP_REGEN_INTERVAL_SEC) continue;
+		player->hpRegenSec = 0;
+		stat.OnHealed(RegenAmount(maxHp, HP_REGEN_PERCENT));
+		BroadcastAOI(player, PacketSerializer::MAKE_SC_CHANGE_HP(player->GetId(), stat.GetHp()), true);
 	}
 }
 

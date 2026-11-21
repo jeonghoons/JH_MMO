@@ -1,4 +1,5 @@
 Name,WeaponType,AnimLayer,SheatheDelaySec,SheatheMontage,SheatheSwapSec
 1,Unarmed,/Game/Character/Mannequin/Anims/Unarmed/ABP_Layer_Unarmed.ABP_Layer_Unarmed_C,0,,0
-2,Sword,/Game/Character/Mannequin/Anims/OneHandSword/ABP_Layer_OneHandSword.ABP_Layer_OneHandSword_C,0,,0
+2,Sword,/Game/Character/Mannequin/Anims/OneHandSword/ABP_Layer_OneHandSword.ABP_Layer_OneHandSword_C,5,/Game/Character/Mannequin/Anims/OneHandSword/AM_Sword_Sheathe.AM_Sword_Sheathe,0.8
 3,Bow,/Game/Character/Mannequin/Anims/Bow/ABP_Layer_Bow.ABP_Layer_Bow_C,5,/Game/Character/Mannequin/Anims/Bow/AM_Bow_Sheathe.AM_Bow_Sheathe,0.45
+4,TwoHandSword,/Game/Character/Mannequin/Anims/TwoHandSword/ABP_Layer_TwoHandSword.ABP_Layer_TwoHandSword_C,5,/Game/Character/Mannequin/Anims/TwoHandSword/AM_TwoHandSword_Sheathe.AM_TwoHandSword_Sheathe,0.8

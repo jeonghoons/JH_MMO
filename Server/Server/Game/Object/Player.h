@@ -186,7 +186,21 @@ public:
 	// Room::NotifyClosedIfDone과 Room 이동이 같은 조건을 본다 — DB로 가는 플레이어 작업을 추가하면 여기에 넣는다.
 	bool HasUnfinishedWork() const { return itemOp.inFlight || progressSave.inFlight || quickSlotSave.inFlight; }
 
+	// 경험치·레벨(A2.3b, D-253). exp = 지금 레벨 안의 누적(다음 레벨까지 PlayerStatTable.ExpToNext). 소유 Room 잡 안에서만.
 	int64_t GetExp() const { return _dbPlayerData.exp; }
+	struct ExpGain
+	{
+		int64_t gained = 0;   // 실제로 쌓은 양(이미 최대 레벨이었으면 0)
+		int oldLevel = 0;
+		int newLevel = 0;
+		bool LeveledUp() const { return newLevel != oldLevel; }
+	};
+	// 경험치를 더하고 필요한 만큼 레벨을 올린다(한 번에 여러 레벨). 최대 레벨이면 0으로 고정하고 더 쌓지 않는다.
+	// 레벨이 오르면 새 레벨 행으로 RecalcStat → HP·MP 가득. 패킷·명부 통지는 부른 쪽(Room::ApplyExpGain)이 한다.
+	ExpGain AddExp(int64_t amount);
+
+	// 자연 회복(A2.3b, D-253): Room의 1초 처리(Room::UpdateRegen)가 센다. 소유 Room 잡 안에서만.
+	int hpRegenSec = 0;   // 전투 밖에서 HP가 덜 찬 채 지난 초. HP_REGEN_INTERVAL_SEC가 되면 회복하고 0으로
 	int64_t GetGold() const { return _dbPlayerData.gold; }
 	// DB 트랜잭션이 돌려준 잔액으로만 바꾼다(D-152). 메모리에서 더하거나 빼지 않는다.
 	void SetGold(int64_t gold) { _dbPlayerData.gold = gold; }

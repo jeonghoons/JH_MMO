@@ -76,6 +76,11 @@ Character::CastTiming Character::BeginCast(const SkillData& skill, long long act
 		_skillCooldowns[skill.skillId].Reset(timing.cooldownMs + cooldownCarryMs);
 	return timing;
 }
+bool Character::IsInCombat(long long nowMs) const
+{
+	return lastCombatMs != 0 && nowMs - lastCombatMs < COMBAT_HOLD_MS;
+}
+
 void Character::OnDamaged(int damage, int attackerId, shared_ptr<Character> attacker)
 {
 	if (_statInfo.IsDead()) return;
@@ -85,6 +90,13 @@ void Character::OnDamaged(int damage, int attackerId, shared_ptr<Character> atta
 	_hitTimer.Reset(GetHitStunMs());
 
 	auto room = GetCurrentRoom();
+
+	// 전투 판정(A2.3b, D-254): 맞은 쪽과 때린 쪽 중 플레이어는 지금을 마지막 전투 시각으로 적는다(자연 회복이 멈춤).
+	// 때린 쪽은 이 Room에 있을 때만 — 투사체·장판이 도는 사이 다른 Room으로 옮겼으면 그 필드는 그 Room의 것이다(DG3b 규칙).
+	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+	if (GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) lastCombatMs = nowMs;
+	if (attacker != nullptr && attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER && room != nullptr && attacker->GetCurrentRoom() == room)
+		attacker->lastCombatMs = nowMs;
 	if (room) {
 		shared_ptr<SendBuffer> damageBuffer = PacketSerializer::MAKE_SC_DAMAGE(attackerId, GetId(), actualDamage, _statInfo.GetHp());
 		room->BroadcastAOI(static_pointer_cast<Character>(shared_from_this()), damageBuffer, true);

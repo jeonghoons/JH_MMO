@@ -150,6 +150,8 @@ int main(int argc, char** argv)
 			if (GStat.attackRejectedBy[i].load() > 0) printf(" %d=%lld", i, GStat.attackRejectedBy[i].load());
 		printf("\n");
 	}
+	if (GStat.mpChangeRecv.load() > 0 || GStat.expRecv.load() > 0)
+		printf("[summary] growth: mpChangeRecv=%lld expRecv=%lld\n", GStat.mpChangeRecv.load(), GStat.expRecv.load());
 	if (GStat.selfDead.load() > 0 || GStat.reviveSent.load() > 0)
 		printf("[summary] revive: selfDead(own SC_DEAD)=%lld reviveSent(CS_REVIVE)=%lld selfRevived(own SC_REVIVE)=%lld\n",
 			GStat.selfDead.load(), GStat.reviveSent.load(), GStat.selfRevived.load());
