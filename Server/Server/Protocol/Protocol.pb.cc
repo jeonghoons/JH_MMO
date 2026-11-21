@@ -458,34 +458,20 @@ struct CS_PARTY_LEAVE_PACKETDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CS_PARTY_LEAVE_PACKETDefaultTypeInternal _CS_PARTY_LEAVE_PACKET_default_instance_;
-PROTOBUF_CONSTEXPR CS_QUEST_ACCEPT_PACKET::CS_QUEST_ACCEPT_PACKET(
+PROTOBUF_CONSTEXPR CS_QUEST_REQUEST_PACKET::CS_QUEST_REQUEST_PACKET(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.npc_id_)*/0
   , /*decltype(_impl_.quest_id_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
-struct CS_QUEST_ACCEPT_PACKETDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR CS_QUEST_ACCEPT_PACKETDefaultTypeInternal()
+struct CS_QUEST_REQUEST_PACKETDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR CS_QUEST_REQUEST_PACKETDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
-  ~CS_QUEST_ACCEPT_PACKETDefaultTypeInternal() {}
+  ~CS_QUEST_REQUEST_PACKETDefaultTypeInternal() {}
   union {
-    CS_QUEST_ACCEPT_PACKET _instance;
+    CS_QUEST_REQUEST_PACKET _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CS_QUEST_ACCEPT_PACKETDefaultTypeInternal _CS_QUEST_ACCEPT_PACKET_default_instance_;
-PROTOBUF_CONSTEXPR CS_QUEST_COMPLETE_PACKET::CS_QUEST_COMPLETE_PACKET(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.npc_id_)*/0
-  , /*decltype(_impl_.quest_id_)*/0
-  , /*decltype(_impl_._cached_size_)*/{}} {}
-struct CS_QUEST_COMPLETE_PACKETDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR CS_QUEST_COMPLETE_PACKETDefaultTypeInternal()
-      : _instance(::_pbi::ConstantInitialized{}) {}
-  ~CS_QUEST_COMPLETE_PACKETDefaultTypeInternal() {}
-  union {
-    CS_QUEST_COMPLETE_PACKET _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CS_QUEST_COMPLETE_PACKETDefaultTypeInternal _CS_QUEST_COMPLETE_PACKET_default_instance_;
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CS_QUEST_REQUEST_PACKETDefaultTypeInternal _CS_QUEST_REQUEST_PACKET_default_instance_;
 PROTOBUF_CONSTEXPR CS_SKILL_AIM_PACKET::CS_SKILL_AIM_PACKET(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.slot_)*/0
@@ -1232,7 +1218,7 @@ struct SC_KICK_PACKETDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SC_KICK_PACKETDefaultTypeInternal _SC_KICK_PACKET_default_instance_;
 }  // namespace Protocol
-static ::_pb::Metadata file_level_metadata_Protocol_2eproto[84];
+static ::_pb::Metadata file_level_metadata_Protocol_2eproto[83];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_Protocol_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_Protocol_2eproto = nullptr;
 
@@ -1487,21 +1473,13 @@ const uint32_t TableStruct_Protocol_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::Protocol::CS_QUEST_ACCEPT_PACKET, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::Protocol::CS_QUEST_REQUEST_PACKET, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::Protocol::CS_QUEST_ACCEPT_PACKET, _impl_.npc_id_),
-  PROTOBUF_FIELD_OFFSET(::Protocol::CS_QUEST_ACCEPT_PACKET, _impl_.quest_id_),
-  ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::Protocol::CS_QUEST_COMPLETE_PACKET, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::Protocol::CS_QUEST_COMPLETE_PACKET, _impl_.npc_id_),
-  PROTOBUF_FIELD_OFFSET(::Protocol::CS_QUEST_COMPLETE_PACKET, _impl_.quest_id_),
+  PROTOBUF_FIELD_OFFSET(::Protocol::CS_QUEST_REQUEST_PACKET, _impl_.npc_id_),
+  PROTOBUF_FIELD_OFFSET(::Protocol::CS_QUEST_REQUEST_PACKET, _impl_.quest_id_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Protocol::CS_SKILL_AIM_PACKET, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -1979,58 +1957,57 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 228, -1, -1, sizeof(::Protocol::CS_PARTY_INVITE_PACKET)},
   { 236, -1, -1, sizeof(::Protocol::CS_PARTY_RESPOND_PACKET)},
   { 243, -1, -1, sizeof(::Protocol::CS_PARTY_LEAVE_PACKET)},
-  { 249, -1, -1, sizeof(::Protocol::CS_QUEST_ACCEPT_PACKET)},
-  { 257, -1, -1, sizeof(::Protocol::CS_QUEST_COMPLETE_PACKET)},
-  { 265, -1, -1, sizeof(::Protocol::CS_SKILL_AIM_PACKET)},
-  { 274, -1, -1, sizeof(::Protocol::CS_PING_PACKET)},
-  { 281, -1, -1, sizeof(::Protocol::CS_REVIVE_PACKET)},
-  { 287, -1, -1, sizeof(::Protocol::SC_LOGIN_INFO_PACKET)},
-  { 296, -1, -1, sizeof(::Protocol::SC_SIGNUP_PACKET)},
-  { 303, -1, -1, sizeof(::Protocol::SC_ADD_OBJECT_PACKET)},
-  { 310, -1, -1, sizeof(::Protocol::SC_REMOVE_OBJECT_PACKET)},
-  { 317, -1, -1, sizeof(::Protocol::SC_CHAT_PACKET)},
-  { 326, -1, -1, sizeof(::Protocol::SC_MOVE_PACKET)},
-  { 335, -1, -1, sizeof(::Protocol::SC_ATTACK_PACKET)},
-  { 349, -1, -1, sizeof(::Protocol::SC_ATTACK_RESULT_PACKET)},
-  { 359, -1, -1, sizeof(::Protocol::SC_DAMAGE_PACKET)},
-  { 369, -1, -1, sizeof(::Protocol::SC_DEAD_PACKET)},
-  { 377, -1, -1, sizeof(::Protocol::SC_REVIVE_PACKET)},
-  { 387, -1, -1, sizeof(::Protocol::SC_TELEPORT_PACKET)},
-  { 396, -1, -1, sizeof(::Protocol::PortalInfo)},
-  { 408, -1, -1, sizeof(::Protocol::SC_DUNGEON_STATE_PACKET)},
-  { 416, -1, -1, sizeof(::Protocol::SC_PORTAL_LIST_PACKET)},
-  { 423, -1, -1, sizeof(::Protocol::SC_ROOM_CHANGE_PACKET)},
-  { 434, -1, -1, sizeof(::Protocol::SC_MOVE_RESULT_PACKET)},
-  { 441, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_PACKET)},
-  { 451, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET)},
-  { 461, -1, -1, sizeof(::Protocol::SC_INVENTORY_PACKET)},
-  { 474, -1, -1, sizeof(::Protocol::SC_INVENTORY_UPDATE_PACKET)},
-  { 484, -1, -1, sizeof(::Protocol::SC_USE_ITEM_PACKET)},
-  { 494, -1, -1, sizeof(::Protocol::SC_CHANGE_HP_PACKET)},
-  { 502, -1, -1, sizeof(::Protocol::SC_GAIN_EXP_PACKET)},
-  { 510, -1, -1, sizeof(::Protocol::SC_LEVEL_UP_PACKET)},
-  { 519, -1, -1, sizeof(::Protocol::SC_CHANGE_MP_PACKET)},
-  { 526, -1, -1, sizeof(::Protocol::SC_QUEST_LIST_PACKET)},
-  { 533, -1, -1, sizeof(::Protocol::SC_QUEST_UPDATE_PACKET)},
-  { 540, -1, -1, sizeof(::Protocol::SC_QUEST_RESULT_PACKET)},
-  { 549, -1, -1, sizeof(::Protocol::SC_MAIL_NOTICE_PACKET)},
-  { 560, -1, -1, sizeof(::Protocol::SC_ITEM_RESULT_PACKET)},
-  { 568, -1, -1, sizeof(::Protocol::ShopItem)},
-  { 576, -1, -1, sizeof(::Protocol::SC_SHOP_OPEN_PACKET)},
-  { 584, -1, -1, sizeof(::Protocol::SC_AUCTION_LIST_PACKET)},
-  { 595, -1, -1, sizeof(::Protocol::SC_AUCTION_MY_PACKET)},
-  { 607, -1, -1, sizeof(::Protocol::SC_AUCTION_RESULT_PACKET)},
-  { 616, -1, -1, sizeof(::Protocol::SC_SKILL_AIM_PACKET)},
-  { 626, -1, -1, sizeof(::Protocol::SC_PONG_PACKET)},
-  { 633, -1, -1, sizeof(::Protocol::SC_TRADE_REQUEST_PACKET)},
-  { 642, -1, -1, sizeof(::Protocol::SC_TRADE_STATE_PACKET)},
-  { 650, -1, -1, sizeof(::Protocol::SC_TRADE_END_PACKET)},
-  { 657, -1, -1, sizeof(::Protocol::SC_TRADE_RESULT_PACKET)},
-  { 665, -1, -1, sizeof(::Protocol::SC_PARTY_INVITE_PACKET)},
-  { 674, -1, -1, sizeof(::Protocol::PartyMember)},
-  { 684, -1, -1, sizeof(::Protocol::SC_PARTY_STATE_PACKET)},
-  { 693, -1, -1, sizeof(::Protocol::SC_PARTY_RESULT_PACKET)},
-  { 701, -1, -1, sizeof(::Protocol::SC_KICK_PACKET)},
+  { 249, -1, -1, sizeof(::Protocol::CS_QUEST_REQUEST_PACKET)},
+  { 257, -1, -1, sizeof(::Protocol::CS_SKILL_AIM_PACKET)},
+  { 266, -1, -1, sizeof(::Protocol::CS_PING_PACKET)},
+  { 273, -1, -1, sizeof(::Protocol::CS_REVIVE_PACKET)},
+  { 279, -1, -1, sizeof(::Protocol::SC_LOGIN_INFO_PACKET)},
+  { 288, -1, -1, sizeof(::Protocol::SC_SIGNUP_PACKET)},
+  { 295, -1, -1, sizeof(::Protocol::SC_ADD_OBJECT_PACKET)},
+  { 302, -1, -1, sizeof(::Protocol::SC_REMOVE_OBJECT_PACKET)},
+  { 309, -1, -1, sizeof(::Protocol::SC_CHAT_PACKET)},
+  { 318, -1, -1, sizeof(::Protocol::SC_MOVE_PACKET)},
+  { 327, -1, -1, sizeof(::Protocol::SC_ATTACK_PACKET)},
+  { 341, -1, -1, sizeof(::Protocol::SC_ATTACK_RESULT_PACKET)},
+  { 351, -1, -1, sizeof(::Protocol::SC_DAMAGE_PACKET)},
+  { 361, -1, -1, sizeof(::Protocol::SC_DEAD_PACKET)},
+  { 369, -1, -1, sizeof(::Protocol::SC_REVIVE_PACKET)},
+  { 379, -1, -1, sizeof(::Protocol::SC_TELEPORT_PACKET)},
+  { 388, -1, -1, sizeof(::Protocol::PortalInfo)},
+  { 400, -1, -1, sizeof(::Protocol::SC_DUNGEON_STATE_PACKET)},
+  { 408, -1, -1, sizeof(::Protocol::SC_PORTAL_LIST_PACKET)},
+  { 415, -1, -1, sizeof(::Protocol::SC_ROOM_CHANGE_PACKET)},
+  { 426, -1, -1, sizeof(::Protocol::SC_MOVE_RESULT_PACKET)},
+  { 433, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_PACKET)},
+  { 443, -1, -1, sizeof(::Protocol::SC_CHANGE_EQUIP_RESULT_PACKET)},
+  { 453, -1, -1, sizeof(::Protocol::SC_INVENTORY_PACKET)},
+  { 466, -1, -1, sizeof(::Protocol::SC_INVENTORY_UPDATE_PACKET)},
+  { 476, -1, -1, sizeof(::Protocol::SC_USE_ITEM_PACKET)},
+  { 486, -1, -1, sizeof(::Protocol::SC_CHANGE_HP_PACKET)},
+  { 494, -1, -1, sizeof(::Protocol::SC_GAIN_EXP_PACKET)},
+  { 502, -1, -1, sizeof(::Protocol::SC_LEVEL_UP_PACKET)},
+  { 511, -1, -1, sizeof(::Protocol::SC_CHANGE_MP_PACKET)},
+  { 518, -1, -1, sizeof(::Protocol::SC_QUEST_LIST_PACKET)},
+  { 525, -1, -1, sizeof(::Protocol::SC_QUEST_UPDATE_PACKET)},
+  { 532, -1, -1, sizeof(::Protocol::SC_QUEST_RESULT_PACKET)},
+  { 541, -1, -1, sizeof(::Protocol::SC_MAIL_NOTICE_PACKET)},
+  { 552, -1, -1, sizeof(::Protocol::SC_ITEM_RESULT_PACKET)},
+  { 560, -1, -1, sizeof(::Protocol::ShopItem)},
+  { 568, -1, -1, sizeof(::Protocol::SC_SHOP_OPEN_PACKET)},
+  { 576, -1, -1, sizeof(::Protocol::SC_AUCTION_LIST_PACKET)},
+  { 587, -1, -1, sizeof(::Protocol::SC_AUCTION_MY_PACKET)},
+  { 599, -1, -1, sizeof(::Protocol::SC_AUCTION_RESULT_PACKET)},
+  { 608, -1, -1, sizeof(::Protocol::SC_SKILL_AIM_PACKET)},
+  { 618, -1, -1, sizeof(::Protocol::SC_PONG_PACKET)},
+  { 625, -1, -1, sizeof(::Protocol::SC_TRADE_REQUEST_PACKET)},
+  { 634, -1, -1, sizeof(::Protocol::SC_TRADE_STATE_PACKET)},
+  { 642, -1, -1, sizeof(::Protocol::SC_TRADE_END_PACKET)},
+  { 649, -1, -1, sizeof(::Protocol::SC_TRADE_RESULT_PACKET)},
+  { 657, -1, -1, sizeof(::Protocol::SC_PARTY_INVITE_PACKET)},
+  { 666, -1, -1, sizeof(::Protocol::PartyMember)},
+  { 676, -1, -1, sizeof(::Protocol::SC_PARTY_STATE_PACKET)},
+  { 685, -1, -1, sizeof(::Protocol::SC_PARTY_RESULT_PACKET)},
+  { 693, -1, -1, sizeof(::Protocol::SC_KICK_PACKET)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -2066,8 +2043,7 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::Protocol::_CS_PARTY_INVITE_PACKET_default_instance_._instance,
   &::Protocol::_CS_PARTY_RESPOND_PACKET_default_instance_._instance,
   &::Protocol::_CS_PARTY_LEAVE_PACKET_default_instance_._instance,
-  &::Protocol::_CS_QUEST_ACCEPT_PACKET_default_instance_._instance,
-  &::Protocol::_CS_QUEST_COMPLETE_PACKET_default_instance_._instance,
+  &::Protocol::_CS_QUEST_REQUEST_PACKET_default_instance_._instance,
   &::Protocol::_CS_SKILL_AIM_PACKET_default_instance_._instance,
   &::Protocol::_CS_PING_PACKET_default_instance_._instance,
   &::Protocol::_CS_REVIVE_PACKET_default_instance_._instance,
@@ -2168,125 +2144,123 @@ const char descriptor_table_protodef_Protocol_2eproto[] PROTOBUF_SECTION_VARIABL
   "CANCEL_PACKET\"@\n\026CS_PARTY_INVITE_PACKET\022"
   "\021\n\ttarget_id\030\001 \001(\005\022\023\n\013target_name\030\002 \001(\t\""
   ")\n\027CS_PARTY_RESPOND_PACKET\022\016\n\006accept\030\001 \001"
-  "(\010\"\027\n\025CS_PARTY_LEAVE_PACKET\":\n\026CS_QUEST_"
-  "ACCEPT_PACKET\022\016\n\006npc_id\030\001 \001(\005\022\020\n\010quest_i"
-  "d\030\002 \001(\005\"<\n\030CS_QUEST_COMPLETE_PACKET\022\016\n\006n"
-  "pc_id\030\001 \001(\005\022\020\n\010quest_id\030\002 \001(\005\"@\n\023CS_SKIL"
-  "L_AIM_PACKET\022\014\n\004slot\030\001 \001(\005\022\016\n\006active\030\002 \001"
-  "(\010\022\013\n\003seq\030\003 \001(\r\"%\n\016CS_PING_PACKET\022\023\n\013cli"
-  "ent_time\030\001 \001(\003\"\022\n\020CS_REVIVE_PACKET\"z\n\024SC"
-  "_LOGIN_INFO_PACKET\022)\n\013object_info\030\001 \001(\0132"
-  "\024.Protocol.ObjectInfo\022%\n\006result\030\002 \001(\0162\025."
-  "Protocol.LoginResult\022\020\n\010map_name\030\003 \001(\t\"\""
-  "\n\020SC_SIGNUP_PACKET\022\016\n\006result\030\001 \001(\010\"A\n\024SC"
-  "_ADD_OBJECT_PACKET\022)\n\013object_info\030\001 \001(\0132"
-  "\024.Protocol.ObjectInfo\",\n\027SC_REMOVE_OBJEC"
-  "T_PACKET\022\021\n\tobject_id\030\001 \001(\005\"I\n\016SC_CHAT_P"
-  "ACKET\022\021\n\tsender_id\030\001 \001(\005\022\017\n\007message\030\002 \001("
-  "\t\022\023\n\013sender_name\030\003 \001(\t\"f\n\016SC_MOVE_PACKET"
-  "\022)\n\013object_info\030\001 \001(\0132\024.Protocol.ObjectI"
-  "nfo\022\021\n\tmove_time\030\002 \001(\r\022\026\n\016correction_seq"
-  "\030\003 \001(\r\"\235\001\n\020SC_ATTACK_PACKET\022\023\n\013attacker_"
-  "id\030\001 \001(\005\022\020\n\010skill_id\030\002 \001(\005\022\021\n\ttarget_id\030"
-  "\003 \001(\005\022\017\n\007aim_yaw\030\004 \001(\002\022\r\n\005aim_x\030\005 \001(\002\022\r\n"
-  "\005aim_y\030\006 \001(\002\022\023\n\013cooldown_ms\030\007 \001(\005\022\013\n\003seq"
-  "\030\010 \001(\r\"u\n\027SC_ATTACK_RESULT_PACKET\022&\n\006res"
-  "ult\030\001 \001(\0162\026.Protocol.AttackResult\022\013\n\003seq"
-  "\030\002 \001(\r\022\022\n\nskill_slot\030\003 \001(\005\022\021\n\tremain_ms\030"
-  "\004 \001(\005\"]\n\020SC_DAMAGE_PACKET\022\023\n\013attacker_id"
-  "\030\001 \001(\005\022\021\n\ttarget_id\030\002 \001(\005\022\016\n\006damage\030\003 \001("
-  "\005\022\021\n\tremain_hp\030\004 \001(\005\"<\n\016SC_DEAD_PACKET\022\021"
-  "\n\tobject_id\030\001 \001(\005\022\027\n\017revive_delay_ms\030\002 \001"
-  "(\005\"s\n\020SC_REVIVE_PACKET\022\021\n\tobject_id\030\001 \001("
-  "\005\022(\n\010pos_info\030\002 \001(\0132\026.Protocol.PositionI"
-  "nfo\022\n\n\002hp\030\003 \001(\005\022\026\n\016correction_seq\030\004 \001(\r\""
-  "i\n\022SC_TELEPORT_PACKET\022\021\n\tobject_id\030\001 \001(\005"
-  "\022(\n\010pos_info\030\002 \001(\0132\026.Protocol.PositionIn"
-  "fo\022\026\n\016correction_seq\030\003 \001(\r\"w\n\nPortalInfo"
-  "\022\021\n\tportal_id\030\001 \001(\005\022\t\n\001x\030\002 \001(\002\022\t\n\001y\030\003 \001("
-  "\002\022\t\n\001z\030\004 \001(\002\022\021\n\tradius_cm\030\005 \001(\002\022\"\n\004kind\030"
-  "\006 \001(\0162\024.Protocol.PortalKind\"T\n\027SC_DUNGEO"
-  "N_STATE_PACKET\022%\n\005state\030\001 \001(\0162\026.Protocol"
-  ".DungeonState\022\022\n\nremain_sec\030\002 \001(\005\">\n\025SC_"
-  "PORTAL_LIST_PACKET\022%\n\007portals\030\001 \003(\0132\024.Pr"
-  "otocol.PortalInfo\"\236\001\n\025SC_ROOM_CHANGE_PAC"
-  "KET\022\020\n\010map_name\030\001 \001(\t\022 \n\004kind\030\002 \001(\0162\022.Pr"
-  "otocol.RoomKind\022\017\n\007channel\030\003 \001(\005\022(\n\010pos_"
-  "info\030\004 \001(\0132\026.Protocol.PositionInfo\022\026\n\016co"
-  "rrection_seq\030\005 \001(\r\"=\n\025SC_MOVE_RESULT_PAC"
-  "KET\022$\n\006result\030\001 \001(\0162\024.Protocol.MoveResul"
-  "t\"\201\001\n\026SC_CHANGE_EQUIP_PACKET\022\021\n\tobject_i"
-  "d\030\001 \001(\005\022!\n\004part\030\002 \001(\0162\023.Protocol.EquipPa"
-  "rt\022\017\n\007item_id\030\003 \001(\005\022 \n\004stat\030\004 \001(\0132\022.Prot"
-  "ocol.StatInfo\"\216\001\n\035SC_CHANGE_EQUIP_RESULT"
-  "_PACKET\022%\n\006result\030\001 \001(\0162\025.Protocol.Equip"
-  "Result\022!\n\004part\030\002 \001(\0162\023.Protocol.EquipPar"
-  "t\022\017\n\007item_id\030\003 \001(\005\022\022\n\nitem_db_id\030\004 \001(\003\"\266"
-  "\001\n\023SC_INVENTORY_PACKET\022!\n\005items\030\001 \003(\0132\022."
-  "Protocol.ItemInfo\022\014\n\004gold\030\002 \001(\003\022\021\n\tmax_s"
-  "lots\030\003 \001(\005\022\027\n\017pickup_range_cm\030\004 \001(\005\022\026\n\016t"
-  "rade_range_cm\030\005 \001(\005\022\025\n\rshop_range_cm\030\007 \001"
-  "(\005\022\023\n\013quick_slots\030\006 \003(\005\"u\n\032SC_INVENTORY_"
-  "UPDATE_PACKET\022#\n\007changed\030\001 \003(\0132\022.Protoco"
-  "l.ItemInfo\022\017\n\007removed\030\002 \003(\003\022\014\n\004gold\030\003 \001("
-  "\003\022\023\n\013quick_slots\030\004 \003(\005\"Y\n\022SC_USE_ITEM_PA"
-  "CKET\022\021\n\tobject_id\030\001 \001(\005\022\017\n\007item_id\030\002 \001(\005"
-  "\022\n\n\002hp\030\003 \001(\005\022\023\n\013cooldown_ms\030\004 \001(\005\"4\n\023SC_"
-  "CHANGE_HP_PACKET\022\021\n\tobject_id\030\001 \001(\005\022\n\n\002h"
-  "p\030\002 \001(\005\"1\n\022SC_GAIN_EXP_PACKET\022\013\n\003exp\030\001 \001"
-  "(\003\022\016\n\006gained\030\002 \001(\003\"X\n\022SC_LEVEL_UP_PACKET"
-  "\022\021\n\tobject_id\030\001 \001(\005\022\r\n\005level\030\002 \001(\005\022 \n\004st"
-  "at\030\003 \001(\0132\022.Protocol.StatInfo\"!\n\023SC_CHANG"
-  "E_MP_PACKET\022\n\n\002mp\030\001 \001(\005\";\n\024SC_QUEST_LIST"
-  "_PACKET\022#\n\006quests\030\001 \003(\0132\023.Protocol.Quest"
-  "Info\"<\n\026SC_QUEST_UPDATE_PACKET\022\"\n\005quest\030"
-  "\001 \001(\0132\023.Protocol.QuestInfo\"v\n\026SC_QUEST_R"
-  "ESULT_PACKET\022#\n\007request\030\001 \001(\0162\022.Protocol"
-  ".PacketId\022\020\n\010quest_id\030\002 \001(\005\022%\n\006result\030\003 "
-  "\001(\0162\025.Protocol.QuestResult\"{\n\025SC_MAIL_NO"
-  "TICE_PACKET\022 \n\004kind\030\001 \001(\0162\022.Protocol.Mai"
-  "lKind\022\017\n\007item_id\030\002 \001(\005\022\r\n\005count\030\003 \001(\003\022\014\n"
-  "\004gold\030\004 \001(\003\022\022\n\nlisting_id\030\005 \001(\003\"b\n\025SC_IT"
-  "EM_RESULT_PACKET\022#\n\007request\030\001 \001(\0162\022.Prot"
-  "ocol.PacketId\022$\n\006result\030\002 \001(\0162\024.Protocol"
-  ".ItemResult\".\n\010ShopItem\022\017\n\007item_id\030\001 \001(\005"
-  "\022\021\n\tbuy_price\030\002 \001(\003\"H\n\023SC_SHOP_OPEN_PACK"
-  "ET\022\016\n\006npc_id\030\001 \001(\005\022!\n\005items\030\002 \003(\0132\022.Prot"
-  "ocol.ShopItem\"\214\001\n\026SC_AUCTION_LIST_PACKET"
-  "\022\014\n\004slot\030\001 \001(\005\022\014\n\004page\030\002 \001(\005\022\023\n\013total_co"
-  "unt\030\003 \001(\005\022\021\n\tpage_size\030\004 \001(\005\022.\n\010listings"
-  "\030\005 \003(\0132\034.Protocol.AuctionListingInfo\"\270\001\n"
-  "\024SC_AUCTION_MY_PACKET\022.\n\010listings\030\001 \003(\0132"
-  "\034.Protocol.AuctionListingInfo\022!\n\005mails\030\002"
-  " \003(\0132\022.Protocol.MailInfo\022\021\n\tmail_more\030\003 "
-  "\001(\010\022\024\n\014max_listings\030\004 \001(\005\022\021\n\tmin_price\030\005"
-  " \001(\003\022\021\n\tmax_price\030\006 \001(\003\"t\n\030SC_AUCTION_RE"
-  "SULT_PACKET\022#\n\007request\030\001 \001(\0162\022.Protocol."
-  "PacketId\022\'\n\006result\030\002 \001(\0162\027.Protocol.Auct"
-  "ionResult\022\n\n\002id\030\003 \001(\003\"W\n\023SC_SKILL_AIM_PA"
-  "CKET\022\021\n\tobject_id\030\001 \001(\005\022\020\n\010skill_id\030\002 \001("
-  "\005\022\016\n\006active\030\003 \001(\010\022\013\n\003seq\030\004 \001(\r\"%\n\016SC_PON"
-  "G_PACKET\022\023\n\013client_time\030\001 \001(\003\"R\n\027SC_TRAD"
-  "E_REQUEST_PACKET\022\017\n\007from_id\030\001 \001(\005\022\021\n\tfro"
-  "m_name\030\002 \001(\t\022\023\n\013timeout_sec\030\003 \001(\005\"b\n\025SC_"
-  "TRADE_STATE_PACKET\022#\n\005phase\030\001 \001(\0162\024.Prot"
-  "ocol.TradePhase\022$\n\006offers\030\002 \003(\0132\024.Protoc"
-  "ol.TradeOffer\"<\n\023SC_TRADE_END_PACKET\022%\n\006"
-  "result\030\001 \001(\0162\025.Protocol.TradeResult\"d\n\026S"
-  "C_TRADE_RESULT_PACKET\022#\n\007request\030\001 \001(\0162\022"
-  ".Protocol.PacketId\022%\n\006result\030\002 \001(\0162\025.Pro"
-  "tocol.TradeResult\"Q\n\026SC_PARTY_INVITE_PAC"
-  "KET\022\017\n\007from_id\030\001 \001(\005\022\021\n\tfrom_name\030\002 \001(\t\022"
-  "\023\n\013timeout_sec\030\003 \001(\005\"X\n\013PartyMember\022\n\n\002i"
-  "d\030\001 \001(\005\022\014\n\004name\030\002 \001(\t\022\r\n\005level\030\003 \001(\005\022 \n\004"
-  "kind\030\004 \001(\0162\022.Protocol.RoomKind\"d\n\025SC_PAR"
-  "TY_STATE_PACKET\022\020\n\010party_id\030\001 \001(\005\022\021\n\tlea"
-  "der_id\030\002 \001(\005\022&\n\007members\030\003 \003(\0132\025.Protocol"
-  ".PartyMember\"d\n\026SC_PARTY_RESULT_PACKET\022#"
-  "\n\007request\030\001 \001(\0162\022.Protocol.PacketId\022%\n\006r"
-  "esult\030\002 \001(\0162\025.Protocol.PartyResult\"6\n\016SC"
-  "_KICK_PACKET\022$\n\006reason\030\001 \001(\0162\024.Protocol."
-  "KickReasonb\006proto3"
+  "(\010\"\027\n\025CS_PARTY_LEAVE_PACKET\";\n\027CS_QUEST_"
+  "REQUEST_PACKET\022\016\n\006npc_id\030\001 \001(\005\022\020\n\010quest_"
+  "id\030\002 \001(\005\"@\n\023CS_SKILL_AIM_PACKET\022\014\n\004slot\030"
+  "\001 \001(\005\022\016\n\006active\030\002 \001(\010\022\013\n\003seq\030\003 \001(\r\"%\n\016CS"
+  "_PING_PACKET\022\023\n\013client_time\030\001 \001(\003\"\022\n\020CS_"
+  "REVIVE_PACKET\"z\n\024SC_LOGIN_INFO_PACKET\022)\n"
+  "\013object_info\030\001 \001(\0132\024.Protocol.ObjectInfo"
+  "\022%\n\006result\030\002 \001(\0162\025.Protocol.LoginResult\022"
+  "\020\n\010map_name\030\003 \001(\t\"\"\n\020SC_SIGNUP_PACKET\022\016\n"
+  "\006result\030\001 \001(\010\"A\n\024SC_ADD_OBJECT_PACKET\022)\n"
+  "\013object_info\030\001 \001(\0132\024.Protocol.ObjectInfo"
+  "\",\n\027SC_REMOVE_OBJECT_PACKET\022\021\n\tobject_id"
+  "\030\001 \001(\005\"I\n\016SC_CHAT_PACKET\022\021\n\tsender_id\030\001 "
+  "\001(\005\022\017\n\007message\030\002 \001(\t\022\023\n\013sender_name\030\003 \001("
+  "\t\"f\n\016SC_MOVE_PACKET\022)\n\013object_info\030\001 \001(\013"
+  "2\024.Protocol.ObjectInfo\022\021\n\tmove_time\030\002 \001("
+  "\r\022\026\n\016correction_seq\030\003 \001(\r\"\235\001\n\020SC_ATTACK_"
+  "PACKET\022\023\n\013attacker_id\030\001 \001(\005\022\020\n\010skill_id\030"
+  "\002 \001(\005\022\021\n\ttarget_id\030\003 \001(\005\022\017\n\007aim_yaw\030\004 \001("
+  "\002\022\r\n\005aim_x\030\005 \001(\002\022\r\n\005aim_y\030\006 \001(\002\022\023\n\013coold"
+  "own_ms\030\007 \001(\005\022\013\n\003seq\030\010 \001(\r\"u\n\027SC_ATTACK_R"
+  "ESULT_PACKET\022&\n\006result\030\001 \001(\0162\026.Protocol."
+  "AttackResult\022\013\n\003seq\030\002 \001(\r\022\022\n\nskill_slot\030"
+  "\003 \001(\005\022\021\n\tremain_ms\030\004 \001(\005\"]\n\020SC_DAMAGE_PA"
+  "CKET\022\023\n\013attacker_id\030\001 \001(\005\022\021\n\ttarget_id\030\002"
+  " \001(\005\022\016\n\006damage\030\003 \001(\005\022\021\n\tremain_hp\030\004 \001(\005\""
+  "<\n\016SC_DEAD_PACKET\022\021\n\tobject_id\030\001 \001(\005\022\027\n\017"
+  "revive_delay_ms\030\002 \001(\005\"s\n\020SC_REVIVE_PACKE"
+  "T\022\021\n\tobject_id\030\001 \001(\005\022(\n\010pos_info\030\002 \001(\0132\026"
+  ".Protocol.PositionInfo\022\n\n\002hp\030\003 \001(\005\022\026\n\016co"
+  "rrection_seq\030\004 \001(\r\"i\n\022SC_TELEPORT_PACKET"
+  "\022\021\n\tobject_id\030\001 \001(\005\022(\n\010pos_info\030\002 \001(\0132\026."
+  "Protocol.PositionInfo\022\026\n\016correction_seq\030"
+  "\003 \001(\r\"w\n\nPortalInfo\022\021\n\tportal_id\030\001 \001(\005\022\t"
+  "\n\001x\030\002 \001(\002\022\t\n\001y\030\003 \001(\002\022\t\n\001z\030\004 \001(\002\022\021\n\tradiu"
+  "s_cm\030\005 \001(\002\022\"\n\004kind\030\006 \001(\0162\024.Protocol.Port"
+  "alKind\"T\n\027SC_DUNGEON_STATE_PACKET\022%\n\005sta"
+  "te\030\001 \001(\0162\026.Protocol.DungeonState\022\022\n\nrema"
+  "in_sec\030\002 \001(\005\">\n\025SC_PORTAL_LIST_PACKET\022%\n"
+  "\007portals\030\001 \003(\0132\024.Protocol.PortalInfo\"\236\001\n"
+  "\025SC_ROOM_CHANGE_PACKET\022\020\n\010map_name\030\001 \001(\t"
+  "\022 \n\004kind\030\002 \001(\0162\022.Protocol.RoomKind\022\017\n\007ch"
+  "annel\030\003 \001(\005\022(\n\010pos_info\030\004 \001(\0132\026.Protocol"
+  ".PositionInfo\022\026\n\016correction_seq\030\005 \001(\r\"=\n"
+  "\025SC_MOVE_RESULT_PACKET\022$\n\006result\030\001 \001(\0162\024"
+  ".Protocol.MoveResult\"\201\001\n\026SC_CHANGE_EQUIP"
+  "_PACKET\022\021\n\tobject_id\030\001 \001(\005\022!\n\004part\030\002 \001(\016"
+  "2\023.Protocol.EquipPart\022\017\n\007item_id\030\003 \001(\005\022 "
+  "\n\004stat\030\004 \001(\0132\022.Protocol.StatInfo\"\216\001\n\035SC_"
+  "CHANGE_EQUIP_RESULT_PACKET\022%\n\006result\030\001 \001"
+  "(\0162\025.Protocol.EquipResult\022!\n\004part\030\002 \001(\0162"
+  "\023.Protocol.EquipPart\022\017\n\007item_id\030\003 \001(\005\022\022\n"
+  "\nitem_db_id\030\004 \001(\003\"\266\001\n\023SC_INVENTORY_PACKE"
+  "T\022!\n\005items\030\001 \003(\0132\022.Protocol.ItemInfo\022\014\n\004"
+  "gold\030\002 \001(\003\022\021\n\tmax_slots\030\003 \001(\005\022\027\n\017pickup_"
+  "range_cm\030\004 \001(\005\022\026\n\016trade_range_cm\030\005 \001(\005\022\025"
+  "\n\rshop_range_cm\030\007 \001(\005\022\023\n\013quick_slots\030\006 \003"
+  "(\005\"u\n\032SC_INVENTORY_UPDATE_PACKET\022#\n\007chan"
+  "ged\030\001 \003(\0132\022.Protocol.ItemInfo\022\017\n\007removed"
+  "\030\002 \003(\003\022\014\n\004gold\030\003 \001(\003\022\023\n\013quick_slots\030\004 \003("
+  "\005\"Y\n\022SC_USE_ITEM_PACKET\022\021\n\tobject_id\030\001 \001"
+  "(\005\022\017\n\007item_id\030\002 \001(\005\022\n\n\002hp\030\003 \001(\005\022\023\n\013coold"
+  "own_ms\030\004 \001(\005\"4\n\023SC_CHANGE_HP_PACKET\022\021\n\to"
+  "bject_id\030\001 \001(\005\022\n\n\002hp\030\002 \001(\005\"1\n\022SC_GAIN_EX"
+  "P_PACKET\022\013\n\003exp\030\001 \001(\003\022\016\n\006gained\030\002 \001(\003\"X\n"
+  "\022SC_LEVEL_UP_PACKET\022\021\n\tobject_id\030\001 \001(\005\022\r"
+  "\n\005level\030\002 \001(\005\022 \n\004stat\030\003 \001(\0132\022.Protocol.S"
+  "tatInfo\"!\n\023SC_CHANGE_MP_PACKET\022\n\n\002mp\030\001 \001"
+  "(\005\";\n\024SC_QUEST_LIST_PACKET\022#\n\006quests\030\001 \003"
+  "(\0132\023.Protocol.QuestInfo\"<\n\026SC_QUEST_UPDA"
+  "TE_PACKET\022\"\n\005quest\030\001 \001(\0132\023.Protocol.Ques"
+  "tInfo\"v\n\026SC_QUEST_RESULT_PACKET\022#\n\007reque"
+  "st\030\001 \001(\0162\022.Protocol.PacketId\022\020\n\010quest_id"
+  "\030\002 \001(\005\022%\n\006result\030\003 \001(\0162\025.Protocol.QuestR"
+  "esult\"{\n\025SC_MAIL_NOTICE_PACKET\022 \n\004kind\030\001"
+  " \001(\0162\022.Protocol.MailKind\022\017\n\007item_id\030\002 \001("
+  "\005\022\r\n\005count\030\003 \001(\003\022\014\n\004gold\030\004 \001(\003\022\022\n\nlistin"
+  "g_id\030\005 \001(\003\"b\n\025SC_ITEM_RESULT_PACKET\022#\n\007r"
+  "equest\030\001 \001(\0162\022.Protocol.PacketId\022$\n\006resu"
+  "lt\030\002 \001(\0162\024.Protocol.ItemResult\".\n\010ShopIt"
+  "em\022\017\n\007item_id\030\001 \001(\005\022\021\n\tbuy_price\030\002 \001(\003\"H"
+  "\n\023SC_SHOP_OPEN_PACKET\022\016\n\006npc_id\030\001 \001(\005\022!\n"
+  "\005items\030\002 \003(\0132\022.Protocol.ShopItem\"\214\001\n\026SC_"
+  "AUCTION_LIST_PACKET\022\014\n\004slot\030\001 \001(\005\022\014\n\004pag"
+  "e\030\002 \001(\005\022\023\n\013total_count\030\003 \001(\005\022\021\n\tpage_siz"
+  "e\030\004 \001(\005\022.\n\010listings\030\005 \003(\0132\034.Protocol.Auc"
+  "tionListingInfo\"\270\001\n\024SC_AUCTION_MY_PACKET"
+  "\022.\n\010listings\030\001 \003(\0132\034.Protocol.AuctionLis"
+  "tingInfo\022!\n\005mails\030\002 \003(\0132\022.Protocol.MailI"
+  "nfo\022\021\n\tmail_more\030\003 \001(\010\022\024\n\014max_listings\030\004"
+  " \001(\005\022\021\n\tmin_price\030\005 \001(\003\022\021\n\tmax_price\030\006 \001"
+  "(\003\"t\n\030SC_AUCTION_RESULT_PACKET\022#\n\007reques"
+  "t\030\001 \001(\0162\022.Protocol.PacketId\022\'\n\006result\030\002 "
+  "\001(\0162\027.Protocol.AuctionResult\022\n\n\002id\030\003 \001(\003"
+  "\"W\n\023SC_SKILL_AIM_PACKET\022\021\n\tobject_id\030\001 \001"
+  "(\005\022\020\n\010skill_id\030\002 \001(\005\022\016\n\006active\030\003 \001(\010\022\013\n\003"
+  "seq\030\004 \001(\r\"%\n\016SC_PONG_PACKET\022\023\n\013client_ti"
+  "me\030\001 \001(\003\"R\n\027SC_TRADE_REQUEST_PACKET\022\017\n\007f"
+  "rom_id\030\001 \001(\005\022\021\n\tfrom_name\030\002 \001(\t\022\023\n\013timeo"
+  "ut_sec\030\003 \001(\005\"b\n\025SC_TRADE_STATE_PACKET\022#\n"
+  "\005phase\030\001 \001(\0162\024.Protocol.TradePhase\022$\n\006of"
+  "fers\030\002 \003(\0132\024.Protocol.TradeOffer\"<\n\023SC_T"
+  "RADE_END_PACKET\022%\n\006result\030\001 \001(\0162\025.Protoc"
+  "ol.TradeResult\"d\n\026SC_TRADE_RESULT_PACKET"
+  "\022#\n\007request\030\001 \001(\0162\022.Protocol.PacketId\022%\n"
+  "\006result\030\002 \001(\0162\025.Protocol.TradeResult\"Q\n\026"
+  "SC_PARTY_INVITE_PACKET\022\017\n\007from_id\030\001 \001(\005\022"
+  "\021\n\tfrom_name\030\002 \001(\t\022\023\n\013timeout_sec\030\003 \001(\005\""
+  "X\n\013PartyMember\022\n\n\002id\030\001 \001(\005\022\014\n\004name\030\002 \001(\t"
+  "\022\r\n\005level\030\003 \001(\005\022 \n\004kind\030\004 \001(\0162\022.Protocol"
+  ".RoomKind\"d\n\025SC_PARTY_STATE_PACKET\022\020\n\010pa"
+  "rty_id\030\001 \001(\005\022\021\n\tleader_id\030\002 \001(\005\022&\n\007membe"
+  "rs\030\003 \003(\0132\025.Protocol.PartyMember\"d\n\026SC_PA"
+  "RTY_RESULT_PACKET\022#\n\007request\030\001 \001(\0162\022.Pro"
+  "tocol.PacketId\022%\n\006result\030\002 \001(\0162\025.Protoco"
+  "l.PartyResult\"6\n\016SC_KICK_PACKET\022$\n\006reaso"
+  "n\030\001 \001(\0162\024.Protocol.KickReasonb\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_Protocol_2eproto_deps[2] = {
   &::descriptor_table_Enum_2eproto,
@@ -2294,9 +2268,9 @@ static const ::_pbi::DescriptorTable* const descriptor_table_Protocol_2eproto_de
 };
 static ::_pbi::once_flag descriptor_table_Protocol_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Protocol_2eproto = {
-    false, false, 6618, descriptor_table_protodef_Protocol_2eproto,
+    false, false, 6557, descriptor_table_protodef_Protocol_2eproto,
     "Protocol.proto",
-    &descriptor_table_Protocol_2eproto_once, descriptor_table_Protocol_2eproto_deps, 2, 84,
+    &descriptor_table_Protocol_2eproto_once, descriptor_table_Protocol_2eproto_deps, 2, 83,
     schemas, file_default_instances, TableStruct_Protocol_2eproto::offsets,
     file_level_metadata_Protocol_2eproto, file_level_enum_descriptors_Protocol_2eproto,
     file_level_service_descriptors_Protocol_2eproto,
@@ -8507,19 +8481,19 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*CS_PARTY_LEAVE_PACKET::GetClas
 
 // ===================================================================
 
-class CS_QUEST_ACCEPT_PACKET::_Internal {
+class CS_QUEST_REQUEST_PACKET::_Internal {
  public:
 };
 
-CS_QUEST_ACCEPT_PACKET::CS_QUEST_ACCEPT_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+CS_QUEST_REQUEST_PACKET::CS_QUEST_REQUEST_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:Protocol.CS_QUEST_ACCEPT_PACKET)
+  // @@protoc_insertion_point(arena_constructor:Protocol.CS_QUEST_REQUEST_PACKET)
 }
-CS_QUEST_ACCEPT_PACKET::CS_QUEST_ACCEPT_PACKET(const CS_QUEST_ACCEPT_PACKET& from)
+CS_QUEST_REQUEST_PACKET::CS_QUEST_REQUEST_PACKET(const CS_QUEST_REQUEST_PACKET& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
-  CS_QUEST_ACCEPT_PACKET* const _this = this; (void)_this;
+  CS_QUEST_REQUEST_PACKET* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.npc_id_){}
     , decltype(_impl_.quest_id_){}
@@ -8529,10 +8503,10 @@ CS_QUEST_ACCEPT_PACKET::CS_QUEST_ACCEPT_PACKET(const CS_QUEST_ACCEPT_PACKET& fro
   ::memcpy(&_impl_.npc_id_, &from._impl_.npc_id_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.quest_id_) -
     reinterpret_cast<char*>(&_impl_.npc_id_)) + sizeof(_impl_.quest_id_));
-  // @@protoc_insertion_point(copy_constructor:Protocol.CS_QUEST_ACCEPT_PACKET)
+  // @@protoc_insertion_point(copy_constructor:Protocol.CS_QUEST_REQUEST_PACKET)
 }
 
-inline void CS_QUEST_ACCEPT_PACKET::SharedCtor(
+inline void CS_QUEST_REQUEST_PACKET::SharedCtor(
     ::_pb::Arena* arena, bool is_message_owned) {
   (void)arena;
   (void)is_message_owned;
@@ -8543,8 +8517,8 @@ inline void CS_QUEST_ACCEPT_PACKET::SharedCtor(
   };
 }
 
-CS_QUEST_ACCEPT_PACKET::~CS_QUEST_ACCEPT_PACKET() {
-  // @@protoc_insertion_point(destructor:Protocol.CS_QUEST_ACCEPT_PACKET)
+CS_QUEST_REQUEST_PACKET::~CS_QUEST_REQUEST_PACKET() {
+  // @@protoc_insertion_point(destructor:Protocol.CS_QUEST_REQUEST_PACKET)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
     return;
@@ -8552,16 +8526,16 @@ CS_QUEST_ACCEPT_PACKET::~CS_QUEST_ACCEPT_PACKET() {
   SharedDtor();
 }
 
-inline void CS_QUEST_ACCEPT_PACKET::SharedDtor() {
+inline void CS_QUEST_REQUEST_PACKET::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
 }
 
-void CS_QUEST_ACCEPT_PACKET::SetCachedSize(int size) const {
+void CS_QUEST_REQUEST_PACKET::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
 
-void CS_QUEST_ACCEPT_PACKET::Clear() {
-// @@protoc_insertion_point(message_clear_start:Protocol.CS_QUEST_ACCEPT_PACKET)
+void CS_QUEST_REQUEST_PACKET::Clear() {
+// @@protoc_insertion_point(message_clear_start:Protocol.CS_QUEST_REQUEST_PACKET)
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -8572,7 +8546,7 @@ void CS_QUEST_ACCEPT_PACKET::Clear() {
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* CS_QUEST_ACCEPT_PACKET::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+const char* CS_QUEST_REQUEST_PACKET::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
@@ -8617,9 +8591,9 @@ failure:
 #undef CHK_
 }
 
-uint8_t* CS_QUEST_ACCEPT_PACKET::_InternalSerialize(
+uint8_t* CS_QUEST_REQUEST_PACKET::_InternalSerialize(
     uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:Protocol.CS_QUEST_ACCEPT_PACKET)
+  // @@protoc_insertion_point(serialize_to_array_start:Protocol.CS_QUEST_REQUEST_PACKET)
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -8639,12 +8613,12 @@ uint8_t* CS_QUEST_ACCEPT_PACKET::_InternalSerialize(
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:Protocol.CS_QUEST_ACCEPT_PACKET)
+  // @@protoc_insertion_point(serialize_to_array_end:Protocol.CS_QUEST_REQUEST_PACKET)
   return target;
 }
 
-size_t CS_QUEST_ACCEPT_PACKET::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:Protocol.CS_QUEST_ACCEPT_PACKET)
+size_t CS_QUEST_REQUEST_PACKET::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:Protocol.CS_QUEST_REQUEST_PACKET)
   size_t total_size = 0;
 
   uint32_t cached_has_bits = 0;
@@ -8664,17 +8638,17 @@ size_t CS_QUEST_ACCEPT_PACKET::ByteSizeLong() const {
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData CS_QUEST_ACCEPT_PACKET::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData CS_QUEST_REQUEST_PACKET::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    CS_QUEST_ACCEPT_PACKET::MergeImpl
+    CS_QUEST_REQUEST_PACKET::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*CS_QUEST_ACCEPT_PACKET::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*CS_QUEST_REQUEST_PACKET::GetClassData() const { return &_class_data_; }
 
 
-void CS_QUEST_ACCEPT_PACKET::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<CS_QUEST_ACCEPT_PACKET*>(&to_msg);
-  auto& from = static_cast<const CS_QUEST_ACCEPT_PACKET&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:Protocol.CS_QUEST_ACCEPT_PACKET)
+void CS_QUEST_REQUEST_PACKET::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<CS_QUEST_REQUEST_PACKET*>(&to_msg);
+  auto& from = static_cast<const CS_QUEST_REQUEST_PACKET&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:Protocol.CS_QUEST_REQUEST_PACKET)
   GOOGLE_DCHECK_NE(&from, _this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
@@ -8688,243 +8662,32 @@ void CS_QUEST_ACCEPT_PACKET::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg,
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void CS_QUEST_ACCEPT_PACKET::CopyFrom(const CS_QUEST_ACCEPT_PACKET& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:Protocol.CS_QUEST_ACCEPT_PACKET)
+void CS_QUEST_REQUEST_PACKET::CopyFrom(const CS_QUEST_REQUEST_PACKET& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:Protocol.CS_QUEST_REQUEST_PACKET)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool CS_QUEST_ACCEPT_PACKET::IsInitialized() const {
+bool CS_QUEST_REQUEST_PACKET::IsInitialized() const {
   return true;
 }
 
-void CS_QUEST_ACCEPT_PACKET::InternalSwap(CS_QUEST_ACCEPT_PACKET* other) {
+void CS_QUEST_REQUEST_PACKET::InternalSwap(CS_QUEST_REQUEST_PACKET* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(CS_QUEST_ACCEPT_PACKET, _impl_.quest_id_)
-      + sizeof(CS_QUEST_ACCEPT_PACKET::_impl_.quest_id_)
-      - PROTOBUF_FIELD_OFFSET(CS_QUEST_ACCEPT_PACKET, _impl_.npc_id_)>(
+      PROTOBUF_FIELD_OFFSET(CS_QUEST_REQUEST_PACKET, _impl_.quest_id_)
+      + sizeof(CS_QUEST_REQUEST_PACKET::_impl_.quest_id_)
+      - PROTOBUF_FIELD_OFFSET(CS_QUEST_REQUEST_PACKET, _impl_.npc_id_)>(
           reinterpret_cast<char*>(&_impl_.npc_id_),
           reinterpret_cast<char*>(&other->_impl_.npc_id_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata CS_QUEST_ACCEPT_PACKET::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata CS_QUEST_REQUEST_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
       file_level_metadata_Protocol_2eproto[32]);
-}
-
-// ===================================================================
-
-class CS_QUEST_COMPLETE_PACKET::_Internal {
- public:
-};
-
-CS_QUEST_COMPLETE_PACKET::CS_QUEST_COMPLETE_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                         bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:Protocol.CS_QUEST_COMPLETE_PACKET)
-}
-CS_QUEST_COMPLETE_PACKET::CS_QUEST_COMPLETE_PACKET(const CS_QUEST_COMPLETE_PACKET& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  CS_QUEST_COMPLETE_PACKET* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.npc_id_){}
-    , decltype(_impl_.quest_id_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
-
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  ::memcpy(&_impl_.npc_id_, &from._impl_.npc_id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.quest_id_) -
-    reinterpret_cast<char*>(&_impl_.npc_id_)) + sizeof(_impl_.quest_id_));
-  // @@protoc_insertion_point(copy_constructor:Protocol.CS_QUEST_COMPLETE_PACKET)
-}
-
-inline void CS_QUEST_COMPLETE_PACKET::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_.npc_id_){0}
-    , decltype(_impl_.quest_id_){0}
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
-}
-
-CS_QUEST_COMPLETE_PACKET::~CS_QUEST_COMPLETE_PACKET() {
-  // @@protoc_insertion_point(destructor:Protocol.CS_QUEST_COMPLETE_PACKET)
-  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
-  (void)arena;
-    return;
-  }
-  SharedDtor();
-}
-
-inline void CS_QUEST_COMPLETE_PACKET::SharedDtor() {
-  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-}
-
-void CS_QUEST_COMPLETE_PACKET::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
-}
-
-void CS_QUEST_COMPLETE_PACKET::Clear() {
-// @@protoc_insertion_point(message_clear_start:Protocol.CS_QUEST_COMPLETE_PACKET)
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  ::memset(&_impl_.npc_id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.quest_id_) -
-      reinterpret_cast<char*>(&_impl_.npc_id_)) + sizeof(_impl_.quest_id_));
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
-}
-
-const char* CS_QUEST_COMPLETE_PACKET::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    uint32_t tag;
-    ptr = ::_pbi::ReadTag(ptr, &tag);
-    switch (tag >> 3) {
-      // int32 npc_id = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          _impl_.npc_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // int32 quest_id = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
-          _impl_.quest_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      default:
-        goto handle_unusual;
-    }  // switch
-  handle_unusual:
-    if ((tag == 0) || ((tag & 7) == 4)) {
-      CHK_(ptr);
-      ctx->SetLastTag(tag);
-      goto message_done;
-    }
-    ptr = UnknownFieldParse(
-        tag,
-        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-        ptr, ctx);
-    CHK_(ptr != nullptr);
-  }  // while
-message_done:
-  return ptr;
-failure:
-  ptr = nullptr;
-  goto message_done;
-#undef CHK_
-}
-
-uint8_t* CS_QUEST_COMPLETE_PACKET::_InternalSerialize(
-    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:Protocol.CS_QUEST_COMPLETE_PACKET)
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // int32 npc_id = 1;
-  if (this->_internal_npc_id() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_npc_id(), target);
-  }
-
-  // int32 quest_id = 2;
-  if (this->_internal_quest_id() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_quest_id(), target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:Protocol.CS_QUEST_COMPLETE_PACKET)
-  return target;
-}
-
-size_t CS_QUEST_COMPLETE_PACKET::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:Protocol.CS_QUEST_COMPLETE_PACKET)
-  size_t total_size = 0;
-
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  // int32 npc_id = 1;
-  if (this->_internal_npc_id() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_npc_id());
-  }
-
-  // int32 quest_id = 2;
-  if (this->_internal_quest_id() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_quest_id());
-  }
-
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
-}
-
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData CS_QUEST_COMPLETE_PACKET::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    CS_QUEST_COMPLETE_PACKET::MergeImpl
-};
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*CS_QUEST_COMPLETE_PACKET::GetClassData() const { return &_class_data_; }
-
-
-void CS_QUEST_COMPLETE_PACKET::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<CS_QUEST_COMPLETE_PACKET*>(&to_msg);
-  auto& from = static_cast<const CS_QUEST_COMPLETE_PACKET&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:Protocol.CS_QUEST_COMPLETE_PACKET)
-  GOOGLE_DCHECK_NE(&from, _this);
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (from._internal_npc_id() != 0) {
-    _this->_internal_set_npc_id(from._internal_npc_id());
-  }
-  if (from._internal_quest_id() != 0) {
-    _this->_internal_set_quest_id(from._internal_quest_id());
-  }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-}
-
-void CS_QUEST_COMPLETE_PACKET::CopyFrom(const CS_QUEST_COMPLETE_PACKET& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:Protocol.CS_QUEST_COMPLETE_PACKET)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool CS_QUEST_COMPLETE_PACKET::IsInitialized() const {
-  return true;
-}
-
-void CS_QUEST_COMPLETE_PACKET::InternalSwap(CS_QUEST_COMPLETE_PACKET* other) {
-  using std::swap;
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(CS_QUEST_COMPLETE_PACKET, _impl_.quest_id_)
-      + sizeof(CS_QUEST_COMPLETE_PACKET::_impl_.quest_id_)
-      - PROTOBUF_FIELD_OFFSET(CS_QUEST_COMPLETE_PACKET, _impl_.npc_id_)>(
-          reinterpret_cast<char*>(&_impl_.npc_id_),
-          reinterpret_cast<char*>(&other->_impl_.npc_id_));
-}
-
-::PROTOBUF_NAMESPACE_ID::Metadata CS_QUEST_COMPLETE_PACKET::GetMetadata() const {
-  return ::_pbi::AssignDescriptors(
-      &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[33]);
 }
 
 // ===================================================================
@@ -9159,7 +8922,7 @@ void CS_SKILL_AIM_PACKET::InternalSwap(CS_SKILL_AIM_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata CS_SKILL_AIM_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[34]);
+      file_level_metadata_Protocol_2eproto[33]);
 }
 
 // ===================================================================
@@ -9337,7 +9100,7 @@ void CS_PING_PACKET::InternalSwap(CS_PING_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata CS_PING_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[35]);
+      file_level_metadata_Protocol_2eproto[34]);
 }
 
 // ===================================================================
@@ -9377,7 +9140,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*CS_REVIVE_PACKET::GetClassData
 ::PROTOBUF_NAMESPACE_ID::Metadata CS_REVIVE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[36]);
+      file_level_metadata_Protocol_2eproto[35]);
 }
 
 // ===================================================================
@@ -9662,7 +9425,7 @@ void SC_LOGIN_INFO_PACKET::InternalSwap(SC_LOGIN_INFO_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_LOGIN_INFO_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[37]);
+      file_level_metadata_Protocol_2eproto[36]);
 }
 
 // ===================================================================
@@ -9840,7 +9603,7 @@ void SC_SIGNUP_PACKET::InternalSwap(SC_SIGNUP_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_SIGNUP_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[38]);
+      file_level_metadata_Protocol_2eproto[37]);
 }
 
 // ===================================================================
@@ -10039,7 +9802,7 @@ void SC_ADD_OBJECT_PACKET::InternalSwap(SC_ADD_OBJECT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_ADD_OBJECT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[39]);
+      file_level_metadata_Protocol_2eproto[38]);
 }
 
 // ===================================================================
@@ -10217,7 +9980,7 @@ void SC_REMOVE_OBJECT_PACKET::InternalSwap(SC_REMOVE_OBJECT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_REMOVE_OBJECT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[40]);
+      file_level_metadata_Protocol_2eproto[39]);
 }
 
 // ===================================================================
@@ -10497,7 +10260,7 @@ void SC_CHAT_PACKET::InternalSwap(SC_CHAT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_CHAT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[41]);
+      file_level_metadata_Protocol_2eproto[40]);
 }
 
 // ===================================================================
@@ -10755,7 +10518,7 @@ void SC_MOVE_PACKET::InternalSwap(SC_MOVE_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_MOVE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[42]);
+      file_level_metadata_Protocol_2eproto[41]);
 }
 
 // ===================================================================
@@ -11146,7 +10909,7 @@ void SC_ATTACK_PACKET::InternalSwap(SC_ATTACK_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_ATTACK_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[43]);
+      file_level_metadata_Protocol_2eproto[42]);
 }
 
 // ===================================================================
@@ -11408,7 +11171,7 @@ void SC_ATTACK_RESULT_PACKET::InternalSwap(SC_ATTACK_RESULT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_ATTACK_RESULT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[44]);
+      file_level_metadata_Protocol_2eproto[43]);
 }
 
 // ===================================================================
@@ -11667,7 +11430,7 @@ void SC_DAMAGE_PACKET::InternalSwap(SC_DAMAGE_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_DAMAGE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[45]);
+      file_level_metadata_Protocol_2eproto[44]);
 }
 
 // ===================================================================
@@ -11878,7 +11641,7 @@ void SC_DEAD_PACKET::InternalSwap(SC_DEAD_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_DEAD_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[46]);
+      file_level_metadata_Protocol_2eproto[45]);
 }
 
 // ===================================================================
@@ -12160,7 +11923,7 @@ void SC_REVIVE_PACKET::InternalSwap(SC_REVIVE_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_REVIVE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[47]);
+      file_level_metadata_Protocol_2eproto[46]);
 }
 
 // ===================================================================
@@ -12418,7 +12181,7 @@ void SC_TELEPORT_PACKET::InternalSwap(SC_TELEPORT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_TELEPORT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[48]);
+      file_level_metadata_Protocol_2eproto[47]);
 }
 
 // ===================================================================
@@ -12776,7 +12539,7 @@ void PortalInfo::InternalSwap(PortalInfo* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata PortalInfo::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[49]);
+      file_level_metadata_Protocol_2eproto[48]);
 }
 
 // ===================================================================
@@ -12990,7 +12753,7 @@ void SC_DUNGEON_STATE_PACKET::InternalSwap(SC_DUNGEON_STATE_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_DUNGEON_STATE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[50]);
+      file_level_metadata_Protocol_2eproto[49]);
 }
 
 // ===================================================================
@@ -13175,7 +12938,7 @@ void SC_PORTAL_LIST_PACKET::InternalSwap(SC_PORTAL_LIST_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_PORTAL_LIST_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[51]);
+      file_level_metadata_Protocol_2eproto[50]);
 }
 
 // ===================================================================
@@ -13512,7 +13275,7 @@ void SC_ROOM_CHANGE_PACKET::InternalSwap(SC_ROOM_CHANGE_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_ROOM_CHANGE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[52]);
+      file_level_metadata_Protocol_2eproto[51]);
 }
 
 // ===================================================================
@@ -13693,7 +13456,7 @@ void SC_MOVE_RESULT_PACKET::InternalSwap(SC_MOVE_RESULT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_MOVE_RESULT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[53]);
+      file_level_metadata_Protocol_2eproto[52]);
 }
 
 // ===================================================================
@@ -13978,7 +13741,7 @@ void SC_CHANGE_EQUIP_PACKET::InternalSwap(SC_CHANGE_EQUIP_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_CHANGE_EQUIP_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[54]);
+      file_level_metadata_Protocol_2eproto[53]);
 }
 
 // ===================================================================
@@ -14243,7 +14006,7 @@ void SC_CHANGE_EQUIP_RESULT_PACKET::InternalSwap(SC_CHANGE_EQUIP_RESULT_PACKET* 
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_CHANGE_EQUIP_RESULT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[55]);
+      file_level_metadata_Protocol_2eproto[54]);
 }
 
 // ===================================================================
@@ -14605,7 +14368,7 @@ void SC_INVENTORY_PACKET::InternalSwap(SC_INVENTORY_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_INVENTORY_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[56]);
+      file_level_metadata_Protocol_2eproto[55]);
 }
 
 // ===================================================================
@@ -14904,7 +14667,7 @@ void SC_INVENTORY_UPDATE_PACKET::InternalSwap(SC_INVENTORY_UPDATE_PACKET* other)
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_INVENTORY_UPDATE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[57]);
+      file_level_metadata_Protocol_2eproto[56]);
 }
 
 // ===================================================================
@@ -15163,7 +14926,7 @@ void SC_USE_ITEM_PACKET::InternalSwap(SC_USE_ITEM_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_USE_ITEM_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[58]);
+      file_level_metadata_Protocol_2eproto[57]);
 }
 
 // ===================================================================
@@ -15374,7 +15137,7 @@ void SC_CHANGE_HP_PACKET::InternalSwap(SC_CHANGE_HP_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_CHANGE_HP_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[59]);
+      file_level_metadata_Protocol_2eproto[58]);
 }
 
 // ===================================================================
@@ -15585,7 +15348,7 @@ void SC_GAIN_EXP_PACKET::InternalSwap(SC_GAIN_EXP_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_GAIN_EXP_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[60]);
+      file_level_metadata_Protocol_2eproto[59]);
 }
 
 // ===================================================================
@@ -15843,7 +15606,7 @@ void SC_LEVEL_UP_PACKET::InternalSwap(SC_LEVEL_UP_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_LEVEL_UP_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[61]);
+      file_level_metadata_Protocol_2eproto[60]);
 }
 
 // ===================================================================
@@ -16021,7 +15784,7 @@ void SC_CHANGE_MP_PACKET::InternalSwap(SC_CHANGE_MP_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_CHANGE_MP_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[62]);
+      file_level_metadata_Protocol_2eproto[61]);
 }
 
 // ===================================================================
@@ -16209,7 +15972,7 @@ void SC_QUEST_LIST_PACKET::InternalSwap(SC_QUEST_LIST_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_QUEST_LIST_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[63]);
+      file_level_metadata_Protocol_2eproto[62]);
 }
 
 // ===================================================================
@@ -16408,7 +16171,7 @@ void SC_QUEST_UPDATE_PACKET::InternalSwap(SC_QUEST_UPDATE_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_QUEST_UPDATE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[64]);
+      file_level_metadata_Protocol_2eproto[63]);
 }
 
 // ===================================================================
@@ -16649,7 +16412,7 @@ void SC_QUEST_RESULT_PACKET::InternalSwap(SC_QUEST_RESULT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_QUEST_RESULT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[65]);
+      file_level_metadata_Protocol_2eproto[64]);
 }
 
 // ===================================================================
@@ -16935,7 +16698,7 @@ void SC_MAIL_NOTICE_PACKET::InternalSwap(SC_MAIL_NOTICE_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_MAIL_NOTICE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[66]);
+      file_level_metadata_Protocol_2eproto[65]);
 }
 
 // ===================================================================
@@ -17152,7 +16915,7 @@ void SC_ITEM_RESULT_PACKET::InternalSwap(SC_ITEM_RESULT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_ITEM_RESULT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[67]);
+      file_level_metadata_Protocol_2eproto[66]);
 }
 
 // ===================================================================
@@ -17363,7 +17126,7 @@ void ShopItem::InternalSwap(ShopItem* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ShopItem::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[68]);
+      file_level_metadata_Protocol_2eproto[67]);
 }
 
 // ===================================================================
@@ -17575,7 +17338,7 @@ void SC_SHOP_OPEN_PACKET::InternalSwap(SC_SHOP_OPEN_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_SHOP_OPEN_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[69]);
+      file_level_metadata_Protocol_2eproto[68]);
 }
 
 // ===================================================================
@@ -17871,7 +17634,7 @@ void SC_AUCTION_LIST_PACKET::InternalSwap(SC_AUCTION_LIST_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_AUCTION_LIST_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[70]);
+      file_level_metadata_Protocol_2eproto[69]);
 }
 
 // ===================================================================
@@ -18204,7 +17967,7 @@ void SC_AUCTION_MY_PACKET::InternalSwap(SC_AUCTION_MY_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_AUCTION_MY_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[71]);
+      file_level_metadata_Protocol_2eproto[70]);
 }
 
 // ===================================================================
@@ -18445,7 +18208,7 @@ void SC_AUCTION_RESULT_PACKET::InternalSwap(SC_AUCTION_RESULT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_AUCTION_RESULT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[72]);
+      file_level_metadata_Protocol_2eproto[71]);
 }
 
 // ===================================================================
@@ -18704,7 +18467,7 @@ void SC_SKILL_AIM_PACKET::InternalSwap(SC_SKILL_AIM_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_SKILL_AIM_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[73]);
+      file_level_metadata_Protocol_2eproto[72]);
 }
 
 // ===================================================================
@@ -18882,7 +18645,7 @@ void SC_PONG_PACKET::InternalSwap(SC_PONG_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_PONG_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[74]);
+      file_level_metadata_Protocol_2eproto[73]);
 }
 
 // ===================================================================
@@ -19145,7 +18908,7 @@ void SC_TRADE_REQUEST_PACKET::InternalSwap(SC_TRADE_REQUEST_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_TRADE_REQUEST_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[75]);
+      file_level_metadata_Protocol_2eproto[74]);
 }
 
 // ===================================================================
@@ -19363,7 +19126,7 @@ void SC_TRADE_STATE_PACKET::InternalSwap(SC_TRADE_STATE_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_TRADE_STATE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[76]);
+      file_level_metadata_Protocol_2eproto[75]);
 }
 
 // ===================================================================
@@ -19544,7 +19307,7 @@ void SC_TRADE_END_PACKET::InternalSwap(SC_TRADE_END_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_TRADE_END_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[77]);
+      file_level_metadata_Protocol_2eproto[76]);
 }
 
 // ===================================================================
@@ -19761,7 +19524,7 @@ void SC_TRADE_RESULT_PACKET::InternalSwap(SC_TRADE_RESULT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_TRADE_RESULT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[78]);
+      file_level_metadata_Protocol_2eproto[77]);
 }
 
 // ===================================================================
@@ -20024,7 +19787,7 @@ void SC_PARTY_INVITE_PACKET::InternalSwap(SC_PARTY_INVITE_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_PARTY_INVITE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[79]);
+      file_level_metadata_Protocol_2eproto[78]);
 }
 
 // ===================================================================
@@ -20314,7 +20077,7 @@ void PartyMember::InternalSwap(PartyMember* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata PartyMember::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[80]);
+      file_level_metadata_Protocol_2eproto[79]);
 }
 
 // ===================================================================
@@ -20559,7 +20322,7 @@ void SC_PARTY_STATE_PACKET::InternalSwap(SC_PARTY_STATE_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_PARTY_STATE_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[81]);
+      file_level_metadata_Protocol_2eproto[80]);
 }
 
 // ===================================================================
@@ -20776,7 +20539,7 @@ void SC_PARTY_RESULT_PACKET::InternalSwap(SC_PARTY_RESULT_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_PARTY_RESULT_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[82]);
+      file_level_metadata_Protocol_2eproto[81]);
 }
 
 // ===================================================================
@@ -20957,7 +20720,7 @@ void SC_KICK_PACKET::InternalSwap(SC_KICK_PACKET* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SC_KICK_PACKET::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_Protocol_2eproto_getter, &descriptor_table_Protocol_2eproto_once,
-      file_level_metadata_Protocol_2eproto[83]);
+      file_level_metadata_Protocol_2eproto[82]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -21091,13 +20854,9 @@ template<> PROTOBUF_NOINLINE ::Protocol::CS_PARTY_LEAVE_PACKET*
 Arena::CreateMaybeMessage< ::Protocol::CS_PARTY_LEAVE_PACKET >(Arena* arena) {
   return Arena::CreateMessageInternal< ::Protocol::CS_PARTY_LEAVE_PACKET >(arena);
 }
-template<> PROTOBUF_NOINLINE ::Protocol::CS_QUEST_ACCEPT_PACKET*
-Arena::CreateMaybeMessage< ::Protocol::CS_QUEST_ACCEPT_PACKET >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::Protocol::CS_QUEST_ACCEPT_PACKET >(arena);
-}
-template<> PROTOBUF_NOINLINE ::Protocol::CS_QUEST_COMPLETE_PACKET*
-Arena::CreateMaybeMessage< ::Protocol::CS_QUEST_COMPLETE_PACKET >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::Protocol::CS_QUEST_COMPLETE_PACKET >(arena);
+template<> PROTOBUF_NOINLINE ::Protocol::CS_QUEST_REQUEST_PACKET*
+Arena::CreateMaybeMessage< ::Protocol::CS_QUEST_REQUEST_PACKET >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::Protocol::CS_QUEST_REQUEST_PACKET >(arena);
 }
 template<> PROTOBUF_NOINLINE ::Protocol::CS_SKILL_AIM_PACKET*
 Arena::CreateMaybeMessage< ::Protocol::CS_SKILL_AIM_PACKET >(Arena* arena) {

@@ -75,11 +75,8 @@ void PacketHandler::Init()
         return ParseAndHandle<Protocol::CS_SHOP_SELL_PACKET>(&PacketHandler::Handle_CS_SHOP_SELL, session, buffer, len);
         };
     // 퀘스트 (Q1)
-    GPacketHandler[Protocol::CS_QUEST_ACCEPT] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
-        return ParseAndHandle<Protocol::CS_QUEST_ACCEPT_PACKET>(&PacketHandler::Handle_CS_QUEST_ACCEPT, session, buffer, len);
-        };
-    GPacketHandler[Protocol::CS_QUEST_COMPLETE] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
-        return ParseAndHandle<Protocol::CS_QUEST_COMPLETE_PACKET>(&PacketHandler::Handle_CS_QUEST_COMPLETE, session, buffer, len);
+    GPacketHandler[Protocol::CS_QUEST_REQUEST] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
+        return ParseAndHandle<Protocol::CS_QUEST_REQUEST_PACKET>(&PacketHandler::Handle_CS_QUEST_REQUEST, session, buffer, len);
         };
     // 경매장 (A4.3)
     GPacketHandler[Protocol::CS_AUCTION_SEARCH] = [](shared_ptr<GameSession> session, BYTE* buffer, int len) {
@@ -390,8 +387,8 @@ void PacketHandler::Handle_CS_SHOP_SELL(shared_ptr<GameSession> session, Protoco
     room->PushJob(&Room::PlayerShopSell, player, static_cast<int>(pkt.npc_id()), static_cast<int64_t>(pkt.item_db_id()), static_cast<int>(pkt.count()));
 }
 
-// 퀘스트(Q1, D-259·D-261). NPC 존재·거리·거래 중·퀘스트 상태·보상 칸 검증과 DB 트랜잭션은 Room 잡에서 한다.
-void PacketHandler::Handle_CS_QUEST_ACCEPT(shared_ptr<GameSession> session, Protocol::CS_QUEST_ACCEPT_PACKET& pkt)
+// 퀘스트(Q1, D-259·D-261·D-264). 요청 하나 — 수락·완료 중 무엇을 할지, NPC 존재·거리·거래 중·퀘스트 상태·보상 칸 검증과 DB 트랜잭션은 Room 잡에서 정한다.
+void PacketHandler::Handle_CS_QUEST_REQUEST(shared_ptr<GameSession> session, Protocol::CS_QUEST_REQUEST_PACKET& pkt)
 {
     shared_ptr<Player> player = session->GetPlayer();
     if (player == nullptr) return;
@@ -399,18 +396,7 @@ void PacketHandler::Handle_CS_QUEST_ACCEPT(shared_ptr<GameSession> session, Prot
     shared_ptr<Room> room = player->GetCurrentRoom();
     if (room == nullptr) return;
 
-    room->PushJob(&Room::PlayerQuestAccept, player, static_cast<int>(pkt.npc_id()), static_cast<int>(pkt.quest_id()));
-}
-
-void PacketHandler::Handle_CS_QUEST_COMPLETE(shared_ptr<GameSession> session, Protocol::CS_QUEST_COMPLETE_PACKET& pkt)
-{
-    shared_ptr<Player> player = session->GetPlayer();
-    if (player == nullptr) return;
-
-    shared_ptr<Room> room = player->GetCurrentRoom();
-    if (room == nullptr) return;
-
-    room->PushJob(&Room::PlayerQuestComplete, player, static_cast<int>(pkt.npc_id()), static_cast<int>(pkt.quest_id()));
+    room->PushJob(&Room::PlayerQuestRequest, player, static_cast<int>(pkt.npc_id()), static_cast<int>(pkt.quest_id()));
 }
 
 void PacketHandler::Handle_CS_USE_ITEM(shared_ptr<GameSession> session, Protocol::CS_USE_ITEM_PACKET& pkt)

@@ -1,7 +1,7 @@
-== cut (server pid 15812, DevCommands=true DbSaveDelayMs=1500 DbItemFailEvery=0 PortalNoRange=false, data repo)
+== cut (server pid 25384, DevCommands=true DbSaveDelayMs=1500 DbItemFailEvery=0 PortalNoRange=false, data repo)
 PASS accept
 PASS cut-accept
-[  46.57] 완료 직후 끊김: 다시 로그인 3.9초, 퀘스트 {2: (2, 0)}, 레벨 5 → 6 경험치 265 → 2765 (기대 (6, 2765)), 골드 1000 → 2000
+[  46.18] 완료 직후 끊김: 다시 로그인 3.9초, 퀘스트 {2: (2, 0)}, 레벨 5 → 6 경험치 265 → 2765 (기대 (6, 2765)), 골드 1000 → 2000
 PASS cut-complete-quest
 PASS cut-complete-items
 PASS cut-complete-exp

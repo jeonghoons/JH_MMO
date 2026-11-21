@@ -229,13 +229,11 @@ public:
 	void PlayerMailClaim(shared_ptr<Player> player, int npcId, int64_t mailId);
 
 	// ---- 퀘스트 (Q1, D-259·D-261 — Docs/DESIGN_BALANCE.md §9) ----
-	// 서버에 "퀘스트 창을 연 상태"는 없다. 수락·완료 모두 요청마다 CheckQuestRequest(상점과 같은 순서)를 거친다.
+	// 서버에 "퀘스트 창을 연 상태"는 없다. 요청마다 CheckQuestRequest(상점과 같은 순서)를 거친다.
 	// 거부는 본인에게 SC_QUEST_RESULT, 성공은 SC_QUEST_UPDATE(완료는 그 앞에 SC_INVENTORY_UPDATE, 뒤에 SC_GAIN_EXP).
-	// 수락: 퀘스트 존재·그 NPC의 퀘스트 → 받지 않은 상태(권장 레벨은 보지 않는다) → 아이템 작업(QuestAccept). 성공한 뒤에만 메모리에 올린다.
-	void PlayerQuestAccept(shared_ptr<Player> player, int npcId, int questId);
-	// 완료: 진행 중 → 처치 수(처치형) 또는 인벤토리 수량(수집형 — 수량이 적은 스택부터 회수 계획) → 보상 칸(회수를 적용한 사본으로 계획) → 골드 상한
-	// → 아이템 작업(QuestComplete, 한 트랜잭션). 성공하면 인벤토리·골드 → 완료 표시 → 보상 경험치(바로 진행 상황 저장 요청).
-	void PlayerQuestComplete(shared_ptr<Player> player, int npcId, int questId);
+	// 요청 하나(CS_QUEST_REQUEST, D-264): 퀘스트 존재·그 NPC의 퀘스트를 본 뒤 서버의 상태로 할 일을 정한다 —
+	// 받지 않음 = 수락(BeginQuestAccept), 진행 중 = 완료 시도(BeginQuestComplete), 완료함 = ALREADY_DONE.
+	void PlayerQuestRequest(shared_ptr<Player> player, int npcId, int questId);
 	// 퀘스트 처치 진행을 DB에 저장한다(D-261 — 바뀔 때마다). 진행 상황 저장과 같은 방식: 더미 봇·DB 캐릭터가 아니면 건너뛰고, Room 이동 중에는 미루고,
 	// DB 값보다 커진 것이 있을 때만 보내고, 진행 중이면 끝난 뒤 최신 값으로 한 번 더 저장한다. 방을 나간 플레이어도 받는다.
 	void RequestQuestSave(shared_ptr<Player> player);
@@ -463,6 +461,11 @@ private:
 	// 퀘스트 요청 공통 검증(Q1 — CheckShopRequest와 같은 순서): 방 안 → 더미 봇 아님 → 생존 → 요청 간격·진행 중인 작업·Room 이동 → 1:1 거래 중 아님
 	// → 퀘스트 NPC 존재 → 이용 거리(EconomyTable.ShopRangeCm). 통과하면 SUCCESS와 함께 outNpc를 채운다.
 	Protocol::QuestResult CheckQuestRequest(const shared_ptr<Player>& player, int npcId, shared_ptr<TownNpc>& outNpc);
+	// 수락: 아이템 작업(QuestAccept). 권장 레벨은 보지 않는다. 성공한 뒤에만 메모리에 올린다.
+	void BeginQuestAccept(const shared_ptr<Player>& player, int questId);
+	// 완료: 처치 수(처치형) 또는 인벤토리 수량(수집형 — 수량이 적은 스택부터 회수 계획) → 보상 칸(회수를 적용한 사본으로 계획) → 골드 상한
+	// → 아이템 작업(QuestComplete, 한 트랜잭션). 성공하면 인벤토리·골드 → 완료 표시 → 보상 경험치(바로 진행 상황 저장 요청).
+	void BeginQuestComplete(const shared_ptr<Player>& player, const QuestData& questData, int questId);
 	int NextDropId();
 
 	RoomInfo _info;

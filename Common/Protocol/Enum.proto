@@ -46,8 +46,7 @@ enum PacketId {
     CS_PARTY_RESPOND = 1036;  // 받은 초대에 수락·거절
     CS_PARTY_LEAVE = 1037;    // 파티 탈퇴
     // 퀘스트 (Q1, D-259·D-261). 수락·완료는 퀘스트 NPC 근처에서만. 목록 요청 패킷은 없다 — 처음 입장 때 서버가 SC_QUEST_LIST를 보낸다
-    CS_QUEST_ACCEPT = 1038;   // 퀘스트 수락
-    CS_QUEST_COMPLETE = 1039; // 퀘스트 완료(보상 받기)
+    CS_QUEST_REQUEST = 1038;  // 퀘스트 요청 하나 — 서버가 상태로 수락·완료를 정함 (D-264). 1039는 사용 안 함(옛 완료 요청)
 
     // Server -> Client
     SC_LOGIN = 2000;
@@ -315,9 +314,9 @@ enum QuestResult {
     QUEST_RESULT_NO_QUEST = 7;         // 없는 퀘스트·없는 NPC·그 NPC의 퀘스트가 아님
     QUEST_RESULT_TOO_FAR = 8;          // 퀘스트 NPC 이용 거리(EconomyTable.ShopRangeCm) 밖
     QUEST_RESULT_IN_TRADE = 9;         // 1:1 거래 중
-    QUEST_RESULT_ALREADY_ACTIVE = 10;  // 수락: 이미 진행 중
-    QUEST_RESULT_ALREADY_DONE = 11;    // 수락·완료: 이미 완료한 퀘스트
-    QUEST_RESULT_NOT_ACTIVE = 12;      // 완료: 받지 않은 퀘스트
+    QUEST_RESULT_ALREADY_ACTIVE = 10;  // 사용 안 함(D-264 — 요청 하나로 합친 뒤 진행 중이면 완료 시도가 됨)
+    QUEST_RESULT_ALREADY_DONE = 11;    // 이미 완료한 퀘스트(한 번만 할 수 있음)
+    QUEST_RESULT_NOT_ACTIVE = 12;      // 사용 안 함(D-264 — 받지 않은 퀘스트를 요청하면 수락이 됨)
     QUEST_RESULT_NOT_FINISHED = 13;    // 완료: 처치 수가 모자람
     QUEST_RESULT_NOT_ENOUGH_ITEM = 14; // 완료: 제출할 아이템이 모자람(인벤토리 위치만 센다)
     QUEST_RESULT_INVENTORY_FULL = 15;  // 완료: 보상 아이템이 들어갈 칸이 없음

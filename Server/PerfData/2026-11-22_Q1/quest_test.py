@@ -1,9 +1,9 @@
 # Q1 퀘스트 + 경매 수령함 알림 원시 소켓 시험(계정 Test1~Test4). 사용: python -I -X utf8 quest_test.py <포트> <묶음>
 # 서버는 run_tests.sh가 묶음에 맞는 설정·데이터 테이블 사본으로 띄운다(묶음마다 그 앞에 restore_accounts.sql로 시험 계정을 시험 전 상태로 되돌린다).
-#   main    (DevCommands=true, 원본 테이블) 입장 때 SC_QUEST_LIST(인벤토리 다음)·퀘스트 NPC(npc_kind 3) → 먼 곳에서 수락 TOO_FAR → 수락 → 다시 수락 ALREADY_ACTIVE
-#           → 덜 잡고 완료 NOT_FINISHED · 받지 않은 퀘스트 완료 NOT_ACTIVE → 1001 처치 15번(매번 SC_QUEST_UPDATE + DB 저장, 다른 퀘스트·다른 사람은 그대로)
+#   main    (DevCommands=true, 원본 테이블) 입장 때 SC_QUEST_LIST(인벤토리 다음)·퀘스트 NPC(npc_kind 3) → 먼 곳에서 요청 TOO_FAR → 요청 = 수락 → 다시 요청 = 완료 시도 NOT_FINISHED
+#           → 받지 않은 퀘스트에 "완료" 요청 = 수락(D-264) → 1001 처치 15번(매번 SC_QUEST_UPDATE + DB 저장, 다른 퀘스트·다른 사람은 그대로)
 #           → 16번째는 그대로 → 완료 보상(아이템 새 행·골드·경험치 순서) → 다시 수락·완료 ALREADY_DONE
-#           → 수집: 9개 NOT_ENOUGH_ITEM · 10개 회수 + 보상(빈 칸 재사용·레벨업·바로 저장) · 여러 스택(적은 스택부터, 가득 찬 인벤토리에서 회수로 빈 칸에 보상)
+#           → 수집: 9개 NOT_ENOUGH_ITEM · 10개 회수 + 보상(빈 칸 재사용·레벨업·바로 저장) · 재료를 미리 가진 채 첫 요청 = 수락(회수 없음) → 다음 요청 = 완료 · 여러 스택(적은 스택부터, 가득 찬 인벤토리에서 회수로 빈 칸에 보상)
 #           · 인벤토리 가득 INVENTORY_FULL · 골드 상한 GOLD_FULL → 재접속해도 목록·레벨·골드 유지
 #   cut     (DbSaveDelayMs=1500) 처치 직후 끊김 → 곧 다시 로그인되고 처치 수 유지 · 수락 요청 직후 끊김 → 진행 중으로 남음
 #           · 완료 요청 직후 끊김 → 완료·회수·보상 아이템·골드와 **보상 경험치까지** 남음
@@ -11,8 +11,8 @@
 #           죽은 파티원·시야 밖(시작 방) 파티원까지 셋 다 처치 인정(경험치는 막타만) → 마을로 나와 완료 보상
 #   mail    (AuctionDurationSec 8·AuctionExpireCheckSec 1) 내 등록이 팔리면 판매자에게 SC_MAIL_NOTICE(SALE_GOLD, 물건·대금·등록 id), 구매자에게는 없음
 #           · 만료 반환은 EXPIRED · 접속하지 않은 동안 팔리면 다음 입장 때 NONE(SC_QUEST_LIST 다음) · 수령함이 빈 계정은 알림 없음
-#   err     (DevCommands=false, DbSaveDelayMs=400) TOO_FAR · 없는 NPC·상점 NPC·없는 퀘스트 id NO_QUEST · 받지 않은 퀘스트 완료 NOT_ACTIVE
-#           · 수락 연타(한 번만 성공, 나머지 TOO_FREQUENT/BUSY) · 1:1 거래 중 IN_TRADE · 더미 봇 NOT_ALLOWED · 사망 DEAD · 깨진 패킷 뒤에도 서버 정상
+#   err     (DevCommands=false, DbSaveDelayMs=400) TOO_FAR · 없는 NPC·상점 NPC·없는 퀘스트 id NO_QUEST
+#           · 요청 연타(한 번만 수락, 나머지 TOO_FREQUENT/BUSY/NOT_FINISHED) · 1:1 거래 중 IN_TRADE · 더미 봇 NOT_ALLOWED · 사망 DEAD · 깨진 패킷 뒤에도 서버 정상
 #   fail    (DbItemFailEvery=2) 롤백된 수락·완료는 DB_ERROR이고 DB·메모리가 그대로, 다시 요청하면 성공
 # 판정 줄은 "PASS <이름>" / "FAIL <이름>: 이유". 묶음 끝에서 DB 합계(아이템 수량 합, 보유 골드 + 수령함 골드)가 "개발 지급 + 퀘스트 보상 − 회수(·버린 것)"만큼만 변했는지 본다.
 # 공용 코드: DG3b movekit·DG2 party_test·DG3c dungeon_test·DG4 dg4_test(던전 길 따라 걷기)·A4.3 auction_test(아이템·경매 요청)·B2 growth_test(경험치·처치).
@@ -25,7 +25,8 @@ import auction_test as at
 import dg4_test as dg4       # dt.Client.walk_to를 던전 안에서 "길 따라 걷기"로 바꾼다
 mk, pt, dt, rs = gt.mk, gt.pt, at.dt, at.rs
 
-CS_QUEST_ACCEPT, CS_QUEST_COMPLETE = 1038, 1039
+CS_QUEST_REQUEST = 1038   # 요청 하나(D-264) — 서버가 상태로 수락·완료를 정한다
+CS_QUEST_ACCEPT = CS_QUEST_COMPLETE = CS_QUEST_REQUEST   # 시험 안의 이름(의도)만 남김 — 보내는 패킷은 같다
 SC_QUEST_LIST, SC_QUEST_UPDATE, SC_QUEST_RESULT, SC_MAIL_NOTICE = 2042, 2043, 2044, 2045
 CS_DROP_ITEM, CS_TRADE_CANCEL = 1014, 1023
 Q_NONE, Q_ACTIVE, Q_DONE = 0, 1, 2
@@ -341,11 +342,12 @@ def t_main():
     log(f"경비대장 앞: Test1 {a.npc_dist():.0f}cm Test2 {b.npc_dist():.0f}cm")
     check("accept", accept(a, 1, cs) == ("ok", Q_ACTIVE, 0), "수락 응답이 다름")
     check("accept-db", db_quest("Test1", 1) == "1,0,0", f"DB {db_quest('Test1', 1)!r}")
-    check("accept-again", accept(a, 1, cs) == R_ALREADY_ACTIVE, "다시 수락이 ALREADY_ACTIVE가 아님")
+    check("request-again", accept(a, 1, cs) == R_NOT_FINISHED, "진행 중 다시 요청(= 완료 시도)이 NOT_FINISHED가 아님")
     check("complete-not-finished", complete(a, 1, cs) == R_NOT_FINISHED, "처치 0에서 완료가 NOT_FINISHED가 아님")
-    check("complete-not-active", complete(a, 2, cs) == R_NOT_ACTIVE, "받지 않은 퀘스트 완료가 NOT_ACTIVE가 아님")
-    # 권장 레벨은 막지 않는다: 5레벨 Test2가 권장 10·20 퀘스트를 받는다. Test1은 던전 퀘스트(대상 1005)도 받아 둔다 — 1001을 잡아도 오르지 않아야 한다
-    check("accept-any-level", accept(b, 2, cs) == ("ok", Q_ACTIVE, 0) and accept(b, 1, cs) == ("ok", Q_ACTIVE, 0) and accept(a, 3, cs) == ("ok", Q_ACTIVE, 0),
+    # 요청 하나(D-264): 받지 않은 퀘스트에는 "완료"를 뜻하고 보내도 수락이 된다. Test1은 던전 퀘스트(대상 1005)를 이렇게 받아 둔다 — 1001을 잡아도 오르지 않아야 한다
+    check("request-unaccepted-accepts", complete(a, 3, cs) == ("ok", Q_ACTIVE, 0) and db_quest("Test1", 3) == "1,0,0", f"Test1 {a.quests}")
+    # 권장 레벨은 막지 않는다: 5레벨 Test2가 권장 10·20 퀘스트를 받는다
+    check("accept-any-level", accept(b, 2, cs) == ("ok", Q_ACTIVE, 0) and accept(b, 1, cs) == ("ok", Q_ACTIVE, 0),
           f"Test2 레벨 {b.level} 퀘스트 {b.quests}, Test1 {a.quests}")
 
     # ---- 4. 처치 15번: 매번 SC_QUEST_UPDATE(+1), 바뀔 때마다 DB 저장. 16번째는 그대로 ----
@@ -417,10 +419,14 @@ def t_main():
     cs = [a, b, c, d]
     pump_all(cs, 0.5)
     to_quest_npc(c, d, others=[a, b])
-    check("multi-accept", accept(c, 2, cs) == ("ok", Q_ACTIVE, 0) and accept(d, 2, cs) == ("ok", Q_ACTIVE, 0), "수락")
+    check("multi-accept", accept(d, 2, cs) == ("ok", Q_ACTIVE, 0), "수락")
     stack = int(gt.ITEMS[ITEM_HORN]["MaxStack"])
     at.give(c, ITEM_HORN, stack + 5, cs)
     at.give(c, ITEM_JUNK, c.free_slots(), cs)
+    # 요청 하나(D-264): 재료를 이미 다 가진 채 받기 전 퀘스트를 요청하면 첫 요청은 수락만(회수 없음), 다음 요청이 완료
+    horns0 = bag_sum(c, ITEM_HORN)
+    check("prehold-first-is-accept", accept(c, 2, cs) == ("ok", Q_ACTIVE, 0) and bag_sum(c, ITEM_HORN) == horns0 and db_item_sum("Test3", ITEM_HORN) == horns0,
+          f"뿔 {bag_sum(c, ITEM_HORN)} (전 {horns0})")
     small = next(r for r, v in c.bag(ITEM_HORN).items() if v[1] == 5)
     big = next(r for r, v in c.bag(ITEM_HORN).items() if v[1] == stack)
     small_slot, rows0 = c.items[small][3], set(c.items)
@@ -682,9 +688,8 @@ def t_err():
     to_quest_npc(a, b)
     check("quest-missing", accept(a, 999, cs) == R_NO_QUEST and accept(a, 0, cs) == R_NO_QUEST and accept(a, -1, cs) == R_NO_QUEST and complete(a, 999, cs) == R_NO_QUEST,
           "없는 퀘스트 id가 NO_QUEST가 아님")
-    check("not-active", complete(a, 2, cs) == R_NOT_ACTIVE, "받지 않은 퀘스트 완료")
 
-    # ---- 수락 연타: 한 번만 성공, 나머지는 TOO_FREQUENT(간격) 또는 BUSY(DB에 가 있는 동안) ----
+    # ---- 요청 연타: 한 번만 수락, 나머지는 TOO_FREQUENT(간격)·BUSY(DB에 가 있는 동안)·NOT_FINISHED(수락이 끝난 뒤 = 완료 시도) ----
     pump_all(cs, 0.3)
     nu, nr = len(a.quest_updates), len(a.quest_results)
     for i in range(8):
@@ -694,11 +699,11 @@ def t_err():
     pump_all(cs, 1.5)
     res = [r[3] for r in a.quest_results[nr:]]
     oks = [u for u in a.quest_updates[nu:] if u[1] == 1]
-    log(f"수락 연타 8회: 성공 {[(u[2], u[3]) for u in oks]} 거부 {res}")
+    log(f"요청 연타 8회: 성공 {[(u[2], u[3]) for u in oks]} 거부 {res}")
     check("spam-one-success", len(oks) == 1 and oks[0][2:] == (Q_ACTIVE, 0) and len(res) == 7, f"성공 {oks} 거부 {res}")
-    check("spam-rejects", set(res) <= {R_TOO_FREQUENT, R_BUSY, R_ALREADY_ACTIVE} and R_TOO_FREQUENT in res and R_BUSY in res, f"{res}")
+    check("spam-rejects", set(res) <= {R_TOO_FREQUENT, R_BUSY, R_NOT_FINISHED} and R_TOO_FREQUENT in res and R_BUSY in res, f"{res}")
     check("spam-db-one-row", db_quest("Test1", 1) == "1,0,0", f"{db_quest('Test1', 1)!r}")
-    check("after-spam", accept(a, 1, cs) == R_ALREADY_ACTIVE, "연타 뒤 다시 수락")
+    check("after-spam", accept(a, 1, cs) == R_NOT_FINISHED, "연타 뒤 다시 요청(= 완료 시도)")
 
     # ---- 1:1 거래 중(요청 대기 포함)에는 양쪽 모두 IN_TRADE ----
     a.pump(GAP)
@@ -718,10 +723,14 @@ def t_err():
     bot.close(rst=False)
 
     # ---- 깨진 패킷·넘치는 값: 서버는 계속 동작 ----
-    a.send(CS_QUEST_ACCEPT, b"\xff\xff\xff\xff\xff")
-    a.send(CS_QUEST_COMPLETE, b"\x08\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff")
-    a.send(CS_QUEST_ACCEPT, f_i(1, 2 ** 40) + f_i(2, 2 ** 40))
-    a.send(CS_QUEST_COMPLETE)
+    # 깨진 본문을 보낸 연결은 서버가 끊는다(기존 동작) — 끊긴 뒤의 송신이 실패하는 것은 시험 실패가 아니다
+    try:
+        a.send(CS_QUEST_REQUEST, b"\xff\xff\xff\xff\xff")
+        a.send(CS_QUEST_REQUEST, b"\x08\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff")
+        a.send(CS_QUEST_REQUEST, f_i(1, 2 ** 40) + f_i(2, 2 ** 40))
+        a.send(CS_QUEST_REQUEST)
+    except ConnectionError as e:
+        log(f"깨진 패킷을 보내는 중 Test1 연결이 끊김(예상): {e}")
     pump_all(cs, 1.0)
     b.sock.sendall(rs.ping())
     n = b.pongs

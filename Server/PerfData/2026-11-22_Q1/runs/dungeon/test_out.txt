@@ -1,10 +1,10 @@
-== dungeon (server pid 10408, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=true, data C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-aac5c1581e43bc094\Server\PerfData\2026-11-22_Q1\runs\dungeon\data)
+== dungeon (server pid 24908, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=true, data C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-22_Q1\runs\dungeon\data)
 PASS accept-3
 PASS in-dungeon
 PASS boss-seen
 PASS member-hit-boss
 PASS member-dead
-[ 132.84] 우두머리 [100207] 처치: a [(130.67284059524536, 3, 1, 1)] b(죽음 True) [(130.60671496391296, 3, 1, 1)] c(우두머리에서 7026cm) [(130.64245533943176, 3, 1, 1)]
+[ 133.32] 우두머리 [100207] 처치: a [(131.08915495872498, 3, 1, 1)] b(죽음 True) [(131.05732035636902, 3, 1, 1)] c(우두머리에서 7586cm) [(131.0576708316803, 3, 1, 1)]
 PASS credit-killer
 PASS credit-dead-member
 PASS credit-out-of-view-member

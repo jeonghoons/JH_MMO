@@ -2173,23 +2173,30 @@ Protocol::QuestResult Room::CheckQuestRequest(const shared_ptr<Player>& player, 
 	return Protocol::QUEST_RESULT_SUCCESS;
 }
 
-void Room::PlayerQuestAccept(shared_ptr<Player> player, int npcId, int questId)
+void Room::PlayerQuestRequest(shared_ptr<Player> player, int npcId, int questId)
 {
 	if (player == nullptr) return;
-	auto reject = [&](Protocol::QuestResult result) { SendQuestReject(player, Protocol::CS_QUEST_ACCEPT, questId, result); };
+	auto reject = [&](Protocol::QuestResult result) { SendQuestReject(player, Protocol::CS_QUEST_REQUEST, questId, result); };
 
 	shared_ptr<TownNpc> npc;
 	const Protocol::QuestResult check = CheckQuestRequest(player, npcId, npc);
 	if (check != Protocol::QUEST_RESULT_SUCCESS) { reject(check); return; }
 
-	// 퀘스트 존재 → 그 NPC가 주는 퀘스트 → 받지 않은 상태. 권장 레벨은 안내용이라 보지 않는다(D-259).
+	// 퀘스트 존재 → 그 NPC가 주는 퀘스트
 	const QuestData* quest = DataManager::GetQuestData(questId);
 	if (quest == nullptr || quest->npcId != npc->GetTemplateId()) { reject(Protocol::QUEST_RESULT_NO_QUEST); return; }
 
+	// 요청 하나(D-264): 할 일은 클라이언트가 아니라 서버의 퀘스트 상태가 정한다 — 받지 않음 = 수락, 진행 중 = 완료 시도, 완료함 = 거부.
+	// 수락 DB 작업 중에 온 두 번째 요청은 CheckQuestRequest의 BUSY로 막힌다(연타가 바로 완료로 이어지지 않음).
 	const Protocol::QuestState state = player->GetQuestState(questId);
-	if (state == Protocol::QUEST_STATE_ACTIVE) { reject(Protocol::QUEST_RESULT_ALREADY_ACTIVE); return; }
 	if (state == Protocol::QUEST_STATE_COMPLETED) { reject(Protocol::QUEST_RESULT_ALREADY_DONE); return; }
+	if (state == Protocol::QUEST_STATE_ACTIVE) { BeginQuestComplete(player, *quest, questId); return; }
+	BeginQuestAccept(player, questId);
+}
 
+void Room::BeginQuestAccept(const shared_ptr<Player>& player, int questId)
+{
+	// 받지 않은 상태(호출 전에 확인). 권장 레벨은 안내용이라 보지 않는다(D-259).
 	DB_ItemOp op;
 	op.kind = ItemOpKind::QuestAccept;
 	op.questId = questId;
@@ -2198,21 +2205,13 @@ void Room::PlayerQuestAccept(shared_ptr<Player> player, int npcId, int questId)
 	StartItemOp(player, op);
 }
 
-void Room::PlayerQuestComplete(shared_ptr<Player> player, int npcId, int questId)
+void Room::BeginQuestComplete(const shared_ptr<Player>& player, const QuestData& questData, int questId)
 {
-	if (player == nullptr) return;
-	auto reject = [&](Protocol::QuestResult result) { SendQuestReject(player, Protocol::CS_QUEST_COMPLETE, questId, result); };
-
-	shared_ptr<TownNpc> npc;
-	const Protocol::QuestResult check = CheckQuestRequest(player, npcId, npc);
-	if (check != Protocol::QUEST_RESULT_SUCCESS) { reject(check); return; }
-
-	const QuestData* quest = DataManager::GetQuestData(questId);
-	if (quest == nullptr || quest->npcId != npc->GetTemplateId()) { reject(Protocol::QUEST_RESULT_NO_QUEST); return; }
-
+	// 진행 중인 상태(호출 전에 확인). 조건(처치 수·수집 수량)·보상 칸·골드 상한을 보고 한 트랜잭션으로 보낸다.
+	auto reject = [&](Protocol::QuestResult result) { SendQuestReject(player, Protocol::CS_QUEST_REQUEST, questId, result); };
+	const QuestData* quest = &questData;
 	const auto entryIt = player->quests.find(questId);
-	if (entryIt == player->quests.end() || entryIt->second.state == Protocol::QUEST_STATE_NONE) { reject(Protocol::QUEST_RESULT_NOT_ACTIVE); return; }
-	if (entryIt->second.state == Protocol::QUEST_STATE_COMPLETED) { reject(Protocol::QUEST_RESULT_ALREADY_DONE); return; }
+	if (entryIt == player->quests.end()) return;   // 호출 전에 ACTIVE를 확인했다
 
 	const EconomyData& economy = DataManager::GetEconomy();
 	DB_ItemOp op;
@@ -3372,7 +3371,7 @@ void Room::ApplyItemOpResult(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpR
 		if (!result.success)
 		{
 			// 롤백 확인: 바뀐 것 없음(결과 불명이면 위에서 접속을 끊었다 — 다음 로그인 때 DB 값을 읽는다).
-			if (session) session->Send(PacketSerializer::MAKE_SC_QUEST_RESULT(Protocol::CS_QUEST_ACCEPT, op.questId, Protocol::QUEST_RESULT_DB_ERROR));
+			if (session) session->Send(PacketSerializer::MAKE_SC_QUEST_RESULT(Protocol::CS_QUEST_REQUEST, op.questId, Protocol::QUEST_RESULT_DB_ERROR));
 			break;
 		}
 		Metrics::QuestAccepted.fetch_add(1);
@@ -3390,7 +3389,7 @@ void Room::ApplyItemOpResult(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpR
 	{
 		if (!result.success)
 		{
-			if (session) session->Send(PacketSerializer::MAKE_SC_QUEST_RESULT(Protocol::CS_QUEST_COMPLETE, op.questId, Protocol::QUEST_RESULT_DB_ERROR));
+			if (session) session->Send(PacketSerializer::MAKE_SC_QUEST_RESULT(Protocol::CS_QUEST_REQUEST, op.questId, Protocol::QUEST_RESULT_DB_ERROR));
 			break;
 		}
 		Metrics::QuestCompleted.fetch_add(1);
