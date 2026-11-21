@@ -52,6 +52,39 @@ public:
     UFUNCTION(Exec)
     void ShopClose();
 
+    // Dev console commands (A6.3b auction): the same requests the auction window sends, for checks without mouse input.
+    //   "AuctionOpen [npc 0|1]"                opens the window: 0 = browse mode (K key), 1 = at the nearest auction NPC in view (F key).
+    //   "AuctionSearch [slot] [page]"          requests a search page (slot 0 = all, 1-7 = equip slot, 8 = other).
+    //   "AuctionMy"                            requests my listings + mailbox.
+    //   "AuctionRegister <itemId> <count> <price>"  registers an item of that kind from my bag (NPC mode).
+    //   "AuctionBuy <listingId>"               buys a listing (0 = the first listing in the current page that is not mine).
+    //   "AuctionCancel <listingId>"            cancels my listing (0 = my first listing).
+    //   "MailClaim <mailId>"                   claims a mail (0 = the first mail).
+    //   "AuctionShow"                          logs the search page, my listings and the mailbox.
+    //   "AuctionTab <0-3>"                     switches the window tab (0 search, 1 register, 2 my listings, 3 mailbox).
+    //   "AuctionClose"                         closes the window.
+    // Distance to the NPC, gold, limits and listing state are validated by the server.
+    UFUNCTION(Exec)
+    void AuctionOpen(int32 AtNpc = 0);
+    UFUNCTION(Exec)
+    void AuctionSearch(int32 Slot = 0, int32 Page = 0);
+    UFUNCTION(Exec)
+    void AuctionMy();
+    UFUNCTION(Exec)
+    void AuctionRegister(int32 ItemId, int32 Count = 1, int32 Price = 1);
+    UFUNCTION(Exec)
+    void AuctionBuy(int32 ListingId = 0);
+    UFUNCTION(Exec)
+    void AuctionCancel(int32 ListingId = 0);
+    UFUNCTION(Exec)
+    void MailClaim(int32 MailId = 0);
+    UFUNCTION(Exec)
+    void AuctionShow();
+    UFUNCTION(Exec)
+    void AuctionTab(int32 TabIndex = 0);
+    UFUNCTION(Exec)
+    void AuctionClose();
+
     // Dev console command (DG3b): "Portal [id]" sends the portal use request for that id, or for the nearest portal in range when id is 0.
     // Range, cast/move locks and the portal's destination are checked by the server (a rejection gets no reply).
     UFUNCTION(Exec)

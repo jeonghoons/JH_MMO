@@ -20,6 +20,7 @@
 #include "UI/ReviveWidget.h"
 #include "Game/DropItemActor.h"
 #include "Game/JMShopManager.h"
+#include "Game/JMAuctionManager.h"
 
 void UJMObjectManager::ClearObjects()
 {
@@ -576,6 +577,7 @@ void UJMObjectManager::HandleRoomChange(const Protocol::SC_ROOM_CHANGE_PACKET& P
 			MyPlayer->LockForLevelTravel();
 		}
 		if (UJMShopManager* Shop = GetGameInstance()->GetSubsystem<UJMShopManager>()) Shop->Close();
+		if (UJMAuctionManager* Auction = GetGameInstance()->GetSubsystem<UJMAuctionManager>()) { if (Auction->IsAtNpc()) Auction->Close(); }
 
 		TravelCarry.bActive = true;
 		TravelCarry.MapName = NewMap;
@@ -597,6 +599,7 @@ void UJMObjectManager::HandleRoomChange(const Protocol::SC_ROOM_CHANGE_PACKET& P
 
 	// 열려 있는 상점 창은 옛 Room의 NPC를 가리키므로 닫는다. 인벤토리 사본은 서버가 다시 보내지 않으므로 그대로 둔다.
 	if (UJMShopManager* Shop = GetGameInstance()->GetSubsystem<UJMShopManager>()) Shop->Close();
+	if (UJMAuctionManager* Auction = GetGameInstance()->GetSubsystem<UJMAuctionManager>()) { if (Auction->IsAtNpc()) Auction->Close(); }
 
 	// 내 캐릭터는 Objects에 남긴다. 뒤따르는 본인 SC_ADD_OBJECT는 "이미 있으면 무시"로 넘어가고, SC_REVIVE는 HandleRevive로 간다.
 	// 나머지 캐릭터·몬스터는 HandleDespawn과 같은 방식으로 지운다(딸린 위젯은 액터와 함께 사라진다).

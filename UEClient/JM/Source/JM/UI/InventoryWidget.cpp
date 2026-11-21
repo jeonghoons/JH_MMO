@@ -12,6 +12,7 @@
 #include "Game/JMInventoryManager.h"
 #include "Game/JMTradeManager.h"
 #include "Game/JMShopManager.h"
+#include "Game/JMAuctionManager.h"
 #include "Network/NetworkManager.h"
 
 namespace
@@ -192,6 +193,16 @@ void UInventoryWidget::OnSlotRightClicked(UItemSlotWidget* ItemSlot)
 		if (Shop->IsOpen())
 		{
 			Shop->SetSellCandidate(ItemSlot->GetItemDbId());
+			return;
+		}
+	}
+
+	// 경매 창을 경매 NPC 앞에서 열어 두었으면 인벤토리 아이템 우클릭 = 등록 후보로 고르기(A6.3b). 수량·가격을 적고 경매 창의 [등록]으로 확정한다.
+	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr)
+	{
+		if (Auction->IsAtNpc())
+		{
+			Auction->SetRegisterCandidate(ItemSlot->GetItemDbId());
 			return;
 		}
 	}

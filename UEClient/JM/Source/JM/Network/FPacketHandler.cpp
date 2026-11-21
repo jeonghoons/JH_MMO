@@ -7,6 +7,7 @@
 #include "Game/JMTradeManager.h"
 #include "Game/JMShopManager.h"
 #include "Game/JMPartyManager.h"
+#include "Game/JMAuctionManager.h"
 #include "UI/JMUIManager.h"
 #include "UI/ChatWidget.h"
 #include "UI/WidgetNames.h"
@@ -49,6 +50,9 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_PARTY_INVITE, &FPacketHandler::Handle_SC_PARTY_INVITE);
 	RegisterHandler(Protocol::SC_PARTY_STATE, &FPacketHandler::Handle_SC_PARTY_STATE);
 	RegisterHandler(Protocol::SC_PARTY_RESULT, &FPacketHandler::Handle_SC_PARTY_RESULT);
+	RegisterHandler(Protocol::SC_AUCTION_LIST, &FPacketHandler::Handle_SC_AUCTION_LIST);
+	RegisterHandler(Protocol::SC_AUCTION_MY, &FPacketHandler::Handle_SC_AUCTION_MY);
+	RegisterHandler(Protocol::SC_AUCTION_RESULT, &FPacketHandler::Handle_SC_AUCTION_RESULT);
 }
 
 UJMObjectManager* FPacketHandler::GetObjectManager(const TSharedPtr<NetworkSession>& session)
@@ -449,4 +453,30 @@ void FPacketHandler::Handle_SC_CHAT(TSharedPtr<NetworkSession>& session, Protoco
 	{
 		ChatWidget->AddChatMessage(UTF8_TO_TCHAR(pkt.sender_name().c_str()), UTF8_TO_TCHAR(pkt.message().c_str()));
 	}
+}
+
+// ---- 경매장(A6.3b): 검색 결과·내 등록·수령함의 사본과 결과 안내는 UJMAuctionManager가 맡는다 ----
+namespace
+{
+	UJMAuctionManager* GetAuctionManager(const TSharedPtr<NetworkSession>& session)
+	{
+		UNetworkManager* NetManager = session ? session->OwnerNetwork.Get() : nullptr;
+		UGameInstance* GameInstance = NetManager ? NetManager->GetGameInstance() : nullptr;
+		return GameInstance ? GameInstance->GetSubsystem<UJMAuctionManager>() : nullptr;
+	}
+}
+
+void FPacketHandler::Handle_SC_AUCTION_LIST(TSharedPtr<NetworkSession>& session, Protocol::SC_AUCTION_LIST_PACKET& pkt)
+{
+	if (UJMAuctionManager* Auction = GetAuctionManager(session)) Auction->HandleList(pkt);
+}
+
+void FPacketHandler::Handle_SC_AUCTION_MY(TSharedPtr<NetworkSession>& session, Protocol::SC_AUCTION_MY_PACKET& pkt)
+{
+	if (UJMAuctionManager* Auction = GetAuctionManager(session)) Auction->HandleMy(pkt);
+}
+
+void FPacketHandler::Handle_SC_AUCTION_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_AUCTION_RESULT_PACKET& pkt)
+{
+	if (UJMAuctionManager* Auction = GetAuctionManager(session)) Auction->HandleResult(pkt);
 }

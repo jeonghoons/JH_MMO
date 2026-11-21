@@ -10,6 +10,7 @@
 #include "Game/JMInventoryManager.h"
 #include "Game/JMTradeManager.h"
 #include "Game/JMShopManager.h"
+#include "Game/JMAuctionManager.h"
 #include "Game/JMPartyManager.h"
 #include "UI/JMUIManager.h"
 #include "SendBuffer.h"
@@ -282,6 +283,53 @@ void UNetworkManager::SendShopSell(int32 NpcId, int64 ItemDbId, int32 Count)
 	SendProtocol(*this, pkt, Protocol::CS_SHOP_SELL);
 }
 
+void UNetworkManager::SendAuctionSearch(int32 Slot, int32 Page)
+{
+	Protocol::CS_AUCTION_SEARCH_PACKET pkt;
+	pkt.set_slot(Slot);
+	pkt.set_page(Page);
+	SendProtocol(*this, pkt, Protocol::CS_AUCTION_SEARCH);
+}
+
+void UNetworkManager::SendAuctionMy()
+{
+	Protocol::CS_AUCTION_MY_PACKET pkt;
+	SendProtocol(*this, pkt, Protocol::CS_AUCTION_MY);
+}
+
+void UNetworkManager::SendAuctionBuy(int64 ListingId)
+{
+	Protocol::CS_AUCTION_BUY_PACKET pkt;
+	pkt.set_listing_id(ListingId);
+	SendProtocol(*this, pkt, Protocol::CS_AUCTION_BUY);
+}
+
+void UNetworkManager::SendAuctionRegister(int32 NpcId, int64 ItemDbId, int32 Count, int64 Price)
+{
+	Protocol::CS_AUCTION_REGISTER_PACKET pkt;
+	pkt.set_npc_id(NpcId);
+	pkt.set_item_db_id(ItemDbId);
+	pkt.set_count(Count);
+	pkt.set_price(Price);
+	SendProtocol(*this, pkt, Protocol::CS_AUCTION_REGISTER);
+}
+
+void UNetworkManager::SendAuctionCancel(int32 NpcId, int64 ListingId)
+{
+	Protocol::CS_AUCTION_CANCEL_PACKET pkt;
+	pkt.set_npc_id(NpcId);
+	pkt.set_listing_id(ListingId);
+	SendProtocol(*this, pkt, Protocol::CS_AUCTION_CANCEL);
+}
+
+void UNetworkManager::SendMailClaim(int32 NpcId, int64 MailId)
+{
+	Protocol::CS_MAIL_CLAIM_PACKET pkt;
+	pkt.set_npc_id(NpcId);
+	pkt.set_mail_id(MailId);
+	SendProtocol(*this, pkt, Protocol::CS_MAIL_CLAIM);
+}
+
 void UNetworkManager::SendTradeRequest(int32 TargetId)
 {
 	Protocol::CS_TRADE_REQUEST_PACKET pkt;
@@ -456,6 +504,12 @@ void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad, bool bRoomTravel)
 	if (UJMShopManager* Shop = GetGameInstance()->GetSubsystem<UJMShopManager>())
 	{
 		Shop->Clear();
+	}
+
+	// The auction window copies (search result, my listings, mailbox) are re-requested when the window opens; drop them with the level.
+	if (UJMAuctionManager* Auction = GetGameInstance()->GetSubsystem<UJMAuctionManager>())
+	{
+		Auction->Clear();
 	}
 
 	// 이전 레벨의 위젯 참조가 남지 않도록 UI 목록도 비운다.

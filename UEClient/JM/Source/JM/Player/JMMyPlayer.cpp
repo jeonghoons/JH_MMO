@@ -25,6 +25,7 @@
 #include "Game/JMTradeManager.h"
 #include "Game/JMShopManager.h"
 #include "Game/JMPartyManager.h"
+#include "Game/JMAuctionManager.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -149,6 +150,7 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		if (TradeAction) EnhancedInputComponent->BindAction(TradeAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnTradeInput);
 		if (PartyAction) EnhancedInputComponent->BindAction(PartyAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnPartyInput);
 		if (PartyInviteAction) EnhancedInputComponent->BindAction(PartyInviteAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnPartyInviteInput);
+		if (AuctionAction) EnhancedInputComponent->BindAction(AuctionAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnAuctionInput);
 		
 	}
 }
@@ -742,7 +744,9 @@ void AJMMyPlayer::UpdateInteractPrompt()
 		// 경계에서 서버가 TOO_FAR로 거부하지 않게 안내는 이용 거리보다 조금 안쪽에서만 띄운다.
 		const float ShopRange = Inventory ? static_cast<float>(Inventory->GetShopRangeCm()) - 30.f : 0.f;
 		float NpcDistSq = 0.f;
-		if (ObjectManager && ShopRange > 0.f) NearestNpcId = ObjectManager->FindNearestNpc(GetActorLocation(), ShopRange, NpcDistSq, static_cast<int32>(Protocol::NPC_KIND_SHOP));
+		// 상점·경매 NPC 모두 같은 이용 거리다(D-234). 하는 일이 없는 NPC는 안내하지 않는다.
+		if (ObjectManager && ShopRange > 0.f) NearestNpcId = ObjectManager->FindNearestNpc(GetActorLocation(), ShopRange, NpcDistSq);
+		if (NearestNpcId != 0 && ObjectManager->GetNpcKind(NearestNpcId) == static_cast<int32>(Protocol::NPC_KIND_NONE)) NearestNpcId = 0;
 		if (NearestNpcId != 0 && Nearest != nullptr)
 		{
 			if (FVector::DistSquared2D(GetActorLocation(), Nearest->GetActorLocation()) <= NpcDistSq) NearestNpcId = 0;
@@ -761,6 +765,8 @@ void AJMMyPlayer::UpdateInteractPrompt()
 
 	// 열려 있는 상점 창: 멀어지거나 죽거나 거래가 시작되면 닫는다.
 	if (Shop) Shop->UpdateFromPlayer(GetActorLocation(), bIsDead);
+	// 열려 있는 경매 창(A6.3b): 죽거나 거래·상점이 열리면, NPC 앞에서 연 것이면 멀어져도 닫는다.
+	if (UJMAuctionManager* Auction = GameInstance->GetSubsystem<UJMAuctionManager>()) Auction->UpdateFromPlayer(GetActorLocation(), bIsDead);
 
 	const bool bShown = Nearest != nullptr || NearestNpcId != 0 || NearestPortalId != 0;
 	if (Nearest == InteractTarget.Get() && NearestNpcId == InteractNpcId && NearestPortalId == InteractPortalId && bInteractPromptShown == bShown) return;
@@ -774,6 +780,8 @@ void AJMMyPlayer::UpdateInteractPrompt()
 	{
 		FText Prompt;
 		if (Nearest) Prompt = FText::FromString(FString::Printf(TEXT("[F] 줍기: %s"), *Nearest->GetDisplayText().ToString()));
+		else if (NearestNpcId != 0 && ObjectManager && ObjectManager->GetNpcKind(NearestNpcId) == static_cast<int32>(Protocol::NPC_KIND_AUCTION))
+			Prompt = FText::FromString(FString::Printf(TEXT("[F] 경매장: %s"), *ObjectManager->GetNpcName(NearestNpcId)));
 		else if (NearestNpcId != 0 && ObjectManager) Prompt = FText::FromString(FString::Printf(TEXT("[F] 상점: %s"), *ObjectManager->GetNpcName(NearestNpcId)));
 		// 포털 종류(SC_PORTAL_LIST의 kind — 서버가 정함, DG3c-2): 던전 입구·출구는 문구를 따로 둔다.
 		else if (NearestPortalId != 0 && NearestPortalKind == Protocol::PORTAL_KIND_DUNGEON_ENTER) Prompt = FText::FromString(TEXT("[F] 던전 입장"));
@@ -788,6 +796,17 @@ void AJMMyPlayer::OnInteractInput()
 	if (bIsDead) return;
 	// 누르는 순간의 위치로 다시 고른다(안내는 0.1초 전 것일 수 있다). 거리·소유권·빈 칸 검증은 서버가 하고 거부는 시스템 메시지로 온다.
 	UpdateInteractPrompt();
+	// 경매 NPC(A6.3b, D-234): 등록·취소·수령까지 되는 NPC 모드로 연다. 이미 NPC 모드로 열려 있으면 닫는다(K 키로 연 조회 모드면 NPC 모드로 바꾼다).
+	const UJMObjectManager* NpcObjects = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMObjectManager>() : nullptr;
+	if (InteractNpcId != 0 && NpcObjects && NpcObjects->GetNpcKind(InteractNpcId) == static_cast<int32>(Protocol::NPC_KIND_AUCTION))
+	{
+		if (UJMAuctionManager* Auction = GetGameInstance()->GetSubsystem<UJMAuctionManager>())
+		{
+			if (Auction->IsAtNpc()) Auction->Close();
+			else Auction->Open(InteractNpcId);
+		}
+		return;
+	}
 	// 상점 NPC(L4): 닫혀 있으면 품목을 요청하고(SC_SHOP_OPEN이 오면 창이 뜬다), 열려 있으면 닫는다. 거리·거래 중 검증은 서버가 한다.
 	if (InteractNpcId != 0)
 	{
@@ -860,6 +879,16 @@ void AJMMyPlayer::OnPartyInput()
 	{
 		UIManager->ToggleWidget(WidgetNames::Party);
 	}
+}
+
+void AJMMyPlayer::OnAuctionInput()
+{
+	UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr;
+	if (Auction == nullptr) return;
+	if (Auction->IsOpen()) { Auction->Close(); return; }
+	// 사망 중에는 열지 않는다(서버도 거부). 던전 안인지는 서버가 답한다(거부되면 안내가 뜨고 창이 닫힌다).
+	if (bIsDead) return;
+	Auction->Open(0);
 }
 
 void AJMMyPlayer::OnPartyInviteInput()

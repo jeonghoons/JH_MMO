@@ -4,7 +4,8 @@
 (2026-11-16 A3.1 작성, 결정 D-152~D-159. 장비 외형·슬롯은 [DESIGN_CHARACTER_EQUIPMENT.md](DESIGN_CHARACTER_EQUIPMENT.md), CSV 규약은 [DESIGN_DATA.md](DESIGN_DATA.md), 동시성 주의점은 [AUDIT_2026-11-06_CONCURRENCY.md](AUDIT_2026-11-06_CONCURRENCY.md))
 
 ## 현재 상태 (2026-11-21)
-- A4.3 완료(2026-11-21, Claude 테스트): 경매장 서버 — 전역 `AuctionService`, `Auction_Listing`·`Player_Mail`(마이그레이션 0008), 패킷 CS 1024~1029·SC 2024~2026, 경매 NPC(`NpcTable.Auction`). 쓰는 곳과 혼잡 기준이 설계에서 바뀌었습니다(D-234·D-235). 구현 내용은 아래 "A4.3 구현 메모". 경매 창(A6.3b)은 아직 없습니다.
+- A6.3b 구현(2026-11-21, Claude 2인 PIE 통과 — 사용자 PIE 확인 대기): 경매 창(`UJMAuctionManager`·`UAuctionWidget`/`WBP_Auction`, K 키 = 조회 모드·경매 NPC 앞 F 키 = NPC 모드). 구현 내용은 아래 "A6.3b 구현 메모".
+- A4.3 완료(2026-11-21, Claude 테스트): 경매장 서버 — 전역 `AuctionService`, `Auction_Listing`·`Player_Mail`(마이그레이션 0008), 패킷 CS 1024~1029·SC 2024~2026, 경매 NPC(`NpcTable.Auction`). 쓰는 곳과 혼잡 기준이 설계에서 바뀌었습니다(D-234·D-235). 구현 내용은 아래 "A4.3 구현 메모".
 - L4 완료(2026-11-19, Claude 테스트 + 사용자 PIE 확인): 상점 NPC(구매·판매, D-201·D-202). 설계와 구현 메모는 아래 "상점 NPC (L4)". A3.1 때는 범위 밖이었으나 D-167로 마일스톤 1에 들어왔습니다.
 - A6.3a 완료(2026-11-17, 사용자 PIE 확인): 거래 UI(`UJMTradeManager`·`UTradeWidget`/`WBP_Trade`, T 키). 구현 내용은 아래 "A6.3a 구현 메모".
 - A4.1·A4.2 완료(2026-11-17): 1:1 거래 서버(상태기계·패킷·한 트랜잭션 교환·`Trade_Log`, 마이그레이션 0007). 구현 내용은 아래 "A4.1·A4.2 구현 메모". 거래 UI(A6.3a)와 경매 코드는 아직 없습니다.
@@ -323,7 +324,17 @@
   - 창 위젯은 `SelfHitTestInvisible`로 보입니다(`UJMUIManager`) — 화면 전체를 덮는 위젯 자체가 클릭을 받으면 위 창(거래)이 아래 창(인벤토리)을 막기 때문입니다. 창 안의 패널·버튼은 그대로 클릭됩니다.
 - **상점 창**(L4, NPC 근처에서 F 키): 위 "상점 NPC (L4)"의 "클라이언트".
 - **경매 창**(A6.3b, D-234): K 키 = 조회 모드(검색·구매·내 등록/수령함 보기), 경매 NPC 앞 F 키 = 등록·취소·수령까지. 검색(슬롯 필터, 쪽 넘기기)·구매, 등록(인벤토리에서 골라 수량·가격 입력), 내 등록(취소), 수령함(수령) 탭.
-- 거부·실패·성사 안내는 모두 시스템 메시지 창(D-050)입니다.
+- **A6.3b 구현 메모 (2026-11-21, D-234)**
+  - 상태: `UJMAuctionManager`(GameInstanceSubsystem)가 서버가 보낸 검색 결과(`SC_AUCTION_LIST`)·내 등록·수령함(`SC_AUCTION_MY`)을 그대로 담습니다. 조작은 요청만 보내고 화면은 응답이 와야 바뀝니다. 레벨 전환·로그인 화면 복귀 때 비웁니다.
+  - 여는 방법 둘: **K 키**(`IA_Auction` → `AJMMyPlayer::OnAuctionInput`) = 조회 모드(`Open(0)` — 검색·구매·내 등록/수령함 보기), **경매 NPC 앞 F 키**(안내 "[F] 경매장: 이름" — `ObjectInfo.npc_kind`로 상점과 구분) = NPC 모드(`Open(NpcId)` — 등록·취소·수령까지, 인벤토리 창도 함께 엶). 조회 모드에서는 등록·취소·수령 버튼이 꺼지고 안내 문구가 보입니다. K로 연 채 NPC 앞에서 F를 누르면 NPC 모드로 바뀝니다.
+  - 창(`WBP_Auction`, 부모 `UAuctionWidget`, ZOrder 127, 화면 왼쪽 — 상점과 같은 자리): 탭 네 개(검색·등록·내 등록·수령함)를 한 위젯에 두고 고른 탭의 패널만 보입니다(패널 `Visible`/`Collapsed`). 검색 = 필터 버튼 9개(전체·머리·상의·하의·장갑·신발·무기·보조·기타) + 가격순 목록 + 이전·다음 쪽·새로 고침 + [구매]. 목록 줄과 필터 버튼은 C++가 만듭니다(`UAuctionRowButton` — `UButton`에 줄 번호를 붙인 것, 줄을 눌러 고르고 아래 버튼으로 확정). 아이콘 없이 글자 줄입니다(기능 우선).
+  - 등록: NPC 모드에서 인벤토리 아이템 **우클릭 = 등록 후보로 고르기**(`UInventoryWidget::OnSlotRightClicked`의 분기 순서: 장착 칸 해제 → 상점 판매 후보 → 경매 등록 후보 → 거래 제시 → 장착·사용) → 등록 탭이 열리고 수량(기본 = 그 행 전부)·값(묶음 전체)을 적은 뒤 [등록]. 등록 수 상한·가격 범위는 `SC_AUCTION_MY`로 받은 값으로 버튼을 끕니다(검증은 서버).
+  - 결과 안내: **성공은 확인 창을 띄우지 않고** 창 아래 한 줄(`TxtStatus`) + 바뀐 목록 다시 요청, **거부·실패는 시스템 메시지 창**(`AuctionResultText`, `BUSY`·`TOO_FREQUENT`는 띄우지 않음). `IN_DUNGEON`·`DEAD`면 창을 닫고, 구매가 `SOLD`·`NO_LISTING`이면 목록을 다시 받습니다.
+  - 조회가 서버의 요청 간격(100ms)에 걸려 `TOO_FREQUENT`로 버려지면 0.25초 뒤 다시 보냅니다(`RetryQueries` — 버려진 채 두면 목록이 낡은 채 남음. 예: 탭을 바꾼 직후 등록이 성공해 내 목록을 연달아 요청).
+  - 닫히는 때(`UJMAuctionManager::UpdateFromPlayer`, 0.1초마다): 사망, 1:1 거래의 제시 단계 시작, 상점 열림, (NPC 모드) NPC에서 멀어짐·Room 이동. NPC 모드로 닫히면 함께 연 인벤토리 창도 닫습니다. 경매 창을 열면 열려 있던 상점은 닫습니다.
+  - 개발용 콘솔 명령(`AJMPlayerController`): `AuctionOpen [0|1]`·`AuctionSearch [slot] [page]`·`AuctionMy`·`AuctionRegister <itemId> <count> <price>`·`AuctionBuy [listingId]`·`AuctionCancel [listingId]`·`MailClaim [mailId]`(0 = 목록의 첫 것)·`AuctionTab <0~3>`·`AuctionShow`(목록을 로그로)·`AuctionClose` — `pie_exec`로 보낼 수 있습니다.
+  - **구현하면서 정한 것(바꾸려면 알려 주세요)**: ① 목록은 줄을 고르고 아래 버튼으로 확정(줄마다 버튼을 두지 않음 — 잘못 누르는 것을 막음). ② 다른 사람이 산 뒤에도 내 검색 목록은 [새로 고침]이나 탭 전환 전까지 그대로입니다(서버가 밀어 주지 않음 — 사려고 하면 `SOLD`가 오고 그때 목록을 다시 받음). ③ 수령함에 받을 것이 있다는 표시는 창을 열어야 보입니다(판매 알림과 함께 콘텐츠 다듬기에서).
+- 거부·실패·성사 안내는 모두 시스템 메시지 창(D-050)입니다(경매의 성공 안내만 창 안 한 줄 — A6.3b).
 
 ## 패킷 (번호 배정)
 새 번호는 `Enum.proto`의 마지막 번호 다음부터 이어 씁니다(2026-11-21 기준 CS 1038~, SC 2039~ — 파티가 CS 1035~1037·SC 2033~2035(DG2 구현), Room 이동이 SC 2036·2037(DG3b 구현, 거래 취소 사유 `TRADE_RESULT_MOVED` 17 추가), 2038은 던전 상태(DG3c 예정), `DESIGN_PARTY_DUNGEON.md`). 추가 절차는 [Common/Protocol/CLAUDE.md](../Common/Protocol/CLAUDE.md).

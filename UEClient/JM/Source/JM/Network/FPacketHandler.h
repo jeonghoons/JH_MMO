@@ -75,5 +75,9 @@ private:
     static void Handle_SC_PARTY_INVITE(TSharedPtr<NetworkSession>& session, Protocol::SC_PARTY_INVITE_PACKET& pkt);
     static void Handle_SC_PARTY_STATE(TSharedPtr<NetworkSession>& session, Protocol::SC_PARTY_STATE_PACKET& pkt);
     static void Handle_SC_PARTY_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_PARTY_RESULT_PACKET& pkt);
+    // 경매장(A6.3b): 상태·안내는 UJMAuctionManager가 맡는다
+    static void Handle_SC_AUCTION_LIST(TSharedPtr<NetworkSession>& session, Protocol::SC_AUCTION_LIST_PACKET& pkt);
+    static void Handle_SC_AUCTION_MY(TSharedPtr<NetworkSession>& session, Protocol::SC_AUCTION_MY_PACKET& pkt);
+    static void Handle_SC_AUCTION_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_AUCTION_RESULT_PACKET& pkt);
 };
 

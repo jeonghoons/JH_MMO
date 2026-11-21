@@ -12,6 +12,8 @@
 #include "Game/JMObjectManager.h"
 #include "Game/JMShopManager.h"
 #include "Game/JMPartyManager.h"
+#include "Game/JMAuctionManager.h"
+#include "UI/AuctionWidget.h"
 
 void AJMPlayerController::BeginPlay()
 {
@@ -136,6 +138,120 @@ void AJMPlayerController::ShopSell(int32 ItemId, int32 Count)
 void AJMPlayerController::ShopClose()
 {
 	if (UJMShopManager* Shop = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMShopManager>() : nullptr) Shop->Close();
+}
+
+// ---- 경매장 개발용 콘솔 명령(A6.3b): 경매 창이 보내는 것과 같은 요청 ----
+void AJMPlayerController::AuctionOpen(int32 AtNpc)
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	UJMAuctionManager* Auction = GameInstance ? GameInstance->GetSubsystem<UJMAuctionManager>() : nullptr;
+	if (Auction == nullptr) return;
+	int32 NpcId = 0;
+	if (AtNpc != 0)
+	{
+		// 시야 안의 가장 가까운 경매 NPC(거리 제한 없이 고른다 — 멀면 서버가 TOO_FAR로 거부하고, 창은 0.1초 뒤 거리 검사로 닫힌다).
+		const UJMObjectManager* ObjectManager = GameInstance->GetSubsystem<UJMObjectManager>();
+		const APawn* MyPawn = GetPawn();
+		float DistSq = 0.f;
+		if (ObjectManager && MyPawn) NpcId = ObjectManager->FindNearestNpc(MyPawn->GetActorLocation(), 1000000.f, DistSq, static_cast<int32>(Protocol::NPC_KIND_AUCTION));
+		if (NpcId == 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AuctionOpen: 시야 안에 경매 NPC가 없습니다."));
+			return;
+		}
+		UE_LOG(LogTemp, Log, TEXT("AuctionOpen: npc=%d dist=%.0fcm"), NpcId, FMath::Sqrt(DistSq));
+	}
+	Auction->Open(NpcId);
+}
+
+void AJMPlayerController::AuctionSearch(int32 Slot, int32 Page)
+{
+	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr) Auction->RequestSearch(Slot, Page);
+}
+
+void AJMPlayerController::AuctionMy()
+{
+	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr) Auction->RequestMy();
+}
+
+void AJMPlayerController::AuctionRegister(int32 ItemId, int32 Count, int32 Price)
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	UJMAuctionManager* Auction = GameInstance ? GameInstance->GetSubsystem<UJMAuctionManager>() : nullptr;
+	const UJMInventoryManager* Inventory = GameInstance ? GameInstance->GetSubsystem<UJMInventoryManager>() : nullptr;
+	if (Auction == nullptr || Inventory == nullptr) return;
+	const int64 ItemDbId = Inventory->FindBagItemDbId(ItemId);
+	if (ItemDbId == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AuctionRegister: 인벤토리에 item=%d 이(가) 없습니다."), ItemId);
+		return;
+	}
+	UE_LOG(LogTemp, Log, TEXT("AuctionRegister: item=%d dbId=%lld count=%d price=%d"), ItemId, ItemDbId, Count, Price);
+	Auction->SetRegisterCandidate(ItemDbId);
+	Auction->Register(ItemDbId, Count, Price);
+}
+
+void AJMPlayerController::AuctionBuy(int32 ListingId)
+{
+	UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr;
+	if (Auction == nullptr) return;
+	int64 Target = ListingId;
+	if (Target == 0)
+	{
+		// 지금 쪽에서 내 것이 아닌 첫 등록
+		for (const FJMAuctionListing& Listing : Auction->GetListings())
+		{
+			if (!Listing.bMine) { Target = Listing.ListingId; break; }
+		}
+	}
+	UE_LOG(LogTemp, Log, TEXT("AuctionBuy: listing=%lld"), Target);
+	Auction->Buy(Target);
+}
+
+void AJMPlayerController::AuctionCancel(int32 ListingId)
+{
+	UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr;
+	if (Auction == nullptr) return;
+	int64 Target = ListingId;
+	if (Target == 0 && Auction->GetMyListings().Num() > 0) Target = Auction->GetMyListings()[0].ListingId;
+	UE_LOG(LogTemp, Log, TEXT("AuctionCancel: listing=%lld"), Target);
+	Auction->Cancel(Target);
+}
+
+void AJMPlayerController::MailClaim(int32 MailId)
+{
+	UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr;
+	if (Auction == nullptr) return;
+	int64 Target = MailId;
+	if (Target == 0 && Auction->GetMails().Num() > 0) Target = Auction->GetMails()[0].MailId;
+	UE_LOG(LogTemp, Log, TEXT("MailClaim: mail=%lld"), Target);
+	Auction->Claim(Target);
+}
+
+void AJMPlayerController::AuctionShow()
+{
+	const UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr;
+	const UJMInventoryManager* Inventory = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMInventoryManager>() : nullptr;
+	if (Auction == nullptr) return;
+	UE_LOG(LogTemp, Log, TEXT("AuctionShow: open=%d atNpc=%d gold=%lld slot=%d page=%d total=%d status='%s'"), Auction->IsOpen() ? 1 : 0, Auction->IsAtNpc() ? 1 : 0,
+		Inventory ? Inventory->GetGold() : 0, Auction->GetSearchSlot(), Auction->GetSearchPage(), Auction->GetSearchTotal(), *Auction->GetStatusText());
+	for (const FJMAuctionListing& Listing : Auction->GetListings())
+		UE_LOG(LogTemp, Log, TEXT("AuctionShow: list listing=%lld item=%d count=%lld price=%lld remain=%d mine=%d"), Listing.ListingId, Listing.ItemId, Listing.Count, Listing.Price, Listing.RemainSec, Listing.bMine ? 1 : 0);
+	for (const FJMAuctionListing& Listing : Auction->GetMyListings())
+		UE_LOG(LogTemp, Log, TEXT("AuctionShow: my listing=%lld item=%d count=%lld price=%lld remain=%d"), Listing.ListingId, Listing.ItemId, Listing.Count, Listing.Price, Listing.RemainSec);
+	for (const FJMAuctionMail& Mail : Auction->GetMails())
+		UE_LOG(LogTemp, Log, TEXT("AuctionShow: mail=%lld kind=%d gold=%lld item=%d count=%lld listing=%lld"), Mail.MailId, Mail.Kind, Mail.Gold, Mail.ItemId, Mail.Count, Mail.ListingId);
+}
+
+void AJMPlayerController::AuctionTab(int32 TabIndex)
+{
+	UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr;
+	if (UAuctionWidget* Widget = UIManager ? Cast<UAuctionWidget>(UIManager->GetWidget(WidgetNames::Auction)) : nullptr) Widget->ShowTab(TabIndex);
+}
+
+void AJMPlayerController::AuctionClose()
+{
+	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr) Auction->Close();
 }
 
 void AJMPlayerController::Equip(int32 Part, int32 ItemId)

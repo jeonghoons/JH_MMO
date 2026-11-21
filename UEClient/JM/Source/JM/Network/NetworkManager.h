@@ -63,6 +63,14 @@ public:
 	void SendShopOpen(int32 NpcId);
 	void SendShopBuy(int32 NpcId, int32 ItemId, int32 Count);
 	void SendShopSell(int32 NpcId, int64 ItemDbId, int32 Count);
+	// 경매장(A6.3b). 검색·구매·내 목록은 던전 밖 어디서나, 등록·취소·수령은 경매 NPC(NpcId) 근처에서만 — 검증은 서버가 한다.
+	// 결과는 SC_AUCTION_LIST / SC_AUCTION_MY / SC_AUCTION_RESULT, 아이템·골드 변화는 SC_INVENTORY_UPDATE
+	void SendAuctionSearch(int32 Slot, int32 Page);
+	void SendAuctionMy();
+	void SendAuctionBuy(int64 ListingId);
+	void SendAuctionRegister(int32 NpcId, int64 ItemDbId, int32 Count, int64 Price);
+	void SendAuctionCancel(int32 NpcId, int64 ListingId);
+	void SendMailClaim(int32 NpcId, int64 MailId);
 	void SendTradeRequest(int32 TargetId);
 	void SendTradeRespond(bool bAccept);
 	void SendTradeSetOffer(const TArray<TPair<int64, int64>>& Items, int64 Gold);

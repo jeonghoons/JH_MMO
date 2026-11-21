@@ -37,4 +37,8 @@ protected:
 	// Party window (WBP_Party, parent UPartyWidget). Toggled with IA_Party, also shown by UJMPartyManager on invite (DG2).
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> PartyWidgetClass;
+
+	// Auction window (WBP_Auction, parent UAuctionWidget). Shown and hidden by UJMAuctionManager: K key (browse) or F at the auction NPC (A6.3b).
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> AuctionWidgetClass;
 };

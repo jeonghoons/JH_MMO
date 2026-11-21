@@ -32,6 +32,8 @@ void AIngameGameModeBase::BeginPlay()
 			if (ShopWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Shop, ShopWidgetClass, true, 126, false);
 			// 파티 창(DG2): 숨겨 두었다가 P 키(AJMMyPlayer::OnPartyInput)로 여닫고, 초대를 받으면 UJMPartyManager가 띄운다. 인벤토리(120)와 거래(125) 사이.
 			if (PartyWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Party, PartyWidgetClass, true, 124, false);
+			// 경매 창(A6.3b): 숨겨 두었다가 K 키(조회)나 경매 NPC 앞 F 키로 UJMAuctionManager가 띄운다. 상점과 함께 뜨지 않으므로 그 바로 위 층.
+			if (AuctionWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Auction, AuctionWidgetClass, true, 127, false);
 
 			// 전투 입력 모드. 시스템 메시지 창(방 입장 대기 등)이 떠 있으면 커서를 유지한다.
 			UIManager->SetGameplayInput(true);
