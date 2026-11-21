@@ -78,7 +78,7 @@ Character::CastTiming Character::BeginCast(const SkillData& skill, long long act
 }
 bool Character::IsInCombat(long long nowMs) const
 {
-	return lastCombatMs != 0 && nowMs - lastCombatMs < COMBAT_HOLD_MS;
+	return lastCombatMs != 0 && nowMs - lastCombatMs < DataManager::GetEconomy().combatHoldMs;
 }
 
 void Character::OnDamaged(int damage, int attackerId, shared_ptr<Character> attacker)

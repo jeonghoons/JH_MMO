@@ -111,6 +111,13 @@ def export_items(write=True):
     for r in rows:
         r += [""] * (len(header) - len(r))
         if r[col["Slot"]] == "None":
+            # 소비 아이템·전리품: 메시가 없어도 구조체 열은 빈 칸이면 DT 임포트가 실패하므로 기본값을 채운다(IT3, 2026-11-22)
+            empty = {"AttachSocket": "", "AttachM": _identity_text(), "AttachF": _identity_text(), "Mask": _mask_text({}),
+                     "HideHair": "0", "BackSocket": "", "BackM": _identity_text(), "BackF": _identity_text()}
+            for c, v in empty.items():
+                if c in col and r[col[c]] == "" and v != "":
+                    changed.append({"id": r[col["Name"]], "item": None, "col": c, "old": "", "new": v})
+                    r[col[c]] = v
             skipped.append(r[col["Name"]])
             continue
         mesh = _pkg(r[col["MeshM"]]) or _pkg(r[col["StaticMesh"]])

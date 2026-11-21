@@ -43,7 +43,8 @@ enum class EItemTier : uint8
 	None = 0 UMETA(Hidden),
 	Cloth = 1,
 	Leather = 2,
-	Plate = 3
+	Plate = 3,
+	Ornate = 4   // 03등급 근위(IT3, D-251·D-253)
 };
 
 // 소비 아이템의 사용 효과 (A3.2). 효과 적용은 서버가 하고, 클라이언트는 표시(쓸 수 있는 아이템인지)에만 쓴다.
@@ -51,7 +52,8 @@ UENUM(BlueprintType)
 enum class EItemUseEffect : uint8
 {
 	None,
-	HealHp   // UseValue만큼 HP 회복
+	HealHp,  // UseValue만큼 HP 회복
+	HealMp   // UseValue만큼 MP 회복(IT3, D-253)
 };
 
 // 등급. 데이터·아이콘 테두리에만 쓰고 외형은 티어가 정한다.
@@ -60,7 +62,8 @@ enum class EItemGrade : uint8
 {
 	Common,
 	Uncommon,
-	Rare
+	Rare,
+	Epic     // 03등급(IT3, D-251)
 };
 
 // 장비를 입었을 때 몸 섹션 마스크 머티리얼(MI_Body_<M|F>)에 넣는 파라미터. 이름 = 머티리얼 스칼라 파라미터 이름(jm_kit.body_mask.PARAMS).
@@ -94,6 +97,7 @@ struct FItemTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) EWeaponType WeaponType = EWeaponType::None;   // 무기만 Sword/Bow
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 BonusAttackDamage = 0;                  // 무기만 (표시용, 계산은 서버)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 BonusMaxHp = 0;                         // 방어구만 (표시용, 계산은 서버)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 BonusMaxMp = 0;                         // 투구만 (표시용, 계산은 서버 — IT3)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 Starter = 0;                            // 1 = 가입 시 기본 장비 (지급은 서버, MC3.3)
 	// A3.2 (Docs/DESIGN_ITEMS_TRADE.md) — 검사·적용은 서버, 클라이언트는 표시용
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 RequiredLevel = 1;                      // 장착(소비 아이템은 사용)에 필요한 레벨

@@ -72,10 +72,18 @@ SKILLS = {
     2002: ("Sword", 1, 120, 2333, 5000, 20, 1, 100),
     3001: ("Bow", 0, 40, 1733, 0, 0, 1, 80),
     3002: ("Bow", 1, 30, 700, 5000, 20, 3, 30),   # 장판 3초 × 1초 틱(틱마다 공격력 30% → 3틱 90%)
-    4001: ("TwoHandSword", 0, 80, 1800, 0, 0, 1, 100),   # AnimMs는 WT1에서 실제 동작 길이로
-    4002: ("TwoHandSword", 1, 200, 2500, 6000, 30, 1, 100),
+    4001: ("TwoHandSword", 0, 60, 1267, 0, 0, 1, 100),   # AnimMs = AM_TwoHandSword_Attack 몽타주 길이 1.267초 (WT1)
+    4002: ("TwoHandSword", 1, 100, 1867, 6000, 30, 1, 100),  # AnimMs = AM_TwoHandSword_Skill1 1.867초 (WT1)
 }
 WEAPON_SKILLS = {"Sword": (2001, 2002), "Bow": (3001, 3002), "TwoHandSword": (4001, 4002)}
+# WT1 새 행(SkillTable에 없을 때 만든다): 판정 시점·행동 잠금은 ExportSkillTiming 전까지의 임시값(보고에 "재실행 필요")
+TWO_HAND_ROW = {
+    # id: (HitDelayMs, MoveLockMs — 2026-11-22 ExportSkillTiming 값, Radius, Angle, HitFx, Montage)
+    4001: (650, 850, 230, 180, "/Game/FX/Hit/P_Hit_Slash.P_Hit_Slash",
+           "/Game/Character/Mannequin/Anims/TwoHandSword/AM_TwoHandSword_Attack.AM_TwoHandSword_Attack"),
+    4002: (1000, 1400, 320, 360, "",
+           "/Game/Character/Mannequin/Anims/TwoHandSword/AM_TwoHandSword_Skill1.AM_TwoHandSword_Skill1"),
+}
 
 # 몬스터: 경험치는 쉬운 숫자로 고정. HP·공격력은 전투 감각 기준(기준 플레이어 = 그 대역 레벨 + 그 등급 전신, 한손검 + 방패)
 MONSTER_BASE_DAMAGE = 10                 # 9001~9005 BaseDamage 모두 10 (한 대 피해 = 공격력 + 10)
@@ -372,8 +380,8 @@ def checks(lines, grades):
         bow, th = g["dpsBow"] / g["dpsSword"], g["dpsTwoHand"] / g["dpsSword"]
         if not (0.8 <= bow <= 1.0):
             warns.append(f"{g['grade']}등급 활/검 DPS {bow:.2f} (기준 0.8~1.0)")
-        if not (1.2 <= th <= 1.35):
-            warns.append(f"{g['grade']}등급 양손검/검 DPS {th:.2f} (기준 1.2~1.35)")
+        if not (1.25 <= th <= 1.55):   # D-257
+            warns.append(f"{g['grade']}등급 양손검/검 DPS {th:.2f} (기준 1.25~1.55, D-257)")
     lines.append("## 검사")
     lines.append("")
     lines.append("- 오류 없음" if not errors else "\n".join(f"- **오류: {e}**" for e in errors))
@@ -457,15 +465,76 @@ def datatable_plan():
     # SkillTable: MpCost·AttackScale(새 열, 기본 0·100), BaseDamage. 아직 CSV에 없는 스킬(양손검 4001·4002 — WT1)은 건너뛴다
     with open(os.path.join(DATA, "SkillTable.csv"), encoding="utf-8", newline="") as f:
         existing = {r[0] for r in list(csv.reader(f))[1:] if r}
-    sk = {}
+    sk, sk_new = {}, {}
     for sid, s in SKILLS.items():
         if str(sid) in existing:
             sk[sid] = {"BaseDamage": s[2], "MpCost": s[5], "AttackScale": s[7]}
+        elif sid in TWO_HAND_ROW:
+            hit, lock, radius, angle, hit_fx, montage = TWO_HAND_ROW[sid]
+            sk_new[sid] = {"WeaponType": "TwoHandSword", "Slot": s[1], "TargetingType": "NonTargeted", "HitShape": "Sector",
+                           "HitDelayMs": hit, "CooldownMs": s[4], "AnimMs": s[3], "MoveLockMs": lock, "CastRange": 0,
+                           "Radius": radius, "Angle": angle, "Range": 0, "Width": 0, "BaseDamage": s[2], "ProjSpeed": 0,
+                           "DurationMs": 0, "TickMs": 0, "AimMoveSpeedMul": "1.0", "AimMaxMs": 0, "MpCost": s[5],
+                           "AttackScale": s[7], "Fx": "", "FxBaseRadius": 0, "HitFx": hit_fx, "Montage": montage, "Icon": ""}
     for sid in MONSTER_SKILL_IDS:
         sk[sid] = {"BaseDamage": MONSTER_BASE_DAMAGE}
     plans.append(merge_table("SkillTable.csv", [("MpCost", "AimMaxMs", "0"), ("AttackScale", "MpCost", "100"), ("HitFx", "FxBaseRadius", "")],
-                             sk, fill_if_empty=SKILL_ASSET_FILL))
+                             sk, fill_if_empty=SKILL_ASSET_FILL, add_rows=sk_new))
+    plans.extend(item_shop_drop_plans())
     return plans
+
+
+ITEM_PATH_COLS = ["Icon", "MeshM", "MeshF", "StaticMesh", "AttachSocket", "AttachM", "AttachF", "Mask", "HideHair",
+                  "BackSocket", "BackM", "BackF"]
+
+
+def item_shop_drop_plans():
+    """IT3: ItemTable(기존 행은 능력치·이름·등급 열만, 새 행은 외형 칸을 비움), ShopTable·DropTable(전체 다시 씀)."""
+    plans = []
+    with open(os.path.join(DATA, "ItemTable.csv"), encoding="utf-8", newline="") as f:
+        existing = {r[0] for r in list(csv.reader(f))[1:] if r}
+    rows = {}
+    for it in ITEMS:
+        cols = dict(Slot=it["slot"], Grade=GRADE_ENUM[it["grade"]], Tier=TIER_ENUM[it["grade"]], WeaponType=it["weapon"],
+                    BonusAttackDamage=it["atk"], BonusMaxHp=it["hp"], BonusMaxMp=it["mp"], Starter=it["starter"], RequiredLevel=1,
+                    MaxStack=1, UseEffect="None", UseValue=0, UseCooldownMs=0, SellPrice=it["sell"], DisplayName=it["name"])
+        rows[it["id"]] = cols
+    for c in CONSUMABLES:
+        rows[c[0]] = dict(Slot="None", Grade="Common", Tier="None", WeaponType="None", BonusAttackDamage=0, BonusMaxHp=0,
+                          BonusMaxMp=0, Starter=0, RequiredLevel=1, MaxStack=20, UseEffect=c[2], UseValue=c[3],
+                          UseCooldownMs=c[4], SellPrice=c[6], DisplayName=c[1])
+    for l in LOOT:
+        rows[l[0]] = dict(Slot="None", Grade="Common", Tier="None", WeaponType="None", BonusAttackDamage=0, BonusMaxHp=0,
+                          BonusMaxMp=0, Starter=0, RequiredLevel=1, MaxStack=99, UseEffect="None", UseValue=0,
+                          UseCooldownMs=0, SellPrice=l[3], DisplayName=l[1])
+    updates, adds = {}, {}
+    for rid, cols in rows.items():
+        if str(rid) in existing:
+            updates[rid] = cols
+        else:
+            adds[rid] = {**cols, **{c: "" for c in ITEM_PATH_COLS}}
+    plans.append(merge_table("ItemTable.csv", [("BonusMaxMp", "BonusMaxHp", "0")], updates, add_rows=adds))
+
+    # ShopTable: 물약 4종 + 00등급 9종 (전체 다시 씀)
+    shop = [[1001 + i, 1, c[0], c[5]] for i, c in enumerate(CONSUMABLES)]
+    for it in ITEMS:
+        if it["grade"] == 0:
+            shop.append([1001 + len(shop), 1, it["id"], SHOP_GEAR_BUY])
+    plans.append(full_table("ShopTable.csv", ["Name", "ShopId", "ItemId", "BuyPrice"], shop))
+    # DropTable: 몬스터별 전부 다시 씀 (IT3)
+    plans.append(full_table("DropTable.csv", ["Name", "MonsterId", "ItemId", "DropRate", "MinCount", "MaxCount"], drop_rows()))
+    return plans
+
+
+def full_table(name, header, rows):
+    path = os.path.join(DATA, name)
+    with open(path, encoding="utf-8", newline="") as f:
+        before = f.read()
+    out = io.StringIO()
+    w = csv.writer(out, lineterminator="\n")
+    w.writerow(header)
+    w.writerows(rows)
+    return path, before, out.getvalue()
 
 
 def write_datatables(really_write):

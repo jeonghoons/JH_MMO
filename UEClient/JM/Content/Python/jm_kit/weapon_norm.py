@@ -154,7 +154,8 @@ def apply(keys=None):
                         **({"target_tris": old_at["target_tris"]} if "target_tris" in old_at else {})}
         if "back" in it:
             it["norm"]["back_before"] = it["back"]
-            it["back"] = {"socket": BACK[old_at["socket"]], "fit": "socket"}
+            two_hand = "/TwoHandSword/" in it["source"]   # 양손검(D-240)은 등 소켓이 따로
+            it["back"] = {"socket": "BackSocket_TwoHand" if two_hand else BACK[old_at["socket"]], "fit": "socket"}
         it.pop("manual", None)   # 맞춤 레벨 수동값은 소켓 초기값으로 옮겨짐
         done[k] = res
     with open(os.path.join(PY_DIR, "items.json"), "w", encoding="utf-8", newline="\n") as f:
@@ -175,8 +176,37 @@ def info(keys=None):
     return out
 
 
+def profile(keys, bins=40):
+    """진단(IT2c, 2026-11-22): 원본 메시(정규화 전)의 긴 축을 bins칸으로 나눠 칸마다 폭(중간 축)·두께(얇은 축) 범위를
+    긴 축 길이 비율로 돌려준다 — 가드·손잡이 위치로 grip_frac을 정할 때. 축은 원본 메시 축 그대로(활 시위·방패 앞면 판단용
+    질량 중심 치우침 bias = (평균 - 상자 중심) / 그 축 길이도 함께)."""
+    out = {}
+    for k in keys:
+        _ids, P = garment._verts(garment._dm_static(garment.load_items()[k]["source"]))
+        lo = [min(p[i] for p in P) for i in range(3)]
+        hi = [max(p[i] for p in P) for i in range(3)]
+        ext = [hi[i] - lo[i] for i in range(3)]
+        a, mid, thin = sorted(range(3), key=lambda i: -ext[i])
+        w = [[1e9, -1e9, 1e9, -1e9] for _ in range(bins)]
+        for p in P:
+            b = min(bins - 1, int((p[a] - lo[a]) / ext[a] * bins))
+            r = w[b]
+            r[0], r[1] = min(r[0], p[mid]), max(r[1], p[mid])
+            r[2], r[3] = min(r[2], p[thin]), max(r[3], p[thin])
+        L_ = ext[a]
+        out[k] = {"axes": {"long": "xyz"[a], "mid": "xyz"[mid], "thin": "xyz"[thin]},
+                  "size": [round(e, 2) for e in ext], "lo": [round(v, 2) for v in lo], "hi": [round(v, 2) for v in hi],
+                  "mid_lo": [round(r[0], 2) for r in w], "thin_lo": [round(r[2], 2) for r in w],
+                  "bias": [round((sum(p[i] for p in P) / len(P) - (lo[i] + hi[i]) / 2) / max(ext[i], 1e-6), 3) for i in range(3)],
+                  "width": [round(max(0.0, r[1] - r[0]) / L_, 3) for r in w],
+                  "thick": [round(max(0.0, r[3] - r[2]) / L_, 3) for r in w]}
+    return out
+
+
 def run(step, args=None):
     args = args or {}
+    if step == "wn_profile":
+        return profile(args["keys"], args.get("bins", 40))
     if step == "wn_info":
         return info(args.get("keys"))
     if step == "wn_plan":

@@ -667,5 +667,1251 @@
         "target_tris": 5000
       }
     }
+  },
+  "00_TwoHandSword": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/_Weapon/TwoHandSword/SM_00_TwoHandSword",
+    "varco": {
+      "image_node": "679f9564-acbb-4043-8b0a-465c316bde82",
+      "generate3d_node": "ee4857c0-6c0e-4477-b78a-b8d3195bbdbb",
+      "polygon_count": 30000
+    },
+    "attach": {
+      "socket": "WeaponSocket_R",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/00_TwoHandSword",
+    "back": {
+      "socket": "BackSocket_TwoHand",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 1.40358,
+      "origin_raw": [
+        0.021,
+        0.003,
+        -26.423
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_r",
+        "fit": "length",
+        "length_cm": 140,
+        "grip_frac": 0.235,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "target_tris": 5000,
+        "_note": "grip_frac = 가드 바로 아래(GLB 폭 분포로 잰 가드 시작 - 0.045, D-256)"
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 140,
+        "grip_frac": 0.235,
+        "center": [
+          -14,
+          -24,
+          150
+        ],
+        "dir": [
+          1,
+          0,
+          -1.3
+        ],
+        "face": [
+          0,
+          -1,
+          0
+        ],
+        "_note": "초기값(2026-11-21) — 맞춤 레벨에서 사용자가 잡은 값은 manual.back"
+      }
+    }
+  },
+  "01_TwoHandSword": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/_Weapon/TwoHandSword/SM_01_TwoHandSword",
+    "varco": {
+      "image_node": "7d547319-b35e-4fa9-a66d-660bd3f24407",
+      "generate3d_node": "0acf681c-aaf5-4383-8155-93cbe255c302",
+      "polygon_count": 30000
+    },
+    "attach": {
+      "socket": "WeaponSocket_R",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/01_TwoHandSword",
+    "back": {
+      "socket": "BackSocket_TwoHand",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 1.40052,
+      "origin_raw": [
+        0.039,
+        0.025,
+        -18.483
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_r",
+        "fit": "length",
+        "length_cm": 140,
+        "grip_frac": 0.315,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "target_tris": 5000,
+        "_note": "grip_frac = 가드 바로 아래(GLB 폭 분포로 잰 가드 시작 - 0.045, D-256)"
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 140,
+        "grip_frac": 0.315,
+        "center": [
+          -14,
+          -24,
+          150
+        ],
+        "dir": [
+          1,
+          0,
+          -1.3
+        ],
+        "face": [
+          0,
+          -1,
+          0
+        ],
+        "_note": "초기값(2026-11-21) — 맞춤 레벨에서 사용자가 잡은 값은 manual.back"
+      }
+    }
+  },
+  "02_TwoHandSword": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/_Weapon/TwoHandSword/SM_02_TwoHandSword",
+    "varco": {
+      "image_node": "5534c05e-aed5-4d54-8668-2f868679f364",
+      "generate3d_node": "ed9a696b-00ea-4f22-9098-20a9d6e2ae40",
+      "polygon_count": 30000
+    },
+    "attach": {
+      "socket": "WeaponSocket_R",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/02_TwoHandSword",
+    "back": {
+      "socket": "BackSocket_TwoHand",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 1.39983,
+      "origin_raw": [
+        0.028,
+        -0.009,
+        -22.556
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_r",
+        "fit": "length",
+        "length_cm": 140,
+        "grip_frac": 0.275,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "target_tris": 5000,
+        "_note": "grip_frac = 가드 바로 아래(GLB 폭 분포로 잰 가드 시작 - 0.045, D-256)"
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 140,
+        "grip_frac": 0.275,
+        "center": [
+          -14,
+          -24,
+          150
+        ],
+        "dir": [
+          1,
+          0,
+          -1.3
+        ],
+        "face": [
+          0,
+          -1,
+          0
+        ],
+        "_note": "초기값(2026-11-21) — 맞춤 레벨에서 사용자가 잡은 값은 manual.back"
+      }
+    }
+  },
+  "03_TwoHandSword": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/_Weapon/TwoHandSword/SM_03_TwoHandSword",
+    "varco": {
+      "image_node": "c909bd6e-7b68-4fb4-afb5-355c82dc2c44",
+      "generate3d_node": "b5588eaf-d9ea-4819-984f-81e93cd90c62",
+      "polygon_count": 30000
+    },
+    "attach": {
+      "socket": "WeaponSocket_R",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/03_TwoHandSword",
+    "back": {
+      "socket": "BackSocket_TwoHand",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 1.39664,
+      "origin_raw": [
+        -0.003,
+        -0.004,
+        -22.504
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_r",
+        "fit": "length",
+        "length_cm": 140,
+        "grip_frac": 0.275,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "target_tris": 5000,
+        "_note": "grip_frac = 가드 바로 아래(GLB 폭 분포로 잰 가드 시작 - 0.045, D-256)"
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 140,
+        "grip_frac": 0.275,
+        "center": [
+          -14,
+          -24,
+          150
+        ],
+        "dir": [
+          1,
+          0,
+          -1.3
+        ],
+        "face": [
+          0,
+          -1,
+          0
+        ],
+        "_note": "초기값(2026-11-21) — 맞춤 레벨에서 사용자가 잡은 값은 manual.back"
+      }
+    }
+  },
+  "01_OneHandSword": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/_Weapon/OneHandSword/SM_01_OneHandSword",
+    "varco": {
+      "image_node_short": "7df76912",
+      "generate3d_node_short": "c1780ef4",
+      "polygon_count": 30000,
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "WeaponSocket_R",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/01_OneHandSword",
+    "back": {
+      "socket": "BackSocket_Sword",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 0.95274,
+      "origin_raw": [
+        0.034,
+        -0.006,
+        -42.02
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_r",
+        "fit": "length",
+        "length_cm": 95,
+        "grip_frac": 0.08,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "target_tris": 5000
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 95,
+        "grip_frac": 0.08,
+        "center": [
+          -14,
+          -24,
+          150
+        ],
+        "dir": [
+          1,
+          0,
+          -1.3
+        ],
+        "face": [
+          0,
+          -1,
+          0
+        ],
+        "_note": "초기값(2026-11-21) — 맞춤 레벨에서 사용자가 잡은 값은 manual.back"
+      }
+    }
+  },
+  "02_OneHandSword": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/_Weapon/OneHandSword/SM_02_OneHandSword",
+    "varco": {
+      "image_node_short": "234e9a3e",
+      "generate3d_node_short": "04eaf1a3",
+      "polygon_count": 30000,
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "WeaponSocket_R",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/02_OneHandSword",
+    "back": {
+      "socket": "BackSocket_Sword",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 0.94879,
+      "origin_raw": [
+        0.013,
+        -0.004,
+        -42.045
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_r",
+        "fit": "length",
+        "length_cm": 95,
+        "grip_frac": 0.08,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "target_tris": 5000
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 95,
+        "grip_frac": 0.08,
+        "center": [
+          -14,
+          -24,
+          150
+        ],
+        "dir": [
+          1,
+          0,
+          -1.3
+        ],
+        "face": [
+          0,
+          -1,
+          0
+        ],
+        "_note": "초기값(2026-11-21) — 맞춤 레벨에서 사용자가 잡은 값은 manual.back"
+      }
+    }
+  },
+  "03_OneHandSword": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/_Weapon/OneHandSword/SM_03_OneHandSword",
+    "varco": {
+      "image_node_short": "3da2cd36",
+      "generate3d_node_short": "215d5508",
+      "polygon_count": 30000,
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "WeaponSocket_R",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/03_OneHandSword",
+    "back": {
+      "socket": "BackSocket_Sword",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 0.95544,
+      "origin_raw": [
+        0.049,
+        -0.023,
+        -37.809
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_r",
+        "fit": "length",
+        "length_cm": 95,
+        "grip_frac": 0.12,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "target_tris": 5000
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 95,
+        "grip_frac": 0.12,
+        "center": [
+          -14,
+          -24,
+          150
+        ],
+        "dir": [
+          1,
+          0,
+          -1.3
+        ],
+        "face": [
+          0,
+          -1,
+          0
+        ],
+        "_note": "초기값(2026-11-21) — 맞춤 레벨에서 사용자가 잡은 값은 manual.back"
+      }
+    }
+  },
+  "01_Bow": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/_Weapon/Bow/SM_01_Bow",
+    "varco": {
+      "image_node_short": "a44bab08",
+      "generate3d_node_short": "33cb4439",
+      "polygon_count": 30000,
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "WeaponSocket_L",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/01_Bow",
+    "back": {
+      "socket": "BackSocket_Bow",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 1.24914,
+      "origin_raw": [
+        -5.4,
+        -0.02,
+        0.003
+      ],
+      "x_raw": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_l",
+        "fit": "length",
+        "length_cm": 125,
+        "grip_frac": 0.5,
+        "offset": [
+          2.0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "grip_local": {
+          "x": -5.4
+        },
+        "grip_axis": "knuckles",
+        "depth_to_wrist": true,
+        "target_tris": 5000
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 125,
+        "grip_frac": 0.5,
+        "grip_local": {
+          "x": -5.4
+        },
+        "center": [
+          0,
+          -27,
+          118
+        ],
+        "dir": [
+          1,
+          0,
+          1.1
+        ],
+        "face": [
+          0,
+          1,
+          0
+        ]
+      }
+    }
+  },
+  "02_Bow": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/_Weapon/Bow/SM_02_Bow",
+    "varco": {
+      "image_node_short": "06dd55d9",
+      "generate3d_node_short": "edcc67f5",
+      "polygon_count": 30000,
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "WeaponSocket_L",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/02_Bow",
+    "back": {
+      "socket": "BackSocket_Bow",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 1.25664,
+      "origin_raw": [
+        -8.9,
+        -0.016,
+        -0.26
+      ],
+      "x_raw": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_l",
+        "fit": "length",
+        "length_cm": 125,
+        "grip_frac": 0.5,
+        "offset": [
+          2.0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "grip_local": {
+          "x": -8.9
+        },
+        "grip_axis": "knuckles",
+        "depth_to_wrist": true,
+        "target_tris": 5000
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 125,
+        "grip_frac": 0.5,
+        "grip_local": {
+          "x": -8.9
+        },
+        "center": [
+          0,
+          -27,
+          118
+        ],
+        "dir": [
+          1,
+          0,
+          1.1
+        ],
+        "face": [
+          0,
+          1,
+          0
+        ]
+      }
+    }
+  },
+  "03_Bow": {
+    "slot": "weapon",
+    "source": "/Game/Equipment/_Weapon/Bow/SM_03_Bow",
+    "varco": {
+      "image_node_short": "f4a9f67b",
+      "generate3d_node_short": "0f0f2e83",
+      "polygon_count": 30000,
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "WeaponSocket_L",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/03_Bow",
+    "back": {
+      "socket": "BackSocket_Bow",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 1.24855,
+      "origin_raw": [
+        -4.1,
+        -0.005,
+        -0.03
+      ],
+      "x_raw": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_l",
+        "fit": "length",
+        "length_cm": 125,
+        "grip_frac": 0.5,
+        "offset": [
+          2.0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "grip_local": {
+          "x": -4.1
+        },
+        "grip_axis": "knuckles",
+        "depth_to_wrist": true,
+        "target_tris": 5000
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 125,
+        "grip_frac": 0.5,
+        "grip_local": {
+          "x": -4.1
+        },
+        "center": [
+          0,
+          -27,
+          118
+        ],
+        "dir": [
+          1,
+          0,
+          1.1
+        ],
+        "face": [
+          0,
+          1,
+          0
+        ]
+      }
+    }
+  },
+  "01_Shield": {
+    "slot": "offhand",
+    "source": "/Game/Equipment/_Weapon/Shield/SM_01_Shield",
+    "varco": {
+      "image_node_short": "6d926107",
+      "generate3d_node_short": "cc0e6625",
+      "polygon_count": 30000,
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "ShieldSocket_L",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/01_Shield",
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 0.84941,
+      "origin_raw": [
+        0.008,
+        -9.894,
+        0.024
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_l",
+        "fit": "shield",
+        "face_dir": "back",
+        "length_cm": 85,
+        "face": "+y",
+        "up": "+z",
+        "gap_cm": 9.0,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "target_tris": 5000
+      }
+    }
+  },
+  "02_Shield": {
+    "slot": "offhand",
+    "source": "/Game/Equipment/_Weapon/Shield/SM_02_Shield",
+    "varco": {
+      "image_node_short": "d77de7de",
+      "generate3d_node_short": "2473745e",
+      "polygon_count": 30000,
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "ShieldSocket_L",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/02_Shield",
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 0.84865,
+      "origin_raw": [
+        -0.0,
+        -7.642,
+        -0.008
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_l",
+        "fit": "shield",
+        "face_dir": "back",
+        "length_cm": 85,
+        "face": "+y",
+        "up": "+z",
+        "gap_cm": 9.0,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "target_tris": 5000
+      }
+    }
+  },
+  "03_Shield": {
+    "slot": "offhand",
+    "source": "/Game/Equipment/_Weapon/Shield/SM_03_Shield",
+    "varco": {
+      "image_node_short": "d31a3457",
+      "generate3d_node_short": "16a74ba5",
+      "polygon_count": 30000,
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "ShieldSocket_L",
+      "fit": "socket",
+      "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/03_Shield",
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 0.84862,
+      "origin_raw": [
+        -0.052,
+        -10.321,
+        -0.032
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_l",
+        "fit": "shield",
+        "face_dir": "back",
+        "length_cm": 85,
+        "face": "+y",
+        "up": "+z",
+        "gap_cm": 9.0,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "target_tris": 5000
+      }
+    }
+  },
+  "01_Head": {
+    "slot": "head",
+    "source": "/Game/Equipment/_Armor/Unisex/Head/SM_01_Head",
+    "varco": {
+      "image_node_short": "f4bfdfd3",
+      "generate3d_node_short": "2aebbfb5",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/01_Helmet.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "head",
+      "fit": "helm",
+      "target_tris": 4000,
+      "yaw": 0.0,
+      "width_ratio": 1.25,
+      "depth_ratio": 1.15,
+      "top_cm": 1.5,
+      "y_off_cm": 0.0,
+      "hide_parts": [
+        "hair"
+      ]
+    },
+    "src_dir": "/Game/Equipment/_Armor/Source/01_Head"
+  },
+  "02_Head": {
+    "slot": "head",
+    "source": "/Game/Equipment/_Armor/Unisex/Head/SM_02_Head",
+    "varco": {
+      "image_node_short": "0de10dc7",
+      "generate3d_node_short": "4a643fa0",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/02_Helmet.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "head",
+      "fit": "helm",
+      "target_tris": 4000,
+      "yaw": 90.0,
+      "width_ratio": 1.25,
+      "depth_ratio": 1.15,
+      "top_cm": 1.5,
+      "y_off_cm": 0.0,
+      "hide_parts": [
+        "hair"
+      ]
+    },
+    "src_dir": "/Game/Equipment/_Armor/Source/02_Head"
+  },
+  "03_Head": {
+    "slot": "head",
+    "source": "/Game/Equipment/_Armor/Unisex/Head/SM_03_Head",
+    "varco": {
+      "image_node_short": "0ec695ec",
+      "generate3d_node_short": "97f0e57b",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/03_Helmet.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "attach": {
+      "socket": "head",
+      "fit": "helm",
+      "target_tris": 4000,
+      "yaw": 0.0,
+      "width_ratio": 1.25,
+      "depth_ratio": 1.15,
+      "top_cm": 1.5,
+      "y_off_cm": 0.0,
+      "hide_parts": [
+        "hair"
+      ]
+    },
+    "src_dir": "/Game/Equipment/_Armor/Source/03_Head"
+  },
+  "01_Top": {
+    "slot": "top",
+    "source": "/Game/Equipment/_Armor/Source/01_Top/SM_01_Top_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Top/SK_01_Top_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": 0,
+      "clear_cm": 1.5
+    },
+    "varco": {
+      "image_node_short": "c3cc0202",
+      "generate3d_node_short": "20f5c584",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/01_Top.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "mask": {}
+  },
+  "02_Top": {
+    "slot": "top",
+    "source": "/Game/Equipment/_Armor/Source/02_Top/SM_02_Top_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Top/SK_02_Top_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": 0,
+      "clear_cm": 1.5
+    },
+    "varco": {
+      "image_node_short": "2c3e5fe5",
+      "generate3d_node_short": "bacf6483",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/02_Top.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "mask": {}
+  },
+  "03_Top": {
+    "slot": "top",
+    "source": "/Game/Equipment/_Armor/Source/03_Top/SM_03_Top_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Top/SK_03_Top_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": 0,
+      "clear_cm": 1.5
+    },
+    "varco": {
+      "image_node_short": "d8113d5f",
+      "generate3d_node_short": "eb91fb82",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/03_Top.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "mask": {}
+  },
+  "01_Bottom": {
+    "slot": "bottom",
+    "source": "/Game/Equipment/_Armor/Source/01_Bottom/SM_01_Bottom_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Bottom/SK_01_Bottom_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": 0
+    },
+    "varco": {
+      "image_node_short": "77504855",
+      "generate3d_node_short": "954a8fed",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/01_Bottom.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "mask": {}
+  },
+  "03_Bottom": {
+    "slot": "bottom",
+    "source": "/Game/Equipment/_Armor/Source/03_Bottom/SM_03_Bottom_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Bottom/SK_03_Bottom_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": 0
+    },
+    "varco": {
+      "image_node_short": "08e93a12",
+      "generate3d_node_short": "077a3e61",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/03_Bottom.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "mask": {}
+  },
+  "01_Gloves": {
+    "slot": "gloves",
+    "source": "/Game/Equipment/_Armor/Source/01_Gloves/SM_01_Gloves_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Gloves/SK_01_Gloves_{body}",
+    "fit": {
+      "method": "kit_hand",
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": null,
+      "paint": "Leather",
+      "clean_cuff": true
+    },
+    "varco": {
+      "image_node_short": "3ebc1693",
+      "generate3d_node_short": "301f9d7d",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/01_Gloves.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "mask": {},
+    "icon": {
+      "yaw": -90.0,
+      "pitch": 5.0
+    }
+  },
+  "03_Gloves": {
+    "slot": "gloves",
+    "source": "/Game/Equipment/_Armor/Source/03_Gloves/SM_03_Gloves_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Gloves/SK_03_Gloves_{body}",
+    "fit": {
+      "method": "kit_hand",
+      "ratio": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw": 0.0,
+      "target_tris": null,
+      "paint": "Royal",
+      "clean_cuff": true
+    },
+    "varco": {
+      "image_node_short": "b47f7176",
+      "generate3d_node_short": "9516b84c",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/03_Gloves.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "mask": {},
+    "icon": {
+      "yaw": -90.0,
+      "pitch": 5.0
+    }
+  },
+  "01_Boots": {
+    "slot": "boots",
+    "source": "/Game/Equipment/_Armor/Source/01_Boots/SM_01_Boots_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Boots/SK_01_Boots_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.34
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.17
+      ],
+      "yaw": 0.0,
+      "target_tris": 0
+    },
+    "varco": {
+      "image_node_short": "f8e858b4",
+      "generate3d_node_short": "7200e19a",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/01_Boots.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "mask": {}
+  },
+  "03_Boots": {
+    "slot": "boots",
+    "source": "/Game/Equipment/_Armor/Source/03_Boots/SM_03_Boots_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Boots/SK_03_Boots_{body}",
+    "fit": {
+      "ratio": [
+        1.0,
+        1.0,
+        1.34
+      ],
+      "rel_off": [
+        0.0,
+        0.0,
+        0.17
+      ],
+      "yaw": 0.0,
+      "target_tris": 0
+    },
+    "varco": {
+      "image_node_short": "dc8ec796",
+      "generate3d_node_short": "af60d5bb",
+      "polygon_count": 30000,
+      "fbx": "SourceArt/IT2b/03_Boots.fbx",
+      "_note": "IT2b_log.md의 짧은 ID"
+    },
+    "mask": {}
   }
 }

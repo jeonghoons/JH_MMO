@@ -222,6 +222,7 @@ enum class WeaponType
 	Unarmed,
 	Sword,
 	Bow,
+	TwoHandSword, // 양손검(WT1, D-240): 방패 불가, 등 메기 BackSocket_TwoHand
 	Monster
 };
 
@@ -244,21 +245,24 @@ enum class ItemTier
 	None = 0,     // 티어 없음(소비 아이템)
 	Cloth = 1,
 	Leather = 2,
-	Plate = 3
+	Plate = 3,
+	Ornate = 4    // 근위(03등급, IT3)
 };
 
 enum class ItemGrade
 {
 	Common,
 	Uncommon,
-	Rare
+	Rare,
+	Epic     // 03등급 (IT3)
 };
 
 // 소비 아이템의 사용 효과 (ItemTable.UseEffect, UE EItemUseEffect와 이름이 같아야 한다)
 enum class ItemUseEffect
 {
 	None,
-	HealHp   // UseValue만큼 HP 회복
+	HealHp,  // UseValue만큼 HP 회복
+	HealMp   // UseValue만큼 MP 회복 (IT3)
 };
 
 // ItemTable 중 서버가 읽는 열. 외형(메시·아이콘·이름)은 클라이언트 전용이라 읽지 않는다.
@@ -270,12 +274,13 @@ struct ItemData
 	ItemTier tier;
 	WeaponType weaponType; // 무기만 Sword/Bow, 나머지는 None
 	int bonusAttackDamage; // 무기만
-	int bonusMaxHp;        // 방어구만
+	int bonusMaxHp;        // 방어구·방패만 (무기는 0)
+	int bonusMaxMp;        // 투구만 (IT3, 나머지는 0)
 	bool starter;          // 가입 시 기본 장비 (슬롯당 최대 1개, MC3.3)
 	int requiredLevel;     // 장착(소비 아이템은 사용)에 필요한 레벨 (D-156)
 	int maxStack;          // 한 칸에 겹치는 최대 수량. 장비는 1
 	ItemUseEffect useEffect; // 장비는 None
-	int useValue;          // HealHp: 회복량
+	int useValue;          // HealHp·HealMp: 회복량
 	int useCooldownMs;     // 같은 아이템 종류의 재사용 시간
 	int sellPrice;         // 상점에 팔 때 1개당 받는 골드. 0 = 팔 수 없음 (L4, D-201)
 };
@@ -343,6 +348,11 @@ struct EconomyData
 	int shopRangeCm;             // 상점 NPC 이용 거리 (L4)
 	int partyMaxMembers;         // 파티 정원 (DG2, D-217)
 	int partyInviteTimeoutSec;   // 파티 초대 응답 대기
+	int combatHoldMs;            // 마지막으로 때리거나 맞은 뒤 이 시간 동안 전투 중 (D-255)
+	int hpRegenIntervalSec;      // HP: 전투 밖에서만 이 주기(초)마다
+	int hpRegenPercent;          // HP 회복량 = 최대치 × 이 값 %
+	int mpRegenPercentCombat;    // MP: 초당 최대치의 이 % (전투 중)
+	int mpRegenPercentIdle;      // MP: 초당 최대치의 이 % (전투 밖)
 };
 
 // EconomyTable의 유일한 행
@@ -395,12 +405,7 @@ struct StatData
 // 플레이어가 처음 갖는 레벨. 최대 레벨은 PlayerStatTable의 마지막 행(DataManager::GetPlayerMaxLevel, 지금 30 — D-251).
 constexpr int PLAYER_START_LEVEL = 1;
 
-// 전투 판정·자연 회복(A2.3b, D-253·D-254 — Docs/DESIGN_BALANCE.md §3). 지금은 서버 상수(테이블 열로 옮길지는 미정).
-constexpr long long COMBAT_HOLD_MS = 5000;     // 마지막으로 때리거나 맞은 뒤 이 시간 동안 전투 중
-constexpr int MP_REGEN_PERCENT_COMBAT = 1;     // MP: 초당 최대치의 1%(전투 중)
-constexpr int MP_REGEN_PERCENT_IDLE = 5;       //     초당 최대치의 5%(전투 밖)
-constexpr int HP_REGEN_INTERVAL_SEC = 5;       // HP: 전투 밖에서만 5초마다
-constexpr int HP_REGEN_PERCENT = 20;           //     최대치의 20%
+// 전투 판정·자연 회복 수치(COMBAT_HOLD_MS 등)는 EconomyTable 열에서 읽는다(D-255, DataManager::GetEconomy)
 // 회복량 = 최대치 × 비율 ÷ 100을 반올림, 최소 1
 inline int RegenAmount(int maxValue, int percent) { return std::max(1, static_cast<int>((static_cast<long long>(maxValue) * percent + 50) / 100)); }
 

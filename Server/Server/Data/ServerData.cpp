@@ -58,6 +58,7 @@ namespace
 		if (text == "Unarmed") { out = WeaponType::Unarmed; return true; }
 		if (text == "Sword") { out = WeaponType::Sword; return true; }
 		if (text == "Bow") { out = WeaponType::Bow; return true; }
+		if (text == "TwoHandSword") { out = WeaponType::TwoHandSword; return true; }
 		if (text == "Monster") { out = WeaponType::Monster; return true; }
 		return false;
 	}
@@ -82,6 +83,7 @@ namespace
 		if (text == "Cloth") { out = ItemTier::Cloth; return true; }
 		if (text == "Leather") { out = ItemTier::Leather; return true; }
 		if (text == "Plate") { out = ItemTier::Plate; return true; }
+		if (text == "Ornate") { out = ItemTier::Ornate; return true; }
 		return false;
 	}
 
@@ -105,6 +107,7 @@ namespace
 	{
 		if (text == "None") { out = ItemUseEffect::None; return true; }
 		if (text == "HealHp") { out = ItemUseEffect::HealHp; return true; }
+		if (text == "HealMp") { out = ItemUseEffect::HealMp; return true; }
 		return false;
 	}
 
@@ -113,6 +116,7 @@ namespace
 		if (text == "Common") { out = ItemGrade::Common; return true; }
 		if (text == "Uncommon") { out = ItemGrade::Uncommon; return true; }
 		if (text == "Rare") { out = ItemGrade::Rare; return true; }
+		if (text == "Epic") { out = ItemGrade::Epic; return true; }
 		return false;
 	}
 }
@@ -232,15 +236,15 @@ bool DataManager::Init()
 
 		if (!ParseWeaponType(weapon, d.weaponType) || d.weaponType == WeaponType::None)
 		{
-			LOG_ERROR("Data", "{}WeaponType '{}' 는 Unarmed/Sword/Bow/Monster 중 하나여야 합니다", where, weapon);
+			LOG_ERROR("Data", "{}WeaponType '{}' 는 Unarmed/Sword/Bow/TwoHandSword/Monster 중 하나여야 합니다", where, weapon);
 			return false;
 		}
 		// skillId 첫째 자리 = 무기 종류 (맨손 1xxx, 검 2xxx, 활 3xxx, 몬스터 9xxx)
 		static const std::unordered_map<WeaponType, int> kIdPrefix = {
-			{ WeaponType::Unarmed, 1 }, { WeaponType::Sword, 2 }, { WeaponType::Bow, 3 }, { WeaponType::Monster, 9 } };
+			{ WeaponType::Unarmed, 1 }, { WeaponType::Sword, 2 }, { WeaponType::Bow, 3 }, { WeaponType::TwoHandSword, 4 }, { WeaponType::Monster, 9 } };
 		if (d.skillId < 1000 || d.skillId > 9999 || d.skillId / 1000 != kIdPrefix.at(d.weaponType))
 		{
-			LOG_ERROR("Data", "{}skillId {} 는 4자리이고 첫째 자리가 무기 종류(Unarmed 1, Sword 2, Bow 3, Monster 9)여야 합니다", where, d.skillId);
+			LOG_ERROR("Data", "{}skillId {} 는 4자리이고 첫째 자리가 무기 종류(Unarmed 1, Sword 2, Bow 3, TwoHandSword 4, Monster 9)여야 합니다", where, d.skillId);
 			return false;
 		}
 		if (!ParseHitShape(shape, d.hitShape))
@@ -387,7 +391,7 @@ bool DataManager::Init()
 		if (!row.GetInt("Name", d.itemId, err) || !row.GetString("Slot", slot, err) ||
 			!row.GetString("Grade", grade, err) || !row.GetString("Tier", tier, err) ||
 			!row.GetString("WeaponType", weapon, err) ||
-			!row.GetInt("BonusAttackDamage", d.bonusAttackDamage, err) || !row.GetInt("BonusMaxHp", d.bonusMaxHp, err) ||
+			!row.GetInt("BonusAttackDamage", d.bonusAttackDamage, err) || !row.GetInt("BonusMaxHp", d.bonusMaxHp, err) || !row.GetInt("BonusMaxMp", d.bonusMaxMp, err) ||
 			!row.GetInt("Starter", starter, err) ||
 			!row.GetInt("RequiredLevel", d.requiredLevel, err) || !row.GetInt("MaxStack", d.maxStack, err) ||
 			!row.GetString("UseEffect", useEffect, err) || !row.GetInt("UseValue", d.useValue, err) ||
@@ -413,12 +417,12 @@ bool DataManager::Init()
 		}
 		if (!ParseItemGrade(grade, d.grade))
 		{
-			LOG_ERROR("Data", "{}Grade '{}' 는 Common/Uncommon/Rare 중 하나여야 합니다", where, grade);
+			LOG_ERROR("Data", "{}Grade '{}' 는 Common/Uncommon/Rare/Epic 중 하나여야 합니다", where, grade);
 			return false;
 		}
 		if (!ParseItemTier(tier, d.tier))
 		{
-			LOG_ERROR("Data", "{}Tier '{}' 는 None/Cloth/Leather/Plate 중 하나여야 합니다", where, tier);
+			LOG_ERROR("Data", "{}Tier '{}' 는 None/Cloth/Leather/Plate/Ornate 중 하나여야 합니다", where, tier);
 			return false;
 		}
 		if (!ParseWeaponType(weapon, d.weaponType))
@@ -428,7 +432,7 @@ bool DataManager::Init()
 		}
 		if (!ParseItemUseEffect(useEffect, d.useEffect))
 		{
-			LOG_ERROR("Data", "{}UseEffect '{}' 는 None/HealHp 중 하나여야 합니다", where, useEffect);
+			LOG_ERROR("Data", "{}UseEffect '{}' 는 None/HealHp/HealMp 중 하나여야 합니다", where, useEffect);
 			return false;
 		}
 		// 장비는 티어가 있고, 장착할 수 없는 아이템(Slot None)은 티어가 없다.
@@ -449,9 +453,9 @@ bool DataManager::Init()
 		}
 		// 무기는 Sword/Bow + 공격력 보너스만, 방어구는 None + 최대 HP 보너스만 (Docs/DESIGN_CHARACTER_EQUIPMENT.md)
 		const bool isWeapon = d.slot == ItemSlot::Weapon;
-		if (isWeapon && d.weaponType != WeaponType::Sword && d.weaponType != WeaponType::Bow)
+		if (isWeapon && d.weaponType != WeaponType::Sword && d.weaponType != WeaponType::Bow && d.weaponType != WeaponType::TwoHandSword)
 		{
-			LOG_ERROR("Data", "{}무기의 WeaponType은 Sword/Bow 중 하나여야 합니다 ('{}')", where, weapon);
+			LOG_ERROR("Data", "{}무기의 WeaponType은 Sword/Bow/TwoHandSword 중 하나여야 합니다 ('{}')", where, weapon);
 			return false;
 		}
 		if (!isWeapon && d.weaponType != WeaponType::None)
@@ -459,9 +463,10 @@ bool DataManager::Init()
 			LOG_ERROR("Data", "{}무기가 아닌 아이템의 WeaponType은 None이어야 합니다 ('{}')", where, weapon);
 			return false;
 		}
-		if (d.bonusAttackDamage < 0 || d.bonusMaxHp < 0 || (isWeapon && d.bonusMaxHp != 0) || (!isWeapon && d.bonusAttackDamage != 0))
+		if (d.bonusAttackDamage < 0 || d.bonusMaxHp < 0 || d.bonusMaxMp < 0 || (isWeapon && (d.bonusMaxHp != 0 || d.bonusMaxMp != 0)) ||
+			(d.bonusAttackDamage != 0 && !isWeapon && d.slot != ItemSlot::Gloves) || (d.bonusMaxMp != 0 && d.slot != ItemSlot::Head))
 		{
-			LOG_ERROR("Data", "{}보너스가 허용 범위를 벗어났습니다 (음수 불가, 무기는 BonusAttackDamage만, 방어구는 BonusMaxHp만)", where);
+			LOG_ERROR("Data", "{}보너스가 허용 범위를 벗어났습니다 (음수 불가, 무기는 BonusAttackDamage만, 장갑은 BonusAttackDamage, 투구는 BonusMaxMp, 나머지 방어구·방패는 BonusMaxHp만)", where);
 			return false;
 		}
 		if (d.requiredLevel < 1 || d.maxStack < 1 || d.maxStack > 9999 || d.useValue < 0 || d.useCooldownMs < 0 || d.useCooldownMs > 600000 || d.sellPrice < 0)
@@ -474,12 +479,17 @@ bool DataManager::Init()
 			LOG_ERROR("Data", "{}장비는 MaxStack 1, UseEffect None 이어야 합니다 (MaxStack {}, UseEffect '{}')", where, d.maxStack, useEffect);
 			return false;
 		}
-		if (!isEquip && (d.bonusAttackDamage != 0 || d.bonusMaxHp != 0 || d.starter || d.useEffect == ItemUseEffect::None))
+		if (!isEquip && (d.bonusAttackDamage != 0 || d.bonusMaxHp != 0 || d.bonusMaxMp != 0 || d.starter))
 		{
-			LOG_ERROR("Data", "{}장착할 수 없는 아이템(Slot None)은 보너스 0, Starter 0 이고 UseEffect 가 None 이 아니어야 합니다", where);
+			LOG_ERROR("Data", "{}장착할 수 없는 아이템(Slot None)은 보너스 0, Starter 0 이어야 합니다", where);
 			return false;
 		}
-		if (d.useEffect == ItemUseEffect::HealHp && d.useValue <= 0)
+		if (!isEquip && d.useEffect == ItemUseEffect::None && (d.useValue != 0 || d.useCooldownMs != 0))
+		{
+			LOG_ERROR("Data", "{}전리품(UseEffect None)은 UseValue·UseCooldownMs가 0이어야 합니다", where);
+			return false;
+		}
+		if ((d.useEffect == ItemUseEffect::HealHp || d.useEffect == ItemUseEffect::HealMp) && d.useValue <= 0)
 		{
 			LOG_ERROR("Data", "{}UseEffect HealHp 는 UseValue > 0 이어야 합니다 ({})", where, d.useValue);
 			return false;
@@ -639,6 +649,11 @@ bool DataManager::Init()
 			{ "ShopRangeCm", &e.shopRangeCm, 1, 5000 },
 			{ "PartyMaxMembers", &e.partyMaxMembers, 2, 100 },
 			{ "PartyInviteTimeoutSec", &e.partyInviteTimeoutSec, 1, 600 },
+			{ "CombatHoldMs", &e.combatHoldMs, 1, 60000 },
+			{ "HpRegenIntervalSec", &e.hpRegenIntervalSec, 1, 600 },
+			{ "HpRegenPercent", &e.hpRegenPercent, 1, 100 },
+			{ "MpRegenPercentCombat", &e.mpRegenPercentCombat, 1, 100 },
+			{ "MpRegenPercentIdle", &e.mpRegenPercentIdle, 1, 100 },
 		};
 
 		int economyId = 0;

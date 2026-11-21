@@ -1,0 +1,23 @@
+ok exit=0 
+combat0 exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\combat0\EconomyTable.csv line 2: CombatHoldMs = 0
+combat_big exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\combat_big\EconomyTable.csv line 2: CombatHoldMs 
+hpint0 exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\hpint0\EconomyTable.csv line 2: HpRegenIntervalSe
+hppct101 exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\hppct101\EconomyTable.csv line 2: HpRegenPercent 
+hppct_neg exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\hppct_neg\EconomyTable.csv line 2: HpRegenPercent
+mpc0 exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\mpc0\EconomyTable.csv line 2: MpRegenPercentComba
+mpi_big exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\mpi_big\EconomyTable.csv line 2: MpRegenPercentId
+no_hpint exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\no_hpint\EconomyTable.csv: column 'HpRegenInterva
+item_ok exit=0 
+sword_mp exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\sword_mp\ItemTable.csv line 22: 보너스가 허�
+head_mp_big exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\head_mp_big\ItemTable.csv line 8: 보너스가 �
+top_atk exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\top_atk\ItemTable.csv line 8: 보너스가 허용
+gloves_atk_ok exit=0 
+loot_useval exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\loot_useval\ItemTable.csv line 42: 전리품(UseE
+heal_mp0 exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\heal_mp0\ItemTable.csv line 39: UseEffect HealHp 
+tier_bad exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\tier_bad\ItemTable.csv line 2: itemId 1101 는 4�
+epic_grade exit=0 
+unknown_eff exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\unknown_eff\ItemTable.csv line 39: UseEffect 'Hea
+skill_type exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\skill_type\SkillTable.csv line 7: WeaponType 'Sta
+skill_prefix exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\skill_prefix\SkillTable.csv line 8: skillId 1002 
+drop_bad_item exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\drop_bad_item\DropTable.csv line 2: ItemId 999999
+shop_bad_item exit=127 C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-a0f017da13d0aa701\Server\PerfData\2026-11-22_B2\runs\loader\shop_bad_item\ShopTable.csv line 2: ItemId 999999

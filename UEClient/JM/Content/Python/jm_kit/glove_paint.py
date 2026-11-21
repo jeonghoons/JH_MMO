@@ -39,6 +39,18 @@ STYLES = {
               "stripe_half": 0.95,
               "orm": {"band": (1.0, 0.35, 1.0), "panel": (1.0, 0.35, 1.0), "stripe": (1.0, 0.35, 1.0),
                       "trim": (1.0, 0.3, 1.0), "leather": (1.0, 0.7, 0.0)}},
+    # IT2c(2026-11-22) 01등급 붉은 가죽: 패턴은 SourceArt/Concept/IT2b/01_Gloves_concept.png(손목 끈 → Band, 손등 붉은 가죽 → Panel)
+    "Leather": {"band": "Leather_Band.png", "panel": "Leather_Panel.png", "stripe": "Leather_Panel.png", "leather_src": "Cloth_Linen.png",
+                "leather": (88, 42, 28), "trim": (186, 146, 78), "stripe_fingers": ("thumb", "index", "middle", "ring", "pinky"),
+                "stripe_half": 0.95,
+                "orm": {"band": (1.0, 0.65, 0.0), "panel": (1.0, 0.6, 0.0), "stripe": (1.0, 0.6, 0.0),
+                        "trim": (1.0, 0.3, 1.0), "leather": (1.0, 0.7, 0.0)}},
+    # IT2c 03등급 근위 판금: 패턴은 03_Gloves_concept.png(붉은 소매 금실 → Band, 금 장식 강철 → Steel)
+    "Royal": {"band": "Royal_Band.png", "panel": "Royal_Steel.png", "stripe": "Royal_Steel.png", "leather_src": "Cloth_Linen.png",
+              "leather": (96, 28, 30), "trim": (212, 166, 72), "stripe_fingers": ("thumb", "index", "middle", "ring", "pinky"),
+              "stripe_half": 0.95,
+              "orm": {"band": (1.0, 0.6, 0.0), "panel": (1.0, 0.35, 1.0), "stripe": (1.0, 0.35, 1.0),
+                      "trim": (1.0, 0.3, 1.0), "leather": (1.0, 0.7, 0.0)}},
 }
 CUFF_LO, CUFF_HI = 2.0, 5.8      # 손목 위 자수 띠 범위(cm)
 TRIM_CM = 0.35                   # 테두리 선 폭

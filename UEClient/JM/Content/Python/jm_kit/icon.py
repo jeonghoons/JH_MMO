@@ -156,6 +156,10 @@ def _subject(key, it):
     """(액터, 방어구 여부)."""
     if "attach" in it:
         at = it["attach"]
+        if at["fit"] == "socket":   # 정규화 메시(D-247): 검·활은 긴 축 +Z, 방패는 앞면 +X·위 +Z
+            if it["slot"] == "offhand":
+                return _static_actor(it["source"], _shield_transform(it["source"], {"face": "+x", "up": "+z", "length_cm": 1.0})), True
+            return _static_actor(it["source"], _weapon_transform(it["source"])), False
         if at["fit"] == "length":
             return _static_actor(it["source"], _weapon_transform(it["source"])), False
         if at["fit"] == "shield":

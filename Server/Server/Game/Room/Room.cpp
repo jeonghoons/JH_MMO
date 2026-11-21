@@ -2579,6 +2579,8 @@ void Room::PlayerUseItem(shared_ptr<Player> player, int64_t itemDbId, int itemId
 	if (player->GetStat().IsDead()) { reject(Protocol::ITEM_RESULT_DEAD); return; }
 	// 회복할 것이 없으면 쓰지 않는다(아이템을 버리지 않게).
 	if (item->useEffect == ItemUseEffect::HealHp && player->GetInfo().stat().hp() >= player->GetInfo().stat().max_hp()) { reject(Protocol::ITEM_RESULT_HP_FULL); return; }
+	// MP가 가득이면 쓰지 않는다(전용 결과 코드가 없어 NOT_USABLE — 결정 필요, 보고 참고)
+	if (item->useEffect == ItemUseEffect::HealMp && player->GetInfo().stat().mp() >= player->GetInfo().stat().max_mp()) { reject(Protocol::ITEM_RESULT_NOT_USABLE); return; }
 
 	// 재사용 시간: 종류별 다음 사용 가능 시각과 비교한다(타이머·저장 없음).
 	const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
@@ -3017,6 +3019,12 @@ void Room::ApplyItemOpResult(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpR
 		{
 			if (item->useEffect == ItemUseEffect::HealHp)
 				player->GetStat().OnHealed(item->useValue);
+			if (item->useEffect == ItemUseEffect::HealMp)
+			{
+				StatComponent& stat = player->GetStat();
+				stat.SetMp(std::min(stat.GetMaxMp(), stat.GetMp() + item->useValue));
+				if (session) session->Send(PacketSerializer::MAKE_SC_CHANGE_MP(stat.GetMp()));
+			}
 			cooldownMs = item->useCooldownMs;
 			const long long nowMs = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
 			player->itemCooldownUntilMs[op.itemId] = nowMs + cooldownMs;
@@ -3794,6 +3802,7 @@ void Room::ApplyExpGain(const shared_ptr<Player>& player, int64_t amount)
 
 void Room::UpdateRegen(long long nowMs)
 {
+	const EconomyData& economy = DataManager::GetEconomy();
 	for (const auto& [id, player] : _players)
 	{
 		StatComponent& stat = player->GetStat();
@@ -3804,7 +3813,7 @@ void Room::UpdateRegen(long long nowMs)
 		const int mp = stat.GetMp(), maxMp = stat.GetMaxMp();
 		if (mp < maxMp)
 		{
-			stat.SetMp(mp + RegenAmount(maxMp, inCombat ? MP_REGEN_PERCENT_COMBAT : MP_REGEN_PERCENT_IDLE));
+			stat.SetMp(mp + RegenAmount(maxMp, inCombat ? economy.mpRegenPercentCombat : economy.mpRegenPercentIdle));
 			if (shared_ptr<Session> session = player->GetSession())
 				session->Send(PacketSerializer::MAKE_SC_CHANGE_MP(stat.GetMp()));
 		}
@@ -3812,9 +3821,9 @@ void Room::UpdateRegen(long long nowMs)
 		// HP: 전투 밖에서만, 덜 찬 채로 5초가 지날 때마다 최대치의 20%. 전투에 들어가면 센 시간을 버린다
 		const int hp = stat.GetHp(), maxHp = stat.GetMaxHp();
 		if (inCombat || hp >= maxHp) { player->hpRegenSec = 0; continue; }
-		if (++player->hpRegenSec < HP_REGEN_INTERVAL_SEC) continue;
+		if (++player->hpRegenSec < economy.hpRegenIntervalSec) continue;
 		player->hpRegenSec = 0;
-		stat.OnHealed(RegenAmount(maxHp, HP_REGEN_PERCENT));
+		stat.OnHealed(RegenAmount(maxHp, economy.hpRegenPercent));
 		BroadcastAOI(player, PacketSerializer::MAKE_SC_CHANGE_HP(player->GetId(), stat.GetHp()), true);
 	}
 }

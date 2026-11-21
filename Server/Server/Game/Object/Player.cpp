@@ -54,6 +54,7 @@ void Player::RecalcStat()
 
 	int bonusAttackDamage = 0;
 	int bonusMaxHp = 0;
+	int bonusMaxMp = 0;
 	for (int itemId : _objectInfo.equip_items())
 	{
 		if (itemId == 0) continue;
@@ -61,10 +62,10 @@ void Player::RecalcStat()
 		{
 			bonusAttackDamage += item->bonusAttackDamage;
 			bonusMaxHp += item->bonusMaxHp;
+			bonusMaxMp += item->bonusMaxMp;
 		}
 	}
-	// 장비의 최대 MP(투구)는 IT3에서 ItemTable 열을 더할 때 넣는다(지금은 0 — D-253)
-	_statInfo.ApplyFinalStat(*base, bonusAttackDamage, bonusMaxHp, 0);
+	_statInfo.ApplyFinalStat(*base, bonusAttackDamage, bonusMaxHp, bonusMaxMp);
 	_maxSpeed = _statInfo.GetMoveSpeed();
 }
 
