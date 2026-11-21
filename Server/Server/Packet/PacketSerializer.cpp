@@ -251,6 +251,49 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ITEM_RESULT(Protocol::PacketId 
 	return MakeSendBuffer(packet, Protocol::SC_ITEM_RESULT);
 }
 
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_QUEST_LIST(const shared_ptr<Player>& player)
+{
+	Protocol::SC_QUEST_LIST_PACKET packet;
+	for (const auto& [questId, entry] : player->quests)
+	{
+		Protocol::QuestInfo* info = packet.add_quests();
+		info->set_quest_id(questId);
+		info->set_state(entry.state);
+		info->set_progress(entry.progress);
+	}
+	return MakeSendBuffer(packet, Protocol::SC_QUEST_LIST);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_QUEST_UPDATE(int questId, Protocol::QuestState state, int progress)
+{
+	Protocol::SC_QUEST_UPDATE_PACKET packet;
+	Protocol::QuestInfo* info = packet.mutable_quest();
+	info->set_quest_id(questId);
+	info->set_state(state);
+	info->set_progress(progress);
+	return MakeSendBuffer(packet, Protocol::SC_QUEST_UPDATE);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_QUEST_RESULT(Protocol::PacketId request, int questId, Protocol::QuestResult result)
+{
+	Protocol::SC_QUEST_RESULT_PACKET packet;
+	packet.set_request(request);
+	packet.set_quest_id(questId);
+	packet.set_result(result);
+	return MakeSendBuffer(packet, Protocol::SC_QUEST_RESULT);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MAIL_NOTICE(Protocol::MailKind kind, int itemId, int64_t count, int64_t gold, int64_t listingId)
+{
+	Protocol::SC_MAIL_NOTICE_PACKET packet;
+	packet.set_kind(kind);
+	packet.set_item_id(itemId);
+	packet.set_count(count);
+	packet.set_gold(gold);
+	packet.set_listing_id(listingId);
+	return MakeSendBuffer(packet, Protocol::SC_MAIL_NOTICE);
+}
+
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_AUCTION_RESULT(Protocol::PacketId request, Protocol::AuctionResult result, int64_t id)
 {
 	Protocol::SC_AUCTION_RESULT_PACKET packet;

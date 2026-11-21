@@ -8,4 +8,5 @@
   - xlsx 편집: CSV UTF-8로 저장 → UE에서 DataTable Reimport
   - DataTable 편집: Export as CSV로 이 폴더에 덮어쓰기 → xlsx도 갱신
 - 첫 컬럼 `Name` = 정수 ID(1001부터), 컬럼명은 Row 구조체 프로퍼티명(PascalCase)과 동일
+- `QuestTable.csv`(Q1, 2026-11-22)는 서버·UE 공용이고 `Tools/Balance/balance.py --write`가 통째로 다시 씁니다(값은 스크립트 맨 위 `QUESTS` — CSV를 직접 고치지 않습니다). ID는 1부터입니다. `Description`은 클라이언트 전용이라 서버가 읽지 않으며 쉼표를 쓰지 않습니다. 열과 로더 검사는 [Docs/DESIGN_DATA.md](../../Docs/DESIGN_DATA.md) "QuestTable".
 - `SkillTable.csv`의 `AnimMs`(행동 시간 = 몽타주 1회 길이)와 `HitDelayMs`는 `Montage` 열이 있는 행에 한해 몽타주에서 뽑습니다(`HitDelayMs`는 **Skill Hit** 노티파이 시각, 노티파이가 없으면 기존 값 유지). `Montage`가 빈 행(몬스터 기본 공격)은 두 값을 직접 관리합니다. 기본 공격(`Slot` 0)은 `CooldownMs` 0이고 행동 시간·타격 시점이 공격 속도(`PlayerStatTable`·`MonsterTable`의 `AttackSpeed`)로 나뉩니다(`Docs/DECISIONS.md` 2026-10-28). 몽타주를 고친 뒤 에디터를 닫고 `ExportSkillTiming.bat`을 실행하면 CSV와 `DT_SkillTable`이 함께 갱신되고, 서버를 재시작하면 판정 시점에 반영됩니다.

@@ -235,6 +235,9 @@ void AuctionService::BeginOp(shared_ptr<Room> room, shared_ptr<Player> player, D
 		listing->busy = true;
 		op.auctionPrice = listing->price;
 		op.auctionSellerUID = listing->sellerUID;
+		// 판매자에게 보낼 수령함 알림용(D-262). op.itemId는 DB 바인딩(등록)에 쓰는 칸이라 건드리지 않는다.
+		op.auctionItemId = listing->itemId;
+		op.auctionItemCount = listing->count;
 		break;
 	}
 	case ItemOpKind::AuctionCancel:
@@ -281,7 +284,13 @@ void AuctionService::OnOpDone(shared_ptr<Room> room, shared_ptr<Player> player, 
 	case ItemOpKind::AuctionCancel:
 		if (result.success)
 		{
-			// 구매가 성사된 지점이다. 판매자(op.auctionSellerUID)에게 알리는 기능(판매 알림 — 콘텐츠 다듬기 예정)은 여기에 붙인다.
+			// 구매가 성사된 지점이다: 판매자가 접속 중이면 수령함 알림을 보낸다(D-262). 명부는 WorldService의 것이라 그 잡으로 넘긴다
+			// (접속하지 않았으면 아무것도 하지 않는다 — 다음 로그인 때 SelectLogin의 HasMail로 알린다).
+			if (op.kind == ItemOpKind::AuctionBuy)
+			{
+				GWorld->PushJob(&WorldService::NotifySeller, op.auctionSellerUID,
+					PacketSerializer::MAKE_SC_MAIL_NOTICE(Protocol::MAIL_KIND_SALE_GOLD, op.auctionItemId, op.auctionItemCount, op.auctionPrice, op.listingId));
+			}
 			RemoveListing(op.listingId);
 			(op.kind == ItemOpKind::AuctionBuy ? Metrics::AuctionBought : Metrics::AuctionCancelled).fetch_add(1);
 			LOG_DEBUG("Auction", "{} listing={} player={} price={}", op.kind == ItemOpKind::AuctionBuy ? "구매" : "취소", op.listingId, op.playerUID, op.auctionPrice);
@@ -419,9 +428,19 @@ void AuctionService::OnExpireDone(vector<int64_t> requested, DB_ItemOpResult res
 	for (const int64_t id : requested)
 	{
 		if (expired.count(id) == 0)
+		{
 			LOG_WARN("Auction", "만료하려던 등록 {} 은 DB에서 이미 판매 중이 아니었습니다 — 목록에서 뺍니다", id);
+		}
 		else
+		{
 			Metrics::AuctionExpired.fetch_add(1);
+			// 만료 반환도 판매자에게 알린다(D-262 — 구매와 같은 경로). 목록에서 빼기 전에 종류·수량을 읽는다.
+			if (const Listing* listing = Find(id))
+			{
+				GWorld->PushJob(&WorldService::NotifySeller, listing->sellerUID,
+					PacketSerializer::MAKE_SC_MAIL_NOTICE(Protocol::MAIL_KIND_EXPIRED, listing->itemId, listing->count, 0, id));
+			}
+		}
 		RemoveListing(id);
 	}
 	LOG_DEBUG("Auction", "만료 처리 {}건(요청 {}건)", expired.size(), requested.size());

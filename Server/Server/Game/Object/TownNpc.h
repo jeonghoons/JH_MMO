@@ -12,10 +12,10 @@ class TownNpc : public StaticObject
 {
 public:
 	TownNpc(int id, const NpcData& data, const MapPosition& pos)
-		: StaticObject(Protocol::ObjectType::OBJECT_TYPE_NPC), _shopId(data.shopId), _auction(data.auction == 1)
+		: StaticObject(Protocol::ObjectType::OBJECT_TYPE_NPC), _shopId(data.shopId), _auction(data.auction == 1), _quest(data.hasQuest)
 	{
-		// 클라이언트가 F 키 안내(상점·경매장)를 가르는 값(D-234)
-		_objectInfo.set_npc_kind(_auction ? Protocol::NPC_KIND_AUCTION : (_shopId != 0 ? Protocol::NPC_KIND_SHOP : Protocol::NPC_KIND_NONE));
+		// 클라이언트가 F 키 안내(상점·경매장·퀘스트)를 가르는 값(D-234). 한 NPC는 하나만 한다(로더가 확인)
+		_objectInfo.set_npc_kind(_auction ? Protocol::NPC_KIND_AUCTION : (_shopId != 0 ? Protocol::NPC_KIND_SHOP : (_quest ? Protocol::NPC_KIND_QUEST : Protocol::NPC_KIND_NONE)));
 		_objectInfo.set_id(id);
 		_objectInfo.set_template_id(data.templateId);
 		_objectInfo.set_name(data.displayName);
@@ -34,8 +34,11 @@ public:
 	int GetShopId() const { return _shopId; }
 	// 경매 관리인인가(A4.3 — 경매 등록·취소·수령은 이 NPC 근처에서만)
 	bool IsAuction() const { return _auction; }
+	// 퀘스트 NPC인가(Q1 — QuestTable.NpcId가 이 종류를 가리킨다. 수락·완료는 이 NPC 근처에서만)
+	bool IsQuest() const { return _quest; }
 
 private:
 	int _shopId = 0;
 	bool _auction = false;
+	bool _quest = false;
 };

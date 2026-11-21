@@ -84,6 +84,8 @@ enum PacketId : int {
   CS_PARTY_INVITE = 1035,
   CS_PARTY_RESPOND = 1036,
   CS_PARTY_LEAVE = 1037,
+  CS_QUEST_ACCEPT = 1038,
+  CS_QUEST_COMPLETE = 1039,
   SC_LOGIN = 2000,
   SC_SIGNUP = 2001,
   SC_ADD_OBJECT = 2003,
@@ -124,12 +126,16 @@ enum PacketId : int {
   SC_GAIN_EXP = 2039,
   SC_LEVEL_UP = 2040,
   SC_CHANGE_MP = 2041,
+  SC_QUEST_LIST = 2042,
+  SC_QUEST_UPDATE = 2043,
+  SC_QUEST_RESULT = 2044,
+  SC_MAIL_NOTICE = 2045,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_CHANGE_MP;
+constexpr PacketId PacketId_MAX = SC_MAIL_NOTICE;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();
@@ -608,6 +614,73 @@ inline bool AuctionResult_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AuctionResult>(
     AuctionResult_descriptor(), name, value);
 }
+enum QuestState : int {
+  QUEST_STATE_NONE = 0,
+  QUEST_STATE_ACTIVE = 1,
+  QUEST_STATE_COMPLETED = 2,
+  QuestState_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  QuestState_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool QuestState_IsValid(int value);
+constexpr QuestState QuestState_MIN = QUEST_STATE_NONE;
+constexpr QuestState QuestState_MAX = QUEST_STATE_COMPLETED;
+constexpr int QuestState_ARRAYSIZE = QuestState_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* QuestState_descriptor();
+template<typename T>
+inline const std::string& QuestState_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, QuestState>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function QuestState_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    QuestState_descriptor(), enum_t_value);
+}
+inline bool QuestState_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, QuestState* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<QuestState>(
+    QuestState_descriptor(), name, value);
+}
+enum QuestResult : int {
+  QUEST_RESULT_NONE = 0,
+  QUEST_RESULT_SUCCESS = 1,
+  QUEST_RESULT_NOT_IN_ROOM = 2,
+  QUEST_RESULT_DEAD = 3,
+  QUEST_RESULT_BUSY = 4,
+  QUEST_RESULT_TOO_FREQUENT = 5,
+  QUEST_RESULT_NOT_ALLOWED = 6,
+  QUEST_RESULT_NO_QUEST = 7,
+  QUEST_RESULT_TOO_FAR = 8,
+  QUEST_RESULT_IN_TRADE = 9,
+  QUEST_RESULT_ALREADY_ACTIVE = 10,
+  QUEST_RESULT_ALREADY_DONE = 11,
+  QUEST_RESULT_NOT_ACTIVE = 12,
+  QUEST_RESULT_NOT_FINISHED = 13,
+  QUEST_RESULT_NOT_ENOUGH_ITEM = 14,
+  QUEST_RESULT_INVENTORY_FULL = 15,
+  QUEST_RESULT_GOLD_FULL = 16,
+  QUEST_RESULT_DB_ERROR = 17,
+  QuestResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  QuestResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool QuestResult_IsValid(int value);
+constexpr QuestResult QuestResult_MIN = QUEST_RESULT_NONE;
+constexpr QuestResult QuestResult_MAX = QUEST_RESULT_DB_ERROR;
+constexpr int QuestResult_ARRAYSIZE = QuestResult_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* QuestResult_descriptor();
+template<typename T>
+inline const std::string& QuestResult_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, QuestResult>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function QuestResult_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    QuestResult_descriptor(), enum_t_value);
+}
+inline bool QuestResult_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, QuestResult* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<QuestResult>(
+    QuestResult_descriptor(), name, value);
+}
 enum MailKind : int {
   MAIL_KIND_NONE = 0,
   MAIL_KIND_SALE_GOLD = 1,
@@ -640,12 +713,13 @@ enum NpcKind : int {
   NPC_KIND_NONE = 0,
   NPC_KIND_SHOP = 1,
   NPC_KIND_AUCTION = 2,
+  NPC_KIND_QUEST = 3,
   NpcKind_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   NpcKind_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool NpcKind_IsValid(int value);
 constexpr NpcKind NpcKind_MIN = NPC_KIND_NONE;
-constexpr NpcKind NpcKind_MAX = NPC_KIND_AUCTION;
+constexpr NpcKind NpcKind_MAX = NPC_KIND_QUEST;
 constexpr int NpcKind_ARRAYSIZE = NpcKind_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* NpcKind_descriptor();
@@ -840,6 +914,16 @@ template <> struct is_proto_enum< ::Protocol::AuctionResult> : ::std::true_type 
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::AuctionResult>() {
   return ::Protocol::AuctionResult_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::QuestState> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::QuestState>() {
+  return ::Protocol::QuestState_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::QuestResult> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::QuestResult>() {
+  return ::Protocol::QuestResult_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::MailKind> : ::std::true_type {};
 template <>

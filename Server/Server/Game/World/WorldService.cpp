@@ -608,6 +608,16 @@ void WorldService::OnPlayerLevelChanged(int sessionId, int level)
 		BroadcastPartyState(partyIt->second);
 }
 
+void WorldService::NotifySeller(int64_t playerUID, shared_ptr<SendBuffer> buffer)
+{
+	const auto uidIt = _uidIndex.find(playerUID);
+	if (uidIt == _uidIndex.end()) return;   // 접속하지 않음
+	const auto it = _roster.find(uidIt->second);
+	if (it == _roster.end()) return;
+	Metrics::MailNotices.fetch_add(1);
+	SendTo(it->second, buffer);
+}
+
 void WorldService::SetPartyId(int sessionId, RosterEntry& entry, int partyId)
 {
 	entry.partyId = partyId;

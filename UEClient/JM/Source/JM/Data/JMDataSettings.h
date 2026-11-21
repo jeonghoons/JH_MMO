@@ -31,4 +31,8 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "DataTable")
 	TSoftObjectPtr<UDataTable> MonsterTable;
+
+	// 레벨별 스탯·다음 레벨 경험치. 클라이언트는 HUD 경험치 바의 분모만 읽는다 (A2.3b)
+	UPROPERTY(Config, EditAnywhere, Category = "DataTable")
+	TSoftObjectPtr<UDataTable> PlayerStatTable;
 };

@@ -100,7 +100,7 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 	DB_PlayerInfo outPlayerInfo = {};
 	DB_PlayerData outPlayerData = {};
 	DB_ItemRow outItem;
-	SQLLEN len[16 + QUICK_SLOT_COUNT] = { 0 };
+	SQLLEN len[17 + QUICK_SLOT_COUNT] = { 0 };
 
 	dbConn->BindCol(1, outPassword, sizeof(outPassword), &len[0]);
 	dbConn->BindCol(2, &outPlayerInfo.playerUID, &len[1]);
@@ -122,6 +122,7 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 	dbConn->BindCol(16, &outPlayerData.neverSaved, &len[15]);
 	for (int i = 0; i < QUICK_SLOT_COUNT; ++i)
 		dbConn->BindCol(17 + i, &outPlayerData.quickSlots[i], &len[16 + i]);
+	dbConn->BindCol(17 + QUICK_SLOT_COUNT, &outPlayerData.hasMail, &len[16 + QUICK_SLOT_COUNT]);
 
 	if (dbConn->Execute(DbQueries::SelectLogin))
 	{
@@ -156,7 +157,14 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 			}
 		}
 
-		if (loginSuccess)
+		// 받은 퀘스트(Q1): 같은 연결로 한 번 더 읽는다. 읽지 못하면 로그인을 받지 않는다
+		// (퀘스트 없이 들이면 완료한 퀘스트를 다시 받을 수 있는 것처럼 보이고 처치 진행이 0에서 다시 쌓인다).
+		if (loginSuccess && false == ReadPlayerQuests(dbConn, outPlayerData.playerUID, outPlayerData.quests))
+		{
+			LOG_ERROR("DB", "퀘스트(Player_Quest)를 읽지 못해 로그인을 거부합니다 (PlayerId {})", outPlayerData.playerUID);
+			GLobby->PushJob(&AuthLobby::OnLoginFailed, session, Protocol::LOGIN_RESULT_SERVER_ERROR);
+		}
+		else if (loginSuccess)
 		{
 			GLobby->PushJob(&AuthLobby::OnLoginSuccess, session, outPlayerInfo, outPlayerData, recvId, recvPw);
 		}
@@ -170,6 +178,30 @@ void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, st
 		GLobby->PushJob(&AuthLobby::OnLoginFailed, session, Protocol::LOGIN_RESULT_SERVER_ERROR);
 	}
 	_dbConnectionPool->Push(dbConn);
+}
+
+bool DatabaseWorker::ReadPlayerQuests(DBConnection* dbConn, int64_t playerUID, vector<DB_QuestRow>& out)
+{
+	// 앞 조회(SelectLogin)의 바인딩·커서를 정리하고 같은 연결을 다시 쓴다.
+	dbConn->Unbind();
+
+	SQLLEN paramLen = 0;
+	dbConn->BindParam(1, &playerUID, &paramLen);
+
+	DB_QuestRow row;
+	SQLLEN colLen[3] = { 0 };
+	dbConn->BindCol(1, &row.questId, &colLen[0]);
+	dbConn->BindCol(2, &row.state, &colLen[1]);
+	dbConn->BindCol(3, &row.progress, &colLen[2]);
+
+	const bool executed = dbConn->Execute(DbQueries::SelectPlayerQuests);
+	if (executed)
+	{
+		while (dbConn->Fetch())
+			out.push_back(row);
+	}
+	dbConn->Unbind();
+	return executed;
 }
 
 void DatabaseWorker::TrySignUP(shared_ptr<GameSession> session, string recvId, string recvPw, int playerType)
@@ -367,6 +399,16 @@ DB_ItemOpResult DatabaseWorker::RunItemOp(DB_ItemOp& op)
 		query = mailClaimQuery.c_str();
 		break;
 	}
+	case ItemOpKind::QuestAccept:
+		kindName = "QuestAccept";
+		dbConn->BindParam(3, &op.questId, &paramLen[2]);
+		query = DbQueries::QuestAccept.c_str();
+		break;
+	case ItemOpKind::QuestComplete:
+		kindName = "QuestComplete";
+		built = DbQueries::BuildQuestComplete(op);
+		query = built.c_str();
+		break;
 	}
 
 	DB_ItemOpResult result = RunItemQuery(dbConn, query, kindName, playerUID, op.forceFail);
@@ -590,6 +632,52 @@ void DatabaseWorker::SaveQuickSlots(shared_ptr<Room> room, shared_ptr<Player> pl
 		LOG_ERROR("DB", "액티브 칸 저장 실패 (PlayerId {}, 칸 {} {} {} {} {})", playerUID, slots[0], slots[1], slots[2], slots[3], slots[4]);
 
 	room->PushJob(&Room::OnQuickSlotsSaved, player, slots, success);
+}
+
+void DatabaseWorker::SaveQuestProgress(shared_ptr<Room> room, shared_ptr<Player> player, int64_t playerUID, QuestProgressList progress)
+{
+	DBConnection* dbConn = _dbConnectionPool->Pop();
+
+	if (GServerConfig.dbSaveDelayMs > 0) ::Sleep(GServerConfig.dbSaveDelayMs);
+
+	// 퀘스트마다 한 문장(DbQueries::UpdateQuestProgress — 파라미터: 1 Progress, 2 PlayerId, 3 QuestId, 4 Progress).
+	// 결과 집합 1행(바뀐 행 수)을 읽었으면 성공이다 — 0행(그 사이 완료됨)도 성공.
+	bool success = true;
+	for (const auto& [questId, questProgress] : progress)
+	{
+		dbConn->Unbind();
+		int32_t paramQuestId = questId;
+		int32_t paramProgress = questProgress;
+		int64_t paramPlayerUID = playerUID;
+		SQLLEN paramLen[4] = { 0 };
+		dbConn->BindParam(1, &paramProgress, &paramLen[0]);
+		dbConn->BindParam(2, &paramPlayerUID, &paramLen[1]);
+		dbConn->BindParam(3, &paramQuestId, &paramLen[2]);
+		dbConn->BindParam(4, &paramProgress, &paramLen[3]);
+		int32_t outRows = 0;
+		SQLLEN colLen = 0;
+		dbConn->BindCol(1, &outRows, &colLen);
+
+		bool saved = false;
+		if (dbConn->Execute(DbQueries::UpdateQuestProgress))
+		{
+			// 끝까지 읽는다(결과가 연결에 남지 않게).
+			while (dbConn->Fetch())
+				saved = true;
+		}
+		if (!saved)
+		{
+			success = false;
+			LOG_ERROR("DB", "퀘스트 진행 저장 실패 (PlayerId {}, QuestId {}, Progress {})", playerUID, questId, questProgress);
+		}
+	}
+	dbConn->Unbind();
+	_dbConnectionPool->Push(dbConn);
+
+	if (!success)
+		Metrics::QuestSaveFailed.fetch_add(1);
+
+	room->PushJob(&Room::OnQuestSaved, player, progress, success);
 }
 
 void DatabaseWorker::SavePlayerProgress(shared_ptr<Room> room, shared_ptr<Player> player, int64_t playerUID, DB_PlayerProgress progress, long long requestUs)

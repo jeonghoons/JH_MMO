@@ -83,5 +83,10 @@ private:
     static void Handle_SC_AUCTION_LIST(TSharedPtr<NetworkSession>& session, Protocol::SC_AUCTION_LIST_PACKET& pkt);
     static void Handle_SC_AUCTION_MY(TSharedPtr<NetworkSession>& session, Protocol::SC_AUCTION_MY_PACKET& pkt);
     static void Handle_SC_AUCTION_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_AUCTION_RESULT_PACKET& pkt);
+    // 퀘스트·수령함 알림(Q1, D-259·D-261·D-262): 지금은 받아서 로그만 남긴다(창·이름표·DT_QuestTable은 다음 항목)
+    static void Handle_SC_QUEST_LIST(TSharedPtr<NetworkSession>& session, Protocol::SC_QUEST_LIST_PACKET& pkt);
+    static void Handle_SC_QUEST_UPDATE(TSharedPtr<NetworkSession>& session, Protocol::SC_QUEST_UPDATE_PACKET& pkt);
+    static void Handle_SC_QUEST_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_QUEST_RESULT_PACKET& pkt);
+    static void Handle_SC_MAIL_NOTICE(TSharedPtr<NetworkSession>& session, Protocol::SC_MAIL_NOTICE_PACKET& pkt);
 };
 

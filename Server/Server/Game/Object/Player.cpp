@@ -328,7 +328,41 @@ bool Player::InitFromDb(const DB_PlayerInfo& info, const DB_PlayerData& data)
 
 	// DB에 있는 값을 기억한다. 위에서 HP를 고쳤다면 스냅숏이 달라 다음 저장 때 DB에도 반영된다.
 	lastSavedProgress = DB_PlayerProgress{ data.level, data.exp, data.hp };
+
+	// 퀘스트(Q1): QuestTable에 없는 행(테이블에서 뺀 퀘스트)은 경고 후 올리지 않는다(DB 행은 그대로 둔다).
+	// 처치 수는 0 ~ Count로 자르고, 수집형은 0으로 둔다(인벤토리 수량으로 판정). DB 값은 그대로 기억해 커졌을 때만 저장한다.
+	quests.clear();
+	lastSavedQuestProgress.clear();
+	for (const DB_QuestRow& row : data.quests)
+	{
+		const QuestData* quest = DataManager::GetQuestData(row.questId);
+		if (quest == nullptr || (row.state != Protocol::QUEST_STATE_ACTIVE && row.state != Protocol::QUEST_STATE_COMPLETED))
+		{
+			LOG_WARN("Player", "Player_Quest 행을 올리지 않습니다 (PlayerId {}, QuestId {}, State {}: QuestTable에 없거나 상태 오류)", info.playerUID, row.questId, row.state);
+			continue;
+		}
+		QuestEntry entry;
+		entry.state = static_cast<Protocol::QuestState>(row.state);
+		entry.progress = quest->kind == QuestKind::Kill ? std::clamp(row.progress, 0, quest->count) : 0;
+		quests[row.questId] = entry;
+		if (entry.state == Protocol::QUEST_STATE_ACTIVE)
+			lastSavedQuestProgress[row.questId] = row.progress;
+	}
+	hasMailAtLogin = data.hasMail != 0;
 	return true;
+}
+
+QuestProgressList Player::MakeQuestSaveList() const
+{
+	QuestProgressList out;
+	for (const auto& [questId, entry] : quests)
+	{
+		if (entry.state != Protocol::QUEST_STATE_ACTIVE) continue;
+		const auto saved = lastSavedQuestProgress.find(questId);
+		if (saved == lastSavedQuestProgress.end() || entry.progress > saved->second)
+			out.emplace_back(questId, entry.progress);
+	}
+	return out;
 }
 
 DB_PlayerProgress Player::MakeProgressSnapshot() const

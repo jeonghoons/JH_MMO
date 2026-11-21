@@ -1,0 +1,22 @@
+== mail (server pid 17848, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=false, data C:\Users\kjhkjh\KJH\JH_MMO\.claude\worktrees\agent-aac5c1581e43bc094\Server\PerfData\2026-11-22_Q1\runs\mail\data)
+PASS no-notice-empty-mailbox
+PASS register
+PASS buy
+PASS sale-notice
+PASS sale-notice-seller-only
+PASS sale-mail-exists
+PASS potion-row
+PASS register-2
+PASS expire-notice
+PASS register-3
+PASS buy-offline
+PASS login-notice
+PASS login-notice-order
+PASS login-no-notice
+PASS no-resend-on-room-move
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 17 / FAIL 0
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS mail (PASS 17)

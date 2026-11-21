@@ -992,6 +992,19 @@
 				"yaw": -90
 			},
 			"npcTemplateId": 1002
+		},
+		{
+			"pointId": 402,
+			"type": "Npc",
+			"area": "town",
+			"position":
+			{
+				"x": -9300,
+				"y": 600,
+				"z": 100,
+				"yaw": -90
+			},
+			"npcTemplateId": 1003
 		}
 	]
 }

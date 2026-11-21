@@ -83,6 +83,9 @@ public:
 	// 레벨이 올랐다(A2.3b — 소유 Room 잡이 Room::ApplyExpGain에서 넣는다). 명부의 레벨을 갱신하고 파티 중이면 파티원 전원에게 SC_PARTY_STATE를 다시 보낸다.
 	// 레벨은 오르기만 하므로 지금 값보다 크지 않으면 버린다(Room을 건너며 늦게 온 옛 알림).
 	void OnPlayerLevelChanged(int sessionId, int level);
+	// 수령함 알림(D-262 — AuctionService가 넣는다): 그 캐릭터가 접속 중이면 세션에 그대로 보낸다. 접속하지 않았으면 아무것도 하지 않는다
+	// (다음 로그인 때 수령함이 비어 있지 않으면 Room::PlayerEnterRoom이 알린다). 어느 Room에 있든·로딩 중이든 보낸다.
+	void NotifySeller(int64_t playerUID, shared_ptr<class SendBuffer> buffer);
 
 private:
 	struct RosterEntry

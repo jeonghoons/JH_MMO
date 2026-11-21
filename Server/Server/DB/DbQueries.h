@@ -12,7 +12,7 @@
 namespace DbQueries
 {
 	// 이 서버 코드가 기대하는 스키마 버전 = 마지막 마이그레이션 순번. DB의 Schema_Version과 다르면 서버가 시작하지 않는다.
-	constexpr int DB_SCHEMA_VERSION = 8;
+	constexpr int DB_SCHEMA_VERSION = 9;
 
 	// 결과: 열 1 = 적용된 마지막 마이그레이션 순번(행이 없으면 0). 테이블이 없으면 실행 실패.
 	inline const wchar_t* const SelectSchemaVersion = L"SELECT ISNULL(MAX([Version]), 0) FROM [Schema_Version]";
@@ -21,7 +21,8 @@ namespace DbQueries
 	// 결과(인벤토리·장착 아이템 수만큼 행, 없으면 1행, ItemDbId 순): LoginPassword, PlayerId, AccountId, Name, PlayerType, Level, Exp, Hp, Gold,
 	//   ItemDbId, ItemId, Count, Location, EquipSlot (아이템이 없으면 모두 0), BagSlot(없으면 -1),
 	//   NeverSaved(1 = 진행 상황을 저장한 적이 없는 캐릭터 = UpdatedAt NULL),
-	//   Q1~Q5(액티브 칸 1~5에 올린 ItemId, 빈 칸 0 — 모든 행에 같은 값, A3.6)
+	//   Q1~Q5(액티브 칸 1~5에 올린 ItemId, 빈 칸 0 — 모든 행에 같은 값, A3.6),
+	//   HasMail(1 = 수령함에 받을 것이 있다 — 모든 행에 같은 값, D-262)
 	inline const wchar_t* const SelectLogin = L" \
         SELECT A.LoginPassword, P.PlayerId, P.AccountId, P.Name, P.PlayerType, \
                P.[Level], P.Exp, P.Hp, P.Gold, \
@@ -32,12 +33,18 @@ namespace DbQueries
                ISNULL((SELECT Q.ItemId FROM [Player_QuickSlot] Q WHERE Q.PlayerId = P.PlayerId AND Q.SlotIndex = 2), 0) AS Q2, \
                ISNULL((SELECT Q.ItemId FROM [Player_QuickSlot] Q WHERE Q.PlayerId = P.PlayerId AND Q.SlotIndex = 3), 0) AS Q3, \
                ISNULL((SELECT Q.ItemId FROM [Player_QuickSlot] Q WHERE Q.PlayerId = P.PlayerId AND Q.SlotIndex = 4), 0) AS Q4, \
-               ISNULL((SELECT Q.ItemId FROM [Player_QuickSlot] Q WHERE Q.PlayerId = P.PlayerId AND Q.SlotIndex = 5), 0) AS Q5 \
+               ISNULL((SELECT Q.ItemId FROM [Player_QuickSlot] Q WHERE Q.PlayerId = P.PlayerId AND Q.SlotIndex = 5), 0) AS Q5, \
+               CASE WHEN EXISTS (SELECT 1 FROM [Player_Mail] M WHERE M.PlayerId = P.PlayerId) THEN 1 ELSE 0 END AS HasMail \
         FROM [User_Account] A \
         INNER JOIN [Player_Info] P ON A.AccountId = P.AccountId \
         LEFT JOIN [Player_Item] I ON I.OwnerId = P.PlayerId AND I.Location IN (1, 2) \
         WHERE A.LoginId = ? \
         ORDER BY I.ItemDbId";
+
+	// 로그인의 두 번째 조회(같은 연결, SelectLogin이 성공한 뒤 — Q1): 받은 퀘스트 전부. 파라미터: 1 PlayerId
+	// 결과(QuestId 순): QuestId, State(1 진행 중 · 2 완료), Progress
+	inline const wchar_t* const SelectPlayerQuests =
+		L"SELECT QuestId, CAST(State AS INT), Progress FROM [Player_Quest] WHERE PlayerId = ? ORDER BY QuestId";
 
 	// 가입: 계정 + 계정 정보 + 캐릭터 + 기본 장비를 한 트랜잭션으로. 파라미터: 1 LoginId, 2 LoginPassword, 3 Name, 4 PlayerType, 5 Level, 6 Hp
 	// starterItems = (EquipSlot, ItemId). 로더가 검증한 정수(ItemTable.Starter)라 쿼리에 그대로 넣는다. 기본 장비는 장착한 채(Location 2)로 준다.
@@ -66,6 +73,13 @@ namespace DbQueries
 	// 필드가 늘면(A2.3b 등) DB_PlayerProgress(ServerData.h)와 이 쿼리, DatabaseWorker::SavePlayerProgress의 바인딩을 함께 고친다.
 	inline const wchar_t* const UpdatePlayerProgress =
 		L"UPDATE [Player_Info] SET [Level] = ?, Exp = ?, Hp = ?, UpdatedAt = SYSDATETIME() WHERE PlayerId = ?";
+
+	// 퀘스트 처치 진행 저장(Q1, D-261). 파라미터: 1 Progress, 2 PlayerId, 3 QuestId, 4 Progress
+	// 진행 중(State 1)이고 값이 커질 때만 바꾼다 — 완료(아이템 트랜잭션)와 순서가 뒤바뀌어도 완료를 덮거나 진행을 되돌리지 않는다.
+	// 바뀐 행이 0이어도(이미 완료됨·이미 같은 값) 저장 성공으로 본다: 결과 집합 1행(바뀐 행 수)을 읽었으면 성공
+	// (SET NOCOUNT ON이 없으면 0행 UPDATE가 SQL_NO_DATA로 돌아와 실패처럼 보인다).
+	inline const wchar_t* const UpdateQuestProgress =
+		L"SET NOCOUNT ON; UPDATE [Player_Quest] SET Progress = ? WHERE PlayerId = ? AND QuestId = ? AND State = 1 AND Progress < ?; SELECT @@ROWCOUNT;";
 
 	// 액티브 칸 배치 저장(A3.6, D-154): 5칸을 한 문장으로 맞춘다(빈 칸은 행 삭제, 바뀐 칸은 UPDATE, 새 칸은 INSERT).
 	// 한 문장이라 실행 성공 = 저장 성공이고 중간 상태가 없다. 파라미터: 1~5 칸 1~5의 ItemId(빈 칸 0), 6 PlayerId, 7 PlayerId
@@ -298,6 +312,71 @@ namespace DbQueries
 				L"WHERE ItemDbId = {} AND OwnerId = @P AND Location = 2; SET @n += @@ROWCOUNT; ", op.demoteSlots[i], op.demoteDbIds[i]);
 		}
 		return q + ItemOpTail(std::to_wstring(op.demoteDbIds.size()));
+	}
+
+	// ---------------------------------------------------------------------------------------------------------------
+	// 퀘스트(Q1, D-259·D-261). 아이템 트랜잭션과 같은 틀·같은 결과 모양을 쓴다.
+	// ---------------------------------------------------------------------------------------------------------------
+
+	// 수락(고정 쿼리). 파라미터: 1 PlayerId, 2 Fail, 3 QuestId
+	// 행이 이미 있으면(진행 중이든 완료든) 0행 → 롤백. 완료한 행은 지우지 않으므로 다시 받을 수 없다.
+	inline const std::wstring QuestAccept =
+		std::wstring(L"SET NOCOUNT ON; SET XACT_ABORT ON; "
+		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @Q INT = ?; ")
+		+ ItemOpHead +
+		L"INSERT INTO [Player_Quest] (PlayerId, QuestId, State, Progress) "
+		L"SELECT @P, @Q, 1, 0 WHERE NOT EXISTS (SELECT 1 FROM [Player_Quest] WHERE PlayerId = @P AND QuestId = @Q); SET @n += @@ROWCOUNT; "
+		+ ItemOpTail(L"1");
+
+	// 완료(조립식 — 회수할 스택 수·보상 배치가 요청마다 다르다). 파라미터: 1 PlayerId, 2 Fail. 나머지는 Room이 검증한 정수라 쿼리에 그대로 넣는다.
+	//   ① 상태: 진행 중(State 1)일 때만 완료(2)로 바꾸고 최종 처치 수를 함께 적는다(0행이면 롤백 — 두 번 완료되지 않는다).
+	//   ② 회수(수집형): 스택을 통째로 가져가면 행 삭제, 일부면 수량 감소. 기대 수량이 다르면 0행 → 롤백.
+	//   ③ 보상 아이템: 덜 찬 스택에 더하기 + 새 행(새 ItemDbId는 Kind 1 행으로, newCounts 순서대로).
+	//      **회수 → 추가 순서를 지킨다** — 보상 배치 계획은 회수를 적용한 뒤의 인벤토리로 세운 것이라, 회수로 빈 칸을 새 행이 다시 쓸 수 있다
+	//      (순서를 바꾸면 칸 유니크 인덱스 UX_Player_Item_BagSlot을 어긴다).
+	//   ④ 보상 골드: 상한 안에서 증액하고 잔액을 Kind 2 행으로.
+	inline std::wstring BuildQuestComplete(const DB_ItemOp& op)
+	{
+		std::wstring q = L"SET NOCOUNT ON; SET XACT_ABORT ON; DECLARE @P BIGINT = ?, @Fail INT = ?; ";
+		q += ItemOpHead;
+		int want = 0;
+
+		q += std::format(L"UPDATE [Player_Quest] SET State = 2, Progress = {}, CompletedAt = SYSDATETIME() "
+			L"WHERE PlayerId = @P AND QuestId = {} AND State = 1; SET @n += @@ROWCOUNT; ", op.questProgress, op.questId);
+		++want;
+
+		for (const DB_ItemOp::QuestTake& take : op.questTakes)
+		{
+			if (take.take >= take.expectCount)
+				q += std::format(L"DELETE FROM [Player_Item] WHERE ItemDbId = {} AND OwnerId = @P AND Location = 1 AND ItemId = {} AND [Count] = {}; SET @n += @@ROWCOUNT; ",
+					take.itemDbId, op.questTakeItemId, take.expectCount);
+			else
+				q += std::format(L"UPDATE [Player_Item] SET [Count] = [Count] - {}, UpdatedAt = SYSDATETIME() "
+					L"WHERE ItemDbId = {} AND OwnerId = @P AND Location = 1 AND ItemId = {} AND [Count] = {}; SET @n += @@ROWCOUNT; ",
+					take.take, take.itemDbId, op.questTakeItemId, take.expectCount);
+			++want;
+		}
+
+		for (const DB_ItemOp::Fill& fill : op.fills)
+		{
+			q += std::format(L"UPDATE [Player_Item] SET [Count] = [Count] + {}, UpdatedAt = SYSDATETIME() "
+				L"WHERE ItemDbId = {} AND OwnerId = @P AND Location = 1 AND ItemId = {} AND [Count] = {}; SET @n += @@ROWCOUNT; ",
+				fill.add, fill.itemDbId, op.itemId, fill.expectCount);
+			++want;
+		}
+		for (size_t i = 0; i < op.newCounts.size(); ++i)
+		{
+			q += std::format(L"INSERT INTO [Player_Item] (OwnerId, ItemId, [Count], Location, EquipSlot, BagSlot) VALUES (@P, {}, {}, 1, 0, {}); "
+				L"INSERT INTO @R (Kind, V) VALUES (1, SCOPE_IDENTITY()); ", op.itemId, op.newCounts[i], op.newSlots[i]);
+		}
+
+		if (op.goldDelta != 0)
+		{
+			q += std::format(L"UPDATE [Player_Info] SET Gold = Gold + ({0}) WHERE PlayerId = @P AND Gold + ({0}) BETWEEN 0 AND {1}; SET @n += @@ROWCOUNT; "
+				L"INSERT INTO @R (Kind, V) SELECT 2, Gold FROM [Player_Info] WHERE PlayerId = @P; ", op.goldDelta, op.goldMax);
+			++want;
+		}
+		return q + ItemOpTail(std::to_wstring(want));
 	}
 
 	// ---------------------------------------------------------------------------------------------------------------

@@ -86,3 +86,10 @@ message MailInfo {
 	int64 count = 5;          // 아이템 수량
 	int64 listing_id = 6;     // 이 우편을 만든 등록
 }
+
+// 받은 퀘스트 하나의 상태 (Q1). 받지 않은 퀘스트는 목록에 없다
+message QuestInfo {
+	int32 quest_id = 1;       // QuestTable ID
+	QuestState state = 2;
+	int32 progress = 3;       // 처치형(Kill)의 처치 수(0 ~ QuestTable.Count). 수집형(Collect)은 항상 0 — 클라이언트가 인벤토리 수량으로 표시한다
+}

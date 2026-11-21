@@ -12,8 +12,6 @@ void UCombatHudWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	SetExpRatio(0.f);
-
 	for (USkillSlotWidget* SlotWidget : GetSlotWidgets())
 	{
 		SlotWidget->OnItemDropped.BindUObject(this, &UCombatHudWidget::OnSlotItemDropped);
@@ -32,12 +30,16 @@ void UCombatHudWidget::NativeConstruct()
 		SetIdentity(UTF8_TO_TCHAR(Info.name().c_str()), Info.level());
 		SetQuickSlots(MyPlayer->GetQuickSlots(), MyPlayer->GetWeaponType());
 		SetHp(Info.stat().hp(), Info.stat().max_hp());
+		SetMp(Info.stat().mp(), Info.stat().max_mp());
+		SetExp(Info.exp(), Info.level());
 	}
 	else
 	{
 		SetIdentity(FString(), 0);
 		SetQuickSlots(TArray<FQuickSlot>(), EWeaponType::None);
 		SetHp(0, 0);
+		SetMp(0, 0);
+		SetExp(0, 0);
 	}
 
 	// 던전 상태: 패킷은 HUD가 만들어진 뒤에 오지만, 순서가 바뀌어도 지금 값으로 시작한다.
@@ -154,9 +156,36 @@ void UCombatHudWidget::SetIdentity(const FString& Name, int32 Level)
 	if (TxtLevel) TxtLevel->SetText(Level > 0 ? FText::FromString(FString::Printf(TEXT("Lv. %d"), Level)) : FText::GetEmpty());
 }
 
-void UCombatHudWidget::SetExpRatio(float Ratio)
+void UCombatHudWidget::SetMp(int32 Mp, int32 MaxMp)
 {
-	if (ExpBar) ExpBar->SetPercent(FMath::Clamp(Ratio, 0.f, 1.f));
+	Mp = FMath::Max(Mp, 0);
+	if (MpBar) MpBar->SetPercent(MaxMp > 0 ? static_cast<float>(Mp) / MaxMp : 0.f);
+	if (TxtMp) TxtMp->SetText(FText::FromString(FString::Printf(TEXT("%d / %d"), Mp, MaxMp)));
+}
+
+void UCombatHudWidget::SetExp(int64 Exp, int32 Level)
+{
+	if (Level <= 0)
+	{
+		if (ExpBar) ExpBar->SetPercent(0.f);
+		if (TxtExp) TxtExp->SetText(FText::GetEmpty());
+		return;
+	}
+
+	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const int64 ExpToNext = DataManager ? DataManager->GetExpToNext(Level) : 0;
+	if (ExpToNext <= 0)
+	{
+		// 최대 레벨(서버는 exp 0을 보냄)
+		if (ExpBar) ExpBar->SetPercent(1.f);
+		if (TxtExp) TxtExp->SetText(FText::FromString(TEXT("MAX")));
+		return;
+	}
+
+	Exp = FMath::Clamp<int64>(Exp, 0, ExpToNext);
+	const float Ratio = static_cast<float>(static_cast<double>(Exp) / static_cast<double>(ExpToNext));
+	if (ExpBar) ExpBar->SetPercent(Ratio);
+	if (TxtExp) TxtExp->SetText(FText::FromString(FString::Printf(TEXT("%lld / %lld (%.1f%%)"), Exp, ExpToNext, Ratio * 100.f)));
 }
 
 void UCombatHudWidget::SetQuickSlots(const TArray<FQuickSlot>& QuickSlots, EWeaponType WeaponType)

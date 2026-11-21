@@ -46,6 +46,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 | SpawnTable | (2026-11-18 L3 서버 구현) 맵·구역별 스폰 몬스터 종류·스폰 지점당 수·리스폰 — 서버 전용 |
 | ShopTable | (2026-11-18 L4) 상점별 판매 품목·구매가 — 서버 전용. 열은 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) "상점 NPC" |
 | NpcTable | (2026-11-18 L4) NPC 종류별 이름·상점·체형·장착 외형 (ID = 마커 `npcTemplateId` = `ObjectInfo.template_id`) — 서버 전용 |
+| QuestTable | (2026-11-22 Q1) 퀘스트별 NPC·종류(처치/수집)·대상·수량·권장 레벨·보상(경험치·골드·아이템) + 이름·설명(클라 전용) — 서버·UE 공용, `balance.py --write`가 생성 |
 | UITable | 해당 기능 작업 시 |
 | WorldTable | 맵별 시야(AOI) 수치·부활 규칙 — 서버 전용(2026-10-31 A1.3, 2026-11-16 A2.4) |
 | BodyTable | 체형별 기준 캐릭터 구성(리더·눈·이·헤어·몸 머티리얼·AnimBP, 공용 피격·사망 몽타주) — 클라 전용(2026-11-07 MC4.1, 2026-11-08 MC4.2) |
@@ -64,6 +65,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 - 생성 시 HP는 `MaxHp`입니다. 가입 시 DB `Player_Info`에 저장하는 Level·Hp도 이 행에서 가져옵니다(SQL에 수치를 쓰지 않음).
 - 레벨 성장(행 추가, 필요 경험치 열)은 A2.3, DB에 저장된 레벨로 조회하는 것은 A2.5(`InitFromDb` 연결)에서 합니다. 그 전까지 모든 플레이어는 Level 1 스탯입니다.
 - 최종 스탯 = 기본 + 장비 보너스(무기 `AttackDamage`, 방어구 `MaxHp`)이며 서버가 계산합니다(MC3.2).
+- 클라이언트도 `DT_PlayerStatTable`(Row `FPlayerStatTableRow`)로 가져오지만 **HUD 경험치 바의 분모 `ExpToNext`만** 읽습니다(`UDataManager::GetExpToNext`, 0 = 최대 레벨 → "MAX" — D-260). 스탯 값은 서버 `ObjectInfo.stat`을 씁니다. CSV를 고치면 `reimport_csv`로 `DT_PlayerStatTable`도 다시 채웁니다.
 - **피해 = 스킬 `BaseDamage` + 시전자 `AttackDamage`**(플레이어·몬스터 같은 공식, 시전 순간 확정 — 2026-11-07 MC3.1b). 방어력(받는 피해 감소)은 나중에(A2.3 무렵) `Character::OnDamaged`에 넣습니다.
 - 가입은 MALE/FEMALE만 받습니다. DB에 남은 옛 4·5 캐릭터(봇 `dummy` 계정 포함)는 로그인할 때 서버가 메모리에서 MALE로 바꾸고, DB 행은 MC3.3 마이그레이션에서 바꿉니다.
 - `PlayerType`(`Enum.proto`)은 **플레이어 체형 전용**입니다(NONE/MALE/FEMALE, 3·4·5는 `reserved`). 몬스터는 `ObjectType`으로 구분하고 종류는 `ObjectInfo.template_id`로 보냅니다.
@@ -104,7 +106,27 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 ### ShopTable (서버 전용, 2026-11-18 L4)
 한 행 = 상점 하나가 파는 품목 하나(D-201). `Name`(행 ID, 1001 이상·중복 불가), `ShopId`(1 이상), `ItemId`(ItemTable ID), `BuyPrice`(1개 값, 1 ~ `EconomyTable.GoldMax`이고 그 아이템의 `SellPrice` 이상 — 사서 되팔아 골드가 늘지 않게). (`ShopId`, `ItemId`) 중복·없는 `ItemId`·범위 위반은 서버 시작을 중단합니다. EconomyTable·ItemTable 뒤에 읽고, 조회는 `DataManager::GetShopItems(shopId)`·`FindShopItem(shopId, itemId)`. 현재 행(`ShopId` 1, 초안): 1001 HP 물약 8001 = 30, 1002~1009 천 장비 1101·2101·3101·4101·5101·6101·6102·7101 = 각 100. 품목을 늘릴 때는 행만 추가합니다. 구매가는 `SC_SHOP_OPEN`으로 클라이언트에 전달하고 UE는 임포트하지 않습니다.
 
+### QuestTable (서버·UE 공용, 2026-11-22 Q1 — D-259·D-261)
+한 행 = 퀘스트 하나. 값의 원본은 `Tools/Balance/balance.py`의 `QUESTS`이고 `--write`가 CSV를 통째로 다시 씁니다(수치 근거는 [DESIGN_BALANCE.md](DESIGN_BALANCE.md) §9). 한 번만 할 수 있고 순서가 없습니다.
+
+| 열 | 뜻 | 서버 로더 검사(어기면 시작 중단) |
+|---|---|---|
+| `Name` | 퀘스트 ID | 1 이상, 중복 불가 |
+| `DisplayName` | 이름(클라 표시용) | 비어 있지 않음(값은 읽지 않음) |
+| `NpcId` | 주고 완료를 받는 NPC(`NpcTable` ID) | `NpcTable`에 있고 상점(`ShopId`)·경매(`Auction`) NPC가 아님 |
+| `Kind` | `Kill`(처치) / `Collect`(수집 — 완료할 때 회수) | 둘 중 하나 |
+| `TargetId` | `Kill` = `MonsterTable` ID, `Collect` = `ItemTable` ID | 그 테이블에 있음 |
+| `Count` | 처치 수 / 제출 수 | 1 이상. `Collect`는 `MaxStack` × `EconomyTable.InventorySlots` 이하 |
+| `RecommendLevel` | 권장 레벨(안내용 — 수락을 막지 않음) | 1 ~ 최대 레벨 |
+| `RewardExp`·`RewardGold` | 보상 | 0 이상, 경험치 10억 이하, 골드는 `EconomyTable.GoldMax` 이하 |
+| `RewardItemId`·`RewardItemCount` | 보상 아이템(없으면 둘 다 0) | 있으면 `ItemTable`에 있고 수량 1 ~ 그 아이템의 `MaxStack` |
+| `Description` | 설명(클라 전용) | 읽지 않음(열이 없어도 됨). 쉼표를 쓰지 않음 |
+
+`NpcTable`·`ItemTable`·`MonsterTable`·`EconomyTable`·`PlayerStatTable` 뒤에 읽고, 조회는 `DataManager::GetQuestData(questId)`. 이 테이블이 가리키는 NPC가 **퀘스트 NPC**입니다(`NpcData.hasQuest` → `ObjectInfo.npc_kind` = `NPC_KIND_QUEST`) — `NpcTable`에 따로 열을 두지 않습니다. 현재 행: 1 초원 정리(1001 15마리) · 2 뿔 모으기(8052 10개) · 3 던전의 군주(1005 1회), 모두 NPC 1003. UE는 `DT_QuestTable`로 임포트해 이름·설명·목표·보상을 표시합니다(3일차). 로더 시험은 `Server/PerfData/2026-11-22_Q1/loader_test.sh`.
+
 ### NpcTable (서버 전용, 2026-11-18 L4)
+퀘스트 NPC(2026-11-22 Q1): 1003 "경비대장"(`ShopId` 0·`Auction` 0, Male, 강철 투구·상의·하의·장갑·장화 + 강철 한손검·방패) 추가. 퀘스트를 주는지는 이 테이블이 아니라 `QuestTable.NpcId`가 정합니다(위 "QuestTable"). 맵 마커는 `Continent01`의 `pointId` 402(마을 북문 안쪽).
+
 `Auction`(2026-11-21 A4.3·D-234, `ShopId` 뒤): 1 = 경매 관리인(경매 등록·취소·수령은 이 NPC 근처에서만), 0 = 아님. 1이면 `ShopId`는 0이어야 합니다(한 NPC가 상점과 경매를 겸하면 시작 중단). 클라이언트에는 `ObjectInfo.npc_kind`로 알립니다. 현재 행에 1002 "경매 관리인"(Female, 천 상의·하의·장갑·신발) 추가.
 
 한 행 = NPC 종류 하나(D-202). `Name`(종류 ID, 1001 이상·중복 불가 = `Npc` 마커의 `npcTemplateId` = `ObjectInfo.template_id`), `DisplayName`(비어 있지 않음, `ObjectInfo.name`으로 전달), `ShopId`(0 = 상점 없음, 아니면 ShopTable에 행이 있는 값), `Body`(`Male`/`Female` — `ObjectInfo.player_type`), 장착 외형 7열 `Head`·`Top`·`Bottom`·`Gloves`·`Boots`·`Weapon`·`Offhand`(0 = 없음, 아니면 그 슬롯의 ItemTable ID — `ObjectInfo.equip_items`). 어기면 서버 시작을 중단합니다. ItemTable·ShopTable 뒤에 읽고, 조회는 `DataManager::GetNpcData(templateId)`. 마커의 종류가 이 테이블에 없으면 서버는 그 마커를 배치하지 않고 ERROR를 남깁니다(중단하지 않음). 현재 행(초안): 1001 "잡화 상인" — `ShopId` 1, `Male`, 판금 상의 2301·판금 하의 3301·천 장갑 4101·판금 장화 5301. UE는 임포트하지 않습니다(외형·이름은 `ObjectInfo`로 받음).

@@ -228,6 +228,19 @@ public:
 	// 수령: 서비스를 거치지 않고 Room → DB → Room. 우편 내용(아이템인지 골드인지)은 DB가 읽어 판단한다 — 여기서는 들어갈 빈 칸만 골라 보낸다.
 	void PlayerMailClaim(shared_ptr<Player> player, int npcId, int64_t mailId);
 
+	// ---- 퀘스트 (Q1, D-259·D-261 — Docs/DESIGN_BALANCE.md §9) ----
+	// 서버에 "퀘스트 창을 연 상태"는 없다. 수락·완료 모두 요청마다 CheckQuestRequest(상점과 같은 순서)를 거친다.
+	// 거부는 본인에게 SC_QUEST_RESULT, 성공은 SC_QUEST_UPDATE(완료는 그 앞에 SC_INVENTORY_UPDATE, 뒤에 SC_GAIN_EXP).
+	// 수락: 퀘스트 존재·그 NPC의 퀘스트 → 받지 않은 상태(권장 레벨은 보지 않는다) → 아이템 작업(QuestAccept). 성공한 뒤에만 메모리에 올린다.
+	void PlayerQuestAccept(shared_ptr<Player> player, int npcId, int questId);
+	// 완료: 진행 중 → 처치 수(처치형) 또는 인벤토리 수량(수집형 — 수량이 적은 스택부터 회수 계획) → 보상 칸(회수를 적용한 사본으로 계획) → 골드 상한
+	// → 아이템 작업(QuestComplete, 한 트랜잭션). 성공하면 인벤토리·골드 → 완료 표시 → 보상 경험치(바로 진행 상황 저장 요청).
+	void PlayerQuestComplete(shared_ptr<Player> player, int npcId, int questId);
+	// 퀘스트 처치 진행을 DB에 저장한다(D-261 — 바뀔 때마다). 진행 상황 저장과 같은 방식: 더미 봇·DB 캐릭터가 아니면 건너뛰고, Room 이동 중에는 미루고,
+	// DB 값보다 커진 것이 있을 때만 보내고, 진행 중이면 끝난 뒤 최신 값으로 한 번 더 저장한다. 방을 나간 플레이어도 받는다.
+	void RequestQuestSave(shared_ptr<Player> player);
+	void OnQuestSaved(shared_ptr<Player> player, QuestProgressList saved, bool success);
+
 	// 소비 아이템 사용(A3.6, D-154). itemDbId가 0이면 itemId 종류 중 수량이 적은 스택부터 고른다(액티브 칸).
 	// 검증(보유 → 사용 효과 → 레벨 → 생존 → HP 최대 → 재사용 시간 → 요청 간격·진행 중인 작업) 뒤 DB에서 1개를 줄이고,
 	// 성공하면 효과를 적용해 SC_USE_ITEM(AOI, 본인 포함) + SC_INVENTORY_UPDATE를 보낸다.
@@ -320,10 +333,17 @@ public:
 	void SpawnMonsterDrops(int monsterTemplateId, Protocol::PositionInfo pos, shared_ptr<Character> attacker);
 
 	// ---- 성장·MP(A2.3b, D-253·D-254) ----
-	// 몬스터 처치 경험치(Monster::OnDead가 드랍 롤 전에 같은 Room 잡 안에서 부른다). 받는 사람 = 막타 플레이어(이 방에 있고 더미 봇이 아님 —
-	// 드랍 소유권과 같은 규칙) + 같은 파티(≠0)·막타의 시야(_viewList) 안·살아 있는 이 방의 파티원(더미 봇 제외).
+	// 몬스터 처치를 인정받는 사람(Monster::OnDead가 한 번 계산해 경험치·퀘스트 처치 인정이 함께 쓴다). 맨 앞 = 막타 플레이어(이 방에 있고 더미 봇이 아님 —
+	// 드랍 소유권과 같은 규칙), 그 뒤 = 같은 파티(≠0)·막타의 시야(_viewList) 안·살아 있는 이 방의 파티원(더미 봇 제외).
+	// 막타를 알 수 없거나(투사체가 날아가는 동안 퇴장) 더미 봇이면 빈 목록.
+	vector<shared_ptr<Player>> GetKillReceivers(const shared_ptr<Character>& killer);
+	// 몬스터 처치 경험치(드랍 롤 전에 같은 Room 잡 안에서 부른다). receivers = GetKillReceivers.
 	// n명이면 한 사람 몫 = floor(MonsterTable.Exp × (1 + 0.1 × (n − 1)) / n).
-	void GrantKillExp(shared_ptr<Character> killer, int monsterTemplateId);
+	void GrantKillExp(const vector<shared_ptr<Player>>& receivers, int monsterTemplateId);
+	// 퀘스트 처치 인정(Q1, D-261). 인정 대상 = receivers(경험치를 받는 사람) + **던전 Room이면 막타와 같은 파티인 이 방의 전원(죽은 사람·시야 밖 포함)**.
+	// 진행 중인 처치형 퀘스트 가운데 대상이 이 몬스터인 것을 Count까지 +1 → SC_QUEST_UPDATE → 저장 요청. 목표에 닿아도 자동으로 완료하지 않는다.
+	// 경험치가 0인 몬스터도 인정한다(GrantKillExp와 따로 부르는 이유).
+	void CreditKill(const vector<shared_ptr<Player>>& receivers, int monsterTemplateId);
 	// 경험치를 더하고(Player::AddExp) 알린다: 레벨이 오르면 SC_LEVEL_UP(AOI, 본인 포함) + 명부 레벨 갱신(WorldService), 항상 본인에게 SC_GAIN_EXP.
 	void ApplyExpGain(const shared_ptr<Player>& player, int64_t amount);
 	// 1초에 한 번(Update): 살아 있는 플레이어의 MP(초당 최대치의 1%·전투 밖 5%)와 HP(전투 밖에서만 5초마다 20%) 자연 회복.
@@ -440,6 +460,9 @@ private:
 	void UpdateNpcView(const shared_ptr<Player>& player);
 	// 상점 요청 공통 검증. 통과하면 SUCCESS와 함께 outNpc를 채운다. needItemOp = false(품목 요청)면 진행 중인 작업(BUSY)은 보지 않는다.
 	Protocol::ItemResult CheckShopRequest(const shared_ptr<Player>& player, int npcId, bool needItemOp, shared_ptr<TownNpc>& outNpc);
+	// 퀘스트 요청 공통 검증(Q1 — CheckShopRequest와 같은 순서): 방 안 → 더미 봇 아님 → 생존 → 요청 간격·진행 중인 작업·Room 이동 → 1:1 거래 중 아님
+	// → 퀘스트 NPC 존재 → 이용 거리(EconomyTable.ShopRangeCm). 통과하면 SUCCESS와 함께 outNpc를 채운다.
+	Protocol::QuestResult CheckQuestRequest(const shared_ptr<Player>& player, int npcId, shared_ptr<TownNpc>& outNpc);
 	int NextDropId();
 
 	RoomInfo _info;

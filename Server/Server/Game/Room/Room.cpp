@@ -384,6 +384,15 @@ void Room::PlayerEnterRoom(shared_ptr<Player> player)
 	if (!player->isDummy)
 	{
 		enterSession->Send(PacketSerializer::MAKE_SC_INVENTORY(player->inventory, player->GetGold(), player->quickSlots));
+		// 퀘스트(Q1): 받은 퀘스트 전부를 한 번(비어 있어도 보낸다). Room을 옮길 때(FinishArrive)는 다시 보내지 않는다.
+		enterSession->Send(PacketSerializer::MAKE_SC_QUEST_LIST(player));
+		// 수령함 알림(D-262): 접속하지 않은 동안 팔리거나 만료된 것이 있으면 한 번 알린다.
+		if (player->hasMailAtLogin)
+		{
+			player->hasMailAtLogin = false;
+			Metrics::MailNotices.fetch_add(1);
+			enterSession->Send(PacketSerializer::MAKE_SC_MAIL_NOTICE(Protocol::MAIL_KIND_NONE, 0, 0, 0, 0));
+		}
 		// 로그인 때 비운 액티브 칸(쓸 수 없는 종류)이 있으면 DB에서도 지운다.
 		RequestQuickSlotSave(player);
 
@@ -441,6 +450,7 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 			Metrics::RoomMoveCanceled.fetch_add(1);
 			RequestProgressSave(player);
 			RequestQuickSlotSave(player);
+			RequestQuestSave(player);
 			NotifyClosedIfDone(player);
 			return;
 		}
@@ -485,8 +495,10 @@ void Room::PlayerLeaveRoom(shared_ptr<Player> player)
 	RequestProgressSave(player);
 	// 액티브 칸도 저장에 실패해 남은 것이 있으면 다시 보낸다(A3.6).
 	RequestQuickSlotSave(player);
+	// 퀘스트 처치 진행도 이동 중이라 미뤘거나 저장에 실패해 남은 것이 있으면 보낸다(Q1).
+	RequestQuestSave(player);
 
-	// 보낸 DB 작업이 없으면 바로, 있으면 결과가 올 때(OnItemOpDone·OnProgressSaved·OnQuickSlotsSaved) 접속 목록에서 빼게 한다.
+	// 보낸 DB 작업이 없으면 바로, 있으면 결과가 올 때(OnItemOpDone·OnProgressSaved·OnQuickSlotsSaved·OnQuestSaved) 접속 목록에서 빼게 한다.
 	NotifyClosedIfDone(player);
 }
 
@@ -1388,8 +1400,9 @@ void Room::FinishArrive(const shared_ptr<Player>& player, Player::MoveReason rea
 	LOG_DEBUG("RoomMove", "Player[{}] 들어옴: Room {} pos=({:.0f},{:.0f},{:.0f}) seq={}", player->GetId(), _info.roomId,
 		player->GetPosition().x(), player->GetPosition().y(), player->GetPosition().z(), player->moveGuard.correctionSeq);
 
-	// 대기·이동 중에 미뤄 둔 액티브 칸 저장(값이 DB와 다를 때만 보낸다). 진행 상황은 주기 저장이 이어받는다.
+	// 대기·이동 중에 미뤄 둔 액티브 칸·퀘스트 진행 저장(값이 DB와 다를 때만 보낸다). 진행 상황은 주기 저장이 이어받는다.
 	RequestQuickSlotSave(player);
+	RequestQuestSave(player);
 
 	// ⑧ 명부의 "지금 있는 Room" 갱신. 던전이면 서비스가 이 사람이 아직 들어올 자격이 있는지도 본다(그 사이 파티 탈퇴 → 내보냄).
 	GWorld->PushJob(&WorldService::OnPlayerMoved, player->GetId(), shared_from_this());
@@ -2106,6 +2119,236 @@ void Room::PlayerMailClaim(shared_ptr<Player> player, int npcId, int64_t mailId)
 
 	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
 	StartItemOp(player, op);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// 퀘스트 (Q1, D-259·D-261 — Docs/DESIGN_BALANCE.md §9)
+// ---------------------------------------------------------------------------------------------------------------
+namespace
+{
+	// 거부를 본인에게 알린다. 성공은 결과 적용(ApplyItemOpResult)에서 SC_QUEST_UPDATE로 알린다.
+	void SendQuestReject(const shared_ptr<Player>& player, Protocol::PacketId request, int questId, Protocol::QuestResult result)
+	{
+		Metrics::QuestRejected.fetch_add(1);
+		LOG_DEBUG("Quest", "거부 player={} request={} quest={} result={}", player->GetId(), Protocol::PacketId_Name(request), questId, Protocol::QuestResult_Name(result));
+		if (shared_ptr<Session> session = player->GetSession())
+			session->Send(PacketSerializer::MAKE_SC_QUEST_RESULT(request, questId, result));
+	}
+
+	Protocol::QuestResult ToQuestResult(Protocol::ItemResult result)
+	{
+		switch (result)
+		{
+		case Protocol::ITEM_RESULT_SUCCESS: return Protocol::QUEST_RESULT_SUCCESS;
+		case Protocol::ITEM_RESULT_NOT_IN_ROOM: return Protocol::QUEST_RESULT_NOT_IN_ROOM;
+		case Protocol::ITEM_RESULT_TOO_FREQUENT: return Protocol::QUEST_RESULT_TOO_FREQUENT;
+		case Protocol::ITEM_RESULT_BUSY: return Protocol::QUEST_RESULT_BUSY;
+		default: return Protocol::QUEST_RESULT_NOT_ALLOWED;
+		}
+	}
+}
+
+Protocol::QuestResult Room::CheckQuestRequest(const shared_ptr<Player>& player, int npcId, shared_ptr<TownNpc>& outNpc)
+{
+	// 검증 순서(CheckShopRequest와 같다): 방 안 → 더미 봇 아님 → 생존 → 요청 간격·진행 중인 작업 → 거래 중 아님 → 퀘스트 NPC 존재 → 거리
+	if (false == IsInRoom(player)) return Protocol::QUEST_RESULT_NOT_IN_ROOM;
+	if (player->isDummy || player->GetPlayerUID() == 0) return Protocol::QUEST_RESULT_NOT_ALLOWED;
+	if (player->GetStat().IsDead()) return Protocol::QUEST_RESULT_DEAD;
+	// 수락·완료 모두 아이템 작업이다: 요청 간격 → Room 이동 중·진행 중인 작업(BUSY)
+	const Protocol::ItemResult check = CheckItemRequest(player);
+	if (check != Protocol::ITEM_RESULT_SUCCESS) return ToQuestResult(check);
+	// 1:1 거래가 열려 있으면(요청 대기 포함) 퀘스트 전체를 막는다 — 완료가 인벤토리에서 아이템을 회수하므로 상점과 같은 규칙(D-201).
+	if (player->tradeId != 0) return Protocol::QUEST_RESULT_IN_TRADE;
+
+	const shared_ptr<TownNpc> npc = GetNpc(npcId);
+	if (npc == nullptr || !npc->IsQuest()) return Protocol::QUEST_RESULT_NO_QUEST;
+
+	const Protocol::PositionInfo& myPos = player->GetPosition();
+	const Protocol::PositionInfo& npcPos = npc->GetPosition();
+	const float dx = npcPos.x() - myPos.x(), dy = npcPos.y() - myPos.y();
+	const float range = static_cast<float>(DataManager::GetEconomy().shopRangeCm);
+	if (dx * dx + dy * dy > range * range) return Protocol::QUEST_RESULT_TOO_FAR;
+
+	outNpc = npc;
+	return Protocol::QUEST_RESULT_SUCCESS;
+}
+
+void Room::PlayerQuestAccept(shared_ptr<Player> player, int npcId, int questId)
+{
+	if (player == nullptr) return;
+	auto reject = [&](Protocol::QuestResult result) { SendQuestReject(player, Protocol::CS_QUEST_ACCEPT, questId, result); };
+
+	shared_ptr<TownNpc> npc;
+	const Protocol::QuestResult check = CheckQuestRequest(player, npcId, npc);
+	if (check != Protocol::QUEST_RESULT_SUCCESS) { reject(check); return; }
+
+	// 퀘스트 존재 → 그 NPC가 주는 퀘스트 → 받지 않은 상태. 권장 레벨은 안내용이라 보지 않는다(D-259).
+	const QuestData* quest = DataManager::GetQuestData(questId);
+	if (quest == nullptr || quest->npcId != npc->GetTemplateId()) { reject(Protocol::QUEST_RESULT_NO_QUEST); return; }
+
+	const Protocol::QuestState state = player->GetQuestState(questId);
+	if (state == Protocol::QUEST_STATE_ACTIVE) { reject(Protocol::QUEST_RESULT_ALREADY_ACTIVE); return; }
+	if (state == Protocol::QUEST_STATE_COMPLETED) { reject(Protocol::QUEST_RESULT_ALREADY_DONE); return; }
+
+	DB_ItemOp op;
+	op.kind = ItemOpKind::QuestAccept;
+	op.questId = questId;
+
+	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+void Room::PlayerQuestComplete(shared_ptr<Player> player, int npcId, int questId)
+{
+	if (player == nullptr) return;
+	auto reject = [&](Protocol::QuestResult result) { SendQuestReject(player, Protocol::CS_QUEST_COMPLETE, questId, result); };
+
+	shared_ptr<TownNpc> npc;
+	const Protocol::QuestResult check = CheckQuestRequest(player, npcId, npc);
+	if (check != Protocol::QUEST_RESULT_SUCCESS) { reject(check); return; }
+
+	const QuestData* quest = DataManager::GetQuestData(questId);
+	if (quest == nullptr || quest->npcId != npc->GetTemplateId()) { reject(Protocol::QUEST_RESULT_NO_QUEST); return; }
+
+	const auto entryIt = player->quests.find(questId);
+	if (entryIt == player->quests.end() || entryIt->second.state == Protocol::QUEST_STATE_NONE) { reject(Protocol::QUEST_RESULT_NOT_ACTIVE); return; }
+	if (entryIt->second.state == Protocol::QUEST_STATE_COMPLETED) { reject(Protocol::QUEST_RESULT_ALREADY_DONE); return; }
+
+	const EconomyData& economy = DataManager::GetEconomy();
+	DB_ItemOp op;
+	op.kind = ItemOpKind::QuestComplete;
+	op.questId = questId;
+
+	// 보상이 들어갈 칸은 "회수를 적용한 뒤의 인벤토리"로 계획한다 — 제출해서 빈 칸에 보상이 들어갈 수 있다(DB도 회수 → 추가 순서).
+	Inventory afterTake = player->inventory;
+	if (quest->kind == QuestKind::Kill)
+	{
+		if (entryIt->second.progress < quest->count) { reject(Protocol::QUEST_RESULT_NOT_FINISHED); return; }
+		op.questProgress = entryIt->second.progress;
+	}
+	else
+	{
+		// 인벤토리 위치의 그 종류만 센다(1:1 거래 중이면 위에서 이미 거부했다). 수량이 적은 스택부터 가져간다(같으면 ItemDbId 순).
+		vector<const ItemInstance*> stacks;
+		int64_t have = 0;
+		for (const auto& [dbId, item] : player->inventory.Items())
+		{
+			if (item.equipPart != 0 || item.itemId != quest->targetId) continue;
+			stacks.push_back(&item);
+			have += item.count;
+		}
+		if (have < quest->count) { reject(Protocol::QUEST_RESULT_NOT_ENOUGH_ITEM); return; }
+		std::stable_sort(stacks.begin(), stacks.end(), [](const ItemInstance* a, const ItemInstance* b) { return a->count < b->count; });
+
+		int32_t remain = quest->count;
+		for (const ItemInstance* stack : stacks)
+		{
+			if (remain <= 0) break;
+			const int32_t take = std::min(remain, stack->count);
+			op.questTakes.push_back({ stack->dbId, stack->count, take });
+			if (take >= stack->count)
+			{
+				afterTake.Remove(stack->dbId);
+			}
+			else
+			{
+				ItemInstance left = *stack;
+				left.count -= take;
+				afterTake.Set(left);
+			}
+			remain -= take;
+		}
+		op.questTakeItemId = quest->targetId;
+	}
+
+	if (quest->rewardItemId != 0)
+	{
+		// 덜 찬 스택부터 채우고 남으면 새 칸. 전부 들어갈 자리가 없으면 통째로 거부한다(D-155).
+		const ItemData* reward = DataManager::GetItemData(quest->rewardItemId);   // 로더가 존재를 확인했다
+		if (reward == nullptr || false == afterTake.PlanAdd(quest->rewardItemId, quest->rewardItemCount, reward->maxStack, economy.inventorySlots, op.fills, op.newCounts, op.newSlots))
+		{
+			reject(Protocol::QUEST_RESULT_INVENTORY_FULL);
+			return;
+		}
+		op.itemId = quest->rewardItemId;
+	}
+	if (quest->rewardGold > 0)
+	{
+		// 상한을 넘기는 보상은 거부한다(일부만 주지 않는다). 실제 증액은 DB에서 조건부로 하고 잔액을 돌려받는다(D-152).
+		if (quest->rewardGold > static_cast<int64_t>(economy.goldMax) - player->GetGold()) { reject(Protocol::QUEST_RESULT_GOLD_FULL); return; }
+		op.goldDelta = quest->rewardGold;
+		op.goldMax = economy.goldMax;
+	}
+
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	StartItemOp(player, op);
+}
+
+void Room::RequestQuestSave(shared_ptr<Player> player)
+{
+	if (player == nullptr || player->GetPlayerUID() == 0 || player->isDummy) return;
+
+	// Room 이동 대기·이동 중에는 새 저장을 보내지 않는다(DG3b). 도착 Room이 들어오기 처리 끝에서 다시 부른다(커진 값이 있으면 그때 저장).
+	if (player->roomMove.Active() && IsInRoom(player)) return;
+
+	Player::SaveState& state = player->questSave;
+	if (state.inFlight)
+	{
+		// DB 작업 스레드가 여러 개라 연달아 보내면 순서가 뒤바뀔 수 있다. 끝난 뒤 최신 값으로 한 번 더 보낸다.
+		state.dirty = true;
+		return;
+	}
+
+	state.dirty = false;
+	const QuestProgressList list = player->MakeQuestSaveList();
+	if (list.empty()) return;   // DB 값보다 커진 것이 없다
+
+	state.inFlight = true;
+	Metrics::QuestSaveSent.fetch_add(1);
+	Metrics::QuestSaveInFlight.fetch_add(1);
+	GDBWorker->PushDBJob(&DatabaseWorker::SaveQuestProgress, shared_from_this(), player, player->GetPlayerUID(), list);
+}
+
+void Room::OnQuestSaved(shared_ptr<Player> player, QuestProgressList saved, bool success)
+{
+	CheckDbResultOwner(player, "questSave");
+	Metrics::QuestSaveInFlight.fetch_sub(1);
+	Player::SaveState& state = player->questSave;
+	state.inFlight = false;
+	const bool inRoom = IsInRoom(player);
+
+	if (success)
+	{
+		for (const auto& [questId, progress] : saved)
+		{
+			// 저장하는 동안 완료된 퀘스트는 완료 트랜잭션이 최종 값을 적었다(DB 값 기록도 그때 지웠다) — 다시 만들지 않는다.
+			if (player->GetQuestState(questId) != Protocol::QUEST_STATE_ACTIVE) continue;
+			int32_t& savedProgress = player->lastSavedQuestProgress[questId];
+			savedProgress = std::max(savedProgress, progress);
+		}
+		// 저장하는 동안 또 올랐거나 그 사이 방을 나갔으면 최신 값으로 한 번 더(커진 값이 없으면 보내지 않는다).
+		if (state.dirty || !inRoom)
+			RequestQuestSave(player);
+	}
+	// 실패: 방에 있으면 다음 처치·주기 저장·퇴장 때 다시 저장한다(DB 값 기록이 그대로라 다시 보낸다).
+	// 방을 나갔으면 다음 기회가 없으므로 몇 번 더 시도한다.
+	else if (!inRoom)
+	{
+		constexpr int MAX_LEAVE_SAVE_RETRIES = 3;
+		if (player->questSaveRetries < MAX_LEAVE_SAVE_RETRIES)
+		{
+			++player->questSaveRetries;
+			RequestQuestSave(player);
+		}
+		else
+		{
+			LOG_ERROR("Room", "퀘스트 진행 퇴장 저장을 포기합니다 (PlayerId {}) — DB에는 이전 처치 수가 남습니다", player->GetPlayerUID());
+		}
+	}
+
+	TryAdvanceMove(player);   // 이 저장을 기다리던 Room 이동(DG3b)
+	// 방을 나간 플레이어의 마지막 저장이 끝났으면 접속 목록에서 빼게 한다(A2.7).
+	NotifyClosedIfDone(player);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -3124,6 +3367,118 @@ void Room::ApplyItemOpResult(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpR
 		}
 		break;
 	}
+	case ItemOpKind::QuestAccept:
+	{
+		if (!result.success)
+		{
+			// 롤백 확인: 바뀐 것 없음(결과 불명이면 위에서 접속을 끊었다 — 다음 로그인 때 DB 값을 읽는다).
+			if (session) session->Send(PacketSerializer::MAKE_SC_QUEST_RESULT(Protocol::CS_QUEST_ACCEPT, op.questId, Protocol::QUEST_RESULT_DB_ERROR));
+			break;
+		}
+		Metrics::QuestAccepted.fetch_add(1);
+		LOG_DEBUG("Quest", "수락 player={} uid={} quest={}", player->GetId(), op.playerUID, op.questId);
+		if (!inRoom) break;
+
+		Player::QuestEntry& entry = player->quests[op.questId];
+		entry.state = Protocol::QUEST_STATE_ACTIVE;
+		entry.progress = 0;
+		player->lastSavedQuestProgress[op.questId] = 0;
+		if (session) session->Send(PacketSerializer::MAKE_SC_QUEST_UPDATE(op.questId, entry.state, entry.progress));
+		break;
+	}
+	case ItemOpKind::QuestComplete:
+	{
+		if (!result.success)
+		{
+			if (session) session->Send(PacketSerializer::MAKE_SC_QUEST_RESULT(Protocol::CS_QUEST_COMPLETE, op.questId, Protocol::QUEST_RESULT_DB_ERROR));
+			break;
+		}
+		Metrics::QuestCompleted.fetch_add(1);
+		const QuestData* quest = DataManager::GetQuestData(op.questId);
+		const int rewardExp = quest != nullptr ? quest->rewardExp : 0;
+		LOG_DEBUG("Quest", "완료 player={} uid={} quest={} 회수 {}행 보상 item={} gold=+{} 잔액={} exp=+{}", player->GetId(), op.playerUID, op.questId,
+			op.questTakes.size(), op.itemId, op.goldDelta, result.gold, rewardExp);
+		if (!inRoom)
+		{
+			// 결과를 기다리는 동안 접속이 끊겨 방을 나갔다: 아이템·골드·퀘스트 상태는 DB에 들어갔고 다음 로그인 때 읽는다.
+			// 보상 경험치만은 이 트랜잭션에 없다(레벨·경험치는 진행 상황 저장이 통째로 쓴다) — 완료 행은 이미 남았으므로 여기서 더해
+			// 마지막 진행 상황 저장에 실리게 한다(패킷·명부 통지 없음). 다른 Room으로 옮긴 플레이어의 필드는 만지지 않는다(CheckDbResultOwner가 끊었다).
+			const shared_ptr<Room> owner = player->GetCurrentRoom();
+			if (rewardExp > 0 && (owner == nullptr || owner.get() == this))
+			{
+				player->AddExp(rewardExp);
+				RequestProgressSave(player);
+			}
+			break;
+		}
+
+		// 회수 → 보상 순서로 메모리에 반영한다(계획을 세운 순서 = DB가 실행한 순서). 같은 행이 두 번 바뀔 수 있어 마지막 값만 보낸다.
+		vector<int64_t> removed;
+		vector<int64_t> touched;
+		auto touch = [&](int64_t dbId) { if (std::find(touched.begin(), touched.end(), dbId) == touched.end()) touched.push_back(dbId); };
+		for (const DB_ItemOp::QuestTake& take : op.questTakes)
+		{
+			const ItemInstance* found = player->inventory.Find(take.itemDbId);
+			if (found == nullptr) continue;
+			if (take.take >= take.expectCount)
+			{
+				player->inventory.Remove(take.itemDbId);
+				removed.push_back(take.itemDbId);
+			}
+			else
+			{
+				ItemInstance left = *found;
+				left.count = take.expectCount - take.take;
+				player->inventory.Set(left);
+				touch(take.itemDbId);
+			}
+		}
+		if (result.newDbIds.size() == op.newCounts.size())
+		{
+			for (const DB_ItemOp::Fill& fill : op.fills)
+			{
+				const ItemInstance* found = player->inventory.Find(fill.itemDbId);
+				if (found == nullptr) continue;
+				ItemInstance filled = *found;
+				filled.count = fill.expectCount + fill.add;
+				player->inventory.Set(filled);
+				touch(fill.itemDbId);
+			}
+			for (size_t i = 0; i < op.newCounts.size(); ++i)
+			{
+				player->inventory.Set(ItemInstance{ result.newDbIds[i], op.itemId, op.newCounts[i], 0, op.newSlots[i] });
+				touch(result.newDbIds[i]);
+			}
+		}
+		else
+		{
+			// 일어나면 안 된다(쿼리와 결과 읽기가 어긋남). DB에는 반영됐으므로 다음 로그인 때 맞춰진다.
+			LOG_ERROR("Quest", "퀘스트 완료 결과의 새 행 수가 다릅니다 (PlayerId {}, 기대 {}, 받음 {})", op.playerUID, op.newCounts.size(), result.newDbIds.size());
+		}
+		if (result.gold >= 0)
+			player->SetGold(result.gold);
+		for (const int64_t dbId : touched)
+		{
+			if (const ItemInstance* item = player->inventory.Find(dbId))
+				changed.push_back(*item);
+		}
+		if (session) session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, removed, player->GetGold()));
+
+		// 완료 표시. DB 값 기록은 지운다(완료 트랜잭션이 최종 처치 수를 적었다 — 진행 저장 대상에서 빠진다).
+		Player::QuestEntry& entry = player->quests[op.questId];
+		entry.state = Protocol::QUEST_STATE_COMPLETED;
+		entry.progress = op.questProgress;
+		player->lastSavedQuestProgress.erase(op.questId);
+		if (session) session->Send(PacketSerializer::MAKE_SC_QUEST_UPDATE(op.questId, entry.state, entry.progress));
+
+		// 보상 경험치: 메모리에 더하고(레벨업 방송 포함) 바로 저장을 요청한다 — 완료 행은 DB에 남았는데 경험치가 주기 저장을 기다리다 사라지지 않게.
+		if (rewardExp > 0)
+		{
+			ApplyExpGain(player, rewardExp);
+			RequestProgressSave(player);
+		}
+		break;
+	}
 	case ItemOpKind::LoginFix:
 	{
 		// 메모리는 로그인 때 이미 내렸다. 실패하면 DB에는 장착으로 남아 다음 로그인 때 다시 시도한다
@@ -3149,6 +3504,8 @@ void Room::UpdateSaves(long long nowMs)
 		if (player->roomMove.Active()) continue;   // 이동이 끝난 뒤(도착 Room의 다음 틱) 저장한다
 		player->nextProgressSaveMs = nowMs + intervalMs;
 		RequestProgressSave(player);
+		// 퀘스트 진행은 바뀔 때마다 저장하지만, 실패했거나 Room 이동이 취소돼 미룬 채 남은 것은 여기서 다시 보낸다(커진 값이 없으면 보내지 않는다).
+		RequestQuestSave(player);
 	}
 	UpdateMoves(nowMs);
 }
@@ -3751,18 +4108,17 @@ void Room::SpawnMonsterDrops(int monsterTemplateId, Protocol::PositionInfo pos, 
 	}
 }
 
-void Room::GrantKillExp(shared_ptr<Character> killer, int monsterTemplateId)
+vector<shared_ptr<Player>> Room::GetKillReceivers(const shared_ptr<Character>& killer)
 {
-	const MonsterData* data = DataManager::GetMonsterData(monsterTemplateId);
-	if (data == nullptr || data->exp <= 0) return;
+	vector<shared_ptr<Player>> receivers;
 
 	// 막타: 이 방에 있는 개별 계정 플레이어만(드랍 소유권과 같은 규칙 — 더미 봇은 전원이 DB 한 행). 다른 Room으로 옮긴 공격자의 필드는 읽지 않는다.
-	if (killer == nullptr || killer->GetType() != Protocol::ObjectType::OBJECT_TYPE_PLAYER) return;
+	if (killer == nullptr || killer->GetType() != Protocol::ObjectType::OBJECT_TYPE_PLAYER) return receivers;
 	const shared_ptr<Player> lastHitter = static_pointer_cast<Player>(killer);
-	if (lastHitter->isDummy || !IsInRoom(lastHitter)) return;
+	if (lastHitter->isDummy || !IsInRoom(lastHitter)) return receivers;
 
 	// 받는 사람 = 막타 + 같은 파티(≠0)·막타의 시야 안·살아 있는 이 방의 파티원(D-254). 시야 목록에는 이 방의 오브젝트만 있다.
-	vector<shared_ptr<Player>> receivers{ lastHitter };
+	receivers.push_back(lastHitter);
 	if (lastHitter->partyId != 0)
 	{
 		for (const int viewId : lastHitter->_viewList)
@@ -3773,6 +4129,13 @@ void Room::GrantKillExp(shared_ptr<Character> killer, int monsterTemplateId)
 			receivers.push_back(member);
 		}
 	}
+	return receivers;
+}
+
+void Room::GrantKillExp(const vector<shared_ptr<Player>>& receivers, int monsterTemplateId)
+{
+	const MonsterData* data = DataManager::GetMonsterData(monsterTemplateId);
+	if (data == nullptr || data->exp <= 0 || receivers.empty()) return;
 
 	// 한 사람 몫 = floor(경험치 × (1 + 0.1 × (n − 1)) / n) = floor(경험치 × (9 + n) / (10 × n)) — 정수로 계산한다
 	const int64_t n = static_cast<int64_t>(receivers.size());
@@ -3780,6 +4143,47 @@ void Room::GrantKillExp(shared_ptr<Character> killer, int monsterTemplateId)
 	LOG_DEBUG("Exp", "처치 경험치 monster={} exp={} receivers={} share={}", monsterTemplateId, data->exp, n, share);
 	for (const shared_ptr<Player>& receiver : receivers)
 		ApplyExpGain(receiver, share);
+}
+
+void Room::CreditKill(const vector<shared_ptr<Player>>& receivers, int monsterTemplateId)
+{
+	if (receivers.empty()) return;   // 막타를 알 수 없거나 더미 봇
+
+	// 인정 대상 = 경험치를 받는 사람. 던전 Room에서는 막타와 같은 파티인 이 방의 전원도 인정한다 — 죽어 있거나 시야 밖이어도(D-261:
+	// 우두머리전에서 죽은 파티원·다른 방을 정리하던 파티원이 함께 깬 것으로 친다). 로딩 대기 중(_loading)인 사람은 아직 방에 없다.
+	vector<shared_ptr<Player>> targets = receivers;
+	const shared_ptr<Player>& lastHitter = receivers.front();
+	if (_info.kind == RoomKind::Dungeon && lastHitter->partyId != 0)
+	{
+		for (const auto& [id, member] : _players)
+		{
+			if (member->isDummy || member->partyId != lastHitter->partyId) continue;
+			if (std::find(targets.begin(), targets.end(), member) != targets.end()) continue;
+			targets.push_back(member);
+		}
+	}
+
+	for (const shared_ptr<Player>& target : targets)
+	{
+		bool changed = false;
+		for (auto& [questId, entry] : target->quests)
+		{
+			if (entry.state != Protocol::QUEST_STATE_ACTIVE) continue;
+			const QuestData* quest = DataManager::GetQuestData(questId);
+			if (quest == nullptr || quest->kind != QuestKind::Kill || quest->targetId != monsterTemplateId) continue;
+			if (entry.progress >= quest->count) continue;   // 목표에 닿으면 더 세지 않는다(완료는 NPC에게 가서 요청한다)
+
+			++entry.progress;
+			changed = true;
+			Metrics::QuestKillCredits.fetch_add(1);
+			LOG_DEBUG("Quest", "처치 인정 player={} quest={} monster={} progress={}/{}", target->GetId(), questId, monsterTemplateId, entry.progress, quest->count);
+			if (shared_ptr<Session> session = target->GetSession())
+				session->Send(PacketSerializer::MAKE_SC_QUEST_UPDATE(questId, entry.state, entry.progress));
+		}
+		// 바뀔 때마다 저장한다(D-261). 저장이 진행 중이면 끝난 뒤 최신 값으로 한 번 더 간다.
+		if (changed)
+			RequestQuestSave(target);
+	}
 }
 
 void Room::ApplyExpGain(const shared_ptr<Player>& player, int64_t amount)

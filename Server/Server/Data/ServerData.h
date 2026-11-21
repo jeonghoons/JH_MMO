@@ -61,6 +61,10 @@ enum class ItemOpKind
 	AuctionBuy,        // 즉시 구매: 등록 State 1 → 2 + 골드 차감 + 아이템을 구매자 수령함(Location 4)으로 + Player_Mail 2행(구매품·판매 대금)
 	AuctionCancel,     // 취소: 등록 State 1 → 4 + 아이템을 판매자 수령함으로 + Player_Mail 1행
 	MailClaim,         // 수령: 아이템이면 Location 4 → 1(빈 칸), 골드면 증액(상한 안) + Player_Mail 행 삭제
+	// 퀘스트(Q1, D-259·D-261). 아이템·골드가 함께 바뀌는 완료와 같은 칸(itemOp)을 쓰도록 수락도 아이템 작업으로 한다 — 둘이 겹치지 않고(BUSY),
+	// 결과를 기다리는 동안 Room 이동·접속 정리가 기다리며, 결과 불명이면 접속을 끊어 다음 로그인 때 DB 값을 읽는다.
+	QuestAccept,       // 수락: Player_Quest 1행 INSERT(이미 있으면 롤백) (고정 쿼리)
+	QuestComplete,     // 완료: State 1 → 2 + 수집품 회수 + 보상 아이템(fills·newCounts) + 보상 골드(goldDelta) (조립식 쿼리)
 };
 
 // 경매 종류의 아이템 작업인가(혼잡 카운터·결과 패킷이 다르다 — A4.3)
@@ -150,6 +154,18 @@ struct DB_ItemOp {
 	// MailClaim — 골드 상한은 goldMax에 담는다
 	int64_t mailId = 0;
 	int32_t claimSlot = -1;                   // 아이템이면 들어갈 인벤토리 칸(-1 = 빈 칸 없음 — 아이템 우편이면 DB가 INVENTORY_FULL로 거부)
+	// AuctionBuy: 서비스가 목록에서 적는다 — 팔린 물건의 종류·수량(판매자에게 보내는 수령함 알림용, D-262). itemId는 DB 바인딩에 쓰므로 따로 둔다
+	int32_t auctionItemId = 0;
+	int32_t auctionItemCount = 0;
+
+	// 퀘스트(Q1). QuestAccept는 questId만 쓴다.
+	// QuestComplete — 보상 아이템은 Give의 필드(itemId·fills·newCounts·newSlots)에, 보상 골드는 goldDelta·goldMax에 담는다.
+	//   보상 배치 계획은 "회수를 적용한 뒤의 인벤토리"로 세운 것이다(쿼리도 회수 → 추가 순서 — 회수로 빈 칸을 보상이 다시 쓸 수 있다).
+	struct QuestTake { int64_t itemDbId; int32_t expectCount; int32_t take; };   // take = expectCount면 행을 지운다
+	int32_t questId = 0;
+	int32_t questProgress = 0;                // 완료 때 함께 적는 처치 수(진행 저장이 늦었어도 완료 행에 최종 값이 남는다). 수집형은 0
+	int32_t questTakeItemId = 0;              // 회수하는 종류(수집형의 TargetId, 처치형은 0)
+	std::vector<QuestTake> questTakes;        // 회수 계획(수량이 적은 스택부터)
 };
 
 struct DB_ItemOpResult {
@@ -187,6 +203,16 @@ struct DB_MailRow {
 	int64_t listingId = 0;
 };
 
+// Player_Quest 한 행 = 받은 퀘스트 하나 (Q1). 행이 없으면 받지 않은 퀘스트다
+struct DB_QuestRow {
+	int32_t questId = 0;
+	int32_t state = 0;       // 1 진행 중 · 2 완료 (= Protocol::QuestState)
+	int32_t progress = 0;    // 처치형의 처치 수. 수집형은 0
+};
+
+// 저장할 퀘스트 진행(진행 중인 처치형 가운데 DB 값보다 커진 것): (QuestId, Progress) (Q1)
+using QuestProgressList = std::vector<std::pair<int32_t, int32_t>>;
+
 struct DB_PlayerData {
 	int64_t playerUID;
 	int32_t level;
@@ -198,6 +224,10 @@ struct DB_PlayerData {
 	
 	// Player_Item 행 중 인벤토리(Location 1)·장착(Location 2). ItemDbId 순. 검증은 Player::InitFromDb가 한다.
 	std::vector<struct DB_ItemRow> items;
+
+	int32_t hasMail = 0;   // 1 = 수령함(Player_Mail)에 받을 것이 있다 — 처음 입장 때 SC_MAIL_NOTICE(NONE)로 알린다 (D-262)
+	// Player_Quest 행 전부(진행 중 + 완료). QuestId 순. 검증은 Player::InitFromDb가 한다 (Q1)
+	std::vector<struct DB_QuestRow> quests;
 };
 
 enum class HitShape
@@ -304,6 +334,29 @@ struct NpcData
 	int auction;               // 1 = 경매 관리인(등록·취소·수령은 이 NPC 근처에서만 — A4.3, D-234). 상점과 겸하지 않는다
 	int body;                  // Protocol::PlayerType (1 MALE, 2 FEMALE)
 	int equip[NPC_EQUIP_SLOTS]; // 슬롯 순서(Head·Top·Bottom·Gloves·Boots·Weapon·Offhand)의 itemId, 0 = 없음
+	bool hasQuest;             // QuestTable의 어느 행이 이 NPC를 가리킨다(로더가 QuestTable을 읽으며 켠다) = 퀘스트 NPC. 상점·경매와 겸하지 않는다 (Q1)
+};
+
+// QuestTable 한 행 = 퀘스트 하나 (Q1, D-259·D-261 — Docs/DESIGN_BALANCE.md §9). 서버·UE 공용 CSV이고 이름·설명은 클라이언트 전용이라 읽지 않는다.
+// 한 번만 할 수 있고 순서가 없다. RecommendLevel은 안내용이라 서버는 범위만 검사한다(수락을 막지 않는다).
+enum class QuestKind
+{
+	Kill,      // targetId = MonsterTable ID를 count마리 처치(처치 인정 — Room::CreditKill)
+	Collect    // targetId = ItemTable ID를 count개 제출(완료할 때 인벤토리에서 회수)
+};
+
+struct QuestData
+{
+	int questId;         // 1 이상
+	int npcId;           // 주고 완료를 받는 NPC(NpcTable ID). 상점·경매 NPC가 아니어야 한다
+	QuestKind kind;
+	int targetId;
+	int count;           // 1 이상. Collect는 인벤토리에 담을 수 있는 수(MaxStack × InventorySlots) 이하
+	int recommendLevel;  // 1 ~ 최대 레벨
+	int rewardExp;       // 0 이상
+	int rewardGold;      // 0 ~ EconomyTable.GoldMax
+	int rewardItemId;    // 0 = 아이템 보상 없음
+	int rewardItemCount; // rewardItemId가 있으면 1 ~ 그 아이템의 MaxStack, 없으면 0
 };
 
 // DropTable 한 행 = 몬스터 한 종류가 떨어뜨릴 수 있는 것 하나. 처치 때 그 몬스터의 모든 행을 각각 독립으로 굴린다 (D-157). 서버 전용.
@@ -481,7 +534,7 @@ struct WorldData
 class DataManager
 {
 public:
-	// Common/DataTable/PlayerStatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv, EconomyTable.csv, DropTable.csv, SpawnTable.csv, ShopTable.csv, NpcTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
+	// Common/DataTable/PlayerStatTable.csv, SkillTable.csv, MonsterTable.csv, ItemTable.csv, MovementTable.csv, WorldTable.csv, EconomyTable.csv, DropTable.csv, SpawnTable.csv, ShopTable.csv, NpcTable.csv, QuestTable.csv 를 읽는다. 실패하면 false (서버 시작을 중단해야 한다).
 	static bool Init();
 
 	// 몬스터 한 종류의 DropTable 행들. 드랍이 없는 몬스터는 빈 목록
@@ -563,6 +616,13 @@ public:
 		return nullptr;
 	}
 
+	static const QuestData* GetQuestData(int questId)
+	{
+		auto it = _questTable.find(questId);
+		if (it != _questTable.end()) return &it->second;
+		return nullptr;
+	}
+
 	static const MovementData* GetMovementData(int id)
 	{
 		auto it = _movementTable.find(id);
@@ -600,6 +660,7 @@ private:
 	static inline std::unordered_map<std::string, std::vector<SpawnData>> _spawnTable; // key = mapName + "/" + zone
 	static inline std::unordered_map<int, std::vector<ShopData>> _shopTable; // key = shopId
 	static inline std::unordered_map<int, NpcData> _npcTable; // key = templateId
+	static inline std::unordered_map<int, QuestData> _questTable; // key = questId
 	static inline EconomyData _economy{};
 	static inline std::unordered_map<int, int> _skillBySlot; // key = (int)WeaponType*100 + slot -> skillId (플레이어 무기 타입만)
 };

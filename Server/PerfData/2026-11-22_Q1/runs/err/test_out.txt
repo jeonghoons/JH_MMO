@@ -1,0 +1,23 @@
+== err (server pid 6940, DevCommands=false DbSaveDelayMs=400 DbItemFailEvery=0 PortalNoRange=false, data repo)
+PASS too-far
+PASS npc-missing
+PASS npc-not-quest
+PASS quest-missing
+PASS not-active
+[  24.53] 수락 연타 8회: 성공 [(1, 0)] 거부 [5, 5, 4, 4, 10, 10, 10]
+PASS spam-one-success
+PASS spam-rejects
+PASS spam-db-one-row
+PASS after-spam
+PASS in-trade
+PASS after-trade
+PASS dummy
+PASS bad-packets
+[  29.85] 깨진 패킷 뒤 Test1 연결 끊김, 그 사이 받은 거부 [10, 9, 9]
+PASS dead
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 16 / FAIL 0
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS err (PASS 16)

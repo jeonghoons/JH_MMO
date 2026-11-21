@@ -185,6 +185,20 @@ message CS_PARTY_RESPOND_PACKET {
 message CS_PARTY_LEAVE_PACKET {
 }
 
+// ---- 퀘스트 (Q1, D-259·D-261). 요청마다 서버가 NPC 거리·거래 중·사망을 다시 검증한다(상점과 같음). 거부는 SC_QUEST_RESULT ----
+// 수락. 성공은 SC_QUEST_UPDATE(ACTIVE, 0). 권장 레벨은 안내용이라 막지 않는다.
+message CS_QUEST_ACCEPT_PACKET {
+	int32 npc_id = 1;       // 퀘스트 NPC의 오브젝트 id (SC_ADD_OBJECT로 받은 OBJECT_TYPE_NPC, npc_kind = QUEST)
+	int32 quest_id = 2;     // QuestTable ID (그 NPC의 퀘스트)
+}
+
+// 완료(보상 받기). 처치형은 처치 수, 수집형은 인벤토리 수량을 서버가 확인하고 수집품 회수 + 보상(아이템·골드)을 한 트랜잭션에 한다.
+// 성공은 SC_INVENTORY_UPDATE(회수·보상 아이템 + 골드) → SC_QUEST_UPDATE(COMPLETED) → SC_GAIN_EXP(·SC_LEVEL_UP).
+message CS_QUEST_COMPLETE_PACKET {
+	int32 npc_id = 1;
+	int32 quest_id = 2;
+}
+
 // 스킬 조준(숫자키 → 범위 선택) 켜기/끄기. 상태가 바뀔 때만 보낸다.
 // 확정(CS_ATTACK)은 서버가 조준을 함께 해제하므로 끄기를 따로 보내지 않는다.
 message CS_SKILL_AIM_PACKET {
@@ -388,6 +402,34 @@ message SC_LEVEL_UP_PACKET {
 // MP 변화(본인에게): 스킬 소모, 자연 회복(값이 바뀐 때만)
 message SC_CHANGE_MP_PACKET {
 	int32 mp = 1;                       // 바뀐 뒤 MP
+}
+
+// 받은 퀘스트 전부(본인, Q1). 처음 방에 들어온 직후 SC_INVENTORY 다음에 한 번 보낸다(비어 있어도 보낸다). Room을 옮길 때는 다시 보내지 않는다.
+message SC_QUEST_LIST_PACKET {
+	repeated QuestInfo quests = 1;       // 진행 중 + 완료. 받지 않은 퀘스트는 없다
+}
+
+// 퀘스트 하나가 바뀜(본인, Q1): 수락(ACTIVE, 0) · 처치 인정(progress 증가 — 목표에 닿아도 자동으로 완료되지 않는다) · 완료(COMPLETED)
+message SC_QUEST_UPDATE_PACKET {
+	QuestInfo quest = 1;
+}
+
+// 퀘스트 요청 거부를 요청한 본인에게만 보낸다(Q1).
+message SC_QUEST_RESULT_PACKET {
+	PacketId request = 1;               // 거부된 요청의 패킷 id (CS_QUEST_ACCEPT·CS_QUEST_COMPLETE)
+	int32 quest_id = 2;
+	QuestResult result = 3;
+}
+
+// 수령함에 받을 것이 있다(본인, D-262). 내용은 알림용이고 실제 수령은 경매 NPC에서 한다(CS_MAIL_CLAIM).
+//   SALE_GOLD = 내 등록이 팔림(item_id·count = 팔린 물건, gold = 받을 대금) · EXPIRED = 내 등록이 만료돼 돌아옴(item_id·count)
+//   NONE = 로그인했을 때 수령함이 비어 있지 않음(나머지 값은 0) — 접속하지 않은 동안 팔리거나 만료된 것
+message SC_MAIL_NOTICE_PACKET {
+	MailKind kind = 1;
+	int32 item_id = 2;
+	int64 count = 3;
+	int64 gold = 4;
+	int64 listing_id = 5;
 }
 
 // 아이템 요청 거부를 요청한 본인에게만 보낸다(장착 거부는 SC_CHANGE_EQUIP_RESULT).

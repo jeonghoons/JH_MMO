@@ -1,0 +1,52 @@
+== main (server pid 23224, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=false, data repo)
+PASS list-on-enter
+PASS list-after-inventory
+PASS no-mail-notice
+PASS npc-kind
+[   2.32] Test1 시작 자리 (-14266,172) 경비대장까지 4985cm, NPC id 900000002
+PASS accept-too-far
+PASS too-far-no-row
+[  19.71] 경비대장 앞: Test1 240cm Test2 276cm
+PASS accept
+PASS accept-db
+PASS accept-again
+PASS complete-not-finished
+PASS complete-not-active
+PASS accept-any-level
+[ 357.89] 처치 15번 318초, SC_QUEST_UPDATE [(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15)], DB 확인 {1: '1,1,0', 7: '1,7,0', 15: '1,15,0'}
+PASS kill-updates
+PASS kill-saved-each
+PASS kill-other-quest-same
+PASS kill-other-player-same
+PASS kill-16th-same
+PASS complete
+PASS complete-order
+PASS complete-reward
+PASS complete-exp-cap
+PASS complete-db
+PASS accept-done
+PASS collect-9
+PASS collect-10
+PASS collect-taken
+PASS collect-reward
+PASS collect-exp
+PASS collect-exp-saved-now
+PASS collect-db
+PASS multi-accept
+PASS multi-full
+PASS multi-complete
+PASS multi-small-first
+PASS multi-reward-slot
+PASS inv-full
+PASS inv-full-same
+PASS gold-full
+PASS gold-full-same
+[ 446.22] 재접속 뒤 퀘스트 [('Test1', {1: (2, 15), 3: (1, 0)}), ('Test2', {1: (1, 0), 2: (2, 0)}), ('Test3', {2: (2, 0)}), ('Test4', {2: (1, 0)})]
+PASS relogin-same
+PASS relogin-list
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 43 / FAIL 0
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS main (PASS 43)

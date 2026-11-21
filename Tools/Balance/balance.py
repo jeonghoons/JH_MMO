@@ -145,12 +145,15 @@ POTION_DROP = {  # 몬스터: [(아이템, 만분율, 최소, 최대)]
     1005: [(8003, 10000, 3, 5), (8004, 10000, 2, 3)],
 }
 
+QUEST_NPC = 1003   # 경비대장(NpcTable) — 세 퀘스트 모두 이 NPC에게서 받고 완료한다 (Q1, D-259)
 QUESTS = [
-    # id, 이름, 종류, 대상, 수량, 권장 레벨, 경험치, 골드, 보상 아이템, 수량
-    (1, "초원 정리", "Kill", 1001, 15, 1, 1000, 300, 8001, 5),
-    (2, "뿔 모으기", "Collect", 8052, 10, 10, 5000, 1000, 4201, 1),
-    (3, "던전의 군주", "Kill", 1005, 1, 20, 10000, 3000, 8004, 5),
+    # id, 이름, NPC, 종류, 대상, 수량, 권장 레벨, 경험치, 골드, 보상 아이템, 수량, 설명(클라이언트 전용 — 서버는 읽지 않는다. 쉼표를 쓰지 않는다)
+    (1, "초원 정리", QUEST_NPC, "Kill", 1001, 15, 1, 1000, 300, 8001, 5, "마을 밖 초원의 하급 몬스터를 15마리 처치하세요."),
+    (2, "뿔 모으기", QUEST_NPC, "Collect", 8052, 10, 10, 5000, 1000, 4201, 1, "뒤틀린 뿔 10개를 모아 경비대장에게 가져오세요. 완료하면 뿔을 가져갑니다."),
+    (3, "던전의 군주", QUEST_NPC, "Kill", 1005, 1, 20, 10000, 3000, 8004, 5, "던전의 우두머리를 처치하세요. 같은 던전의 파티원이 처치해도 인정됩니다."),
 ]
+QUEST_HEADER = ["Name", "DisplayName", "NpcId", "Kind", "TargetId", "Count", "RecommendLevel", "RewardExp", "RewardGold",
+                "RewardItemId", "RewardItemCount", "Description"]
 
 # ============================================================ 계산
 
@@ -523,13 +526,17 @@ def item_shop_drop_plans():
     plans.append(full_table("ShopTable.csv", ["Name", "ShopId", "ItemId", "BuyPrice"], shop))
     # DropTable: 몬스터별 전부 다시 씀 (IT3)
     plans.append(full_table("DropTable.csv", ["Name", "MonsterId", "ItemId", "DropRate", "MinCount", "MaxCount"], drop_rows()))
+    # QuestTable: 전체 다시 씀 (Q1 — 서버·UE 공용, Description은 클라이언트 전용)
+    plans.append(full_table("QuestTable.csv", QUEST_HEADER, [list(q) for q in QUESTS]))
     return plans
 
 
 def full_table(name, header, rows):
     path = os.path.join(DATA, name)
-    with open(path, encoding="utf-8", newline="") as f:
-        before = f.read()
+    before = ""   # 아직 없는 테이블은 새로 만든다
+    if os.path.exists(path):
+        with open(path, encoding="utf-8", newline="") as f:
+            before = f.read()
     out = io.StringIO()
     w = csv.writer(out, lineterminator="\n")
     w.writerow(header)
@@ -621,13 +628,13 @@ def main():
     write_csv("SkillMp.preview.csv", ["Name", "WeaponType", "Slot", "BaseDamage", "AnimMs", "CooldownMs", "MpCost", "AttackScale"],
               [[sid, s[0], s[1], s[2], s[3], s[4], s[5], s[7]] for sid, s in SKILLS.items()])
 
-    L += ["## 퀘스트 보상", "", "| ID | 이름 | 종류 | 대상 | 수량 | 권장 레벨 | 경험치 | 골드 | 보상 아이템 |", "|---|---|---|---|---|---|---|---|---|"]
+    L += ["## 퀘스트 보상", "", "| ID | 이름 | NPC | 종류 | 대상 | 수량 | 권장 레벨 | 경험치 | 골드 | 보상 아이템 |", "|---|---|---|---|---|---|---|---|---|---|"]
     qrows = []
     for q in QUESTS:
-        L.append(f"| {q[0]} | {q[1]} | {q[2]} | {q[3]} | {q[4]} | {q[5]} | {q[6]} | {q[7]} | {q[8]} × {q[9]} |")
+        L.append(f"| {q[0]} | {q[1]} | {q[2]} | {q[3]} | {q[4]} | {q[5]} | {q[6]} | {q[7]} | {q[8]} | {q[9]} × {q[10]} |")
         qrows.append(list(q))
     L.append("")
-    write_csv("QuestTable.preview.csv", ["Name", "DisplayName", "Kind", "TargetId", "Count", "RecommendLevel", "RewardExp", "RewardGold", "RewardItemId", "RewardItemCount"], qrows)
+    write_csv("QuestTable.preview.csv", QUEST_HEADER, qrows)
 
     write_dash(levels, grades, drops)
     errs = checks(L, grades)

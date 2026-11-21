@@ -132,6 +132,7 @@ bool DataManager::Init()
 	_skillBySlot.clear();
 	_dropTable.clear();
 	_spawnTable.clear();
+	_questTable.clear();
 	_economy = EconomyData{};
 
 	fs::path dir;
@@ -924,6 +925,120 @@ bool DataManager::Init()
 	}
 
 	LOG_INFO("Data", "상점·NPC 로드 완료 (ShopTable {}행·상점 {}곳, NpcTable {}행, 상점 이용 거리 {}cm)", shopRows, _shopTable.size(), _npcTable.size(), _economy.shopRangeCm);
+
+	// QuestTable(서버·UE 공용, Q1 — D-259·D-261): Name(=QuestId, 1~), DisplayName, NpcId, Kind(Kill/Collect), TargetId, Count, RecommendLevel,
+	//                                              RewardExp, RewardGold, RewardItemId, RewardItemCount, Description(클라이언트 전용 — 읽지 않는다)
+	CsvFile quest;
+	if (!quest.Load((dir / "QuestTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
+	{
+		// 보상 경험치 상한: 개발 지급(Room::PlayerDevGive)과 같은 값 — 경험치 합이 넘치지 않게 한다
+		constexpr int QUEST_REWARD_EXP_MAX = 1'000'000'000;
+		for (const CsvRow& row : quest.Rows())
+		{
+			QuestData d{};
+			std::string displayName, kind;
+			if (!row.GetInt("Name", d.questId, err) || !row.GetString("DisplayName", displayName, err) || !row.GetInt("NpcId", d.npcId, err) ||
+				!row.GetString("Kind", kind, err) || !row.GetInt("TargetId", d.targetId, err) || !row.GetInt("Count", d.count, err) ||
+				!row.GetInt("RecommendLevel", d.recommendLevel, err) || !row.GetInt("RewardExp", d.rewardExp, err) ||
+				!row.GetInt("RewardGold", d.rewardGold, err) || !row.GetInt("RewardItemId", d.rewardItemId, err) ||
+				!row.GetInt("RewardItemCount", d.rewardItemCount, err))
+			{
+				LOG_ERROR("Data", "{}", err);
+				return false;
+			}
+
+			const std::string where = quest.Path() + " line " + std::to_string(row.Line()) + ": ";
+
+			if (d.questId < 1 || _questTable.count(d.questId))
+			{
+				LOG_ERROR("Data", "{}퀘스트 ID {} 는 1 이상이고 중복되지 않아야 합니다", where, d.questId);
+				return false;
+			}
+			if (displayName.empty())
+			{
+				LOG_ERROR("Data", "{}DisplayName 이 비어 있습니다", where);
+				return false;
+			}
+			// 퀘스트 NPC는 상점·경매와 겸하지 않는다(클라이언트의 F 키 안내가 NPC마다 하나 — D-234)
+			const auto questNpc = _npcTable.find(d.npcId);
+			if (questNpc == _npcTable.end() || questNpc->second.shopId != 0 || questNpc->second.auction != 0)
+			{
+				LOG_ERROR("Data", "{}NpcId {} 는 NpcTable에 있고 상점(ShopId)·경매(Auction) NPC가 아니어야 합니다", where, d.npcId);
+				return false;
+			}
+			if (kind == "Kill") d.kind = QuestKind::Kill;
+			else if (kind == "Collect") d.kind = QuestKind::Collect;
+			else
+			{
+				LOG_ERROR("Data", "{}Kind 는 Kill/Collect 중 하나여야 합니다 ('{}')", where, kind);
+				return false;
+			}
+			if (d.kind == QuestKind::Kill)
+			{
+				if (GetMonsterData(d.targetId) == nullptr)
+				{
+					LOG_ERROR("Data", "{}Kill 퀘스트의 TargetId {} 가 MonsterTable에 없습니다", where, d.targetId);
+					return false;
+				}
+				if (d.count < 1)
+				{
+					LOG_ERROR("Data", "{}Count {} 는 1 이상이어야 합니다", where, d.count);
+					return false;
+				}
+			}
+			else
+			{
+				const ItemData* collectItem = GetItemData(d.targetId);
+				if (collectItem == nullptr)
+				{
+					LOG_ERROR("Data", "{}Collect 퀘스트의 TargetId {} 가 ItemTable에 없습니다", where, d.targetId);
+					return false;
+				}
+				// 인벤토리에 담을 수 없는 수량은 끝낼 수 없는 퀘스트다
+				const long long collectMax = static_cast<long long>(collectItem->maxStack) * _economy.inventorySlots;
+				if (d.count < 1 || d.count > collectMax)
+				{
+					LOG_ERROR("Data", "{}Count {} 는 1 이상이고 인벤토리에 담을 수 있는 수(MaxStack {} × InventorySlots {}) 이하여야 합니다", where, d.count, collectItem->maxStack, _economy.inventorySlots);
+					return false;
+				}
+			}
+			if (d.recommendLevel < 1 || d.recommendLevel > _playerMaxLevel)
+			{
+				LOG_ERROR("Data", "{}RecommendLevel {} 는 1 이상 최대 레벨 {} 이하여야 합니다", where, d.recommendLevel, _playerMaxLevel);
+				return false;
+			}
+			if (d.rewardExp < 0 || d.rewardExp > QUEST_REWARD_EXP_MAX || d.rewardGold < 0 || d.rewardGold > _economy.goldMax)
+			{
+				LOG_ERROR("Data", "{}보상이 허용 범위를 벗어났습니다 (0 <= RewardExp <= {}, 0 <= RewardGold <= EconomyTable.GoldMax {})", where, QUEST_REWARD_EXP_MAX, _economy.goldMax);
+				return false;
+			}
+			if (d.rewardItemId == 0)
+			{
+				if (d.rewardItemCount != 0)
+				{
+					LOG_ERROR("Data", "{}RewardItemId 가 0이면 RewardItemCount 도 0이어야 합니다 ({})", where, d.rewardItemCount);
+					return false;
+				}
+			}
+			else
+			{
+				const ItemData* rewardItem = GetItemData(d.rewardItemId);
+				if (rewardItem == nullptr)
+				{
+					LOG_ERROR("Data", "{}RewardItemId {} 가 ItemTable에 없습니다 (아이템 보상이 없으면 0)", where, d.rewardItemId);
+					return false;
+				}
+				if (d.rewardItemCount < 1 || d.rewardItemCount > rewardItem->maxStack)
+				{
+					LOG_ERROR("Data", "{}RewardItemCount {} 는 1 이상이고 그 아이템의 MaxStack {} 이하여야 합니다", where, d.rewardItemCount, rewardItem->maxStack);
+					return false;
+				}
+			}
+			questNpc->second.hasQuest = true;
+			_questTable[d.questId] = d;
+		}
+	}
+	LOG_INFO("Data", "퀘스트 로드 완료 (QuestTable {}행)", _questTable.size());
 
 	LOG_INFO("Data", "로드 완료 (PlayerStatTable {}행, SkillTable {}행, MonsterTable {}행, ItemTable {}행, MovementTable {}행, WorldTable {}행, DropTable {}행, SpawnTable {}행, EconomyTable: 인벤토리 {}칸·골드 상한 {}·드랍 소유 {}초/소멸 {}초)",
 		_playerStatTable.size(), _skillTable.size(), _monsterTable.size(), _itemTable.size(), _movementTable.size(), _worldTable.size(), dropRows, spawnRows,

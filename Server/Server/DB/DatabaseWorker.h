@@ -57,6 +57,9 @@ public:
 	// 액티브 칸 배치 5칸을 저장한다(A3.6). 끝나면 room 잡(Room::OnQuickSlotsSaved)으로 저장한 값과 함께 돌아간다.
 	// 플레이어당 동시에 하나만 보낸다(Room::RequestQuickSlotSave).
 	void SaveQuickSlots(shared_ptr<class Room> room, shared_ptr<class Player> player, int64_t playerUID, QuickSlotArray slots);
+	// 퀘스트 처치 진행을 저장한다(Q1, D-261). 끝나면 room 잡(Room::OnQuestSaved)으로 저장한 값과 함께 돌아간다.
+	// 플레이어당 동시에 하나만 보낸다(Room::RequestQuestSave). 진행 중이 아닌 퀘스트·더 작은 값은 DB가 건너뛴다(성공으로 본다).
+	void SaveQuestProgress(shared_ptr<class Room> room, shared_ptr<class Player> player, int64_t playerUID, QuestProgressList progress);
 
 private:
 	// DB의 Schema_Version이 DbQueries::DB_SCHEMA_VERSION과 같은지 확인한다. 다르면 이유를 로그에 남기고 false.
@@ -66,6 +69,8 @@ private:
 	// 아이템 트랜잭션 틀(DbQueries::ItemOpHead/ItemOpTail)의 쿼리를 실행하고 결과 행(Ok, Kind, V)을 읽는다.
 	// 파라미터는 부르는 쪽이 미리 바인딩한다. 연결은 돌려놓지 않는다(부르는 쪽이 Push).
 	DB_ItemOpResult RunItemQuery(DBConnection* dbConn, const wchar_t* query, const char* kindName, int64_t playerUID, bool forceFail);
+	// 로그인의 두 번째 조회(Q1): 그 캐릭터의 Player_Quest 행을 읽는다. 실행에 실패하면 false(로그인을 거부한다).
+	bool ReadPlayerQuests(DBConnection* dbConn, int64_t playerUID, vector<DB_QuestRow>& out);
 	// 판매 중인 등록을 읽는다. sellerUID가 0이면 전부, 아니면 그 판매자 것만.
 	bool ReadListings(DBConnection* dbConn, int64_t sellerUID, vector<DB_AuctionListing>& out);
 

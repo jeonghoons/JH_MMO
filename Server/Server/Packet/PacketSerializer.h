@@ -64,6 +64,12 @@ public:
 	// 경매 요청의 결과(A4.3, 성공·거부 모두). id = 대상 listing_id(등록 성공이면 새 등록, 수령이면 mail_id).
 	// 검색 결과·내 목록(SC_AUCTION_LIST·SC_AUCTION_MY)은 AuctionService가 직접 채워 MakeSendBuffer로 만든다.
 	static shared_ptr<SendBuffer> MAKE_SC_AUCTION_RESULT(Protocol::PacketId request, Protocol::AuctionResult result, int64_t id);
+	// 퀘스트(Q1). 목록 = 그 플레이어가 받은 퀘스트 전부(Player::quests — 처음 입장 때 한 번), 변화 = 퀘스트 하나, 거부 = 요청 패킷 id + 사유
+	static shared_ptr<SendBuffer> MAKE_SC_QUEST_LIST(const shared_ptr<class Player>& player);
+	static shared_ptr<SendBuffer> MAKE_SC_QUEST_UPDATE(int questId, Protocol::QuestState state, int progress);
+	static shared_ptr<SendBuffer> MAKE_SC_QUEST_RESULT(Protocol::PacketId request, int questId, Protocol::QuestResult result);
+	// 수령함 알림(D-262): SALE_GOLD(팔린 물건·대금) · EXPIRED(돌아온 물건) · NONE(로그인 때 수령함이 비어 있지 않음 — 나머지 0)
+	static shared_ptr<SendBuffer> MAKE_SC_MAIL_NOTICE(Protocol::MailKind kind, int itemId, int64_t count, int64_t gold, int64_t listingId);
 	// seq는 본인에게 보내는 거부·시간 초과에만 채운다 (그 밖은 0)
 	static shared_ptr<SendBuffer> MAKE_SC_SKILL_AIM(int objectId, int skillId, bool active, uint32_t seq);
 

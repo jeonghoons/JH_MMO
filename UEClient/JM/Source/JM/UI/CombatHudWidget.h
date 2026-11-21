@@ -8,7 +8,7 @@
 
 class USkillSlotWidget;
 
-// 전투 HUD(D-038·D-148): 내 이름·레벨, HP 바·수치, EXP 바, 액티브 칸 5개. 값은 모두 서버 패킷에서 온다(UJMObjectManager가 갱신).
+// 전투 HUD(D-038·D-148): 내 이름·레벨, HP·MP 바·수치, EXP 바·수치, 액티브 칸 5개. 값은 모두 서버 패킷에서 온다(UJMObjectManager가 갱신).
 UCLASS()
 class JM_API UCombatHudWidget : public UUserWidget
 {
@@ -17,11 +17,13 @@ class JM_API UCombatHudWidget : public UUserWidget
 public:
 	void SetHp(int32 Hp, int32 MaxHp);
 
-	// 내 이름·레벨(ObjectInfo.name·level). 레벨은 경험치 보상(A2.3b) 전까지 시작 레벨 고정.
+	// 내 이름·레벨(ObjectInfo.name·level). 레벨업(SC_LEVEL_UP) 때 다시 부른다.
 	void SetIdentity(const FString& Name, int32 Level);
 
-	// EXP 바(0~1). 보상(A2.3b) 전까지 0으로 둔다.
-	void SetExpRatio(float Ratio);
+	void SetMp(int32 Mp, int32 MaxMp);
+
+	// EXP 바: Exp = 지금 레벨 안의 누적 경험치(서버 값), 분모는 PlayerStatTable.ExpToNext(Level). 분모가 0(최대 레벨)이면 가득 + "MAX" (A2.3b)
+	void SetExp(int64 Exp, int32 Level);
 
 	// 액티브 칸 내용(AJMMyPlayer::GetQuickSlots)과 현재 무기로 칸 아이콘을 채운다. 무기를 바꾸면 다시 부른다.
 	void SetQuickSlots(const TArray<FQuickSlot>& QuickSlots, EWeaponType WeaponType);
@@ -61,7 +63,18 @@ protected:
 	TObjectPtr<class UTextBlock> TxtHp;
 
 	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UProgressBar> MpBar;
+
+	// "현재 / 최대"
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> TxtMp;
+
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UProgressBar> ExpBar;
+
+	// "현재 / 필요 (xx.x%)", 최대 레벨이면 "MAX"
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> TxtExp;
 
 	// 상호작용 안내 글(없으면 안내를 띄우지 않는다)
 	UPROPERTY(meta = (BindWidgetOptional))

@@ -102,6 +102,15 @@ namespace Metrics
 	inline std::atomic<long long> AuctionExpired{ 0 };      // 만료 반환한 등록 수
 	inline std::atomic<long long> AuctionRejected{ 0 };     // 거부·실패(SC_AUCTION_RESULT, 성공이 아닌 것 — TRY_LATER 포함)
 	inline std::atomic<long long> AuctionTryLater{ 0 };     // 혼잡 기준에 걸려 받지 않은 수(만료 묶음을 미룬 것 포함)
+	// 퀘스트(Q1): Room이 적는다. 수락·완료는 아이템 작업(itemOp 지표에도 든다), 저장은 처치 진행 저장. 마지막 것만 지금 값, 나머지는 누적
+	inline std::atomic<long long> QuestAccepted{ 0 };
+	inline std::atomic<long long> QuestCompleted{ 0 };
+	inline std::atomic<long long> QuestKillCredits{ 0 };    // 처치가 인정돼 진행이 오른 횟수(플레이어·퀘스트마다 1)
+	inline std::atomic<long long> QuestRejected{ 0 };       // 거부(SC_QUEST_RESULT — DB 실패는 itemOp fail에 든다)
+	inline std::atomic<long long> QuestSaveSent{ 0 };       // 처치 진행 저장을 DB 작업으로 보낸 수
+	inline std::atomic<long long> QuestSaveFailed{ 0 };
+	inline std::atomic<int>       QuestSaveInFlight{ 0 };   // 지금 DB에 가 있는 처치 진행 저장 수. 접속이 모두 끝나면 0이어야 한다
+	inline std::atomic<long long> MailNotices{ 0 };         // 보낸 수령함 알림(SC_MAIL_NOTICE — 판매·만료·로그인, D-262)
 	inline std::atomic<int>       Monsters{ 0 };      // 현재 월드에 살아 있거나 시체로 남아 있는 몬스터 수
 	inline std::atomic<long long> AttackRequests{ 0 };  // CS_ATTACK 수신 수(누적)
 	inline std::atomic<long long> AttackAccepted{ 0 };  // 쿨타임·상태 검사를 통과한 플레이어 공격 수(누적)

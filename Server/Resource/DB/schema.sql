@@ -5,6 +5,7 @@
 -- 2026-11-16: Player_Item.BagSlot(인벤토리 칸 번호) + UX_Player_Item_BagSlot 추가 (migrations/0005_2026-11-16_a61_bag_slot.sql)
 -- 2026-11-17: Player_QuickSlot(액티브 칸에 올린 아이템 종류) 추가 (migrations/0006_2026-11-17_a36_quick_slot.sql)
 -- 2026-11-17: Trade_Log(성사된 1:1 거래 기록) 추가 (migrations/0007_2026-11-17_a42_trade_log.sql)
+-- 2026-11-22: Player_Quest(받은 퀘스트의 상태·처치 진행) 추가 (migrations/0009_2026-11-22_q1_quest.sql)
 -- 이 파일은 새 DB 생성용이다. 기존 DB는 migrate.ps1로 올린다. 스키마를 바꾸면 마이그레이션 + 이 파일 + Server/DB/DbQueries.h의 DB_SCHEMA_VERSION을 함께 고친다.
 USE [master]
 GO
@@ -316,6 +317,26 @@ ALTER TABLE [dbo].[Player_Mail]  WITH CHECK ADD  CONSTRAINT [CK_Player_Mail_Kind
 GO
 ALTER TABLE [dbo].[Player_Mail]  WITH CHECK ADD  CONSTRAINT [CK_Player_Mail_Gold] CHECK  (([Gold]>=(0)))
 GO
+/****** 개체: Table [dbo].[Player_Quest] — 받은 퀘스트 1건 = 1행(없으면 받지 않음). State 1 진행 중 · 2 완료(지우지 않는다). Progress = 처치형의 처치 수, 수집형은 0 (Q1) ******/
+CREATE TABLE [dbo].[Player_Quest](
+	[PlayerId] [bigint] NOT NULL,
+	[QuestId] [int] NOT NULL,
+	[State] [tinyint] NOT NULL CONSTRAINT [DF_Player_Quest_State] DEFAULT ((1)),
+	[Progress] [int] NOT NULL CONSTRAINT [DF_Player_Quest_Progress] DEFAULT ((0)),
+	[AcceptedAt] [datetime2](0) NOT NULL CONSTRAINT [DF_Player_Quest_AcceptedAt] DEFAULT (sysdatetime()),
+	[CompletedAt] [datetime2](0) NULL,
+ CONSTRAINT [PK_Player_Quest] PRIMARY KEY CLUSTERED ([PlayerId] ASC, [QuestId] ASC)
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[Player_Quest]  WITH CHECK ADD  CONSTRAINT [FK_Player_Quest_Player_Info] FOREIGN KEY([PlayerId])
+REFERENCES [dbo].[Player_Info] ([PlayerId])
+GO
+ALTER TABLE [dbo].[Player_Quest]  WITH CHECK ADD  CONSTRAINT [CK_Player_Quest_QuestId] CHECK  (([QuestId]>=(1)))
+GO
+ALTER TABLE [dbo].[Player_Quest]  WITH CHECK ADD  CONSTRAINT [CK_Player_Quest_State] CHECK  (([State]>=(1) AND [State]<=(2)))
+GO
+ALTER TABLE [dbo].[Player_Quest]  WITH CHECK ADD  CONSTRAINT [CK_Player_Quest_Progress] CHECK  (([Progress]>=(0)))
+GO
 /****** 개체: Table [dbo].[Schema_Version] — 적용한 마이그레이션(migrations/NNNN_*.sql) 1개 = 행 1개 ******/
 CREATE TABLE [dbo].[Schema_Version](
 	[Version] [int] NOT NULL,
@@ -333,7 +354,8 @@ INSERT INTO [dbo].[Schema_Version] ([Version], [Name]) VALUES
 	(5, N'0005_2026-11-16_a61_bag_slot (schema.sql)'),
 	(6, N'0006_2026-11-17_a36_quick_slot (schema.sql)'),
 	(7, N'0007_2026-11-17_a42_trade_log (schema.sql)'),
-	(8, N'0008_2026-11-21_a43_auction (schema.sql)')
+	(8, N'0008_2026-11-21_a43_auction (schema.sql)'),
+	(9, N'0009_2026-11-22_q1_quest (schema.sql)')
 GO
 USE [master]
 GO

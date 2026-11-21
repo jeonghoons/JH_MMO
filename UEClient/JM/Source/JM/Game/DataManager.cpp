@@ -166,6 +166,29 @@ const FMonsterTableRow* UDataManager::FindMonster(int32 TemplateId) const
 	return Table->FindRow<FMonsterTableRow>(FName(*FString::FromInt(TemplateId)), TEXT("FindMonster"), false);
 }
 
+int64 UDataManager::GetExpToNext(int32 Level) const
+{
+	if (!bExpTableBuilt)
+	{
+		bExpTableBuilt = true;
+		const UJMDataSettings* Settings = GetDefault<UJMDataSettings>();
+		UDataTable* Table = (Settings && !Settings->PlayerStatTable.IsNull()) ? Settings->PlayerStatTable.LoadSynchronous() : nullptr;
+		if (Table == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DataManager: PlayerStatTable is not set (Project Settings > Game > JM Data)"));
+		}
+		else
+		{
+			Table->ForeachRow<FPlayerStatTableRow>(TEXT("GetExpToNext"), [this](const FName&, const FPlayerStatTableRow& Row)
+			{
+				ExpToNextByLevel.Add(Row.Level, Row.ExpToNext);
+			});
+		}
+	}
+	const int64* Found = ExpToNextByLevel.Find(Level);
+	return Found ? *Found : 0;
+}
+
 void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
 {
 	TArray<FSoftObjectPath> AssetsToLoad;

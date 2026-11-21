@@ -2105,6 +2105,15 @@
         "y": 35.0,
         "yaw": -90.0,
         "template_id": 1002
+      },
+      {
+        "id": 402,
+        "label": "Quest_Captain",
+        "area": "town",
+        "x": -93.0,
+        "y": 6.0,
+        "yaw": -90.0,
+        "template_id": 1003
       }
     ],
     "safe_zones": [

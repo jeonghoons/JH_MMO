@@ -136,6 +136,28 @@ public:
 	};
 	SaveState progressSave;    // Player_Info 레벨·경험치·HP — 주기·퇴장 때, 값이 달라졌을 때만 (Room::RequestProgressSave)
 	SaveState quickSlotSave;   // Player_QuickSlot 5칸 — 배치를 바꿀 때·퇴장 때, 값이 달라졌을 때만 (Room::RequestQuickSlotSave)
+	SaveState questSave;       // Player_Quest.Progress — 처치가 인정될 때마다·퇴장 때, 값이 커졌을 때만 (Room::RequestQuestSave, Q1)
+
+	// ---- 퀘스트(Q1, D-259·D-261). 소유 Room 잡 안에서만 읽고 쓴다 ----
+	// 받은 퀘스트(진행 중 + 완료)의 메모리 사본. 권위는 DB(Player_Quest) — 수락·완료는 아이템 작업이 성공한 뒤에만 바꾸고(Room::ApplyItemOpResult),
+	// 처치 진행(progress)만 메모리에 먼저 올린 뒤 저장한다(Room::CreditKill → RequestQuestSave). 없는 항목 = 받지 않은 퀘스트.
+	struct QuestEntry
+	{
+		Protocol::QuestState state = Protocol::QUEST_STATE_NONE;
+		int32_t progress = 0;   // 처치형의 처치 수(0 ~ QuestTable.Count). 수집형은 0
+	};
+	std::map<int32_t, QuestEntry> quests;                    // QuestId → 상태
+	std::map<int32_t, int32_t> lastSavedQuestProgress;       // 진행 중인 퀘스트의 DB 값(로그인 때 읽은 값 → 수락·저장 성공 때마다 갱신)
+	int questSaveRetries = 0;                                // 방을 나간 뒤 마지막 저장이 실패해 다시 시도한 횟수
+	Protocol::QuestState GetQuestState(int32_t questId) const
+	{
+		const auto it = quests.find(questId);
+		return it == quests.end() ? Protocol::QUEST_STATE_NONE : it->second.state;
+	}
+	// 지금 저장할 것: 진행 중인 퀘스트 가운데 메모리의 처치 수가 DB 값보다 큰 것. 비어 있으면 저장할 것이 없다.
+	QuestProgressList MakeQuestSaveList() const;
+	// 로그인 때 수령함에 받을 것이 있었다(DB_PlayerData.hasMail) — 처음 입장 때 한 번 알린다 (D-262)
+	bool hasMailAtLogin = false;
 
 	// 진행 중인 1:1 거래의 id(Room::_trades의 키, 0 = 거래 중 아님). 거래 상태 자체는 Room이 갖는다 (A4.1, D-158). Room 잡 안에서만 읽고 쓴다.
 	int tradeId = 0;
@@ -182,9 +204,9 @@ public:
 	RoomMoveState roomMove;
 	// 서버가 내보내려는데(Room::EjectPlayer) 다른 이동의 응답을 기다리는 중(transfer)이었다 — 그 이동이 취소되면 내보낸다. 소유 Room 잡 안에서만.
 	bool ejectPending = false;
-	// DB에 가 있는 이 플레이어의 작업이 있는가(아이템 작업 — 확정 중인 1:1 거래의 양쪽 포함, 진행 상황·액티브 칸 저장).
+	// DB에 가 있는 이 플레이어의 작업이 있는가(아이템 작업 — 확정 중인 1:1 거래의 양쪽·퀘스트 수락/완료 포함, 진행 상황·액티브 칸·퀘스트 진행 저장).
 	// Room::NotifyClosedIfDone과 Room 이동이 같은 조건을 본다 — DB로 가는 플레이어 작업을 추가하면 여기에 넣는다.
-	bool HasUnfinishedWork() const { return itemOp.inFlight || progressSave.inFlight || quickSlotSave.inFlight; }
+	bool HasUnfinishedWork() const { return itemOp.inFlight || progressSave.inFlight || quickSlotSave.inFlight || questSave.inFlight; }
 
 	// 경험치·레벨(A2.3b, D-253). exp = 지금 레벨 안의 누적(다음 레벨까지 PlayerStatTable.ExpToNext). 소유 Room 잡 안에서만.
 	int64_t GetExp() const { return _dbPlayerData.exp; }

@@ -127,8 +127,12 @@ void Monster::OnDead(std::shared_ptr<Character> attacker)
 		const int removeDelayMs = data ? data->deathRemoveDelayMs : 3000;
 		room->ReserveJob(removeDelayMs, &Room::RemoveMonster, GetId());
 
+		// 처치를 인정받는 사람(막타 + 시야 안 파티원)은 한 번만 계산해 경험치와 퀘스트 처치 인정이 함께 쓴다(Q1, D-261).
+		const vector<shared_ptr<Player>> receivers = room->GetKillReceivers(attacker);
 		// 처치 경험치(A2.3b, D-254): 드랍 롤보다 먼저. 막타 + 시야 안 파티원이 나눈다.
-		room->GrantKillExp(attacker, _objectInfo.template_id());
+		room->GrantKillExp(receivers, _objectInfo.template_id());
+		// 퀘스트 처치 인정(Q1): 경험치가 0인 몬스터도 센다. 던전에서는 같은 방의 파티원 전원.
+		room->CreditKill(receivers, _objectInfo.template_id());
 
 		// 드랍 롤(A3.4, D-157): DropTable의 이 몬스터 행을 각각 굴려 사망 지점 둘레에 떨어뜨린다. 소유권은 막타(attacker).
 		room->SpawnMonsterDrops(_objectInfo.template_id(), GetPosition(), attacker);

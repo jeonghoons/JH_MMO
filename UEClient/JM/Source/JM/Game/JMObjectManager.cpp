@@ -171,6 +171,8 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 				Hud->SetIdentity(UTF8_TO_TCHAR(ObjInfo.name().c_str()), ObjInfo.level());
 				Hud->SetQuickSlots(MyPlayer->GetQuickSlots(), MyPlayer->GetWeaponType());
 				Hud->SetHp(ObjInfo.stat().hp(), ObjInfo.stat().max_hp());
+				Hud->SetMp(ObjInfo.stat().mp(), ObjInfo.stat().max_mp());
+				Hud->SetExp(ObjInfo.exp(), ObjInfo.level());
 			}
 
 			UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
@@ -500,6 +502,7 @@ void UJMObjectManager::HandleGainExp(int64 Exp, int64 Gained)
 	if (MyPlayer == nullptr) return;
 	MyPlayer->SetServerExp(Exp);
 	UE_LOG(LogTemp, Log, TEXT("[Growth] exp=%lld (+%lld) level=%d"), Exp, Gained, MyPlayer->GetObjectInfo().level());
+	if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetExp(Exp, MyPlayer->GetObjectInfo().level());
 }
 
 void UJMObjectManager::HandleChangeMp(int32 Mp)
@@ -507,6 +510,7 @@ void UJMObjectManager::HandleChangeMp(int32 Mp)
 	if (MyPlayer == nullptr) return;
 	MyPlayer->SetServerMp(Mp);
 	UE_LOG(LogTemp, Verbose, TEXT("[Growth] mp=%d/%d"), Mp, MyPlayer->GetObjectInfo().stat().max_mp());
+	if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetMp(Mp, MyPlayer->GetObjectInfo().stat().max_mp());
 }
 
 void UJMObjectManager::HandleLevelUp(int32 ObjectId, int32 Level, const Protocol::StatInfo& Stat)
@@ -519,7 +523,15 @@ void UJMObjectManager::HandleLevelUp(int32 ObjectId, int32 Level, const Protocol
 		Stat.hp(), Stat.max_hp(), Stat.mp(), Stat.max_mp(), Stat.attack_damage());
 	if (*FoundActor == MyPlayer)
 	{
-		if (UCombatHudWidget* Hud = GetCombatHud()) Hud->SetHp(Stat.hp(), Stat.max_hp());
+		if (UCombatHudWidget* Hud = GetCombatHud())
+		{
+			const Protocol::ObjectInfo& Info = MyPlayer->GetObjectInfo();
+			Hud->SetIdentity(UTF8_TO_TCHAR(Info.name().c_str()), Level);
+			Hud->SetHp(Stat.hp(), Stat.max_hp());
+			Hud->SetMp(Stat.mp(), Stat.max_mp());
+			// 뒤따르는 SC_GAIN_EXP가 새 레벨 안의 누적값을 다시 준다. 그 전까지는 지금 저장된 값으로 그린다.
+			Hud->SetExp(Info.exp(), Level);
+		}
 	}
 }
 
@@ -586,6 +598,7 @@ void UJMObjectManager::HandleChangeEquip(int32 ObjectId, Protocol::EquipPart Par
 		{
 			Hud->SetQuickSlots(MyPlayer->GetQuickSlots(), MyPlayer->GetWeaponType());
 			Hud->SetHp(Stat.hp(), Stat.max_hp());
+			Hud->SetMp(Stat.mp(), Stat.max_mp());   // 투구는 최대 MP를 올린다(D-253)
 		}
 	}
 }

@@ -51,6 +51,9 @@ private:
     static void Handle_CS_AUCTION_CANCEL(shared_ptr<GameSession> session, Protocol::CS_AUCTION_CANCEL_PACKET& pkt);
     static void Handle_CS_AUCTION_MY(shared_ptr<GameSession> session, Protocol::CS_AUCTION_MY_PACKET& pkt);
     static void Handle_CS_MAIL_CLAIM(shared_ptr<GameSession> session, Protocol::CS_MAIL_CLAIM_PACKET& pkt);
+    // 퀘스트 (Q1). 모두 Room 잡으로 넘긴다(Room::PlayerQuestAccept·PlayerQuestComplete)
+    static void Handle_CS_QUEST_ACCEPT(shared_ptr<GameSession> session, Protocol::CS_QUEST_ACCEPT_PACKET& pkt);
+    static void Handle_CS_QUEST_COMPLETE(shared_ptr<GameSession> session, Protocol::CS_QUEST_COMPLETE_PACKET& pkt);
     static void Handle_CS_PICKUP_ITEM(shared_ptr<GameSession> session, Protocol::CS_PICKUP_ITEM_PACKET& pkt);
     static void Handle_CS_DROP_ITEM(shared_ptr<GameSession> session, Protocol::CS_DROP_ITEM_PACKET& pkt);
     static void Handle_CS_USE_ITEM(shared_ptr<GameSession> session, Protocol::CS_USE_ITEM_PACKET& pkt);
