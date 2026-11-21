@@ -74,6 +74,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-014·D-030·D-072·D-141** (2026-11-12) 접두사 `SK_` `SM_` `ABP_` `ALI_` `AM_` `AS_` `M_` `MI_` `T_` `DT_` `P_`, 아이콘 `T_Icon_<…>`, 무기 애셋 `AS_`·`AM_`·`BS_<무기 애셋명>_<동작>`(검 = `OneHandSword` ≠ WeaponType `Sword`), 공용 `AM_Common_<동작>` (일부: 영웅 이름 포함·`MI_Skin`·`SK_Body` 규칙은 폐기)
 - **D-072** (2026-11-04) 폴더: 베이스 `Content/Character/Mannequin/`(`Content/Characters/`는 gitignore 경로라 안 씀), 장비 `Content/Equipment/<Tier>/<Slot>/`, 이펙트 `Content/FX/`, 원본 `SourceArt/`, 시각 품질은 SceneCapture 시트 승인 후 `TESTING.md` (일부: 도구 위치는 D-076)
 - **D-076** (2026-11-04) 에셋 제작 Python 도구는 `UEClient/JM/Content/Python/`(에디터 경로 자동, 쿠킹 안 됨), 에디터 없는 내보내기는 C++ 커맨드렛 `JMEditorTools` (일부: `jm_modular`는 D-083으로 삭제, 지금은 `jm_kit`)
+- **D-227** (2026-11-21) DG4 에셋 출처: 보유 팩(`ParagonProps/Monolith/Ruins`) + CC0(Poly Haven 텍스처) + VARCO만 쓰고 Fab에서 새로 받지 않음(Megascans 미사용 D-170 유지). **저장소가 공개(또는 공개 예정)라 Fab 출처 에셋은 새로 커밋하지 않음** — Ruins는 `World/Dep`로 Move하지 않고 팩 경로(git 제외) 그대로 참조, 재다운로드 안내는 `ExternalAssets.md`. 커밋하는 것은 CC0 텍스처·재질(`Content/World/Dungeon/`)과 VARCO 소품(`Content/World/Props/`)
 
 ## 서버 기반
 
@@ -107,6 +108,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-212** (2026-11-19) CP1 선반영 범위: 내 스킬·공격의 몽타주·무기 꺼내기·쿨타임 표시·이펙트·잠금을 입력 즉시 시작, 거부면 전부 되돌림, 내 `SC_ATTACK`은 확정만(다시 재생 안 함). 피해·HP·사망·피격 연출과 아이템·장착·상점·포털은 서버 확인 뒤 반영 그대로. 응답 전에는 다음 시전을 보내지 않음
 - **D-213** (2026-11-19) CP1 시간 오차: 클라이언트 사전 검사(사망·앞 동작 중·쿨타임·응답 대기 → 보내지 않음) + 서버 `[Network] AttackEarlyToleranceMs` = 100(그 이하로 남은 앞 동작·쿨타임은 통과, 남은 시간을 다음 잠금·쿨타임에 더해 주기는 그대로. 무기 교체 잠금·피격 경직·몬스터 제외)
 - **D-214** (2026-11-19) 시험용 지연: 클라이언트 콘솔 변수 `jm.NetLagMs`·`jm.NetLagJitterMs`(출시 빌드 제외), 측정용 `AutoAttack`·`AttackStats`
+- **D-229** (2026-11-21) DG4 던전 구도·제작 방식: 꺾이는 외길(시작 방 14m → 방1 20m → 통로 → 방2 20m → 통로 → 우두머리 방 30m, 통로 폭 7m·문 4m, 전체 약 95 × 75m, 걷는 길 약 155m). 벽·바닥은 상자 + 월드 정렬 CC0 석재 재질(`M_Dungeon_Surface`), 그 앞에 Ruins 석판·기둥을 장식으로(모두 `NoCollision`), 충돌은 상자만. 천장 없음(밤하늘), 벽 높이 8m. 정의는 `scripts/dg4_layout.py`가 생성, 조립은 `jm_kit.dungeon`(`world_step dg_build`). 대륙용 `blockout`·`dress`는 쓰지 않음
 
 ## 데이터
 
@@ -122,6 +124,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-124** (2026-11-08) `WeaponTypeTable.csv`(클라 전용, Name 1 Unarmed·2 Sword·3 Bow = SkillTable ID 첫 자리, `AnimLayer` 등 무기 타입별 값), 피격·사망 몽타주 = BodyTable `HitMontage`·`DeathMontage` (BodyTable도 생성 표 — `kit_profiles.json`에서 고침, 손 수정 금지)
 - **D-030·D-031** (2026-10-27) SkillTable 클라 전용 열: `Montage`(스킬 몽타주), `Fx`·`FxBaseRadius`(재생 배율 = `Radius` ÷ `FxBaseRadius`), `Icon` (일부: 옛 `ZoneFx*`·영웅 에셋은 낡음)
 - **D-194** (2026-11-18) 스폰 마커는 위치 + 구역 이름(`zoneName`)만, 종류·스폰 지점당 수·리스폰은 `SpawnTable.csv`(서버 전용, UE 임포트 없음). 구역 이름이 없는 마커(옛 `ParagonSample`)는 마커의 `monsterTemplateId`·`maxCount`. L3 몬스터 2종(외형은 둘 다 Rampage): 1001 하급(비선공, 초원 3곳 스폰당 5), 1002 중급(선공 8m, 숲 스폰당 3) — 합계 200마리
+- **D-230** (2026-11-21) 던전 전용 몬스터: `MonsterTable` 1004(던전 일반 — HP 300·공격 20·인식 5m·추격 20m·`ReturnMode` 1·배율 1.2, 스킨 `Rampage_Elemental`), 1005(던전 우두머리 — HP 2000·공격 45·인식 9m·추격 25m·배율 1.6, 스킨 `Rampage_Redneck`) + 스킬 9004·9005 + 드랍 행. 스폰 구역 `room1`(지점 2 × 2마리)·`room2`(지점 3 × 2마리)·`boss`(1005 한 마리), 모두 다시 나오지 않음. **수치는 초안**(처음 값 HP 400·공격 35 / HP 2500·공격 60은 맨몸 시험 계정이 방1 문 앞에서 5초 만에 쓰러져 같은 날 낮춤)
 
 ## 전투·스킬
 
@@ -207,6 +210,8 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-141** (2026-11-12) FX = 무기 3종 역할당 1~3개, 이름 `Content/FX/<분류>/P_<역할>_<이름>`, Water 이미터 삭제, 화살 메시 `/Game/Equipment/Common/SM_Arrow`
 - **D-141** (2026-11-12) AnimTrail 소켓 `FX_Weapon_Bottom/Top`은 체형별 리더 메시 `hand_r`에, 텔레그래프는 `M_Radius_Indicator` 메시로 별도 제작
 - **D-142** (2026-11-12) Paragon Greystone·Sparrow 팩 삭제, FX 의존 에셋은 `Content/FX/Dep/<팩>/`으로 Move, Rampage 팩은 몬스터용 유지 — FX가 팩을 계속 참조하고 있었음
+- **D-228** (2026-11-21) 맵 에셋 적합도 판정: 던전 조명(어두운 환경 + 따뜻한 점광원) 아래 놓고 캡처해 5항목 × 20점(형태 / 색·톤 / 질감·화풍 / 시대감 / 크기·조립성)으로 채점, **85점 이상만 사용**하고 미달은 CC0·VARCO로 대체. 판정은 Claude가 하고 결과만 보고. DG4 결과: Ruins 벽·기둥·문설주 조각·잔해·원형 바닥·받침대·부서진 벽과 CC0 바닥·벽 재질 통과, `MonoStatue`(62)·`JungleCamp`(74)·마을 깃발(80) 탈락, 없는 것 6종(벽걸이 횃불·화로·석관·뼈 더미·무기 거치대·수호 석상)은 VARCO
+- **D-231** (2026-11-21) 던전 불 표현: 횃불·화로·모닥불은 점광원 + 보유 잔불 이펙트 `FX/Buff/P_Aura_Embers_Linger`(불티가 떠오름). 불꽃 자체를 그리는 파티클은 만들지 않음. 콘텐츠 동결(D-147)의 예외는 맵 환경용 이 1종 배치로 한정
 
 ## 애니메이션
 

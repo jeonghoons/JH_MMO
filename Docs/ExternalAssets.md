@@ -9,7 +9,7 @@
 | ~~`Content/ParagonGreystone`~~ | Paragon: Greystone | (Fab 링크 기입) | **2026-11-12 삭제** — 쓰던 FX 의존은 `Content/FX/Dep/Greystone`(git 포함). 설치 불필요 | — |
 | ~~`Content/ParagonSparrow`~~ | Paragon: Sparrow | (Fab 링크 기입) | **2026-11-12 삭제** — 쓰던 FX 의존은 `Content/FX/Dep/Sparrow`(git 포함). 설치 불필요 | — |
 | `Content/ParagonRampage` | Paragon: Rampage | (Fab 링크 기입) | 몬스터(메시·스켈레톤 등). FX가 쓰던 의존은 2026-11-12 `Content/FX/Dep/Rampage`로 옮겨 팩에서 빠짐 — 새로 받으면 그 에셋이 팩 쪽에도 다시 생기지만 참조하지 않음 | Fab 라이브러리 → Add to Project → `JM` |
-| `Content/ParagonProps` | Paragon: Props | (Fab 링크 기입) | 환경 소품. **새 맵 `Continent01`은 이 폴더를 쓰지 않음** — 쓰는 바위 메시·재질은 2026-11-18 `Content/World/Dep/ParagonProps`로 옮김(git 포함, 텍스처 2K로 축소 — D-191·D-192). 옛 맵 `ParagonSample`과 던전 제작(DG4 `Monolith/Ruins` 예정)에 필요. 새로 받으면 옮긴 에셋이 팩 쪽에도 다시 생기지만 `Continent01`은 참조하지 않음 | 위와 동일 |
+| `Content/ParagonProps` | Paragon: Props | (Fab 링크 기입) | 환경 소품. **2026-11-21 DG4부터 다시 필요** — 던전 맵 `Continent01_Dungeon`과 대륙의 던전 입구 문틀이 `Monolith/Ruins/Meshes`의 벽·기둥·잔해·원형 바닥을 **이 폴더 경로 그대로** 참조합니다(Fab 에셋은 공개 저장소에 올릴 수 없어 Move해 커밋하지 않음, D-227 — 이 팩이 없으면 던전의 Ruins 장식이 보이지 않고 충돌·내비메시는 그대로). **새 맵 `Continent01`은 이 폴더를 쓰지 않음** — 쓰는 바위 메시·재질은 2026-11-18 `Content/World/Dep/ParagonProps`로 옮김(git 포함, 텍스처 2K로 축소 — D-191·D-192). 옛 맵 `ParagonSample`과 던전 제작(DG4 `Monolith/Ruins` 예정)에 필요. 새로 받으면 옮긴 에셋이 팩 쪽에도 다시 생기지만 `Continent01`은 참조하지 않음 | 위와 동일 |
 | `Content/KiteDemo` | Kite Demo | (Fab 링크 기입) | 자연물(나무·바위·풀·지면 타일). **새 맵 `Continent01`은 이 폴더를 쓰지 않음** — 쓰는 에셋은 2026-11-18 `Content/World/Dep/KiteDemo`로 옮김(git 포함, 텍스처 2K로 축소 — D-191·D-192). 옛 맵 `ParagonSample`에만 필요 | 위와 동일 |
 | `Content/LevelPrototyping`, `Content/StarterContent` | UE 템플릿 기본 에셋 | - | 프로토타이핑용 | 새 프로젝트 템플릿에서 가져오기 |
 | `Content/CoreC` | Stylized Handpainted Modular Character Starter Kit: Male & Female + Outfit (CoreCharacters, 무료) | https://fab.com/s/485d4e7206ec | **플레이어 베이스 바디(남/여)**, 2026-11-04 MC2.1b | Fab 내 라이브러리 → Add to Project → `JM`. 몸 부위는 키트 메시를 그대로 사용(`jm_kit/kit_profiles.json`). **재설치 뒤 소켓 추가 필요**(2026-11-12 FX 궤적용, 폴더가 git 제외): `SKM_CoreC_M_Base_Body_Combined`·`SKM_CoreC_F_Base_Body_Combined`에 `hand_r` 자식 소켓 `FX_Weapon_Bottom`·`FX_Weapon_Top`(회전 0, 배율 1) — M 위치 (-5.264, 6.422, 11.429)·(-8.211, 44.988, 74.633), F (-5.657, 12.754, 2.98)·(-8.466, 85.167, 18.446). 값은 MCP `fx_weapon_socket_points`(검 부착값의 날 22%·칼끝), 추가는 `SkeletalMeshTools.add_socket` → `set_socket_transform` → 저장 |
@@ -17,6 +17,20 @@
 | (Test) `Content/Pirate`, `Adventures_woman` | (에셋 이름 기입) | (Fab 링크 기입) | 모듈러 캐릭터 검토용, 캐릭터 베이스 결정 후 폐기 여부 확정 | 위와 동일 |
 
 > 팩을 다시 받을 때는 기존 이주본과 경로가 겹치므로, 덮어쓰기 전에 `Content/Character/*`(ABP, DT, BP)와 `DT_Appearance`/`DT_Equip`은 git으로 커밋된 상태인지 확인하세요.
+
+## CC0 텍스처 (git 포함, 2026-11-21 DG4)
+
+던전 바닥·벽 재질(`Content/World/Dungeon/Materials/`, 부모 `M_Dungeon_Surface`)이 쓰는 텍스처입니다. 모두 [Poly Haven](https://polyhaven.com)의 CC0(저작권 표시·재배포 제한 없음, https://polyhaven.com/license)이고 2K JPG(색·DirectX 노멀·ARM)를 받아 `world_step dg_surface`로 가져왔습니다.
+
+| 에셋 | Poly Haven 이름 | 제작자 | 쓰는 곳 |
+|---|---|---|---|
+| `T_FloorSlate_BaseColor/Normal/ARM`, `MI_Dungeon_FloorSlate` | [Stone Tiles 02](https://polyhaven.com/a/stone_tiles_02) | Charlotte Baglioni | 던전 바닥 |
+| `T_WallBlock_*`, `MI_Dungeon_WallBlock` | [Medieval Blocks 03](https://polyhaven.com/a/medieval_blocks_03) | Rob Tuytel | 던전 벽 |
+| `T_WallBrick_*`, `MI_Dungeon_WallBrick` | [Stone Brick Wall 001](https://polyhaven.com/a/stone_brick_wall_001) | Dimitrios Savva, Rico Cilliers | 예비(지금 배치에는 안 씀) |
+
+## VARCO 맵 소품 (git 포함)
+
+`Content/World/Props/<이름>/` — VARCO 3D로 만든 소품(컨셉·멀티뷰 이미지는 `SourceArt/Concept/`, git 제외). L2d 마을 11종에 더해 2026-11-21 DG4 던전 6종: `WallTorch`, `Brazier`, `Sarcophagus`, `BonePile`, `WeaponRack`, `GuardianStatue`.
 
 ## 직접 추가한 이미지 (원본 PNG는 git 제외, 가져온 텍스처 에셋은 git 포함)
 

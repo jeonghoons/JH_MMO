@@ -1,0 +1,9 @@
+Name,MapName,Zone,MonsterTemplateId,CountPerSpawn,RespawnSec
+1001,Continent01,meadow_w,1001,5,0
+1002,Continent01,meadow_e,1001,5,0
+1003,Continent01,meadow_n,1001,5,0
+1004,Continent01,forest_n,1002,3,0
+1005,Continent01,forest_boss,1003,1,0
+1006,Continent01_Dungeon,room1,1001,1,-1
+1007,Continent01_Dungeon,room2,1001,1,-1
+1008,Continent01_Dungeon,boss,1001,1,-1

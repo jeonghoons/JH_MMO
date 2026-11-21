@@ -34,3 +34,12 @@ description: 맵(대륙·마을·던전 레벨)을 만들거나 고칠 때 사�
 서버 없는 걷기 자동 확인: `Saved/TestAuto.txt`에 `0.5:move 1 0;3.0:move 0 0`을 쓰고(`BP_TestPlayer.AutoScript`가 비어 있으면 이 파일을 읽음) `StartPIE`의 `startTransform`으로 시작 위치를 준 뒤 `pie_pawn`으로 읽는다 — 끝나면 파일을 지운다(`StartPIE`의 `warmupSeconds`가 30초쯤 넘으면 호출이 시간 초과로 돌아오지만 PIE는 시작돼 있음). 
 
 함정(2026-11-18): ① Import 직후에는 `world_describe_landscape`의 레이어별 컴포넌트 수가 0이다(편집 레이어 합성이 몇 프레임 뒤) ② `MaterialEditingLibrary.delete_all_material_expressions`는 한 번에 절반만 지워 0이 될 때까지 반복한다 ③ 풀은 뷰포트 카메라 주변에 프레임마다 조금씩 생기므로 `bThrottleCPUWhenNotForeground`를 끄고(`UEClient/JM/CLAUDE.md` "알려진 함정"의 백그라운드 스로틀) `SetCameraTransform`으로 카메라를 옮긴 뒤 10초쯤 기다렸다가 찍는다 ④ `CaptureViewport`의 base64 결과가 대화에 들어오지 않게 JSON-RPC로 직접 불러 파일로 저장한다(스크립트 `Saved/World/shot.py` — 로컬 전용).
+
+## 실내 던전 (DG4, `jm_kit.dungeon` — `world_step`의 `dg_*` 단계)
+
+Landscape 없는 실내 레벨은 `blockout`·`dress` 대신 정의의 `dungeon` 구획을 쓴다(예: `world_continent01_dungeon.json`). 정의 파일은 손으로 쓰지 않고 `scripts/dg4_layout.py`(방·통로 사각형 `ROOMS`·`CORRIDORS`·문 `DOORS` → 벽 상자·바닥·Ruins 장식·불빛·마커)가 만든다 — 구도를 고치면 스크립트를 고쳐 다시 돌린다.
+
+- `dg_surface`(`{"name", "base", "normal", "arm", "tile_cm", "tint", "brightness", "rough_mul"}`): 석재 텍스처(색·DirectX 노멀·ARM)를 `/Game/World/Dungeon/Materials`로 가져와 `MI_Dungeon_<이름>`을 만든다. 부모 `M_Dungeon_Surface`는 월드 좌표 세 방향 투영이라 상자를 어떤 크기로 늘려도 타일 크기가 같고, 겹친 상자 사이 이음매가 보이지 않는다. 값만 바꿀 때는 파일 경로 없이 다시 부른다. 텍스처는 CC0(Poly Haven)만 넣는다 — 출처는 `Docs/ExternalAssets.md`.
+- `dg_build`(다시 부르면 `DG_*` 액터를 지우고 다시): `surfaces`(상자 — 바닥·벽, 충돌 켜짐, `mat`), `runs`(메시를 선 따라 줄지어, `stretch`면 긴 축을 늘여 빈틈·겹침 없이), `props`(메시 하나 + `col` 숨긴 충돌 상자, `z`·`pitch`·`roll`·`width_m`/`height_m`), `lights`(점광원, `fx`에 파티클 경로를 주면 같은 자리에 이미터). 보이는 메시는 전부 `NoCollision`이고 충돌은 상자만 — 서버 내비메시 입력도 상자뿐이다(던전 전체가 삼각형 약 5천).
+- 순서: `dg4_layout.py` → (열린 레벨 확인) `dg_build` → `world_place_markers` → `world_step lighting` → 저장 → `nav-export`. 벽 두께 1m·천장 없음이면 벽 윗면은 `[Prune]`에서 섬으로 꺼진다.
+- 함정: ① 석판(`JungleWall_02A`, 두께 1m)을 같은 두께의 벽 상자와 같은 자리에 놓으면 묻혀 보이지 않는다 → 0.2m 앞으로 ② 문설주·기둥·잔해처럼 길로 튀어나온 것은 `col`을 꼭 준다(윗면 1m 이상) ③ 몬스터 인식은 벽을 보지 않는다 — 스폰 자리에서 이웃 방·통로까지의 직선 거리가 `AggroRangeCm`보다 멀게 놓는다 ④ 원시 소켓 시험은 직선으로 걸을 수 없어 방·통로 가운데를 잇는 길을 따라 걷는다(`Server/PerfData/2026-11-21_DG4/dg4_test.py`의 `ROUTE` — 구도를 바꾸면 함께 고친다).

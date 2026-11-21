@@ -1,0 +1,6 @@
+Name,SkillId,MaxHp,AttackDamage,AttackSpeed,MoveSpeed,RespawnSec,DeathRemoveDelaySec,HitStunMs,WanderRadiusCm,AggroRangeCm,LeashRangeCm,ReturnMode,Scale,BodyRadiusCm,Mesh
+1001,9001,150,20,1.0,400,10,3,800,500,0,2500,0,0.7,29,/Game/ParagonRampage/Characters/Heroes/Rampage/Meshes/Rampage.Rampage
+1002,9002,300,30,1.0,400,15,3,800,500,800,3000,1,1.1,46,/Game/ParagonRampage/Characters/Heroes/Rampage/Skins/Tier2/Elemental/Meshes/Rampage_Elemental.Rampage_Elemental
+1003,9003,1500,50,1.0,380,120,3,800,300,1200,4000,1,1.4,59,/Game/ParagonRampage/Characters/Heroes/Rampage/Skins/Tier_1/Rampage_RedNeck/Mesh/Rampage_Redneck.Rampage_Redneck
+1004,9004,400,35,1.0,400,15,3,800,300,700,2000,1,1.2,50,/Game/ParagonRampage/Characters/Heroes/Rampage/Skins/Tier2/Elemental/Meshes/Rampage_Elemental.Rampage_Elemental
+1005,9005,2500,60,1.0,380,120,3,800,300,1000,2500,1,1.6,67,/Game/ParagonRampage/Characters/Heroes/Rampage/Skins/Tier_1/Rampage_RedNeck/Mesh/Rampage_Redneck.Rampage_Redneck

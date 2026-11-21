@@ -7,3 +7,5 @@ Name,WeaponType,Slot,TargetingType,HitShape,HitDelayMs,CooldownMs,AnimMs,MoveLoc
 9001,Monster,0,NonTargeted,Sector,400,0,1000,0,0,120,150,0,0,40,0,0,0,1.0,0,,0,/Game/Character/Rampage/AM_Rampage_Attack.AM_Rampage_Attack,
 9002,Monster,0,NonTargeted,Sector,400,0,1000,0,0,187,150,0,0,40,0,0,0,1.0,0,,0,/Game/Character/Rampage/AM_Rampage_Attack.AM_Rampage_Attack,
 9003,Monster,0,NonTargeted,Sector,400,0,1000,0,0,240,150,0,0,60,0,0,0,1.0,0,,0,/Game/Character/Rampage/AM_Rampage_Attack.AM_Rampage_Attack,
+9004,Monster,0,NonTargeted,Sector,400,0,1000,0,0,205,150,0,0,30,0,0,0,1.0,0,,0,/Game/Character/Rampage/AM_Rampage_Attack.AM_Rampage_Attack,
+9005,Monster,0,NonTargeted,Sector,400,0,1000,0,0,275,150,0,0,55,0,0,0,1.0,0,,0,/Game/Character/Rampage/AM_Rampage_Attack.AM_Rampage_Attack,

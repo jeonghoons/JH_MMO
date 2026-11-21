@@ -1480,6 +1480,12 @@ _PIE_EXEC_PREFIX = ("t.", "r.", "sg.", "grass.", "foliage.", "jm.")
 def run_step(name, step, args=None):
     """step: weights / grass / material / apply_material / ground(grass → material → apply_material) / audit / probe / dress / clear_dress / check_dress / show_colliders / colliders / near / pie_pawn / pie_chars / prop_import / prop_info / lighting / pie_exec / pie_view / pie_walk / pie_revive. pie_* 단계는 args.world로 PIE 창 번호(0부터)를 고른다."""
     args = args or {}
+    if step.startswith("dg_"):
+        # 던전 맵 도구(DG4): jm_kit.dungeon
+        import importlib
+        from jm_kit import dungeon
+        importlib.reload(dungeon)
+        return dungeon.run(name, step, args)
     if step == "probe":
         return probe(name, args.get("items"))
     if step == "dress":

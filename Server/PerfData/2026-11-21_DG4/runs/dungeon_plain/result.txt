@@ -1,0 +1,6 @@
+PASS solo  (DB 아이템 89855, 골드 602829)
+PASS isolate  (DB 아이템 89855, 골드 602829)
+PASS cut_load  (DB 아이템 89855, 골드 602829)
+PASS dup_load  (DB 아이템 89855, 골드 602829)
+PASS party  (DB 아이템 89855, 골드 602829)
+PASS revive  (DB 아이템 89855, 골드 602829)

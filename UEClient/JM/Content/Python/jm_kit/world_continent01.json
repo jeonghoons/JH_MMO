@@ -707,6 +707,86 @@
         "collide": true
       },
       {
+        "kind": "prop",
+        "label": "DungeonGate_L0",
+        "mesh": "/Game/ParagonProps/Monolith/Ruins/Meshes/JunglePillarBlock_01A",
+        "x": 194.05,
+        "y": -185.28,
+        "yaw": 150.0,
+        "scale": 1.0,
+        "sink_m": 0.3,
+        "col_fit": [
+          0.95,
+          0.95,
+          1.6
+        ],
+        "col_max_h": 4.0,
+        "group": "dungeon_gate",
+        "_comment": "던전 입구 문틀(DG4f, D-229): Ruins 기둥 블록 2단 + 가로 석재 2개. 충돌은 아래 기둥 둘뿐(가운데 6m는 지나다님). 팩 경로(git 제외) 그대로 참조 — D-227"
+      },
+      {
+        "kind": "place",
+        "label": "DungeonGate_L1",
+        "folder": "Village",
+        "mesh": "/Game/ParagonProps/Monolith/Ruins/Meshes/JunglePillarBlock_01B",
+        "x": 194.05,
+        "y": -185.28,
+        "yaw": 240.0,
+        "scale": 1.0,
+        "sink_m": -2.2
+      },
+      {
+        "kind": "prop",
+        "label": "DungeonGate_R0",
+        "mesh": "/Game/ParagonProps/Monolith/Ruins/Meshes/JunglePillarBlock_01A",
+        "x": 189.75,
+        "y": -192.72,
+        "yaw": 150.0,
+        "scale": 1.0,
+        "sink_m": 0.3,
+        "col_fit": [
+          0.95,
+          0.95,
+          1.6
+        ],
+        "col_max_h": 4.0,
+        "group": "dungeon_gate"
+      },
+      {
+        "kind": "place",
+        "label": "DungeonGate_R1",
+        "folder": "Village",
+        "mesh": "/Game/ParagonProps/Monolith/Ruins/Meshes/JunglePillarBlock_01B",
+        "x": 189.75,
+        "y": -192.72,
+        "yaw": 240.0,
+        "scale": 1.0,
+        "sink_m": -2.2
+      },
+      {
+        "kind": "place",
+        "label": "DungeonGate_Topa",
+        "folder": "Village",
+        "mesh": "/Game/ParagonProps/Monolith/Ruins/Meshes/JungleWall_01A",
+        "x": 193.15,
+        "y": -186.83,
+        "yaw": 150.0,
+        "scale": 1.0,
+        "sink_m": -4.7
+      },
+      {
+        "kind": "place",
+        "label": "DungeonGate_Topb",
+        "folder": "Village",
+        "mesh": "/Game/ParagonProps/Monolith/Ruins/Meshes/JungleWall_01A",
+        "x": 190.65,
+        "y": -191.17,
+        "yaw": 150.0,
+        "scale": 1.0,
+        "sink_m": -4.7,
+        "replaces": "DungeonGate"
+      },
+      {
         "kind": "scatter",
         "label": "WestStones",
         "set": "stones",

@@ -8,8 +8,8 @@
 			"area": "dungeon",
 			"position":
 			{
-				"x": -2200,
-				"y": 0,
+				"x": -4000,
+				"y": -2600,
 				"z": 100,
 				"yaw": 0
 			}
@@ -20,15 +20,15 @@
 			"area": "dungeon",
 			"position":
 			{
-				"x": -585.26610312242951,
-				"y": -465.12136670371706,
+				"x": -1518.9793100042286,
+				"y": -2869.2808136895246,
 				"z": 100,
 				"yaw": 0
 			},
-			"monsterTemplateId": 1001,
-			"spawnRadius": 300,
+			"monsterTemplateId": 1004,
+			"spawnRadius": 250,
 			"maxCount": 2,
-			"zoneName": "hall"
+			"zoneName": "room1"
 		},
 		{
 			"pointId": 2,
@@ -36,15 +36,15 @@
 			"area": "dungeon",
 			"position":
 			{
-				"x": -128.59516613910893,
-				"y": 220.63712814392034,
+				"x": -1733.9632756858648,
+				"y": -2186.1665652272868,
 				"z": 100,
 				"yaw": 0
 			},
-			"monsterTemplateId": 1001,
-			"spawnRadius": 300,
+			"monsterTemplateId": 1004,
+			"spawnRadius": 250,
 			"maxCount": 2,
-			"zoneName": "hall"
+			"zoneName": "room1"
 		},
 		{
 			"pointId": 3,
@@ -52,12 +52,60 @@
 			"area": "dungeon",
 			"position":
 			{
-				"x": 2315.4843567706607,
-				"y": -57.276642107002338,
+				"x": 739.42679845788371,
+				"y": 2125.0107552226668,
 				"z": 100,
 				"yaw": 0
 			},
-			"monsterTemplateId": 1003,
+			"monsterTemplateId": 1004,
+			"spawnRadius": 250,
+			"maxCount": 2,
+			"zoneName": "room2"
+		},
+		{
+			"pointId": 4,
+			"type": "MonsterSpawn",
+			"area": "dungeon",
+			"position":
+			{
+				"x": 836.47121416401239,
+				"y": 2776.6994874229113,
+				"z": 100,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1004,
+			"spawnRadius": 250,
+			"maxCount": 2,
+			"zoneName": "room2"
+		},
+		{
+			"pointId": 5,
+			"type": "MonsterSpawn",
+			"area": "dungeon",
+			"position":
+			{
+				"x": 126.53596968386367,
+				"y": 2298.8376506866484,
+				"z": 100,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1004,
+			"spawnRadius": 250,
+			"maxCount": 2,
+			"zoneName": "room2"
+		},
+		{
+			"pointId": 6,
+			"type": "MonsterSpawn",
+			"area": "dungeon",
+			"position":
+			{
+				"x": 3253.8551839337379,
+				"y": -2380.3775677362946,
+				"z": 100,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1005,
 			"spawnRadius": 200,
 			"maxCount": 1,
 			"zoneName": "boss"
@@ -68,8 +116,8 @@
 			"area": "dungeon",
 			"position":
 			{
-				"x": -2800,
-				"y": 0,
+				"x": -4500,
+				"y": -2600,
 				"z": 100,
 				"yaw": 0
 			},
