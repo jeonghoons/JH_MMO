@@ -878,7 +878,7 @@ def build_gloves_kit_hand(src_static, body, out_path, paint="Cloth", overwrite=F
     rule = SLOT_RULES["gloves"]
     leader = profiles.body(body)["leader"]
     folder, name = out_path.rsplit("/", 1)
-    stem = name[3:] if name.startswith("SK_") else name          # SK_Cloth_Gloves_M → Cloth_Gloves_M
+    stem = name[3:] if name.startswith("SK_") else name          # SK_00_Gloves_M → 00_Gloves_M
     rep = {"body": body, "slot": "gloves", "out": out_path, "method": "kit_hand", "paint": paint}
     dm, rep["kit_tris"] = _kit_hand_mesh(body, target_tris=rule["tris"], clean_cuff=clean_cuff)   # 키트 손 약 5천 → 슬롯 예산
     rep["tris"] = _tris(dm)
@@ -1055,19 +1055,30 @@ def _shield_rel(at, raw_c, raw_e, body, bone):
                             rotation=q.rotator(), scale=unreal.Vector(s, s, s))
 
 
-def static_attachment(item_key, body, which="attach"):
+def static_attachment(item_key, body, which="attach", auto=False):
     """정적 아이템의 부착 정보 {"mesh", "socket", "transform"(소켓 기준 상대)}. items.json attach 값으로 계산.
     which = "back"이면 무기를 등에 멜 때의 값(items.json back — attach와 같은 형식, MC4.2d-2).
     attach.fit = "head"(머리+헤어 상자에 ratio·rel_off), "helm"(머리 상자에 균일 배율·yaw, 투구) 또는 "length"(가장 긴 축을 length_cm로, grip_frac 지점을 소켓에, rot 회전)."""
     it = load_items()[item_key]
     at = it[which]
+    man = None if auto else it.get("manual", {}).get(which, {}).get(body)
+    if man:
+        # 사용자가 맞춤 레벨에서 직접 잡은 값(equip_layout.fit_save — D-243). 자동 계산보다 우선
+        tf = unreal.Transform(location=unreal.Vector(*man["loc"]), rotation=unreal.Quat(*man["rot"]).rotator(),
+                              scale=unreal.Vector(*man["scale"]))
+        return {"mesh": it["source"], "socket": at["socket"], "transform": tf, "hide_parts": at.get("hide_parts", []), "manual": True}
+    if at["fit"] == "socket":
+        # 정규화한 메시(손잡이 = 원점 — weapon_norm, D-247)를 스켈레톤 소켓에 그대로. 위치는 소켓(kit_sockets.json)이 가짐
+        return {"mesh": it["source"], "socket": at["socket"], "transform": unreal.Transform(), "hide_parts": at.get("hide_parts", [])}
     st = unreal.load_asset(it["source"])
     b = st.get_bounds()
     raw_c = (b.origin.x, b.origin.y, b.origin.z)
     raw_e = (b.box_extent.x * 2, b.box_extent.y * 2, b.box_extent.z * 2)
     bone = _bone_ref(body, at["socket"])
     if at["fit"] == "head":
-        lo, hi = _head_box(body)
+        # box "head" = 헤어를 뺀 머리 상자(두건처럼 헤어를 숨기는 장비). 기본 "head_hair"는 머리+헤어 —
+        # 여성 긴 머리는 상자가 앞뒤 1.9배·높이 1.6배라 두건이 헐렁해졌다(2026-11-21 IT0)
+        lo, hi = _region_box_bones(body, ("head",)) if at.get("box") == "head" else _head_box(body)
         ratio, rel = at.get("ratio", (1.0, 1.0, 1.0)), at.get("rel_off", (0.0, 0.0, 0.0))
         size = [h - l for l, h in zip(lo, hi)]
         ctr = [(h + l) / 2 + rel[i] * size[i] for i, (l, h) in enumerate(zip(lo, hi))]
@@ -1144,6 +1155,20 @@ def load_items():
         return {k: v for k, v in json.load(f).items() if not k.startswith("_")}
 
 
+BODY_DIR = {"M": "Male", "F": "Female"}
+
+
+def out_path(it, body):
+    """items.json out 틀 → 체형별 결과 메시 경로({body} = M/F, {body_dir} = Male/Female — 장비 폴더 구조 D-241)."""
+    return it["out"].format(body=body, body_dir=BODY_DIR[body])
+
+
+def src_dir(it):
+    """원본 머티리얼·텍스처(M_<키>·T_<키>_*) 폴더. 정적 장비(머리·무기·방패)는 메시와 따로 둔다(items.json src_dir — D-241),
+    그 밖은 원본 메시와 같은 폴더."""
+    return it.get("src_dir") or it["source"].rsplit("/", 1)[0]
+
+
 def build_item(key, bodies=("M", "F"), overwrite=True):
     """items.json의 아이템 key를 체형별로 만든다. 반환: {체형: 보고서}."""
     it = load_items()[key]
@@ -1153,14 +1178,14 @@ def build_item(key, bodies=("M", "F"), overwrite=True):
     out = {}
     for b in bodies:
         if it["slot"] == "gloves" and fit.get("method") == "kit_hand":
-            out[b] = build_gloves_kit_hand(it["source"], b, it["out"].format(body=b), paint=fit.get("paint", "Cloth"), overwrite=overwrite,
+            out[b] = build_gloves_kit_hand(it["source"], b, out_path(it, b), paint=fit.get("paint", "Cloth"), overwrite=overwrite,
                                            clean_cuff=fit.get("clean_cuff", False))
             continue
         if it["slot"] == "gloves":
-            out[b] = build_gloves(it["source"], b, it["out"].format(body=b), ratio=fit.get("ratio", (1.0, 1.0, 1.0)),
+            out[b] = build_gloves(it["source"], b, out_path(it, b), ratio=fit.get("ratio", (1.0, 1.0, 1.0)),
                                   rel_off=fit.get("rel_off", (0.0, 0.0, 0.0)), target_tris=fit.get("target_tris"), overwrite=overwrite)
             continue
-        out[b] = build(it["source"], b, it["slot"], it["out"].format(body=b),
+        out[b] = build(it["source"], b, it["slot"], out_path(it, b),
                        ratio=fit.get("ratio", (1.0, 1.0, 1.0)), rel_off=fit.get("rel_off", (0.0, 0.0, 0.0)),
                        yaw=fit.get("yaw", 0.0), target_tris=fit.get("target_tris"), overwrite=overwrite,
                        clear_cm=fit.get("clear_cm", 0.0))
@@ -1169,12 +1194,13 @@ def build_item(key, bodies=("M", "F"), overwrite=True):
 
 def import_source(fbx_path, item_key):
     """VARCO FBX를 items.json의 source 위치로 가져오고 이름을 규칙대로 바꾼다
-    (SM_<Item>_Src, M_<Item>, T_<Item>_BaseColor/Normal/ORM). 반환: 정적 메시 경로."""
+    (메시 = items.json source 경로 그대로, M_<Item>, T_<Item>_BaseColor/Normal/ORM은 src_dir). 반환: 정적 메시 경로.
+    정적 장비는 메시가 src_dir 밖(예 _Weapon/OneHandSword/)에 있을 수 있다 — src_dir로 가져온 뒤 메시만 옮긴다(D-241)."""
     _not_playing()
     it = load_items()[item_key]
-    dest_dir, sm_name = it["source"].rsplit("/", 1)
+    dest_dir = src_dir(it)
     src = import_fbx(fbx_path, dest_dir)
-    renames = {src: f"{dest_dir}/{sm_name}"}
+    renames = {src: it["source"]}
     for a in EAL.list_assets(dest_dir, recursive=False):
         p = a.split(".")[0]
         n = p.rsplit("/", 1)[1]
@@ -1247,7 +1273,7 @@ def assign_source_textures(item_key):
     (리디렉터 정리 뒤 NormalMap이 지워진 옛 이름 "normal"을 가리킨 채 남는 경우가 있었다 — MC2.2 두건·검·활.
     노멀 샘플러가 비면 머티리얼 컴파일이 실패해 회색 기본 머티리얼로 그려진다)"""
     it = load_items()[item_key]
-    dest_dir = it["source"].rsplit("/", 1)[0]
+    dest_dir = src_dir(it)
     mat = unreal.load_asset(f"{dest_dir}/M_{item_key}")
     if mat is None:
         raise RuntimeError(f"머티리얼 없음: {dest_dir}/M_{item_key}")
@@ -1291,7 +1317,7 @@ def assign_source_material(item_key):
     """원본 정적 메시의 머티리얼 슬롯을 M_<Item>으로 다시 지정하고 저장한다.
     (이름 변경 뒤 정적 메시의 슬롯이 비는 경우가 있었다 — MC2.2 천 상의, 결과 의상이 회색 기본 머티리얼로 나옴)"""
     it = load_items()[item_key]
-    dest_dir = it["source"].rsplit("/", 1)[0]
+    dest_dir = src_dir(it)
     mat = unreal.load_asset(f"{dest_dir}/M_{item_key}")
     st = unreal.load_asset(it["source"])
     if mat is None or st is None:
@@ -1304,7 +1330,7 @@ def assign_source_material(item_key):
     return mat
 
 
-PBR_MASTER = "/Game/Equipment/Common/M_Equip_PBR"
+PBR_MASTER = "/Game/Equipment/_Shared/M_Equip_PBR"   # 장비 공용(D-241, 옛 Equipment/Common)
 
 
 def ensure_pbr_master(rebuild=False):
@@ -1344,7 +1370,7 @@ def use_pbr_master(item_key):
     """M_<Item>(머티리얼 인스턴스)의 부모를 M_Equip_PBR로 바꾸고 BaseColor·Normal·ORM을 지정한다.
     ORM 텍스처는 선형(sRGB 끔)·마스크 압축으로 바꾼다. 반환: 머티리얼 경로."""
     it = load_items()[item_key]
-    dest_dir = it["source"].rsplit("/", 1)[0]
+    dest_dir = src_dir(it)
     mi = unreal.load_asset(f"{dest_dir}/M_{item_key}")
     if not isinstance(mi, unreal.MaterialInstanceConstant):
         raise RuntimeError(f"머티리얼 인스턴스가 아님: M_{item_key}")

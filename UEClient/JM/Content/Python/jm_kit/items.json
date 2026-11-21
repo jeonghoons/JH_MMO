@@ -1,9 +1,9 @@
 {
   "_comment": "장비 아이템 제작 데이터(MC2.2). source = 가져온 원본 정적 메시(VARCO), out = 체형별 결과 스켈레탈 메시({body} = M/F). fit: ratio·rel_off는 키트 틀 상자 기준(EditImage로 틀 실루엣을 유지했으면 1/0), target_tris 0 = 단순화 안 함. varco = 재다운로드용 노드·작업 ID. mask = 이 아이템이 슬롯 기본 마스크 파라미터를 덮어쓰는 값(kit_profiles.json mask 참고). attach = 정적 부착 아이템(머리·무기): socket 본, fit \"head\"(머리+헤어 상자에 ratio·rel_off) 또는 \"length\"(가장 긴 축 = length_cm, grip_frac 지점을 소켓에, rot·offset), hide_parts = 통째로 숨길 부위. fit.method \"kit_hand\" = 장갑을 키트 손 형상으로 만들고 fit.paint 스타일(glove_paint, 기본 Cloth)로 칠한다(VARCO 장갑은 패턴 원본으로만). varco.texture3d_node = 텍스처만 다시 입힌 Texture3D 노드. attach.fit \"helm\" = 투구: 헤어 뺀 머리 상자에 균일 배율(width_ratio·depth_ratio), yaw로 정면 맞춤, 꼭대기 = 정수리 + top_cm.",
-  "Cloth_Top": {
+  "00_Top": {
     "slot": "top",
-    "source": "/Game/Equipment/Cloth/Top/Source/SM_Cloth_Top_Src",
-    "out": "/Game/Equipment/Cloth/Top/SK_Cloth_Top_{body}",
+    "source": "/Game/Equipment/_Armor/Source/00_Top/SM_00_Top_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Top/SK_00_Top_{body}",
     "fit": {
       "ratio": [
         1.0,
@@ -28,8 +28,8 @@
   },
   "Plate_Top": {
     "slot": "top",
-    "source": "/Game/Equipment/Plate/Top/Source/SM_Plate_Top_Src",
-    "out": "/Game/Equipment/Plate/Top/SK_Plate_Top_{body}",
+    "source": "/Game/Equipment/_Armor/Source/Plate_Top/SM_Plate_Top_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Top/SK_Plate_Top_{body}",
     "fit": {
       "ratio": [
         1.0,
@@ -54,8 +54,8 @@
   },
   "Plate_Bottom": {
     "slot": "bottom",
-    "source": "/Game/Equipment/Plate/Bottom/Source/SM_Plate_Bottom_Src",
-    "out": "/Game/Equipment/Plate/Bottom/SK_Plate_Bottom_{body}",
+    "source": "/Game/Equipment/_Armor/Source/Plate_Bottom/SM_Plate_Bottom_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Bottom/SK_Plate_Bottom_{body}",
     "fit": {
       "ratio": [
         1.0,
@@ -79,8 +79,8 @@
   },
   "Plate_Boots": {
     "slot": "boots",
-    "source": "/Game/Equipment/Plate/Boots/Source/SM_Plate_Boots_Src",
-    "out": "/Game/Equipment/Plate/Boots/SK_Plate_Boots_{body}",
+    "source": "/Game/Equipment/_Armor/Source/Plate_Boots/SM_Plate_Boots_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Boots/SK_Plate_Boots_{body}",
     "fit": {
       "ratio": [
         1.0,
@@ -104,8 +104,8 @@
   },
   "Plate_Gloves": {
     "slot": "gloves",
-    "source": "/Game/Equipment/Plate/Gloves/Source/SM_Plate_Gloves_Src",
-    "out": "/Game/Equipment/Plate/Gloves/SK_Plate_Gloves_{body}",
+    "source": "/Game/Equipment/_Armor/Source/Plate_Gloves/SM_Plate_Gloves_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Gloves/SK_Plate_Gloves_{body}",
     "fit": {
       "method": "kit_hand",
       "ratio": [
@@ -136,7 +136,7 @@
   },
   "Plate_Helm": {
     "slot": "head",
-    "source": "/Game/Equipment/Plate/Helm/Source/SM_Plate_Helm_Src",
+    "source": "/Game/Equipment/_Armor/Unisex/Head/SM_Plate_Helm_Src",
     "varco": {
       "image_node": "531e1ef7-6012-4b21-be5f-d3f283096725",
       "view_34_node": "c1511cae-5204-4582-bf0e-7b9365e8e70f",
@@ -158,83 +158,162 @@
       "hide_parts": [
         "hair"
       ]
-    }
+    },
+    "src_dir": "/Game/Equipment/_Armor/Source/Plate_Helm"
   },
   "Plate_Sword": {
     "slot": "weapon",
-    "source": "/Game/Equipment/Plate/Sword/Source/SM_Plate_Sword_Src",
+    "source": "/Game/Equipment/_Weapon/OneHandSword/SM_Plate_Sword_Src",
     "varco": {
       "image_node": "7ff8b009-45ef-40a9-b8ec-77e22e68243b",
       "generate3d_node": "8c98a105-7307-41b6-b562-2984b9386233",
       "polygon_count": 5000
     },
     "attach": {
-      "socket": "hand_r",
-      "fit": "length",
-      "length_cm": 95,
-      "grip_frac": 0.08,
-      "offset": [
-        0,
-        0,
-        0
+      "socket": "WeaponSocket_R",
+      "fit": "socket"
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/Plate_Sword",
+    "back": {
+      "socket": "BackSocket_Sword",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 0.94848,
+      "origin_raw": [
+        0.03,
+        -0.003,
+        -41.995
       ],
-      "align": "grip"
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_r",
+        "fit": "length",
+        "length_cm": 95,
+        "grip_frac": 0.08,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "align": "grip"
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 95,
+        "grip_frac": 0.08,
+        "center": [
+          -14,
+          -24,
+          150
+        ],
+        "dir": [
+          1,
+          0,
+          -1.3
+        ],
+        "face": [
+          0,
+          -1,
+          0
+        ],
+        "_note": "초기값(2026-11-21) — 맞춤 레벨에서 사용자가 잡은 값은 manual.back"
+      }
     }
   },
   "Plate_Bow": {
     "slot": "weapon",
-    "source": "/Game/Equipment/Plate/Bow/Source/SM_Plate_Bow_Src",
+    "source": "/Game/Equipment/_Weapon/Bow/SM_Plate_Bow_Src",
     "varco": {
       "image_node": "fb7588af-ce4f-488e-ae28-eef77b04bb73",
       "generate3d_node": "947117f6-6b2f-4ffd-8354-ef8d773225a6",
       "polygon_count": 5000
     },
     "attach": {
-      "socket": "hand_l",
-      "fit": "length",
-      "length_cm": 125,
-      "grip_frac": 0.5,
-      "offset": [
-        2.0,
-        0,
-        0
-      ],
-      "align": "grip",
-      "grip_local": {
-        "x": -4.0
-      },
-      "grip_axis": "knuckles",
-      "depth_to_wrist": true
+      "socket": "WeaponSocket_L",
+      "fit": "socket"
     },
     "back": {
-      "socket": "spine_05",
-      "fit": "back",
-      "length_cm": 125,
-      "grip_frac": 0.5,
-      "grip_local": {
-        "x": -5.0
+      "socket": "BackSocket_Bow",
+      "fit": "socket"
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/Plate_Bow",
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 1.24782,
+      "origin_raw": [
+        -4.0,
+        -0.125,
+        -0.027
+      ],
+      "x_raw": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_l",
+        "fit": "length",
+        "length_cm": 125,
+        "grip_frac": 0.5,
+        "offset": [
+          2.0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "grip_local": {
+          "x": -4.0
+        },
+        "grip_axis": "knuckles",
+        "depth_to_wrist": true
       },
-      "center": [
-        0,
-        -27,
-        118
-      ],
-      "dir": [
-        1,
-        0,
-        1.1
-      ],
-      "face": [
-        0,
-        1,
-        0
-      ]
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 125,
+        "grip_frac": 0.5,
+        "grip_local": {
+          "x": -5.0
+        },
+        "center": [
+          0,
+          -27,
+          118
+        ],
+        "dir": [
+          1,
+          0,
+          1.1
+        ],
+        "face": [
+          0,
+          1,
+          0
+        ]
+      }
     }
   },
-  "Cloth_Bottom": {
+  "00_Bottom": {
     "slot": "bottom",
-    "source": "/Game/Equipment/Cloth/Bottom/Source/SM_Cloth_Bottom_Src",
-    "out": "/Game/Equipment/Cloth/Bottom/SK_Cloth_Bottom_{body}",
+    "source": "/Game/Equipment/_Armor/Source/00_Bottom/SM_00_Bottom_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Bottom/SK_00_Bottom_{body}",
     "fit": {
       "ratio": [
         1.0,
@@ -256,10 +335,10 @@
     },
     "mask": {}
   },
-  "Cloth_Boots": {
+  "00_Boots": {
     "slot": "boots",
-    "source": "/Game/Equipment/Cloth/Boots/Source/SM_Cloth_Boots_Src",
-    "out": "/Game/Equipment/Cloth/Boots/SK_Cloth_Boots_{body}",
+    "source": "/Game/Equipment/_Armor/Source/00_Boots/SM_00_Boots_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Boots/SK_00_Boots_{body}",
     "fit": {
       "ratio": [
         1.0,
@@ -281,10 +360,10 @@
     },
     "mask": {}
   },
-  "Cloth_Gloves": {
+  "00_Gloves": {
     "slot": "gloves",
-    "source": "/Game/Equipment/Cloth/Gloves/Source/SM_Cloth_Gloves_Src",
-    "out": "/Game/Equipment/Cloth/Gloves/SK_Cloth_Gloves_{body}",
+    "source": "/Game/Equipment/_Armor/Source/00_Gloves/SM_00_Gloves_Src",
+    "out": "/Game/Equipment/_Armor/{body_dir}/Gloves/SK_00_Gloves_{body}",
     "fit": {
       "method": "kit_hand",
       "ratio": [
@@ -312,9 +391,9 @@
       "pitch": 5.0
     }
   },
-  "Cloth_Hood": {
+  "00_Head": {
     "slot": "head",
-    "source": "/Game/Equipment/Cloth/Hood/Source/SM_Cloth_Hood_Src",
+    "source": "/Game/Equipment/_Armor/Unisex/Head/SM_00_Head",
     "varco": {
       "image_node": "ff92a578-96d9-4c2e-bfc0-9997dc8062de",
       "generate3d_node": "64630d1e-5231-4bda-9a25-4ac57a810f3c",
@@ -325,93 +404,173 @@
       "fit": "head",
       "ratio": [
         1.12,
-        1.12,
-        1.08
+        1.199,
+        1.197
       ],
       "rel_off": [
         0.0,
-        0.0,
-        0.0
+        -0.0351,
+        0.0542
       ],
       "hide_parts": [
         "hair"
-      ]
-    }
+      ],
+      "box": "head"
+    },
+    "src_dir": "/Game/Equipment/_Armor/Source/00_Head"
   },
-  "Cloth_Sword": {
+  "00_OneHandSword": {
     "slot": "weapon",
-    "source": "/Game/Equipment/Cloth/Sword/Source/SM_Cloth_Sword_Src",
+    "source": "/Game/Equipment/_Weapon/OneHandSword/SM_00_OneHandSword",
     "varco": {
       "image_node": "f199f005-472f-4163-9bf1-ac2a9ba89d0d",
       "generate3d_node": "5eea6f37-efeb-4b16-ba57-2fa45142224e",
       "polygon_count": 5000
     },
     "attach": {
-      "socket": "hand_r",
-      "fit": "length",
-      "length_cm": 95,
-      "grip_frac": 0.08,
-      "offset": [
-        0,
-        0,
-        0
+      "socket": "WeaponSocket_R",
+      "fit": "socket"
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/00_OneHandSword",
+    "back": {
+      "socket": "BackSocket_Sword",
+      "fit": "socket"
+    },
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 0.94886,
+      "origin_raw": [
+        0.008,
+        -0.028,
+        -42.025
       ],
-      "align": "grip"
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_r",
+        "fit": "length",
+        "length_cm": 95,
+        "grip_frac": 0.08,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "align": "grip"
+      },
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 95,
+        "grip_frac": 0.08,
+        "center": [
+          -14,
+          -24,
+          150
+        ],
+        "dir": [
+          1,
+          0,
+          -1.3
+        ],
+        "face": [
+          0,
+          -1,
+          0
+        ],
+        "_note": "초기값(2026-11-21) — 맞춤 레벨에서 사용자가 잡은 값은 manual.back"
+      }
     }
   },
-  "Cloth_Bow": {
+  "00_Bow": {
     "slot": "weapon",
-    "source": "/Game/Equipment/Cloth/Bow/Source/SM_Cloth_Bow_Src",
+    "source": "/Game/Equipment/_Weapon/Bow/SM_00_Bow",
     "varco": {
       "image_node": "602d9ba9-dc43-4167-8851-57c9178aec39",
       "generate3d_node": "93b0f42f-6c97-4bbc-a0da-d4e53ec7a9a1",
       "polygon_count": 5000
     },
     "attach": {
-      "socket": "hand_l",
-      "fit": "length",
-      "length_cm": 125,
-      "grip_frac": 0.5,
-      "offset": [
-        2.0,
-        0,
-        0
-      ],
-      "align": "grip",
-      "grip_local": {
-        "x": -5.0
-      },
-      "grip_axis": "knuckles",
-      "depth_to_wrist": true
+      "socket": "WeaponSocket_L",
+      "fit": "socket"
     },
     "back": {
-      "socket": "spine_05",
-      "fit": "back",
-      "length_cm": 125,
-      "grip_frac": 0.5,
-      "grip_local": {
-        "x": -5.0
+      "socket": "BackSocket_Bow",
+      "fit": "socket"
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/00_Bow",
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 1.25381,
+      "origin_raw": [
+        -5.0,
+        0.027,
+        -0.079
+      ],
+      "x_raw": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_l",
+        "fit": "length",
+        "length_cm": 125,
+        "grip_frac": 0.5,
+        "offset": [
+          2.0,
+          0,
+          0
+        ],
+        "align": "grip",
+        "grip_local": {
+          "x": -5.0
+        },
+        "grip_axis": "knuckles",
+        "depth_to_wrist": true
       },
-      "center": [
-        0,
-        -27,
-        118
-      ],
-      "dir": [
-        1,
-        0,
-        1.1
-      ],
-      "face": [
-        0,
-        1,
-        0
-      ]
+      "back_before": {
+        "socket": "spine_05",
+        "fit": "back",
+        "length_cm": 125,
+        "grip_frac": 0.5,
+        "grip_local": {
+          "x": -5.0
+        },
+        "center": [
+          0,
+          -27,
+          118
+        ],
+        "dir": [
+          1,
+          0,
+          1.1
+        ],
+        "face": [
+          0,
+          1,
+          0
+        ]
+      }
     }
   },
-  "Cloth_Shield": {
+  "00_Shield": {
     "slot": "offhand",
-    "source": "/Game/Equipment/Cloth/Shield/Source/SM_Cloth_Shield_Src",
+    "source": "/Game/Equipment/_Weapon/Shield/SM_00_Shield",
     "varco": {
       "image_node": "8e261aee-e34c-4ac0-ae0a-c6899e3f8bed",
       "output_index": 0,
@@ -419,24 +578,49 @@
       "polygon_count": 30000
     },
     "attach": {
-      "socket": "hand_l",
-      "fit": "shield",
-      "face_dir": "back",
-      "length_cm": 70,
-      "face": "+y",
-      "up": "+z",
-      "gap_cm": 9.0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "socket": "ShieldSocket_L",
+      "fit": "socket",
       "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/00_Shield",
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 0.69962,
+      "origin_raw": [
+        0.011,
+        -6.529,
+        0.009
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_l",
+        "fit": "shield",
+        "face_dir": "back",
+        "length_cm": 70,
+        "face": "+y",
+        "up": "+z",
+        "gap_cm": 9.0,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "target_tris": 5000
+      }
     }
   },
   "Plate_Shield": {
     "slot": "offhand",
-    "source": "/Game/Equipment/Plate/Shield/Source/SM_Plate_Shield_Src",
+    "source": "/Game/Equipment/_Weapon/Shield/SM_Plate_Shield_Src",
     "varco": {
       "image_node": "c7ee8633-1b8c-4a4c-8c21-1f7cd06bf2fc",
       "output_index": 1,
@@ -444,19 +628,44 @@
       "polygon_count": 30000
     },
     "attach": {
-      "socket": "hand_l",
-      "fit": "shield",
-      "face_dir": "back",
-      "length_cm": 75,
-      "face": "+y",
-      "up": "+z",
-      "gap_cm": 4.0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "socket": "ShieldSocket_L",
+      "fit": "socket",
       "target_tris": 5000
+    },
+    "src_dir": "/Game/Equipment/_Weapon/Source/Plate_Shield",
+    "norm": {
+      "date": "2026-11-21",
+      "scale": 0.74949,
+      "origin_raw": [
+        0.011,
+        -6.8,
+        0.016
+      ],
+      "x_raw": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "z_raw": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "attach_before": {
+        "socket": "hand_l",
+        "fit": "shield",
+        "face_dir": "back",
+        "length_cm": 75,
+        "face": "+y",
+        "up": "+z",
+        "gap_cm": 4.0,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "target_tris": 5000
+      }
     }
   }
 }

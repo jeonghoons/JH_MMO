@@ -9,8 +9,20 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..",
 OUT = os.path.join(ROOT, "UEClient", "JM", "Content", "Python", "jm_kit", "world_continent01_dungeon.json")
 
 R = "/Game/ParagonProps/Monolith/Ruins/Meshes/"
-M = "/Game/World/Dungeon/Materials/"
-P = "/Game/World/Props/"
+M = "/Game/Environment/Dungeon/Materials/"
+# 소품 폴더는 테마 기준(D-245, 2026-11-21 — 옛 /Game/World/Props/). P + "<이름>/SM_<이름>" → /Game/Environment/<테마>/<분류>/<이름>/SM_<이름>
+_THEME = {**dict.fromkeys(("Banner", "Cart", "InnTent", "MarketStall", "TradeAwning"), "/Game/Environment/Village/Props"),
+          **dict.fromkeys(("Palisade", "Rampart", "GateFrame", "ClosedGate"), "/Game/Environment/Village/Architecture"),
+          **dict.fromkeys(("Campfire", "CratesBarrels"), "/Game/Environment/Common/Props"),
+          **dict.fromkeys(("BonePile", "Brazier", "GuardianStatue", "Sarcophagus", "WallTorch", "WeaponRack"), "/Game/Environment/Dungeon/Props")}
+
+
+class _PropRoot(str):
+    def __add__(self, rest):
+        return f"{_THEME[rest.split('/', 1)[0]]}/{rest}"
+
+
+P = _PropRoot()
 WALL_H = 8.0
 FIRE_FX = "/Game/FX/Buff/P_Aura_Embers_Linger"   # 계속 타는 불 파티클이 없어 보유 잔불 이펙트를 쓴다(DG4d)
 CELL = 0.5

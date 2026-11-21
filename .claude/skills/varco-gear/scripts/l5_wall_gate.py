@@ -13,7 +13,19 @@ import json
 import os
 
 PATH = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "UEClient", "JM", "Content", "Python", "jm_kit", "world_continent01.json")
-P = "/Game/World/Props/"
+# 소품 폴더는 테마 기준(D-245, 2026-11-21 — 옛 /Game/World/Props/). P + "<이름>/SM_<이름>" → /Game/Environment/<테마>/<분류>/<이름>/SM_<이름>
+_THEME = {**dict.fromkeys(("Banner", "Cart", "InnTent", "MarketStall", "TradeAwning"), "/Game/Environment/Village/Props"),
+          **dict.fromkeys(("Palisade", "Rampart", "GateFrame", "ClosedGate"), "/Game/Environment/Village/Architecture"),
+          **dict.fromkeys(("Campfire", "CratesBarrels"), "/Game/Environment/Common/Props"),
+          **dict.fromkeys(("BonePile", "Brazier", "GuardianStatue", "Sarcophagus", "WallTorch", "WeaponRack"), "/Game/Environment/Dungeon/Props")}
+
+
+class _PropRoot(str):
+    def __add__(self, rest):
+        return f"{_THEME[rest.split('/', 1)[0]]}/{rest}"
+
+
+P = _PropRoot()
 RAMPART = P + "Rampart/SM_Rampart"
 GATE = P + "ClosedGate/SM_ClosedGate"
 VILLAGE_GATES = ("GateN", "GateE", "GateW")

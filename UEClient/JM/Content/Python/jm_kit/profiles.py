@@ -30,7 +30,7 @@ def _item_by_mesh():
         if "out" not in it:   # 정적 부착 아이템(머리·무기)은 체형별 메시가 없다
             continue
         for b in ("M", "F"):
-            out[it["out"].format(body=b)] = it
+            out[it["out"].format(body=b, body_dir={"M": "Male", "F": "Female"}[b])] = it   # = garment.out_path(순환 import 회피)
     return out
 
 

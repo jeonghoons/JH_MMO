@@ -37,15 +37,17 @@ ANIM = {"idle": _A + "MM_Idle", "jog": _A + "Jog/MF_Unarmed_Jog_Fwd", "walk": _A
         "attack1": _A + "Attack/MM_Attack_01", "attack2": _A + "Attack/MM_Attack_02", "attack3": _A + "Attack/MM_Attack_03"}
 
 
-def setup_level():
-    """테스트 레벨을 열거나 만든다(조명·바닥·Simulate용 캡처 액터 포함)."""
+def setup_level(level=LEVEL):
+    """테스트 레벨을 열거나 만든다(조명·바닥·Simulate용 캡처 액터 포함). level로 다른 확인용 레벨(예 장비 진열)도 같은 구성으로.
+    주의: 레벨 에셋을 duplicate_asset으로 복제한 직후 load_level로 열면 복제 때 메모리에 올라간 월드가 정리되지 않아
+    에디터가 "World Memory Leaks" 치명 오류로 죽는다(2026-11-21 IT0) — 새 레벨은 항상 템플릿에서 만든다."""
     if UES.get_game_world() is not None:
         raise RuntimeError("Simulate 중에는 레벨을 열 수 없음 — stop_simulate() 후 다시 호출")
-    if EAL.does_asset_exist(LEVEL):
-        LES.load_level(LEVEL)
+    if EAL.does_asset_exist(level):
+        LES.load_level(level)
     else:
-        if not LES.new_level_from_template(LEVEL, LEVEL_TEMPLATE):
-            raise RuntimeError(f"레벨 생성 실패: {LEVEL} ← {LEVEL_TEMPLATE}")
+        if not LES.new_level_from_template(level, LEVEL_TEMPLATE):
+            raise RuntimeError(f"레벨 생성 실패: {level} ← {LEVEL_TEMPLATE}")
         _relabel_template()
     have = {a.get_actor_label() for a in EAS.get_all_level_actors()}
     if "T_Sun" not in have:
@@ -73,7 +75,7 @@ def setup_level():
         EAS.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(*START_LOC), unreal.Rotator(0, 0, START_YAW)).set_actor_label("T_Start")
     _set_game_mode()
     LES.save_current_level()
-    return LEVEL
+    return level
 
 
 FIXTURES = ("T_Sun", "T_Back", "T_Sky", "T_Atmos", "T_Fog", "T_Cloud", "T_SkyDome", "T_PPV", "T_Floor", "T_Fill",
@@ -200,7 +202,7 @@ def spawn(prefix, body, loc, outfit="kit", extra_hidden=(), anim=None, mask_over
         if "attach" in it:
             statics[slot] = garment.static_attachment(key, body, which or "attach")
         else:
-            items[slot] = it["out"].format(body=body)
+            items[slot] = garment.out_path(it, body)
     hidden = profiles.hidden_parts(list(items.keys()) + list(statics.keys())) | set(extra_hidden)
     for s in statics.values():
         hidden |= set(s["hide_parts"])

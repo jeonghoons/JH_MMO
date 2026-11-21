@@ -200,7 +200,7 @@ def apply(ops, save=True):
     return out
 
 
-def weapon_socket_points(item_key="Cloth_Sword", body="M", fracs=(0.22, 1.0)):
+def weapon_socket_points(item_key="00_OneHandSword", body="M", fracs=(0.22, 1.0)):
     """무기 메시의 긴 축에서 fracs 지점(0 = 밑동, 1 = 끝)을 손 본 로컬 좌표로.
     AnimTrail 소켓: FX_Weapon_Bottom = 날 시작(기본 0.22 — 손잡이·가드 위), FX_Weapon_Top = 칼끝(1.0)."""
     at = garment.static_attachment(item_key, body)

@@ -1,6 +1,6 @@
 """던전 맵 도구(DG4, Docs/DESIGN_WORLD.md): 실내 레벨에 필요한 것만 모은다. MCP world_step의 "dg_*" 단계로 부른다(jm_kit.world.run_step).
 
- · dg_surface: CC0 석재 텍스처(색·노멀·ARM) → /Game/World/Dungeon/Materials 의 텍스처와 재질 인스턴스.
+ · dg_surface: CC0 석재 텍스처(색·노멀·ARM) → /Game/Environment/Dungeon/Materials 의 텍스처와 재질 인스턴스.
    재질 M_Dungeon_Surface는 월드 좌표로 세 방향에서 입히므로(triplanar) 상자를 어떤 크기로 늘려도 타일 크기가 같다.
 """
 
@@ -12,7 +12,7 @@ import unreal
 
 EAL = unreal.EditorAssetLibrary
 MEL = unreal.MaterialEditingLibrary
-DG_DIR = "/Game/World/Dungeon"
+DG_DIR = "/Game/Environment/Dungeon"   # D-245(옛 World/Dungeon)
 MAT_DIR = DG_DIR + "/Materials"
 MASTER = MAT_DIR + "/M_Dungeon_Surface"
 

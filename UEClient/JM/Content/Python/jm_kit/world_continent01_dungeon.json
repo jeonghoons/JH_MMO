@@ -166,7 +166,7 @@
      16.0,
      1.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_FloorSlate"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_FloorSlate"
    },
    {
     "label": "Floor_room1",
@@ -178,7 +178,7 @@
      22.0,
      1.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_FloorSlate"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_FloorSlate"
    },
    {
     "label": "Floor_room2",
@@ -190,7 +190,7 @@
      22.0,
      1.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_FloorSlate"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_FloorSlate"
    },
    {
     "label": "Floor_boss",
@@ -202,7 +202,7 @@
      32.0,
      1.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_FloorSlate"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_FloorSlate"
    },
    {
     "label": "Floor_c1",
@@ -214,7 +214,7 @@
      9.0,
      1.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_FloorSlate"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_FloorSlate"
    },
    {
     "label": "Floor_a_east",
@@ -226,7 +226,7 @@
      47.5,
      1.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_FloorSlate"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_FloorSlate"
    },
    {
     "label": "Floor_a_north",
@@ -238,7 +238,7 @@
      9.0,
      1.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_FloorSlate"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_FloorSlate"
    },
    {
     "label": "Floor_b_north",
@@ -250,7 +250,7 @@
      9.0,
      1.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_FloorSlate"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_FloorSlate"
    },
    {
     "label": "Floor_b_west",
@@ -262,7 +262,7 @@
      33.5,
      1.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_FloorSlate"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_FloorSlate"
    },
    {
     "label": "Wall_00",
@@ -274,7 +274,7 @@
      16.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_01",
@@ -286,7 +286,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_02",
@@ -298,7 +298,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_03",
@@ -310,7 +310,7 @@
      4.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_04",
@@ -322,7 +322,7 @@
      4.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_05",
@@ -334,7 +334,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_06",
@@ -346,7 +346,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_07",
@@ -358,7 +358,7 @@
      7.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_08",
@@ -370,7 +370,7 @@
      7.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_09",
@@ -382,7 +382,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_10",
@@ -394,7 +394,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_11",
@@ -406,7 +406,7 @@
      46.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_12",
@@ -418,7 +418,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_13",
@@ -430,7 +430,7 @@
      38.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_14",
@@ -442,7 +442,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_15",
@@ -454,7 +454,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_16",
@@ -466,7 +466,7 @@
      7.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_17",
@@ -478,7 +478,7 @@
      7.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_18",
@@ -490,7 +490,7 @@
      22.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_19",
@@ -502,7 +502,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_20",
@@ -514,7 +514,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_21",
@@ -526,7 +526,7 @@
      7.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_22",
@@ -538,7 +538,7 @@
      7.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_23",
@@ -550,7 +550,7 @@
      32.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_24",
@@ -562,7 +562,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_25",
@@ -574,7 +574,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_26",
@@ -586,7 +586,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_27",
@@ -598,7 +598,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_28",
@@ -610,7 +610,7 @@
      31.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_29",
@@ -622,7 +622,7 @@
      39.5,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_30",
@@ -634,7 +634,7 @@
      1.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    },
    {
     "label": "Wall_31",
@@ -646,7 +646,7 @@
      32.0,
      8.0
     ],
-    "mat": "/Game/World/Dungeon/Materials/MI_Dungeon_WallBlock"
+    "mat": "/Game/Environment/Dungeon/Materials/MI_Dungeon_WallBlock"
    }
   ],
   "runs": [
@@ -1150,7 +1150,7 @@
    },
    {
     "label": "TstartN2",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -33.45,
     "y": -30.2,
     "z": 2.1,
@@ -1159,7 +1159,7 @@
    },
    {
     "label": "TstartN8",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -33.45,
     "y": -21.799999999999997,
     "z": 2.1,
@@ -1168,7 +1168,7 @@
    },
    {
     "label": "TstartS3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -46.55,
     "y": -28.8,
     "z": 2.1,
@@ -1177,7 +1177,7 @@
    },
    {
     "label": "TstartS7",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -46.55,
     "y": -23.200000000000003,
     "z": 2.1,
@@ -1186,7 +1186,7 @@
    },
    {
     "label": "TstartE3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -42.8,
     "y": -19.45,
     "z": 2.1,
@@ -1195,7 +1195,7 @@
    },
    {
     "label": "TstartE7",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -37.2,
     "y": -19.45,
     "z": 2.1,
@@ -1204,7 +1204,7 @@
    },
    {
     "label": "TstartW3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -42.8,
     "y": -32.55,
     "z": 2.1,
@@ -1213,7 +1213,7 @@
    },
    {
     "label": "TstartW7",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -37.2,
     "y": -32.55,
     "z": 2.1,
@@ -1474,7 +1474,7 @@
    },
    {
     "label": "Troom1N3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -4.45,
     "y": -30.0,
     "z": 2.1,
@@ -1483,7 +1483,7 @@
    },
    {
     "label": "Troom1N7",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -4.45,
     "y": -22.0,
     "z": 2.1,
@@ -1492,7 +1492,7 @@
    },
    {
     "label": "Troom1S2",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -23.55,
     "y": -32.0,
     "z": 2.1,
@@ -1501,7 +1501,7 @@
    },
    {
     "label": "Troom1S8",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -23.55,
     "y": -20.0,
     "z": 2.1,
@@ -1510,7 +1510,7 @@
    },
    {
     "label": "Troom1E2",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -20.0,
     "y": -16.45,
     "z": 2.1,
@@ -1519,7 +1519,7 @@
    },
    {
     "label": "Troom1E8",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -8.0,
     "y": -16.45,
     "z": 2.1,
@@ -1528,7 +1528,7 @@
    },
    {
     "label": "Troom1W3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -18.0,
     "y": -35.55,
     "z": 2.1,
@@ -1537,7 +1537,7 @@
    },
    {
     "label": "Troom1W7",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -10.0,
     "y": -35.55,
     "z": 2.1,
@@ -1798,7 +1798,7 @@
    },
    {
     "label": "Troom2N2",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 15.55,
     "y": 20.0,
     "z": 2.1,
@@ -1807,7 +1807,7 @@
    },
    {
     "label": "Troom2N8",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 15.55,
     "y": 32.0,
     "z": 2.1,
@@ -1816,7 +1816,7 @@
    },
    {
     "label": "Troom2S2",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -3.55,
     "y": 20.0,
     "z": 2.1,
@@ -1825,7 +1825,7 @@
    },
    {
     "label": "Troom2S8",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -3.55,
     "y": 32.0,
     "z": 2.1,
@@ -1834,7 +1834,7 @@
    },
    {
     "label": "Troom2E3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 2.0,
     "y": 35.55,
     "z": 2.1,
@@ -1843,7 +1843,7 @@
    },
    {
     "label": "Troom2E7",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 10.0,
     "y": 35.55,
     "z": 2.1,
@@ -1852,7 +1852,7 @@
    },
    {
     "label": "Troom2W3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 2.0,
     "y": 16.45,
     "z": 2.1,
@@ -1861,7 +1861,7 @@
    },
    {
     "label": "Troom2W7",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 10.0,
     "y": 16.45,
     "z": 2.1,
@@ -2058,7 +2058,7 @@
    },
    {
     "label": "TbossN3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 47.55,
     "y": -30.0,
     "z": 2.1,
@@ -2067,7 +2067,7 @@
    },
    {
     "label": "TbossN7",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 47.55,
     "y": -18.0,
     "z": 2.1,
@@ -2076,7 +2076,7 @@
    },
    {
     "label": "TbossS3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 18.45,
     "y": -30.0,
     "z": 2.1,
@@ -2085,7 +2085,7 @@
    },
    {
     "label": "TbossS7",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 18.45,
     "y": -18.0,
     "z": 2.1,
@@ -2094,7 +2094,7 @@
    },
    {
     "label": "TbossE2",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 24.0,
     "y": -9.45,
     "z": 2.1,
@@ -2103,7 +2103,7 @@
    },
    {
     "label": "TbossE8",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 42.0,
     "y": -9.45,
     "z": 2.1,
@@ -2112,7 +2112,7 @@
    },
    {
     "label": "TbossW3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 27.0,
     "y": -38.55,
     "z": 2.1,
@@ -2121,7 +2121,7 @@
    },
    {
     "label": "TbossW7",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 39.0,
     "y": -38.55,
     "z": 2.1,
@@ -2130,7 +2130,7 @@
    },
    {
     "label": "Tc10",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -28.5,
     "y": -29.25,
     "z": 2.1,
@@ -2170,7 +2170,7 @@
    },
    {
     "label": "Ta_east0",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -17.25,
     "y": -9.049999999999999,
     "z": 2.1,
@@ -2210,7 +2210,7 @@
    },
    {
     "label": "Ta_east1",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -10.75,
     "y": 0.05000000000000036,
     "z": 2.1,
@@ -2250,7 +2250,7 @@
    },
    {
     "label": "Ta_east2",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -17.25,
     "y": 9.15,
     "z": 2.1,
@@ -2290,7 +2290,7 @@
    },
    {
     "label": "Ta_east3",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -10.75,
     "y": 18.249999999999996,
     "z": 2.1,
@@ -2330,7 +2330,7 @@
    },
    {
     "label": "Ta_east4",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -17.25,
     "y": 27.35,
     "z": 2.1,
@@ -2339,7 +2339,7 @@
    },
    {
     "label": "Ta_north0",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": -10.25,
     "y": 26.0,
     "z": 2.1,
@@ -2379,7 +2379,7 @@
    },
    {
     "label": "Tb_north0",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 23.525,
     "y": 22.75,
     "z": 2.1,
@@ -2419,7 +2419,7 @@
    },
    {
     "label": "Tb_north1",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 33.775,
     "y": 29.25,
     "z": 2.1,
@@ -2459,7 +2459,7 @@
    },
    {
     "label": "Tb_west0",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 29.75,
     "y": -1.35,
     "z": 2.1,
@@ -2499,7 +2499,7 @@
    },
    {
     "label": "Tb_west1",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 36.25,
     "y": 9.15,
     "z": 2.1,
@@ -2539,7 +2539,7 @@
    },
    {
     "label": "Tb_west2",
-    "mesh": "/Game/World/Props/WallTorch/SM_WallTorch",
+    "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
     "x": 29.75,
     "y": 19.65,
     "z": 2.1,
@@ -2569,7 +2569,7 @@
    },
    {
     "label": "BossBrazier0",
-    "mesh": "/Game/World/Props/Brazier/SM_Brazier",
+    "mesh": "/Game/Environment/Dungeon/Props/Brazier/SM_Brazier",
     "x": 23.5,
     "y": -33.5,
     "z": 0.75,
@@ -2591,7 +2591,7 @@
    },
    {
     "label": "BossBrazier1",
-    "mesh": "/Game/World/Props/Brazier/SM_Brazier",
+    "mesh": "/Game/Environment/Dungeon/Props/Brazier/SM_Brazier",
     "x": 23.5,
     "y": -14.5,
     "z": 0.75,
@@ -2613,7 +2613,7 @@
    },
    {
     "label": "BossBrazier2",
-    "mesh": "/Game/World/Props/Brazier/SM_Brazier",
+    "mesh": "/Game/Environment/Dungeon/Props/Brazier/SM_Brazier",
     "x": 42.5,
     "y": -33.5,
     "z": 0.75,
@@ -2635,7 +2635,7 @@
    },
    {
     "label": "BossBrazier3",
-    "mesh": "/Game/World/Props/Brazier/SM_Brazier",
+    "mesh": "/Game/Environment/Dungeon/Props/Brazier/SM_Brazier",
     "x": 42.5,
     "y": -14.5,
     "z": 0.75,
@@ -2704,7 +2704,7 @@
    },
    {
     "label": "R1_Crates",
-    "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+    "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
     "x": -22.0,
     "y": -34.0,
     "z": 0.0,
@@ -2765,7 +2765,7 @@
    },
    {
     "label": "S_Campfire",
-    "mesh": "/Game/World/Props/Campfire/SM_Campfire",
+    "mesh": "/Game/Environment/Common/Props/Campfire/SM_Campfire",
     "x": -38.0,
     "y": -21.5,
     "z": 0.0,
@@ -2781,7 +2781,7 @@
    },
    {
     "label": "S_Crates",
-    "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+    "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
     "x": -41.5,
     "y": -31.6,
     "z": 0.0,
@@ -2797,7 +2797,7 @@
    },
    {
     "label": "R1_Brazier",
-    "mesh": "/Game/World/Props/Brazier/SM_Brazier",
+    "mesh": "/Game/Environment/Dungeon/Props/Brazier/SM_Brazier",
     "x": -6.5,
     "y": -18.5,
     "z": 0.0,
@@ -2813,7 +2813,7 @@
    },
    {
     "label": "R2_Brazier",
-    "mesh": "/Game/World/Props/Brazier/SM_Brazier",
+    "mesh": "/Game/Environment/Dungeon/Props/Brazier/SM_Brazier",
     "x": -1.4000000000000004,
     "y": 33.5,
     "z": 0.0,
@@ -2829,7 +2829,7 @@
    },
    {
     "label": "S_StatueL",
-    "mesh": "/Game/World/Props/GuardianStatue/SM_GuardianStatue",
+    "mesh": "/Game/Environment/Dungeon/Props/GuardianStatue/SM_GuardianStatue",
     "x": -34.6,
     "y": -31.2,
     "z": 0.0,
@@ -2845,7 +2845,7 @@
    },
    {
     "label": "S_StatueR",
-    "mesh": "/Game/World/Props/GuardianStatue/SM_GuardianStatue",
+    "mesh": "/Game/Environment/Dungeon/Props/GuardianStatue/SM_GuardianStatue",
     "x": -34.6,
     "y": -20.8,
     "z": 0.0,
@@ -2861,7 +2861,7 @@
    },
    {
     "label": "BossStatueL",
-    "mesh": "/Game/World/Props/GuardianStatue/SM_GuardianStatue",
+    "mesh": "/Game/Environment/Dungeon/Props/GuardianStatue/SM_GuardianStatue",
     "x": 19.7,
     "y": -32.0,
     "z": 0.0,
@@ -2877,7 +2877,7 @@
    },
    {
     "label": "BossStatueR",
-    "mesh": "/Game/World/Props/GuardianStatue/SM_GuardianStatue",
+    "mesh": "/Game/Environment/Dungeon/Props/GuardianStatue/SM_GuardianStatue",
     "x": 19.7,
     "y": -16.0,
     "z": 0.0,
@@ -2893,7 +2893,7 @@
    },
    {
     "label": "BossSarcA",
-    "mesh": "/Game/World/Props/Sarcophagus/SM_Sarcophagus",
+    "mesh": "/Game/Environment/Dungeon/Props/Sarcophagus/SM_Sarcophagus",
     "x": 28.0,
     "y": -37.3,
     "z": 0.0,
@@ -2909,7 +2909,7 @@
    },
    {
     "label": "BossSarcB",
-    "mesh": "/Game/World/Props/Sarcophagus/SM_Sarcophagus",
+    "mesh": "/Game/Environment/Dungeon/Props/Sarcophagus/SM_Sarcophagus",
     "x": 38.0,
     "y": -37.3,
     "z": 0.0,
@@ -2925,7 +2925,7 @@
    },
    {
     "label": "R2_Sarc",
-    "mesh": "/Game/World/Props/Sarcophagus/SM_Sarcophagus",
+    "mesh": "/Game/Environment/Dungeon/Props/Sarcophagus/SM_Sarcophagus",
     "x": 6.5,
     "y": 34.6,
     "z": 0.0,
@@ -2941,7 +2941,7 @@
    },
    {
     "label": "R1_Bones",
-    "mesh": "/Game/World/Props/BonePile/SM_BonePile",
+    "mesh": "/Game/Environment/Dungeon/Props/BonePile/SM_BonePile",
     "x": -12.0,
     "y": -17.4,
     "z": -0.05,
@@ -2958,7 +2958,7 @@
    },
    {
     "label": "BossBones",
-    "mesh": "/Game/World/Props/BonePile/SM_BonePile",
+    "mesh": "/Game/Environment/Dungeon/Props/BonePile/SM_BonePile",
     "x": 22.0,
     "y": -12.5,
     "z": -0.05,
@@ -2975,7 +2975,7 @@
    },
    {
     "label": "A_Bones",
-    "mesh": "/Game/World/Props/BonePile/SM_BonePile",
+    "mesh": "/Game/Environment/Dungeon/Props/BonePile/SM_BonePile",
     "x": -11.6,
     "y": 4.0,
     "z": -0.05,
@@ -2992,7 +2992,7 @@
    },
    {
     "label": "S_Rack",
-    "mesh": "/Game/World/Props/WeaponRack/SM_WeaponRack",
+    "mesh": "/Game/Environment/Dungeon/Props/WeaponRack/SM_WeaponRack",
     "x": -45.9,
     "y": -20.7,
     "z": 0.0,
@@ -3009,7 +3009,7 @@
    },
    {
     "label": "R1_Rack",
-    "mesh": "/Game/World/Props/WeaponRack/SM_WeaponRack",
+    "mesh": "/Game/Environment/Dungeon/Props/WeaponRack/SM_WeaponRack",
     "x": -5.0,
     "y": -28.5,
     "z": 0.0,

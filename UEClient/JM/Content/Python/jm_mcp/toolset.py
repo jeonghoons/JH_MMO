@@ -282,7 +282,7 @@ class KitTools(unreal.ToolsetDefinition):
         """무기 메시 긴 축의 지점들을 손 본 로컬 좌표로(jm_kit.fx_fix.weapon_socket_points) — AnimTrail 소켓 FX_Weapon_Bottom/Top 추가용.
 
         Args:
-            item_key: items.json 무기 키(기본 Cloth_Sword).
+            item_key: items.json 무기 키(기본 00_OneHandSword).
             body: 체형 "M"/"F"(기본 M).
             fracs: 지점 비율을 쉼표로(기본 "0.22,1.0" — 날 시작·칼끝).
 
@@ -290,7 +290,7 @@ class KitTools(unreal.ToolsetDefinition):
             JSON {socket, axis, length_cm, points_bone_local: {비율: [x,y,z]}}.
         """
         fs = tuple(float(f) for f in fracs.split(",")) if fracs else (0.22, 1.0)
-        return _dump(fx_fix.weapon_socket_points(item_key or "Cloth_Sword", body or "M", fs))
+        return _dump(fx_fix.weapon_socket_points(item_key or "00_OneHandSword", body or "M", fs))
 
     @toolset_registry.tool_call
     @staticmethod
@@ -424,8 +424,8 @@ class KitTools(unreal.ToolsetDefinition):
 
         Args:
             body: 체형 "M" 또는 "F".
-            weapon_key: 무기 아이템 키(예 Cloth_Sword).
-            gloves_key: 장갑 아이템 키(예 Cloth_Gloves).
+            weapon_key: 무기 아이템 키(예 00_OneHandSword).
+            gloves_key: 장갑 아이템 키(예 00_Gloves).
             pose_key: 쥔 자세 포즈 키(예 sword_idle, bow_idle).
             span: 탐색 반경 cm(기본 3).
             step: 거친 격자 간격 cm(기본 1).
@@ -557,7 +557,7 @@ class KitTools(unreal.ToolsetDefinition):
         """장비 아이콘을 찍는다(MC2.4): 512×512 투명 PNG → SourceArt/Icons, 아이템 폴더에 T_Icon_<Item>. 확인 시트는 Saved/MCShots/icons_sheet.png.
 
         Args:
-            item_keys: items.json 키를 쉼표로 구분(예 "Plate_Top,Plate_Helm", 기본 전부). 선택 인자 list[str] | None은 변환 실패해서 문자열로 받는다.
+            item_keys: items.json 키를 쉼표로 구분(예 "00_Top,00_Head", 기본 전부). 선택 인자 list[str] | None은 변환 실패해서 문자열로 받는다.
             import_assets: 텍스처 에셋으로 가져올지(기본 True).
 
         Returns:

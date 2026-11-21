@@ -13,7 +13,7 @@ garment.measure는 기준 자세(T자)만 본다. 여기서는 동작의 특정 
 
 예)
   import importlib, jm_kit.posed as P; importlib.reload(P)
-  P.run("M", {"top": "Cloth_Top", "gloves": "Cloth_Gloves", "bow": "Cloth_Bow", "sword": "Cloth_Sword"}, ["bow_draw", "sword_skill_up"])
+  P.run("M", {"top": "00_Top", "gloves": "00_Gloves", "bow": "00_Bow", "sword": "00_OneHandSword"}, ["bow_draw", "sword_skill_up"])
 """
 import math
 import os
@@ -140,7 +140,7 @@ def _mesh_of(slot, value, body):
     """loadout 값 → 스켈레탈 메시 경로("/"로 시작하면 그대로, 아니면 items.json 키)."""
     if value.startswith("/"):
         return value
-    return garment.load_items()[value]["out"].format(body=body)
+    return garment.out_path(garment.load_items()[value], body)
 
 
 def _skel(prefix, name, mesh, loc):
@@ -409,6 +409,368 @@ def grip_search(body, weapon_key, gloves_key, pose_key, span=3.0, step=1.0, refi
                 "current": results[(0.0, 0.0, 0.0)], "best": ranked[:top]}
     finally:
         clear("PG")
+
+
+def _xf(m, p):
+    v = unreal.MathLibrary.transform_location(m, unreal.Vector(*p))
+    return (v.x, v.y, v.z)
+
+
+def _eval_rt(hand_v, w_v, wdm, wbvh, hdm, hbvh, m, touch_cm, depth=False, w=None):
+    """무기를 컴포넌트 공간 변환 m으로 옮겼을 때: 손 정점이 무기 안(P1)·무기 정점이 손 안(P2)·무기 표면 touch_cm 안에 닿은 손 정점(C).
+    depth면 안에 든 깊이 최대(cm)도."""
+    opt = unreal.GeometryScriptSpatialQueryOptions()
+    inv = unreal.MathLibrary.invert_transform(m)
+    p1 = c = 0
+    d1 = 0.0
+    for p in hand_v:
+        q = unreal.Vector(*_xf(inv, p))   # 손 정점을 원래 무기 공간으로
+        _m, ins, _o = SP.is_point_inside_mesh(wdm, wbvh, q, opt)
+        _m, hit, _o = SP.find_nearest_point_on_mesh(wdm, wbvh, q, opt)
+        dist = _d((q.x, q.y, q.z), (hit.position.x, hit.position.y, hit.position.z))
+        if ins:
+            p1 += 1
+            d1 = max(d1, dist)
+        elif dist <= touch_cm:
+            c += 1
+    p2 = 0
+    d2 = 0.0
+    for p in w_v:
+        q = unreal.Vector(*_xf(m, p))
+        _m, ins, _o = SP.is_point_inside_mesh(hdm, hbvh, q, opt)
+        if ins:
+            p2 += 1
+            if depth:
+                _m, hit, _o = SP.find_nearest_point_on_mesh(hdm, hbvh, q, opt)
+                d2 = max(d2, _d((q.x, q.y, q.z), (hit.position.x, hit.position.y, hit.position.z)))
+    w = w or GRIP_W
+    r = {"hand_in_weapon": p1, "weapon_in_hand": p2, "touch": c, "score": round(c - w[0] * p1 - w[1] * p2, 1)}
+    if depth:
+        r.update({"hand_in_weapon_max_cm": round(d1, 2), "weapon_in_hand_max_cm": round(d2, 2)})
+    return r
+
+
+def grip_search_socket(body, weapon_key, pose_key, gloves_key=None, span=3.0, step=1.0, refine=0.5,
+                       tilt=15.0, tilt_step=5.0, touch_cm=2.0, hand_cm=14.0, top=5):
+    """소켓에 붙은 정규화 무기(D-247)를 쥔 자세에서 손가락이 감싼 빈 곳에 맞추는 소켓 보정을 찾는다(맨손 기준, gloves_key면 장갑).
+    탐색은 소켓 로컬(손잡이 = +Z): ① 위치 X·Y ±span(step) ② 그 자리에서 X·Y축 기울기 ±tilt(tilt_step) ③ 위치 다시 ±step(refine).
+    반환: 지금(보정 0)·최고 결과(소켓 로컬 이동 cm·기울기 도)와 손 뼈 기준 새 소켓 상대 변환."""
+    loadout = {"gloves": gloves_key} if gloves_key else {}
+    rec = rig("PGS", body, loadout, weapon_key)
+    try:
+        pose("PGS", pose_key)
+        lead = rec["lead"]
+        sc, s = rec["weapon"]
+        lc = rec["skel"]["body"]
+        sock = lc.get_socket_transform(s["socket"], RTS_COMPONENT)
+        bone_name = str(lc.get_socket_bone_name(s["socket"]))
+        bone = lc.get_socket_transform(bone_name, RTS_COMPONENT)
+        hp = (bone.translation.x, bone.translation.y, bone.translation.z)
+        op = (sock.translation.x, sock.translation.y, sock.translation.z)
+        wdm = _weapon_local(rec)
+        hdm = _to_local(_copy(rec["skel"]["gloves" if gloves_key else "body"]), lead)
+        hand_v = [p for p in _verts(hdm).values() if _d(p, hp) < hand_cm][::2]   # 손바닥·손가락(손 뼈 주변)
+        w_v = [p for p in _verts(wdm).values() if _d(p, op) < 12.0][::2]          # 손잡이·가드
+        wbvh, hbvh = _bvh(wdm), _bvh(hdm)
+        inv_sock = unreal.MathLibrary.invert_transform(sock)
+
+        def m_of(t, rx, ry):
+            d = unreal.Transform(location=unreal.Vector(t[0], t[1], 0.0), rotation=unreal.Rotator(roll=rx, pitch=ry, yaw=0.0))
+            return unreal.MathLibrary.compose_transforms(unreal.MathLibrary.compose_transforms(inv_sock, d), sock)
+
+        res = {}
+
+        def ev(t, rx, ry):
+            k = (round(t[0], 2), round(t[1], 2), round(rx, 1), round(ry, 1))
+            if k not in res:
+                res[k] = dict(_eval_rt(hand_v, w_v, wdm, wbvh, hdm, hbvh, m_of(t, rx, ry), touch_cm), t=[k[0], k[1]], tilt=[k[2], k[3]])
+            return res[k]
+
+        def grid(c, st, half, fn):
+            n = int(round(half / st))
+            return [fn(c, i * st, j * st) for i in range(-n, n + 1) for j in range(-n, n + 1)]
+
+        base = ev((0.0, 0.0), 0.0, 0.0)
+        best = max(grid((0.0, 0.0), step, span, lambda c, a, b: ev((c[0] + a, c[1] + b), 0.0, 0.0)), key=lambda r: r["score"])
+        bt = tuple(best["t"])
+        best = max(grid((0.0, 0.0), tilt_step, tilt, lambda c, a, b: ev(bt, a, b)), key=lambda r: r["score"])
+        rx, ry = best["tilt"]
+        best = max(grid(bt, refine, step, lambda c, a, b: ev((c[0] + a, c[1] + b), rx, ry)), key=lambda r: r["score"])
+        bt = tuple(best["t"])
+        final = dict(_eval_rt(hand_v, w_v, wdm, wbvh, hdm, hbvh, m_of(bt, rx, ry), touch_cm, depth=True), t=list(bt), tilt=[rx, ry])
+        cur = dict(_eval_rt(hand_v, w_v, wdm, wbvh, hdm, hbvh, m_of((0.0, 0.0), 0.0, 0.0), touch_cm, depth=True), t=[0, 0], tilt=[0, 0])
+        # 손 뼈 기준 소켓: 새 소켓 = (소켓 로컬 보정 d) 다음 (지금 소켓의 뼈 기준 변환)
+        old_rel = unreal.MathLibrary.compose_transforms(sock, unreal.MathLibrary.invert_transform(bone))
+        d = unreal.Transform(location=unreal.Vector(bt[0], bt[1], 0.0), rotation=unreal.Rotator(roll=rx, pitch=ry, yaw=0.0))
+        new_rel = unreal.MathLibrary.compose_transforms(d, old_rel)
+        row = lambda tf: {"loc": [round(tf.translation.x, 3), round(tf.translation.y, 3), round(tf.translation.z, 3)],
+                          "rot": [round(tf.rotation.rotator().roll, 3), round(tf.rotation.rotator().pitch, 3), round(tf.rotation.rotator().yaw, 3)]}
+        return {"body": body, "weapon": weapon_key, "mesh": s["mesh"], "pose": pose_key, "anim": POSES[pose_key][0], "time_s": POSES[pose_key][1],
+                "hand": gloves_key or "맨손(몸 메시)", "socket": s["socket"], "bone": bone_name,
+                "hand_verts": len(hand_v), "weapon_verts": len(w_v), "evaluated": len(res),
+                "current": cur, "best": final, "top": sorted(res.values(), key=lambda r: -r["score"])[:top],
+                "socket_rel_bone_now": row(old_rel), "socket_rel_bone_new": row(new_rel)}
+    finally:
+        clear("PGS")
+
+
+def grip_check_socket(body, weapon_key, pose_key, gloves_key=None, rel=None, touch_cm=2.0, hand_cm=14.0):
+    """소켓 값(rel = {"loc", "rot"} 뼈 기준 — 없으면 지금 소켓)으로 무기를 놓았을 때의 관통·감쌈(다른 체형 확인용)."""
+    loadout = {"gloves": gloves_key} if gloves_key else {}
+    rec = rig("PGC", body, loadout, weapon_key)
+    try:
+        pose("PGC", pose_key)
+        lead = rec["lead"]
+        _sc, s = rec["weapon"]
+        lc = rec["skel"]["body"]
+        sock = lc.get_socket_transform(s["socket"], RTS_COMPONENT)
+        bone_name = str(lc.get_socket_bone_name(s["socket"]))
+        bone = lc.get_socket_transform(bone_name, RTS_COMPONENT)
+        m = unreal.Transform()
+        if rel:
+            r = rel["rot"]
+            new_rel = unreal.Transform(location=unreal.Vector(*rel["loc"]), rotation=unreal.Rotator(roll=r[0], pitch=r[1], yaw=r[2]))
+            new_sock = unreal.MathLibrary.compose_transforms(new_rel, bone)
+            m = unreal.MathLibrary.compose_transforms(unreal.MathLibrary.invert_transform(sock), new_sock)
+        hp = (bone.translation.x, bone.translation.y, bone.translation.z)
+        wdm = _weapon_local(rec)
+        hdm = _to_local(_copy(rec["skel"]["gloves" if gloves_key else "body"]), lead)
+        op = _xf(m, (sock.translation.x, sock.translation.y, sock.translation.z))
+        hand_v = [p for p in _verts(hdm).values() if _d(p, hp) < hand_cm][::2]
+        w_v = [p for p in _verts(wdm).values() if _d(_xf(m, p), op) < 12.0][::2]
+        return {"body": body, "hand": gloves_key or "맨손(몸 메시)",
+                **_eval_rt(hand_v, w_v, wdm, _bvh(wdm), hdm, _bvh(hdm), m, touch_cm, depth=True)}
+    finally:
+        clear("PGC")
+
+
+# 무기 종류별 측정 프레임(D-247 소켓 맞춤 — "그 무기의 애니메이션으로"): 손 모양이 크게 바뀌는 순간
+GRIP_FRAMES = {"sword": ("sword_idle", "sword_windup", "sword_swing", "sword_skill_up"),
+               "shield": ("sword_idle", "sword_windup", "sword_swing", "sword_skill_up"),
+               "bow": ("bow_idle", "bow_draw", "bow_aim")}
+
+
+def _frame_ctx(prefix, rec, pose_key, use_gloves, hand_cm):
+    pose(prefix, pose_key)
+    lead = rec["lead"]
+    _sc, s = rec["weapon"]
+    lc = rec["skel"]["body"]
+    sock = lc.get_socket_transform(s["socket"], RTS_COMPONENT)
+    bone_name = str(lc.get_socket_bone_name(s["socket"]))
+    bone = lc.get_socket_transform(bone_name, RTS_COMPONENT)
+    hp = (bone.translation.x, bone.translation.y, bone.translation.z)
+    op = (sock.translation.x, sock.translation.y, sock.translation.z)
+    wdm = _weapon_local(rec)
+    hdm = _to_local(_copy(rec["skel"]["gloves" if use_gloves else "body"]), lead)
+    return {"pose": pose_key, "sock": sock, "inv_sock": unreal.MathLibrary.invert_transform(sock), "bone": bone, "bone_name": bone_name,
+            "wdm": wdm, "hdm": hdm, "wbvh": _bvh(wdm), "hbvh": _bvh(hdm),
+            "hand_v": [p for p in _verts(hdm).values() if _d(p, hp) < hand_cm][::2],
+            "w_v": [p for p in _verts(wdm).values() if _d(p, op) < 12.0][::2]}
+
+
+def _m_local(ctx, t, rx, ry):
+    d = unreal.Transform(location=unreal.Vector(t[0], t[1], 0.0), rotation=unreal.Rotator(roll=rx, pitch=ry, yaw=0.0))
+    return unreal.MathLibrary.compose_transforms(unreal.MathLibrary.compose_transforms(ctx["inv_sock"], d), ctx["sock"])
+
+
+def _eval_frames(ctxs, t, rx, ry, touch_cm, depth=False):
+    per = [dict(_eval_rt(c["hand_v"], c["w_v"], c["wdm"], c["wbvh"], c["hdm"], c["hbvh"], _m_local(c, t, rx, ry), touch_cm, depth), pose=c["pose"])
+           for c in ctxs]
+    return {"t": [round(t[0], 2), round(t[1], 2)], "tilt": [round(rx, 1), round(ry, 1)], "score": round(sum(p["score"] for p in per), 1),
+            "hand_in_weapon": sum(p["hand_in_weapon"] for p in per), "weapon_in_hand": sum(p["weapon_in_hand"] for p in per),
+            "touch": sum(p["touch"] for p in per), "frames": per}
+
+
+def grip_search_frames(body, weapon_key, kind, gloves_key=None, span=5.0, step=1.0, refine=0.5, tilt=15.0, tilt_step=5.0,
+                       touch_cm=2.0, hand_cm=14.0, top=5):
+    """grip_search_socket의 여러 프레임판: 무기 종류(kind: sword·shield·bow)의 GRIP_FRAMES 전부에서 점수를 더해 소켓 보정을 찾는다."""
+    frames = GRIP_FRAMES[kind]
+    rec = rig("PGM", body, {"gloves": gloves_key} if gloves_key else {}, weapon_key)
+    try:
+        ctxs = [_frame_ctx("PGM", rec, pk, bool(gloves_key), hand_cm) for pk in frames]
+        res = {}
+
+        def ev(t, rx, ry):
+            k = (round(t[0], 2), round(t[1], 2), round(rx, 1), round(ry, 1))
+            if k not in res:
+                r = _eval_frames(ctxs, t, rx, ry, touch_cm)
+                r.pop("frames")
+                res[k] = r
+            return res[k]
+
+        def grid(half, st, fn):
+            n = int(round(half / st))
+            return [fn(i * st, j * st) for i in range(-n, n + 1) for j in range(-n, n + 1)]
+
+        best = max(grid(span, step, lambda a, b: ev((a, b), 0.0, 0.0)), key=lambda r: r["score"])
+        bt = tuple(best["t"])
+        best = max(grid(tilt, tilt_step, lambda a, b: ev(bt, a, b)), key=lambda r: r["score"])
+        rx, ry = best["tilt"]
+        best = max(grid(step, refine, lambda a, b: ev((bt[0] + a, bt[1] + b), rx, ry)), key=lambda r: r["score"])
+        bt = tuple(best["t"])
+        edge = abs(bt[0]) >= span - 1e-6 or abs(bt[1]) >= span - 1e-6 or abs(rx) >= tilt - 1e-6 or abs(ry) >= tilt - 1e-6
+        cur = _eval_frames(ctxs, (0.0, 0.0), 0.0, 0.0, touch_cm, depth=True)
+        fin = _eval_frames(ctxs, bt, rx, ry, touch_cm, depth=True)
+        c0 = ctxs[0]
+        old_rel = unreal.MathLibrary.compose_transforms(c0["sock"], unreal.MathLibrary.invert_transform(c0["bone"]))
+        d = unreal.Transform(location=unreal.Vector(bt[0], bt[1], 0.0), rotation=unreal.Rotator(roll=rx, pitch=ry, yaw=0.0))
+        new_rel = unreal.MathLibrary.compose_transforms(d, old_rel)
+        row = lambda tf: {"loc": [round(tf.translation.x, 3), round(tf.translation.y, 3), round(tf.translation.z, 3)],
+                          "rot": [round(tf.rotation.rotator().roll, 3), round(tf.rotation.rotator().pitch, 3), round(tf.rotation.rotator().yaw, 3)]}
+        dl = new_rel.translation - old_rel.translation
+        return {"body": body, "weapon": weapon_key, "mesh": rec["weapon"][1]["mesh"], "kind": kind,
+                "frames": [{"pose": pk, "anim": POSES[pk][0].rsplit("/", 1)[1], "time_s": POSES[pk][1]} for pk in frames],
+                "hand": gloves_key or "맨손(몸 메시)", "socket": rec["weapon"][1]["socket"], "bone": c0["bone_name"],
+                "evaluated": len(res), "at_search_edge": edge, "current": cur, "best": fin, "top": sorted(res.values(), key=lambda r: -r["score"])[:top],
+                "socket_rel_bone_now": row(old_rel), "socket_rel_bone_new": row(new_rel),
+                "delta_socket_local": {"t_cm": list(bt), "tilt_deg": [rx, ry]},
+                "delta_bone_cm": [round(dl.x, 3), round(dl.y, 3), round(dl.z, 3)], "delta_len_cm": round(dl.length(), 2)}
+    finally:
+        clear("PGM")
+
+
+SHIELD_W = (5.0, 5.0)   # 방패: 관통 벌점을 크게(닿음을 늘리려고 팔 안으로 미는 것을 막음)
+
+
+def _seg_d(p, a, b):
+    ab = (b[0] - a[0], b[1] - a[1], b[2] - a[2])
+    t = max(0.0, min(1.0, _dot(_sub(p, a), ab) / max(1e-6, _dot(ab, ab))))
+    return _d(p, (a[0] + t * ab[0], a[1] + t * ab[1], a[2] + t * ab[2]))
+
+
+def _sub(a, b):
+    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
+
+
+def _dot(a, b):
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+
+
+def _shield_ctx(prefix, rec, pose_key, arm_cm, shield_cm):
+    """방패 맞춤용 프레임: 팔뚝(아래팔 → 손 선분 arm_cm 안) + 손(손 뼈 12cm 안) 정점, 소켓 원점 shield_cm 안의 방패 정점."""
+    pose(prefix, pose_key)
+    lead = rec["lead"]
+    _sc, s = rec["weapon"]
+    lc = rec["skel"]["body"]
+    sock = lc.get_socket_transform(s["socket"], RTS_COMPONENT)
+    bone_name = str(lc.get_socket_bone_name(s["socket"]))
+    bone = lc.get_socket_transform(bone_name, RTS_COMPONENT)
+    side = bone_name[-1]
+    la = lc.get_socket_transform(f"lowerarm_{side}", RTS_COMPONENT).translation
+    a, b = (la.x, la.y, la.z), (bone.translation.x, bone.translation.y, bone.translation.z)
+    op = (sock.translation.x, sock.translation.y, sock.translation.z)
+    wdm = _weapon_local(rec)
+    hdm = _to_local(_copy(lc), lead)
+    arm_v = [p for p in _verts(hdm).values() if _seg_d(p, a, b) < arm_cm or _d(p, b) < 12.0][::3]
+    return {"pose": pose_key, "sock": sock, "inv_sock": unreal.MathLibrary.invert_transform(sock), "bone": bone, "bone_name": bone_name,
+            "wdm": wdm, "hdm": hdm, "wbvh": _bvh(wdm), "hbvh": _bvh(hdm), "hand_v": arm_v,
+            "w_v": [p for p in _verts(wdm).values() if _d(p, op) < shield_cm][::3]}
+
+
+def _m6(ctx, t, r):
+    """소켓 로컬 보정(이동 t = [x,y,z] cm, 회전 r = [roll,pitch,yaw] 도)을 컴포넌트 공간 변환으로."""
+    d = unreal.Transform(location=unreal.Vector(*t), rotation=unreal.Rotator(roll=r[0], pitch=r[1], yaw=r[2]))
+    return unreal.MathLibrary.compose_transforms(unreal.MathLibrary.compose_transforms(ctx["inv_sock"], d), ctx["sock"])
+
+
+def grip_search_shield(body, weapon_key, touch_cm=3.0, arm_cm=7.0, shield_cm=30.0, top=5, yz=6.0, yz_step=1.5, tilt=20.0):
+    """방패(D-247, Mixamo 검·방패 동작): 팔뚝과 손등이 방패 뒷면에 붙는 자리. 손가락 감쌈이 아니라
+    '팔·손이 방패를 뚫지 않으면서(벌점 SHIELD_W) 방패 뒷면 touch_cm 안에 닿는 팔 정점이 많은' 자리를 한손검 4프레임 합으로 찾는다.
+    소켓 로컬: X = 방패 앞면(손등 쪽 간격), Y·Z = 방패 면 안. 단계: X 간격 → Y·Z → 기울기(pitch·yaw) → 미세."""
+    frames = GRIP_FRAMES["shield"]
+    rec = rig("PGH", body, {}, weapon_key)
+    try:
+        ctxs = [_shield_ctx("PGH", rec, pk, arm_cm, shield_cm) for pk in frames]
+        res = {}
+
+        def ev(t, r):
+            k = tuple(round(v, 2) for v in t) + tuple(round(v, 1) for v in r)
+            if k not in res:
+                per = [_eval_rt(c["hand_v"], c["w_v"], c["wdm"], c["wbvh"], c["hdm"], c["hbvh"], _m6(c, t, r), touch_cm, w=SHIELD_W)
+                       for c in ctxs]
+                res[k] = {"t": list(k[:3]), "rot": list(k[3:]), "score": round(sum(p["score"] for p in per), 1),
+                          "arm_in_shield": sum(p["hand_in_weapon"] for p in per), "shield_in_arm": sum(p["weapon_in_hand"] for p in per),
+                          "touch": sum(p["touch"] for p in per)}
+            return res[k]
+
+        rng = lambda lo, hi, st: [lo + i * st for i in range(int(round((hi - lo) / st)) + 1)]
+        best = max((ev((x, 0, 0), (0, 0, 0)) for x in rng(-3.0, 6.0, 1.0)), key=lambda r: r["score"])
+        gx = best["t"][0]
+        best = max((ev((gx, y, z), (0, 0, 0)) for y in rng(-yz, yz, yz_step) for z in rng(-yz, yz, yz_step)), key=lambda r: r["score"])
+        ty, tz = best["t"][1], best["t"][2]
+        best = max((ev((gx, ty, tz), (0, p, yw)) for p in rng(-tilt, tilt, 5.0) for yw in rng(-tilt, tilt, 5.0)), key=lambda r: r["score"])
+        rot = best["rot"]
+        best = max((ev((gx + a, ty + b, tz + c), rot) for a in rng(-1.0, 1.0, 0.5) for b in rng(-1.0, 1.0, 0.5) for c in rng(-1.0, 1.0, 0.5)),
+                   key=lambda r: r["score"])
+        t = best["t"]
+
+        def detail(tt, rr):
+            return [dict(_eval_rt(c["hand_v"], c["w_v"], c["wdm"], c["wbvh"], c["hdm"], c["hbvh"], _m6(c, tt, rr), touch_cm, depth=True, w=SHIELD_W),
+                         pose=c["pose"]) for c in ctxs]
+
+        c0 = ctxs[0]
+        old_rel = unreal.MathLibrary.compose_transforms(c0["sock"], unreal.MathLibrary.invert_transform(c0["bone"]))
+        d = unreal.Transform(location=unreal.Vector(*t), rotation=unreal.Rotator(roll=rot[0], pitch=rot[1], yaw=rot[2]))
+        new_rel = unreal.MathLibrary.compose_transforms(d, old_rel)
+        row = lambda tf: {"loc": [round(tf.translation.x, 3), round(tf.translation.y, 3), round(tf.translation.z, 3)],
+                          "rot": [round(tf.rotation.rotator().roll, 3), round(tf.rotation.rotator().pitch, 3), round(tf.rotation.rotator().yaw, 3)]}
+        dl = new_rel.translation - old_rel.translation
+        edge = abs(t[0] - (-3.0)) < 1e-6 or abs(t[0] - 6.0) < 1e-6 or abs(t[1]) >= yz or abs(t[2]) >= yz or abs(rot[1]) >= tilt or abs(rot[2]) >= tilt
+        return {"body": body, "weapon": weapon_key, "mesh": rec["weapon"][1]["mesh"], "socket": rec["weapon"][1]["socket"],
+                "frames": [{"pose": pk, "anim": POSES[pk][0].rsplit("/", 1)[1], "time_s": POSES[pk][1]} for pk in frames],
+                "arm_verts": [len(c["hand_v"]) for c in ctxs], "shield_verts": len(c0["w_v"]), "evaluated": len(res), "at_search_edge": edge,
+                "current": detail((0, 0, 0), (0, 0, 0)), "best": detail(t, rot), "best_sum": best,
+                "top": sorted(res.values(), key=lambda r: -r["score"])[:top],
+                "delta_socket_local": {"t_cm": t, "rot_deg": rot}, "delta_bone_cm": [round(dl.x, 3), round(dl.y, 3), round(dl.z, 3)],
+                "delta_len_cm": round(dl.length(), 2), "socket_rel_bone_now": row(old_rel), "socket_rel_bone_new": row(new_rel)}
+    finally:
+        clear("PGH")
+
+
+def grip_check_shield(body, weapon_key, delta=None, touch_cm=3.0, arm_cm=7.0, shield_cm=30.0):
+    """방패 소켓 보정 delta({"t":[x,y,z], "rot":[roll,pitch,yaw]})를 다른 체형에서 잰다."""
+    rec = rig("PGI", body, {}, weapon_key)
+    try:
+        out = []
+        for pk in GRIP_FRAMES["shield"]:
+            c = _shield_ctx("PGI", rec, pk, arm_cm, shield_cm)
+            m = _m6(c, delta["t"], delta["rot"]) if delta else unreal.Transform()
+            out.append(dict(_eval_rt(c["hand_v"], c["w_v"], c["wdm"], c["wbvh"], c["hdm"], c["hbvh"], m, touch_cm, depth=True, w=SHIELD_W), pose=pk))
+        return {"body": body, "frames": out}
+    finally:
+        clear("PGI")
+
+
+def grip_check_frames(body, weapon_key, kind, gloves_key=None, rel=None, touch_cm=2.0, hand_cm=14.0, delta=None):
+    """소켓 값 rel({"loc","rot"} 뼈 기준, 없으면 지금 소켓) 또는 소켓 로컬 보정 delta({"t":[x,y], "tilt":[rx,ry]})로
+    kind의 GRIP_FRAMES 전부를 잰다(다른 체형·장갑 확인). delta면 새 소켓의 뼈 기준 값도 돌려준다."""
+    rec = rig("PGN", body, {"gloves": gloves_key} if gloves_key else {}, weapon_key)
+    try:
+        out = []
+        new_rel = None
+        for pk in GRIP_FRAMES[kind]:
+            c = _frame_ctx("PGN", rec, pk, bool(gloves_key), hand_cm)
+            m = unreal.Transform()
+            if delta:
+                m = _m_local(c, delta["t"], delta["tilt"][0], delta["tilt"][1])
+                if new_rel is None:
+                    d = unreal.Transform(location=unreal.Vector(delta["t"][0], delta["t"][1], 0.0),
+                                         rotation=unreal.Rotator(roll=delta["tilt"][0], pitch=delta["tilt"][1], yaw=0.0))
+                    old = unreal.MathLibrary.compose_transforms(c["sock"], unreal.MathLibrary.invert_transform(c["bone"]))
+                    nr = unreal.MathLibrary.compose_transforms(d, old)
+                    r = nr.rotation.rotator()
+                    new_rel = {"loc": [round(nr.translation.x, 3), round(nr.translation.y, 3), round(nr.translation.z, 3)],
+                               "rot": [round(r.roll, 3), round(r.pitch, 3), round(r.yaw, 3)]}
+            elif rel:
+                r = rel["rot"]
+                nr = unreal.Transform(location=unreal.Vector(*rel["loc"]), rotation=unreal.Rotator(roll=r[0], pitch=r[1], yaw=r[2]))
+                m = unreal.MathLibrary.compose_transforms(c["inv_sock"], unreal.MathLibrary.compose_transforms(nr, c["bone"]))
+            out.append(dict(_eval_rt(c["hand_v"], c["w_v"], c["wdm"], c["wbvh"], c["hdm"], c["hbvh"], m, touch_cm, depth=True), pose=pk))
+        return {"body": body, "hand": gloves_key or "맨손(몸 메시)", "kind": kind, "socket_rel_bone": new_rel, "score": round(sum(o["score"] for o in out), 1),
+                "hand_in_weapon": sum(o["hand_in_weapon"] for o in out), "weapon_in_hand": sum(o["weapon_in_hand"] for o in out),
+                "touch": sum(o["touch"] for o in out), "frames": out}
+    finally:
+        clear("PGN")
 
 
 # ---------------------------------------------------------------- 촬영

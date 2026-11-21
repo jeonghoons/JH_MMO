@@ -1,4 +1,7 @@
-"""맵 소품(L2d 마을 등): VARCO로 만든 FBX를 정적 메시로 가져와 /Game/World/Props/<이름>/에 정리한다.
+"""맵 소품(L2d 마을 등): VARCO로 만든 FBX를 정적 메시로 가져와 /Game/Environment/<테마>/<분류>/<이름>/에 정리한다(D-245).
+
+테마 폴더: Village/Props·Village/Architecture(성벽·문)·Dungeon/Props·Common/Props(여러 테마에서 씀). name에 "Village/Props/Cart"처럼
+경로를 주거나, 이미 있는 소품이면 이름만 줘도 된다(테마 폴더에서 찾음).
 
 장비용 garment.import_source와 같은 흐름이지만 items.json과 무관하다:
 FBX 가져오기(짧은 경로) → 이름 규칙(SM_<이름>, M_<이름>, T_<이름>_BaseColor/Normal/ORM) → 장비 공용 PBR(M_Equip_PBR) 인스턴스 → LOD 3단계.
@@ -11,7 +14,18 @@ from jm_kit import garment
 
 EAL = unreal.EditorAssetLibrary
 MEL = unreal.MaterialEditingLibrary
-PROP_DIR = "/Game/World/Props"
+PROP_ROOT = "/Game/Environment"
+THEMES = ("Village/Props", "Village/Architecture", "Dungeon/Props", "Common/Props")
+
+
+def prop_dir(name):
+    """소품 폴더 경로. name이 "테마/분류/이름"이면 그대로, 이름만이면 테마 폴더에서 찾는다(없으면 테마를 적으라고 실패)."""
+    if "/" in name:
+        return f"{PROP_ROOT}/{name}"
+    for th in THEMES:
+        if EAL.does_directory_exist(f"{PROP_ROOT}/{th}/{name}"):
+            return f"{PROP_ROOT}/{th}/{name}"
+    raise RuntimeError(f"소품 폴더 없음: {name} — 새 소품은 테마를 붙여 주세요(예 Village/Props/{name}, 테마: {THEMES})")
 
 
 def _kind_of(asset, asset_name):
@@ -35,7 +49,8 @@ def import_prop(fbx_path, name, target_tris=None):
     """FBX 하나를 소품으로 가져온다(같은 이름이 있으면 덮어씀). target_tris를 주면 LOD0을 그 수로 줄이고 LOD1·2를 50·25%로 만든다.
     반환: 메시 경로, 삼각형 수, 크기(m), 머티리얼·텍스처 지정 결과, 못 한 것(notes)."""
     garment._not_playing()
-    dest = f"{PROP_DIR}/{name}"
+    dest = prop_dir(name)
+    name = name.rsplit("/", 1)[-1]
     notes = []
     # 다시 가져올 때는 폴더를 먼저 비운다. 안 비우면 옛 M_/T_ 에셋이 먼저 잡혀 새 메시에 옛 텍스처가 물린다(2026-11-18 목책 재생성).
     # 레벨에 놓인 액터가 이 메시를 쓰고 있으면 참조가 끊기므로 가져온 뒤 dress를 다시 부를 것.
@@ -98,7 +113,9 @@ def import_prop(fbx_path, name, target_tris=None):
 
 def prop_info(name):
     """소품 메시의 크기(m)·경계 중심(m)·LOD별 삼각형·머티리얼 수. 배치 배율과 방향을 정할 때 본다."""
-    path = f"{PROP_DIR}/{name}/SM_{name}"
+    d = prop_dir(name)
+    name = name.rsplit("/", 1)[-1]
+    path = f"{d}/SM_{name}"
     sm = unreal.load_asset(path)
     if sm is None:
         return {"error": f"메시 없음: {path}"}

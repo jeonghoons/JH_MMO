@@ -10,7 +10,7 @@ Leader Pose는 본 이름으로 리더의 포즈를 따라가지만, 정점은 *
 
 예)
   import importlib, jm_kit.skeleton_check as sc; importlib.reload(sc)
-  sc.check("/Game/Equipment/Cloth/Top/SK_Cloth_Top_M", "M", slot="top")   # 기준 = 키트 상의
+  sc.check("/Game/Equipment/_Armor/Male/Top/SK_00_Top_M", "M", slot="top")   # 기준 = 키트 상의
   sc.self_test()                                                           # 키트 자체 + 실패해야 하는 경우
 """
 import math

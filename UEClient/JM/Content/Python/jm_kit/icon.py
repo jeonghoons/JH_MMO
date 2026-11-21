@@ -1,6 +1,6 @@
 """장비 아이콘 촬영(MC2.4) — 최종 메시를 SceneCapture로 같은 각도·조명·투명 배경으로 찍어 T_Icon_<Item>을 만든다.
 
-- 규격(DESIGN_ART_CONCEPT §5): 512×512 PNG, 원본 SourceArt/Icons/, 에셋은 아이템 폴더(Content/Equipment/<Tier>/<Slot>/T_Icon_<Item>).
+- 규격(DESIGN_ART_CONCEPT §5): 512×512 PNG, 원본 SourceArt/Icons/, 에셋은 Content/Equipment/_Icons/T_Icon_<Item>(D-241).
   테두리(등급 색)는 UI가 그린다.
 - 각도: 방어구 = 정면 3/4(캐릭터 정면 +Y에서 왼쪽(+X, 태양 쪽)으로 YAW_ARMOR, 위에서 PITCH_ARMOR),
   무기 = 긴 축을 화면 대각선 45°(손잡이 왼쪽 아래 → 끝 오른쪽 위)로 눕혀 정면에서.
@@ -10,7 +10,7 @@
   조명은 테스트 레벨(TestLevel) 고정 조명, 대기·안개는 캡처에서 끈다(가장자리가 하늘색으로 물들지 않게).
 - 아이템별로 items.json "icon": {"yaw", "pitch", "margin"}로 덮어쓸 수 있다.
 
-예) import importlib, jm_kit.icon as ic; importlib.reload(ic); ic.shoot(["Plate_Top"])
+예) import importlib, jm_kit.icon as ic; importlib.reload(ic); ic.shoot(["00_Top"])
 """
 import math
 import os
@@ -44,9 +44,11 @@ TMP_MESH = "/Game/Dev/MC/SM_IconTmp"   # 장갑 오른손 임시 메시(Content/
 
 
 # ---------------------------------------------------------------- 피사체 배치
+ICON_DIR = "/Game/Equipment/_Icons"   # 장비 아이콘은 한 폴더에(D-241 — 카탈로그·UI가 한 곳에서 읽음)
+
+
 def _dest_dir(it):
-    d = it["source"].rsplit("/", 1)[0]
-    return d[:-len("/Source")] if d.endswith("/Source") else d
+    return ICON_DIR
 
 
 def _move(tf, off):
@@ -161,7 +163,7 @@ def _subject(key, it):
         s = garment.static_attachment(key, BODY)   # 머리 장비: 머리에 씌운 배치 그대로
         world = unreal.MathLibrary.compose_transforms(s["transform"], garment._bone_ref(BODY, s["socket"]))
         return _static_actor(s["mesh"], _move(world, LOC)), True
-    mesh = it["out"].format(body=BODY)
+    mesh = garment.out_path(it, BODY)
     if it["slot"] == "gloves":
         return _right_glove_actor(mesh), True
     return _skeletal_actor(mesh), True
@@ -324,8 +326,8 @@ def shoot(keys=None, import_assets=True, sheet=True):
         png = os.path.join(SRC_DIR, f"T_Icon_{key}.png")
         _write_png(png, out, SIZE, SIZE)
         r = {"png": png, "fill": fill, "crop_px": side}
-        if it.get("out") and it["out"].format(body=BODY) in INFO:
-            r["glove"] = INFO[it["out"].format(body=BODY)]
+        if it.get("out") and garment.out_path(it, BODY) in INFO:
+            r["glove"] = INFO[garment.out_path(it, BODY)]
         if import_assets:
             r["asset"] = _import(png, _dest_dir(it))
         rep[key], pixels[key] = r, out

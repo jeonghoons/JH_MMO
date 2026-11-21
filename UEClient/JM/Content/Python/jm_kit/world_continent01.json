@@ -238,7 +238,7 @@
   ],
   "ground": {
     "_comment": "지면(L2c): 레이어 = 맵(분위기) 단위. zone 레이어끼리 나눈 뒤 목록 순서대로 pad(원)·road(roads + links 선, pads 원)·slope(경사 deg 시작~끝)를 덮는다. textures의 rough는 숫자 또는 alpha(_D_R 텍스처의 알파), vertical은 옆면 투영(능선). grass의 density는 10m × 10m당 개수. grass의 patch = 잡음 얼룩으로 무리 지어 나게(wave_m 얼룩 크기, threshold 0~1 높을수록 드묾, sharp 가장자리).",
-    "asset_dir": "/Game/World/Continent01",
+    "asset_dir": "/Game/Maps/Continent01",
     "material": "M_Ground_Continent01",
     "biome_blend_m": 5.0,
     "warp_m": 7.0,
@@ -253,7 +253,7 @@
     },
     "textures": {
       "grass": {
-        "d": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/Grass/T_ground_Moss_D",
+        "d": "/Game/_ThirdParty/KiteDemo/Environments/GroundTiles/Grass/T_ground_Moss_D",
         "tile_m": 5.0,
         "rough": 0.9,
         "desat": 0.35,
@@ -264,22 +264,22 @@
         ]
       },
       "leaf": {
-        "d": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/LeafyPath/T_GDC_Tiling_LeafPathStones_D_R",
-        "n": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/LeafyPath/T_GDC_Tiling_LeafpathStones_N",
+        "d": "/Game/_ThirdParty/KiteDemo/Environments/GroundTiles/LeafyPath/T_GDC_Tiling_LeafPathStones_D_R",
+        "n": "/Game/_ThirdParty/KiteDemo/Environments/GroundTiles/LeafyPath/T_GDC_Tiling_LeafpathStones_N",
         "tile_m": 4.0
       },
       "stone": {
-        "d": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/RockyPath/T_GDC_StonePath_Tile_D_R",
-        "n": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/RockyPath/T_GDC_StonePath_Tile_N",
+        "d": "/Game/_ThirdParty/KiteDemo/Environments/GroundTiles/RockyPath/T_GDC_StonePath_Tile_D_R",
+        "n": "/Game/_ThirdParty/KiteDemo/Environments/GroundTiles/RockyPath/T_GDC_StonePath_Tile_N",
         "tile_m": 4.0
       },
       "gravel": {
-        "d": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/PebblyRiverbank/T_Tile_PebblyRiverbank_D_R",
-        "n": "/Game/World/Dep/KiteDemo/Environments/GroundTiles/PebblyRiverbank/T_Tile_PebblyRiverbank_N",
+        "d": "/Game/_ThirdParty/KiteDemo/Environments/GroundTiles/PebblyRiverbank/T_Tile_PebblyRiverbank_D_R",
+        "n": "/Game/_ThirdParty/KiteDemo/Environments/GroundTiles/PebblyRiverbank/T_Tile_PebblyRiverbank_N",
         "tile_m": 4.0
       },
       "rock": {
-        "d": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Textures/T_NordicRockTile02b",
+        "d": "/Game/_ThirdParty/ParagonProps/Monolith/Rocks/Textures/T_NordicRockTile02b",
         "tile_m": 14.0,
         "rough": 0.85,
         "vertical": true,
@@ -422,7 +422,7 @@
         "layer": "MeadowN",
         "varieties": [
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
             "density": 220
           }
         ]
@@ -437,7 +437,7 @@
         },
         "varieties": [
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Flowers/Buttercup/SM_Buttercup_Patch_01",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Flowers/Buttercup/SM_Buttercup_Patch_01",
             "density": 30
           }
         ]
@@ -447,7 +447,7 @@
         "layer": "MeadowW",
         "varieties": [
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
             "density": 150
           }
         ]
@@ -462,11 +462,11 @@
         },
         "varieties": [
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Flowers/Heather/SM_Heather_Mesh_Clumps2",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Flowers/Heather/SM_Heather_Mesh_Clumps2",
             "density": 22
           },
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/BogMyrtleBush_02/BogMyrtleBush_02",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/BogMyrtleBush_02/BogMyrtleBush_02",
             "density": 10,
             "scale": [
               1.0,
@@ -480,7 +480,7 @@
         "layer": "MeadowE",
         "varieties": [
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
             "density": 220
           }
         ]
@@ -495,15 +495,15 @@
         },
         "varieties": [
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Flowers/Yarrow/SM_Yarrow",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Flowers/Yarrow/SM_Yarrow",
             "density": 30
           },
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Flowers/FieldScabious/SM_FieldScabious_01",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Flowers/FieldScabious/SM_FieldScabious_01",
             "density": 30
           },
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Flowers/Buttercup/SM_Buttercup_Patch_01",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Flowers/Buttercup/SM_Buttercup_Patch_01",
             "density": 22
           }
         ]
@@ -513,11 +513,11 @@
         "layer": "Forest",
         "varieties": [
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Grass/FieldGrass/SM_FieldGrass_01",
             "density": 40
           },
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Leaves/SM_DeadLeaves",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Leaves/SM_DeadLeaves",
             "density": 8,
             "align": true
           }
@@ -533,15 +533,15 @@
         },
         "varieties": [
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Ferns/SM_Fern_01",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Ferns/SM_Fern_01",
             "density": 9
           },
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Ferns/SM_Fern_02",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Ferns/SM_Fern_02",
             "density": 9
           },
           {
-            "mesh": "/Game/World/Dep/KiteDemo/Environments/Foliage/Ferns/SM_Fern_03",
+            "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Foliage/Ferns/SM_Fern_03",
             "density": 9
           }
         ]
@@ -553,7 +553,7 @@
     "sets": {
       "pines": [
         {
-          "mesh": "/Game/World/Dep/KiteDemo/Environments/Trees/ScotsPineTall_01/ScotsPineTall_01",
+          "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Trees/ScotsPineTall_01/ScotsPineTall_01",
           "weight": 5,
           "scale": [
             0.8,
@@ -562,7 +562,7 @@
           "trunk_r_m": 0.3
         },
         {
-          "mesh": "/Game/World/Dep/KiteDemo/Environments/Trees/ScotsPine_01/ScotsPine_01",
+          "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Trees/ScotsPine_01/ScotsPine_01",
           "weight": 2,
           "scale": [
             0.8,
@@ -571,7 +571,7 @@
           "trunk_r_m": 0.45
         },
         {
-          "mesh": "/Game/World/Dep/KiteDemo/Environments/Trees/HillTree_Tall_02/HillTree_Tall_02",
+          "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Trees/HillTree_Tall_02/HillTree_Tall_02",
           "weight": 2,
           "scale": [
             0.8,
@@ -582,31 +582,31 @@
       ],
       "boulders": [
         {
-          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_03",
+          "mesh": "/Game/_ThirdParty/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_03",
           "weight": 3,
           "sink": 0.45,
           "col_fit": 0.6
         },
         {
-          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_Corner_01",
+          "mesh": "/Game/_ThirdParty/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_Corner_01",
           "weight": 2,
           "sink": 0.25,
           "col_fit": 0.6
         },
         {
-          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Mountain_RockFace_002/SM_MountainRock_Closed",
+          "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Rocks/Mountain_RockFace_002/SM_MountainRock_Closed",
           "weight": 3,
           "sink": 0.2,
           "col_fit": 0.6
         },
         {
-          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Large_Volcanic_Rock_001/LargeVolcanicRock_001",
+          "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Rocks/Large_Volcanic_Rock_001/LargeVolcanicRock_001",
           "weight": 2,
           "sink": 0.2,
           "col_fit": 0.75
         },
         {
-          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Large_Volcanic_Rock_001/LargeVolcanicRock_004",
+          "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Rocks/Large_Volcanic_Rock_001/LargeVolcanicRock_004",
           "weight": 2,
           "sink": 0.2,
           "col_fit": 0.75
@@ -614,13 +614,13 @@
       ],
       "big": [
         {
-          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_03",
+          "mesh": "/Game/_ThirdParty/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_03",
           "weight": 3,
           "sink": 0.45,
           "col_fit": 0.6
         },
         {
-          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Mountain_RockFace_002/SM_MountainRock_Closed",
+          "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Rocks/Mountain_RockFace_002/SM_MountainRock_Closed",
           "weight": 2,
           "sink": 0.2,
           "col_fit": 0.6
@@ -628,23 +628,23 @@
       ],
       "stones": [
         {
-          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_04"
+          "mesh": "/Game/_ThirdParty/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_04"
         },
         {
-          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_05"
+          "mesh": "/Game/_ThirdParty/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_05"
         },
         {
-          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_06"
+          "mesh": "/Game/_ThirdParty/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_06"
         },
         {
-          "mesh": "/Game/World/Dep/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_07"
+          "mesh": "/Game/_ThirdParty/ParagonProps/Monolith/Rocks/Meshes/SM_RockNordic_07"
         },
         {
-          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Medium_Boulder_001/Medium_Boulder_001",
+          "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Rocks/Medium_Boulder_001/Medium_Boulder_001",
           "weight": 2
         },
         {
-          "mesh": "/Game/World/Dep/KiteDemo/Environments/Rocks/Medium_Boulder_002/Medium_Boulder_LowPoly",
+          "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Rocks/Medium_Boulder_002/Medium_Boulder_LowPoly",
           "weight": 2
         }
       ]
@@ -698,7 +698,7 @@
       {
         "kind": "place",
         "label": "DungeonCliff",
-        "mesh": "/Game/World/Dep/KiteDemo/Environments/Cliffs/Cliff01/SM_Cliff01",
+        "mesh": "/Game/_ThirdParty/KiteDemo/Environments/Cliffs/Cliff01/SM_Cliff01",
         "x": 199.0,
         "y": -193.0,
         "yaw": 60.0,
@@ -805,7 +805,7 @@
       {
         "kind": "ring_prop",
         "from": "VillageWall",
-        "mesh": "/Game/World/Props/Rampart/SM_Rampart",
+        "mesh": "/Game/Environment/Village/Architecture/Rampart/SM_Rampart",
         "cover": 1.04,
         "col_fit": [
           1.0,
@@ -819,7 +819,7 @@
       {
         "kind": "gate_prop",
         "from": "GateN",
-        "mesh": "/Game/World/Props/ClosedGate/SM_ClosedGate",
+        "mesh": "/Game/Environment/Village/Architecture/ClosedGate/SM_ClosedGate",
         "cover": 1.06,
         "group": "village",
         "closed": true,
@@ -829,7 +829,7 @@
       {
         "kind": "gate_prop",
         "from": "GateE",
-        "mesh": "/Game/World/Props/ClosedGate/SM_ClosedGate",
+        "mesh": "/Game/Environment/Village/Architecture/ClosedGate/SM_ClosedGate",
         "cover": 1.06,
         "group": "village",
         "closed": true,
@@ -839,7 +839,7 @@
       {
         "kind": "gate_prop",
         "from": "GateW",
-        "mesh": "/Game/World/Props/ClosedGate/SM_ClosedGate",
+        "mesh": "/Game/Environment/Village/Architecture/ClosedGate/SM_ClosedGate",
         "cover": 1.06,
         "group": "village",
         "closed": true,
@@ -849,7 +849,7 @@
       {
         "kind": "gate_prop",
         "from": "StationGate",
-        "mesh": "/Game/World/Props/GateFrame/SM_GateFrame",
+        "mesh": "/Game/Environment/Village/Architecture/GateFrame/SM_GateFrame",
         "cover": 1.25,
         "post_off": 0.29,
         "post_w": 0.17,
@@ -858,7 +858,7 @@
       {
         "kind": "prop",
         "from": "Campfire",
-        "mesh": "/Game/World/Props/Campfire/SM_Campfire",
+        "mesh": "/Game/Environment/Common/Props/Campfire/SM_Campfire",
         "width_m": 3.4,
         "col_shape": "Cylinder",
         "col_fit": [
@@ -871,7 +871,7 @@
       {
         "kind": "prop",
         "from": "BannerN_L",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "yaw_off": 90.0,
         "height_m": 6.5,
         "col_fit": [
@@ -884,7 +884,7 @@
       {
         "kind": "prop",
         "from": "BannerN_R",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "yaw_off": 90.0,
         "height_m": 6.5,
         "col_fit": [
@@ -897,7 +897,7 @@
       {
         "kind": "prop",
         "label": "BannerE_L",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "x": -143.5,
         "y": 67.5,
         "yaw": 180.0,
@@ -912,7 +912,7 @@
       {
         "kind": "prop",
         "label": "BannerE_R",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "x": -156.5,
         "y": 67.5,
         "yaw": 180.0,
@@ -927,7 +927,7 @@
       {
         "kind": "prop",
         "label": "BannerW_L",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "x": -143.5,
         "y": -67.5,
         "yaw": 0.0,
@@ -942,7 +942,7 @@
       {
         "kind": "prop",
         "label": "BannerW_R",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "x": -156.5,
         "y": -67.5,
         "yaw": 0.0,
@@ -957,7 +957,7 @@
       {
         "kind": "prop",
         "from": "StationPost_L",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "yaw_off": -60.0,
         "height_m": 6.5,
         "col_fit": [
@@ -970,7 +970,7 @@
       {
         "kind": "prop",
         "from": "StationPost_R",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "yaw_off": -60.0,
         "height_m": 6.5,
         "col_fit": [
@@ -983,7 +983,7 @@
       {
         "kind": "prop",
         "label": "MarketStall_5",
-        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "mesh": "/Game/Environment/Village/Props/MarketStall/SM_MarketStall",
         "x": -138.0,
         "y": -22.0,
         "yaw": 95.0,
@@ -998,7 +998,7 @@
       {
         "kind": "prop",
         "label": "MarketStall_6",
-        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "mesh": "/Game/Environment/Village/Props/MarketStall/SM_MarketStall",
         "x": -138.0,
         "y": -58.0,
         "yaw": 82.0,
@@ -1013,7 +1013,7 @@
       {
         "kind": "prop",
         "label": "MarketStall_7",
-        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "mesh": "/Game/Environment/Village/Props/MarketStall/SM_MarketStall",
         "x": -162.0,
         "y": -22.0,
         "yaw": -96.0,
@@ -1028,7 +1028,7 @@
       {
         "kind": "prop",
         "label": "MarketStall_8",
-        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "mesh": "/Game/Environment/Village/Props/MarketStall/SM_MarketStall",
         "x": -162.0,
         "y": -58.0,
         "yaw": -84.0,
@@ -1043,7 +1043,7 @@
       {
         "kind": "prop",
         "label": "MarketCrates_1",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "x": -131.5,
         "y": -40.0,
         "yaw": 30.0,
@@ -1058,7 +1058,7 @@
       {
         "kind": "prop",
         "label": "MarketCrates_2",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "x": -168.5,
         "y": -40.0,
         "yaw": 210.0,
@@ -1073,7 +1073,7 @@
       {
         "kind": "prop",
         "label": "MarketCart",
-        "mesh": "/Game/World/Props/Cart/SM_Cart",
+        "mesh": "/Game/Environment/Village/Props/Cart/SM_Cart",
         "x": -156.0,
         "y": -51.0,
         "yaw": 80.0,
@@ -1088,7 +1088,7 @@
       {
         "kind": "prop",
         "label": "PlazaBanner_1",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "x": -138.0,
         "y": -12.0,
         "yaw": 135.0,
@@ -1103,7 +1103,7 @@
       {
         "kind": "prop",
         "label": "PlazaBanner_2",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "x": -138.0,
         "y": 12.0,
         "yaw": 45.0,
@@ -1118,7 +1118,7 @@
       {
         "kind": "prop",
         "label": "PlazaBanner_3",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "x": -162.0,
         "y": -12.0,
         "yaw": 225.0,
@@ -1133,7 +1133,7 @@
       {
         "kind": "prop",
         "label": "PlazaBanner_4",
-        "mesh": "/Game/World/Props/Banner/SM_Banner",
+        "mesh": "/Game/Environment/Village/Props/Banner/SM_Banner",
         "x": -162.0,
         "y": 12.0,
         "yaw": -45.0,
@@ -1148,7 +1148,7 @@
       {
         "kind": "prop",
         "label": "GateNCart",
-        "mesh": "/Game/World/Props/Cart/SM_Cart",
+        "mesh": "/Game/Environment/Village/Props/Cart/SM_Cart",
         "x": -87.0,
         "y": -10.0,
         "yaw": 200.0,
@@ -1163,7 +1163,7 @@
       {
         "kind": "prop",
         "label": "GateNCrates",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "x": -86.0,
         "y": 10.5,
         "yaw": 60.0,
@@ -1178,7 +1178,7 @@
       {
         "kind": "prop",
         "label": "GateECrates",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "x": -140.0,
         "y": 60.0,
         "yaw": 150.0,
@@ -1193,7 +1193,7 @@
       {
         "kind": "prop",
         "label": "GateWCrates",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "x": -160.0,
         "y": -60.0,
         "yaw": -20.0,
@@ -1208,7 +1208,7 @@
       {
         "kind": "prop",
         "label": "TradeAwning_2",
-        "mesh": "/Game/World/Props/TradeAwning/SM_TradeAwning",
+        "mesh": "/Game/Environment/Village/Props/TradeAwning/SM_TradeAwning",
         "x": -172.0,
         "y": 40.0,
         "yaw": 180.0,
@@ -1250,7 +1250,7 @@
       {
         "kind": "prop",
         "label": "TradeCrates_3",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "x": -166.0,
         "y": 31.0,
         "yaw": 300.0,
@@ -1265,7 +1265,7 @@
       {
         "kind": "prop",
         "from": "MarketStall_1",
-        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "mesh": "/Game/Environment/Village/Props/MarketStall/SM_MarketStall",
         "yaw_off": 90.0,
         "width_m": 4.8,
         "col_fit": [
@@ -1278,7 +1278,7 @@
       {
         "kind": "prop",
         "from": "MarketStall_2",
-        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "mesh": "/Game/Environment/Village/Props/MarketStall/SM_MarketStall",
         "yaw_off": 90.0,
         "width_m": 4.8,
         "col_fit": [
@@ -1291,7 +1291,7 @@
       {
         "kind": "prop",
         "from": "MarketStall_3",
-        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "mesh": "/Game/Environment/Village/Props/MarketStall/SM_MarketStall",
         "yaw_off": -90.0,
         "width_m": 4.8,
         "col_fit": [
@@ -1304,7 +1304,7 @@
       {
         "kind": "prop",
         "from": "MarketStall_4",
-        "mesh": "/Game/World/Props/MarketStall/SM_MarketStall",
+        "mesh": "/Game/Environment/Village/Props/MarketStall/SM_MarketStall",
         "yaw_off": -90.0,
         "width_m": 4.8,
         "col_fit": [
@@ -1317,7 +1317,7 @@
       {
         "kind": "prop",
         "from": "TradeHall",
-        "mesh": "/Game/World/Props/TradeAwning/SM_TradeAwning",
+        "mesh": "/Game/Environment/Village/Props/TradeAwning/SM_TradeAwning",
         "width_m": 12.0,
         "yaw_off": 180.0,
         "col_fit": [
@@ -1357,7 +1357,7 @@
       {
         "kind": "prop",
         "from": "Storage",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "width_m": 3.4,
         "col_fit": [
           0.75,
@@ -1369,7 +1369,7 @@
       {
         "kind": "prop",
         "label": "StorageCrates_2",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "x": -131.0,
         "y": 42.5,
         "yaw": 110.0,
@@ -1384,7 +1384,7 @@
       {
         "kind": "prop",
         "label": "StorageCrates_3",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "x": -137.5,
         "y": 42.0,
         "yaw": 200.0,
@@ -1399,7 +1399,7 @@
       {
         "kind": "prop",
         "label": "StorageCart",
-        "mesh": "/Game/World/Props/Cart/SM_Cart",
+        "mesh": "/Game/Environment/Village/Props/Cart/SM_Cart",
         "x": -136.0,
         "y": 33.0,
         "yaw": -35.0,
@@ -1414,7 +1414,7 @@
       {
         "kind": "prop",
         "from": "TradeCrates_1",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "width_m": 2.2,
         "col_fit": [
           0.75,
@@ -1426,7 +1426,7 @@
       {
         "kind": "prop",
         "from": "TradeCrates_2",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "width_m": 1.8,
         "yaw_off": 140.0,
         "col_fit": [
@@ -1439,7 +1439,7 @@
       {
         "kind": "prop",
         "from": "Inn",
-        "mesh": "/Game/World/Props/InnTent/SM_InnTent",
+        "mesh": "/Game/Environment/Village/Props/InnTent/SM_InnTent",
         "width_m": 11.0,
         "yaw_off": -90.0,
         "col_fit": [
@@ -1452,7 +1452,7 @@
       {
         "kind": "prop",
         "label": "InnTent_2",
-        "mesh": "/Game/World/Props/InnTent/SM_InnTent",
+        "mesh": "/Game/Environment/Village/Props/InnTent/SM_InnTent",
         "x": -192.0,
         "y": 13.0,
         "yaw": -75.0,
@@ -1467,7 +1467,7 @@
       {
         "kind": "prop",
         "label": "InnTent_3",
-        "mesh": "/Game/World/Props/InnTent/SM_InnTent",
+        "mesh": "/Game/Environment/Village/Props/InnTent/SM_InnTent",
         "x": -192.0,
         "y": -25.0,
         "yaw": -105.0,
@@ -1482,7 +1482,7 @@
       {
         "kind": "prop",
         "from": "InnCrates",
-        "mesh": "/Game/World/Props/CratesBarrels/SM_CratesBarrels",
+        "mesh": "/Game/Environment/Common/Props/CratesBarrels/SM_CratesBarrels",
         "width_m": 2.0,
         "yaw_off": 70.0,
         "col_fit": [
@@ -1495,7 +1495,7 @@
       {
         "kind": "prop",
         "label": "InnCart",
-        "mesh": "/Game/World/Props/Cart/SM_Cart",
+        "mesh": "/Game/Environment/Village/Props/Cart/SM_Cart",
         "x": -190.0,
         "y": -17.0,
         "yaw": 20.0,

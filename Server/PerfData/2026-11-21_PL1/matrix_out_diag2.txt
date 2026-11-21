@@ -1,0 +1,5 @@
+[matrix] 있음: idle_1000
+[matrix] 있음: spread_1000_bt8
+[matrix] 있음: spread_1000_w12
+done spread_1000_mi1000
+[matrix] 끝

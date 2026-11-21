@@ -5,8 +5,20 @@ import sys
 p = sys.argv[1]
 with_wall = len(sys.argv) > 2 and sys.argv[2] == "wall"
 d = json.load(open(p, encoding="utf-8"))
-P = "/Game/World/Props/"
-M = {n: f"{P}{n}/SM_{n}" for n in ("Palisade", "GateFrame", "MarketStall", "Banner", "Campfire", "CratesBarrels", "TradeAwning", "Cart", "InnTent")}
+# 소품 폴더는 테마 기준(D-245, 2026-11-21 — 옛 /Game/World/Props/). P + "<이름>/SM_<이름>" → /Game/Environment/<테마>/<분류>/<이름>/SM_<이름>
+_THEME = {**dict.fromkeys(("Banner", "Cart", "InnTent", "MarketStall", "TradeAwning"), "/Game/Environment/Village/Props"),
+          **dict.fromkeys(("Palisade", "Rampart", "GateFrame", "ClosedGate"), "/Game/Environment/Village/Architecture"),
+          **dict.fromkeys(("Campfire", "CratesBarrels"), "/Game/Environment/Common/Props"),
+          **dict.fromkeys(("BonePile", "Brazier", "GuardianStatue", "Sarcophagus", "WallTorch", "WeaponRack"), "/Game/Environment/Dungeon/Props")}
+
+
+class _PropRoot(str):
+    def __add__(self, rest):
+        return f"{_THEME[rest.split('/', 1)[0]]}/{rest}"
+
+
+P = _PropRoot()
+M = {n: P + f"{n}/SM_{n}" for n in ("Palisade", "GateFrame", "MarketStall", "Banner", "Campfire", "CratesBarrels", "TradeAwning", "Cart", "InnTent")}
 gate = {"cover": 1.25, "post_off": 0.29, "post_w": 0.17}
 banner = {"height_m": 6.5, "col_fit": [0.3, 0.55, 0.3]}
 stall = {"width_m": 4.8, "col_fit": [0.95, 0.8, 0.6]}

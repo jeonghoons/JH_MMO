@@ -71,7 +71,7 @@ def _item_by_mesh():
     out = {}
     for key, it in garment.load_items().items():
         if "out" in it:
-            out[it["out"].format(body="M")] = key
+            out[garment.out_path(it, "M")] = key
         else:
             out[it["source"]] = key
     return out

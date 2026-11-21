@@ -1487,6 +1487,29 @@ def run_step(name, step, args=None):
         from jm_kit import dungeon
         importlib.reload(dungeon)
         return dungeon.run(name, step, args)
+    if step.startswith("sk_") or step.startswith("wn_"):
+        # 장비 소켓·무기 메시 정규화(D-247~D-249): jm_kit.kit_sockets, jm_kit.weapon_norm
+        import importlib
+        from jm_kit import kit_sockets
+        importlib.reload(kit_sockets)
+        if step.startswith("sk_"):
+            return kit_sockets.run(step, args)
+        from jm_kit import weapon_norm
+        importlib.reload(weapon_norm)
+        return weapon_norm.run(step, args)
+    if step.startswith("env_"):
+        # 환경 에셋 폴더 정리(D-245): jm_kit.env_layout
+        import importlib
+        from jm_kit import equip_layout, env_layout
+        importlib.reload(equip_layout)
+        importlib.reload(env_layout)
+        return env_layout.run(step, args)
+    if step.startswith("eq_"):
+        # 장비 에셋 폴더 정리(IT0, D-241): jm_kit.equip_layout — 맵과 무관하므로 name은 비워도 됨
+        import importlib
+        from jm_kit import equip_layout
+        importlib.reload(equip_layout)
+        return equip_layout.run(step, args)
     if step == "probe":
         return probe(name, args.get("items"))
     if step == "dress":

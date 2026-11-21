@@ -1,0 +1,4 @@
+1795264390 --bots 1000 --ramp-rate 100 --duration 90 --threads 4 --move-interval 200 --body male  --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-21_PL1\runs\spread_1000\loadtest.csv
+exe after data repo dummyRoom field
+loadtest exit 0
+run_id 20261121_213306

@@ -1,0 +1,126 @@
+{
+  "_comment": "장비 소켓(D-247~D-249). 기준은 이 파일 — 스켈레톤은 git 제외 키트(CoreC)라 sk_apply로 적용, Persona에서 옮긴 뒤 sk_export로 이 파일에 반영. rot = [roll, pitch, yaw]",
+  "skeleton": "/Game/CoreC/00EngineDefault/Characters/Mannequins/Meshes/SK_Mannequin",
+  "sockets": [
+    {
+      "name": "WeaponSocket_R",
+      "bone": "hand_r",
+      "loc": [
+        -6.578,
+        8.644,
+        -8.739
+      ],
+      "rot": [
+        -24.784,
+        -8.883,
+        -82.493
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "note": "자동 맞춤 2026-11-21(posed.grip_search_frames, 맨손, AS_OneHandSword_Idle 0.0·Attack 0.395/0.632·Skill1 0.875) — 직접 맞춘 값에서 4.92cm"
+    },
+    {
+      "name": "WeaponSocket_L",
+      "bone": "hand_l",
+      "loc": [
+        6.688,
+        -7.6,
+        1.161
+      ],
+      "rot": [
+        -173.973,
+        1.016,
+        -173.97
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "note": "자동 맞춤 2026-11-21(맨손, AS_Bow_Idle 0.0·Attack 1.0·AimIdle 1.9, 기울기 0°) — 직접 맞춘 값에서 5.00cm"
+    },
+    {
+      "name": "ShieldSocket_L",
+      "bone": "hand_l",
+      "loc": [
+        6.304,
+        -0.685,
+        6.137
+      ],
+      "rot": [
+        166.402,
+        -8.055,
+        54.852
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "note": "자동 맞춤 시험값 2026-11-21(posed.grip_search_shield, 팔뚝+손 접촉·관통 벌점, 한손검 4프레임) — 직접 맞춘 값에서 7.04cm·기울기 5°/10°. 어색하면 Persona에서 직접(사용자 결정)"
+    },
+    {
+      "name": "BackSocket_Sword",
+      "bone": "spine_05",
+      "loc": [
+        19.643,
+        -21.4054,
+        8.1086
+      ],
+      "rot": [
+        -122.1846,
+        -24.7568,
+        -79.3585
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "note": "00_OneHandSword back M (수동)"
+    },
+    {
+      "name": "BackSocket_Bow",
+      "bone": "spine_05",
+      "loc": [
+        -16.2119,
+        -19.331,
+        -7.6317
+      ],
+      "rot": [
+        -174.1249,
+        70.1541,
+        -173.5397
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "note": "00_Bow back M (수동)"
+    },
+    {
+      "name": "BackSocket_TwoHand",
+      "bone": "spine_05",
+      "loc": [
+        19.643,
+        -21.4054,
+        8.1086
+      ],
+      "rot": [
+        -122.1846,
+        -24.7568,
+        -79.3585
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "note": "BackSocket_Sword 복사"
+    }
+  ]
+}
