@@ -1,0 +1,7 @@
+Name,WeaponType,Slot,BaseDamage,AnimMs,CooldownMs,MpCost,AttackScale
+2001,Sword,0,50,1500,0,0,100
+2002,Sword,1,120,2333,5000,20,100
+3001,Bow,0,40,1733,0,0,80
+3002,Bow,1,30,700,5000,20,30
+4001,TwoHandSword,0,80,1800,0,0,100
+4002,TwoHandSword,1,200,2500,6000,30,100

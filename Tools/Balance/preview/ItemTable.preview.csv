@@ -1,0 +1,46 @@
+Name,Slot,Grade,Tier,WeaponType,BonusAttackDamage,BonusMaxHp,BonusMaxMp,Starter,RequiredLevel,MaxStack,UseEffect,UseValue,UseCooldownMs,SellPrice,DisplayName
+1101,Head,Common,Cloth,None,0,20,0,1,1,1,None,0,0,20,천 두건
+2101,Top,Common,Cloth,None,0,20,0,1,1,1,None,0,0,20,천 상의
+3101,Bottom,Common,Cloth,None,0,20,0,1,1,1,None,0,0,20,천 하의
+4101,Gloves,Common,Cloth,None,0,20,0,1,1,1,None,0,0,20,천 장갑
+5101,Boots,Common,Cloth,None,0,20,0,1,1,1,None,0,0,20,천 장화
+6101,Weapon,Common,Cloth,Sword,10,0,0,1,1,1,None,0,0,20,천 한손검
+6102,Weapon,Common,Cloth,Bow,10,0,0,0,1,1,None,0,0,20,천 활
+6103,Weapon,Common,Cloth,TwoHandSword,10,0,0,0,1,1,None,0,0,20,천 양손검
+7101,Offhand,Common,Cloth,None,0,50,0,0,1,1,None,0,0,20,천 방패
+1201,Head,Uncommon,Leather,None,0,50,20,0,1,1,None,0,0,50,가죽 투구
+2201,Top,Uncommon,Leather,None,0,50,0,0,1,1,None,0,0,50,가죽 상의
+3201,Bottom,Uncommon,Leather,None,0,50,0,0,1,1,None,0,0,50,가죽 하의
+4201,Gloves,Uncommon,Leather,None,5,50,0,0,1,1,None,0,0,50,가죽 장갑
+5201,Boots,Uncommon,Leather,None,0,50,0,0,1,1,None,0,0,50,가죽 장화
+6201,Weapon,Uncommon,Leather,Sword,30,0,0,0,1,1,None,0,0,50,가죽 한손검
+6202,Weapon,Uncommon,Leather,Bow,30,0,0,0,1,1,None,0,0,50,가죽 활
+6203,Weapon,Uncommon,Leather,TwoHandSword,40,0,0,0,1,1,None,0,0,50,가죽 양손검
+7201,Offhand,Uncommon,Leather,None,0,100,0,0,1,1,None,0,0,50,가죽 방패
+1301,Head,Rare,Plate,None,0,100,50,0,1,1,None,0,0,100,강철 투구
+2301,Top,Rare,Plate,None,0,100,0,0,1,1,None,0,0,100,강철 상의
+3301,Bottom,Rare,Plate,None,0,100,0,0,1,1,None,0,0,100,강철 하의
+4301,Gloves,Rare,Plate,None,10,100,0,0,1,1,None,0,0,100,강철 장갑
+5301,Boots,Rare,Plate,None,0,100,0,0,1,1,None,0,0,100,강철 장화
+6301,Weapon,Rare,Plate,Sword,60,0,0,0,1,1,None,0,0,100,강철 한손검
+6302,Weapon,Rare,Plate,Bow,60,0,0,0,1,1,None,0,0,100,강철 활
+6303,Weapon,Rare,Plate,TwoHandSword,90,0,0,0,1,1,None,0,0,100,강철 양손검
+7301,Offhand,Rare,Plate,None,0,200,0,0,1,1,None,0,0,100,강철 방패
+1401,Head,Epic,Ornate,None,0,200,100,0,1,1,None,0,0,300,근위 투구
+2401,Top,Epic,Ornate,None,0,200,0,0,1,1,None,0,0,300,근위 상의
+3401,Bottom,Epic,Ornate,None,0,200,0,0,1,1,None,0,0,300,근위 하의
+4401,Gloves,Epic,Ornate,None,20,200,0,0,1,1,None,0,0,300,근위 장갑
+5401,Boots,Epic,Ornate,None,0,200,0,0,1,1,None,0,0,300,근위 장화
+6401,Weapon,Epic,Ornate,Sword,100,0,0,0,1,1,None,0,0,300,근위 한손검
+6402,Weapon,Epic,Ornate,Bow,100,0,0,0,1,1,None,0,0,300,근위 활
+6403,Weapon,Epic,Ornate,TwoHandSword,150,0,0,0,1,1,None,0,0,300,근위 양손검
+7401,Offhand,Epic,Ornate,None,0,300,0,0,1,1,None,0,0,300,근위 방패
+8001,None,Common,None,None,0,0,0,0,1,20,HealHp,200,5000,5,HP 물약
+8002,None,Common,None,None,0,0,0,0,1,20,HealMp,100,5000,5,MP 물약
+8003,None,Common,None,None,0,0,0,0,1,20,HealHp,600,5000,15,큰 HP 물약
+8004,None,Common,None,None,0,0,0,0,1,20,HealMp,300,5000,15,큰 MP 물약
+8051,None,Common,None,None,0,0,0,0,1,99,None,0,0,10,거친 가죽 조각
+8052,None,Common,None,None,0,0,0,0,1,99,None,0,0,20,뒤틀린 뿔
+8053,None,Common,None,None,0,0,0,0,1,99,None,0,0,100,숲 군주의 송곳니
+8054,None,Common,None,None,0,0,0,0,1,99,None,0,0,30,이끼 낀 돌조각
+8055,None,Common,None,None,0,0,0,0,1,99,None,0,0,300,던전 군주의 문장

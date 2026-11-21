@@ -50,6 +50,7 @@ JH_MMO는 자체 제작 MMORPG 게임 프로젝트이며, 서로 동기화 상�
 - [Docs/DESIGN_ART_CONCEPT.md](Docs/DESIGN_ART_CONCEPT.md) — 반실사 중세 판타지(베이스 바디 키트 기준, 디자인은 자체 제작), 천/가죽/판금 티어, 슬롯 예산, 아이콘·VARCO 제작 기준 (Phase MC).
 - [Docs/DESIGN_ANIMATION.md](Docs/DESIGN_ANIMATION.md) — 공용 `ABP_PlayerBase` + 무기 타입별 Animation Layer(`ALI_Weapon`), 공격 타이밍은 AnimNotify(연출 전용), 비전투 시 무기 등에 메기.
 - [Docs/DESIGN_COMBAT_SKILL.md](Docs/DESIGN_COMBAT_SKILL.md) — 스킬을 무기 타입(Unarmed/Sword/Bow)에 종속, 피해 공식, 타겟팅 타입(Targeted/NonTargeted), 크로스헤어 조준 입력 설계.
+- [Docs/DESIGN_BALANCE.md](Docs/DESIGN_BALANCE.md) — 성장(레벨 1~30 경험치·스탯·MP)·장비 00~03 능력치·양손검·소비/전리품·몬스터·드랍·아이템 ID 규칙·Q1 퀘스트 수치(IT1). 수치는 쉬운 숫자(포트폴리오용, 목표 플레이 시간 없음)로 `Tools/Balance/balance.py` 맨 위에 두고 스크립트가 전투 감각을 검사, 표는 `Tools/Balance/preview/`.
 - [Docs/DESIGN_WORLD.md](Docs/DESIGN_WORLD.md) — **용어(§0: 대륙·맵(= 지역)·레벨·채널·인스턴스·Room — 맵·월드 이야기를 할 때는 이 뜻으로 씀)**, 대륙 레벨(한 변 약 500m Landscape: 아래 가운데 큰 마을 + 사방 사냥터 + 좌상단 던전 입구 + 우상단 정거장 — §15, 처음 설계는 300m)·파티별 인스턴스 던전·스폰 배치, 맵 크기 근거, 제작 순서(L2a~L2f — 맵 제작 중에는 서버 시험 없음), 서버 연결(지형 내보내기·내비메시) 계획.
 
 ## 언어 관련 참고사항

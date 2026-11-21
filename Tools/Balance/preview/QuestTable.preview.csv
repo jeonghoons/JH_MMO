@@ -1,0 +1,4 @@
+Name,DisplayName,Kind,TargetId,Count,RecommendLevel,RewardExp,RewardGold,RewardItemId,RewardItemCount
+1,초원 정리,Kill,1001,15,1,1000,300,8001,5
+2,뿔 모으기,Collect,8052,10,10,5000,1000,4201,1
+3,던전의 군주,Kill,1005,1,20,10000,3000,8004,5
