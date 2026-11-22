@@ -9,6 +9,9 @@
 #include "Network/NetworkManager.h"
 #include "Game/JMQuestManager.h"
 #include "Game/JMAuctionManager.h"
+#include "Components/Button.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "UI/JMUIManager.h"
 
 void UCombatHudWidget::NativeConstruct()
 {
@@ -19,6 +22,17 @@ void UCombatHudWidget::NativeConstruct()
 		SlotWidget->OnItemDropped.BindUObject(this, &UCombatHudWidget::OnSlotItemDropped);
 		SlotWidget->OnRightClicked.BindUObject(this, &UCombatHudWidget::OnSlotRightClicked);
 	}
+
+	// 메뉴 버튼 줄·시스템 메뉴(UI8, D-277)
+	if (BtnMenuInventory) BtnMenuInventory->OnClicked.AddUniqueDynamic(this, &UCombatHudWidget::OnMenuInventoryClicked);
+	if (BtnMenuQuest) BtnMenuQuest->OnClicked.AddUniqueDynamic(this, &UCombatHudWidget::OnMenuQuestClicked);
+	if (BtnMenuParty) BtnMenuParty->OnClicked.AddUniqueDynamic(this, &UCombatHudWidget::OnMenuPartyClicked);
+	if (BtnMenuAuction) BtnMenuAuction->OnClicked.AddUniqueDynamic(this, &UCombatHudWidget::OnMenuAuctionClicked);
+	if (BtnMenuSystem) BtnMenuSystem->OnClicked.AddUniqueDynamic(this, &UCombatHudWidget::OnMenuSystemClicked);
+	if (BtnSysSettings) BtnSysSettings->OnClicked.AddUniqueDynamic(this, &UCombatHudWidget::OnSysSettingsClicked);
+	if (BtnSysLogin) BtnSysLogin->OnClicked.AddUniqueDynamic(this, &UCombatHudWidget::OnSysLoginClicked);
+	if (BtnSysQuit) BtnSysQuit->OnClicked.AddUniqueDynamic(this, &UCombatHudWidget::OnSysQuitClicked);
+	if (SystemMenu) SystemMenu->SetVisibility(ESlateVisibility::Collapsed);
 	if (UJMInventoryManager* Inventory = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMInventoryManager>() : nullptr)
 	{
 		InventoryChangedHandle = Inventory->OnInventoryChanged.AddUObject(this, &UCombatHudWidget::OnInventoryChanged);
@@ -137,6 +151,78 @@ void UCombatHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 	if (DungeonStateValue == Protocol::DUNGEON_STATE_CLEARED) RefreshDungeonText();
 	// 알림 줄은 떠 있는 동안만 시간에 따라 흐려지고 사라진다.
 	if (Notices.Num() > 0) RefreshNotice();
+	// 커서가 사라지면(Ctrl로 커서 모드 끔) 누를 수 없으니 시스템 메뉴를 닫는다.
+	if (SystemMenu && SystemMenu->GetVisibility() != ESlateVisibility::Collapsed)
+	{
+		const UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr;
+		if (UIManager && !UIManager->IsCursorShown()) CloseSystemMenu();
+	}
+}
+
+namespace
+{
+	AJMMyPlayer* FindMyPlayer(const UUserWidget* Widget)
+	{
+		const UJMObjectManager* ObjectManager = Widget->GetGameInstance() ? Widget->GetGameInstance()->GetSubsystem<UJMObjectManager>() : nullptr;
+		return ObjectManager ? ObjectManager->MyPlayer.Get() : nullptr;
+	}
+}
+
+bool UCombatHudWidget::CloseSystemMenu()
+{
+	if (SystemMenu == nullptr || SystemMenu->GetVisibility() == ESlateVisibility::Collapsed) return false;
+	SystemMenu->SetVisibility(ESlateVisibility::Collapsed);
+	return true;
+}
+
+void UCombatHudWidget::OnMenuInventoryClicked()
+{
+	CloseSystemMenu();
+	if (AJMMyPlayer* MyPlayer = FindMyPlayer(this)) MyPlayer->ToggleInventoryWindow();
+}
+
+void UCombatHudWidget::OnMenuQuestClicked()
+{
+	CloseSystemMenu();
+	if (AJMMyPlayer* MyPlayer = FindMyPlayer(this)) MyPlayer->ToggleQuestWindow();
+}
+
+void UCombatHudWidget::OnMenuPartyClicked()
+{
+	CloseSystemMenu();
+	if (AJMMyPlayer* MyPlayer = FindMyPlayer(this)) MyPlayer->TogglePartyWindow();
+}
+
+void UCombatHudWidget::OnMenuAuctionClicked()
+{
+	CloseSystemMenu();
+	if (AJMMyPlayer* MyPlayer = FindMyPlayer(this)) MyPlayer->ToggleAuctionWindow();
+}
+
+void UCombatHudWidget::OnMenuSystemClicked()
+{
+	if (SystemMenu == nullptr) return;
+	if (!CloseSystemMenu()) SystemMenu->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UCombatHudWidget::OnSysSettingsClicked()
+{
+	CloseSystemMenu();
+	if (UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr)
+		UIManager->ShowNotice(FText::FromString(TEXT("설정은 아직 준비 중입니다")));
+}
+
+void UCombatHudWidget::OnSysLoginClicked()
+{
+	CloseSystemMenu();
+	// 접속을 끊으면 서버가 로그아웃 처리를 한다(연결 끊김과 같은 경로). 확인 메시지는 띄우지 않는다.
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->ReturnToLogin(FText::GetEmpty());
+}
+
+void UCombatHudWidget::OnSysQuitClicked()
+{
+	CloseSystemMenu();
+	UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, false);
 }
 
 void UCombatHudWidget::SetDungeonState(int32 State, double ClearEndSec)

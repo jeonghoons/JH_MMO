@@ -16,6 +16,7 @@
 #include "Game/JMQuestManager.h"
 #include "UI/AuctionWidget.h"
 #include "UI/PlayerMenuWidget.h"
+#include "UI/CombatHudWidget.h"
 
 void AJMPlayerController::BeginPlay()
 {
@@ -411,6 +412,8 @@ void AJMPlayerController::OnEscapePressed()
 {
 	UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
 	if (UPlayerMenuWidget* Menu = UIManager ? Cast<UPlayerMenuWidget>(UIManager->GetWidget(WidgetNames::PlayerMenu)) : nullptr) Menu->Close();
+	// HUD 시스템 메뉴(UI8, D-277)도 닫는다.
+	if (UCombatHudWidget* Hud = UIManager ? Cast<UCombatHudWidget>(UIManager->GetWidget(WidgetNames::HUD)) : nullptr) Hud->CloseSystemMenu();
 }
 
 void AJMPlayerController::CursorMode(int32 Enable)

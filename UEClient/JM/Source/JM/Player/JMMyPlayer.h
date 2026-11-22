@@ -45,6 +45,12 @@ protected:
 	void OnRightClickInput();
 
 public:
+	// HUD 메뉴 버튼(UI8, D-277)이 단축키와 같은 처리를 부른다.
+	void ToggleInventoryWindow() { OnInventoryInput(); }
+	void ToggleQuestWindow() { OnQuestInput(); }
+	void TogglePartyWindow() { OnPartyInput(); }
+	void ToggleAuctionWindow() { OnAuctionInput(); }
+
 	// ---- 커서 모드 상호작용(UI6, D-274) ----
 	enum class EPickKind : uint8 { None, Npc, Player, Portal };
 	struct FPickResult

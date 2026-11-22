@@ -450,8 +450,9 @@ void UNetworkManager::ReturnToLogin(const FText& Message)
 		Auction->ClearMailNotice();
 	}
 
-	// 확인 메시지는 레벨 전환 뒤 새 레벨에서 다시 뜬다(UJMUIManager::ClearWidgets).
-	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
+	// 확인 메시지는 레벨 전환 뒤 새 레벨에서 다시 뜬다(UJMUIManager::ClearWidgets). 빈 글이면(HUD 메뉴의 "로그인 화면으로", UI8) 띄우지 않는다.
+	UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
+	if (UIManager && !Message.IsEmpty())
 	{
 		UIManager->ShowSystemMessage(Message);
 	}

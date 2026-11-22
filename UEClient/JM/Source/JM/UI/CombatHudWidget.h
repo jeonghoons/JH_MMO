@@ -47,7 +47,50 @@ public:
 	// 퀘스트 수락·목표 달성·완료처럼 확인이 필요 없는 안내용. UJMUIManager::ShowNotice가 부른다.
 	void ShowNotice(const FText& Message);
 
+	// 시스템 메뉴(UI8, D-277): 메뉴 버튼으로 열리는 작은 창. Esc·커서가 사라질 때 닫는다. 닫혀 있었으면 false
+	bool CloseSystemMenu();
+
 protected:
+	// ---- 메뉴 버튼 줄(UI8, D-277) — 글자 버튼, 커서 모드(Ctrl)에서 누른다. 단축키 안내는 WBP 툴팁 ----
+	UFUNCTION()
+	void OnMenuInventoryClicked();
+	UFUNCTION()
+	void OnMenuQuestClicked();
+	UFUNCTION()
+	void OnMenuPartyClicked();
+	UFUNCTION()
+	void OnMenuAuctionClicked();
+	UFUNCTION()
+	void OnMenuSystemClicked();
+	// 시스템 메뉴: 설정(아직 기능 없음 — 안내만), 로그인 화면으로, 게임 종료
+	UFUNCTION()
+	void OnSysSettingsClicked();
+	UFUNCTION()
+	void OnSysLoginClicked();
+	UFUNCTION()
+	void OnSysQuitClicked();
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BtnMenuInventory;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BtnMenuQuest;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BtnMenuParty;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BtnMenuAuction;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BtnMenuSystem;
+
+	// 시스템 메뉴 창(처음엔 접힘)과 그 안의 버튼
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidget> SystemMenu;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BtnSysSettings;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BtnSysLogin;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BtnSysQuit;
+
 	// HUD가 내 캐릭터보다 늦게 만들어져도 현재 값으로 시작한다.
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
