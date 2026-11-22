@@ -28,8 +28,8 @@
   },
   "Plate_Top": {
     "slot": "top",
-    "source": "/Game/Equipment/_Armor/Source/Plate_Top/SM_Plate_Top_Src",
-    "out": "/Game/Equipment/_Armor/{body_dir}/Top/SK_Plate_Top_{body}",
+    "source": "/Game/Equipment/_Archive/OldPlate/_Armor/Source/Plate_Top/SM_Plate_Top_Src",
+    "out": "/Game/Equipment/_Archive/OldPlate/_Armor/{body_dir}/Top/SK_Plate_Top_{body}",
     "fit": {
       "ratio": [
         1.0,
@@ -50,12 +50,13 @@
       "generate3d_node": "a8a6f54c-2d93-4bb1-b8b1-13e6055ad957",
       "polygon_count": 6000
     },
-    "mask": {}
+    "mask": {},
+    "archived": true
   },
   "Plate_Bottom": {
     "slot": "bottom",
-    "source": "/Game/Equipment/_Armor/Source/Plate_Bottom/SM_Plate_Bottom_Src",
-    "out": "/Game/Equipment/_Armor/{body_dir}/Bottom/SK_Plate_Bottom_{body}",
+    "source": "/Game/Equipment/_Archive/OldPlate/_Armor/Source/Plate_Bottom/SM_Plate_Bottom_Src",
+    "out": "/Game/Equipment/_Archive/OldPlate/_Armor/{body_dir}/Bottom/SK_Plate_Bottom_{body}",
     "fit": {
       "ratio": [
         1.0,
@@ -75,12 +76,13 @@
       "generate3d_node": "74f6542b-f02d-4dbd-8376-1325b085e578",
       "polygon_count": 5000
     },
-    "mask": {}
+    "mask": {},
+    "archived": true
   },
   "Plate_Boots": {
     "slot": "boots",
-    "source": "/Game/Equipment/_Armor/Source/Plate_Boots/SM_Plate_Boots_Src",
-    "out": "/Game/Equipment/_Armor/{body_dir}/Boots/SK_Plate_Boots_{body}",
+    "source": "/Game/Equipment/_Archive/OldPlate/_Armor/Source/Plate_Boots/SM_Plate_Boots_Src",
+    "out": "/Game/Equipment/_Archive/OldPlate/_Armor/{body_dir}/Boots/SK_Plate_Boots_{body}",
     "fit": {
       "ratio": [
         1.0,
@@ -100,12 +102,13 @@
       "generate3d_node": "bf549d2a-3df3-45f1-af0c-a33a5285ea14",
       "polygon_count": 3000
     },
-    "mask": {}
+    "mask": {},
+    "archived": true
   },
   "Plate_Gloves": {
     "slot": "gloves",
-    "source": "/Game/Equipment/_Armor/Source/Plate_Gloves/SM_Plate_Gloves_Src",
-    "out": "/Game/Equipment/_Armor/{body_dir}/Gloves/SK_Plate_Gloves_{body}",
+    "source": "/Game/Equipment/_Archive/OldPlate/_Armor/Source/Plate_Gloves/SM_Plate_Gloves_Src",
+    "out": "/Game/Equipment/_Archive/OldPlate/_Armor/{body_dir}/Gloves/SK_Plate_Gloves_{body}",
     "fit": {
       "method": "kit_hand",
       "ratio": [
@@ -132,11 +135,12 @@
     "icon": {
       "yaw": -90.0,
       "pitch": 5.0
-    }
+    },
+    "archived": true
   },
   "Plate_Helm": {
     "slot": "head",
-    "source": "/Game/Equipment/_Armor/Unisex/Head/SM_Plate_Helm_Src",
+    "source": "/Game/Equipment/_Archive/OldPlate/_Armor/Unisex/Head/SM_Plate_Helm_Src",
     "varco": {
       "image_node": "531e1ef7-6012-4b21-be5f-d3f283096725",
       "view_34_node": "c1511cae-5204-4582-bf0e-7b9365e8e70f",
@@ -159,11 +163,12 @@
         "hair"
       ]
     },
-    "src_dir": "/Game/Equipment/_Armor/Source/Plate_Helm"
+    "src_dir": "/Game/Equipment/_Archive/OldPlate/_Armor/Source/Plate_Helm",
+    "archived": true
   },
   "Plate_Sword": {
     "slot": "weapon",
-    "source": "/Game/Equipment/_Weapon/OneHandSword/SM_Plate_Sword_Src",
+    "source": "/Game/Equipment/_Archive/OldPlate/_Weapon/OneHandSword/SM_Plate_Sword_Src",
     "varco": {
       "image_node": "7ff8b009-45ef-40a9-b8ec-77e22e68243b",
       "generate3d_node": "8c98a105-7307-41b6-b562-2984b9386233",
@@ -173,7 +178,7 @@
       "socket": "WeaponSocket_R",
       "fit": "socket"
     },
-    "src_dir": "/Game/Equipment/_Weapon/Source/Plate_Sword",
+    "src_dir": "/Game/Equipment/_Archive/OldPlate/_Weapon/Source/Plate_Sword",
     "back": {
       "socket": "BackSocket_Sword",
       "fit": "socket"
@@ -230,11 +235,12 @@
         ],
         "_note": "초기값(2026-11-21) — 맞춤 레벨에서 사용자가 잡은 값은 manual.back"
       }
-    }
+    },
+    "archived": true
   },
   "Plate_Bow": {
     "slot": "weapon",
-    "source": "/Game/Equipment/_Weapon/Bow/SM_Plate_Bow_Src",
+    "source": "/Game/Equipment/_Archive/OldPlate/_Weapon/Bow/SM_Plate_Bow_Src",
     "varco": {
       "image_node": "fb7588af-ce4f-488e-ae28-eef77b04bb73",
       "generate3d_node": "947117f6-6b2f-4ffd-8354-ef8d773225a6",
@@ -248,7 +254,7 @@
       "socket": "BackSocket_Bow",
       "fit": "socket"
     },
-    "src_dir": "/Game/Equipment/_Weapon/Source/Plate_Bow",
+    "src_dir": "/Game/Equipment/_Archive/OldPlate/_Weapon/Source/Plate_Bow",
     "norm": {
       "date": "2026-11-21",
       "scale": 1.24782,
@@ -308,7 +314,8 @@
           0
         ]
       }
-    }
+    },
+    "archived": true
   },
   "00_Bottom": {
     "slot": "bottom",
@@ -620,7 +627,7 @@
   },
   "Plate_Shield": {
     "slot": "offhand",
-    "source": "/Game/Equipment/_Weapon/Shield/SM_Plate_Shield_Src",
+    "source": "/Game/Equipment/_Archive/OldPlate/_Weapon/Shield/SM_Plate_Shield_Src",
     "varco": {
       "image_node": "c7ee8633-1b8c-4a4c-8c21-1f7cd06bf2fc",
       "output_index": 1,
@@ -632,7 +639,7 @@
       "fit": "socket",
       "target_tris": 5000
     },
-    "src_dir": "/Game/Equipment/_Weapon/Source/Plate_Shield",
+    "src_dir": "/Game/Equipment/_Archive/OldPlate/_Weapon/Source/Plate_Shield",
     "norm": {
       "date": "2026-11-21",
       "scale": 0.74949,
@@ -666,7 +673,8 @@
         ],
         "target_tris": 5000
       }
-    }
+    },
+    "archived": true
   },
   "00_TwoHandSword": {
     "slot": "weapon",
@@ -1619,10 +1627,10 @@
       "fit": "helm",
       "target_tris": 4000,
       "yaw": 90.0,
-      "width_ratio": 1.25,
-      "depth_ratio": 1.15,
-      "top_cm": 1.5,
-      "y_off_cm": 0.0,
+      "width_ratio": 1.6,
+      "depth_ratio": 1.5,
+      "top_cm": 3.0,
+      "y_off_cm": -1.0,
       "hide_parts": [
         "hair"
       ]
@@ -1645,9 +1653,9 @@
       "target_tris": 4000,
       "yaw": 0.0,
       "width_ratio": 1.25,
-      "depth_ratio": 1.15,
-      "top_cm": 1.5,
-      "y_off_cm": 0.0,
+      "depth_ratio": 1.25,
+      "top_cm": 10.0,
+      "y_off_cm": -2.0,
       "hide_parts": [
         "hair"
       ]

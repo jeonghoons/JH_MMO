@@ -20,6 +20,12 @@ items.json·ItemTable.csv의 경로를 고친다.
   eq_delete {paths, dry_run}  참조자가 없는 것만 삭제. 기본 dry_run
   eq_gallery             진열 레벨 GALLERY를 (다시) 만든다 — 세트마다 남·녀 × POSES, 이름표
   eq_gallery_shots {label}  Simulate 중(KitTools.preview_start_simulate 다음 호출)에 그룹마다 앞·뒤 촬영
+  eq_archive_plan        옛 판금(이름에 _Plate_) → _Archive/OldPlate(하위 경로 유지) 목록과 묶음 밖 참조자(D-244)
+  eq_archive_move {dry_run}  그대로 옮기고 Equipment 아래 리디렉터 정리. 기본 dry_run
+  eq_archive_items {write}   items.json Plate_* 경로 → 백업 폴더 + "archived": true(load_items가 기본으로 뺌). 기본 write False
+  eq_archive_dirs {dry_run}  옮긴 뒤 남은 빈 Plate 폴더 삭제. 기본 dry_run
+  eq_glow_master {rebuild}   03등급 발광 부모 머티리얼 M_Equip_PBR_Glow(D-267)
+  eq_glow {keys, params, rebuild_master}  M_03_*의 부모를 발광 머티리얼로 — params는 공통 {이름: 값} 또는 {"<키>": {...}}
 """
 import json
 import os
@@ -587,14 +593,123 @@ def head_boxes():
     return out
 
 
+# ── 옛 판금 백업(D-244) ─────────────────────────────────
+
+ARCHIVE = f"{EQ}/_Archive/OldPlate"   # 옛 판금 세트(1301~7301의 옛 외형) — 같은 ID는 02 강철이 이어받음
+
+
+def _plate_packages():
+    """Equipment 아래(백업 폴더 제외) 이름에 _Plate_가 든 패키지(SK_·SM_·M_·MI_·T_·T_Icon_)."""
+    return [p for p in _packages(EQ) if not p.startswith(ARCHIVE) and "_Plate_" in p.rsplit("/", 1)[1]]
+
+
+def archive_plan():
+    """옮길 목록(원래 하위 경로 유지), 묶음 밖 참조자, 이미 있는 대상."""
+    pkgs = _plate_packages()
+    inside = set(pkgs)
+    rows, outside, exists = [], [], []
+    for p in pkgs:
+        d = ARCHIVE + p[len(EQ):]
+        rows.append((p, d))
+        if EAL.does_asset_exist(d):
+            exists.append(d)
+        for r in _referencers(p):
+            if r not in inside:
+                outside.append({"pkg": p, "referencer": r})
+    return {"count": len(rows), "moves": rows, "outside_referencers": outside, "exists": exists}
+
+
+def archive_move(dry_run=True):
+    if unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_game_world() is not None:
+        raise RuntimeError("Simulate/PIE 중에는 옮길 수 없음 — 종료(StopPIE) 후 다시 호출")
+    pl = archive_plan()
+    if dry_run or pl["exists"]:
+        pl["dry_run"] = dry_run
+        return pl
+    tools = unreal.AssetToolsHelpers.get_asset_tools()
+    data, failed = [], []
+    for p, d in pl["moves"]:
+        obj = unreal.load_asset(p)
+        if obj is None:
+            failed.append(p)
+            continue
+        data.append(unreal.AssetRenameData(obj, d.rsplit("/", 1)[0], d.rsplit("/", 1)[1]))
+    ok = tools.rename_assets(data)
+    saved = unreal.EditorLoadingAndSavingUtils.save_dirty_packages(True, True)
+    fix = fix_redirectors(roots=(EQ,), dry_run=False)
+    return {"renamed": ok, "count": len(data), "failed_load": failed, "saved": saved, "redirectors": fix,
+            "old_remaining": _plate_packages()}
+
+
+def archive_items(write=False):
+    """items.json의 옛 판금 항목(Plate_*): 문자열 경로 /Game/Equipment/… → 백업 폴더, "archived": true."""
+    items = _load_items_raw()
+    changes = []
+
+    def fix(v):
+        if isinstance(v, str) and v.startswith(EQ + "/") and not v.startswith(ARCHIVE):
+            return ARCHIVE + v[len(EQ):]
+        if isinstance(v, dict):
+            return {k: fix(x) for k, x in v.items()}
+        if isinstance(v, list):
+            return [fix(x) for x in v]
+        return v
+
+    for k, it in items.items():
+        if not k.startswith("Plate_"):
+            continue
+        new = fix(it)
+        new["archived"] = True
+        changes.append({"key": k, "source": new.get("source"), "out": new.get("out"), "src_dir": new.get("src_dir")})
+        items[k] = new
+    missing = [c["source"] for c in changes if c["source"] and not EAL.does_asset_exist(c["source"])]
+    if write:
+        with open(os.path.join(PY_DIR, "items.json"), "w", encoding="utf-8", newline="\n") as f:
+            json.dump(items, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+    return {"written": write, "items": changes, "source_missing": missing}
+
+
+def archive_empty_dirs(dry_run=True):
+    """옛 판금이 빠진 뒤 Equipment 아래(백업 폴더 제외)에 남은 빈 폴더."""
+    empty = []
+    for d in EAL.list_assets(EQ, recursive=True, include_folder=True):
+        d = d.rstrip("/")
+        if d.startswith(ARCHIVE) or not EAL.does_directory_exist(d):
+            continue
+        if "Plate" in d.rsplit("/", 1)[1] and not EAL.list_assets(d, recursive=True):
+            empty.append(d)
+    if not dry_run:
+        for d in empty:
+            EAL.delete_directory(d)
+    return {"dry_run": dry_run, "empty": empty}
+
+
 def run(step, args=None):
     args = args or {}
+    if step == "eq_archive_plan":
+        return archive_plan()
+    if step == "eq_archive_move":
+        return archive_move(args.get("dry_run", True))
+    if step == "eq_archive_items":
+        return archive_items(bool(args.get("write", False)))
+    if step == "eq_archive_dirs":
+        return archive_empty_dirs(args.get("dry_run", True))
+    if step in ("eq_glow", "eq_glow_master"):
+        # 03등급 재질 발광(D-267): garment.ensure_glow_master / apply_grade_glow
+        import importlib
+        from . import garment
+        importlib.reload(garment)
+        if step == "eq_glow_master":
+            return {"master": garment.ensure_glow_master(bool(args.get("rebuild", False)))}
+        return garment.apply_grade_glow(tuple(args.get("keys") or garment.GLOW_KEYS), args.get("params"),
+                                        bool(args.get("rebuild_master", False)))
     if step == "eq_plan":
         return plan()
     if step == "eq_move":
         return move(args.get("dry_run", True))
     if step == "eq_redirectors":
-        return fix_redirectors(dry_run=args.get("dry_run", True))
+        return fix_redirectors(roots=tuple(args.get("roots") or OLD_ROOTS), dry_run=args.get("dry_run", True))
     if step == "eq_tables":
         return tables(bool(args.get("write", False)))
     if step == "eq_unused":

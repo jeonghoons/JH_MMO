@@ -1149,10 +1149,12 @@ def static_attachment(item_key, body, which="attach", auto=False):
     return {"mesh": it["source"], "socket": at["socket"], "transform": rel_tf, "hide_parts": at.get("hide_parts", [])}
 
 
-def load_items():
+def load_items(include_archived=False):
+    """items.json 아이템. "archived": true인 항목(백업 폴더로 옮긴 옛 판금 — D-244)은 기본으로 뺀다(진열·카탈로그·아이콘·표 내보내기에서 제외)."""
     import json, os
     with open(os.path.join(os.path.dirname(__file__), "items.json"), encoding="utf-8") as f:
-        return {k: v for k, v in json.load(f).items() if not k.startswith("_")}
+        return {k: v for k, v in json.load(f).items()
+                if not k.startswith("_") and (include_archived or not v.get("archived"))}
 
 
 BODY_DIR = {"M": "Male", "F": "Female"}
@@ -1364,6 +1366,142 @@ def ensure_pbr_master(rebuild=False):
     MEL.recompile_material(mat)
     EAL.save_loaded_asset(mat)
     return PBR_MASTER
+
+
+GLOW_MASTER = "/Game/Equipment/_Shared/M_Equip_PBR_Glow"   # 03등급 발광(D-267)
+GLOW_KEYS = ("03_OneHandSword", "03_TwoHandSword", "03_Bow", "03_Shield")
+# 03 컨셉 G05v2(장식 판금)의 금색. 강도 15 = 2026-11-22 TestLevel 캡처로 정함(3은 낮 조명에서 안 보임, 50은 날이 하얗게 날아감 —
+# Saved/MCShots/IT2_glow_*). 던전에서 과하면 apply_grade_glow(params)로 덮어쓴다.
+GLOW_DEFAULTS = {"GlowColor": (1.0, 0.62, 0.22), "GlowIntensity": 15.0, "MetalMask": 0.8,
+                 "FresnelExp": 3.0, "FresnelBase": 0.25, "PulseSpeed": 0.5, "PulseMin": 0.55}
+
+
+def ensure_glow_master(rebuild=False):
+    """M_Equip_PBR과 같은 그래프(BaseColor·Normal·ORM)에 발광을 더한 부모 머티리얼(D-267).
+    Emissive = BaseColor × GlowColor × GlowIntensity × lerp(1, 금속도(ORM.B), MetalMask) × (Fresnel^FresnelExp + FresnelBase) × 맥동,
+    맥동 = lerp(PulseMin, 1, 0.5 + 0.5·sin(2π·Time·PulseSpeed))."""
+    if EAL.does_asset_exist(GLOW_MASTER) and not rebuild:
+        return GLOW_MASTER
+    MEL = unreal.MaterialEditingLibrary
+    folder, name = GLOW_MASTER.rsplit("/", 1)
+    if EAL.does_asset_exist(GLOW_MASTER):
+        EAL.delete_asset(GLOW_MASTER)
+    mat = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    MP = unreal.MaterialProperty
+    ST = unreal.MaterialSamplerType
+    E = unreal
+
+    def node(cls, x, y):
+        return MEL.create_material_expression(mat, cls, x, y)
+
+    def tex_param(pname, default, sampler, y):
+        e = node(E.MaterialExpressionTextureSampleParameter2D, -1400, y)
+        e.set_editor_property("parameter_name", pname)
+        e.set_editor_property("texture", unreal.load_asset(default))
+        e.set_editor_property("sampler_type", sampler)
+        return e
+
+    def scalar(pname, value, x, y):
+        e = node(E.MaterialExpressionScalarParameter, x, y)
+        e.set_editor_property("parameter_name", pname)
+        e.set_editor_property("default_value", float(value))
+        return e
+
+    def op(cls, a, a_out, b, b_out, x, y):
+        e = node(cls, x, y)
+        MEL.connect_material_expressions(a, a_out, e, "A")
+        MEL.connect_material_expressions(b, b_out, e, "B")
+        return e
+
+    d = GLOW_DEFAULTS
+    bc = tex_param("BaseColor", "/Engine/EngineMaterials/DefaultDiffuse", ST.SAMPLERTYPE_COLOR, -300)
+    nm = tex_param("Normal", "/Engine/EngineMaterials/DefaultNormal", ST.SAMPLERTYPE_NORMAL, 0)
+    orm = tex_param("ORM", "/Engine/EngineMaterials/DefaultDiffuse_TC_Masks", ST.SAMPLERTYPE_MASKS, 300)
+    MEL.connect_material_property(bc, "RGB", MP.MP_BASE_COLOR)
+    MEL.connect_material_property(nm, "RGB", MP.MP_NORMAL)
+    MEL.connect_material_property(orm, "R", MP.MP_AMBIENT_OCCLUSION)
+    MEL.connect_material_property(orm, "G", MP.MP_ROUGHNESS)
+    MEL.connect_material_property(orm, "B", MP.MP_METALLIC)
+
+    color = node(E.MaterialExpressionVectorParameter, -1000, 600)
+    color.set_editor_property("parameter_name", "GlowColor")
+    color.set_editor_property("default_value", unreal.LinearColor(*d["GlowColor"], 1.0))
+    inten = scalar("GlowIntensity", d["GlowIntensity"], -1000, 750)
+    # 금속 부분 가중: lerp(1, ORM.B, MetalMask)
+    mmask = scalar("MetalMask", d["MetalMask"], -1000, 850)
+    lerp_m = node(E.MaterialExpressionLinearInterpolate, -800, 400)
+    lerp_m.set_editor_property("const_a", 1.0)
+    MEL.connect_material_expressions(orm, "B", lerp_m, "B")
+    MEL.connect_material_expressions(mmask, "", lerp_m, "Alpha")
+    # 테두리: Fresnel^FresnelExp + FresnelBase
+    fexp = scalar("FresnelExp", d["FresnelExp"], -1000, 950)
+    fres = node(E.MaterialExpressionFresnel, -800, 950)
+    fres.set_editor_property("base_reflect_fraction", 0.0)
+    MEL.connect_material_expressions(fexp, "", fres, "ExponentIn")
+    fbase = scalar("FresnelBase", d["FresnelBase"], -800, 1100)
+    rim = op(E.MaterialExpressionAdd, fres, "", fbase, "", -600, 1000)
+    # 맥동: lerp(PulseMin, 1, 0.5 + 0.5·sin(Time·PulseSpeed))
+    tm = node(E.MaterialExpressionTime, -1000, 1250)
+    pspeed = scalar("PulseSpeed", d["PulseSpeed"], -1000, 1350)
+    tsp = op(E.MaterialExpressionMultiply, tm, "", pspeed, "", -800, 1300)
+    sine = node(E.MaterialExpressionSine, -650, 1300)
+    sine.set_editor_property("period", 1.0)
+    MEL.connect_material_expressions(tsp, "", sine, "")
+    half = node(E.MaterialExpressionMultiply, -500, 1300)
+    half.set_editor_property("const_b", 0.5)
+    MEL.connect_material_expressions(sine, "", half, "A")
+    shift = node(E.MaterialExpressionAdd, -350, 1300)
+    shift.set_editor_property("const_b", 0.5)
+    MEL.connect_material_expressions(half, "", shift, "A")
+    pmin = scalar("PulseMin", d["PulseMin"], -350, 1450)
+    pulse = node(E.MaterialExpressionLinearInterpolate, -200, 1350)
+    pulse.set_editor_property("const_b", 1.0)
+    MEL.connect_material_expressions(pmin, "", pulse, "A")
+    MEL.connect_material_expressions(shift, "", pulse, "Alpha")
+    # 곱하기 사슬
+    m1 = op(E.MaterialExpressionMultiply, bc, "RGB", color, "", -400, 500)
+    m2 = op(E.MaterialExpressionMultiply, m1, "", inten, "", -250, 550)
+    m3 = op(E.MaterialExpressionMultiply, m2, "", lerp_m, "", -100, 600)
+    m4 = op(E.MaterialExpressionMultiply, m3, "", rim, "", 50, 700)
+    m5 = op(E.MaterialExpressionMultiply, m4, "", pulse, "", 200, 800)
+    MEL.connect_material_property(m5, "", MP.MP_EMISSIVE_COLOR)
+    MEL.recompile_material(mat)
+    EAL.save_loaded_asset(mat)
+    return GLOW_MASTER
+
+
+def apply_grade_glow(keys=GLOW_KEYS, params=None, rebuild_master=False):
+    """M_<키>(머티리얼 인스턴스)의 부모를 M_Equip_PBR_Glow로 바꾼다 — 텍스처 값은 그대로, 발광 파라미터만 지정(D-267).
+    params = {이름: 값}(모든 키 공통) 또는 {"<키>": {이름: 값}}(키별)을 섞어 쓸 수 있다. GlowColor는 [r, g, b]."""
+    params = params or {}
+    MEL = unreal.MaterialEditingLibrary
+    master = unreal.load_asset(ensure_glow_master(rebuild_master))
+    items = load_items()
+    out = {}
+    for key in keys:
+        it = items[key]
+        mi = unreal.load_asset(f"{src_dir(it)}/M_{key}")
+        if not isinstance(mi, unreal.MaterialInstanceConstant):
+            raise RuntimeError(f"머티리얼 인스턴스가 아님: M_{key}")
+        texs = {p: MEL.get_material_instance_texture_parameter_value(mi, p) for p in ("BaseColor", "Normal", "ORM")}
+        if any(t is None for t in texs.values()):
+            raise RuntimeError(f"텍스처 파라미터 없음: M_{key} {texs}")
+        MEL.set_material_instance_parent(mi, master)
+        for p, t in texs.items():
+            MEL.set_material_instance_texture_parameter_value(mi, p, t)
+        vals = dict(GLOW_DEFAULTS)
+        vals.update({k: v for k, v in params.items() if not isinstance(v, dict)})
+        vals.update(params.get(key, {}))
+        for p, v in vals.items():
+            if p == "GlowColor":
+                MEL.set_material_instance_vector_parameter_value(mi, p, unreal.LinearColor(*v[:3], 1.0))
+            else:
+                MEL.set_material_instance_scalar_parameter_value(mi, p, float(v))
+        MEL.update_material_instance(mi)
+        EAL.save_loaded_asset(mi)
+        out[key] = {"mi": mi.get_path_name().split(".")[0], "parent": GLOW_MASTER,
+                    "textures": {p: t.get_path_name().split(".")[0] for p, t in texs.items()}, "params": vals}
+    return out
 
 
 def use_pbr_master(item_key):
