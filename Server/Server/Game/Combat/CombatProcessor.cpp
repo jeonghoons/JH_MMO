@@ -23,6 +23,13 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 		return;
 	}
 
+	// 느린 관통 투사체(SK2, D-278): 지금 위치에서 확정 방향으로 날려 보내고 이후 Room::UpdateProjectiles가 지나가는 대상마다 피해를 준다.
+	if (skillData->hitShape == HitShape::Pierce)
+	{
+		room->CreatePierceProjectile(attacker, *skillData, aimYaw, damage);
+		return;
+	}
+
 	Protocol::ObjectType targetTypeToFind = (attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) ? Protocol::ObjectType::OBJECT_TYPE_MONSTER : Protocol::ObjectType::OBJECT_TYPE_PLAYER;
 
 	// 대상 지정 투사체: 지정된 대상 한 명에게만 거리/비행 속도에 따른 지연 후 피해를 준다. (판정 모양 검사 없음)
@@ -37,6 +44,9 @@ void CombatProcessor::ProcessSkillHit(std::shared_ptr<Room> room, std::shared_pt
 		const float dx = targetChar->GetPosition().x() - attacker->GetPosition().x();
 		const float dy = targetChar->GetPosition().y() - attacker->GetPosition().y();
 		const float dist = std::sqrt(dx * dx + dy * dy);
+
+		// 근접(투사체 속도 0): 휘두르는 동안 대상이 사거리 × 1.5 + 몸 반경 밖으로 도망갔으면 빗나간다(D-278).
+		if (skillData->projSpeed <= 0.f && dist > skillData->castRange * 1.5f + targetChar->GetBodyRadius()) return;
 
 		int flightTimeMs = 0;
 		if (skillData->projSpeed > 0.f) {

@@ -1,0 +1,24 @@
+PASS 2001-whiff
+PASS 2002-cast-mp
+PASS 2003-cast-mp
+PASS 2xxx-slot5-no-skill
+PASS 3001-no-target-rejected
+PASS 3002-cast-mp
+PASS 3003-cast-mp
+PASS 3xxx-slot5-no-skill
+PASS 4001-whiff
+PASS 4002-cast-mp
+PASS 4003-cast-mp
+PASS 4xxx-slot5-no-skill
+PASS 2001-targeted-hit
+[  96.58] 3003 1번째: 노린 100127 거리 953 — 맞음 [(100127, 116)]
+PASS 3003-hits-something
+PASS 3003-each-once
+PASS 3003-damage
+[ 112.04] 끊기 시험: 가장 먼 몬스터 100136 거리 4448, 끊은 뒤 피해 []
+PASS 3003-gone-on-disconnect
+
+합계 PASS 17 / FAIL 0
+Pierce 생성 1회, 명중 1줄
+PASS pierce-log
+ERROR 줄 수: 0

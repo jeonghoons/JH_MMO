@@ -54,6 +54,7 @@ void Room::Close()
 	_drops.clear();
 	_dropOrder.clear();
 	_zones.clear();
+	_projectiles.clear();
 	_npcs.clear();
 
 	// 잡 큐의 보낼 세션 목록을 모두 내보낸다(Server/CLAUDE.md "송신 묶기" 주의 ②) — 방금 이 방을 떠난 세션이 목록에 남아 있을 수 있다.
@@ -274,6 +275,7 @@ void Room::Update(long long elapsedTime)
 		object.second->Update(dt);
 	}
 	UpdateZones();
+	UpdateProjectiles();
 	UpdateAims(currentTick);
 	{
 		const long long bodyUs = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - bodyStart).count();
@@ -3677,7 +3679,13 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 	float ax = aimX;
 	float ay = aimY;
 
-	if (skill->targeting == SkillTargeting::Targeted)
+	// 근접 단일 타겟팅(투사체 속도 0)인데 대상이 없으면 헛스윙으로 받는다(D-278): 동작·쿨타임·이동 잠금은 그대로, 판정 때 대상이 없어 피해는 없음.
+	const bool whiff = skill->targeting == SkillTargeting::Targeted && casterIsPlayer && targetId == 0 && skill->projSpeed <= 0.f;
+	if (whiff)
+	{
+		if (!std::isfinite(yaw)) return reject(Protocol::ATTACK_RESULT_BAD_REQUEST);
+	}
+	else if (skill->targeting == SkillTargeting::Targeted)
 	{
 		// 클라이언트가 보낸 대상 id는 신뢰하지 않고, 존재/생존/적대 관계/사거리를 서버에서 다시 확인한다.
 		shared_ptr<GameObject> targetObj = GetGameObject(targetId);
@@ -3826,6 +3834,113 @@ void Room::UpdateZones()
 		++i;
 	}
 }
+void Room::CreatePierceProjectile(shared_ptr<Character> attacker, const SkillData& skill, float yawDeg, int damage)
+{
+	if (_closed.load() || attacker == nullptr) return;
+
+	SkillProjectile proj;
+	proj.attackerId = attacker->GetId();
+	const Protocol::PositionInfo& start = attacker->GetPosition();
+	proj.ox = start.x();
+	proj.oy = start.y();
+	const float yawRad = yawDeg * MathUtils::PI / 180.0f;
+	proj.dirX = std::cos(yawRad);
+	proj.dirY = std::sin(yawRad);
+	proj.speed = skill.projSpeed;
+	proj.halfWidth = skill.width * 0.5f;
+	proj.damage = damage;
+	proj.lastTime = chrono::steady_clock::now();
+
+	// 벽·지형에 막히면 거기서 멈춘다(D-278): 끝점이 막혀 있으면 막히지 않는 가장 먼 거리를 이분 탐색으로 찾는다(RayCast는 막히지 않으면 true).
+	auto pointAt = [&](float dist)
+	{
+		Protocol::PositionInfo p = start;
+		p.set_x(proj.ox + proj.dirX * dist);
+		p.set_y(proj.oy + proj.dirY * dist);
+		return p;
+	};
+	float maxDist = skill.range;
+	NavmeshManager* nav = GetNavManager();
+	if (nav != nullptr && !nav->RayCast(start, pointAt(maxDist)))
+	{
+		float lo = 0.f, hi = maxDist;
+		for (int i = 0; i < 8; ++i)   // 2500cm 기준 약 10cm 정밀도
+		{
+			const float mid = (lo + hi) * 0.5f;
+			if (nav->RayCast(start, pointAt(mid))) lo = mid;
+			else hi = mid;
+		}
+		maxDist = lo;
+	}
+	proj.maxDist = maxDist;
+	LOG_DEBUG("Combat", "Pierce 생성: 시전자 {} 출발 ({:.0f}, {:.0f}) yaw {:.1f} 사거리 {:.0f}/{:.0f}", proj.attackerId, proj.ox, proj.oy, yawDeg, maxDist, skill.range);
+	if (proj.maxDist <= 0.f) return;
+
+	_projectiles.push_back(std::move(proj));
+}
+
+void Room::UpdateProjectiles()
+{
+	if (_projectiles.empty()) return;
+
+	const auto now = chrono::steady_clock::now();
+
+	for (size_t i = 0; i < _projectiles.size();)
+	{
+		SkillProjectile& proj = _projectiles[i];
+
+		// 시전자가 방을 떠나면(다른 Room 이동·접속 종료) 투사체도 사라진다(D-278 — 장판과 같은 규칙).
+		shared_ptr<GameObject> attackerObj = GetGameObject(proj.attackerId);
+		if (attackerObj == nullptr)
+		{
+			_projectiles[i] = std::move(_projectiles.back());
+			_projectiles.pop_back();
+			continue;
+		}
+		shared_ptr<Character> attacker = static_pointer_cast<Character>(attackerObj);
+
+		float dt = chrono::duration<float>(now - proj.lastTime).count();
+		if (dt < 0.f) dt = 0.f;
+		if (dt > 0.5f) dt = 0.5f;
+		proj.lastTime = now;
+		const float from = proj.traveled;
+		const float to = min(proj.maxDist, from + proj.speed * dt);
+
+		// 이번 틱에 지나간 구간 [from, to] 안에서 폭 안에 있는 대상을 한 번씩 맞힌다. 몸 반경만큼 넓게 본다(MN1, D-198).
+		auto hitTargets = [&](auto& container)
+		{
+			for (auto& [id, target] : container)
+			{
+				if (target->GetStat().IsDead() || proj.hitIds.count(id)) continue;
+
+				const float rx = target->GetPosition().x() - proj.ox;
+				const float ry = target->GetPosition().y() - proj.oy;
+				const float along = rx * proj.dirX + ry * proj.dirY;
+				const float side = std::fabs(rx * proj.dirY - ry * proj.dirX);
+				const float body = target->GetBodyRadius();
+				if (along < from - body || along > to + body) continue;
+				if (side > proj.halfWidth + body) continue;
+
+				proj.hitIds.insert(id);
+				LOG_DEBUG("Combat", "Pierce 명중: 시전자 {} 대상 {} 진행 {:.0f} 옆 {:.0f} (구간 {:.0f}~{:.0f})", proj.attackerId, id, along, side, from, to);
+				target->OnDamaged(proj.damage, proj.attackerId, attacker);
+			}
+		};
+
+		if (attacker->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) hitTargets(_monsters);
+		else hitTargets(_players);
+
+		proj.traveled = to;
+		if (proj.traveled >= proj.maxDist)
+		{
+			_projectiles[i] = std::move(_projectiles.back());
+			_projectiles.pop_back();
+			continue;
+		}
+		++i;
+	}
+}
+
 void Room::ApplyDelayedDamage(int targetId, int attackerId, int damage)
 {
 	auto targetObj = GetGameObject(targetId);

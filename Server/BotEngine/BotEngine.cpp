@@ -1011,8 +1011,10 @@ static void WorkerMain(int workerIndex, int workerCount)
 					// 일반공격(슬롯 0)을 보내고, 3번에 한 번은 1번 스킬(슬롯 1)을 쓴다.
 					// 몬스터 방향(aim_yaw)·위치(aim_x/y)와 대상(target_id)을 함께 보내고, 서버가 장착 무기의 스킬에 맞는 값만 쓴다.
 					// (MC3.1: 무기가 없어 맨손 기본 공격만 있고 1번 슬롯은 서버가 거부한다 — MC3.2 장착 후 검·활 스킬)
+					// SK2(D-278): 6번에 한 번은 2번 스킬(슬롯 2)도 쓴다 — 기본 공격 4 : 스킬1 1 : 스킬2 1.
 					Protocol::CS_ATTACK_PACKET atk;
-					int slot = (++b.castCount % 3 == 0) ? 1 : 0;
+					const int castNo = ++b.castCount;
+					int slot = (castNo % 6 == 0) ? 2 : (castNo % 3 == 0) ? 1 : 0;
 					// --aim: 슬롯 1은 조준을 먼저 켜고 300~800ms 뒤 다음 공격 차례에 쏜다. 10%는 쏘지 않고 취소한다.
 					bool skipAttack = false;
 					if (GConfig.aim)
@@ -1042,7 +1044,8 @@ static void WorkerMain(int workerIndex, int workerCount)
 						}
 					}
 					atk.set_skill_slot(slot);
-					atk.set_target_id(targetId);
+					// 근접 기본 공격은 대상이 없으면 헛스윙으로 보낸다(D-278) — 5%는 대상 없이 보내 그 경로도 시험한다.
+					atk.set_target_id((slot == 0 && rand() % 20 == 0) ? 0 : targetId);
 					atk.set_aim_yaw(yaw);
 					atk.set_aim_x(tx);
 					atk.set_aim_y(ty);
@@ -1059,7 +1062,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 						case 4: atk.set_target_id(99999999); break;                 // 존재하지 않는 대상
 						case 5: atk.set_aim_x(1.0e9f); atk.set_aim_y(-1.0e9f); break; // 사거리 밖 지점(서버가 보정)
 						case 6: atk.set_target_id(b.objectId); break;                // 자기 자신 (적대 관계 아님)
-						default: atk.set_skill_slot(2); break;                       // 비어 있는 슬롯
+						default: atk.set_skill_slot(5); break;                       // 비어 있는 슬롯(2는 SK2부터 스킬이 있음)
 						}
 					}
 					if (!skipAttack)

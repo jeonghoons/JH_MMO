@@ -314,6 +314,8 @@ public:
 
 	// 지면 장판 (HitShape::Zone)
 	void CreateZone(shared_ptr<Character> attacker, const SkillData& skill, float x, float y, int damage);
+	// 느린 관통 투사체 (HitShape::Pierce, SK2 D-278): 시전자 위치에서 yaw 방향으로 날아가며 Room::UpdateProjectiles가 판정한다
+	void CreatePierceProjectile(shared_ptr<Character> attacker, const SkillData& skill, float yawDeg, int damage);
 	// Npc
 	void NpcEnterRoom(shared_ptr<Monster> monster);
 	// 스폰 마커 반경 안의 임의 위치에 몬스터 한 마리를 만든다. templateId·respawnMs는 SpawnTable 행(구역 이름이 없는 마커는 마커 값·0). respawnMs 0 = MonsterTable 값
@@ -381,6 +383,22 @@ private:
 	};
 	vector<SkillZone> _zones;
 	void UpdateZones();
+
+	struct SkillProjectile
+	{
+		int attackerId = 0;
+		float ox = 0.f, oy = 0.f;       // 출발점
+		float dirX = 1.f, dirY = 0.f;   // 진행 방향(단위 벡터)
+		float speed = 0.f;              // cm/s
+		float maxDist = 0.f;            // 사거리(벽에 막히면 벽까지)
+		float traveled = 0.f;           // 지금까지 간 거리
+		float halfWidth = 0.f;          // 판정 폭의 절반
+		int damage = 0;
+		chrono::steady_clock::time_point lastTime;
+		unordered_set<int> hitIds;      // 이미 맞은 대상(한 번씩만)
+	};
+	vector<SkillProjectile> _projectiles;
+	void UpdateProjectiles();
 	// AimMaxMs가 지난 조준을 해제한다(Update마다). 본인에게는 seq를 실어, 다른 사람에게는 seq 없이 보낸다.
 	void UpdateAims(long long nowMs);
 

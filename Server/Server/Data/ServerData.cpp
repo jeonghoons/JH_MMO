@@ -48,6 +48,7 @@ namespace
 		if (text == "Line") { out = HitShape::Line; return true; }
 		if (text == "Projectile") { out = HitShape::Projectile; return true; }
 		if (text == "Zone") { out = HitShape::Zone; return true; }
+		if (text == "Pierce") { out = HitShape::Pierce; return true; }
 		return false;
 	}
 
@@ -250,7 +251,7 @@ bool DataManager::Init()
 		}
 		if (!ParseHitShape(shape, d.hitShape))
 		{
-			LOG_ERROR("Data", "{}HitShape '{}' 는 Sector/Line/Projectile/Zone 중 하나여야 합니다", where, shape);
+			LOG_ERROR("Data", "{}HitShape '{}' 는 Sector/Line/Projectile/Zone/Pierce 중 하나여야 합니다", where, shape);
 			return false;
 		}
 		if (targeting == "Targeted") d.targeting = SkillTargeting::Targeted;
@@ -281,6 +282,11 @@ bool DataManager::Init()
 		if (d.hitShape == HitShape::Zone && (d.castRange <= 0.f || d.radius <= 0.f || d.durationMs <= 0 || d.tickMs <= 0))
 		{
 			LOG_ERROR("Data", "{}Zone 스킬은 CastRange, Radius, DurationMs, TickMs 가 모두 0보다 커야 합니다", where);
+			return false;
+		}
+		if (d.hitShape == HitShape::Pierce && (d.targeting != SkillTargeting::NonTargeted || d.range <= 0.f || d.width <= 0.f || d.projSpeed <= 0.f))
+		{
+			LOG_ERROR("Data", "{}Pierce 스킬은 NonTargeted 이고 Range, Width, ProjSpeed 가 모두 0보다 커야 합니다", where);
 			return false;
 		}
 		if (_skillTable.count(d.skillId))

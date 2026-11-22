@@ -235,7 +235,8 @@ enum class HitShape
 	Sector,     // 부채꼴 (근거리 즉시 타격)
 	Line,       // 직선 (원거리 관통/즉시 타격)
 	Projectile, // 투사체 (직선 + 단일 대상 + 비행 시간 지연 타격)
-	Zone        // 지면 장판 (지정 지점에 원형 영역을 만들고 지속 시간 동안 주기적으로 피해)
+	Zone,       // 지면 장판 (지정 지점에 원형 영역을 만들고 지속 시간 동안 주기적으로 피해)
+	Pierce      // 느린 관통 투사체 (조준 방향으로 ProjSpeed로 Range까지 날아가며 폭 안의 대상을 지나갈 때 한 번씩 피해, 벽에서 멈춤 — SK2, D-278)
 };
 
 enum class SkillTargeting
