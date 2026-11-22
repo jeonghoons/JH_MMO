@@ -40,6 +40,11 @@ POSES = {
     "sword_windup":   (_A + "OneHandSword/AS_OneHandSword_Attack", 0.395, "sword"),
     "sword_swing":    (_A + "OneHandSword/AS_OneHandSword_Attack", 0.632, "sword"),
     "sword_skill_up": (_A + "OneHandSword/AS_OneHandSword_Skill1", 0.875, "sword"),   # 도약 내려찍기 — 팔을 머리 위로
+    # 양손검(2026-11-22 손잡이 맞춤): 대기, 기본 공격(Slash) 들어 올림·내려침, 스킬1(High Spin) — 왼손 위치가 가장 많이 바뀌는 순간
+    "th_idle":        (_A + "TwoHandSword/AS_TwoHandSword_GreatSwordIdle", 0.0, "two_hand"),
+    "th_raise":       (_A + "TwoHandSword/AS_TwoHandSword_GreatSwordSlash", 0.4, "two_hand"),
+    "th_swing":       (_A + "TwoHandSword/AS_TwoHandSword_GreatSwordSlash", 0.7, "two_hand"),
+    "th_spin":        (_A + "TwoHandSword/AS_TwoHandSword_GreatSwordHighSpinAttack", 0.4, "two_hand"),
 }
 SHOULDER_JOINTS = ("clavicle_l", "clavicle_r", "upperarm_l", "upperarm_r")
 SHOULDER_RADIUS = 18.0   # cm, 기준 자세에서 관절 중심으로부터
@@ -161,11 +166,11 @@ def clear(prefix):
 
 def rig(prefix, body, loadout, weapon_key=None, loc=(0.0, 0.0, 0.0)):
     """측정용 캐릭터: 몸(마스크 적용) + 눈·이·헤어 + loadout 스켈레탈 장비(top·gloves·bottom·boots) + 무기(weapon_key, 정적).
-    loadout: {슬롯: 아이템 키 또는 메시 경로}. 슬롯 이름이 bow·sword인 값은 무기 후보라 여기서는 weapon_key로만 쓴다."""
+    loadout: {슬롯: 아이템 키 또는 메시 경로}. 슬롯 이름이 bow·sword·two_hand인 값은 무기 후보라 여기서는 weapon_key로만 쓴다."""
     clear(prefix)
     bp = profiles.body(body)
     lead = _skel(prefix, "Leader", bp["leader"], loc)
-    items = {s: _mesh_of(s, v, body) for s, v in loadout.items() if s not in ("bow", "sword", "shield")}
+    items = {s: _mesh_of(s, v, body) for s, v in loadout.items() if s not in ("bow", "sword", "two_hand", "shield")}
     mask = profiles.mask_params(items)
     if mask:
         body_mask.apply(lead.skeletal_mesh_component, body, mask)
@@ -547,7 +552,8 @@ def grip_check_socket(body, weapon_key, pose_key, gloves_key=None, rel=None, tou
 # 무기 종류별 측정 프레임(D-247 소켓 맞춤 — "그 무기의 애니메이션으로"): 손 모양이 크게 바뀌는 순간
 GRIP_FRAMES = {"sword": ("sword_idle", "sword_windup", "sword_swing", "sword_skill_up"),
                "shield": ("sword_idle", "sword_windup", "sword_swing", "sword_skill_up"),
-               "bow": ("bow_idle", "bow_draw", "bow_aim")}
+               "bow": ("bow_idle", "bow_draw", "bow_aim"),
+               "two_hand": ("th_idle", "th_raise", "th_swing", "th_spin")}
 
 
 def _frame_ctx(prefix, rec, pose_key, use_gloves, hand_cm):
@@ -569,7 +575,7 @@ def _frame_ctx(prefix, rec, pose_key, use_gloves, hand_cm):
 
 
 def _m_local(ctx, t, rx, ry):
-    d = unreal.Transform(location=unreal.Vector(t[0], t[1], 0.0), rotation=unreal.Rotator(roll=rx, pitch=ry, yaw=0.0))
+    d = unreal.Transform(location=unreal.Vector(t[0], t[1], t[2] if len(t) > 2 else 0.0), rotation=unreal.Rotator(roll=rx, pitch=ry, yaw=0.0))
     return unreal.MathLibrary.compose_transforms(unreal.MathLibrary.compose_transforms(ctx["inv_sock"], d), ctx["sock"])
 
 
@@ -741,6 +747,68 @@ def grip_check_shield(body, weapon_key, delta=None, touch_cm=3.0, arm_cm=7.0, sh
         clear("PGI")
 
 
+def hand_axis(body, weapon_key, frames, bones=("hand_r", "hand_l")):
+    """진단(2026-11-22 양손검 손잡이): frames([[시퀀스 경로, 초], ...])마다 손 위치를 무기 로컬(정규화 메시 = 원점 손잡이, +Z 칼끝)로.
+    손바닥 = 손 뼈와 가운데 손가락 첫 마디(middle_01)의 중간. z = 칼 축 위 위치(cm, + = 칼끝 쪽), r = 칼 축에서 떨어진 거리."""
+    rec = rig("PHA", body, {}, weapon_key)
+    try:
+        lc = rec["skel"]["body"]
+        _sc, s = rec["weapon"]
+        out = []
+        for seq, t in frames:
+            _pose_all(rec, seq, t)
+            w = unreal.MathLibrary.compose_transforms(s["transform"], lc.get_socket_transform(s["socket"], RTS_COMPONENT))
+            row = {"seq": seq.rsplit("/", 1)[-1], "t": t}
+            for b in bones:
+                side = b[-1]
+                h = lc.get_socket_transform(b, RTS_COMPONENT).translation
+                m = lc.get_socket_transform(f"middle_01_{side}", RTS_COMPONENT).translation
+                p = unreal.MathLibrary.inverse_transform_location(w, unreal.Vector((h.x + m.x) / 2, (h.y + m.y) / 2, (h.z + m.z) / 2))
+                row[b] = {"z": round(p.z, 1), "r": round(math.sqrt(p.x ** 2 + p.y ** 2), 1), "x": round(p.x, 1), "y": round(p.y, 1)}
+            out.append(row)
+        return {"body": body, "weapon": weapon_key, "socket": s["socket"], "frames": out}
+    finally:
+        clear("PHA")
+
+
+def hand_shots(body, weapon_key, pose_keys, sockets=None, label="grip", loc=(0.0, 800.0, 0.0), focus="both"):
+    """진단 촬영(2026-11-22 양손검 손잡이): 자세마다 손 근접 두 장 — 캐릭터 앞 오른쪽·왼쪽 3/4(소켓끼리 같은 구도).
+    sockets: 비교할 손 소켓 — 이름(스켈레톤 소켓) 또는 {"name", "bone", "loc", "rot"}(뼈에 그 값으로 붙임 — 스켈레톤을 바꾸지 않고
+    JSON 값 등을 비교). 없으면 아이템의 소켓 하나. focus: both(두 손 가운데) 또는 뼈 이름(예 hand_r). 반환: 파일 경로 목록."""
+    rec = rig("PHS", body, {}, weapon_key, loc)
+    try:
+        sc, s0 = rec["weapon"]
+        lc = rec["skel"]["body"]
+        out = []
+        for sock in sockets or [s0["socket"]]:
+            if isinstance(sock, dict):
+                r = sock["rot"]
+                rel = unreal.Transform(location=unreal.Vector(*sock["loc"]), rotation=unreal.Rotator(roll=r[0], pitch=r[1], yaw=r[2]))
+                name, attach_to = sock["name"], sock["bone"]
+                s = dict(s0, socket=attach_to, transform=unreal.MathLibrary.compose_transforms(s0["transform"], rel))
+            else:
+                name, attach_to = sock, sock
+                s = dict(s0, socket=sock)
+            sc.get_owner().attach_to_component(lc, attach_to, unreal.AttachmentRule.SNAP_TO_TARGET, unreal.AttachmentRule.SNAP_TO_TARGET,
+                                               unreal.AttachmentRule.SNAP_TO_TARGET, False)
+            rec["weapon"] = (sc, s)
+            for pk in pose_keys:
+                pose("PHS", pk)
+                # 캐릭터 앞(+Y) 오른쪽·왼쪽 3/4에서 — 소켓끼리 같은 구도
+                if focus == "both":
+                    hr, hl = lc.get_socket_location("hand_r"), lc.get_socket_location("hand_l")
+                    tgt = ((hr.x + hl.x) / 2, (hr.y + hl.y) / 2, (hr.z + hl.z) / 2)
+                else:
+                    h = lc.get_socket_location(focus)
+                    tgt = (h.x, h.y, h.z)
+                for side, off in (("front_r", (-55.0, 95.0, 15.0)), ("front_l", (55.0, 95.0, 15.0))):
+                    c = (tgt[0] + off[0], tgt[1] + off[1], tgt[2] + off[2])
+                    out.append(preview.shot(f"{label}_{body}_{name}_{pk}_{side}", c, tgt, fov=45.0, w=700, h=700))
+        return out
+    finally:
+        clear("PHS")
+
+
 def grip_check_frames(body, weapon_key, kind, gloves_key=None, rel=None, touch_cm=2.0, hand_cm=14.0, delta=None):
     """소켓 값 rel({"loc","rot"} 뼈 기준, 없으면 지금 소켓) 또는 소켓 로컬 보정 delta({"t":[x,y], "tilt":[rx,ry]})로
     kind의 GRIP_FRAMES 전부를 잰다(다른 체형·장갑 확인). delta면 새 소켓의 뼈 기준 값도 돌려준다."""
@@ -754,7 +822,7 @@ def grip_check_frames(body, weapon_key, kind, gloves_key=None, rel=None, touch_c
             if delta:
                 m = _m_local(c, delta["t"], delta["tilt"][0], delta["tilt"][1])
                 if new_rel is None:
-                    d = unreal.Transform(location=unreal.Vector(delta["t"][0], delta["t"][1], 0.0),
+                    d = unreal.Transform(location=unreal.Vector(delta["t"][0], delta["t"][1], delta["t"][2] if len(delta["t"]) > 2 else 0.0),
                                          rotation=unreal.Rotator(roll=delta["tilt"][0], pitch=delta["tilt"][1], yaw=0.0))
                     old = unreal.MathLibrary.compose_transforms(c["sock"], unreal.MathLibrary.invert_transform(c["bone"]))
                     nr = unreal.MathLibrary.compose_transforms(d, old)

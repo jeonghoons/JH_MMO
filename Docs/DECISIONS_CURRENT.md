@@ -217,7 +217,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-267** (2026-11-22) 03등급 발광 = 재질 발광(`M_Equip_PBR_Glow` — 금속 부분·테두리가 금색으로 천천히 맥동, 강도 15), 무기 3종 + 방패(6401~6403·7401), 파티클 없음. 옛 판금은 `items.json`에 `archived`로 남김(`load_items`가 기본으로 뺌)
 - **D-246** (2026-11-21) 머리카락을 숨기는 머리 장비(두건)는 머리카락을 뺀 머리 상자 기준(`box: "head"`)으로 맞춤
 - **D-247** (2026-11-21) 무기·방패 = 스켈레톤 소켓 + 메시 정규화(손잡이 = 원점·실제 크기·같은 축, `weapon_norm` `wn_apply`), 아이템 표 부착 변환은 단위 변환. 새 무기는 attach(fit length/shield) 적고 가져온 뒤 `wn_apply`. 아이템별 미세 보정은 맞춤 레벨 `manual`
-- **D-248** (2026-11-21) 소켓(SK_Mannequin, 남녀 공용): `WeaponSocket_R`·`WeaponSocket_L`·`ShieldSocket_L`·`BackSocket_Sword`·`BackSocket_Bow`·`BackSocket_TwoHand`(뼈 `weapon_r`·`weapon_l`과 이름이 겹치지 않게). 머리 장비는 계산 유지. 여성만 어긋나면 여성 몸 메시 전용 소켓
+- **D-248** (2026-11-21) 소켓(SK_Mannequin, 남녀 공용): `WeaponSocket_R`·`WeaponSocket_L`·`ShieldSocket_L`·`BackSocket_Sword`·`BackSocket_Bow`·`BackSocket_TwoHand`·`WeaponSocket_TwoHand`(D-273)(뼈 `weapon_r`·`weapon_l`과 이름이 겹치지 않게). 머리 장비는 계산 유지. 여성만 어긋나면 여성 몸 메시 전용 소켓
 - **D-249** (2026-11-21) 소켓 기준은 `jm_kit/kit_sockets.json`(스켈레톤은 git 제외 키트) — `sk_apply`(JSON → 스켈레톤)·`sk_export`(Persona 수정 → JSON), 추가는 `Dev/Sockets/SKM_SocketCarrier` 경유
 - **D-250** (2026-11-21) 무기 소켓 초기값은 자동 맞춤(그 무기 종류의 리타깃 애니메이션 프레임에서 맨손 관통·감쌈 — 검·활 `grip_search_frames`, 방패 `grip_search_shield`)이 1안, Persona 직접 조정은 어색할 때만. 소켓은 무기 종류별 하나 — 새 무기 종류에서만 다시 돌림
 - **D-245** (2026-11-21) 환경 에셋 폴더: `Environment/Village/{Props,Architecture}`·`Environment/Dungeon/{Props,Materials}`·`Environment/Common/Props`(마을·던전 공용), 맵 전용은 `Maps/<맵>/`(레벨 파일은 `/Game/Maps/<이름>` 그대로), 외부 팩 의존은 `_ThirdParty/`. 소품 도구 `prop_import`의 `prop`은 테마 경로. `World/Dep` 리디렉터 15개는 `ParagonSample` 정리(CL1) 때 삭제
@@ -279,6 +279,7 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-270** (2026-11-22) 남은 콘텐츠 다듬기 순서: TestLevel 바닥(UI0, 템플릿 `MI_ProcGrid` 격자 — TestLevel만) → 폰트(본문 Pretendard·제목 Noto Serif KR, 공용 스타일 `UIStyleTable`과 함께) → 하드웨어 커서(직접 그린 이미지) → UI 다듬기(창 틀·등급 테두리/경매 아이콘·HUD·인벤토리 캐릭터·우클릭 상호작용) → 맵 꾸미기 마지막
 - **D-271** (2026-11-22) UI 창 틀: 어두운 가죽 + 금 테두리(9-slice), 금 테두리 버튼·밝은 금색 버튼 글자, 아이템 칸 테두리 = 등급 색(Common `#9D9D9D`·Uncommon `#1EFF00`·Rare `#0070DD`·Epic `#A335EE`), 경매 줄 아이콘 + 등급 테두리 — 위젯 이름(`Panel`·`SlotBg`·`Btn*`)으로 `JMUIStyle::ApplyTree`가 입힘, 값은 `UIStyleTable`
 - **D-272** (2026-11-22) 인벤토리 캐릭터 앞모습: `BP_Player`를 플레이 영역 밖에 하나 더 두고 SceneCapture(그 액터만, 검정 배경)로 `WBP_Inventory` `ImgCharacter`에 — 외형은 내 캐릭터 서버 값 복사, 창이 보일 때만 찍음, 값은 `UInventoryWidget` `Preview*`
+- **D-273** (2026-11-22) 양손검 손 소켓 `WeaponSocket_TwoHand`(hand_r, 양손검 동작 4프레임 자동 맞춤 — `posed.GRIP_FRAMES["two_hand"]`), 한손검은 `WeaponSocket_R` 그대로. 메시 원점 기준은 무기 종류마다(한손검 = 손잡이 아래 끝, 양손검 = 가드 바로 아래 위쪽 손 자리) — 종류가 다르면 손 소켓도 따로
 
 ## 도구·엔진·외부 서비스
 

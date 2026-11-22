@@ -23,7 +23,7 @@ import json
 
 import unreal
 
-from . import fx_sheet, garment
+from . import fx_sheet, garment, profiles
 
 EAL = unreal.EditorAssetLibrary
 _SKEL_BONES = None
@@ -210,13 +210,22 @@ def weapon_socket_points(item_key="00_OneHandSword", body="M", fracs=(0.22, 1.0)
     c = (b.origin.x, b.origin.y, b.origin.z)
     e = (b.box_extent.x * 2, b.box_extent.y * 2, b.box_extent.z * 2)
     axis = max(range(3), key=lambda i: e[i])
+    # 아이템 표 부착 소켓이 뼈가 아니라 스켈레톤 소켓이면(D-247 이후 무기 전부) 그 소켓의 뼈 기준 변환을 더한다
+    lead = unreal.load_asset(profiles.body(body)["leader"])
+    sock = lead.find_socket(at["socket"]) if lead else None
+    sock_tf = None
+    if sock is not None:
+        sock_tf = unreal.Transform(location=sock.relative_location, rotation=sock.relative_rotation, scale=sock.relative_scale)
     pts = {}
     for f in fracs:
         p = list(c)
         p[axis] = c[axis] - e[axis] / 2 + f * e[axis]
         v = unreal.MathLibrary.transform_location(tf, unreal.Vector(*p))
+        if sock is not None:   # D-247: 무기 소켓(뼈 기준) → 손 뼈 로컬
+            v = unreal.MathLibrary.transform_location(sock_tf, v)
         pts[str(f)] = [round(v.x, 3), round(v.y, 3), round(v.z, 3)]
-    return {"item": item_key, "body": body, "socket": at["socket"], "mesh": at["mesh"], "axis": "xyz"[axis],
+    return {"item": item_key, "body": body, "socket": at["socket"], "bone": str(sock.bone_name) if sock is not None else at["socket"],
+            "mesh": at["mesh"], "axis": "xyz"[axis],
             "length_cm": round(e[axis] * tf.scale3d.x, 2), "points_bone_local": pts}
 
 

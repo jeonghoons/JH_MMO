@@ -685,7 +685,7 @@
       "polygon_count": 30000
     },
     "attach": {
-      "socket": "WeaponSocket_R",
+      "socket": "WeaponSocket_TwoHand",
       "fit": "socket",
       "target_tris": 5000
     },
@@ -759,7 +759,7 @@
       "polygon_count": 30000
     },
     "attach": {
-      "socket": "WeaponSocket_R",
+      "socket": "WeaponSocket_TwoHand",
       "fit": "socket",
       "target_tris": 5000
     },
@@ -833,7 +833,7 @@
       "polygon_count": 30000
     },
     "attach": {
-      "socket": "WeaponSocket_R",
+      "socket": "WeaponSocket_TwoHand",
       "fit": "socket",
       "target_tris": 5000
     },
@@ -907,7 +907,7 @@
       "polygon_count": 30000
     },
     "attach": {
-      "socket": "WeaponSocket_R",
+      "socket": "WeaponSocket_TwoHand",
       "fit": "socket",
       "target_tris": 5000
     },

@@ -739,6 +739,19 @@ def run(step, args=None):
                                             **{k: args[k] for k in ("span", "step", "refine", "tilt", "tilt_step", "touch_cm", "hand_cm") if k in args})
         return posed.grip_check_frames(args.get("body", "M"), args["weapon"], args["kind"], args.get("gloves"), args.get("rel"),
                                        delta=args.get("delta"))
+    if step == "eq_hand_axis":
+        # 진단: 동작 프레임마다 손바닥 위치를 무기 로컬(칼 축)로 — args: body, weapon, frames [[시퀀스, 초], ...]
+        import importlib
+        from . import posed
+        importlib.reload(posed)
+        return posed.hand_axis(args.get("body", "M"), args["weapon"], args["frames"])
+    if step == "eq_hand_shots":
+        # 진단 촬영: 손잡이 근접(칼 면·칼날 옆) — args: body, weapon, poses [posed.POSES 키], sockets [비교할 손 소켓], label
+        import importlib
+        from . import posed
+        importlib.reload(posed)
+        return posed.hand_shots(args.get("body", "M"), args["weapon"], args["poses"], args.get("sockets"), args.get("label", "grip"),
+                                 focus=args.get("focus", "both"))
     if step in ("eq_grip", "eq_grip_check"):
         # 소켓 쥐는 위치 찾기(posed.grip_search_socket / grip_check_socket) — 레벨에 임시 리그를 놓았다 지움
         import importlib

@@ -152,7 +152,11 @@ def run(step, args=None):
     if step == "sk_probe":
         return probe()
     if step == "sk_apply":
-        return apply()
+        # args.names = 이 이름의 소켓만(다른 소켓의 스켈레톤 값을 JSON으로 덮지 않게)
+        data = load_json()
+        if args.get("names"):
+            data = dict(data, sockets=[d for d in data["sockets"] if d["name"] in args["names"]])
+        return apply(data)
     if step == "sk_export":
         return export()
     raise ValueError(f"알 수 없는 단계: {step}")

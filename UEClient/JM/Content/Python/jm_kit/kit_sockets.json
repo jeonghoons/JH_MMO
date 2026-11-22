@@ -23,6 +23,26 @@
       "note": "자동 맞춤 2026-11-21(posed.grip_search_frames, 맨손, AS_OneHandSword_Idle 0.0·Attack 0.395/0.632·Skill1 0.875) — 직접 맞춘 값에서 4.92cm"
     },
     {
+      "name": "WeaponSocket_TwoHand",
+      "bone": "hand_r",
+      "loc": [
+        -8.962,
+        7.682,
+        -0.883
+      ],
+      "rot": [
+        -33.196,
+        -14.989,
+        -96.441
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "note": "양손검 전용(2026-11-22, D-273): 스켈레톤의 WeaponSocket_R을 소켓 Z(칼끝 쪽)로 10.2cm — 오른손 손바닥이 원점(가드 아래 약 5cm)에 오게(posed.hand_axis) → two_hand 4프레임 자동 맞춤(posed.grip_search_frames, 맨손, GreatSwordIdle 0.0·Slash 0.4/0.7·HighSpin 0.4: 옆 -2/-1cm·기울기 -10/-5°, 점수 -1134.5 → 605.5, 손이 무기 안 1046 → 156)"
+    },
+    {
       "name": "WeaponSocket_L",
       "bone": "hand_l",
       "loc": [
