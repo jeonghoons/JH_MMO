@@ -51,8 +51,11 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void OnAttackInput();
-	void OnSkill1Input();
+	void OnSkill1Input() { OnSkillSlotInput(1); }
+	// 숫자키 칸(1~5 = SkillTable Slot, SK2 D-278): 조준 단계가 있으면 조준 켜기/끄기, 없으면 바로 재생
+	void OnSkillSlotInput(int32 Slot);
 	void PlaySkillSlot(int32 Slot);
+	int32 TestAimingSlot = 0;   // 조준 중인 칸(좌클릭이 이 칸을 확정)
 
 	// 체형(1 MALE, 2 FEMALE)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Test")
@@ -82,6 +85,8 @@ protected:
 	TObjectPtr<UInputAction> AttackAction;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> Skill1Action;
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> Skill2Action;   // 숫자키 2(IA_QuickSlot2) — SK2 스킬2
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> CameraBoom;

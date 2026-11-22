@@ -6,6 +6,8 @@
 
 class UParticleSystem;
 class UParticleSystemComponent;
+class UStaticMesh;
+class UStaticMeshComponent;
 class AJMCharacterBase;
 
 // 투사체 스킬(HitShape Projectile)의 날아가는 모습만 그리는 클라이언트 전용 액터(D-254).
@@ -23,6 +25,9 @@ public:
 	// Target이 없으면 AimYaw 방향으로 MaxRange까지 날아간다. Speed = SkillTable.ProjSpeed(cm/s, 서버와 같은 값).
 	static AProjectileFx* Launch(AJMCharacterBase* Attacker, AJMCharacterBase* Target, UParticleSystem* Fx, float AimYaw, float Speed, float MaxRange);
 
+	// 메시를 함께 싣는다(SK2 3003 빛의 화살, D-278): 진행 방향으로 눕혀 붙이고 GrowSec 동안 StartScale → EndScale로 키운다.
+	void AttachMesh(UStaticMesh* Mesh, float StartScale, float EndScale, float GrowSec);
+
 	virtual void Tick(float DeltaSeconds) override;
 
 private:
@@ -31,6 +36,12 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UParticleSystemComponent> FxComp;
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> MeshComp;
+	float MeshStartScale = 1.f;
+	float MeshEndScale = 1.f;
+	float MeshGrowSec = 0.f;
+	float Age = 0.f;
 
 	TWeakObjectPtr<AJMCharacterBase> Target;
 	FVector Direction = FVector::ForwardVector;

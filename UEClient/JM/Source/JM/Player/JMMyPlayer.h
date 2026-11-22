@@ -200,6 +200,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
+	// 바닥 범위 표시(SK2, D-278): 조준 중에는 하늘색 테두리, 시전 후에는 타격 순간까지 주황으로 차오른다. 내 시전에만 보인다.
+	// 모양은 머티리얼(M_SkillIndicator)이 월드 위치와 파라미터(중심·Yaw·반쪽 크기·Shape·AngleDeg·Fill)로 계산한다 — 데칼 상자는 덮기만 한다.
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	TObjectPtr<class UDecalComponent> SkillIndicator;
+	UPROPERTY(EditDefaultsOnly, Category = "Skill")
+	TSoftObjectPtr<class UMaterialInterface> SkillIndicatorMaterial;
+	UPROPERTY(Transient)
+	TObjectPtr<class UMaterialInstanceDynamic> SkillIndicatorMID;
+	double IndicatorFillStart = 0.0;   // 시전 후 채움 시작·끝(월드 초). 끝이 지나면 숨김
+	double IndicatorFillEnd = 0.0;
+	bool bIndicatorFilling = false;
+
 protected:
 	// 이동 패킷 전송(S1): 움직이는 동안만 MoveSendInterval마다 보내고, 입력이 바뀌거나 멈추면 한 번 더 보낸다.
 	// 서버가 MoveMinInterval보다 잦은 패킷을 버리므로 그 안에 생긴 전송은 미뤘다가 보낸다. 수치는 MovementTable(PossessedBy)
@@ -241,8 +253,11 @@ private:
 
 	const FSkillTableRow* FindMySkill(int32 Slot) const;
 	bool ComputeAim(const FSkillTableRow& Skill, FAimResult& Out) const;
-	// Duration < 0이면 한 프레임(조준 중 매 틱 다시 그림), 0 이상이면 그 시간 동안 남긴다(시전한 공격의 범위 표시, D-199).
-	void DrawAimIndicator(const FSkillTableRow& Skill, const FAimResult& Aim, float Duration = -1.f) const;
+	// 범위 표시(D-199 → SK2 데칼, D-278). FillSec < 0 = 조준 중 테두리(매 틱 다시 놓음), 0 이상 = 시전 후 그 시간 동안 채움.
+	// 대상 지정(Targeted)·투사체(Projectile)는 표시하지 않는다.
+	void ShowSkillIndicator(const FSkillTableRow& Skill, const FAimResult& Aim, float FillSec);
+	void HideSkillIndicator();
+	void TickSkillIndicator();
 	void CastSkillSlot(int32 Slot);
 
 	// 조준 켜기/끄기. 켜기는 쿨타임·사망·빈도·AimMaxMs를 로컬에서 먼저 본다. bSendOff = 서버에 끄기를 보낼지(확정 공격은 서버가 해제하므로 false)
@@ -279,6 +294,7 @@ private:
 		TWeakObjectPtr<class UAnimMontage> Montage;                  // 먼저 재생한 몽타주
 		TWeakObjectPtr<class UParticleSystemComponent> FxComp;       // 먼저 만든 장판 이펙트
 		FTimerHandle FxTimer;                                        // 장판 끄기 또는 타격 시점 이펙트 대기
+		TSharedPtr<TWeakObjectPtr<class AActor>> Projectile;          // 타격 시점에 날린 투사체 연출(거부 때 지움 — SK2)
 	};
 	FPendingCast PendingCast;
 	uint32 AttackSeq = 0;              // CS_ATTACK을 보낼 때마다 +1

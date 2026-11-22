@@ -412,7 +412,7 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, int32 Targe
 }
 
 void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTableRow& Skill, int32 TargetId, float AimYaw, float AimX, float AimY,
-	TWeakObjectPtr<UParticleSystemComponent>* OutComp, FTimerHandle* OutTimer)
+	TWeakObjectPtr<UParticleSystemComponent>* OutComp, FTimerHandle* OutTimer, TSharedPtr<TWeakObjectPtr<AActor>> OutProjectile)
 {
 	UWorld* World = GetWorld();
 	if (World == nullptr || Attacker == nullptr) return;
@@ -450,6 +450,38 @@ void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTabl
 	}
 
 	// 투사체(D-254): 타격 시점(= 시위를 놓는 순간)에 화살 연출을 대상 쪽으로 날린다. 판정·피해는 서버가 따로 계산한다(SC_DAMAGE).
+	// 느린 관통 투사체(Pierce, D-278): 대상 없이 조준 방향으로 사거리(Range)까지 곧게 날리고, ProjMesh(빛의 화살)가 있으면 싣는다.
+	if (Skill.HitShape == ESkillHitShape::Pierce)
+	{
+		UStaticMesh* Mesh = Skill.ProjMesh.IsNull() ? nullptr : Skill.ProjMesh.LoadSynchronous();
+		if ((Fx == nullptr && Mesh == nullptr) || Skill.ProjSpeed <= 0.f) return;
+
+		TWeakObjectPtr<AJMCharacterBase> WeakAttacker = Attacker;
+		TWeakObjectPtr<UParticleSystem> WeakFx = Fx;
+		TWeakObjectPtr<UStaticMesh> WeakMesh = Mesh;
+		const float Speed = Skill.ProjSpeed;
+		const float MaxRange = Skill.Range;
+		const float StartScale = Skill.ProjStartScale, EndScale = Skill.ProjMeshScale, GrowSec = Skill.ProjGrowMs / 1000.f;
+		auto Launch = [WeakAttacker, WeakFx, WeakMesh, AimYaw, Speed, MaxRange, StartScale, EndScale, GrowSec, OutProjectile]()
+			{
+				if (!WeakAttacker.IsValid()) return;
+				AProjectileFx* Proj = AProjectileFx::Launch(WeakAttacker.Get(), nullptr, WeakFx.Get(), AimYaw, Speed, MaxRange);
+				if (Proj && WeakMesh.IsValid()) Proj->AttachMesh(WeakMesh.Get(), StartScale, EndScale, GrowSec);
+				if (Proj && OutProjectile.IsValid()) *OutProjectile = Proj;
+			};
+		if (Skill.HitDelayMs > 0)
+		{
+			FTimerHandle Handle;
+			World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(Attacker, Launch), Skill.HitDelayMs / 1000.f / Attacker->GetAttackPlayRate(&Skill), false);
+			if (OutTimer) *OutTimer = Handle;
+		}
+		else
+		{
+			Launch();
+		}
+		return;
+	}
+
 	if (Skill.HitShape == ESkillHitShape::Projectile)
 	{
 		if (Fx == nullptr || Skill.ProjSpeed <= 0.f) return;
@@ -463,10 +495,11 @@ void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTabl
 		TWeakObjectPtr<UParticleSystem> WeakFx = Fx;
 		const float Speed = Skill.ProjSpeed;
 		const float MaxRange = FMath::Max(Skill.Range, Skill.CastRange) * 1.2f + 100.f;
-		auto Launch = [WeakAttacker, WeakTarget, WeakFx, AimYaw, Speed, MaxRange]()
+		auto Launch = [WeakAttacker, WeakTarget, WeakFx, AimYaw, Speed, MaxRange, OutProjectile]()
 			{
 				if (!WeakAttacker.IsValid() || !WeakFx.IsValid()) return;
-				AProjectileFx::Launch(WeakAttacker.Get(), WeakTarget.Get(), WeakFx.Get(), AimYaw, Speed, MaxRange);
+				AProjectileFx* Proj = AProjectileFx::Launch(WeakAttacker.Get(), WeakTarget.Get(), WeakFx.Get(), AimYaw, Speed, MaxRange);
+				if (Proj && OutProjectile.IsValid()) *OutProjectile = Proj;
 			};
 
 		if (Skill.HitDelayMs > 0)

@@ -95,7 +95,8 @@ void ATestPlayer::RunAutoCommand(const FString& Command)
 
 	UE_LOG(LogTemp, Log, TEXT("TestPlayer auto: %s"), *Command);
 	if (Verb == TEXT("attack")) OnAttackInput();
-	else if (Verb == TEXT("skill1")) OnSkill1Input();
+	else if (Verb == TEXT("skill1")) OnSkillSlotInput(1);
+	else if (Verb == TEXT("skill2")) OnSkillSlotInput(2);
 	else if (Verb == TEXT("equip")) TestEquip(static_cast<int32>(Num(1, 0)), static_cast<int32>(Num(2, 0)));
 	else if (Verb == TEXT("fx") && Args.IsValidIndex(1)) TestFx(Args[1]);
 	else if (Verb == TEXT("face")) bFaceCameraOnAttack = Num(1, 1) != 0.f;
@@ -176,7 +177,8 @@ void ATestPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		if (MouseLookAction) Input->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &ATestPlayer::Look);
 		if (LookAction) Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATestPlayer::Look);
 		if (AttackAction) Input->BindAction(AttackAction, ETriggerEvent::Started, this, &ATestPlayer::OnAttackInput);
-		if (Skill1Action) Input->BindAction(Skill1Action, ETriggerEvent::Started, this, &ATestPlayer::OnSkill1Input);
+		if (Skill1Action) Input->BindAction(Skill1Action, ETriggerEvent::Started, this, &ATestPlayer::OnSkillSlotInput, 1);
+		if (Skill2Action) Input->BindAction(Skill2Action, ETriggerEvent::Started, this, &ATestPlayer::OnSkillSlotInput, 2);
 	}
 }
 
@@ -205,14 +207,14 @@ void ATestPlayer::OnAttackInput()
 	// 조준 중이면 조준한 스킬을 확정한다(실제 게임과 같이 시전 방향 고정 뒤 조준 해제)
 	if (IsSkillAiming())
 	{
-		PlaySkillSlot(1);
+		PlaySkillSlot(TestAimingSlot > 0 ? TestAimingSlot : 1);
 		SetSkillAiming(0);
 		return;
 	}
 	PlaySkillSlot(0);
 }
 
-void ATestPlayer::OnSkill1Input()
+void ATestPlayer::OnSkillSlotInput(int32 Slot)
 {
 	// 조준 단계가 있는 스킬(AimMaxMs > 0)은 조준 켜기/끄기(로컬 — 감속·카메라 방향·조준 자세 확인용), 없으면 바로 재생한다.
 	if (IsSkillAiming())
@@ -221,14 +223,15 @@ void ATestPlayer::OnSkill1Input()
 		return;
 	}
 	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
-	const FSkillTableRow* Skill = DataManager ? DataManager->FindSkillBySlot(GetWeaponType(), 1) : nullptr;
-	const int32 SkillId = DataManager ? DataManager->FindSkillIdBySlot(GetWeaponType(), 1) : 0;
+	const FSkillTableRow* Skill = DataManager ? DataManager->FindSkillBySlot(GetWeaponType(), Slot) : nullptr;
+	const int32 SkillId = DataManager ? DataManager->FindSkillIdBySlot(GetWeaponType(), Slot) : 0;
 	if (Skill && Skill->AimMaxMs > 0 && SkillId != 0)
 	{
+		TestAimingSlot = Slot;
 		SetSkillAiming(SkillId);
 		return;
 	}
-	PlaySkillSlot(1);
+	PlaySkillSlot(Slot);
 }
 
 void ATestPlayer::PlaySkillSlot(int32 Slot)

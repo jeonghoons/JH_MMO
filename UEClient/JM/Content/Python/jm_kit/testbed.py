@@ -22,7 +22,8 @@ GAME_MODE_BP = DIR + "/BP_TestGameMode"
 _IN = "/Game/Input/"
 INPUTS = {"default_mapping_context": _IN + "IMC_Default", "move_action": _IN + "Actions/IA_Move",
           "look_action": _IN + "Actions/IA_Look", "mouse_look_action": _IN + "Actions/IA_MouseLook",
-          "attack_action": _IN + "Actions/IA_Attack", "skill1_action": _IN + "Actions/IA_Skill1"}
+          "attack_action": _IN + "Actions/IA_Attack", "skill1_action": _IN + "Actions/IA_Skill1",
+          "skill2_action": _IN + "Actions/IA_QuickSlot2"}   # SK2(D-278): 숫자키 2 = 스킬2
 DEFAULT_ITEMS = [1101, 2101, 3101, 4101, 5101, 6102]   # 천 세트 + 천 활(ItemTable)
 TEST_MAX_WALK_SPEED = 500.0   # 서버 스탯 PlayerStatTable 1001 MoveSpeed와 같게(UE에는 이 테이블이 없음, 테스트 전용)
 

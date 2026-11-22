@@ -45,6 +45,10 @@ POSES = {
     "th_raise":       (_A + "TwoHandSword/AS_TwoHandSword_GreatSwordSlash", 0.4, "two_hand"),
     "th_swing":       (_A + "TwoHandSword/AS_TwoHandSword_GreatSwordSlash", 0.7, "two_hand"),
     "th_spin":        (_A + "TwoHandSword/AS_TwoHandSword_GreatSwordHighSpinAttack", 0.4, "two_hand"),
+    # 스킬1 타격 순간(스킬 아이콘 참고용) — 몽타주가 시퀀스를 0초부터 감싸므로 SkillTable HitDelayMs = 시퀀스 시각
+    "sword_skill_hit": (_A + "OneHandSword/AS_OneHandSword_Skill1", 1.25, "sword"),            # 2002
+    "bow_skill_hit":   (_A + "Bow/AS_Bow_Skill1", 0.18, "bow"),                                # 3002
+    "th_skill_hit":    (_A + "TwoHandSword/AS_TwoHandSword_GreatSwordHighSpinAttack", 1.0, "two_hand"),  # 4002
 }
 SHOULDER_JOINTS = ("clavicle_l", "clavicle_r", "upperarm_l", "upperarm_r")
 SHOULDER_RADIUS = 18.0   # cm, 기준 자세에서 관절 중심으로부터
@@ -235,8 +239,19 @@ def _pose_all(rec, seq, t):
     return msgs
 
 
+def _pose_def(pose_key):
+    """POSES 키, 또는 임의 시점 "<시퀀스 경로>@<길이 비율 0~1>@<무기 타입>"(동작 후보 비교용) → (시퀀스, 초, 무기 타입)."""
+    if pose_key in POSES:
+        return POSES[pose_key]
+    seq, frac, wtype = pose_key.split("@")
+    anim = unreal.load_asset(seq)
+    if anim is None:
+        raise RuntimeError(f"시퀀스 없음: {seq}")
+    return seq, float(frac) * anim.get_play_length(), wtype
+
+
 def pose(prefix, pose_key):
-    seq, t, _w = POSES[pose_key]
+    seq, t, _w = _pose_def(pose_key)
     return _pose_all(_RIGS[prefix], seq, t)
 
 
@@ -871,14 +886,15 @@ def run(body, loadout, pose_keys, take_shots=True, label="", prefix="PZ", loc=(0
     results = {}
     current = None
     for key in pose_keys:
-        _seq, _t, wtype = POSES[key]
+        _seq, _t, wtype = _pose_def(key)
         if current != wtype:
             rec = rig(prefix, body, loadout, loadout.get(wtype), loc)
             current = wtype
         pose(prefix, key)
         r = {"hands": measure_hands(rec), "top": measure_top(rec)}
         if take_shots:
-            r["shots"] = shots(prefix, f"MC42e_{label or 'x'}_{body}_{key}")
+            tag = key.split("/")[-1].replace("@", "_")   # 임의 시점 키는 시퀀스 이름_비율_무기
+            r["shots"] = shots(prefix, f"MC42e_{label or 'x'}_{body}_{tag}")
         results[key] = r
     clear(prefix)
     return results

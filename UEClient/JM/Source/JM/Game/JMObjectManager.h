@@ -89,8 +89,11 @@ public:
 	// SkillTable의 Fx를 HitShape에 맞춰 재생한다. 장판은 조준 지점에 DurationMs 동안, 부채꼴·직선은 타격 시점에 시전자 발밑에서 1회,
 	// 투사체는 타격 시점(HitDelayMs = 시위를 놓는 순간)에 화살 연출(AProjectileFx)을 TargetId 쪽으로 ProjSpeed로 날린다(D-254 — 판정은 서버).
 	// OutComp·OutTimer(CP1): 내 캐릭터가 먼저 시작한 이펙트를 거부 때 지울 수 있게 장판 컴포넌트와 타이머(장판 끄기 또는 타격 시점 대기)를 돌려준다.
+	// 느린 관통 투사체(Pierce, SK2 D-278)는 대상 없이 AimYaw 방향으로 Range까지 날리고 ProjMesh가 있으면 함께 싣는다.
+	// OutProjectile: 타격 시점에 만든 투사체 연출 액터를 담는다(거부 때 지움 — 타이머가 이미 돈 뒤의 거부 대비).
 	void SpawnSkillFx(AJMCharacterBase* Attacker, const struct FSkillTableRow& Skill, int32 TargetId, float AimYaw, float AimX, float AimY,
-		TWeakObjectPtr<class UParticleSystemComponent>* OutComp = nullptr, FTimerHandle* OutTimer = nullptr);
+		TWeakObjectPtr<class UParticleSystemComponent>* OutComp = nullptr, FTimerHandle* OutTimer = nullptr,
+		TSharedPtr<TWeakObjectPtr<class AActor>> OutProjectile = nullptr);
 
 private:
 	// 전투 HUD(UIManager에 HUD 이름으로 등록된 위젯). 로그인 화면처럼 HUD가 없으면 nullptr

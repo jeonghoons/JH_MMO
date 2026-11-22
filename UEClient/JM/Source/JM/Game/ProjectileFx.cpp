@@ -5,6 +5,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 
 namespace
@@ -26,7 +28,7 @@ AProjectileFx::AProjectileFx()
 
 AProjectileFx* AProjectileFx::Launch(AJMCharacterBase* Attacker, AJMCharacterBase* Target, UParticleSystem* Fx, float AimYaw, float Speed, float MaxRange)
 {
-	if (Attacker == nullptr || Fx == nullptr || Speed <= 0.f) return nullptr;
+	if (Attacker == nullptr || Speed <= 0.f) return nullptr;
 	UWorld* World = Attacker->GetWorld();
 	if (World == nullptr) return nullptr;
 
@@ -52,15 +54,41 @@ AProjectileFx* AProjectileFx::Launch(AJMCharacterBase* Attacker, AJMCharacterBas
 	Proj->Direction = Dir;
 	Proj->Speed = Speed;
 	Proj->RemainDist = MaxRange;
-	Proj->FxComp = UGameplayStatics::SpawnEmitterAttached(Fx, Proj->GetRootComponent(), NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
-		EAttachLocation::KeepRelativeOffset, /*bAutoDestroy*/ false);
+	if (Fx)
+	{
+		Proj->FxComp = UGameplayStatics::SpawnEmitterAttached(Fx, Proj->GetRootComponent(), NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset, /*bAutoDestroy*/ false);
+	}
 	return Proj;
+}
+
+void AProjectileFx::AttachMesh(UStaticMesh* Mesh, float StartScale, float EndScale, float GrowSec)
+{
+	if (Mesh == nullptr) return;
+	MeshComp = NewObject<UStaticMeshComponent>(this, TEXT("ProjMesh"));
+	MeshComp->SetStaticMesh(Mesh);
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MeshComp->SetCastShadow(false);
+	MeshComp->SetupAttachment(GetRootComponent());
+	MeshComp->RegisterComponent();
+	MeshStartScale = StartScale;
+	MeshEndScale = EndScale;
+	MeshGrowSec = FMath::Max(0.f, GrowSec);
+	MeshComp->SetRelativeScale3D(FVector(MeshGrowSec > 0.f ? MeshStartScale : MeshEndScale));
 }
 
 void AProjectileFx::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	if (bFinished) return;
+
+	// 메시 크기: 나가는 순간 일반 화살 크기에서 판정 폭에 맞는 크기로 빠르게 커진다(D-278)
+	Age += DeltaSeconds;
+	if (MeshComp && MeshGrowSec > 0.f)
+	{
+		const float Alpha = FMath::Clamp(Age / MeshGrowSec, 0.f, 1.f);
+		MeshComp->SetRelativeScale3D(FVector(FMath::Lerp(MeshStartScale, MeshEndScale, Alpha)));
+	}
 
 	const FVector Here = GetActorLocation();
 	const float Step = Speed * DeltaSeconds;
@@ -90,5 +118,6 @@ void AProjectileFx::Finish()
 	bFinished = true;
 	SetActorTickEnabled(false);
 	if (FxComp) FxComp->DeactivateSystem();
+	if (MeshComp) MeshComp->SetVisibility(false);
 	SetLifeSpan(FadeOutSec);
 }

@@ -5,6 +5,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Animation/AnimMontage.h"
 #include "Engine/Texture2D.h"
+#include "Engine/StaticMesh.h"
 #include "Data/ItemTableRow.h"
 #include "SkillTableRow.generated.h"
 
@@ -22,7 +23,8 @@ enum class ESkillHitShape : uint8
 	Sector,
 	Line,
 	Projectile,
-	Zone
+	Zone,
+	Pierce     // 느린 관통 투사체(SK2, D-278): 조준 방향으로 ProjSpeed로 Range까지, 폭 Width 안의 대상을 지나가며 한 번씩 맞힘
 };
 
 // Common/DataTable/SkillTable.csv 의 한 행. 컬럼명은 CSV 헤더와 1:1이다.
@@ -70,4 +72,11 @@ struct FSkillTableRow : public FTableRowBase
 
 	// 클라이언트 전용(서버 로더는 읽지 않음). 전투 HUD 스킬 슬롯 아이콘. 비어 있으면 키 글자만 표시한다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UTexture2D> Icon;
+
+	// 클라이언트 전용(SK2, D-278). 투사체 연출(AProjectileFx)에 싣는 메시(예: 3003 빛의 화살). 비어 있으면 Fx 파티클만 날아간다.
+	// 크기: 활에서 나갈 때 ProjStartScale에서 ProjGrowMs 동안 ProjMeshScale까지 커진다(일반 화살 크기 → 판정 폭에 맞는 크기).
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UStaticMesh> ProjMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ProjMeshScale = 1.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ProjStartScale = 1.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ProjGrowMs = 0;
 };

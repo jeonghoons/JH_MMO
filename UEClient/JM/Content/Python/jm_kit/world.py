@@ -1502,6 +1502,12 @@ def run_step(name, step, args=None):
         from jm_kit import dungeon
         importlib.reload(dungeon)
         return dungeon.run(name, step, args)
+    if step.startswith("si_"):
+        # 스킬 연출 에셋(SK2, D-278 — 범위 표시 데칼 머티리얼 등): jm_kit.skill_fx
+        import importlib
+        from jm_kit import skill_fx
+        importlib.reload(skill_fx)
+        return skill_fx.run(step, args)
     if step.startswith("sk_") or step.startswith("wn_"):
         # 장비 소켓·무기 메시 정규화(D-247~D-249): jm_kit.kit_sockets, jm_kit.weapon_norm
         import importlib

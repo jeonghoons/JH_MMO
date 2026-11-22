@@ -32,6 +32,8 @@
 #include "Animation/AnimMontage.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "TimerManager.h"
+#include "Components/DecalComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 namespace
 {
@@ -57,6 +59,16 @@ AJMMyPlayer::AJMMyPlayer()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	IsMyPlayer = true;
+
+	// 바닥 범위 표시(SK2, D-278): 월드 위치·회전으로 둔다(캐릭터 회전을 따라가지 않음). 아래로 투영(pitch -90).
+	SkillIndicator = CreateDefaultSubobject<UDecalComponent>(TEXT("SkillIndicator"));
+	SkillIndicator->SetupAttachment(RootComponent);
+	SkillIndicator->SetUsingAbsoluteLocation(true);
+	SkillIndicator->SetUsingAbsoluteRotation(true);
+	SkillIndicator->SetUsingAbsoluteScale(true);
+	SkillIndicator->SetWorldRotation(FRotator(-90.f, 0.f, 0.f));
+	SkillIndicator->SetVisibility(false);
+	SkillIndicatorMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(TEXT("/Game/FX/Indicator/M_SkillIndicator.M_SkillIndicator")));
 }
 
 void AJMMyPlayer::BeginPlay()
@@ -190,8 +202,9 @@ void AJMMyPlayer::Tick(float DeltaTime)
 		FAimResult Aim;
 		if (AimSkill == nullptr) EndLocalAim(true);
 		else if ((FPlatformTime::Seconds() - AimStartTime) * 1000.0 >= AimMaxMs) EndLocalAim(true);   // 최대 유지 시간: 서버보다 먼저 끈다
-		else if (ComputeAim(*AimSkill, Aim)) DrawAimIndicator(*AimSkill, Aim);
+		else if (ComputeAim(*AimSkill, Aim)) ShowSkillIndicator(*AimSkill, Aim, -1.f);
 	}
+	TickSkillIndicator();
 
 	// 사망 중에는 이동을 보내지 않는다(서버도 버린다, D-149). 부활 때 SC_REVIVE의 위치·순번에서 다시 시작한다.
 	// 레벨 전환 대기 중에도 보내지 않는다(서버는 로딩 대기 중의 이동을 버린다, DG3c-2).
@@ -376,7 +389,17 @@ bool AJMMyPlayer::ComputeAim(const FSkillTableRow& Skill, FAimResult& Out) const
 			if (DistSq > FMath::Square(Skill.CastRange)) continue;   // 사거리 밖
 			if (DistSq < BestDistSq) { BestDistSq = DistSq; Best = Npc; }
 		}
-		if (Best == nullptr) return false;   // 대상이 없으면 아무 일도 하지 않는다.
+		if (Best == nullptr)
+		{
+			// 근접(투사체 속도 0)은 대상이 없어도 카메라 방향으로 허공에 휘두른다(SK2, D-278 — 서버도 대상 0을 헛스윙으로 받음).
+			// 원거리(활 기본 공격)는 지금처럼 아무 일도 하지 않는다.
+			if (Skill.ProjSpeed > 0.f) return false;
+			Out.TargetId = 0;
+			Out.Yaw = CamRot.Yaw;
+			Out.Point = FVector2D(Self.X, Self.Y);
+			Out.bValid = true;
+			return true;
+		}
 
 		const FVector Dir = Best->GetActorLocation() - Self;
 		Out.TargetId = Best->GetObjectInfo().id();
@@ -430,35 +453,101 @@ bool AJMMyPlayer::IsMoveLocked() const
 	return GetWorld() != nullptr && GetWorld()->GetTimeSeconds() < MoveLockUntil;
 }
 
-void AJMMyPlayer::DrawAimIndicator(const FSkillTableRow& Skill, const FAimResult& Aim, float Duration) const
+void AJMMyPlayer::ShowSkillIndicator(const FSkillTableRow& Skill, const FAimResult& Aim, float FillSec)
 {
-	// 임시 표시: 디버그 도형. 장판/부채꼴 데칼 연출은 A2.2d에서 교체한다.
-	const float FeetZ = GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + 5.f;
-	const FVector Self(GetActorLocation().X, GetActorLocation().Y, FeetZ);
-	const FColor Color = FColor(255, 80, 80);
-	const float Life = Duration;
+	// 대상 지정(근접·활 기본 공격)과 대상 투사체는 범위가 없으니 표시하지 않는다.
+	if (SkillIndicator == nullptr || Skill.TargetingType == ESkillTargetingType::Targeted || Skill.HitShape == ESkillHitShape::Projectile)
+	{
+		if (FillSec >= 0.f) HideSkillIndicator();
+		return;
+	}
+	if (SkillIndicatorMID == nullptr)
+	{
+		UMaterialInterface* Mat = SkillIndicatorMaterial.LoadSynchronous();
+		if (Mat == nullptr) return;
+		SkillIndicator->SetDecalMaterial(Mat);
+		SkillIndicatorMID = SkillIndicator->CreateDynamicMaterialInstance();
+		if (SkillIndicatorMID == nullptr) return;
+	}
 
+	const float FeetZ = GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	const FVector2D Self(GetActorLocation().X, GetActorLocation().Y);
+	const FVector2D Dir(FMath::Cos(FMath::DegreesToRadians(Aim.Yaw)), FMath::Sin(FMath::DegreesToRadians(Aim.Yaw)));
+
+	// 모양: 0 = 원·부채꼴(가운데가 시전자 또는 장판 지점), 1 = 직사각형(Pierce·Line — 시전자에서 앞으로 Range, 폭 Width)
+	float Shape = 0.f, AngleDeg = 360.f, HalfF = 0.f, HalfS = 0.f, Yaw = Aim.Yaw;
+	FVector2D Center = Self;
 	if (Skill.HitShape == ESkillHitShape::Zone)
 	{
-		const FVector Center(Aim.Point.X, Aim.Point.Y, FeetZ);
-		DrawDebugCircle(GetWorld(), Center, Skill.Radius, 48, Color, false, Life, 0, 4.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
-		DrawDebugLine(GetWorld(), Self, Center, Color, false, Life, 0, 2.f);
-		if (Life < 0.f) DrawDebugCircle(GetWorld(), Self, Skill.CastRange, 64, FColor(120, 120, 120), false, -1.f, 0, 1.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+		Center = Aim.Point;
+		HalfF = HalfS = Skill.Radius;
+		Yaw = 0.f;
 	}
 	else if (Skill.HitShape == ESkillHitShape::Sector)
 	{
-		const FVector Dir = FRotator(0.f, Aim.Yaw, 0.f).Vector();
-		const float HalfAngle = FMath::DegreesToRadians(Skill.Angle * 0.5f);
-		DrawDebugCircleArc(GetWorld(), Self, Skill.Radius, Dir, HalfAngle, 32, Color, false, Life, 0, 4.f);
-		DrawDebugLine(GetWorld(), Self, Self + FVector(Dir.X * FMath::Cos(HalfAngle) - Dir.Y * FMath::Sin(HalfAngle), Dir.X * FMath::Sin(HalfAngle) + Dir.Y * FMath::Cos(HalfAngle), 0.f) * Skill.Radius, Color, false, Life, 0, 3.f);
-		DrawDebugLine(GetWorld(), Self, Self + FVector(Dir.X * FMath::Cos(-HalfAngle) - Dir.Y * FMath::Sin(-HalfAngle), Dir.X * FMath::Sin(-HalfAngle) + Dir.Y * FMath::Cos(-HalfAngle), 0.f) * Skill.Radius, Color, false, Life, 0, 3.f);
+		AngleDeg = Skill.Angle;
+		HalfF = HalfS = Skill.Radius;
 	}
 	else
 	{
-		const FVector Dir = FRotator(0.f, Aim.Yaw, 0.f).Vector();
-		// 대상 지정(활 기본 공격)은 대상까지, 그 밖은 사거리 끝까지
-		const FVector LineEnd = (Aim.TargetId != 0) ? FVector(Aim.Point.X, Aim.Point.Y, FeetZ) : Self + Dir * FMath::Max(Skill.Range, Skill.CastRange);
-		DrawDebugLine(GetWorld(), Self, LineEnd, Color, false, Life, 0, 4.f);
+		Shape = 1.f;
+		const float Length = FMath::Max(Skill.Range, Skill.CastRange);
+		HalfF = Length * 0.5f;
+		HalfS = FMath::Max(Skill.Width * 0.5f, 10.f);
+		Center = Self + Dir * HalfF;
+	}
+	if (HalfF <= 0.f) return;
+
+	constexpr float BorderCm = 8.f;
+	const float Extent = FMath::Max(HalfF, HalfS) + 20.f;
+	SkillIndicator->DecalSize = FVector(120.f, Extent, Extent);   // (위아래 투영 깊이, 바닥 두 축) — 깊이를 얕게 해 캐릭터 몸에 덜 묻게
+	SkillIndicator->SetWorldLocation(FVector(Center.X, Center.Y, FeetZ));
+	SkillIndicator->SetWorldRotation(FRotator(-90.f, 0.f, 0.f));
+	SkillIndicatorMID->SetScalarParameterValue(TEXT("CenterX"), Center.X);
+	SkillIndicatorMID->SetScalarParameterValue(TEXT("CenterY"), Center.Y);
+	SkillIndicatorMID->SetScalarParameterValue(TEXT("Yaw"), Yaw);
+	SkillIndicatorMID->SetScalarParameterValue(TEXT("HalfF"), HalfF);
+	SkillIndicatorMID->SetScalarParameterValue(TEXT("HalfS"), HalfS);
+	SkillIndicatorMID->SetScalarParameterValue(TEXT("Shape"), Shape);
+	SkillIndicatorMID->SetScalarParameterValue(TEXT("AngleDeg"), AngleDeg);
+	SkillIndicatorMID->SetScalarParameterValue(TEXT("BorderU"), FMath::Min(0.5f, BorderCm / HalfF));
+	SkillIndicatorMID->SetScalarParameterValue(TEXT("BorderV"), FMath::Min(0.5f, BorderCm / HalfS));
+
+	if (FillSec >= 0.f)
+	{
+		const double Now = GetWorld()->GetTimeSeconds();
+		IndicatorFillStart = Now;
+		IndicatorFillEnd = Now + FMath::Max(FillSec, 0.05f);
+		bIndicatorFilling = true;
+		SkillIndicatorMID->SetScalarParameterValue(TEXT("Fill"), 0.001f);
+	}
+	else
+	{
+		bIndicatorFilling = false;
+		SkillIndicatorMID->SetScalarParameterValue(TEXT("Fill"), 0.f);
+	}
+	SkillIndicator->SetVisibility(true);
+}
+
+void AJMMyPlayer::HideSkillIndicator()
+{
+	bIndicatorFilling = false;
+	if (SkillIndicator) SkillIndicator->SetVisibility(false);
+}
+
+void AJMMyPlayer::TickSkillIndicator()
+{
+	if (SkillIndicator == nullptr || !SkillIndicator->IsVisible()) return;
+	if (bIndicatorFilling)
+	{
+		const double Now = GetWorld()->GetTimeSeconds();
+		const float Alpha = static_cast<float>((Now - IndicatorFillStart) / FMath::Max(IndicatorFillEnd - IndicatorFillStart, 0.01));
+		if (SkillIndicatorMID) SkillIndicatorMID->SetScalarParameterValue(TEXT("Fill"), FMath::Clamp(Alpha, 0.001f, 1.f));
+		if (Now > IndicatorFillEnd + 0.15) HideSkillIndicator();   // 타격 순간 꽉 찬 모습을 잠깐 보여 주고 끈다
+	}
+	else if (!bAiming)
+	{
+		HideSkillIndicator();
 	}
 }
 
@@ -540,8 +629,8 @@ void AJMMyPlayer::CastSkillSlot(int32 Slot)
 		SyncTransformToInfo();
 		bMoveSendPending = true;
 	}
-	// 판정이 나는 순간까지 판정 범위를 바닥에 그린다(임시 표시 — 조준 표시와 같은 디버그 도형).
-	DrawAimIndicator(*Skill, Aim, FMath::Max(Skill->HitDelayMs / 1000.f / Rate, 0.15f));
+	// 판정이 나는 순간까지 판정 범위를 바닥에 채워 보여 준다(SK2 데칼).
+	ShowSkillIndicator(*Skill, Aim, FMath::Max(Skill->HitDelayMs / 1000.f / Rate, 0.15f));
 
 	// 서버는 CS_ATTACK을 받으며 조준을 해제한다(성공이든 실패든). 끄기를 따로 보내지 않는다.
 	EndLocalAim(false);
@@ -553,7 +642,10 @@ void AJMMyPlayer::CastSkillSlot(int32 Slot)
 
 	// 이펙트(장판은 내가 조준한 지점 — 서버도 같은 식으로 사거리 보정을 한다)
 	if (UJMObjectManager* ObjectManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMObjectManager>() : nullptr)
-		ObjectManager->SpawnSkillFx(this, *Skill, Aim.TargetId, Aim.Yaw, Aim.Point.X, Aim.Point.Y, &PendingCast.FxComp, &PendingCast.FxTimer);
+	{
+		PendingCast.Projectile = MakeShared<TWeakObjectPtr<AActor>>();
+		ObjectManager->SpawnSkillFx(this, *Skill, Aim.TargetId, Aim.Yaw, Aim.Point.X, Aim.Point.Y, &PendingCast.FxComp, &PendingCast.FxTimer, PendingCast.Projectile);
+	}
 
 	// 쿨타임 표시(길이는 SkillTable 값 = 서버가 적용하는 값)
 	if (Skill->CooldownMs > 0)
@@ -609,6 +701,8 @@ void AJMMyPlayer::UndoPendingCast()
 	// 이펙트
 	if (GetWorld()) GetWorld()->GetTimerManager().ClearTimer(PendingCast.FxTimer);
 	if (UParticleSystemComponent* FxComp = PendingCast.FxComp.Get()) FxComp->DestroyComponent();
+	if (PendingCast.Projectile.IsValid())
+		if (AActor* Proj = PendingCast.Projectile->Get()) Proj->Destroy();
 
 	// 쿨타임: 시전 전 값으로
 	UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
@@ -631,7 +725,7 @@ void AJMMyPlayer::UndoPendingCast()
 		GetWorldTimerManager().ClearTimer(FacingLockTimer);
 		UnlockFacing();
 	}
-	if (GetWorld()) FlushPersistentDebugLines(GetWorld());
+	HideSkillIndicator();
 }
 
 void AJMMyPlayer::RollbackCast(uint32 Seq, int32 Result, int32 RemainMs)
@@ -1049,6 +1143,7 @@ void AJMMyPlayer::ResetForRoomChange()
 
 	// 조준은 서버가 이미 해제했으므로 끄기 패킷 없이 로컬에서만 끈다.
 	EndLocalAim(false);
+	HideSkillIndicator();
 
 	// 이동·행동 잠금: 옛 Room에서 걸린 시간은 새 Room에 가져가지 않는다.
 	MoveLockUntil = 0.0;
