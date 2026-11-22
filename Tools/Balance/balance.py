@@ -70,14 +70,14 @@ SKILLS = {
     # id: (무기, 슬롯, BaseDamage, AnimMs, CooldownMs, MpCost, 맞는 횟수, AttackScale%)
     # SK2(D-278): 무기마다 기본 공격(슬롯 0) + 스킬1(1) + 스킬2(2). AnimMs는 몽타주 길이(ExportSkillTiming이 CSV를 쓰면 여기도 맞춤)
     2001: ("Sword", 0, 50, 1500, 0, 0, 1, 100),
-    2002: ("Sword", 1, 80, 1800, 5000, 15, 1, 100),     # 스킬1 앞 부채꼴(Attack3) — AnimMs는 몽타주 전 임시
+    2002: ("Sword", 1, 80, 1733, 5000, 15, 1, 100),     # 스킬1 앞 부채꼴(AM_OneHandSword_Skill1 = Attack3, 1.733초)
     2003: ("Sword", 2, 150, 2333, 8000, 30, 1, 100),    # 스킬2 도약 내려찍기(옛 2002 동작)
     3001: ("Bow", 0, 40, 1733, 0, 0, 1, 80),
     3002: ("Bow", 1, 30, 700, 5000, 20, 3, 30),   # 장판 3초 × 1초 틱(틱마다 공격력 30% → 3틱 90%)
     3003: ("Bow", 2, 100, 700, 12000, 30, 1, 60),     # 스킬2 빛의 화살(Pierce) — 허수아비 1마리 기준 1회
     4001: ("TwoHandSword", 0, 60, 1267, 0, 0, 1, 100),   # AnimMs = AM_TwoHandSword_Attack 몽타주 길이 1.267초 (WT1)
     4002: ("TwoHandSword", 1, 100, 1867, 6000, 30, 1, 100),  # AnimMs = AM_TwoHandSword_Skill1 1.867초 (WT1)
-    4003: ("TwoHandSword", 2, 200, 2200, 10000, 40, 1, 100),  # 스킬2 도약 내려찍기(JumpAttack) — AnimMs는 몽타주 전 임시
+    4003: ("TwoHandSword", 2, 200, 2167, 10000, 40, 1, 100),  # 스킬2 점프 내려찍기(AM_TwoHandSword_Skill2 = JumpAttack, 2.167초)
 }
 WEAPON_SKILLS = {"Sword": (2001, [2002, 2003]), "Bow": (3001, [3002, 3003]), "TwoHandSword": (4001, [4002, 4003])}
 
@@ -87,29 +87,31 @@ SKILL_SHAPE = {
     1001: dict(TargetingType="Targeted", HitShape="Sector", CastRange=200, Radius=150, Angle=180),   # 근접 단일 타겟팅 + 헛스윙
     2001: dict(TargetingType="Targeted", HitShape="Sector", CastRange=250, Radius=190, Angle=180),
     2002: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=250, Angle=180, AimMaxMs=0,
-               Montage=_ANIM + "OneHandSword/AM_OneHandSword_Skill1.AM_OneHandSword_Skill1", Fx="", FxBaseRadius=0, Icon=""),
+               Montage=_ANIM + "OneHandSword/AM_OneHandSword_Skill1.AM_OneHandSword_Skill1", Icon="",
+               Fx="/Game/FX/AoE/P_AoE_Burst_Fire.P_AoE_Burst_Fire", FxBaseRadius=220),   # SK2 FX 후보 시트 B(사용자 선택) — bb 440 / 2
     2003: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=300, Angle=360, AimMaxMs=0,
                Montage=_ANIM + "OneHandSword/AM_OneHandSword_Skill2.AM_OneHandSword_Skill2",
                # 옛 2002(도약 내려찍기)의 외형을 그대로 가져옴
-               Fx="/Game/FX/AoE/P_AoE_Smash.P_AoE_Smash", FxBaseRadius=300,
+               Fx="/Game/FX/AoE/P_AoE_Rock_Land.P_AoE_Rock_Land", FxBaseRadius=650,   # SK2 FX 후보 시트 B(사용자 선택) — bb 1300 / 2
                HitFx="/Game/FX/Hit/P_Hit_Slash_Heavy.P_Hit_Slash_Heavy",
                Icon="/Game/UI/Icons/Skill/T_Icon_Skill_Sword_1.T_Icon_Skill_Sword_1"),
     3002: dict(AimMaxMs=10000),
     3003: dict(TargetingType="NonTargeted", HitShape="Pierce", CastRange=0, Radius=0, Angle=0, Range=2500, Width=80,
-               ProjSpeed=1000, AimMaxMs=10000, AimMoveSpeedMul="0.4",
+               ProjSpeed=1000, AimMaxMs=10000, AimMoveSpeedMul="0.4", HitFx="/Game/FX/Hit/P_Hit_Arrow.P_Hit_Arrow",
+               # 빛의 화살(VARCO, jm_kit.skill_fx si_arrow_import — 길이 3m·굵기 80cm): 나갈 때 0.27배(약 80cm, 일반 화살) → 0.2초에 1배
+               ProjMesh="/Game/FX/Proj/LightArrow/SM_Proj_LightArrow.SM_Proj_LightArrow", ProjMeshScale="1.0", ProjStartScale="0.27", ProjGrowMs=200,
+               Fx="/Game/FX/Proj/P_Proj_Arrow_Charged.P_Proj_Arrow_Charged",
                Montage=_ANIM + "Bow/AM_Bow_Skill1.AM_Bow_Skill1"),
     4001: dict(TargetingType="Targeted", HitShape="Sector", CastRange=350, Radius=230, Angle=180),
-    4002: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=350, Angle=270, AimMaxMs=0),
+    4002: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=350, Angle=270, AimMaxMs=0,
+               Fx="/Game/FX/AoE/P_AoE_Burst_Fire.P_AoE_Burst_Fire", FxBaseRadius=220),   # SK2 FX 후보 시트 B(사용자 선택)
     4003: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=450, Angle=360, AimMaxMs=0,
-               Montage=_ANIM + "TwoHandSword/AM_TwoHandSword_Skill2.AM_TwoHandSword_Skill2"),
+               Montage=_ANIM + "TwoHandSword/AM_TwoHandSword_Skill2.AM_TwoHandSword_Skill2",
+               Fx="/Game/FX/AoE/P_AoE_Slam_Earth.P_AoE_Slam_Earth", FxBaseRadius=300,   # SK2 FX 후보 시트 C(사용자 선택) — bb 600 / 2
+               HitFx="/Game/FX/Hit/P_Hit_Slash_Heavy.P_Hit_Slash_Heavy"),
 }
 # 새 행·동작이 바뀐 행의 판정 시각 임시값(HitDelayMs, MoveLockMs) — 몽타주를 만든 뒤 ExportSkillTiming이 덮는다(그때 이 값을 지움)
-SKILL_TIMING_INIT = {
-    2002: (800, 1000),
-    2003: (1250, 1450),   # 옛 2002(도약 내려찍기) 값 그대로
-    3003: (180, 380),     # 3002와 같은 놓기 동작
-    4003: (1200, 1600),
-}
+SKILL_TIMING_INIT = {}   # SK2 몽타주를 만들고 ExportSkillTiming(2026-11-23)으로 확정해 비움
 
 # 몬스터: 경험치는 쉬운 숫자로 고정. HP·공격력은 전투 감각 기준(기준 플레이어 = 그 대역 레벨 + 그 등급 전신, 한손검 + 방패)
 MONSTER_BASE_DAMAGE = 10                 # 9001~9005 BaseDamage 모두 10 (한 대 피해 = 공격력 + 10)

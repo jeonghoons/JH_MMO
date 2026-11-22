@@ -32,6 +32,8 @@
 
 `Content/World/Props/<이름>/` — VARCO 3D로 만든 소품(컨셉·멀티뷰 이미지는 `SourceArt/Concept/`, git 제외). L2d 마을 11종에 더해 2026-11-21 DG4 던전 6종: `WallTorch`, `Brazier`, `Sarcophagus`, `BonePile`, `WeaponRack`, `GuardianStatue`.
 
+`Content/FX/Proj/LightArrow/` — 2026-11-23 SK2(D-278) 3003 빛의 화살 `SM_Proj_LightArrow`(VARCO 3D, 자체 디자인 — 에메랄드 수정 화살). 컨셉 2장 중 왼쪽 → 멀티뷰 → 3D(30,000 → LOD0 6,000), 원본 FBX `SourceArt/SK2/LightArrow.fbx`(git 제외)·컨셉 `SourceArt/Concept/SK2/`. `jm_kit.skill_fx` `si_arrow_import`가 긴 축 +X·길이 3m·굵기 80cm(비균등)·가운데 원점으로 굽고 03등급 발광 부모(`M_Equip_PBR_Glow`)의 `MI_Proj_LightArrow`(GlowColor 에메랄드, MetalMask 0)를 입힘. VARCO 약 350포인트(컨셉 100·멀티뷰 50·3D 200).
+
 ## 직접 추가한 이미지 (원본 PNG는 git 제외, 가져온 텍스처 에셋은 git 포함)
 
 | 에셋 | 원본 | 출처 | 비고 |
@@ -84,3 +86,10 @@
 | `MX_GreatSwordHighSpinAttack` → `AM_TwoHandSword_Skill1` | `great sword high spin attack.fbx` | Great Sword High Spin Attack | 4002 스킬1(1.867초, 타격 1.0·끝 1.4), 제자리 처리(감속 이동이라 중간에 조금 밀림) |
 | `MX_DrawAGreatSword1`·`2` → `AM_TwoHandSword_Sheathe`·`OneHandSword/AM_Sword_Sheathe` | `draw a great sword 1.fbx`·`draw a great sword 2.fbx` | Draw A Great Sword 1·2 | 넣기 = 2 → 1을 거꾸로(구간 배율 -1, `AnimAssetBuilder::SetMontageSegmentPlayRates`), 등 소켓 전환 0.8초 — 한손검도 같은 몽타주(D-254) |
 | `MX_Common_Hit` → `Mannequin/Anims/Hit/AS_Common_Hit` | `SourceArt/Mixamo/Pro Sword and Shield Pack/sword and shield impact (3).fbx` | Sword And Shield Impact(머리) | 공용 피격(BodyTable `HitMontage`) |
+| `AS_OneHandSword_SwordAndShieldAttack3` → `AM_OneHandSword_Skill1`(새로 만듦) / `AS_OneHandSword_Skill1` → `AM_OneHandSword_Skill2` / `AS_TwoHandSword_GreatSwordJumpAttack` → `AM_TwoHandSword_Skill2` | 위 표의 시퀀스 | — | 2026-11-23 SK2(D-278): 2002 스킬1 앞 부채꼴(타격 0.78·끝 1.0, 궤적 0.6~1.05), 2003 스킬2 = 옛 도약 내려찍기(타격 1.25·끝 1.45 — 옛 `AM_OneHandSword_Skill1`은 지우고 같은 경로에 Attack3로 다시 만듦), 4003 스킬2 점프 내려찍기(타격 1.12·끝 1.45, 궤적 0.85~1.3). 시각은 손 본 앞 거리(`anim_measure_bone_reach`)로 정하고 `ExportSkillTiming.bat`으로 SkillTable에 반영 |
+| `MX_SwordAndShield{Attack2,Attack3,Attack4,Slash2,Slash3,Slash4,Slash5,Kick,Casting,Casting2,PowerUp}` → `Mannequin/Anims/OneHandSword/AS_OneHandSword_SwordAndShield…` | `Pro Sword and Shield Pack/sword and shield attack (2)~(4)·slash (2)~(5)·kick·casting·casting (2)·power up.fbx` | 같은 이름 | 2026-11-23 스킬2 동작 비교용 공격 동작 전부(쓰는 것은 몽타주가 정해지면 표에 따로). 이동 든 것(attack (2)·(3), slash (2)·(4))은 제자리 처리. 기존 `AS_OneHandSword_Attack` = slash, `AS_OneHandSword_Skill1` = attack |
+| `MX_GreatSword{Attack,Kick,Kick2,JumpAttack,SlideAttack,Casting,PowerUp}`·`MX_SpellCast` → `Mannequin/Anims/TwoHandSword/AS_TwoHandSword_…` | `Great Sword Pack/great sword attack·kick·kick (2)·jump attack·slide attack·casting·power up·spell cast.fbx` | 같은 이름 | 위와 같음. jump attack·slide attack은 제자리 처리. Slash2~5는 WT1 때 이미 가져옴. 기존 `AS_TwoHandSword_GreatSwordSlash` = 기본 공격, `…HighSpinAttack` = 스킬1 |
+| `MX_Standing{MeleeKick,MeleePunch,DodgeBackward,DiveForward}` → `Mannequin/Anims/Bow/AS_Bow_Standing…` | `Pro Longbow Pack/standing melee kick·melee punch·dodge backward·dive forward.fbx` | 같은 이름 | 위와 같음. 구르기 2개는 제자리 처리. 기존 `AS_Bow_Attack` = draw arrow, `AS_Bow_Skill1` = aim recoil, `AS_Bow_AimIdle` = aim overdraw. 활 "위로 쏘기"는 팩에 없음 |
+
+2026-11-23 SK2 정리(사용자 결정): 위 세 줄의 공격 동작 중 스킬에 쓰지 않는 21개(`AS_`·`MX_` 짝 42개 — 목록은 `jm_kit/skill_fx.py` `UNUSED_ANIMS`)는 `Mannequin/Anims/_Unused/<무기>/`·`Mixamo/Anims/_Unused/<무기>/`로 옮기고 `.gitignore`로 커밋에서 뺐습니다(로컬 비교용, 없으면 FBX에서 다시 가져옴). 쓰는 것: 한손검 Attack3(2002), 양손검 JumpAttack(4003). WT1 때 커밋한 `GreatSwordSlash2~5`는 그대로 둡니다.
+

@@ -118,3 +118,7 @@ UEClient/JM/Content/Dev/
 
 # Fab: Stylized Handpainted Modular Character Starter Kit (CoreCharacters) — MC2.1b 후보 검증용, 외부 팩
 UEClient/JM/Content/CoreC/
+
+# SK2(D-278): 동작 비교용으로 가져왔지만 쓰지 않는 공격 동작 — 로컬 보관만(jm_kit.skill_fx UNUSED_ANIMS, si_unused_move)
+UEClient/JM/Content/Character/Mannequin/Anims/_Unused/
+UEClient/JM/Content/Character/Mixamo/Anims/_Unused/
