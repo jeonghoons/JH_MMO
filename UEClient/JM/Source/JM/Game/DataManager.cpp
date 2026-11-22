@@ -166,6 +166,41 @@ const FMonsterTableRow* UDataManager::FindMonster(int32 TemplateId) const
 	return Table->FindRow<FMonsterTableRow>(FName(*FString::FromInt(TemplateId)), TEXT("FindMonster"), false);
 }
 
+UDataTable* UDataManager::GetQuestTable() const
+{
+	if (CachedQuestTable == nullptr)
+	{
+		const UJMDataSettings* Settings = GetDefault<UJMDataSettings>();
+		if (Settings == nullptr || Settings->QuestTable.IsNull())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DataManager: QuestTable is not set (Project Settings > Game > JM Data)"));
+			return nullptr;
+		}
+		CachedQuestTable = Settings->QuestTable.LoadSynchronous();
+	}
+	return CachedQuestTable;
+}
+
+const FQuestTableRow* UDataManager::FindQuest(int32 QuestId) const
+{
+	UDataTable* Table = GetQuestTable();
+	if (Table == nullptr) return nullptr;
+	return Table->FindRow<FQuestTableRow>(FName(*FString::FromInt(QuestId)), TEXT("FindQuest"), false);
+}
+
+TArray<int32> UDataManager::GetQuestIdsByNpc(int32 NpcTemplateId) const
+{
+	TArray<int32> Ids;
+	UDataTable* Table = GetQuestTable();
+	if (Table == nullptr || NpcTemplateId == 0) return Ids;
+	Table->ForeachRow<FQuestTableRow>(TEXT("GetQuestIdsByNpc"), [&Ids, NpcTemplateId](const FName& Key, const FQuestTableRow& Row)
+	{
+		if (Row.NpcId == NpcTemplateId) Ids.Add(FCString::Atoi(*Key.ToString()));
+	});
+	Ids.Sort();
+	return Ids;
+}
+
 int64 UDataManager::GetExpToNext(int32 Level) const
 {
 	if (!bExpTableBuilt)

@@ -12,6 +12,7 @@
 #include "Game/JMShopManager.h"
 #include "Game/JMAuctionManager.h"
 #include "Game/JMPartyManager.h"
+#include "Game/JMQuestManager.h"
 #include "UI/JMUIManager.h"
 #include "SendBuffer.h"
 
@@ -330,6 +331,14 @@ void UNetworkManager::SendMailClaim(int32 NpcId, int64 MailId)
 	SendProtocol(*this, pkt, Protocol::CS_MAIL_CLAIM);
 }
 
+void UNetworkManager::SendQuestRequest(int32 NpcId, int32 QuestId)
+{
+	Protocol::CS_QUEST_REQUEST_PACKET pkt;
+	pkt.set_npc_id(NpcId);
+	pkt.set_quest_id(QuestId);
+	SendProtocol(*this, pkt, Protocol::CS_QUEST_REQUEST);
+}
+
 void UNetworkManager::SendTradeRequest(int32 TargetId)
 {
 	Protocol::CS_TRADE_REQUEST_PACKET pkt;
@@ -431,6 +440,15 @@ void UNetworkManager::ReturnToLogin(const FText& Message)
 	{
 		Party->Clear();
 	}
+	// 퀘스트 사본(Q1)과 수령함 알림 표시(D-262)도 같은 이유로 여기서만 비운다(서버는 첫 입장 때만 보낸다).
+	if (UJMQuestManager* Quest = GetGameInstance()->GetSubsystem<UJMQuestManager>())
+	{
+		Quest->Clear();
+	}
+	if (UJMAuctionManager* Auction = GetGameInstance()->GetSubsystem<UJMAuctionManager>())
+	{
+		Auction->ClearMailNotice();
+	}
 
 	// 확인 메시지는 레벨 전환 뒤 새 레벨에서 다시 뜬다(UJMUIManager::ClearWidgets).
 	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
@@ -510,6 +528,12 @@ void UNetworkManager::SwitchGameMapLevel(FName LevelToLoad, bool bRoomTravel)
 	if (UJMAuctionManager* Auction = GetGameInstance()->GetSubsystem<UJMAuctionManager>())
 	{
 		Auction->Clear();
+	}
+
+	// 퀘스트 창은 위젯과 함께 사라지므로 열림 상태만 내린다. 퀘스트 사본은 서버가 다시 보내지 않으므로 남긴다(로그인 화면 복귀 때만 비움 — ReturnToLogin).
+	if (UJMQuestManager* Quest = GetGameInstance()->GetSubsystem<UJMQuestManager>())
+	{
+		Quest->ResetWindow();
 	}
 
 	// 이전 레벨의 위젯 참조가 남지 않도록 UI 목록도 비운다.

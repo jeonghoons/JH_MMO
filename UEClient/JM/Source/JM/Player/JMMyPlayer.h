@@ -40,6 +40,7 @@ protected:
 	void OnPartyInviteInput();
 	// K 키(A6.3b, D-234): 경매 창을 조회 모드로 여닫는다(검색·구매·내 목록 보기). 등록·취소·수령은 경매 NPC 앞에서 F 키로 연다.
 	void OnAuctionInput();
+	void OnQuestInput();
 	// 크로스헤어(화면 중앙)에 가장 가까운 다른 플레이어(살아 있는). 카메라 정면에서 약 25도 안에 없으면 nullptr. 거래·파티 초대가 함께 쓴다.
 	const class AJMPlayer* FindCrosshairPlayer() const;
 	// 줍기 안내(HUD)를 지금 가까운 드랍에 맞춘다. 대상이 바뀔 때만 HUD를 고친다.
@@ -133,6 +134,9 @@ protected:
 	// 경매 창 여닫기(K 키, A6.3b)
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> AuctionAction;
+	// 퀘스트 목록 여닫기(L 키, Q1)
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> QuestAction;
 
 	// 줍기 안내 대상(가장 가까운 드랍)과 다음 검사까지 남은 시간
 	TWeakObjectPtr<class ADropItemActor> InteractTarget;

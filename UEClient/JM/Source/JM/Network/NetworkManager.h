@@ -71,6 +71,8 @@ public:
 	void SendAuctionRegister(int32 NpcId, int64 ItemDbId, int32 Count, int64 Price);
 	void SendAuctionCancel(int32 NpcId, int64 ListingId);
 	void SendMailClaim(int32 NpcId, int64 MailId);
+	// 퀘스트 수락·완료 요청 하나(Q1, D-264): 어느 쪽인지는 서버가 내 퀘스트 상태로 정한다. NpcId = 퀘스트 NPC의 오브젝트 id
+	void SendQuestRequest(int32 NpcId, int32 QuestId);
 	void SendTradeRequest(int32 TargetId);
 	void SendTradeRespond(bool bAccept);
 	void SendTradeSetOffer(const TArray<TPair<int64, int64>>& Items, int64 Gold);

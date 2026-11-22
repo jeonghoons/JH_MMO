@@ -13,6 +13,7 @@
 #include "Game/JMShopManager.h"
 #include "Game/JMPartyManager.h"
 #include "Game/JMAuctionManager.h"
+#include "Game/JMQuestManager.h"
 #include "UI/AuctionWidget.h"
 
 void AJMPlayerController::BeginPlay()
@@ -58,6 +59,72 @@ void AJMPlayerController::BeginPlay()
 
 // ---- 개발용 상점 명령(L4): 상점 창이 보내는 것과 같은 요청을 콘솔로 보낸다(마우스 없이 확인할 때). 검증은 모두 서버가 한다. ----
 // Portal [id] (DG3b): id를 주면 그 포털, 생략(0)하면 범위 안의 가장 가까운 포털로 사용 요청을 보낸다.
+// ---- 퀘스트 개발용 콘솔 명령(Q1): 퀘스트 창·F 키·L 키가 보내는 것과 같은 요청 ----
+namespace
+{
+	// 시야 안의 가장 가까운 퀘스트 NPC(거리 제한 없이 고른다 — 멀면 서버가 TOO_FAR로 거부한다)
+	int32 FindQuestNpc(const AJMPlayerController& PC)
+	{
+		const UGameInstance* GameInstance = PC.GetGameInstance();
+		const UJMObjectManager* ObjectManager = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
+		const APawn* MyPawn = PC.GetPawn();
+		float DistSq = 0.f;
+		const int32 NpcId = (ObjectManager && MyPawn) ? ObjectManager->FindNearestNpc(MyPawn->GetActorLocation(), 1000000.f, DistSq, static_cast<int32>(Protocol::NPC_KIND_QUEST)) : 0;
+		if (NpcId == 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Quest: 시야 안에 퀘스트 NPC가 없습니다."));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Quest: npc=%d dist=%.0fcm"), NpcId, FMath::Sqrt(DistSq));
+		}
+		return NpcId;
+	}
+
+	UJMQuestManager* GetQuestManager(const AJMPlayerController& PC)
+	{
+		return PC.GetGameInstance() ? PC.GetGameInstance()->GetSubsystem<UJMQuestManager>() : nullptr;
+	}
+}
+
+void AJMPlayerController::QuestTalk()
+{
+	UJMQuestManager* Quest = GetQuestManager(*this);
+	const int32 NpcId = FindQuestNpc(*this);
+	if (Quest && NpcId != 0) Quest->OpenForNpc(NpcId);
+}
+
+void AJMPlayerController::QuestRequest(int32 QuestId)
+{
+	UJMQuestManager* Quest = GetQuestManager(*this);
+	const int32 NpcId = FindQuestNpc(*this);
+	if (Quest && NpcId != 0) Quest->Request(NpcId, QuestId);
+}
+
+void AJMPlayerController::QuestLog()
+{
+	if (UJMQuestManager* Quest = GetQuestManager(*this)) Quest->OpenLog();
+}
+
+void AJMPlayerController::QuestShow()
+{
+	const UJMQuestManager* Quest = GetQuestManager(*this);
+	if (Quest == nullptr) return;
+	const TArray<int32> Active = Quest->GetActiveQuestIds();
+	UE_LOG(LogTemp, Log, TEXT("QuestShow: active=%d window=%d atNpc=%d selected=%d"), Active.Num(), Quest->IsOpen() ? 1 : 0, Quest->IsAtNpc() ? 1 : 0, Quest->GetSelectedQuestId());
+	for (int32 QuestId = 1; QuestId <= 20; ++QuestId)
+	{
+		const Protocol::QuestState State = Quest->GetState(QuestId);
+		if (State == Protocol::QUEST_STATE_NONE) continue;
+		UE_LOG(LogTemp, Log, TEXT("  quest=%d state=%d progress=%d ready=%d"), QuestId, static_cast<int32>(State), Quest->GetProgress(QuestId), Quest->IsReadyToComplete(QuestId) ? 1 : 0);
+	}
+}
+
+void AJMPlayerController::QuestClose()
+{
+	if (UJMQuestManager* Quest = GetQuestManager(*this)) Quest->Close();
+}
+
 void AJMPlayerController::Portal(int32 PortalId)
 {
 	UGameInstance* GameInstance = GetGameInstance();

@@ -46,8 +46,14 @@ public:
 	void HandleList(const Protocol::SC_AUCTION_LIST_PACKET& Pkt);
 	void HandleMy(const Protocol::SC_AUCTION_MY_PACKET& Pkt);
 	void HandleResult(const Protocol::SC_AUCTION_RESULT_PACKET& Pkt);
-	// 레벨 전환·로그인 화면으로 돌아갈 때 비운다
+	// 수령함 알림(SC_MAIL_NOTICE, D-262·D-265): 판매·만료면 시스템 메시지 + 채팅 한 줄, 로그인 때(NONE)는 HUD 표시만
+	void HandleMailNotice(const Protocol::SC_MAIL_NOTICE_PACKET& Pkt);
+	// 레벨 전환·로그인 화면으로 돌아갈 때 비운다(수령함 알림 표시는 남긴다 — 서버가 첫 입장 때만 알려 준다)
 	void Clear();
+	// 로그인 화면으로 돌아갈 때 수령함 알림 표시를 내린다
+	void ClearMailNotice();
+	// 수령함에 받을 것이 있다(알림을 받았고, 그 뒤 받은 수령함 목록이 비어 있지 않다). HUD "수령함에 받을 것이 있습니다"
+	bool HasMailNotice() const { return bHasMailNotice; }
 
 	// NpcId = 경매 NPC의 오브젝트 id(0 = 조회 모드). 창을 띄우고 지금 필터의 첫 쪽을 요청한다.
 	void Open(int32 InNpcId);
@@ -115,6 +121,7 @@ private:
 
 	int64 RegisterCandidate = 0;
 	FString StatusText;
+	bool bHasMailNotice = false;
 
 	// 마지막으로 요청한 검색(다시 보낼 때 쓴다)과 다시 보낼 조회
 	int32 RequestedSlot = 0;

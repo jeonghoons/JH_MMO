@@ -77,6 +77,10 @@ public:
 	int32 GetNpcKind(int32 NpcId) const;
 	FString GetNpcName(int32 NpcId) const;
 	bool GetNpcLocation(int32 NpcId, FVector& OutLocation) const;
+	// NPC 종류 ID(NpcTable ID = ObjectInfo.template_id). 없으면 0 (Q1 — QuestTable.NpcId와 맞춘다)
+	int32 GetNpcTemplateId(int32 NpcId) const;
+	// 시야 안에서 그 종류 ID의 NPC 이름. 없으면 빈 글
+	FString FindNpcNameByTemplate(int32 TemplateId) const;
 
 	// 포털(L5). From이 반경 안(수평 거리 — 서버와 같은 기준)에 든 포털 중 가장 가까운 것의 id. 없으면 0
 	// OutKind = 그 포털의 종류(Protocol::PortalKind — 일반·던전 입구·던전 출구, 안내 문구용)

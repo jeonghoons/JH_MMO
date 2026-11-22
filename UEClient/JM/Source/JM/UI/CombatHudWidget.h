@@ -42,6 +42,10 @@ public:
 	// 남은 시간을 1초씩 줄여 보여 준다. NONE(던전 밖)이면 숨긴다. 값은 UJMObjectManager가 SC_DUNGEON_STATE·Room 변경 때 넘긴다.
 	void SetDungeonState(int32 State, double ClearEndSec);
 
+	// 사라지는 알림 줄(D-266, TxtNotice): 최근 NoticeMaxLines줄을 보여 주고 각 줄은 NoticeDurationSec 뒤 사라진다(마지막 0.5초 흐려짐).
+	// 퀘스트 수락·목표 달성·완료처럼 확인이 필요 없는 안내용. UJMUIManager::ShowNotice가 부른다.
+	void ShowNotice(const FText& Message);
+
 protected:
 	// HUD가 내 캐릭터보다 늦게 만들어져도 현재 값으로 시작한다.
 	virtual void NativeConstruct() override;
@@ -84,6 +88,24 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> TxtDungeon;
 
+	// 진행 중 퀘스트 줄(Q1 — "이름 7/15", 목표를 채우면 "(완료 가능)")
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> TxtQuestTracker;
+
+	// 수령함 알림(D-262 — 경매 판매·만료 뒤 받을 것이 남아 있는 동안)
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> TxtMail;
+
+	// 사라지는 알림 줄(D-266)
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> TxtNotice;
+
+	// 알림 한 줄이 떠 있는 시간(초)과 한 번에 보이는 줄 수
+	UPROPERTY(EditAnywhere, Category = "Notice")
+	float NoticeDurationSec = 3.f;
+	UPROPERTY(EditAnywhere, Category = "Notice")
+	int32 NoticeMaxLines = 3;
+
 	// 액티브 칸 1~5(숫자키). 칸 번호는 각 인스턴스의 SkillSlot 값. 기본 공격은 좌클릭이라 칸을 두지 않는다. (D-038·D-148)
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<USkillSlotWidget> Slot1;
@@ -106,6 +128,19 @@ private:
 	void OnSlotRightClicked(USkillSlotWidget* SlotWidget);
 
 	FDelegateHandle InventoryChangedHandle;
+
+	// 퀘스트 추적 줄·수령함 알림(Q1)
+	struct FNoticeLine
+	{
+		FString Text;
+		double EndSec = 0.0;   // FPlatformTime::Seconds 기준
+	};
+	TArray<FNoticeLine> Notices;
+	void RefreshNotice();
+	void RefreshQuestTracker();
+	void RefreshMailNotice();
+	FDelegateHandle QuestChangedHandle;
+	FDelegateHandle AuctionChangedHandle;
 
 	// 던전 상태 표시(SetDungeonState). ShownDungeonSec = 지금 글자에 적힌 남은 초(같으면 다시 쓰지 않는다)
 	void RefreshDungeonText();

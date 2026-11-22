@@ -4,6 +4,7 @@
 #include "Player/GameplayInputMode.h"
 #include "UI/SystemMessageWidget.h"
 #include "UI/WidgetNames.h"
+#include "UI/CombatHudWidget.h"
 #include "Game/JMGameInstance.h"
 
 UUserWidget* UJMUIManager::RegisterWidget(APlayerController* PC, FName WidgetName, TSubclassOf<UUserWidget> WidgetClass, bool bIsWindow, int32 ZOrder, bool bStartVisible)
@@ -153,6 +154,14 @@ void UJMUIManager::SetGameplayInput(bool bEnable)
     if (!bSystemMessageShown && PendingSystemMessages.Num() > 0)
     {
         ShowNextSystemMessage();
+    }
+}
+
+void UJMUIManager::ShowNotice(const FText& Message)
+{
+    if (UCombatHudWidget* Hud = Cast<UCombatHudWidget>(GetWidget(WidgetNames::HUD)))
+    {
+        Hud->ShowNotice(Message);
     }
 }
 

@@ -26,6 +26,7 @@
 #include "Game/JMShopManager.h"
 #include "Game/JMPartyManager.h"
 #include "Game/JMAuctionManager.h"
+#include "Game/JMQuestManager.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -151,6 +152,7 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		if (PartyAction) EnhancedInputComponent->BindAction(PartyAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnPartyInput);
 		if (PartyInviteAction) EnhancedInputComponent->BindAction(PartyInviteAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnPartyInviteInput);
 		if (AuctionAction) EnhancedInputComponent->BindAction(AuctionAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnAuctionInput);
+		if (QuestAction) EnhancedInputComponent->BindAction(QuestAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnQuestInput);
 		
 	}
 }
@@ -774,6 +776,8 @@ void AJMMyPlayer::UpdateInteractPrompt()
 	if (Shop) Shop->UpdateFromPlayer(GetActorLocation(), bIsDead);
 	// 열려 있는 경매 창(A6.3b): 죽거나 거래·상점이 열리면, NPC 앞에서 연 것이면 멀어져도 닫는다.
 	if (UJMAuctionManager* Auction = GameInstance->GetSubsystem<UJMAuctionManager>()) Auction->UpdateFromPlayer(GetActorLocation(), bIsDead);
+	// 대화 모드 퀘스트 창(Q1): 죽거나 NPC에게서 멀어지면 닫는다.
+	if (UJMQuestManager* Quest = GameInstance->GetSubsystem<UJMQuestManager>()) Quest->UpdateFromPlayer(GetActorLocation(), bIsDead);
 
 	const bool bShown = Nearest != nullptr || NearestNpcId != 0 || NearestPortalId != 0;
 	if (Nearest == InteractTarget.Get() && NearestNpcId == InteractNpcId && NearestPortalId == InteractPortalId && bInteractPromptShown == bShown) return;
@@ -789,6 +793,8 @@ void AJMMyPlayer::UpdateInteractPrompt()
 		if (Nearest) Prompt = FText::FromString(FString::Printf(TEXT("[F] 줍기: %s"), *Nearest->GetDisplayText().ToString()));
 		else if (NearestNpcId != 0 && ObjectManager && ObjectManager->GetNpcKind(NearestNpcId) == static_cast<int32>(Protocol::NPC_KIND_AUCTION))
 			Prompt = FText::FromString(FString::Printf(TEXT("[F] 경매장: %s"), *ObjectManager->GetNpcName(NearestNpcId)));
+		else if (NearestNpcId != 0 && ObjectManager && ObjectManager->GetNpcKind(NearestNpcId) == static_cast<int32>(Protocol::NPC_KIND_QUEST))
+			Prompt = FText::FromString(FString::Printf(TEXT("[F] 대화: %s"), *ObjectManager->GetNpcName(NearestNpcId)));
 		else if (NearestNpcId != 0 && ObjectManager) Prompt = FText::FromString(FString::Printf(TEXT("[F] 상점: %s"), *ObjectManager->GetNpcName(NearestNpcId)));
 		// 포털 종류(SC_PORTAL_LIST의 kind — 서버가 정함, DG3c-2): 던전 입구·출구는 문구를 따로 둔다.
 		else if (NearestPortalId != 0 && NearestPortalKind == Protocol::PORTAL_KIND_DUNGEON_ENTER) Prompt = FText::FromString(TEXT("[F] 던전 입장"));
@@ -814,8 +820,18 @@ void AJMMyPlayer::OnInteractInput()
 		}
 		return;
 	}
+	// 퀘스트 NPC(Q1, D-265): 대화 모드 퀘스트 창을 연다. 이미 대화 모드로 열려 있으면 닫는다(L 키로 연 목록 모드면 대화 모드로 바꾼다).
+	if (InteractNpcId != 0 && NpcObjects && NpcObjects->GetNpcKind(InteractNpcId) == static_cast<int32>(Protocol::NPC_KIND_QUEST))
+	{
+		if (UJMQuestManager* Quest = GetGameInstance()->GetSubsystem<UJMQuestManager>())
+		{
+			if (Quest->IsAtNpc()) Quest->Close();
+			else Quest->OpenForNpc(InteractNpcId);
+		}
+		return;
+	}
 	// 상점 NPC(L4): 닫혀 있으면 품목을 요청하고(SC_SHOP_OPEN이 오면 창이 뜬다), 열려 있으면 닫는다. 거리·거래 중 검증은 서버가 한다.
-	if (InteractNpcId != 0)
+	if (InteractNpcId != 0 && NpcObjects && NpcObjects->GetNpcKind(InteractNpcId) == static_cast<int32>(Protocol::NPC_KIND_SHOP))
 	{
 		if (UJMShopManager* Shop = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMShopManager>() : nullptr)
 		{
@@ -886,6 +902,15 @@ void AJMMyPlayer::OnPartyInput()
 	{
 		UIManager->ToggleWidget(WidgetNames::Party);
 	}
+}
+
+void AJMMyPlayer::OnQuestInput()
+{
+	// L 키(Q1, D-265): 받은 퀘스트 목록(보기만). 열려 있으면(대화 모드 포함) 닫는다.
+	UJMQuestManager* Quest = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMQuestManager>() : nullptr;
+	if (Quest == nullptr) return;
+	if (Quest->IsOpen()) { Quest->Close(); return; }
+	Quest->OpenLog();
 }
 
 void AJMMyPlayer::OnAuctionInput()

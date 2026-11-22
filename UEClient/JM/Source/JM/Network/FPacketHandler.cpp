@@ -8,6 +8,7 @@
 #include "Game/JMShopManager.h"
 #include "Game/JMPartyManager.h"
 #include "Game/JMAuctionManager.h"
+#include "Game/JMQuestManager.h"
 #include "UI/JMUIManager.h"
 #include "UI/ChatWidget.h"
 #include "UI/WidgetNames.h"
@@ -507,33 +508,37 @@ void FPacketHandler::Handle_SC_AUCTION_RESULT(TSharedPtr<NetworkSession>& sessio
 	if (UJMAuctionManager* Auction = GetAuctionManager(session)) Auction->HandleResult(pkt);
 }
 
-// ---- 퀘스트·수령함 알림(Q1, D-259·D-261·D-262): 서버 값을 받아 로그만 남긴다. 퀘스트 창·NPC 이름표·알림 표시는 다음 항목에서 붙인다 ----
+// ---- 퀘스트(Q1, D-261·D-264): 서버가 보낸 내 퀘스트의 사본과 거부 안내는 UJMQuestManager가 맡는다 ----
+namespace
+{
+	UJMQuestManager* GetQuestManager(const TSharedPtr<NetworkSession>& session)
+	{
+		UNetworkManager* NetManager = session ? session->OwnerNetwork.Get() : nullptr;
+		UGameInstance* GameInstance = NetManager ? NetManager->GetGameInstance() : nullptr;
+		return GameInstance ? GameInstance->GetSubsystem<UJMQuestManager>() : nullptr;
+	}
+}
+
 void FPacketHandler::Handle_SC_QUEST_LIST(TSharedPtr<NetworkSession>& session, Protocol::SC_QUEST_LIST_PACKET& pkt)
 {
 	// 처음 방에 들어온 직후 한 번(받은 퀘스트 전부 — 진행 중 + 완료, 비어 있어도 온다)
-	UE_LOG(LogTemp, Log, TEXT("Quest list: %d quests"), pkt.quests_size());
-	for (const Protocol::QuestInfo& Quest : pkt.quests())
-	{
-		UE_LOG(LogTemp, Log, TEXT("  quest=%d state=%d progress=%d"), Quest.quest_id(), static_cast<int32>(Quest.state()), Quest.progress());
-	}
+	if (UJMQuestManager* Quest = GetQuestManager(session)) Quest->HandleList(pkt);
 }
 
 void FPacketHandler::Handle_SC_QUEST_UPDATE(TSharedPtr<NetworkSession>& session, Protocol::SC_QUEST_UPDATE_PACKET& pkt)
 {
 	// 수락(ACTIVE, 0) · 처치 인정(progress 증가) · 완료(COMPLETED)
-	const Protocol::QuestInfo& Quest = pkt.quest();
-	UE_LOG(LogTemp, Log, TEXT("Quest update: quest=%d state=%d progress=%d"), Quest.quest_id(), static_cast<int32>(Quest.state()), Quest.progress());
+	if (UJMQuestManager* Quest = GetQuestManager(session)) Quest->HandleUpdate(pkt.quest());
 }
 
 void FPacketHandler::Handle_SC_QUEST_RESULT(TSharedPtr<NetworkSession>& session, Protocol::SC_QUEST_RESULT_PACKET& pkt)
 {
 	// 성공은 SC_QUEST_UPDATE로 오므로 이 패킷은 거부일 때만 온다.
-	UE_LOG(LogTemp, Log, TEXT("Quest request rejected: request=%d quest=%d result=%d"), static_cast<int32>(pkt.request()), pkt.quest_id(), static_cast<int32>(pkt.result()));
+	if (UJMQuestManager* Quest = GetQuestManager(session)) Quest->HandleResult(pkt.quest_id(), pkt.result());
 }
 
 void FPacketHandler::Handle_SC_MAIL_NOTICE(TSharedPtr<NetworkSession>& session, Protocol::SC_MAIL_NOTICE_PACKET& pkt)
 {
-	// 수령함에 받을 것이 있다: SALE_GOLD(내 등록이 팔림) · EXPIRED(만료 반환) · NONE(로그인 때 수령함이 비어 있지 않음)
-	UE_LOG(LogTemp, Log, TEXT("Mail notice: kind=%d item=%d count=%lld gold=%lld listing=%lld"), static_cast<int32>(pkt.kind()), pkt.item_id(),
-		static_cast<int64>(pkt.count()), static_cast<int64>(pkt.gold()), static_cast<int64>(pkt.listing_id()));
+	// 수령함에 받을 것이 있다(D-262): SALE_GOLD(내 등록이 팔림) · EXPIRED(만료 반환) · NONE(로그인 때 수령함이 비어 있지 않음)
+	if (UJMAuctionManager* Auction = GetAuctionManager(session)) Auction->HandleMailNotice(pkt);
 }

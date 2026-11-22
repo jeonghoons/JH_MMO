@@ -7,6 +7,8 @@
 #include "Player/JMMyPlayer.h"
 #include "Game/JMInventoryManager.h"
 #include "Network/NetworkManager.h"
+#include "Game/JMQuestManager.h"
+#include "Game/JMAuctionManager.h"
 
 void UCombatHudWidget::NativeConstruct()
 {
@@ -45,6 +47,87 @@ void UCombatHudWidget::NativeConstruct()
 	// 던전 상태: 패킷은 HUD가 만들어진 뒤에 오지만, 순서가 바뀌어도 지금 값으로 시작한다.
 	if (ObjectManager) SetDungeonState(ObjectManager->GetDungeonState(), ObjectManager->GetDungeonClearEndSec());
 	else SetDungeonState(0, 0.0);
+
+	// 퀘스트 추적 줄·수령함 알림(Q1, D-265·D-266 — WBP_CombatHud의 TxtQuestTracker·TxtMail)
+	Notices.Reset();
+	RefreshNotice();
+	if (UJMQuestManager* Quest = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMQuestManager>() : nullptr)
+	{
+		QuestChangedHandle = Quest->OnQuestChanged.AddUObject(this, &UCombatHudWidget::RefreshQuestTracker);
+	}
+	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr)
+	{
+		AuctionChangedHandle = Auction->OnAuctionChanged.AddUObject(this, &UCombatHudWidget::RefreshMailNotice);
+	}
+	RefreshQuestTracker();
+	RefreshMailNotice();
+}
+
+void UCombatHudWidget::ShowNotice(const FText& Message)
+{
+	if (TxtNotice == nullptr || Message.IsEmpty()) return;
+	// 새 알림은 아래에 붙이고, 줄 수가 넘치면 가장 오래된 것부터 뺀다.
+	FNoticeLine& Line = Notices.AddDefaulted_GetRef();
+	Line.Text = Message.ToString();
+	Line.EndSec = FPlatformTime::Seconds() + FMath::Max(0.5f, NoticeDurationSec);
+	while (Notices.Num() > FMath::Max(1, NoticeMaxLines)) Notices.RemoveAt(0);
+	RefreshNotice();
+}
+
+void UCombatHudWidget::RefreshNotice()
+{
+	if (TxtNotice == nullptr) return;
+	const double Now = FPlatformTime::Seconds();
+	Notices.RemoveAll([Now](const FNoticeLine& Line) { return Line.EndSec <= Now; });
+	if (Notices.Num() == 0)
+	{
+		TxtNotice->SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+	FString Text;
+	for (const FNoticeLine& Line : Notices)
+	{
+		if (!Text.IsEmpty()) Text += TEXT("\n");
+		Text += Line.Text;
+	}
+	TxtNotice->SetText(FText::FromString(Text));
+	// 마지막 0.5초는 흐려진다(가장 새 알림 기준 — 남은 줄이 함께 사라진다)
+	const double Remain = Notices.Last().EndSec - Now;
+	TxtNotice->SetRenderOpacity(static_cast<float>(FMath::Clamp(Remain / 0.5, 0.0, 1.0)));
+	TxtNotice->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
+void UCombatHudWidget::RefreshQuestTracker()
+{
+	if (TxtQuestTracker == nullptr) return;
+	const UGameInstance* GameInstance = GetGameInstance();
+	const UJMQuestManager* Quest = GameInstance ? GameInstance->GetSubsystem<UJMQuestManager>() : nullptr;
+	const UDataManager* DataManager = GameInstance ? GameInstance->GetSubsystem<UDataManager>() : nullptr;
+	FString Text;
+	if (Quest && DataManager)
+	{
+		for (const int32 QuestId : Quest->GetActiveQuestIds())
+		{
+			const FQuestTableRow* Row = DataManager->FindQuest(QuestId);
+			if (Row == nullptr) continue;
+			if (!Text.IsEmpty()) Text += TEXT("\n");
+			Text += Quest->IsReadyToComplete(QuestId)
+				? FString::Printf(TEXT("%s  (완료 가능)"), *Row->DisplayName)
+				: FString::Printf(TEXT("%s  %d/%d"), *Row->DisplayName, Quest->GetProgress(QuestId), Row->Count);
+		}
+	}
+	if (!Text.IsEmpty()) Text = FString(TEXT("[퀘스트]\n")) + Text;
+	TxtQuestTracker->SetText(FText::FromString(Text));
+	TxtQuestTracker->SetVisibility(Text.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
+}
+
+void UCombatHudWidget::RefreshMailNotice()
+{
+	if (TxtMail == nullptr) return;
+	const UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr;
+	const bool bShow = Auction && Auction->HasMailNotice();
+	TxtMail->SetText(FText::FromString(TEXT("수령함에 받을 것이 있습니다 (경매 관리인)")));
+	TxtMail->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 }
 
 void UCombatHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -52,6 +135,8 @@ void UCombatHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 	Super::NativeTick(MyGeometry, InDeltaTime);
 	// 클리어 뒤 남은 시간만 시간이 흐르면 바뀐다.
 	if (DungeonStateValue == Protocol::DUNGEON_STATE_CLEARED) RefreshDungeonText();
+	// 알림 줄은 떠 있는 동안만 시간에 따라 흐려지고 사라진다.
+	if (Notices.Num() > 0) RefreshNotice();
 }
 
 void UCombatHudWidget::SetDungeonState(int32 State, double ClearEndSec)
@@ -90,6 +175,14 @@ void UCombatHudWidget::NativeDestruct()
 	if (UJMInventoryManager* Inventory = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMInventoryManager>() : nullptr)
 	{
 		Inventory->OnInventoryChanged.Remove(InventoryChangedHandle);
+	}
+	if (UJMQuestManager* Quest = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMQuestManager>() : nullptr)
+	{
+		Quest->OnQuestChanged.Remove(QuestChangedHandle);
+	}
+	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr)
+	{
+		Auction->OnAuctionChanged.Remove(AuctionChangedHandle);
 	}
 	Super::NativeDestruct();
 }

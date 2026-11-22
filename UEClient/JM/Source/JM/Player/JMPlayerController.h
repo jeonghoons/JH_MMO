@@ -85,6 +85,23 @@ public:
     UFUNCTION(Exec)
     void AuctionClose();
 
+    // Dev console commands (Q1 quests): the same requests the quest window / F key / L key send, for checks without mouse input.
+    //   "QuestTalk"              opens the talk window at the nearest quest NPC in view (F key; the server checks the distance on request).
+    //   "QuestRequest <questId>" sends CS_QUEST_REQUEST to the nearest quest NPC in view (the server accepts or completes by state).
+    //   "QuestLog"               opens the quest log (L key).
+    //   "QuestShow"              logs my quests (state, progress, ready to complete).
+    //   "QuestClose"             closes the quest window.
+    UFUNCTION(Exec)
+    void QuestTalk();
+    UFUNCTION(Exec)
+    void QuestRequest(int32 QuestId);
+    UFUNCTION(Exec)
+    void QuestLog();
+    UFUNCTION(Exec)
+    void QuestShow();
+    UFUNCTION(Exec)
+    void QuestClose();
+
     // Dev console command (DG3b): "Portal [id]" sends the portal use request for that id, or for the nearest portal in range when id is 0.
     // Range, cast/move locks and the portal's destination are checked by the server (a rejection gets no reply).
     UFUNCTION(Exec)

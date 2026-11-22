@@ -1,6 +1,8 @@
 ﻿#include "Game/JMAuctionManager.h"
+#include "Game/DataManager.h"
 #include "Game/JMInventoryManager.h"
 #include "Game/JMObjectManager.h"
+#include "UI/ChatWidget.h"
 #include "Game/JMShopManager.h"
 #include "Game/JMTradeManager.h"
 #include "Network/NetworkManager.h"
@@ -83,6 +85,8 @@ void UJMAuctionManager::HandleMy(const Protocol::SC_AUCTION_MY_PACKET& Pkt)
 		Mails.Add(Mail);
 	}
 	bMailMore = Pkt.mail_more();
+	// 수령함 목록이 실제 상태다: 비었으면(다 받음) HUD 알림 표시를 내리고, 남아 있으면 올린다.
+	bHasMailNotice = Mails.Num() > 0 || bMailMore;
 	MaxListings = Pkt.max_listings();
 	MinPrice = Pkt.min_price();
 	MaxPrice = Pkt.max_price();
@@ -173,6 +177,47 @@ void UJMAuctionManager::RetryQueries()
 	// 둘 다 걸렸으면 나머지는 다음 차례에(연달아 보내면 또 간격에 걸린다). 지금은 타이머 콜백 안이라 이 타이머가 아직 "활성"으로 보이므로
 	// ScheduleRetry(활성이면 건너뜀)를 쓰지 않고 바로 다시 건다.
 	if (bRetrySearch || bRetryMy) GetGameInstance()->GetTimerManager().SetTimer(RetryTimer, this, &UJMAuctionManager::RetryQueries, 0.25f, false);
+}
+
+void UJMAuctionManager::HandleMailNotice(const Protocol::SC_MAIL_NOTICE_PACKET& Pkt)
+{
+	UE_LOG(LogTemp, Log, TEXT("Mail notice: kind=%d item=%d count=%lld gold=%lld listing=%lld"), static_cast<int32>(Pkt.kind()), Pkt.item_id(),
+		static_cast<int64>(Pkt.count()), static_cast<int64>(Pkt.gold()), static_cast<int64>(Pkt.listing_id()));
+	bHasMailNotice = true;
+
+	FString Message;
+	const UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const FItemTableRow* Item = DataManager ? DataManager->FindItemById(Pkt.item_id()) : nullptr;
+	const FString ItemName = Item ? Item->DisplayName.ToString() : FString::Printf(TEXT("아이템 %d"), Pkt.item_id());
+	if (Pkt.kind() == Protocol::MAIL_KIND_SALE_GOLD)
+	{
+		Message = FString::Printf(TEXT("경매에 올린 %s ×%lld이(가) 팔렸습니다. 대금 %lld골드를 경매 관리인의 수령함에서 받으세요."),
+			*ItemName, static_cast<int64>(Pkt.count()), static_cast<int64>(Pkt.gold()));
+	}
+	else if (Pkt.kind() == Protocol::MAIL_KIND_EXPIRED)
+	{
+		Message = FString::Printf(TEXT("경매에 올린 %s ×%lld의 등록 기간이 끝났습니다. 경매 관리인의 수령함에서 돌려받으세요."),
+			*ItemName, static_cast<int64>(Pkt.count()));
+	}
+
+	if (!Message.IsEmpty())
+	{
+		ShowMessage(FText::FromString(Message));
+		UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr;
+		if (UChatWidget* ChatWidget = UIManager ? Cast<UChatWidget>(UIManager->GetWidget(WidgetNames::Chatting)) : nullptr)
+		{
+			ChatWidget->AddChatMessage(TEXT("경매"), Message);
+		}
+	}
+	// 수령함 탭을 보고 있었으면 바로 새 목록을 받는다.
+	if (bOpen) RequestMy();
+	OnAuctionChanged.Broadcast();
+}
+
+void UJMAuctionManager::ClearMailNotice()
+{
+	bHasMailNotice = false;
+	OnAuctionChanged.Broadcast();
 }
 
 void UJMAuctionManager::Clear()

@@ -41,4 +41,8 @@ protected:
 	// Auction window (WBP_Auction, parent UAuctionWidget). Shown and hidden by UJMAuctionManager: K key (browse) or F at the auction NPC (A6.3b).
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> AuctionWidgetClass;
+
+	// Quest window (WBP_Quest, parent UQuestWidget, Q1). Shown and hidden by UJMQuestManager: F at the quest NPC (talk) or L key (log).
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> QuestWidgetClass;
 };

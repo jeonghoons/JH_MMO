@@ -22,6 +22,8 @@
 #include "Game/JMShopManager.h"
 #include "Game/JMAuctionManager.h"
 #include "Game/ProjectileFx.h"
+#include "Components/WidgetComponent.h"
+#include "UI/NameplateWidget.h"
 
 void UJMObjectManager::ClearObjects()
 {
@@ -111,6 +113,26 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 		{
 			Npc->SetPlayerData(NpcInfo);
 			Npcs.Add(ObjectId, Npc);
+
+			// 머리 위 이름표 + 퀘스트 표식(Q1, D-265). 플레이어 액터 클래스를 같이 쓰므로 BP_Player에 넣지 않고 NPC로 만들 때만 붙인다.
+			// 화면 공간 위젯이라 거리와 관계없이 같은 크기다(몬스터 HP 막대 ANpcCharacter와 같은 방식).
+			if (UWidgetComponent* Nameplate = NewObject<UWidgetComponent>(Npc, TEXT("NameplateComponent")))
+			{
+				Nameplate->SetupAttachment(Npc->GetRootComponent());
+				Nameplate->SetWidgetSpace(EWidgetSpace::Screen);
+				Nameplate->SetWidgetClass(UNameplateWidget::StaticClass());
+				Nameplate->SetDrawSize(FVector2D(240.f, 60.f));
+				Nameplate->SetPivot(FVector2D(0.5f, 1.f));
+				Nameplate->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				// 캡슐 중심에서 머리 위까지(반높이 + 여유)
+				Nameplate->SetRelativeLocation(FVector(0.f, 0.f, HalfHeight + 30.f));
+				Nameplate->RegisterComponent();
+				Nameplate->InitWidget();
+				if (UNameplateWidget* Plate = Cast<UNameplateWidget>(Nameplate->GetUserWidgetObject()))
+				{
+					Plate->Setup(FString(UTF8_TO_TCHAR(ObjInfo.name().c_str())), ObjInfo.template_id());
+				}
+			}
 		}
 		return;
 	}
@@ -270,6 +292,22 @@ FString UJMObjectManager::GetNpcName(int32 NpcId) const
 {
 	const TObjectPtr<AJMCharacterBase>* Found = Npcs.Find(NpcId);
 	return (Found && *Found) ? FString(UTF8_TO_TCHAR((*Found)->GetObjectInfo().name().c_str())) : FString();
+}
+
+int32 UJMObjectManager::GetNpcTemplateId(int32 NpcId) const
+{
+	const TObjectPtr<AJMCharacterBase>* Found = Npcs.Find(NpcId);
+	return (Found && *Found) ? (*Found)->GetObjectInfo().template_id() : 0;
+}
+
+FString UJMObjectManager::FindNpcNameByTemplate(int32 TemplateId) const
+{
+	for (const TPair<int32, TObjectPtr<AJMCharacterBase>>& Pair : Npcs)
+	{
+		const AJMCharacterBase* Npc = Pair.Value.Get();
+		if (IsValid(Npc) && Npc->GetObjectInfo().template_id() == TemplateId) return FString(UTF8_TO_TCHAR(Npc->GetObjectInfo().name().c_str()));
+	}
+	return FString();
 }
 
 bool UJMObjectManager::GetNpcLocation(int32 NpcId, FVector& OutLocation) const

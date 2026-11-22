@@ -60,6 +60,9 @@ public:
     // 위젯 클래스는 UJMGameInstance::SystemMessageWidgetClass. 레벨 전환 뒤에도 남은 메시지는 새 레벨에서 띄운다.
     void ShowSystemMessage(const FText& Message, ESystemMessageType Type = ESystemMessageType::Notice);
 
+    // 사라지는 알림 줄(D-266): 확인 버튼 없이 HUD 위쪽에 잠깐 띄운다. HUD가 없으면(레벨 전환 중) 버린다.
+    void ShowNotice(const FText& Message);
+
     // 지금 보이는 시스템 메시지를 닫고 다음 메시지를 띄운다.
     void CloseSystemMessage();
 
