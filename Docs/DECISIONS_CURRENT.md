@@ -276,6 +276,10 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-138** (2026-11-10) 스킬 아이콘 `Content/UI/Icons/Skill/T_Icon_Skill_<WeaponType>_<Slot>`, 원본 `SourceArt/Icons/`, VARCO 제작, Greystone·Sparrow 자산은 이펙트만 사용
 - **D-148** (2026-11-16) HUD = HP 바·수치 + 내 이름·레벨(`ObjectInfo.name`·`level`) + EXP 바(보상 전까지 0) + 액티브 칸 5개(빈 칸/스킬/아이템 구조, 지금은 칸 N = 무기 스킬 슬롯 N, 숫자키 1~5, 아이템 넣기·서버 저장은 A3.6, D-154). 골드는 인벤토리에서. 경험치·레벨 보상(A2.3b)은 마일스톤 2 뒤(골드는 드랍으로 먼저, D-152)
 
+- **D-270** (2026-11-22) 남은 콘텐츠 다듬기 순서: TestLevel 바닥(UI0, 템플릿 `MI_ProcGrid` 격자 — TestLevel만) → 폰트(본문 Pretendard·제목 Noto Serif KR, 공용 스타일 `UIStyleTable`과 함께) → 하드웨어 커서(직접 그린 이미지) → UI 다듬기(창 틀·등급 테두리/경매 아이콘·HUD·인벤토리 캐릭터·우클릭 상호작용) → 맵 꾸미기 마지막
+- **D-271** (2026-11-22) UI 창 틀: 어두운 가죽 + 금 테두리(9-slice), 금 테두리 버튼·밝은 금색 버튼 글자, 아이템 칸 테두리 = 등급 색(Common `#9D9D9D`·Uncommon `#1EFF00`·Rare `#0070DD`·Epic `#A335EE`), 경매 줄 아이콘 + 등급 테두리 — 위젯 이름(`Panel`·`SlotBg`·`Btn*`)으로 `JMUIStyle::ApplyTree`가 입힘, 값은 `UIStyleTable`
+- **D-272** (2026-11-22) 인벤토리 캐릭터 앞모습: `BP_Player`를 플레이 영역 밖에 하나 더 두고 SceneCapture(그 액터만, 검정 배경)로 `WBP_Inventory` `ImgCharacter`에 — 외형은 내 캐릭터 서버 값 복사, 창이 보일 때만 찍음, 값은 `UInventoryWidget` `Preview*`
+
 ## 도구·엔진·외부 서비스
 
 - **D-069·D-107** (2026-11-04) VARCO 전 기능·사운드, Mixamo, Fab 무료 에셋 허용, Blender 등 DCC는 안 씀. VARCO 포인트는 예상 비용 승인 후, 출처는 `ExternalAssets.md`

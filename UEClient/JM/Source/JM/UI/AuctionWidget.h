@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
+#include "UI/JMUserWidget.h"
 #include "AuctionWidget.generated.h"
 
 DECLARE_DELEGATE_OneParam(FOnAuctionRowClicked, int32 /*Index*/);
@@ -16,6 +17,10 @@ class JM_API UAuctionRowButton : public UButton
 public:
 	void Setup(int32 InIndex, class UTextBlock* InLabel);
 	void SetRow(const FString& Text, bool bSelected, const FLinearColor& TextColor);
+	// 목록 줄의 아이템 아이콘 칸(UI3, D-270). 필터 버튼은 아이콘 칸이 없어 SetIcon이 아무것도 하지 않는다
+	void SetIconWidgets(class UBorder* InFrame, class UImage* InImage) { IconFrame = InFrame; IconImage = InImage; }
+	// Texture가 없으면 아이콘 칸을 숨긴다(판매 대금 같은 골드 줄)
+	void SetIcon(class UTexture2D* Texture, const FLinearColor& GradeColor);
 
 	FOnAuctionRowClicked OnRowClicked;
 
@@ -26,6 +31,10 @@ private:
 	int32 Index = 0;
 	UPROPERTY()
 	TObjectPtr<class UTextBlock> Label;
+	UPROPERTY()
+	TObjectPtr<class UBorder> IconFrame;
+	UPROPERTY()
+	TObjectPtr<class UImage> IconImage;
 };
 
 // 경매 창 (A6.3b, D-159·D-234). 내용은 UJMAuctionManager(서버가 보낸 검색 결과·내 등록·수령함)와 UJMInventoryManager(내 골드·아이템)를 그대로 그린다.
@@ -38,7 +47,7 @@ private:
 // 조작은 요청만 보내고 화면은 서버 응답이 와야 바뀐다. 띄우고 숨기는 일은 UJMAuctionManager가 한다.
 // 목록 줄과 필터 버튼은 C++가 만든다(UAuctionRowButton) — WBP에는 줄을 넣을 패널만 둔다.
 UCLASS()
-class JM_API UAuctionWidget : public UUserWidget
+class JM_API UAuctionWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 
@@ -53,6 +62,10 @@ protected:
 	// 목록 줄·필터 버튼의 글자 크기
 	UPROPERTY(EditAnywhere, Category = "Auction")
 	int32 RowFontSize = 13;
+
+	// 목록 줄 앞 아이템 아이콘 칸의 크기(UI3)
+	UPROPERTY(EditAnywhere, Category = "Auction")
+	float RowIconSize = 34.f;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> TxtTitle;
@@ -141,6 +154,8 @@ private:
 	void FillRows(class UPanelWidget* Panel, TArray<TObjectPtr<UAuctionRowButton>>& Rows, int32 Count, void (UAuctionWidget::*OnClick)(int32), TFunctionRef<void(UAuctionRowButton&, int32)> Fill);
 	UAuctionRowButton* MakeRow(class UPanelWidget* Panel, int32 Index);
 	FString ItemName(int32 ItemId) const;
+	// 줄에 아이템 아이콘·등급 테두리를 넣는다(ItemId 0 = 아이콘 없음)
+	void ApplyRowIcon(UAuctionRowButton& Row, int32 ItemId) const;
 	static FString RemainText(int32 RemainSec);
 	int64 ReadNumber(const class UEditableTextBox* Box) const;
 

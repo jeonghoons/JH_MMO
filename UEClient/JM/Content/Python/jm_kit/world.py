@@ -1475,7 +1475,7 @@ def pie_walk(args):
 _PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen", "give", "equip", "shopopen", "shopbuy", "shopsell", "shopclose", "netmovestats", "autoattack", "attackstats", "portal", "partyinvite", "partyrespond", "partyleave", "partyshow",
                    "auctionopen", "auctionsearch", "auctionmy", "auctionregister", "auctionbuy", "auctioncancel", "mailclaim", "auctionshow", "auctiontab", "auctionclose",
                    "questtalk", "questrequest", "questlog", "questshow", "questclose",
-                   "highresshot"}   # 2026-11-22 무기별 사전 점검: PIE 화면을 Saved/Screenshots에 파일로 남김
+                   "highresshot", "shot", "uitoggle"}   # shot showui = UI 포함 캡처, uitoggle = 창 열기·닫기(D-270 UI 확인) / 2026-11-22 무기별 사전 점검: PIE 화면을 Saved/Screenshots에 파일로 남김
 _PIE_EXEC_PREFIX = ("t.", "r.", "sg.", "grass.", "foliage.", "jm.")
 
 
@@ -1489,6 +1489,12 @@ def run_step(name, step, args=None):
         from jm_kit import pie_probe
         importlib.reload(pie_probe)
         return pie_probe.run(step, args)
+    if step.startswith("ui_"):
+        # UI 에셋 도구(2026-11-22 UI1 — 폰트 반입·위젯 글꼴): jm_kit.ui_kit
+        import importlib
+        from jm_kit import ui_kit
+        importlib.reload(ui_kit)
+        return ui_kit.run(step, args)
     if step.startswith("dg_"):
         # 던전 맵 도구(DG4): jm_kit.dungeon
         import importlib

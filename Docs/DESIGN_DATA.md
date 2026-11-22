@@ -47,6 +47,7 @@ Test 프로젝트의 데이터 규약을 이 저장소 구조에 맞춰 옮긴 �
 | ShopTable | (2026-11-18 L4) 상점별 판매 품목·구매가 — 서버 전용. 열은 [DESIGN_ITEMS_TRADE.md](DESIGN_ITEMS_TRADE.md) "상점 NPC" |
 | NpcTable | (2026-11-18 L4) NPC 종류별 이름·상점·체형·장착 외형 (ID = 마커 `npcTemplateId` = `ObjectInfo.template_id`) — 서버 전용 |
 | QuestTable | (2026-11-22 Q1) 퀘스트별 NPC·종류(처치/수집)·대상·수량·권장 레벨·보상(경험치·골드·아이템) + 이름·설명(클라 전용) — 서버·UE 공용, `balance.py --write`가 생성 |
+| UIStyleTable | (2026-11-22 UI1, D-270) **UE 전용(서버는 읽지 않음)** — 스타일 키(Body·Title)별 글꼴 에셋·대신 쓸 글자체. 글자 크기·색은 각 위젯이 정함 |
 | UITable | 해당 기능 작업 시 |
 | WorldTable | 맵별 시야(AOI) 수치·부활 규칙 — 서버 전용(2026-10-31 A1.3, 2026-11-16 A2.4) |
 | BodyTable | 체형별 기준 캐릭터 구성(리더·눈·이·헤어·몸 머티리얼·AnimBP, 공용 피격·사망 몽타주) — 클라 전용(2026-11-07 MC4.1, 2026-11-08 MC4.2) |

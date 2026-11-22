@@ -2,12 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "ReviveWidget.generated.h"
 
 // 부활 창(A2.4, D-149). 내 캐릭터가 죽으면 UJMObjectManager::HandleDead가 띄우고, SC_REVIVE를 받으면 HandleRevive가 숨긴다.
 // 대기 시간(SC_DEAD.revive_delay_ms, 서버 값)이 지나면 버튼이 켜지고, 누르면 CS_REVIVE를 보낸다(검증은 서버).
 UCLASS()
-class JM_API UReviveWidget : public UUserWidget
+class JM_API UReviveWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 

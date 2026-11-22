@@ -2,13 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "NameplateWidget.generated.h"
 
 // 마을 NPC 머리 위 이름표 (Q1, D-265): 위 줄 = 퀘스트 표식("!" 받을 퀘스트 있음, "?" 완료할 수 있음 — UJMQuestManager::GetNpcMarker), 아래 줄 = 이름.
 // UJMObjectManager가 NPC를 만들 때 화면 공간 UWidgetComponent로 붙인다. WBP 없이 C++가 위젯 트리를 만든다
 // (같은 이름의 TextBlock을 가진 WBP 자식 클래스를 만들면 그쪽 배치를 쓴다).
 UCLASS()
-class JM_API UNameplateWidget : public UUserWidget
+class JM_API UNameplateWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 

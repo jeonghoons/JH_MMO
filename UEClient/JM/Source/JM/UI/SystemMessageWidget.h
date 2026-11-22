@@ -2,11 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "SystemMessageWidget.generated.h"
 
 // 시스템 메시지 창(로그인 실패, 방 입장 대기 등). 띄우고 닫는 일은 UJMUIManager::ShowSystemMessage/CloseSystemMessage가 한다.
 UCLASS()
-class JM_API USystemMessageWidget : public UUserWidget
+class JM_API USystemMessageWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 

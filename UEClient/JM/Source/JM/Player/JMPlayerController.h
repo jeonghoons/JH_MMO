@@ -132,6 +132,9 @@ public:
     void AutoAttack(int32 Count = 30, int32 Slot = 0);
     UFUNCTION(Exec)
     void AttackStats(int32 Reset = 1);
+    // 등록된 창을 열고 닫는다(WidgetNames — Inventory·Party·Quest …). UI 확인용(D-270, 키 입력 없이 PIE 확인)
+    UFUNCTION(Exec)
+    void UIToggle(const FString& WidgetName);
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")

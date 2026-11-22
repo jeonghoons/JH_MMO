@@ -1,4 +1,5 @@
 ﻿#include "UI/NameplateWidget.h"
+#include "UI/UIStyle.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -12,6 +13,7 @@ namespace
 	{
 		UTextBlock* Text = Tree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
 		FSlateFontInfo FontInfo = Text->GetFont();
+		JMUIStyle::ApplyFont(Tree->GetTypedOuter<UUserWidget>(), FontInfo, JMUIStyle::Title);   // 이름표는 제목 글꼴(D-270)
 		FontInfo.Size = FontSize;
 		// 밝은 배경(나무 벽·하늘)에서도 읽히게 검은 외곽선
 		FontInfo.OutlineSettings.OutlineSize = Outline;

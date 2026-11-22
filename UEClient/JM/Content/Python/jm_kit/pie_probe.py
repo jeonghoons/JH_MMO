@@ -378,7 +378,32 @@ def rec_read(args):
             "events": st["events"]}
 
 
+def fonts(args):
+    """PIE 월드의 글자 위젯(TextBlock·EditableText·EditableTextBox)이 쓰는 글꼴을 창(소유 UserWidget)별로 센다(D-270 UI1).
+    반환: {창 클래스: {글꼴/글자체: 수}}, 공용 글꼴(F_Body·F_Title)이 아닌 것 목록(최대 30)."""
+    out, other = {}, []
+    for cls, getter in ((unreal.TextBlock, lambda w: w.get_editor_property("font")),
+                        (unreal.EditableText, lambda w: w.get_editor_property("widget_style").get_editor_property("font")),
+                        (unreal.EditableTextBox, lambda w: w.get_editor_property("widget_style").get_editor_property("text_style").get_editor_property("font"))):
+        for w in unreal.ObjectIterator(cls):
+            path = w.get_path_name()
+            if "Transient" not in path or "WidgetTree" not in path or "Default__" in path:
+                continue   # 실행 중 만든 위젯만(에셋 템플릿·CDO 제외 — 런타임 위젯은 GameInstance 아래 Transient)
+            owner = w.get_typed_outer(unreal.UserWidget)
+            oname = owner.get_class().get_name() if owner else "?"
+            info = getter(w)
+            fo = info.get_editor_property("font_object")
+            key = f"{fo.get_name() if fo else None}/{info.get_editor_property('typeface_font_name')}"
+            out.setdefault(oname, {}).setdefault(key, 0)
+            out[oname][key] += 1
+            if not (fo and fo.get_name() in ("F_Body", "F_Title")) and len(other) < 30:
+                other.append({"owner": oname, "widget": w.get_name(), "font": key, "path": path})
+    return {"by_owner": out, "not_shared": other}
+
+
 def run(step, args):
+    if step == "pp_fonts":
+        return fonts(args)
     if step == "pp_probe":
         return probe(args)
     if step == "pp_rec_start":

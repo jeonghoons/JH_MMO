@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "ItemSlotWidget.generated.h"
 
 struct FJMInventoryItem;
@@ -15,7 +16,7 @@ DECLARE_DELEGATE_TwoParams(FOnItemSlotDrop, UItemSlotWidget* /*From*/, UItemSlot
 // 칸은 보여 주고 입력(클릭·우클릭·끌어다 놓기)을 알리기만 한다. 무엇을 할지는 이 칸을 만든 창(UInventoryWidget)이 정하고,
 // 결과는 서버 패킷(SC_INVENTORY_UPDATE)이 와야 바뀐다.
 UCLASS()
-class JM_API UItemSlotWidget : public UUserWidget
+class JM_API UItemSlotWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 
@@ -61,6 +62,10 @@ protected:
 	// 선택 표시(테두리). 선택한 칸에서만 보인다.
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UWidget> SelectedFrame;
+
+	// 칸 바탕(UIStyleTable Slot 브러시). 아이템이 있으면 테두리를 등급 색으로 칠한다(D-073·D-270)
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBorder> SlotBg;
 
 private:
 	int32 SlotIndex = -1;

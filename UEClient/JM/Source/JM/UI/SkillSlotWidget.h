@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "SkillSlotWidget.generated.h"
 
 struct FSkillTableRow;
@@ -14,7 +15,7 @@ DECLARE_DELEGATE_OneParam(FOnQuickSlotRightClicked, USkillSlotWidget* /*SlotWidg
 
 // 전투 HUD의 액티브 칸 하나(아이콘, 키 글자, 쿨타임 덮개, 남은 초) — 스킬 또는 아이템을 담는다(D-148). 쿨타임 길이는 서버가 SC_ATTACK.cooldown_ms로 알려 준다.
 UCLASS()
-class JM_API USkillSlotWidget : public UUserWidget
+class JM_API USkillSlotWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 

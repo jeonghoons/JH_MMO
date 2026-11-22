@@ -1,4 +1,5 @@
 ﻿#include "UI/PartyWidget.h"
+#include "UI/UIStyle.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
@@ -83,6 +84,7 @@ void UPartyWidget::Refresh()
 		UTextBlock* Row = WidgetTree ? WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass()) : nullptr;
 		if (Row == nullptr) return;
 		FSlateFontInfo FontInfo = Row->GetFont();
+		JMUIStyle::ApplyFont(this, FontInfo, JMUIStyle::Body);   // 공용 글꼴(D-270)
 		FontInfo.Size = MemberFontSize;
 		Row->SetFont(FontInfo);
 		MemberList->AddChild(Row);

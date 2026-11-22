@@ -2,13 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "ChatWidget.generated.h"
 
 class UEditableText;
 class UScrollBox;
 
 UCLASS()
-class JM_API UChatWidget : public UUserWidget
+class JM_API UChatWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 public:

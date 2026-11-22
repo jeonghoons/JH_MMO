@@ -1,4 +1,5 @@
 ﻿#include "ChatWidget.h"
+#include "UI/UIStyle.h"
 #include "Components/EditableText.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
@@ -41,6 +42,7 @@ void UChatWidget::AddChatMessage(const FString& SenderName, const FString& Messa
 
 		// 1. 폰트 정보 가져오기
 		FSlateFontInfo FontInfo = NewChatBlock->GetFont();
+		JMUIStyle::ApplyFont(this, FontInfo, JMUIStyle::Body);   // 공용 글꼴(D-270)
 
 		// 2. 글씨 크기 키우기 (기존 14 -> 18 또는 20으로 조절)
 		FontInfo.Size = 18;

@@ -1,6 +1,13 @@
 ﻿#include "UI/AuctionWidget.h"
+#include "UI/UIStyle.h"
 #include "Blueprint/WidgetTree.h"
+#include "Components/Border.h"
 #include "Components/ButtonSlot.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
+#include "Components/Image.h"
+#include "Components/SizeBox.h"
+#include "Engine/Texture2D.h"
 #include "Components/EditableTextBox.h"
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
@@ -41,6 +48,19 @@ void UAuctionRowButton::SetRow(const FString& Text, bool bSelected, const FLinea
 		Label->SetColorAndOpacity(FSlateColor(TextColor));
 	}
 	SetBackgroundColor(bSelected ? RowSelectedColor : RowColor);
+}
+
+void UAuctionRowButton::SetIcon(UTexture2D* Texture, const FLinearColor& GradeColor)
+{
+	if (IconFrame == nullptr || IconImage == nullptr) return;
+	if (Texture == nullptr)
+	{
+		IconFrame->SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+	IconImage->SetBrushFromTexture(Texture);
+	IconFrame->SetBrushColor(GradeColor);
+	IconFrame->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
 void UAuctionRowButton::HandleClicked()
@@ -138,6 +158,14 @@ void UAuctionWidget::SetTab(ETab Tab, bool bRequest)
 	Refresh();
 }
 
+void UAuctionWidget::ApplyRowIcon(UAuctionRowButton& Row, int32 ItemId) const
+{
+	const UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const FItemTableRow* Item = ItemId != 0 && DataManager ? DataManager->FindItemById(ItemId) : nullptr;
+	UTexture2D* Icon = Item && !Item->Icon.IsNull() ? Item->Icon.LoadSynchronous() : nullptr;
+	Row.SetIcon(Icon, Item ? JMUIStyle::GradeColor(this, static_cast<uint8>(Item->Grade)) : FLinearColor::White);
+}
+
 FString UAuctionWidget::ItemName(int32 ItemId) const
 {
 	const UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
@@ -169,14 +197,35 @@ UAuctionRowButton* UAuctionWidget::MakeRow(UPanelWidget* Panel, int32 Index)
 	if (Button == nullptr || Label == nullptr) return nullptr;
 
 	FSlateFontInfo FontInfo = Label->GetFont();
+	JMUIStyle::ApplyFont(this, FontInfo, JMUIStyle::Body);   // 공용 글꼴(D-270)
 	FontInfo.Size = RowFontSize;
 	Label->SetFont(FontInfo);
-	if (UButtonSlot* ButtonSlot = Cast<UButtonSlot>(Button->AddChild(Label)))
+	// 줄 = [아이콘 칸(등급 테두리 + 아이콘)] + 글자 (UI3, D-270)
+	UHorizontalBox* RowBox = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+	USizeBox* IconSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+	UBorder* IconFrame = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass());
+	UImage* IconImage = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
+	IconSize->SetWidthOverride(RowIconSize);
+	IconSize->SetHeightOverride(RowIconSize);
+	FSlateBrush SlotBrush;
+	if (JMUIStyle::MakeBrush(this, TEXT("Slot"), SlotBrush)) IconFrame->SetBrush(SlotBrush);
+	IconFrame->SetPadding(FMargin(3.f));
+	IconFrame->SetContent(IconImage);
+	IconSize->AddChild(IconFrame);
+	IconFrame->SetVisibility(ESlateVisibility::Collapsed);
+	RowBox->AddChildToHorizontalBox(IconSize);
+	if (UHorizontalBoxSlot* LabelSlot = RowBox->AddChildToHorizontalBox(Label))
+	{
+		LabelSlot->SetVerticalAlignment(VAlign_Center);
+		LabelSlot->SetPadding(FMargin(8.f, 0.f, 0.f, 0.f));
+	}
+	if (UButtonSlot* ButtonSlot = Cast<UButtonSlot>(Button->AddChild(RowBox)))
 	{
 		ButtonSlot->SetHorizontalAlignment(HAlign_Left);
-		ButtonSlot->SetPadding(FMargin(8.f, 3.f));
+		ButtonSlot->SetPadding(FMargin(6.f, 2.f));
 	}
 	Button->Setup(Index, Label);
+	Button->SetIconWidgets(IconFrame, IconImage);
 	Panel->AddChild(Button);
 	return Button;
 }
@@ -240,6 +289,7 @@ void UAuctionWidget::Refresh()
 		const FJMAuctionListing& L = Listings[Index];
 		Row.SetRow(FString::Printf(TEXT("%s x%lld      %lld G      %s%s"), *ItemName(L.ItemId), L.Count, L.Price, *RemainText(L.RemainSec), L.bMine ? TEXT("   [내 등록]") : TEXT("")),
 			L.ListingId == SelectedListingId, L.bMine ? MineTextColor : FLinearColor::White);
+		ApplyRowIcon(Row, L.ItemId);
 	});
 
 	const int32 PageSize = FMath::Max(1, Auction->GetPageSize());
@@ -295,6 +345,7 @@ void UAuctionWidget::Refresh()
 	FillRows(MyList, MyRows, MyListings.Num(), &UAuctionWidget::OnMyRowClicked, [this, &MyListings](UAuctionRowButton& Row, int32 Index) {
 		const FJMAuctionListing& L = MyListings[Index];
 		Row.SetRow(FString::Printf(TEXT("%s x%lld      %lld G      %s"), *ItemName(L.ItemId), L.Count, L.Price, *RemainText(L.RemainSec)), L.ListingId == SelectedMyListingId, FLinearColor::White);
+		ApplyRowIcon(Row, L.ItemId);
 	});
 	if (TxtMyInfo)
 	{
@@ -320,6 +371,7 @@ void UAuctionWidget::Refresh()
 		default: Text = FString::Printf(TEXT("우편 %lld"), M.MailId); break;
 		}
 		Row.SetRow(Text, M.MailId == SelectedMailId, FLinearColor::White);
+		ApplyRowIcon(Row, M.Kind == Protocol::MAIL_KIND_SALE_GOLD ? 0 : M.ItemId);
 	});
 	if (TxtMailInfo)
 	{

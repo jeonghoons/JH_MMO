@@ -1,4 +1,5 @@
 ﻿#include "UI/QuestWidget.h"
+#include "UI/UIStyle.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
 #include "Components/ButtonSlot.h"
@@ -26,6 +27,7 @@ namespace
 	{
 		UTextBlock* Block = Tree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
 		FSlateFontInfo FontInfo = Block->GetFont();
+		JMUIStyle::ApplyFont(Tree->GetTypedOuter<UUserWidget>(), FontInfo, JMUIStyle::Body);   // 공용 글꼴(D-270)
 		FontInfo.Size = FontSize;
 		Block->SetFont(FontInfo);
 		return Block;

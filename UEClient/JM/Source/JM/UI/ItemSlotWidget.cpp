@@ -1,5 +1,7 @@
 ﻿#include "UI/ItemSlotWidget.h"
+#include "Components/Border.h"
 #include "Components/Image.h"
+#include "UI/UIStyle.h"
 #include "Components/TextBlock.h"
 #include "Blueprint/DragDropOperation.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -40,6 +42,11 @@ void UItemSlotWidget::SetItem(const FJMInventoryItem* Item, const FItemTableRow*
 		}
 	}
 
+	if (SlotBg)
+	{
+		// 빈 칸은 Slot_Empty 색, 아이템이 있으면 등급 색
+		SlotBg->SetBrushColor(Item && Row ? JMUIStyle::GradeColor(this, static_cast<uint8>(Row->Grade)) : JMUIStyle::Color(this, TEXT("Slot_Empty")));
+	}
 	if (ImgIcon)
 	{
 		if (IconTexture) ImgIcon->SetBrushFromTexture(IconTexture);

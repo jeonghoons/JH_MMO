@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "PartyWidget.generated.h"
 
 // 파티 창 (DG2, DESIGN_PARTY_DUNGEON §5-5). 한 위젯에 화면 두 개가 있다.
@@ -10,7 +11,7 @@
 // 내용은 UJMPartyManager(서버가 보낸 상태의 사본)를 그대로 그린다. 조작은 요청만 보내고 화면은 서버 패킷이 와야 바뀐다.
 // P 키(AJMMyPlayer::OnPartyInput)로 여닫고, 초대를 받거나 파티가 처음 맺어지면 UJMPartyManager가 띄운다.
 UCLASS()
-class JM_API UPartyWidget : public UUserWidget
+class JM_API UPartyWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 

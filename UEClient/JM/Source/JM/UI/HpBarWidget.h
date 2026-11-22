@@ -2,12 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "HpBarWidget.generated.h"
 
 class UProgressBar;
 
 UCLASS()
-class JM_API UHpBarWidget : public UUserWidget
+class JM_API UHpBarWidget : public UJMUserWidget
 {
     GENERATED_BODY()
 

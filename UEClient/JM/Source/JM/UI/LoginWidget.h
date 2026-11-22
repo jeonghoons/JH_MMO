@@ -2,10 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "LoginWidget.generated.h"
 
 UCLASS()
-class JM_API ULoginWidget : public UUserWidget
+class JM_API ULoginWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 

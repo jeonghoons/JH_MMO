@@ -10,6 +10,7 @@
 #include "Data/MonsterTableRow.h"
 #include "Data/PlayerStatTableRow.h"
 #include "Data/QuestTableRow.h"
+#include "Data/UIStyleTableRow.h"
 #include "DataManager.generated.h"
 
 // DataTable 조회 창구. 애셋 경로는 UJMDataSettings(DefaultGame.ini)에서만 읽는다. (Docs/DESIGN_DATA.md)
@@ -51,6 +52,9 @@ public:
 	// 그 NPC(NpcTable ID)가 주는 퀘스트 ID들(ID 순). 없으면 빈 배열
 	TArray<int32> GetQuestIdsByNpc(int32 NpcTemplateId) const;
 
+	// 공용 UI 스타일 키(UIStyleTable의 RowName — Body·Title …)로 찾는다. 없거나 테이블이 지정되지 않았으면 nullptr (D-270)
+	const FUIStyleTableRow* FindUIStyle(FName Key) const;
+
 	// 방 입장 전에 플레이어 외형(BodyTable·ItemTable 전체)과 스킬 몽타주·이펙트·아이콘(SkillTable 전체)을 미리 로드한다.
 	// 스폰 직후 메시가 없는 상태(투명 캐릭터)와 스킬 첫 사용 시 동기 로딩을 막는다. 로드한 에셋은 이 핸들이 붙잡아 둔다.
 	// 이미 로드돼 있으면 OnDone을 바로 부른다.
@@ -72,6 +76,8 @@ private:
 	mutable TObjectPtr<UDataTable> CachedWeaponTypeTable;
 	mutable TObjectPtr<UDataTable> CachedMonsterTable;
 	mutable TObjectPtr<UDataTable> CachedQuestTable;
+	mutable TObjectPtr<UDataTable> CachedUIStyleTable;
+	mutable bool bUIStyleTableWarned = false;
 	// Level → ExpToNext (처음 조회 때 PlayerStatTable 전체에서 만든다)
 	mutable TMap<int32, int64> ExpToNextByLevel;
 	mutable bool bExpTableBuilt = false;

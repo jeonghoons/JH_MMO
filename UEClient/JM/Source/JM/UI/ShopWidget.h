@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "ShopWidget.generated.h"
 
 class UItemSlotWidget;
@@ -11,7 +12,7 @@ class UItemSlotWidget;
 //  - 판매: 상점이 열린 동안 인벤토리 아이템을 우클릭하면 판매 후보가 되고, EditSellCount의 수량만큼 BtnSell로 확정(되사기 없음)
 // 조작은 요청만 보내고 화면은 SC_INVENTORY_UPDATE가 와야 바뀐다. 띄우고 숨기는 일은 UJMShopManager가 한다.
 UCLASS()
-class JM_API UShopWidget : public UUserWidget
+class JM_API UShopWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 

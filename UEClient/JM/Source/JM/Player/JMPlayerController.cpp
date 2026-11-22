@@ -462,3 +462,12 @@ void AJMPlayerController::AttackStats(int32 Reset)
 	if (AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn()))
 		UE_LOG(LogTemp, Log, TEXT("%s"), *MyPlayer->DevAttackStats(Reset != 0));
 }
+
+void AJMPlayerController::UIToggle(const FString& WidgetName)
+{
+	if (UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr)
+	{
+		UIManager->ToggleWidget(FName(*WidgetName));
+		UE_LOG(LogTemp, Log, TEXT("UIToggle: %s"), *WidgetName);
+	}
+}

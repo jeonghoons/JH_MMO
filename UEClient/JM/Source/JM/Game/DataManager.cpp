@@ -4,6 +4,24 @@
 #include "Engine/StreamableManager.h"
 #include "Game/JMGameInstance.h"
 
+const FUIStyleTableRow* UDataManager::FindUIStyle(FName Key) const
+{
+	if (CachedUIStyleTable == nullptr)
+	{
+		const UJMDataSettings* Settings = GetDefault<UJMDataSettings>();
+		if (Settings == nullptr || Settings->UIStyleTable.IsNull())
+		{
+			// 위젯마다 불리므로 경고는 한 번만
+			if (!bUIStyleTableWarned) UE_LOG(LogTemp, Warning, TEXT("DataManager: UIStyleTable is not set (Project Settings > Game > JM Data)"));
+			bUIStyleTableWarned = true;
+			return nullptr;
+		}
+		CachedUIStyleTable = Settings->UIStyleTable.LoadSynchronous();
+	}
+	if (CachedUIStyleTable == nullptr) return nullptr;
+	return CachedUIStyleTable->FindRow<FUIStyleTableRow>(Key, TEXT("FindUIStyle"), false);
+}
+
 const FMovementTableRow* UDataManager::FindMovementRow(int32 Id) const
 {
 	if (CachedMovementTable == nullptr)

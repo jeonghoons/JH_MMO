@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "TradeWidget.generated.h"
 
 class UItemSlotWidget;
@@ -14,7 +15,7 @@ struct FJMTradeOffer;
 // 아이템 올리기: 거래 중 인벤토리에서 우클릭하거나 이 창으로 끌어다 놓는다(행 전부). 수량은 올린 칸을 골라 EditCount에 적는다.
 // 내 제시의 칸을 우클릭하면 내린다. 띄우고 숨기는 일은 UJMTradeManager가 한다.
 UCLASS()
-class JM_API UTradeWidget : public UUserWidget
+class JM_API UTradeWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 

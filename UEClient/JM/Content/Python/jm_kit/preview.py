@@ -30,6 +30,10 @@ _TEMPLATE_LABELS = (("DirectionalLight", "T_Sun"), ("SkyLight", "T_Sky"), ("SkyA
                     ("ExponentialHeightFog", "T_Fog"), ("VolumetricCloud", "T_Cloud"), ("PlayerStart", "T_Start"))
 # 템플릿 정적 메시 액터는 메시로 구분한다(바닥 SM_Template_Map_Floor, 하늘 돔 SM_SkySphere)
 _TEMPLATE_MESH_LABELS = (("SM_Template_Map_Floor", "T_Floor"), ("SM_SkySphere", "T_SkyDome"))
+# 바닥 재질: 테스트 레벨은 UE 기본 레벨과 같은 격자(흰 바닥은 PIE 확인 때 발밑·이펙트가 잘 안 보임 — D-270),
+# 장비 진열·맞춤 레벨은 촬영 비교 기준이라 흰 평면 그대로
+FLOOR_GRID = "/Engine/OpenWorldTemplate/LandscapeMaterial/MI_ProcGrid"   # 베이직 템플릿 바닥(Floor_0)의 재질 — 월드 기준 1m 체크 격자
+FLOOR_WHITE = "/Engine/BasicShapes/BasicShapeMaterial"
 START_LOC, START_YAW = (0, -600, 100), 90   # PIE 시작 위치 — 촬영 위치(원점) 뒤쪽, 정면(+Y)을 본다
 KW = unreal.AttachmentRule.KEEP_WORLD
 _A = "/Game/Character/Mannequin/Anims/Unarmed/"
@@ -68,7 +72,7 @@ def setup_level(level=LEVEL):
         fill.point_light_component.set_intensity(80)
         fill.point_light_component.set_attenuation_radius(2000)
         fill.set_actor_label("T_Fill")
-    _basic_lighting()   # T_Floor·T_Fill이 있어야 함(새 레벨이면 위에서 방금 만듦)
+    _basic_lighting(FLOOR_GRID if level == LEVEL else FLOOR_WHITE)   # T_Floor·T_Fill이 있어야 함(새 레벨이면 위에서 방금 만듦)
     if "T_CapG" not in have:
         EAS.spawn_actor_from_class(unreal.SceneCapture2D, unreal.Vector(0, 600, 120), unreal.Rotator(0, 0, -90)).set_actor_label("T_CapG")
     if "T_Start" not in have:
@@ -118,7 +122,7 @@ def _set_game_mode():
     UES.get_editor_world().get_world_settings().set_editor_property("default_game_mode", gm)
 
 
-def _basic_lighting():
+def _basic_lighting(floor_material=FLOOR_WHITE):
     """UE 기본 레벨과 같은 조명 구성: 태양(대기 연동) + 하늘 대기 + 실시간 캡처 하늘광 + 높이 안개.
     태양은 캐릭터 정면(+Y) 왼쪽 위에서 비춘다(정면 사진이 어둡지 않게). 매번 값을 다시 넣는다(기존 레벨에도 적용)."""
     acts = {a.get_actor_label(): a for a in EAS.get_all_level_actors()}
@@ -141,7 +145,7 @@ def _basic_lighting():
     acts["T_Floor"].set_actor_location(unreal.Vector(0, 0, 0), False, False)
     acts["T_Floor"].set_actor_rotation(unreal.Rotator(0, 0, 0), False)
     acts["T_Floor"].set_actor_scale3d(unreal.Vector(600, 600, 1))   # 600m — 캐릭터를 어디에 세워도 바닥 위
-    acts["T_Floor"].static_mesh_component.set_material(0, unreal.load_asset("/Engine/BasicShapes/BasicShapeMaterial"))
+    acts["T_Floor"].static_mesh_component.set_material(0, unreal.load_asset(floor_material))
     if "T_Back" not in acts:   # 뒤쪽 보조광(그림자 없음) — 키트 만화 셰이더는 그늘이 아주 어두워 뒷모습이 안 보임
         acts["T_Back"] = EAS.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 600))
         acts["T_Back"].set_actor_label("T_Back")

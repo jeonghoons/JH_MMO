@@ -14,6 +14,16 @@
 #include "Game/JMShopManager.h"
 #include "Game/JMAuctionManager.h"
 #include "Network/NetworkManager.h"
+#include "Components/Image.h"
+#include "Components/SceneCaptureComponent2D.h"
+#include "Components/PointLightComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Game/JMGameInstance.h"
+#include "Game/JMObjectManager.h"
+#include "Player/JMPlayer.h"
+#include "Player/JMMyPlayer.h"
 
 namespace
 {
@@ -57,7 +67,122 @@ void UInventoryWidget::NativeDestruct()
 			Inventory->OnInventoryChanged.Remove(InventoryChangedHandle);
 		}
 	}
+	DestroyPreview();
 	Super::NativeDestruct();
+}
+
+void UInventoryWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	// 접힌(Collapsed) 창은 Tick이 오지 않으므로 닫혀 있는 동안은 찍지 않는다
+	UpdatePreview();
+}
+
+bool UInventoryWidget::EnsurePreview()
+{
+	if (PreviewActor && PreviewCapture && PreviewTarget) return true;
+	UWorld* World = GetWorld();
+	const UJMGameInstance* GameInst = World ? Cast<UJMGameInstance>(World->GetGameInstance()) : nullptr;
+	if (GameInst == nullptr || !GameInst->PlayerClass) return false;
+
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Params.ObjectFlags |= RF_Transient;
+	AJMPlayer* Actor = World->SpawnActor<AJMPlayer>(GameInst->PlayerClass, PreviewLocation, FRotator::ZeroRotator, Params);
+	if (Actor == nullptr) return false;
+	// 서버 위치를 따라가지 않고(원격 보간은 액터 Tick) 떨어지지도 않게
+	Actor->SetActorTickEnabled(false);
+	Actor->SetActorEnableCollision(false);
+	if (UCharacterMovementComponent* Move = Actor->GetCharacterMovement())
+	{
+		Move->DisableMovement();
+		Move->SetComponentTickEnabled(false);
+	}
+	// 메인 화면에 안 보여도 포즈를 갱신(장비 메시는 몸 메시를 따라감)
+	if (USkeletalMeshComponent* Body = Actor->GetMesh())
+		Body->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+
+	USceneCaptureComponent2D* Capture = NewObject<USceneCaptureComponent2D>(Actor, TEXT("PreviewCapture"));
+	Capture->SetupAttachment(Actor->GetRootComponent());
+	Capture->SetRelativeLocationAndRotation(FVector(PreviewDistance, 0.f, PreviewHeight), FRotator(0.f, 180.f, 0.f));
+	Capture->FOVAngle = PreviewFov;
+	Capture->bCaptureEveryFrame = false;
+	Capture->bCaptureOnMovement = false;
+	Capture->bAlwaysPersistRenderingState = true;
+	Capture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+	Capture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
+	Capture->ShowOnlyActors.Add(Actor);   // 액터 단위 — 늦게 붙는 장비 메시도 포함
+	TArray<FEngineShowFlagsSetting> Flags;
+	for (const TCHAR* Flag : { TEXT("Atmosphere"), TEXT("Fog"), TEXT("Cloud") })
+		Flags.Add(FEngineShowFlagsSetting{ Flag, false });
+	Capture->SetShowFlagSettings(Flags);
+
+	UTextureRenderTarget2D* Target = NewObject<UTextureRenderTarget2D>(this);
+	Target->RenderTargetFormat = RTF_RGBA8_SRGB;
+	Target->ClearColor = FLinearColor::Black;
+	Target->InitAutoFormat(PreviewSize.X, PreviewSize.Y);
+	Target->UpdateResourceImmediate(true);
+	Capture->TextureTarget = Target;
+	Capture->RegisterComponent();
+
+	// 앞 위쪽 주광 + 뒤쪽 보조광(월드와 멀리 떨어져 있어 월드에는 닿지 않음)
+	auto AddLight = [Actor](const TCHAR* Name, const FVector& Rel, float Lumens)
+	{
+		UPointLightComponent* Light = NewObject<UPointLightComponent>(Actor, Name);
+		Light->SetupAttachment(Actor->GetRootComponent());
+		Light->SetRelativeLocation(Rel);
+		Light->SetIntensityUnits(ELightUnits::Lumens);
+		Light->SetIntensity(Lumens);
+		Light->SetAttenuationRadius(1000.f);
+		Light->SetCastShadows(false);
+		Light->RegisterComponent();
+	};
+	AddLight(TEXT("PreviewKey"), FVector(PreviewDistance * 0.8f, -120.f, 80.f), PreviewKeyLight);
+	AddLight(TEXT("PreviewFill"), FVector(-200.f, 120.f, 60.f), PreviewFillLight);
+
+	PreviewActor = Actor;
+	PreviewCapture = Capture;
+	PreviewTarget = Target;
+	PreviewPlayerType = -1;
+	PreviewItems.Reset();
+	if (ImgCharacter)
+	{
+		ImgCharacter->SetBrushResourceObject(Target);
+		ImgCharacter->SetDesiredSizeOverride(FVector2D(PreviewSize));
+	}
+	UE_LOG(LogTemp, Log, TEXT("[InvPreview] spawned %s at %s rt=%dx%d"), *Actor->GetName(), *PreviewLocation.ToString(), PreviewSize.X, PreviewSize.Y);
+	return true;
+}
+
+void UInventoryWidget::UpdatePreview()
+{
+	if (ImgCharacter == nullptr) return;
+	const UJMObjectManager* Objects = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMObjectManager>() : nullptr;
+	const AJMMyPlayer* Me = Objects ? Objects->MyPlayer.Get() : nullptr;
+	if (Me == nullptr || !EnsurePreview()) return;
+
+	// 외형은 내 캐릭터의 서버 값(체형·장착 목록)을 그대로 — 장착이 바뀌면 다시 넣는다
+	const Protocol::ObjectInfo& Info = Me->GetObjectInfo();
+	TArray<int32> Items;
+	for (int32 i = 0; i < Info.equip_items_size(); ++i) Items.Add(Info.equip_items(i));
+	if (PreviewPlayerType != static_cast<int32>(Info.player_type()) || PreviewItems != Items)
+	{
+		Protocol::ObjectInfo Copy = Info;
+		Copy.set_aim_skill_id(0);
+		PreviewActor->SetPlayerData(Copy);
+		PreviewPlayerType = static_cast<int32>(Info.player_type());
+		PreviewItems = Items;
+		UE_LOG(LogTemp, Log, TEXT("[InvPreview] loadout type=%d items=%d"), PreviewPlayerType, Items.Num());
+	}
+	PreviewCapture->CaptureSceneDeferred();
+}
+
+void UInventoryWidget::DestroyPreview()
+{
+	if (PreviewActor && IsValid(PreviewActor)) PreviewActor->Destroy();
+	PreviewActor = nullptr;
+	PreviewCapture = nullptr;
+	PreviewTarget = nullptr;
 }
 
 UItemSlotWidget* UInventoryWidget::CreateSlot()

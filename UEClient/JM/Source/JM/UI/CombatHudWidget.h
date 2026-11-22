@@ -4,13 +4,14 @@
 #include "Blueprint/UserWidget.h"
 #include "Data/ItemTableRow.h"
 #include "Player/QuickSlot.h"
+#include "UI/JMUserWidget.h"
 #include "CombatHudWidget.generated.h"
 
 class USkillSlotWidget;
 
 // 전투 HUD(D-038·D-148): 내 이름·레벨, HP·MP 바·수치, EXP 바·수치, 액티브 칸 5개. 값은 모두 서버 패킷에서 온다(UJMObjectManager가 갱신).
 UCLASS()
-class JM_API UCombatHudWidget : public UUserWidget
+class JM_API UCombatHudWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 

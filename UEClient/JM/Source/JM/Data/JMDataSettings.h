@@ -39,4 +39,8 @@ public:
 	// 퀘스트 글자·목표 수(Q1). 판정·보상은 서버가 같은 CSV로 한다
 	UPROPERTY(Config, EditAnywhere, Category = "DataTable")
 	TSoftObjectPtr<UDataTable> QuestTable;
+
+	// 공용 UI 스타일(글꼴 — D-270). UE 전용(서버는 읽지 않음)
+	UPROPERTY(Config, EditAnywhere, Category = "DataTable")
+	TSoftObjectPtr<UDataTable> UIStyleTable;
 };

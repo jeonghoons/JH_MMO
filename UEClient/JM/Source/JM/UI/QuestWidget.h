@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/JMUserWidget.h"
 #include "QuestWidget.generated.h"
 
 class UAuctionRowButton;
@@ -13,7 +14,7 @@ class UAuctionRowButton;
 // 버튼은 요청만 보내고 화면은 SC_QUEST_UPDATE가 와야 바뀐다.
 // 배치는 WBP_Quest(부모 이 클래스, D-266)가 정한다. 퀘스트 줄 버튼만 C++가 만든다(UAuctionRowButton — 경매 창 줄과 같은 버튼).
 UCLASS()
-class JM_API UQuestWidget : public UUserWidget
+class JM_API UQuestWidget : public UJMUserWidget
 {
 	GENERATED_BODY()
 
