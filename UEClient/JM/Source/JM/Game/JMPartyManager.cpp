@@ -12,7 +12,7 @@ namespace
 	{
 		switch (Result)
 		{
-		case Protocol::PARTY_RESULT_NO_TARGET:			return FText::FromString(TEXT("초대할 수 없는 대상입니다. (접속하지 않았거나 이름이 다릅니다)"));
+		case Protocol::PARTY_RESULT_NO_TARGET:			return FText::FromString(TEXT("초대할 수 없는 대상입니다."));
 		case Protocol::PARTY_RESULT_OTHER_CHANNEL:		return FText::FromString(TEXT("다른 채널에 있는 사람은 초대할 수 없습니다."));
 		case Protocol::PARTY_RESULT_TARGET_IN_PARTY:	return FText::FromString(TEXT("상대가 이미 파티에 들어 있습니다."));
 		case Protocol::PARTY_RESULT_TARGET_BUSY:		return FText::FromString(TEXT("상대가 다른 초대에 답하는 중입니다."));

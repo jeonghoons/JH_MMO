@@ -11,3 +11,5 @@ Grade_Common,,None,"(R=157,G=157,B=157,A=255)",,0
 Grade_Uncommon,,None,"(R=30,G=255,B=0,A=255)",,0
 Grade_Rare,,None,"(R=0,G=112,B=221,A=255)",,0
 Grade_Epic,,None,"(R=163,G=53,B=238,A=255)",,0
+ServerOnline,,None,"(R=60,G=200,B=90,A=255)",,0
+ServerOffline,,None,"(R=220,G=70,B=50,A=255)",,0

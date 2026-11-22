@@ -23,9 +23,9 @@ namespace
 		case Protocol::AUCTION_RESULT_SOLD: return FText::FromString(TEXT("다른 사람이 먼저 구매했거나 처리 중인 등록입니다."));
 		case Protocol::AUCTION_RESULT_OWN_ITEM: return FText::FromString(TEXT("내가 등록한 물품은 구매할 수 없습니다."));
 		case Protocol::AUCTION_RESULT_NOT_ENOUGH_GOLD: return FText::FromString(TEXT("골드가 부족합니다."));
-		case Protocol::AUCTION_RESULT_LISTING_LIMIT: return FText::FromString(TEXT("더 등록할 수 없습니다. (등록 수 상한)"));
+		case Protocol::AUCTION_RESULT_LISTING_LIMIT: return FText::FromString(TEXT("더 등록할 수 없습니다."));
 		case Protocol::AUCTION_RESULT_BAD_PRICE: return FText::FromString(TEXT("가격이 범위를 벗어났습니다."));
-		case Protocol::AUCTION_RESULT_NO_ITEM: return FText::FromString(TEXT("등록할 수 없는 아이템이거나 수량이 맞지 않습니다. (장착 중인 아이템은 먼저 해제하세요)"));
+		case Protocol::AUCTION_RESULT_NO_ITEM: return FText::FromString(TEXT("등록할 수 없는 아이템이거나 수량이 맞지 않습니다."));
 		case Protocol::AUCTION_RESULT_IN_TRADE: return FText::FromString(TEXT("거래에 올린 아이템은 등록할 수 없습니다."));
 		case Protocol::AUCTION_RESULT_INVENTORY_FULL: return FText::FromString(TEXT("인벤토리에 빈 칸이 없습니다."));
 		case Protocol::AUCTION_RESULT_GOLD_FULL: return FText::FromString(TEXT("골드를 더 가질 수 없습니다."));
@@ -191,7 +191,7 @@ void UJMAuctionManager::HandleMailNotice(const Protocol::SC_MAIL_NOTICE_PACKET& 
 	const FString ItemName = Item ? Item->DisplayName.ToString() : FString::Printf(TEXT("아이템 %d"), Pkt.item_id());
 	if (Pkt.kind() == Protocol::MAIL_KIND_SALE_GOLD)
 	{
-		Message = FString::Printf(TEXT("경매에 올린 %s ×%lld이(가) 팔렸습니다. 대금 %lld골드를 경매 관리인의 수령함에서 받으세요."),
+		Message = FString::Printf(TEXT("경매에 올린 물품이 팔렸습니다: %s ×%lld. 대금 %lld골드를 경매 관리인의 수령함에서 받으세요."),
 			*ItemName, static_cast<int64>(Pkt.count()), static_cast<int64>(Pkt.gold()));
 	}
 	else if (Pkt.kind() == Protocol::MAIL_KIND_EXPIRED)

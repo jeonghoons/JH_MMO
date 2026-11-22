@@ -104,7 +104,7 @@ bool UChatWidget::HandleCommand(const FString& Input)
 	}
 	else if (UIManager)
 	{
-		UIManager->ShowSystemMessage(FText::FromString(TEXT("알 수 없는 명령입니다. (/파티초대 이름, /파티탈퇴)")));
+		UIManager->ShowSystemMessage(FText::FromString(TEXT("알 수 없는 명령입니다.")));
 	}
 	return true;
 }

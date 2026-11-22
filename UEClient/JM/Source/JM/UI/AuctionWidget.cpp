@@ -263,7 +263,7 @@ void UAuctionWidget::Refresh()
 	const int64 Gold = Inventory ? Inventory->GetGold() : 0;
 	const bool bAtNpc = Auction->IsAtNpc();
 
-	if (TxtTitle) TxtTitle->SetText(FText::FromString(bAtNpc ? TEXT("경매장") : TEXT("경매장 (조회 — 등록·취소·수령은 경매 관리인에게서)")));
+	if (TxtTitle) TxtTitle->SetText(FText::FromString(bAtNpc ? TEXT("경매장") : TEXT("경매장 — 조회")));
 	if (TxtGold) TxtGold->SetText(FText::FromString(FString::Printf(TEXT("%lld G"), Gold)));
 	if (TxtStatus) TxtStatus->SetText(FText::FromString(Auction->GetStatusText()));
 
@@ -296,14 +296,14 @@ void UAuctionWidget::Refresh()
 	const int32 Total = Auction->GetSearchTotal();
 	const int32 Page = Auction->GetSearchPage();
 	const int32 PageCount = FMath::Max(1, (Total + PageSize - 1) / PageSize);
-	if (TxtPage) TxtPage->SetText(FText::FromString(FString::Printf(TEXT("%d / %d쪽 (%d건)"), Page + 1, PageCount, Total)));
+	if (TxtPage) TxtPage->SetText(FText::FromString(FString::Printf(TEXT("%d / %d쪽 · %d건"), Page + 1, PageCount, Total)));
 	if (BtnPrev) BtnPrev->SetIsEnabled(Page > 0);
 	if (BtnNext) BtnNext->SetIsEnabled(Page + 1 < PageCount);
 	if (TxtSearchInfo)
 	{
-		if (Selected == nullptr) TxtSearchInfo->SetText(FText::FromString(Listings.Num() == 0 ? TEXT("판매 중인 등록이 없습니다") : TEXT("살 등록을 고르세요 (값은 묶음 전체의 값)")));
+		if (Selected == nullptr) TxtSearchInfo->SetText(FText::FromString(Listings.Num() == 0 ? TEXT("판매 중인 등록이 없습니다") : TEXT("살 등록을 고르세요")));
 		else if (Selected->bMine) TxtSearchInfo->SetText(FText::FromString(TEXT("내가 올린 등록입니다")));
-		else TxtSearchInfo->SetText(FText::FromString(FString::Printf(TEXT("구매: %s x%lld — %lld G%s"), *ItemName(Selected->ItemId), Selected->Count, Selected->Price, Gold < Selected->Price ? TEXT(" (골드 부족)") : TEXT(""))));
+		else TxtSearchInfo->SetText(FText::FromString(FString::Printf(TEXT("구매: %s x%lld — %lld G%s"), *ItemName(Selected->ItemId), Selected->Count, Selected->Price, Gold < Selected->Price ? TEXT(" · 골드 부족") : TEXT(""))));
 	}
 	if (BtnBuy) BtnBuy->SetIsEnabled(Selected != nullptr && !Selected->bMine && Gold >= Selected->Price);
 
@@ -334,7 +334,7 @@ void UAuctionWidget::Refresh()
 		else if (RegItem == nullptr) Info = TEXT("등록할 아이템을 인벤토리에서 우클릭하세요");
 		else Info = FString::Printf(TEXT("등록: %s  %lld / %lld개  값 %lld G"), *ItemName(RegItem->ItemId), RegCount, RegItem->Count, RegPrice);
 		if (bAtNpc && MaxListings > 0)
-			Info += FString::Printf(TEXT("\n내 등록 %d / %d건, 값 %lld ~ %lld G (묶음 전체의 값)%s"), MyCount, MaxListings, Auction->GetMinPrice(), Auction->GetMaxPrice(), bListingFull ? TEXT(" — 더 등록할 수 없습니다") : TEXT(""));
+			Info += FString::Printf(TEXT("\n내 등록 %d / %d건, 값 %lld ~ %lld G%s"), MyCount, MaxListings, Auction->GetMinPrice(), Auction->GetMaxPrice(), bListingFull ? TEXT(" — 더 등록할 수 없습니다") : TEXT(""));
 		TxtRegisterInfo->SetText(FText::FromString(Info));
 	}
 	if (BtnRegister) BtnRegister->SetIsEnabled(RegItem != nullptr && RegCount >= 1 && RegCount <= RegItem->Count && bPriceOk && !bListingFull);
@@ -375,7 +375,7 @@ void UAuctionWidget::Refresh()
 	});
 	if (TxtMailInfo)
 	{
-		FString Info = FString::Printf(TEXT("수령함 %d건%s"), Mails.Num(), Auction->HasMoreMail() ? TEXT(" (더 있음 — 받으면 다음 것이 보입니다)") : TEXT(""));
+		FString Info = FString::Printf(TEXT("수령함 %d건%s"), Mails.Num(), Auction->HasMoreMail() ? TEXT(" · 더 있음") : TEXT(""));
 		if (!bAtNpc) Info += TEXT(" — 수령은 경매 관리인 앞에서 할 수 있습니다");
 		TxtMailInfo->SetText(FText::FromString(Info));
 	}

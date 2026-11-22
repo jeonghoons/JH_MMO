@@ -225,7 +225,113 @@ def ui_set_layout(args):
     return {"changed": done, "layout": ui_layout({"names": [n]})[n]}
 
 
+REPO_SOURCE_ART = os.path.normpath(os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()),
+                                                "..", "..", "SourceArt"))
+
+
+def ui_shot(args):
+    """열린 에디터 레벨을 SceneCapture로 찍어 PNG로 저장한다(UI7 로그인 배경 원본, D-275).
+    args = {"camera": [x, y, z](cm), "target": [x, y, z], "fov": 50, "w": 1920, "h": 1080, "out": "UI/Login/capture_raw.png"(SourceArt 기준)}"""
+    import importlib
+    from jm_kit import preview
+    importlib.reload(preview)
+    w, h = int(args.get("w", 1920)), int(args.get("h", 1080))
+    name = os.path.splitext(os.path.basename(args.get("out", "shot.png")))[0]
+    path = preview.shot(name, tuple(args["camera"]), tuple(args["target"]), fov=float(args.get("fov", 50.0)), w=w, h=h)
+    if args.get("out"):
+        dst = os.path.join(REPO_SOURCE_ART, os.path.normpath(args["out"]))
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        import shutil
+        shutil.copyfile(path, dst)
+        path = dst
+    return {"png": path, "size": [w, h], "level": unreal.EditorLevelLibrary.get_editor_world().get_name()}
+
+
+def ui_import_texture(args):
+    """SourceArt의 PNG를 UI 텍스처로 반입한다(있으면 다시 반입) — 밉맵 없음·UI 텍스처 그룹.
+    args = {"src": "UI/Login/bg.png"(SourceArt 기준), "dest": "/Game/UI/Login", "name": "T_LoginBackground", "compress": "default"|"ui"}
+    배경처럼 큰 사진은 "default"(BC1/DXT, 용량 작음), 틀·아이콘은 "ui"(무손실)."""
+    src = os.path.join(REPO_SOURCE_ART, os.path.normpath(args["src"]))
+    if not os.path.isfile(src):
+        raise RuntimeError(f"원본 없음: {src}")
+    dest, name = args["dest"], args["name"]
+    t = unreal.AssetImportTask()
+    t.set_editor_property("filename", src)
+    t.set_editor_property("destination_path", dest)
+    t.set_editor_property("destination_name", name)
+    t.set_editor_property("automated", True)
+    t.set_editor_property("replace_existing", True)
+    t.set_editor_property("save", False)
+    unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([t])
+    path = f"{dest}/{name}"
+    tex = unreal.load_asset(path)
+    if args.get("compress", "default") == "ui":
+        tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_EDITOR_ICON)
+    else:
+        tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_DEFAULT)
+    tex.set_editor_property("lod_group", unreal.TextureGroup.TEXTUREGROUP_UI)
+    tex.set_editor_property("mip_gen_settings", unreal.TextureMipGenSettings.TMGS_NO_MIPMAPS)
+    tex.set_editor_property("never_stream", True)
+    EAL.save_asset(path)
+    return {"asset": path, "size": [tex.blueprint_get_size_x(), tex.blueprint_get_size_y()]}
+
+
+def ui_pie(args):
+    """PIE 화면의 위젯을 이름으로 찾아 조작한다(UI7 — 마우스·키보드 없이 Claude가 로그인 화면을 시험).
+    args = {"world": 0, "actions": [["set", "EditSignUpId", "Test1"], ["click", "BtnGoSignUp"], ["enter", "EditAccountPassword"], ["read", "TxtServerStatus"]]}
+      set = 입력칸 글자, click = 버튼 OnClicked, enter = 입력칸 Enter 확정(OnTextCommitted), read = 글자·보임 상태
+    한 호출 안에서는 프레임이 진행되지 않으므로 서버 응답은 다음 호출에서 본다."""
+    worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
+    if not worlds:
+        return {"error": "PIE가 실행 중이 아님"}
+    w = worlds[min(int(args.get("world", 0)), len(worlds) - 1)]
+    found = {}
+    # PIE 월드 패키지(UEDPIE_n_<레벨>) 아래에 있는 위젯만 고른다
+    prefix = w.get_outermost().get_path_name()
+    for cls in (unreal.EditableText, unreal.Button, unreal.TextBlock, unreal.WidgetSwitcher, unreal.Image):
+        for wd in unreal.ObjectIterator(cls):
+            if wd.get_path_name().startswith(prefix) or wd.get_outermost().get_path_name() == prefix:
+                found.setdefault(wd.get_name(), wd)
+    if not found:
+        # 위젯의 바깥 객체가 게임 인스턴스인 경우 — PIE 인스턴스 번호로 거른다
+        tag = "UEDPIE_%d" % int(args.get("world", 0))
+        for cls in (unreal.EditableText, unreal.Button, unreal.TextBlock, unreal.WidgetSwitcher, unreal.Image):
+            for wd in unreal.ObjectIterator(cls):
+                p = wd.get_path_name()
+                if tag in p or "GameInstance" in p:
+                    found.setdefault(wd.get_name(), wd)
+    out = []
+    for act in args.get("actions", []):
+        kind, name = act[0], act[1]
+        wd = found.get(name)
+        if wd is None:
+            out.append([kind, name, "없음"])
+            continue
+        if kind == "set":
+            wd.set_text(unreal.Text(act[2]))
+            out.append([kind, name, "ok"])
+        elif kind == "click":
+            wd.on_clicked.broadcast()
+            out.append([kind, name, "ok"])
+        elif kind == "enter":
+            commit = getattr(unreal, "TextCommit", None) or getattr(unreal, "ETextCommit")
+            wd.on_text_committed.broadcast(wd.get_text(), commit.ON_ENTER)
+            out.append([kind, name, "ok"])
+        elif kind == "read":
+            txt = str(wd.get_text()) if hasattr(wd, "get_text") else ""
+            if isinstance(wd, unreal.WidgetSwitcher):
+                txt = wd.get_active_widget_index()
+            out.append([kind, name, txt, str(wd.get_visibility())])
+    return {"world": w.get_name(), "widgets": len(found), "result": out}
+
+
 def run(step, args):
+    if step == "ui_pie":
+        return ui_pie(args)
+    if step == "ui_shot":
+        return ui_shot(args)
+    if step == "ui_import_texture":
+        return ui_import_texture(args)
     if step == "ui_set_layout":
         return ui_set_layout(args)
     if step == "ui_layout":

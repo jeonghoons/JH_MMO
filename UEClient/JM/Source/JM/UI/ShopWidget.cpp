@@ -127,7 +127,7 @@ void UShopWidget::Refresh()
 	{
 		if (Selected == nullptr)
 		{
-			TxtBuyInfo->SetText(FText::FromString(TEXT("살 물건을 고르세요 (칸의 숫자 = 1개 값)")));
+			TxtBuyInfo->SetText(FText::FromString(TEXT("살 물건을 고르세요")));
 		}
 		else
 		{

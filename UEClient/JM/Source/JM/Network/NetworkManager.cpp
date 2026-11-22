@@ -469,7 +469,7 @@ void UNetworkManager::EnterGame(const FString& MapName)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[Network] EnterGame: level not found '%s'"), *PackageName);
 		if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
-			UIManager->ShowSystemMessage(FText::FromString(FString::Printf(TEXT("서버가 알려 준 레벨(%s)이 클라이언트에 없습니다."), *MapName)));
+			UIManager->ShowSystemMessage(FText::FromString(FString::Printf(TEXT("서버가 알려 준 레벨 %s이 클라이언트에 없습니다."), *MapName)));
 		return;
 	}
 	SwitchGameMapLevel(FName(*MapName));
@@ -482,7 +482,7 @@ void UNetworkManager::TravelToRoomLevel(const FString& MapName)
 	if (MapName.IsEmpty() || !FPackageName::DoesPackageExist(PackageName))
 	{
 		UE_LOG(LogTemp, Error, TEXT("[Network] TravelToRoomLevel: level not found '%s'"), *PackageName);
-		ReturnToLogin(FText::FromString(FString::Printf(TEXT("서버가 알려 준 레벨(%s)이 클라이언트에 없습니다."), *MapName)));
+		ReturnToLogin(FText::FromString(FString::Printf(TEXT("서버가 알려 준 레벨 %s이 클라이언트에 없습니다."), *MapName)));
 		return;
 	}
 

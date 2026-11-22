@@ -74,7 +74,7 @@ void UQuestWidget::Refresh()
 	const UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
 	const bool bAtNpc = Quest->IsAtNpc();
 
-	if (TxtTitle) TxtTitle->SetText(FText::FromString(bAtNpc ? TEXT("퀘스트 — 대화") : TEXT("퀘스트 목록 (L)")));
+	if (TxtTitle) TxtTitle->SetText(FText::FromString(bAtNpc ? TEXT("퀘스트 — 대화") : TEXT("퀘스트 목록")));
 
 	RowQuestIds = Quest->GetWindowQuestIds();
 	SetShown(TxtEmpty, RowQuestIds.Num() == 0);
@@ -116,7 +116,7 @@ void UQuestWidget::Refresh()
 		if (bReady) { Text = FString::Printf(TEXT("? %s"), *Name); Color = ReadyTextColor; }
 		else if (State == Protocol::QUEST_STATE_NONE) Text = FString::Printf(TEXT("! %s"), *Name);
 		else if (State == Protocol::QUEST_STATE_ACTIVE) Text = FString::Printf(TEXT("%s (%d/%d)"), *Name, Quest->GetProgress(QuestId), QuestRow ? QuestRow->Count : 0);
-		else { Text = FString::Printf(TEXT("%s (완료)"), *Name); Color = DoneTextColor; }
+		else { Text = FString::Printf(TEXT("%s · 완료"), *Name); Color = DoneTextColor; }
 		Row->SetRow(Text, QuestId == Selected, Color);
 		Row->SetVisibility(ESlateVisibility::Visible);
 	}
@@ -140,7 +140,7 @@ FString UQuestWidget::BuildDetailText(int32 QuestId) const
 	const UJMQuestManager* Quest = GetQuestManager();
 	const UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
 	const FQuestTableRow* Row = DataManager ? DataManager->FindQuest(QuestId) : nullptr;
-	if (Quest == nullptr || Row == nullptr) return FString::Printf(TEXT("퀘스트 %d (QuestTable에 없음)"), QuestId);
+	if (Quest == nullptr || Row == nullptr) return FString::Printf(TEXT("퀘스트 %d"), QuestId);
 
 	const Protocol::QuestState State = Quest->GetState(QuestId);
 	const TCHAR* StateText = Quest->IsReadyToComplete(QuestId) ? TEXT("완료할 수 있음 — 의뢰한 NPC에게 돌아가세요")
@@ -159,7 +159,7 @@ FString UQuestWidget::BuildDetailText(int32 QuestId) const
 	FString Reward = FString::Printf(TEXT("경험치 %lld · 골드 %lld"), Row->RewardExp, Row->RewardGold);
 	if (Row->RewardItemId != 0) Reward += FString::Printf(TEXT(" · %s ×%d"), *ItemName(DataManager, Row->RewardItemId), Row->RewardItemCount);
 
-	return FString::Printf(TEXT("%s   (권장 Lv.%d)\n\n%s\n\n목표: %s%s\n보상: %s\n상태: %s"),
+	return FString::Printf(TEXT("%s   권장 Lv.%d\n\n%s\n\n목표: %s%s\n보상: %s\n상태: %s"),
 		*Row->DisplayName, Row->RecommendLevel, *Row->Description, *Goal, *Progress, *Reward, StateText);
 }
 

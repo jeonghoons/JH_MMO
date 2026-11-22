@@ -11,6 +11,7 @@
 #include "Game/JMQuestManager.h"
 #include "UI/JMUIManager.h"
 #include "UI/ChatWidget.h"
+#include "UI/LoginWidget.h"
 #include "UI/WidgetNames.h"
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX + 1];
@@ -207,6 +208,15 @@ void FPacketHandler::Handle_SC_SIGNUP(TSharedPtr<NetworkSession>& session, Proto
 	ShowSystemMessage(session, pkt.result()
 		? FText::FromString(TEXT("가입되었습니다. 로그인해 주세요."))
 		: FText::FromString(TEXT("가입하지 못했습니다. 이미 있는 ID인지 확인해 주세요.")));
+
+	// 가입 창 → 로그인 창으로 돌아가 아이디를 채운다(UI7)
+	UNetworkManager* NetManager = session ? session->OwnerNetwork.Get() : nullptr;
+	UGameInstance* GameInstance = NetManager ? NetManager->GetGameInstance() : nullptr;
+	if (UJMUIManager* UIManager = GameInstance ? GameInstance->GetSubsystem<UJMUIManager>() : nullptr)
+	{
+		if (ULoginWidget* Login = Cast<ULoginWidget>(UIManager->GetWidget(WidgetNames::Login)))
+			Login->OnSignUpResult(pkt.result());
+	}
 }
 
 void FPacketHandler::Handle_SC_ADD_OBJECT(TSharedPtr<NetworkSession>& session, Protocol::SC_ADD_OBJECT_PACKET& pkt)

@@ -112,7 +112,7 @@ void UCombatHudWidget::RefreshQuestTracker()
 			if (Row == nullptr) continue;
 			if (!Text.IsEmpty()) Text += TEXT("\n");
 			Text += Quest->IsReadyToComplete(QuestId)
-				? FString::Printf(TEXT("%s  (완료 가능)"), *Row->DisplayName)
+				? FString::Printf(TEXT("%s  완료 가능"), *Row->DisplayName)
 				: FString::Printf(TEXT("%s  %d/%d"), *Row->DisplayName, Quest->GetProgress(QuestId), Row->Count);
 		}
 	}
@@ -126,7 +126,7 @@ void UCombatHudWidget::RefreshMailNotice()
 	if (TxtMail == nullptr) return;
 	const UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr;
 	const bool bShow = Auction && Auction->HasMailNotice();
-	TxtMail->SetText(FText::FromString(TEXT("수령함에 받을 것이 있습니다 (경매 관리인)")));
+	TxtMail->SetText(FText::FromString(TEXT("수령함에 받을 것이 있습니다")));
 	TxtMail->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 }
 
