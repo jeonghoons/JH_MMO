@@ -87,28 +87,28 @@ SKILL_SHAPE = {
     1001: dict(TargetingType="Targeted", HitShape="Sector", CastRange=200, Radius=150, Angle=180),   # 근접 단일 타겟팅 + 헛스윙
     2001: dict(TargetingType="Targeted", HitShape="Sector", CastRange=250, Radius=190, Angle=180),
     2002: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=250, Angle=180, AimMaxMs=0,
-               Montage=_ANIM + "OneHandSword/AM_OneHandSword_Skill1.AM_OneHandSword_Skill1", Icon="",
+               Montage=_ANIM + "OneHandSword/AM_OneHandSword_Skill1.AM_OneHandSword_Skill1", Icon="/Game/UI/Icons/Skill/T_Icon_Skill_2002.T_Icon_Skill_2002",
                Fx="/Game/FX/AoE/P_AoE_Burst_Fire.P_AoE_Burst_Fire", FxBaseRadius=220),   # SK2 FX 후보 시트 B(사용자 선택) — bb 440 / 2
     2003: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=300, Angle=360, AimMaxMs=0,
                Montage=_ANIM + "OneHandSword/AM_OneHandSword_Skill2.AM_OneHandSword_Skill2",
                # 옛 2002(도약 내려찍기)의 외형을 그대로 가져옴
                Fx="/Game/FX/AoE/P_AoE_Rock_Land.P_AoE_Rock_Land", FxBaseRadius=650,   # SK2 FX 후보 시트 B(사용자 선택) — bb 1300 / 2
                HitFx="/Game/FX/Hit/P_Hit_Slash_Heavy.P_Hit_Slash_Heavy",
-               Icon="/Game/UI/Icons/Skill/T_Icon_Skill_Sword_1.T_Icon_Skill_Sword_1"),
-    3002: dict(AimMaxMs=10000),
+               Icon="/Game/UI/Icons/Skill/T_Icon_Skill_2003.T_Icon_Skill_2003"),
+    3002: dict(AimMaxMs=10000, Icon="/Game/UI/Icons/Skill/T_Icon_Skill_3002.T_Icon_Skill_3002"),
     3003: dict(TargetingType="NonTargeted", HitShape="Pierce", CastRange=0, Radius=0, Angle=0, Range=2500, Width=80,
                ProjSpeed=1000, AimMaxMs=10000, AimMoveSpeedMul="0.4", HitFx="/Game/FX/Hit/P_Hit_Arrow.P_Hit_Arrow",
                # 빛의 화살(VARCO, jm_kit.skill_fx si_arrow_import — 길이 3m·굵기 80cm): 나갈 때 0.27배(약 80cm, 일반 화살) → 0.2초에 1배
                ProjMesh="/Game/FX/Proj/LightArrow/SM_Proj_LightArrow.SM_Proj_LightArrow", ProjMeshScale="1.0", ProjStartScale="0.27", ProjGrowMs=200,
                Fx="/Game/FX/Proj/P_Proj_Arrow_Charged.P_Proj_Arrow_Charged",
-               Montage=_ANIM + "Bow/AM_Bow_Skill1.AM_Bow_Skill1"),
+               Montage=_ANIM + "Bow/AM_Bow_Skill1.AM_Bow_Skill1", Icon="/Game/UI/Icons/Skill/T_Icon_Skill_3003.T_Icon_Skill_3003"),
     4001: dict(TargetingType="Targeted", HitShape="Sector", CastRange=350, Radius=230, Angle=180),
     4002: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=350, Angle=270, AimMaxMs=0,
-               Fx="/Game/FX/AoE/P_AoE_Burst_Fire.P_AoE_Burst_Fire", FxBaseRadius=220),   # SK2 FX 후보 시트 B(사용자 선택)
+               Fx="/Game/FX/AoE/P_AoE_Burst_Fire.P_AoE_Burst_Fire", FxBaseRadius=220, Icon="/Game/UI/Icons/Skill/T_Icon_Skill_4002.T_Icon_Skill_4002"),   # SK2 FX 후보 시트 B(사용자 선택)
     4003: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=450, Angle=360, AimMaxMs=0,
                Montage=_ANIM + "TwoHandSword/AM_TwoHandSword_Skill2.AM_TwoHandSword_Skill2",
                Fx="/Game/FX/AoE/P_AoE_Slam_Earth.P_AoE_Slam_Earth", FxBaseRadius=300,   # SK2 FX 후보 시트 C(사용자 선택) — bb 600 / 2
-               HitFx="/Game/FX/Hit/P_Hit_Slash_Heavy.P_Hit_Slash_Heavy"),
+               HitFx="/Game/FX/Hit/P_Hit_Slash_Heavy.P_Hit_Slash_Heavy", Icon="/Game/UI/Icons/Skill/T_Icon_Skill_4003.T_Icon_Skill_4003"),
 }
 # 새 행·동작이 바뀐 행의 판정 시각 임시값(HitDelayMs, MoveLockMs) — 몽타주를 만든 뒤 ExportSkillTiming이 덮는다(그때 이 값을 지움)
 SKILL_TIMING_INIT = {}   # SK2 몽타주를 만들고 ExportSkillTiming(2026-11-23)으로 확정해 비움

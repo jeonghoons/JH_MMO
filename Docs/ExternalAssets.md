@@ -38,9 +38,10 @@
 
 | 에셋 | 원본 | 출처 | 비고 |
 |---|---|---|---|
-| `Content/UI/Icons/Skill/T_Icon_Skill_Sword_1` | `UEClient/JM/SourceArt/Icons/Original/SwordSkill.png` | VARCO 생성(사용자 제작) | 2026-10-28. 그려진 체크무늬 배경을 투명 처리·256px 축소한 `SourceArt/Icons/T_Icon_Skill_Sword_1.png`를 가져옴. 2026-11-10 `Character/Greystone/Icons/T_Greystone_Icon_Skill1`에서 이름·위치 변경(Greystone과 무관) |
-| `Content/UI/Icons/Skill/T_Icon_Skill_Bow_1` | `UEClient/JM/SourceArt/Icons/Original/ArrowSkill.png` | 위와 같음 | 위와 같음(원본 `T_Icon_Skill_Bow_1.png`, 옛 경로 `Character/Sparrow/Icons/T_Sparrow_Icon_Skill1`) |
-| `Content/UI/Icons/Item/T_Icon_Potion_Hp` | `UEClient/JM/SourceArt/Icons/T_Icon_Potion_Hp.png` | Claude가 Python(PIL)으로 그린 임시 그림 | 2026-11-16 A3.2. HP 물약(ItemTable 8001) 임시 아이콘, 256px 투명 배경. 콘텐츠 동결(D-147) 중이라 임시 허용 — 영상 준비 때 교체 판단 |
+| `Content/UI/Icons/Skill/T_Icon_Skill_Sword_1` | `UEClient/JM/SourceArt/Icons/Original/SwordSkill.png` | VARCO 생성(사용자 제작) | 2026-10-28. 그려진 체크무늬 배경을 투명 처리·256px 축소한 `SourceArt/Icons/T_Icon_Skill_Sword_1.png`를 가져옴. 2026-11-10 `Character/Greystone/Icons/T_Greystone_Icon_Skill1`에서 이름·위치 변경(Greystone과 무관) → 2026-11-23 SK2에서 `T_Icon_Skill_<ID>`로 바뀌어 지금은 쓰지 않음(사용자 제작이라 지우지 않음) |
+| `Content/UI/Icons/Skill/T_Icon_Skill_Bow_1` | `UEClient/JM/SourceArt/Icons/Original/ArrowSkill.png` | 위와 같음 | 위와 같음(원본 `T_Icon_Skill_Bow_1.png`, 옛 경로 `Character/Sparrow/Icons/T_Sparrow_Icon_Skill1`) → 2026-11-23 SK2에서 `T_Icon_Skill_<ID>`로 바뀌어 지금은 쓰지 않음(사용자 제작이라 지우지 않음) |
+| `Content/UI/Icons/Item/T_Icon_Potion_Hp` | `UEClient/JM/SourceArt/Icons/T_Icon_Potion_Hp.png` | Claude가 Python(PIL)으로 그린 임시 그림 | 2026-11-16 A3.2. HP 물약(ItemTable 8001) 임시 아이콘, 256px 투명 배경. 콘텐츠 동결(D-147) 중이라 임시 허용 — 영상 준비 때 교체 판단 → 2026-11-23 SK2에서 `T_Icon_Item_8001`로 바뀌어 지금은 쓰지 않음 |
+| `Content/UI/Icons/Skill/T_Icon_Skill_{2002,2003,3002,3003,4002,4003}`, `Content/UI/Icons/Item/T_Icon_Item_{8001~8004,8051~8055}` | `SourceArt/UI/Icons/{Skill,Item}/*.png`(256px), VARCO 원본 1024px는 `UEClient/JM/SourceArt/Concept/SK2/icons/`(git 제외) | VARCO `GenerateImage`(자체 디자인, 흐름 JH_MMO, 15장 750포인트) | 2026-11-23 SK2. 스킬은 타격 순간 장면, 아이템은 흰 배경을 투명 처리(테두리에서 채우기 + 1px 줄임·흐림)하고 여백 8%로 가운데 맞춤. 사용자 시트 승인. 가져오기 `world_step` `ui_import_texture`(compress ui) |
 | `Content/Slate/Cursors/Cursor_{Default,Hand,Talk}{,@1.5x}.png`(에셋이 아닌 PNG 파일 — 하드웨어 커서) | `SourceArt/Cursors/draw_cursors.py` | Claude가 Python(PIL)으로 그림(2026-11-22 UI2, 사용자 승인) | 32·48px, 핫스팟 화살표 끝. 설정은 `DefaultEngine.ini` `HardwareCursors` |
 | `Content/UI/Frame/T_UI_{Window,TitleBar,Button,Button_Hover,Slot}` | `SourceArt/UI/out/*.png`(생성 스크립트 `SourceArt/UI/draw_ui_frame.py`) | Claude가 Python(PIL)으로 그림(2026-11-22 UI3, 사용자 승인 — `SourceArt/UI/mock.png`) | 창 9-slice·버튼·아이템 칸 |
 
