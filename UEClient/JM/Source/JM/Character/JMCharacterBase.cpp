@@ -3,6 +3,8 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "Data/SkillTableRow.h"
 #include "Data/MovementTableRow.h"
 #include "Game/DataManager.h"
@@ -210,7 +212,9 @@ void AJMCharacterBase::OnDamaged(int32_t Damage, int32_t RemainHP)
 {
 	ObjectInfo.mutable_stat()->set_hp(RemainHP);
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
-	if (AnimInst && CurrentHitMontage)
+	// 서버는 피격 경직 동안 새 시전만 막고 이미 시작한 공격의 타격은 그대로 낸다(D-269).
+	// 피격 몽타주가 같은 슬롯의 공격 몽타주를 끊으면 "끊긴 공격이 맞는" 모습이 되므로 공격 중에는 피격 동작을 생략한다.
+	if (AnimInst && CurrentHitMontage && !IsAttackMontagePlaying())
 	{
 		AnimInst->Montage_Play(CurrentHitMontage);
 		FOnMontageEnded EndDelegate;
@@ -323,8 +327,18 @@ void AJMCharacterBase::OnAttack(const FSkillTableRow* Skill)
 
 	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
 	{
-		AnimInst->Montage_Play(SkillMontage, PlayRate);
+		if (AnimInst->Montage_Play(SkillMontage, PlayRate) > 0.f) ActiveAttackMontage = SkillMontage;
 	}
+}
+
+bool AJMCharacterBase::IsAttackMontagePlaying() const
+{
+	UAnimMontage* Montage = ActiveAttackMontage.Get();
+	UAnimInstance* AnimInst = (Montage && GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;
+	if (AnimInst == nullptr) return false;
+	const FAnimMontageInstance* Inst = AnimInst->GetActiveInstanceForMontage(Montage);
+	// 블렌드 아웃 중(동작이 거의 끝남)이면 피격 동작을 허용한다.
+	return Inst && Inst->IsPlaying() && !Inst->IsStopped();
 }
 
 float AJMCharacterBase::GetAttackPlayRate(const FSkillTableRow* Skill) const
@@ -394,7 +408,7 @@ void AJMCharacterBase::PlayAttackAnim(float PlayRate)
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
 	if (AnimInst && CurrentAttackMontage)
 	{
-		AnimInst->Montage_Play(CurrentAttackMontage, PlayRate);
+		if (AnimInst->Montage_Play(CurrentAttackMontage, PlayRate) > 0.f) ActiveAttackMontage = CurrentAttackMontage;
 	}
 }
 

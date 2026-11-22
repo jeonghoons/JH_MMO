@@ -97,6 +97,12 @@ SKILL_ASSET_FILL = {
     2001: {"HitFx": "/Game/FX/Hit/P_Hit_Slash.P_Hit_Slash"},     # 검 기본 공격
     3001: {"HitFx": "/Game/FX/Hit/P_Hit_Arrow.P_Hit_Arrow",      # 활 기본 공격: 맞은 자리
            "Fx": "/Game/FX/Proj/P_Proj_Arrow.P_Proj_Arrow"},     # 화살 액터
+    # D-268(2026-11-22 무기별 사전 점검): 스킬1 피격·광역 이펙트 — FX_CATALOG 채택분 중 뜻·구분·재생 길이 기준으로 고름
+    2002: {"HitFx": "/Game/FX/Hit/P_Hit_Slash_Heavy.P_Hit_Slash_Heavy"},   # 검 강타격 — 스킬 피격(FX_REVIEW 12)
+    3002: {"HitFx": "/Game/FX/Hit/P_Hit_Arrow_Light.P_Hit_Arrow_Light"},   # 화살 명중 경량 — 장판 틱
+    4002: {"Fx": "/Game/FX/AoE/P_AoE_Slam_Fire.P_AoE_Slam_Fire",          # 양손 무기 강타(1~2초) — Spin_Loop는 5.8초라 회전 뒤에 남아 탈락
+           # FxBaseRadius 400(원본 범위 800 / 2)은 칸이 0이라 빈 칸 채우기가 안 되므로 CSV에 직접 씀
+           "HitFx": "/Game/FX/Hit/P_Hit_Slash_Heavy.P_Hit_Slash_Heavy"},
 }
 MONSTERS = {
     # id: (이름, 표시 레벨, 경험치, 기준 레벨, 기준 등급, 처치 시간 기준(초), 맞아 죽는 시간 기준(초), 우두머리)

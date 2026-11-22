@@ -158,6 +158,8 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-193** (2026-11-18) 몬스터 행동은 `MonsterTable` 열로 몬스터마다: `AggroRangeCm`(인식, 0 = 비선공), `LeashRangeCm`(추격 제한, 홈 = 실제 스폰된 자리 기준, `WanderRadiusCm` 이상), `ReturnMode`(0 = 걸어서 복귀·피해 받음·HP 유지 / 1 = 복귀 중 피해 무시 + 홈 도착 시 HP 전량 회복). 배회 중심은 홈. 추격 포기 = 몬스터가 홈에서 추격 제한을 넘음 / 대상 사망·시야 이탈·방 퇴장·안전 구역 진입 / 몬스터가 안전 구역에 닿음 → 새 상태 `RETURN`으로 홈까지 걸어간 뒤 배회. 맞으면 선공·비선공 모두 공격자를 추격(거리 무관), 대상은 마지막으로 때린 사람(어그로 테이블 없음). 하급은 `ReturnMode` 0. HP 회복 알림 `SC_CHANGE_HP`(2028, object_id·hp)
 - **D-195** (2026-11-18) 안전 구역 = 마커 타입 `SafeZone`(중심 + `radius`), 양방향 차단: 안의 플레이어는 몬스터의 대상이 되지 않고 피해를 받지 않으며, 안에서 준 피해도 몬스터에게 들어가지 않고, 몬스터는 들어오지 않음(닿으면 복귀, 배회·스폰 지점도 안 고름). `Continent01`은 마을 중심 (-150m, 0) 반경 72m 하나(pointId 300)
 - **D-199** (2026-11-18) 플레이어의 모든 공격·스킬은 시전부터 휘두르기 끝(새 노티파이 `UAnimNotify_SwingEnd` → `ExportSkillTiming.bat`이 `SkillTable.MoveLockMs`에 씀, 0 = 잠그지 않음, 기본 공격은 `AttackSpeed`로 나눔)까지 이동·몸 방향 잠금. 서버 `Player::BeginMoveLock`(시전 확정 때) — 잠금 동안 받는 이동 합계는 `MovementTable.ServerMoveLockSlackCm`(120cm)까지, 넘으면 보정. 클라이언트는 이동 입력 무시·즉시 멈춤·멈춘 자리 송신·방향 고정. 시전부터 판정 시점까지 판정 범위를 바닥에 표시(임시 디버그 도형, 내 화면만 — 데칼은 나중). 초기 `MoveLockMs`는 판정 시점 + 0.2초 초안(Swing End 위치는 사용자 조정)
+- **D-268** (2026-11-22) 스킬1 이펙트: 4002 `Fx` `P_AoE_Slam_Fire`(`FxBaseRadius` 400)·`HitFx` `P_Hit_Slash_Heavy`, 2002 `HitFx` `P_Hit_Slash_Heavy`, 3002 `HitFx` `P_Hit_Arrow_Light` — 고르는 기준은 뜻·무기 간 구분·재생 길이(한 번 재생, 남은 동작 길이 안)·카탈로그 채택분
+- **D-269** (2026-11-22) 공격·스킬 몽타주 재생 중(블렌드 아웃 전)에는 피격 몽타주를 생략(`AJMCharacterBase::OnDamaged` — 플레이어·몬스터 공통, HP·피해 숫자·`HitFx`는 그대로). 서버 피격 경직은 새 시전만 막고 예약된 타격은 유지하므로 화면을 그 규칙에 맞춤
 
 ## 장비 시스템
 

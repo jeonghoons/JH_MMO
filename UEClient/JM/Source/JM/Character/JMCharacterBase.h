@@ -97,6 +97,11 @@ protected:
 	UPROPERTY(EditAnywhere) 
 	class UAnimMontage* CurrentDeadMontage;
 	
+	// 마지막으로 재생한 공격·스킬 몽타주(OnAttack·PlayAttackAnim). 재생 중이면 피격 몽타주를 생략한다(D-269).
+	TWeakObjectPtr<class UAnimMontage> ActiveAttackMontage;
+	// 공격·스킬 몽타주가 재생 중이고 블렌드 아웃 전인가
+	bool IsAttackMontagePlaying() const;
+
 	// 사망 몽타주의 마지막 포즈를 유지하기 위해, 몽타주가 끝나기 직전에 애니메이션을 멈춘다.
 	FTimerHandle DeathFreezeTimer;
 	// 사망 몽타주에서 멈출 위치(끝 - 자동 블렌드 아웃 - 여유). 몽타주가 없으면 0

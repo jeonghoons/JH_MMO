@@ -1474,7 +1474,8 @@ def pie_walk(args):
 # 그리고 게임의 개발용 콘솔 명령(AJMPlayerController — 서버가 검증하는 요청만 보냄: Give·Equip·Shop*, L4에서 추가)
 _PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen", "give", "equip", "shopopen", "shopbuy", "shopsell", "shopclose", "netmovestats", "autoattack", "attackstats", "portal", "partyinvite", "partyrespond", "partyleave", "partyshow",
                    "auctionopen", "auctionsearch", "auctionmy", "auctionregister", "auctionbuy", "auctioncancel", "mailclaim", "auctionshow", "auctiontab", "auctionclose",
-                   "questtalk", "questrequest", "questlog", "questshow", "questclose"}
+                   "questtalk", "questrequest", "questlog", "questshow", "questclose",
+                   "highresshot"}   # 2026-11-22 무기별 사전 점검: PIE 화면을 Saved/Screenshots에 파일로 남김
 _PIE_EXEC_PREFIX = ("t.", "r.", "sg.", "grass.", "foliage.", "jm.")
 
 
@@ -1482,6 +1483,12 @@ _PIE_EXEC_PREFIX = ("t.", "r.", "sg.", "grass.", "foliage.", "jm.")
 def run_step(name, step, args=None):
     """step: weights / grass / material / apply_material / ground(grass → material → apply_material) / audit / probe / dress / clear_dress / check_dress / show_colliders / colliders / near / pie_pawn / pie_chars / prop_import / prop_info / lighting / pie_exec / pie_view / pie_walk / pie_revive. pie_* 단계는 args.world로 PIE 창 번호(0부터)를 고른다."""
     args = args or {}
+    if step.startswith("pp_"):
+        # PIE 상태 읽기(2026-11-22 무기별 사전 점검 — 캡처 전 1차 판정): jm_kit.pie_probe
+        import importlib
+        from jm_kit import pie_probe
+        importlib.reload(pie_probe)
+        return pie_probe.run(step, args)
     if step.startswith("dg_"):
         # 던전 맵 도구(DG4): jm_kit.dungeon
         import importlib
