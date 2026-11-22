@@ -68,21 +68,47 @@ SHOP_GEAR_BUY = 100                      # 상점은 00등급만 판다
 # 스킬. 피해 = BaseDamage + 공격력 × AttackScale / 100 (AttackScale = 새 열 제안, 100이면 지금 공식과 같음 — D-112)
 SKILLS = {
     # id: (무기, 슬롯, BaseDamage, AnimMs, CooldownMs, MpCost, 맞는 횟수, AttackScale%)
+    # SK2(D-278): 무기마다 기본 공격(슬롯 0) + 스킬1(1) + 스킬2(2). AnimMs는 몽타주 길이(ExportSkillTiming이 CSV를 쓰면 여기도 맞춤)
     2001: ("Sword", 0, 50, 1500, 0, 0, 1, 100),
-    2002: ("Sword", 1, 120, 2333, 5000, 20, 1, 100),
+    2002: ("Sword", 1, 80, 1800, 5000, 15, 1, 100),     # 스킬1 앞 부채꼴(Attack3) — AnimMs는 몽타주 전 임시
+    2003: ("Sword", 2, 150, 2333, 8000, 30, 1, 100),    # 스킬2 도약 내려찍기(옛 2002 동작)
     3001: ("Bow", 0, 40, 1733, 0, 0, 1, 80),
     3002: ("Bow", 1, 30, 700, 5000, 20, 3, 30),   # 장판 3초 × 1초 틱(틱마다 공격력 30% → 3틱 90%)
+    3003: ("Bow", 2, 100, 700, 12000, 30, 1, 60),     # 스킬2 빛의 화살(Pierce) — 허수아비 1마리 기준 1회
     4001: ("TwoHandSword", 0, 60, 1267, 0, 0, 1, 100),   # AnimMs = AM_TwoHandSword_Attack 몽타주 길이 1.267초 (WT1)
     4002: ("TwoHandSword", 1, 100, 1867, 6000, 30, 1, 100),  # AnimMs = AM_TwoHandSword_Skill1 1.867초 (WT1)
+    4003: ("TwoHandSword", 2, 200, 2200, 10000, 40, 1, 100),  # 스킬2 도약 내려찍기(JumpAttack) — AnimMs는 몽타주 전 임시
 }
-WEAPON_SKILLS = {"Sword": (2001, 2002), "Bow": (3001, 3002), "TwoHandSword": (4001, 4002)}
-# WT1 새 행(SkillTable에 없을 때 만든다): 판정 시점·행동 잠금은 ExportSkillTiming 전까지의 임시값(보고에 "재실행 필요")
-TWO_HAND_ROW = {
-    # id: (HitDelayMs, MoveLockMs — 2026-11-22 ExportSkillTiming 값, Radius, Angle, HitFx, Montage)
-    4001: (650, 850, 230, 180, "/Game/FX/Hit/P_Hit_Slash.P_Hit_Slash",
-           "/Game/Character/Mannequin/Anims/TwoHandSword/AM_TwoHandSword_Attack.AM_TwoHandSword_Attack"),
-    4002: (1000, 1400, 320, 360, "",
-           "/Game/Character/Mannequin/Anims/TwoHandSword/AM_TwoHandSword_Skill1.AM_TwoHandSword_Skill1"),
+WEAPON_SKILLS = {"Sword": (2001, [2002, 2003]), "Bow": (3001, [3002, 3003]), "TwoHandSword": (4001, [4002, 4003])}
+
+_ANIM = "/Game/Character/Mannequin/Anims/"
+# SK2: 이 스크립트가 맡는 스킬 구조 칸(기존 행도 덮음). HitDelayMs·MoveLockMs·AnimMs는 ExportSkillTiming이 몽타주에서 쓰므로 여기 없음.
+SKILL_SHAPE = {
+    1001: dict(TargetingType="Targeted", HitShape="Sector", CastRange=200, Radius=150, Angle=180),   # 근접 단일 타겟팅 + 헛스윙
+    2001: dict(TargetingType="Targeted", HitShape="Sector", CastRange=250, Radius=190, Angle=180),
+    2002: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=250, Angle=180, AimMaxMs=0,
+               Montage=_ANIM + "OneHandSword/AM_OneHandSword_Skill1.AM_OneHandSword_Skill1", Fx="", FxBaseRadius=0, Icon=""),
+    2003: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=300, Angle=360, AimMaxMs=0,
+               Montage=_ANIM + "OneHandSword/AM_OneHandSword_Skill2.AM_OneHandSword_Skill2",
+               # 옛 2002(도약 내려찍기)의 외형을 그대로 가져옴
+               Fx="/Game/FX/AoE/P_AoE_Smash.P_AoE_Smash", FxBaseRadius=300,
+               HitFx="/Game/FX/Hit/P_Hit_Slash_Heavy.P_Hit_Slash_Heavy",
+               Icon="/Game/UI/Icons/Skill/T_Icon_Skill_Sword_1.T_Icon_Skill_Sword_1"),
+    3002: dict(AimMaxMs=10000),
+    3003: dict(TargetingType="NonTargeted", HitShape="Pierce", CastRange=0, Radius=0, Angle=0, Range=2500, Width=80,
+               ProjSpeed=1000, AimMaxMs=10000, AimMoveSpeedMul="0.4",
+               Montage=_ANIM + "Bow/AM_Bow_Skill1.AM_Bow_Skill1"),
+    4001: dict(TargetingType="Targeted", HitShape="Sector", CastRange=350, Radius=230, Angle=180),
+    4002: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=350, Angle=270, AimMaxMs=0),
+    4003: dict(TargetingType="NonTargeted", HitShape="Sector", CastRange=0, Radius=450, Angle=360, AimMaxMs=0,
+               Montage=_ANIM + "TwoHandSword/AM_TwoHandSword_Skill2.AM_TwoHandSword_Skill2"),
+}
+# 새 행·동작이 바뀐 행의 판정 시각 임시값(HitDelayMs, MoveLockMs) — 몽타주를 만든 뒤 ExportSkillTiming이 덮는다(그때 이 값을 지움)
+SKILL_TIMING_INIT = {
+    2002: (800, 1000),
+    2003: (1250, 1450),   # 옛 2002(도약 내려찍기) 값 그대로
+    3003: (180, 380),     # 3002와 같은 놓기 동작
+    4003: (1200, 1600),
 }
 
 # 몬스터: 경험치는 쉬운 숫자로 고정. HP·공격력은 전투 감각 기준(기준 플레이어 = 그 대역 레벨 + 그 등급 전신, 한손검 + 방패)
@@ -217,13 +243,20 @@ def player(lv, grade, weapon="Sword"):
 
 def dps(p, sec=DPS_SIM_SEC):
     """허수아비를 sec초 때린 평균 피해(스킬은 쿨타임마다, MP가 모자라면 기본 공격)."""
-    basic, skill = (SKILLS[s] for s in WEAPON_SKILLS[p["weapon"]])
-    t, dmg, mp, skill_ready = 0.0, 0.0, p["mp"], 0.0
+    basic_id, skill_ids = WEAPON_SKILLS[p["weapon"]]
+    basic = SKILLS[basic_id]
+    skills = [SKILLS[s] for s in skill_ids]
+    # 준비된 스킬 중 슬롯 번호가 큰 것(스킬2)을 먼저 쓴다. MP가 모자라거나 모두 쿨타임이면 기본 공격.
+    skills.sort(key=lambda s: -s[1])
+    t, dmg, mp = 0.0, 0.0, p["mp"]
+    ready = [0.0] * len(skills)
     while t < sec:
-        if t >= skill_ready and mp >= skill[5]:
+        pick = next((i for i, s in enumerate(skills) if t >= ready[i] and mp >= s[5]), None)
+        if pick is not None:
+            skill = skills[pick]
             dmg += (skill[2] + p["atk"] * skill[7] / 100) * skill[6]
             mp -= skill[5]
-            skill_ready = t + skill[4] / 1000
+            ready[pick] = t + skill[4] / 1000
             dt = skill[3] / 1000
         else:
             dmg += basic[2] + p["atk"] * basic[7] / 100
@@ -476,15 +509,24 @@ def datatable_plan():
         existing = {r[0] for r in list(csv.reader(f))[1:] if r}
     sk, sk_new = {}, {}
     for sid, s in SKILLS.items():
+        cols = {"BaseDamage": s[2], "MpCost": s[5], "AttackScale": s[7], "CooldownMs": s[4], **SKILL_SHAPE.get(sid, {})}
+        if sid in SKILL_TIMING_INIT:
+            hit, lock = SKILL_TIMING_INIT[sid]
+            cols.update({"HitDelayMs": hit, "MoveLockMs": lock, "AnimMs": s[3]})
         if str(sid) in existing:
-            sk[sid] = {"BaseDamage": s[2], "MpCost": s[5], "AttackScale": s[7]}
-        elif sid in TWO_HAND_ROW:
-            hit, lock, radius, angle, hit_fx, montage = TWO_HAND_ROW[sid]
-            sk_new[sid] = {"WeaponType": "TwoHandSword", "Slot": s[1], "TargetingType": "NonTargeted", "HitShape": "Sector",
-                           "HitDelayMs": hit, "CooldownMs": s[4], "AnimMs": s[3], "MoveLockMs": lock, "CastRange": 0,
-                           "Radius": radius, "Angle": angle, "Range": 0, "Width": 0, "BaseDamage": s[2], "ProjSpeed": 0,
-                           "DurationMs": 0, "TickMs": 0, "AimMoveSpeedMul": "1.0", "AimMaxMs": 0, "MpCost": s[5],
-                           "AttackScale": s[7], "Fx": "", "FxBaseRadius": 0, "HitFx": hit_fx, "Montage": montage, "Icon": ""}
+            sk[sid] = cols
+        else:
+            # SK2 새 행: 구조 칸 기본값(빈 외형) + SKILL_SHAPE + 시각 임시값
+            base = {"WeaponType": s[0], "Slot": s[1], "TargetingType": "NonTargeted", "HitShape": "Sector",
+                    "HitDelayMs": 0, "CooldownMs": s[4], "AnimMs": s[3], "MoveLockMs": 0, "CastRange": 0,
+                    "Radius": 0, "Angle": 0, "Range": 0, "Width": 0, "BaseDamage": s[2], "ProjSpeed": 0,
+                    "DurationMs": 0, "TickMs": 0, "AimMoveSpeedMul": "1.0", "AimMaxMs": 0, "MpCost": s[5],
+                    "AttackScale": s[7], "Fx": "", "FxBaseRadius": 0, "HitFx": "", "Montage": "", "Icon": ""}
+            sk_new[sid] = {**base, **cols}
+    # SKILLS(DPS 계산)에 없는 행의 구조 칸(맨손 1001 — 단일 타겟팅 + 헛스윙, D-278)
+    for sid, shape in SKILL_SHAPE.items():
+        if sid not in SKILLS:
+            sk[sid] = dict(shape)
     for sid in MONSTER_SKILL_IDS:
         sk[sid] = {"BaseDamage": MONSTER_BASE_DAMAGE}
     plans.append(merge_table("SkillTable.csv", [("MpCost", "AimMaxMs", "0"), ("AttackScale", "MpCost", "100"), ("HitFx", "FxBaseRadius", "")],
