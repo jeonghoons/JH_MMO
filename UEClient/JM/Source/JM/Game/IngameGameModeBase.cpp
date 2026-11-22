@@ -36,6 +36,8 @@ void AIngameGameModeBase::BeginPlay()
 			if (AuctionWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Auction, AuctionWidgetClass, true, 127, false);
 			// 퀘스트 창(Q1): 숨겨 두었다가 퀘스트 NPC 앞 F 키(대화)나 L 키(목록)로 UJMQuestManager가 띄운다. 인벤토리를 쓰지 않아 다른 창과 함께 떠도 된다.
 			if (QuestWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::Quest, QuestWidgetClass, true, 128, false);
+			// 플레이어 메뉴(UI6, D-274): 커서 모드에서 다른 플레이어를 우클릭하면 AJMMyPlayer가 띄운다. 다른 창 위에 뜨는 작은 메뉴라 그 위 층.
+			if (PlayerMenuWidgetClass) UIManager->RegisterWidget(PC, WidgetNames::PlayerMenu, PlayerMenuWidgetClass, true, 129, false);
 
 			// 전투 입력 모드. 시스템 메시지 창(방 입장 대기 등)이 떠 있으면 커서를 유지한다.
 			UIManager->SetGameplayInput(true);

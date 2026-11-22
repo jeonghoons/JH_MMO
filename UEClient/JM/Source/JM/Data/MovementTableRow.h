@@ -53,4 +53,10 @@ struct FMovementTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ServerAimMinIntervalMs = 200;
 	// 이동 잠금(SkillTable.MoveLockMs) 동안 서버가 인정하는 이동 거리 합계(서버 전용, D-199)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ServerMoveLockSlackCm = 120.f;
+
+	// 커서 모드 우클릭(UI6, D-274, 클라 전용): 직선 자동 걷기 시간 상한·막힘 판정 시간, 고를 수 있는 대상 최대 거리·커서와의 화면 거리(1080 기준)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 AutoWalkTimeoutMs = 10000;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 AutoWalkStuckMs = 1000;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float PickMaxDistCm = 3000.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float PickScreenRadiusPx = 40.f;
 };

@@ -55,6 +55,7 @@ void UJMUIManager::ClearWidgets()
     ManagedWidgets.Empty();
     OpenedWindows.Empty();
     Controller = nullptr;
+    bCursorMode = false;   // 새 레벨은 카메라 모드로 시작한다(UI6)
 
     // 대기 메시지는 이전 레벨의 일이므로 버리고, 확인 메시지는 새 레벨에서 다시 띄운다.
     PendingSystemMessages.RemoveAll([](const FPendingSystemMessage& Pending) { return Pending.Type == ESystemMessageType::Waiting; });
@@ -123,14 +124,14 @@ void UJMUIManager::UpdateInputMode()
 {
     if (!Controller) return;
 
-    // 열려있는 창(인벤토리, 메뉴 등)이 1개라도 있다면
-    if (OpenedWindows.Num() > 0)
+    // 열려있는 창(인벤토리, 메뉴 등)이 1개라도 있거나 커서 모드(Ctrl, UI6 D-274)라면
+    if (OpenedWindows.Num() > 0 || (bGameplayInput && bCursorMode))
     {
         // UI와 게임 둘 다 조작 가능하게 하고 마우스 커서를 켭니다.
         FInputModeGameAndUI InputMode;
         InputMode.SetHideCursorDuringCapture(false); // 마우스 클릭해도 커서 유지
         Controller->SetInputMode(InputMode);
-        Controller->bShowMouseCursor = true;
+        ShowCursorCentered(Controller);   // 새로 나타날 때는 화면 가운데에서
     }
     // 열려있는 창이 하나도 없다면 (평상시 상태)
     else if (bGameplayInput)
@@ -142,8 +143,15 @@ void UJMUIManager::UpdateInputMode()
     else
     {
         Controller->SetInputMode(FInputModeUIOnly());
-        Controller->bShowMouseCursor = true;
+        ShowCursorCentered(Controller);
     }
+}
+
+void UJMUIManager::SetCursorMode(bool bEnable)
+{
+    if (bCursorMode == bEnable) return;
+    bCursorMode = bEnable;
+    UpdateInputMode();
 }
 
 void UJMUIManager::SetGameplayInput(bool bEnable)

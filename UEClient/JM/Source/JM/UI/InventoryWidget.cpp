@@ -90,6 +90,8 @@ bool UInventoryWidget::EnsurePreview()
 	Params.ObjectFlags |= RF_Transient;
 	AJMPlayer* Actor = World->SpawnActor<AJMPlayer>(GameInst->PlayerClass, PreviewLocation, FRotator::ZeroRotator, Params);
 	if (Actor == nullptr) return false;
+	// 무기별 손에 든 Idle로 보인다(등에 멘 Idle은 무기가 가려짐 — 사용자 요청 2026-11-23)
+	Actor->SetAlwaysDrawn(true);
 	// 서버 위치를 따라가지 않고(원격 보간은 액터 Tick) 떨어지지도 않게
 	Actor->SetActorTickEnabled(false);
 	Actor->SetActorEnableCollision(false);

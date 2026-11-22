@@ -38,6 +38,8 @@ public:
 	virtual void OnAttack(const struct FSkillTableRow* Skill) override;
 	virtual void OnDamaged(int32_t Damage, int32_t RemainHP) override;
 	bool IsWeaponDrawn() const { return bWeaponDrawn; }
+	// 늘 손에 든 상태(넣을 수 있는 무기도 등에 메지 않음) — 인벤토리 캐릭터 그림(UI5)이 무기별 손에 든 Idle을 보이도록 쓴다
+	void SetAlwaysDrawn(bool bEnable);
 
 protected:
 	void DrawWeapon();
@@ -48,6 +50,7 @@ protected:
 
 	bool bCanSheathe = false;
 	bool bWeaponDrawn = false;
+	bool bAlwaysDrawn = false;
 	float SheatheDelaySec = 0.f;
 	float SheatheSwapSec = 0.f;
 	UPROPERTY(Transient) TObjectPtr<UAnimMontage> SheatheMontage;

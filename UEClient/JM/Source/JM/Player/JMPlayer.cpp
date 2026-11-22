@@ -67,6 +67,13 @@ void AJMPlayer::SetSheatheData(bool bInCanSheathe, float DelaySec, UAnimMontage*
 		if (Equipment) Equipment->SetWeaponOnBack(false);
 		return;
 	}
+	// 늘 손에 든 캐릭터(인벤토리 그림): 넣을 수 있는 무기도 손에 들고 넣기 타이머를 쓰지 않는다
+	if (bAlwaysDrawn)
+	{
+		bWeaponDrawn = true;
+		if (Equipment) Equipment->SetWeaponOnBack(false);
+		return;
+	}
 	// 로드가 늦게 끝나는 사이 조준·공격으로 이미 꺼냈으면 그대로 둔다
 	if (bCanSheathe && (bWeaponDrawn || IsSkillAiming()))
 	{
@@ -124,9 +131,23 @@ void AJMPlayer::RestartSheatheTimer()
 	GetWorldTimerManager().SetTimer(SheatheTimer, this, &AJMPlayer::BeginSheathe, SheatheDelaySec, false);
 }
 
+void AJMPlayer::SetAlwaysDrawn(bool bEnable)
+{
+	bAlwaysDrawn = bEnable;
+	if (!bEnable) return;
+	GetWorldTimerManager().ClearTimer(SheatheTimer);
+	GetWorldTimerManager().ClearTimer(SheatheSwapTimer);
+	// 넣기 값이 이미 와 있으면 바로 손으로(아직이면 SetSheatheData가 처리)
+	if (bCanSheathe)
+	{
+		bWeaponDrawn = true;
+		if (Equipment) Equipment->SetWeaponOnBack(false);
+	}
+}
+
 void AJMPlayer::BeginSheathe()
 {
-	if (!bWeaponDrawn || IsSkillAiming() || IsDeadActor()) return;
+	if (bAlwaysDrawn || !bWeaponDrawn || IsSkillAiming() || IsDeadActor()) return;
 	UAnimInstance* Anim = (SheatheMontage && GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;
 	if (Anim && Anim->Montage_Play(SheatheMontage) > 0.f && SheatheSwapSec > 0.f)
 	{
@@ -139,7 +160,7 @@ void AJMPlayer::BeginSheathe()
 
 void AJMPlayer::FinishSheathe()
 {
-	if (!bWeaponDrawn) return;
+	if (bAlwaysDrawn || !bWeaponDrawn) return;
 	bWeaponDrawn = false;
 	if (Equipment) Equipment->SetWeaponOnBack(true);
 }
@@ -150,6 +171,7 @@ void AJMPlayer::ResetWeaponToBack()
 	GetWorldTimerManager().ClearTimer(SheatheSwapTimer);
 	bWeaponDrawn = false;
 	bCanSheathe = false;   // 새 무기의 값은 SetSheatheData가 다시 채운다
+	if (bAlwaysDrawn) return;   // 늘 손에 든 캐릭터는 등으로 옮기지 않는다(새 무기 로드 뒤 SetSheatheData가 손으로)
 	if (Equipment) Equipment->SetWeaponOnBack(true);
 }
 

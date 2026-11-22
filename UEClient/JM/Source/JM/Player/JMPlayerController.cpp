@@ -15,6 +15,7 @@
 #include "Game/JMAuctionManager.h"
 #include "Game/JMQuestManager.h"
 #include "UI/AuctionWidget.h"
+#include "UI/PlayerMenuWidget.h"
 
 void AJMPlayerController::BeginPlay()
 {
@@ -380,29 +381,146 @@ void AJMPlayerController::SetupInputComponent()
 
 	if (InputComponent)
 	{
-		InputComponent->BindKey(EKeys::LeftAlt, IE_Pressed, this, &AJMPlayerController::OnFreeCursorPressed);
-		InputComponent->BindKey(EKeys::LeftAlt, IE_Released, this, &AJMPlayerController::OnFreeCursorReleased);
+		// UI6(D-274): Ctrl = 커서 모드 켜고 끄기, Left Alt를 누르는 동안 = 둘러보기, Esc = 플레이어 메뉴 닫기
+		InputComponent->BindKey(EKeys::LeftControl, IE_Pressed, this, &AJMPlayerController::OnCursorModeToggle);
+		InputComponent->BindKey(EKeys::LeftAlt, IE_Pressed, this, &AJMPlayerController::OnFreeLookPressed);
+		InputComponent->BindKey(EKeys::LeftAlt, IE_Released, this, &AJMPlayerController::OnFreeLookReleased);
+		InputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &AJMPlayerController::OnEscapePressed);
 	}
 }
 
-void AJMPlayerController::OnFreeCursorPressed()
+void AJMPlayerController::OnCursorModeToggle()
 {
-	ApplyFreeCursorInputMode(this);
-}
-
-void AJMPlayerController::OnFreeCursorReleased()
-{
-	// If a window (inventory etc.) is open the UI manager keeps the cursor; otherwise it returns to combat mode.
 	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>())
 	{
-		UIManager->UpdateInputMode();
-	}
-	else
-	{
-		ApplyCombatInputMode(this);
+		UIManager->SetCursorMode(!UIManager->IsCursorMode());
 	}
 }
-// ---- 개발용 파티 명령(DG2): 파티 창·G 키·채팅 명령이 보내는 것과 같은 요청을 콘솔로 보낸다. 검증은 모두 서버가 한다. ----
+
+void AJMPlayerController::OnFreeLookPressed()
+{
+	if (AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn())) MyPlayer->SetFreeLook(true);
+}
+
+void AJMPlayerController::OnFreeLookReleased()
+{
+	if (AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn())) MyPlayer->SetFreeLook(false);
+}
+
+void AJMPlayerController::OnEscapePressed()
+{
+	UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
+	if (UPlayerMenuWidget* Menu = UIManager ? Cast<UPlayerMenuWidget>(UIManager->GetWidget(WidgetNames::PlayerMenu)) : nullptr) Menu->Close();
+}
+
+void AJMPlayerController::CursorMode(int32 Enable)
+{
+	if (UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>()) UIManager->SetCursorMode(Enable != 0);
+	InteractShow();
+}
+
+void AJMPlayerController::FreeLook(int32 Enable)
+{
+	if (AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn())) MyPlayer->SetFreeLook(Enable != 0);
+	InteractShow();
+}
+
+namespace
+{
+	// 개발용 클릭 좌표: 음수면 화면 가운데
+	FVector2D DevClickPos(const APlayerController* PC, float X, float Y)
+	{
+		if (X >= 0.f && Y >= 0.f) return FVector2D(X, Y);
+		int32 ViewX = 0, ViewY = 0;
+		PC->GetViewportSize(ViewX, ViewY);
+		return FVector2D(ViewX * 0.5f, ViewY * 0.5f);
+	}
+}
+
+void AJMPlayerController::RClick(float X, float Y)
+{
+	// 실제 우클릭(AJMMyPlayer::OnRightClickInput)과 같이: 커서가 보일 때만 상호작용한다.
+	AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn());
+	const UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
+	if (MyPlayer == nullptr || UIManager == nullptr) return;
+	if (!UIManager->IsCursorShown())
+	{
+		UE_LOG(LogTemp, Log, TEXT("RClick: cursor hidden — ignored (camera mode)"));
+		return;
+	}
+	const FVector2D Pos = DevClickPos(this, X, Y);
+	const AJMMyPlayer::FPickResult Pick = MyPlayer->PickAtScreen(Pos);
+	UE_LOG(LogTemp, Log, TEXT("RClick (%.0f, %.0f): pick kind=%d id=%d"), Pos.X, Pos.Y, static_cast<int32>(Pick.Kind), Pick.Id);
+	MyPlayer->HandleCursorClick(true, Pos);
+	InteractShow();
+}
+
+void AJMPlayerController::LClick(float X, float Y)
+{
+	AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn());
+	const UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
+	if (MyPlayer == nullptr || UIManager == nullptr) return;
+	if (!UIManager->IsCursorShown())
+	{
+		UE_LOG(LogTemp, Log, TEXT("LClick: cursor hidden — this would attack (use the attack input instead)"));
+		return;
+	}
+	MyPlayer->HandleCursorClick(false, DevClickPos(this, X, Y));
+	InteractShow();
+}
+
+void AJMPlayerController::RClickObject(int32 ObjectId, int32 bPortal)
+{
+	// 그 대상의 몸 가운데(포털은 지면 1m 위)를 화면에 투영한 자리를 우클릭한다.
+	const UJMObjectManager* ObjectManager = GetGameInstance()->GetSubsystem<UJMObjectManager>();
+	if (ObjectManager == nullptr) return;
+	FVector World = FVector::ZeroVector;
+	bool bFound = false;
+	if (bPortal != 0)
+	{
+		for (const UJMObjectManager::FPortalEntry& Portal : ObjectManager->Portals)
+		{
+			if (Portal.Id == ObjectId) { World = Portal.Location + FVector(0.f, 0.f, 100.f); bFound = true; break; }
+		}
+	}
+	else if (const TObjectPtr<AJMCharacterBase>* Npc = ObjectManager->Npcs.Find(ObjectId); Npc && *Npc)
+	{
+		World = (*Npc)->GetActorLocation(); bFound = true;
+	}
+	else if (const TObjectPtr<AJMCharacterBase>* Obj = ObjectManager->Objects.Find(ObjectId); Obj && *Obj)
+	{
+		World = (*Obj)->GetActorLocation(); bFound = true;
+	}
+	FVector2D Screen;
+	if (!bFound || !ProjectWorldLocationToScreen(World, Screen, true))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("RClickObject: %d (portal=%d) not found or off screen"), ObjectId, bPortal);
+		return;
+	}
+	RClick(Screen.X, Screen.Y);
+}
+
+void AJMPlayerController::PlayerMenu(const FString& Action)
+{
+	UJMUIManager* UIManager = GetGameInstance()->GetSubsystem<UJMUIManager>();
+	UPlayerMenuWidget* Menu = UIManager ? Cast<UPlayerMenuWidget>(UIManager->GetWidget(WidgetNames::PlayerMenu)) : nullptr;
+	if (Menu == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerMenu: widget not registered (BP_GameMode.PlayerMenuWidgetClass)"));
+		return;
+	}
+	UE_LOG(LogTemp, Log, TEXT("PlayerMenu %s: target=%d"), *Action, Menu->GetTargetId());
+	if (Action == TEXT("trade")) Menu->OnTradeClicked();
+	else if (Action == TEXT("party")) Menu->OnPartyClicked();
+	else Menu->OnCloseClicked();
+}
+
+void AJMPlayerController::InteractShow()
+{
+	if (const AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn()))
+		UE_LOG(LogTemp, Log, TEXT("InteractShow: %s"), *MyPlayer->DevInteractState());
+}
+// ---- 개발용 파티 명령(DG2): 파티 창·플레이어 메뉴·채팅 명령이 보내는 것과 같은 요청을 콘솔로 보낸다. 검증은 모두 서버가 한다. ----
 void AJMPlayerController::PartyInvite(const FString& Name)
 {
 	UGameInstance* GameInstance = GetGameInstance();

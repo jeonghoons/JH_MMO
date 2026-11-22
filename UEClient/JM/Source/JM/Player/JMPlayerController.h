@@ -18,9 +18,12 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
-	// Hold Left Alt: temporarily show the mouse cursor to click UI (combat mode hides it). Release restores the mode.
-	void OnFreeCursorPressed();
-	void OnFreeCursorReleased();
+	// 조작(UI6, D-274): Ctrl = 커서 모드 켜고 끄기(UJMUIManager), Left Alt를 누르는 동안 = 둘러보기(카메라만 돌고 이동 방향 고정),
+	// Esc = 플레이어 메뉴 닫기.
+	void OnCursorModeToggle();
+	void OnFreeLookPressed();
+	void OnFreeLookReleased();
+	void OnEscapePressed();
 
 public:
     UFUNCTION(BlueprintCallable, Category = "UI")
@@ -135,6 +138,24 @@ public:
     // 등록된 창을 열고 닫는다(WidgetNames — Inventory·Party·Quest …). UI 확인용(D-270, 키 입력 없이 PIE 확인)
     UFUNCTION(Exec)
     void UIToggle(const FString& WidgetName);
+
+    // 개발용(UI6, D-274 — 마우스 없이 PIE 확인): "CursorMode <0|1>" = Ctrl과 같음, "FreeLook <0|1>" = Alt 누름/뗌,
+    // "RClick <x> <y>" / "LClick <x> <y>" = 커서 모드에서 화면 좌표(뷰포트 픽셀)를 우클릭/좌클릭한 것과 같은 처리(x·y < 0이면 화면 가운데),
+    // "RClickObject <id> [portal 0|1]" = 그 NPC·플레이어(portal 1이면 그 포털)를 화면에 투영한 자리를 우클릭,"PlayerMenu <trade|party|close>" = 메뉴 버튼, "InteractShow" = 고르기·자동 걷기 상태를 로그로
+    UFUNCTION(Exec)
+    void CursorMode(int32 Enable = 1);
+    UFUNCTION(Exec)
+    void FreeLook(int32 Enable = 1);
+    UFUNCTION(Exec)
+    void RClick(float X = -1.f, float Y = -1.f);
+    UFUNCTION(Exec)
+    void LClick(float X = -1.f, float Y = -1.f);
+    UFUNCTION(Exec)
+    void RClickObject(int32 ObjectId, int32 bPortal = 0);
+    UFUNCTION(Exec)
+    void PlayerMenu(const FString& Action);
+    UFUNCTION(Exec)
+    void InteractShow();
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")

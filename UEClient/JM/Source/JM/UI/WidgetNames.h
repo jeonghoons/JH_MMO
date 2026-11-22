@@ -17,4 +17,5 @@ namespace WidgetNames
 	inline const FName Party(TEXT("Party"));
 	inline const FName Auction(TEXT("Auction"));
 	inline const FName Quest(TEXT("Quest"));
+	inline const FName PlayerMenu(TEXT("PlayerMenu"));
 }

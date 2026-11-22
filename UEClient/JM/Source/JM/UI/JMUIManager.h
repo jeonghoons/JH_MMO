@@ -56,6 +56,13 @@ public:
     // 창이 없을 때의 입력 모드. true = 전투 입력(인게임), false = UI 전용 + 커서(로그인 화면). 각 GameMode가 정한다.
     void SetGameplayInput(bool bEnable);
 
+    // 커서 모드(UI6, D-274): Ctrl로 켜고 끈다. 켜져 있거나 창이 하나라도 열려 있으면 커서가 보이고(게임 입력도 받음) 마우스로 카메라가 돌지 않는다.
+    void SetCursorMode(bool bEnable);
+    bool IsCursorMode() const { return bCursorMode; }
+    bool HasOpenWindow() const { return OpenedWindows.Num() > 0; }
+    // 인게임에서 지금 커서가 보이는가(커서 모드 또는 창 열림). 월드 좌클릭 공격·마우스 카메라 회전을 막는 기준
+    bool IsCursorShown() const { return bGameplayInput && (bCursorMode || OpenedWindows.Num() > 0); }
+
     // 시스템 메시지 창. 한 번에 하나만 보이고 나머지는 차례를 기다린다(Waiting은 맨 앞에 끼운다).
     // 위젯 클래스는 UJMGameInstance::SystemMessageWidgetClass. 레벨 전환 뒤에도 남은 메시지는 새 레벨에서 띄운다.
     void ShowSystemMessage(const FText& Message, ESystemMessageType Type = ESystemMessageType::Notice);
@@ -91,6 +98,7 @@ private:
     TObjectPtr<APlayerController> Controller;
 
     bool bGameplayInput = false;
+    bool bCursorMode = false;
 
     // 아직 띄우지 못한 시스템 메시지와, 지금 화면에 떠 있는지 여부
     TArray<FPendingSystemMessage> PendingSystemMessages;

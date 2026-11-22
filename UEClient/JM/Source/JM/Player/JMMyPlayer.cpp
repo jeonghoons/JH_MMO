@@ -27,6 +27,7 @@
 #include "Game/JMPartyManager.h"
 #include "Game/JMAuctionManager.h"
 #include "Game/JMQuestManager.h"
+#include "UI/PlayerMenuWidget.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -91,6 +92,10 @@ void AJMMyPlayer::PossessedBy(AController* NewController)
 	MoveSendTurnCos = Row->MoveSendTurnDeg > 0.f ? FMath::Cos(FMath::DegreesToRadians(Row->MoveSendTurnDeg)) : -2.f;
 	AimMinInterval = Row->ServerAimMinIntervalMs / 1000.f;
 	MoveSendTurnDegValue = Row->MoveSendTurnDeg;
+	AutoWalkTimeoutSec = Row->AutoWalkTimeoutMs / 1000.f;
+	AutoWalkStuckSec = Row->AutoWalkStuckMs / 1000.f;
+	PickMaxDistCm = Row->PickMaxDistCm;
+	PickScreenRadiusPx = Row->PickScreenRadiusPx;
 
 	// 카메라 피치 제한과 시작 각도 (음수 피치 = 아래로 내려다봄)
 	if (APlayerController* PC = Cast<APlayerController>(NewController))
@@ -145,12 +150,11 @@ void AJMMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		{
 			if (QuickSlotActions[Index]) EnhancedInputComponent->BindAction(QuickSlotActions[Index].Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnQuickSlotInput, Index);
 		}
-		if (CancelAimAction) EnhancedInputComponent->BindAction(CancelAimAction, ETriggerEvent::Started, this, &AJMMyPlayer::OnCancelAimInput);
+		// 우클릭(IA_CancelAim): 조준 취소 + 커서 모드 상호작용(UI6)
+		if (CancelAimAction) EnhancedInputComponent->BindAction(CancelAimAction, ETriggerEvent::Started, this, &AJMMyPlayer::OnRightClickInput);
 		if (InventoryAction) EnhancedInputComponent->BindAction(InventoryAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnInventoryInput);
 		if (InteractAction) EnhancedInputComponent->BindAction(InteractAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnInteractInput);
-		if (TradeAction) EnhancedInputComponent->BindAction(TradeAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnTradeInput);
 		if (PartyAction) EnhancedInputComponent->BindAction(PartyAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnPartyInput);
-		if (PartyInviteAction) EnhancedInputComponent->BindAction(PartyInviteAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnPartyInviteInput);
 		if (AuctionAction) EnhancedInputComponent->BindAction(AuctionAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnAuctionInput);
 		if (QuestAction) EnhancedInputComponent->BindAction(QuestAction.Get(), ETriggerEvent::Started, this, &AJMMyPlayer::OnQuestInput);
 		
@@ -168,6 +172,17 @@ void AJMMyPlayer::Tick(float DeltaTime)
 		InteractCheckTimer = 0.1f;
 		UpdateInteractPrompt();
 	}
+
+	// 커서 모양(UI6): 커서가 보이는 동안 0.1초마다 마우스 아래 대상을 본다.
+	CursorPickTimer -= DeltaTime;
+	if (CursorPickTimer <= 0.f)
+	{
+		CursorPickTimer = 0.1f;
+		UpdateHoverCursor();
+	}
+
+	// 직선 자동 걷기(UI6): 이동 입력을 대신 넣는다. 서버 이동 검증은 방향키 이동과 같은 경로다.
+	if (IsAutoWalking()) TickAutoWalk();
 
 	if (bAiming)
 	{
@@ -250,6 +265,13 @@ void AJMMyPlayer::Move(const FInputActionValue& Value)
 
 	if (bIsDead) return;   // 사망 중 이동 입력 차단(D-149)
 
+	// 방향키를 누르면 자동 걷기를 멈추고 직접 움직인다(UI6). 떼는 입력(0)은 자동 걷기를 건드리지 않는다.
+	if (IsAutoWalking())
+	{
+		if (MovementVector.IsNearlyZero()) return;
+		StopAutoWalk();
+	}
+
 	// 공격 중(휘두르기가 끝날 때까지)에는 이동 입력을 받지 않는다(D-199). 키를 계속 누르고 있으면 잠금이 풀리는 틱부터 다시 움직인다.
 	if (IsMoveLocked())
 	{
@@ -260,8 +282,9 @@ void AJMMyPlayer::Move(const FInputActionValue& Value)
 	if (GetController() != nullptr)
 	{
 		// 카메라(컨트롤러) 방향 기준 이동: W = 카메라가 바라보는 쪽, D = 카메라 오른쪽.
+		// 둘러보기(Left Alt, UI6) 중에는 누른 순간의 카메라 방향을 기준으로 한다(카메라만 돌고 캐릭터는 하던 방향으로).
 		const FRotator Rotation = GetController()->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FRotator YawRotation(0, bFreeLook ? FreeLookMoveYaw : Rotation.Yaw, 0);
 
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
@@ -276,7 +299,10 @@ void AJMMyPlayer::Move(const FInputActionValue& Value)
 void AJMMyPlayer::Look(const FInputActionValue& Value)
 {
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
-	
+
+	// 커서가 보이는 동안(커서 모드·창 열림, UI6)에는 마우스로 카메라를 돌리지 않는다.
+	if (const UJMUIManager* UIManager = GetUIManager(); UIManager && UIManager->IsCursorShown()) return;
+
 	if (GetController() != nullptr)
 	{
 		AddControllerYawInput(LookAxisVector.X * LookSensitivityYaw);
@@ -677,6 +703,21 @@ void AJMMyPlayer::OnAttackInput()
 
 	if (bIsDead) return;   // 사망 중 공격 입력 차단(D-149, 서버도 거부한다)
 
+	// 커서가 보일 때(커서 모드·창 열림, UI6 D-274) 월드 좌클릭은 공격하지 않는다(창 위 클릭은 UI가 먼저 받아 여기 오지 않음).
+	// 스킬 조준 중의 좌클릭 확정은 그대로 받는다(창을 연 채 숫자키로 조준한 경우).
+	if (!bAiming)
+	{
+		if (UJMUIManager* UIManager = GetUIManager(); UIManager && UIManager->IsCursorShown())
+		{
+			float MouseX = 0.f, MouseY = 0.f;
+			const APlayerController* PC = Cast<APlayerController>(GetController());
+			if (PC) PC->GetMousePosition(MouseX, MouseY);
+			HandleCursorClick(false, FVector2D(MouseX, MouseY));
+			return;
+		}
+	}
+
+	StopAutoWalk();
 	CastSkillSlot(bAiming ? AimingSlot : 0);
 }
 
@@ -688,6 +729,9 @@ void AJMMyPlayer::OnQuickSlotInput(int32 Index)
 	switch (QuickSlot.Kind)
 	{
 	case EQuickSlotKind::Skill:
+		// 커서 모드(UI6, D-274)에서 숫자키 = 커서 모드를 끄고 바로 조준한다(열린 창은 그대로). 자동 걷기도 멈춘다.
+		if (UJMUIManager* UIManager = GetUIManager()) UIManager->SetCursorMode(false);
+		StopAutoWalk();
 		// 스킬 칸: 조준 진입. 조준 중에 같은 스킬 칸을 다시 누르면 취소한다.
 		if (bAiming && AimingSlot == QuickSlot.Value)
 		{
@@ -731,6 +775,21 @@ void AJMMyPlayer::RebuildQuickSlots()
 void AJMMyPlayer::OnCancelAimInput()
 {
 	EndLocalAim(true);
+}
+
+void AJMMyPlayer::OnRightClickInput()
+{
+	// 스킬 조준 중의 우클릭 = 조준 취소(D-022) — 커서 상호작용보다 먼저
+	if (bAiming)
+	{
+		OnCancelAimInput();
+		return;
+	}
+	UJMUIManager* UIManager = GetUIManager();
+	if (UIManager == nullptr || !UIManager->IsCursorShown()) return;   // 카메라 모드의 우클릭은 아무 일도 하지 않는다
+	float MouseX = 0.f, MouseY = 0.f;
+	if (const APlayerController* PC = Cast<APlayerController>(GetController())) PC->GetMousePosition(MouseX, MouseY);
+	HandleCursorClick(true, FVector2D(MouseX, MouseY));
 }
 
 void AJMMyPlayer::UpdateInteractPrompt()
@@ -807,39 +866,10 @@ void AJMMyPlayer::UpdateInteractPrompt()
 void AJMMyPlayer::OnInteractInput()
 {
 	if (bIsDead) return;
+	StopAutoWalk();
 	// 누르는 순간의 위치로 다시 고른다(안내는 0.1초 전 것일 수 있다). 거리·소유권·빈 칸 검증은 서버가 하고 거부는 시스템 메시지로 온다.
 	UpdateInteractPrompt();
-	// 경매 NPC(A6.3b, D-234): 등록·취소·수령까지 되는 NPC 모드로 연다. 이미 NPC 모드로 열려 있으면 닫는다(K 키로 연 조회 모드면 NPC 모드로 바꾼다).
-	const UJMObjectManager* NpcObjects = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMObjectManager>() : nullptr;
-	if (InteractNpcId != 0 && NpcObjects && NpcObjects->GetNpcKind(InteractNpcId) == static_cast<int32>(Protocol::NPC_KIND_AUCTION))
-	{
-		if (UJMAuctionManager* Auction = GetGameInstance()->GetSubsystem<UJMAuctionManager>())
-		{
-			if (Auction->IsAtNpc()) Auction->Close();
-			else Auction->Open(InteractNpcId);
-		}
-		return;
-	}
-	// 퀘스트 NPC(Q1, D-265): 대화 모드 퀘스트 창을 연다. 이미 대화 모드로 열려 있으면 닫는다(L 키로 연 목록 모드면 대화 모드로 바꾼다).
-	if (InteractNpcId != 0 && NpcObjects && NpcObjects->GetNpcKind(InteractNpcId) == static_cast<int32>(Protocol::NPC_KIND_QUEST))
-	{
-		if (UJMQuestManager* Quest = GetGameInstance()->GetSubsystem<UJMQuestManager>())
-		{
-			if (Quest->IsAtNpc()) Quest->Close();
-			else Quest->OpenForNpc(InteractNpcId);
-		}
-		return;
-	}
-	// 상점 NPC(L4): 닫혀 있으면 품목을 요청하고(SC_SHOP_OPEN이 오면 창이 뜬다), 열려 있으면 닫는다. 거리·거래 중 검증은 서버가 한다.
-	if (InteractNpcId != 0 && NpcObjects && NpcObjects->GetNpcKind(InteractNpcId) == static_cast<int32>(Protocol::NPC_KIND_SHOP))
-	{
-		if (UJMShopManager* Shop = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMShopManager>() : nullptr)
-		{
-			if (Shop->IsOpen()) Shop->Close();
-			else Shop->RequestOpen(InteractNpcId);
-		}
-		return;
-	}
+	if (InteractNpcId != 0 && InteractWithNpc(InteractNpcId)) return;
 	// 포털(L5): 요청만 보낸다. 받아들여지면 SC_TELEPORT가 오고, 거부(시전 중·재사용 대기 등)는 응답이 없다.
 	if (InteractPortalId != 0)
 	{
@@ -854,46 +884,43 @@ void AJMMyPlayer::OnInteractInput()
 	}
 }
 
-void AJMMyPlayer::OnTradeInput()
+bool AJMMyPlayer::InteractWithNpc(int32 NpcId, bool bToggle)
 {
-	if (bIsDead) return;
 	UGameInstance* GameInstance = GetGameInstance();
-	UJMTradeManager* Trade = GameInstance ? GameInstance->GetSubsystem<UJMTradeManager>() : nullptr;
-	const UJMObjectManager* ObjectManager = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
-	if (Trade == nullptr || ObjectManager == nullptr || FollowCamera == nullptr) return;
-	if (Trade->IsActive()) return;   // 이미 거래 창이 떠 있다
-
-	// 거리(TradeRangeCm)·사망·거래 중 여부는 서버가 판정하고 거부 사유를 시스템 메시지로 알려 준다.
-	const AJMPlayer* Best = FindCrosshairPlayer();
-	if (Best == nullptr)
+	const UJMObjectManager* NpcObjects = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
+	if (NpcId == 0 || NpcObjects == nullptr) return false;
+	const int32 Kind = NpcObjects->GetNpcKind(NpcId);
+	// 경매 NPC(A6.3b, D-234): 등록·취소·수령까지 되는 NPC 모드로 연다. 이미 NPC 모드로 열려 있으면 닫는다(K 키로 연 조회 모드면 NPC 모드로 바꾼다).
+	if (Kind == static_cast<int32>(Protocol::NPC_KIND_AUCTION))
 	{
-		if (UJMUIManager* UIManager = GameInstance->GetSubsystem<UJMUIManager>())
-			UIManager->ShowSystemMessage(FText::FromString(TEXT("거래할 상대를 바라보고 다시 시도해 주세요.")));
-		return;
+		if (UJMAuctionManager* Auction = GameInstance->GetSubsystem<UJMAuctionManager>())
+		{
+			if (Auction->IsAtNpc()) { if (bToggle) Auction->Close(); }
+			else Auction->Open(NpcId);
+		}
+		return true;
 	}
-	Trade->RequestTrade(Best->GetObjectInfo().id());
-}
-
-const AJMPlayer* AJMMyPlayer::FindCrosshairPlayer() const
-{
-	const UGameInstance* GameInstance = GetGameInstance();
-	const UJMObjectManager* ObjectManager = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
-	if (ObjectManager == nullptr || FollowCamera == nullptr) return nullptr;
-
-	// 카메라 정면에서 MinDot 각도 안에 있는 다른 플레이어 가운데 화면 중앙에 가장 가까운 사람.
-	constexpr float MinDot = 0.9f;   // 약 25도
-	const FVector CamLoc = FollowCamera->GetComponentLocation();
-	const FVector CamForward = FollowCamera->GetForwardVector();
-	const AJMPlayer* Best = nullptr;
-	float BestDot = MinDot;
-	for (const TPair<int32, TObjectPtr<AJMCharacterBase>>& Pair : ObjectManager->Objects)
+	// 퀘스트 NPC(Q1, D-265): 대화 모드 퀘스트 창을 연다. 이미 대화 모드로 열려 있으면 닫는다(L 키로 연 목록 모드면 대화 모드로 바꾼다).
+	if (Kind == static_cast<int32>(Protocol::NPC_KIND_QUEST))
 	{
-		const AJMPlayer* Other = Cast<AJMPlayer>(Pair.Value.Get());
-		if (Other == nullptr || Other == this || Other->IsDeadActor()) continue;
-		const float Dot = FVector::DotProduct(CamForward, (Other->GetActorLocation() - CamLoc).GetSafeNormal());
-		if (Dot > BestDot) { BestDot = Dot; Best = Other; }
+		if (UJMQuestManager* Quest = GameInstance->GetSubsystem<UJMQuestManager>())
+		{
+			if (Quest->IsAtNpc()) { if (bToggle) Quest->Close(); }
+			else Quest->OpenForNpc(NpcId);
+		}
+		return true;
 	}
-	return Best;
+	// 상점 NPC(L4): 닫혀 있으면 품목을 요청하고(SC_SHOP_OPEN이 오면 창이 뜬다), 열려 있으면 닫는다. 거리·거래 중 검증은 서버가 한다.
+	if (Kind == static_cast<int32>(Protocol::NPC_KIND_SHOP))
+	{
+		if (UJMShopManager* Shop = GameInstance->GetSubsystem<UJMShopManager>())
+		{
+			if (Shop->IsOpen()) { if (bToggle) Shop->Close(); }
+			else Shop->RequestOpen(NpcId);
+		}
+		return true;
+	}
+	return false;
 }
 
 void AJMMyPlayer::OnPartyInput()
@@ -921,22 +948,6 @@ void AJMMyPlayer::OnAuctionInput()
 	// 사망 중에는 열지 않는다(서버도 거부). 던전 안인지는 서버가 답한다(거부되면 안내가 뜨고 창이 닫힌다).
 	if (bIsDead) return;
 	Auction->Open(0);
-}
-
-void AJMMyPlayer::OnPartyInviteInput()
-{
-	UGameInstance* GameInstance = GetGameInstance();
-	UJMPartyManager* Party = GameInstance ? GameInstance->GetSubsystem<UJMPartyManager>() : nullptr;
-	if (Party == nullptr) return;
-
-	const AJMPlayer* Target = FindCrosshairPlayer();
-	if (Target == nullptr)
-	{
-		if (UJMUIManager* UIManager = GameInstance->GetSubsystem<UJMUIManager>())
-			UIManager->ShowSystemMessage(FText::FromString(TEXT("파티에 초대할 상대를 바라보고 다시 시도해 주세요. (멀리 있는 사람은 채팅창에 /파티초대 이름)")));
-		return;
-	}
-	Party->Invite(Target->GetObjectInfo().id());
 }
 
 void AJMMyPlayer::OnInventoryInput()
@@ -1015,12 +1026,15 @@ void AJMMyPlayer::NoteSkillCooldown(int32 SkillId, int32 CooldownMs)
 
 void AJMMyPlayer::OnDead()
 {
+	StopAutoWalk();
+	ClosePlayerMenu();
 	EndLocalAim(true);   // 서버는 사망 때 이미 해제했다(끄기는 무시됨)
 	Super::OnDead();
 }
 
 void AJMMyPlayer::OnMyTeleport(const Protocol::PositionInfo& Pos, uint32 Seq)
 {
+	StopAutoWalk();
 	TeleportToServerPosition(Pos);
 	// 서버가 이동 때 보정 순번을 올렸다. 그 순번으로 도착 위치에서 다시 시작한다고 알린다(OnMyRevive와 같은 절차).
 	CorrectionSeq = Seq;
@@ -1042,6 +1056,10 @@ void AJMMyPlayer::ResetForRoomChange()
 
 	// 개발용 자동 공격도 멈춘다.
 	DevAutoRemain = 0;
+
+	// 자동 걷기 대상·플레이어 메뉴 대상은 옛 Room의 것이다(UI6).
+	StopAutoWalk();
+	ClosePlayerMenu();
 
 	// 상호작용 대상(드랍·NPC·포털)은 옛 Room의 것이므로 지우고 안내 문구도 지운다.
 	// UpdateInteractPrompt는 대상이 같으면 HUD를 고치지 않으므로 여기서 직접 비워야 한다.
@@ -1090,6 +1108,7 @@ void AJMMyPlayer::ApplyTravelState(uint32 InCorrectionSeq, uint32 InAttackSeq, u
 void AJMMyPlayer::LockForLevelTravel()
 {
 	bTravelLocked = true;
+	StopAutoWalk();
 	DesiredInput = FVector2D::Zero();
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement()) MoveComp->StopMovementImmediately();
 	if (APlayerController* PC = Cast<APlayerController>(GetController())) DisableInput(PC);
@@ -1102,4 +1121,274 @@ void AJMMyPlayer::OnMyRevive(const Protocol::PositionInfo& Pos, int32 Hp, uint32
 	CorrectionSeq = Seq;
 	SyncTransformToInfo();
 	bMoveSendPending = true;
+}
+
+// ---- 커서 모드 상호작용(UI6, D-274) ----
+
+UJMUIManager* AJMMyPlayer::GetUIManager() const
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	return GameInstance ? GameInstance->GetSubsystem<UJMUIManager>() : nullptr;
+}
+
+AJMMyPlayer::FPickResult AJMMyPlayer::PickAtScreen(const FVector2D& ScreenPos) const
+{
+	FPickResult Best;
+	const APlayerController* PC = Cast<APlayerController>(GetController());
+	const UGameInstance* GameInstance = GetGameInstance();
+	const UJMObjectManager* ObjectManager = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
+	if (PC == nullptr || ObjectManager == nullptr) return Best;
+
+	// 허용 화면 거리는 세로 1080 기준 값을 지금 뷰포트 높이에 비례시킨다.
+	int32 ViewX = 0, ViewY = 0;
+	PC->GetViewportSize(ViewX, ViewY);
+	float BestDist = PickScreenRadiusPx * (ViewY > 0 ? ViewY / 1080.f : 1.f);
+	const FVector MyLocation = GetActorLocation();
+	const float MaxDistSq = FMath::Square(PickMaxDistCm);
+	const FVector Cursor(ScreenPos.X, ScreenPos.Y, 0.f);
+
+	// 몸(발~머리)을 화면에 투영한 선분과 커서의 거리. 키가 큰 대상도 몸 어디를 눌러도 잡힌다(충돌 설정에 기대지 않음).
+	auto Consider = [&](EPickKind Kind, int32 Id, const FVector& Bottom, const FVector& Top)
+	{
+		if (FVector::DistSquared(MyLocation, Bottom) > MaxDistSq) return;
+		FVector2D A, B;
+		if (!PC->ProjectWorldLocationToScreen(Bottom, A, true) || !PC->ProjectWorldLocationToScreen(Top, B, true)) return;
+		const float Dist = FMath::PointDistToSegment(Cursor, FVector(A.X, A.Y, 0.f), FVector(B.X, B.Y, 0.f));
+		if (Dist < BestDist)
+		{
+			BestDist = Dist;
+			Best.Kind = Kind;
+			Best.Id = Id;
+		}
+	};
+	auto Body = [](const AJMCharacterBase* Character, FVector& OutBottom, FVector& OutTop)
+	{
+		const UCapsuleComponent* Capsule = Character->GetCapsuleComponent();
+		const float HalfHeight = Capsule ? Capsule->GetScaledCapsuleHalfHeight() : 90.f;
+		OutBottom = Character->GetActorLocation() - FVector(0.f, 0.f, HalfHeight);
+		OutTop = Character->GetActorLocation() + FVector(0.f, 0.f, HalfHeight);
+	};
+
+	// NPC: 하는 일이 있는 것만(F 안내와 같은 기준)
+	for (const TPair<int32, TObjectPtr<AJMCharacterBase>>& Pair : ObjectManager->Npcs)
+	{
+		if (Pair.Value == nullptr || ObjectManager->GetNpcKind(Pair.Key) == static_cast<int32>(Protocol::NPC_KIND_NONE)) continue;
+		FVector Bottom, Top;
+		Body(Pair.Value.Get(), Bottom, Top);
+		Consider(EPickKind::Npc, Pair.Key, Bottom, Top);
+	}
+	// 다른 플레이어(살아 있는). 몬스터는 고르지 않는다(D-274)
+	for (const TPair<int32, TObjectPtr<AJMCharacterBase>>& Pair : ObjectManager->Objects)
+	{
+		const AJMPlayer* Other = Cast<AJMPlayer>(Pair.Value.Get());
+		if (Other == nullptr || Other == this || Other->IsDeadActor()) continue;
+		FVector Bottom, Top;
+		Body(Other, Bottom, Top);
+		Consider(EPickKind::Player, Pair.Key, Bottom, Top);
+	}
+	// 포털: 서버가 준 위치(지면)에서 2m 위까지
+	for (const UJMObjectManager::FPortalEntry& Portal : ObjectManager->Portals)
+	{
+		Consider(EPickKind::Portal, Portal.Id, Portal.Location, Portal.Location + FVector(0.f, 0.f, 200.f));
+	}
+	return Best;
+}
+
+void AJMMyPlayer::HandleCursorClick(bool bRightButton, const FVector2D& ScreenPos)
+{
+	UJMUIManager* UIManager = GetUIManager();
+	const FPickResult Pick = (bRightButton && !bIsDead && !bTravelLocked) ? PickAtScreen(ScreenPos) : FPickResult();
+	switch (Pick.Kind)
+	{
+	case EPickKind::Npc:
+	case EPickKind::Portal:
+		ClosePlayerMenu();
+		StartAutoWalk(Pick.Kind, Pick.Id);
+		return;
+	case EPickKind::Player:
+		OpenPlayerMenu(Pick.Id);
+		return;
+	default:
+		break;
+	}
+	// 결과가 없는 곳(맨땅·몬스터·드랍·빈 곳)이나 좌클릭: 메뉴를 닫고, 열린 창이 없으면 커서를 숨긴다(창이 있으면 커서 유지).
+	ClosePlayerMenu();
+	if (UIManager && !UIManager->HasOpenWindow()) UIManager->SetCursorMode(false);
+}
+
+void AJMMyPlayer::OpenPlayerMenu(int32 PlayerId)
+{
+	UJMUIManager* UIManager = GetUIManager();
+	if (UPlayerMenuWidget* Menu = UIManager ? Cast<UPlayerMenuWidget>(UIManager->GetWidget(WidgetNames::PlayerMenu)) : nullptr)
+		Menu->OpenFor(PlayerId);
+}
+
+void AJMMyPlayer::ClosePlayerMenu()
+{
+	UJMUIManager* UIManager = GetUIManager();
+	if (UPlayerMenuWidget* Menu = UIManager ? Cast<UPlayerMenuWidget>(UIManager->GetWidget(WidgetNames::PlayerMenu)) : nullptr)
+		Menu->Close();
+}
+
+void AJMMyPlayer::SetFreeLook(bool bEnable)
+{
+	if (bFreeLook == bEnable) return;
+	bFreeLook = bEnable;
+	// 누른 순간의 카메라 방향을 이동 기준으로 고정한다. 떼면 다시 카메라 기준(Move).
+	if (bEnable && GetController()) FreeLookMoveYaw = GetController()->GetControlRotation().Yaw;
+}
+
+void AJMMyPlayer::StartAutoWalk(EPickKind Kind, int32 Id)
+{
+	if (bIsDead || bTravelLocked || Id == 0) return;
+	EndLocalAim(true);
+	const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	AutoWalk.Kind = Kind;
+	AutoWalk.Id = Id;
+	AutoWalk.StartTime = Now;
+	AutoWalk.CheckTime = Now;
+	AutoWalk.CheckLocation = GetActorLocation();
+	// 이미 도착 거리 안이면 첫 틱에 바로 도착 처리된다.
+}
+
+void AJMMyPlayer::StopAutoWalk(const TCHAR* Reason)
+{
+	if (!IsAutoWalking()) return;
+	AutoWalk = FAutoWalk();
+	DesiredInput = FVector2D::Zero();
+	if (Reason)
+	{
+		if (UJMUIManager* UIManager = GetUIManager()) UIManager->ShowNotice(FText::FromString(Reason));
+	}
+}
+
+void AJMMyPlayer::TickAutoWalk()
+{
+	if (bIsDead || bTravelLocked)
+	{
+		StopAutoWalk();
+		return;
+	}
+	UGameInstance* GameInstance = GetGameInstance();
+	const UJMObjectManager* ObjectManager = GameInstance ? GameInstance->GetSubsystem<UJMObjectManager>() : nullptr;
+	const UJMInventoryManager* Inventory = GameInstance ? GameInstance->GetSubsystem<UJMInventoryManager>() : nullptr;
+	if (ObjectManager == nullptr || GetWorld() == nullptr)
+	{
+		StopAutoWalk();
+		return;
+	}
+
+	// 목표 위치와 도착 거리: F 안내가 뜨는 거리보다 안쪽(NPC = 안내 거리(이용 거리 − 30cm)에서 30cm 더, 포털 = 반경 − 30cm — 서버가 경계에서 거부하지 않게)
+	FVector Target = FVector::ZeroVector;
+	float ArriveCm = 0.f;
+	if (AutoWalk.Kind == EPickKind::Npc)
+	{
+		if (!ObjectManager->GetNpcLocation(AutoWalk.Id, Target))
+		{
+			StopAutoWalk(TEXT("대상이 보이지 않아 멈췄습니다."));
+			return;
+		}
+		ArriveCm = FMath::Max(50.f, (Inventory ? static_cast<float>(Inventory->GetShopRangeCm()) : 300.f) - 30.f - 30.f);
+	}
+	else
+	{
+		const UJMObjectManager::FPortalEntry* Portal = ObjectManager->Portals.FindByPredicate(
+			[this](const UJMObjectManager::FPortalEntry& Entry) { return Entry.Id == AutoWalk.Id; });
+		if (Portal == nullptr)
+		{
+			StopAutoWalk(TEXT("대상이 보이지 않아 멈췄습니다."));
+			return;
+		}
+		Target = Portal->Location;
+		ArriveCm = FMath::Max(30.f, Portal->RadiusCm - 30.f);
+	}
+
+	const FVector MyLocation = GetActorLocation();
+	const float Dist = FVector::Dist2D(MyLocation, Target);
+	if (Dist <= ArriveCm)
+	{
+		const EPickKind Kind = AutoWalk.Kind;
+		const int32 Id = AutoWalk.Id;
+		StopAutoWalk();
+		// NPC = 바로 F와 같은 동작(이미 열려 있으면 그대로), 포털·던전 입구 = 멈추고 [F] 안내만(D-274)
+		if (Kind == EPickKind::Npc) InteractWithNpc(Id, false);
+		else InteractCheckTimer = 0.f;
+		return;
+	}
+
+	const double Now = GetWorld()->GetTimeSeconds();
+	if (Now - AutoWalk.StartTime > AutoWalkTimeoutSec)
+	{
+		StopAutoWalk(TEXT("자동 이동 시간이 지나 멈췄습니다."));
+		return;
+	}
+	// 막힘: 막힘 판정 시간 동안 30cm도 못 갔으면 멈춘다(직선 이동이라 벽·물체를 돌아가지 않음)
+	if (Now - AutoWalk.CheckTime >= AutoWalkStuckSec)
+	{
+		if (FVector::Dist2D(MyLocation, AutoWalk.CheckLocation) < 30.f)
+		{
+			StopAutoWalk(TEXT("길이 막혀 멈췄습니다."));
+			return;
+		}
+		AutoWalk.CheckTime = Now;
+		AutoWalk.CheckLocation = MyLocation;
+	}
+	if (IsMoveLocked())
+	{
+		DesiredInput = FVector2D::Zero();
+		return;
+	}
+	AddMovementInput((Target - MyLocation).GetSafeNormal2D(), 1.f);
+	DesiredInput = FVector2D(0.f, 1.f);   // 이동 상태(RUN)·이동 패킷 전송은 방향키 입력과 같은 경로
+}
+
+void AJMMyPlayer::UpdateHoverCursor()
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC == nullptr) return;
+	EMouseCursor::Type Want = EMouseCursor::Default;
+	const UJMUIManager* UIManager = GetUIManager();
+	float MouseX = 0.f, MouseY = 0.f;
+	if (PC->bShowMouseCursor && UIManager && UIManager->IsCursorShown() && PC->GetMousePosition(MouseX, MouseY))
+	{
+		// 커서 모양(UI2 하드웨어 커서, D-274): NPC = 대화(GrabHand), 플레이어·포털 = 클릭(Hand), 그 밖 = 기본
+		const FPickResult Pick = PickAtScreen(FVector2D(MouseX, MouseY));
+		if (Pick.Kind == EPickKind::Npc) Want = EMouseCursor::GrabHand;
+		else if (Pick.Kind == EPickKind::Player || Pick.Kind == EPickKind::Portal) Want = EMouseCursor::Hand;
+	}
+	if (PC->CurrentMouseCursor != Want) PC->CurrentMouseCursor = Want;
+}
+
+FString AJMMyPlayer::DevInteractState() const
+{
+	const UJMUIManager* UIManager = GetUIManager();
+	const APlayerController* PC = Cast<APlayerController>(GetController());
+	float MouseX = -1.f, MouseY = -1.f;
+	if (PC) PC->GetMousePosition(MouseX, MouseY);
+	const FPickResult Pick = PickAtScreen(FVector2D(MouseX, MouseY));
+	static const TCHAR* KindNames[] = { TEXT("None"), TEXT("Npc"), TEXT("Player"), TEXT("Portal") };
+	const UPlayerMenuWidget* Menu = UIManager ? Cast<UPlayerMenuWidget>(const_cast<UJMUIManager*>(UIManager)->GetWidget(WidgetNames::PlayerMenu)) : nullptr;
+	// 화면 안의 고를 수 있는 대상(종류:id@화면 좌표 거리m) — 콘솔 RClick·RClickObject로 시험할 때 쓴다
+	FString Candidates;
+	if (const UJMObjectManager* ObjectManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMObjectManager>() : nullptr; ObjectManager && PC)
+	{
+		auto Add = [&](const TCHAR* Kind, int32 Id, const FVector& World)
+		{
+			FVector2D Screen;
+			if (!PC->ProjectWorldLocationToScreen(World, Screen, true)) return;
+			Candidates += FString::Printf(TEXT(" %s:%d@(%.0f,%.0f)%.0fm"), Kind, Id, Screen.X, Screen.Y, FVector::Dist(GetActorLocation(), World) / 100.f);
+		};
+		for (const TPair<int32, TObjectPtr<AJMCharacterBase>>& Pair : ObjectManager->Npcs)
+			if (Pair.Value) Add(TEXT("Npc"), Pair.Key, Pair.Value->GetActorLocation());
+		for (const TPair<int32, TObjectPtr<AJMCharacterBase>>& Pair : ObjectManager->Objects)
+			if (Cast<AJMPlayer>(Pair.Value.Get()) && Pair.Value.Get() != this) Add(TEXT("Player"), Pair.Key, Pair.Value->GetActorLocation());
+		for (const UJMObjectManager::FPortalEntry& Portal : ObjectManager->Portals)
+			Add(TEXT("Portal"), Portal.Id, Portal.Location + FVector(0.f, 0.f, 100.f));
+	}
+	return FString::Printf(TEXT("cursorMode=%d windows=%d cursorShown=%d showMouse=%d cursor=%d freeLook=%d autoWalk=%s:%d menu=%d mouse=(%.0f,%.0f) underMouse=%s:%d moveDir=(%.2f,%.2f) pos=(%.0f,%.0f) onScreen=[%s ]"),
+		UIManager && UIManager->IsCursorMode() ? 1 : 0, UIManager && UIManager->HasOpenWindow() ? 1 : 0, UIManager && UIManager->IsCursorShown() ? 1 : 0,
+		PC && PC->bShowMouseCursor ? 1 : 0, PC ? static_cast<int32>(PC->CurrentMouseCursor.GetValue()) : -1, bFreeLook ? 1 : 0,
+		KindNames[static_cast<int32>(AutoWalk.Kind)], AutoWalk.Id, Menu ? Menu->GetTargetId() : -1,
+		MouseX, MouseY, KindNames[static_cast<int32>(Pick.Kind)], Pick.Id, DesiredInput.X, DesiredInput.Y,
+		GetActorLocation().X, GetActorLocation().Y, *Candidates);
 }

@@ -1475,7 +1475,8 @@ def pie_walk(args):
 _PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen", "give", "equip", "shopopen", "shopbuy", "shopsell", "shopclose", "netmovestats", "autoattack", "attackstats", "portal", "partyinvite", "partyrespond", "partyleave", "partyshow",
                    "auctionopen", "auctionsearch", "auctionmy", "auctionregister", "auctionbuy", "auctioncancel", "mailclaim", "auctionshow", "auctiontab", "auctionclose",
                    "questtalk", "questrequest", "questlog", "questshow", "questclose",
-                   "highresshot", "shot", "uitoggle"}   # shot showui = UI 포함 캡처, uitoggle = 창 열기·닫기(D-270 UI 확인) / 2026-11-22 무기별 사전 점검: PIE 화면을 Saved/Screenshots에 파일로 남김
+                   "highresshot", "shot", "uitoggle",
+                   "cursormode", "freelook", "rclick", "lclick", "rclickobject", "playermenu", "interactshow"}   # shot showui = UI 포함 캡처, uitoggle = 창 열기·닫기(D-270 UI 확인), cursormode~interactshow = UI6 커서 모드 우클릭(D-274) / 2026-11-22 무기별 사전 점검: PIE 화면을 Saved/Screenshots에 파일로 남김
 _PIE_EXEC_PREFIX = ("t.", "r.", "sg.", "grass.", "foliage.", "jm.")
 
 

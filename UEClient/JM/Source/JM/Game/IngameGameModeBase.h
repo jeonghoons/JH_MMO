@@ -45,4 +45,8 @@ protected:
 	// Quest window (WBP_Quest, parent UQuestWidget, Q1). Shown and hidden by UJMQuestManager: F at the quest NPC (talk) or L key (log).
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> QuestWidgetClass;
+
+	// Player menu (WBP_PlayerMenu, parent UPlayerMenuWidget, UI6 D-274). Shown by right-clicking another player in cursor mode.
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> PlayerMenuWidgetClass;
 };

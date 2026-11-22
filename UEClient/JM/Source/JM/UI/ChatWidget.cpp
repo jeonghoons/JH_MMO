@@ -6,6 +6,7 @@
 #include "Fonts/SlateFontInfo.h"
 #include "Network/NetworkManager.h"
 #include "UI/JMUIManager.h"
+#include "Player/GameplayInputMode.h"
 #include "Game/JMPartyManager.h"
 
 void UChatWidget::FocusChatInput(APlayerController* PC)
@@ -19,7 +20,7 @@ void UChatWidget::FocusChatInput(APlayerController* PC)
 		FInputModeUIOnly InputMode;
 		InputMode.SetWidgetToFocus(ChatInput->TakeWidget());
 		PC->SetInputMode(InputMode);
-		PC->bShowMouseCursor = true;
+		ShowCursorCentered(PC);   // 커서가 새로 나타날 때는 화면 가운데에서
 	}
 }
 

@@ -32,19 +32,38 @@ protected:
 	void OnInventoryInput();
 	// F 키(A6.2): 줍기 거리 안의 가장 가까운 바닥 드랍을 줍겠다고 요청한다. 결과는 서버 패킷으로 온다.
 	void OnInteractInput();
-	// T 키(A6.3a): 크로스헤어에 가장 가까운 플레이어에게 1:1 거래를 요청한다. 거리·상태 검증은 서버가 한다.
-	void OnTradeInput();
+	// NPC 상호작용(F 키·자동 걷기 도착이 함께 씀): 경매·퀘스트·상점 창을 연다. 이미 열려 있으면 bToggle일 때 닫는다(F 키). 하는 일이 없는 NPC면 false
+	bool InteractWithNpc(int32 NpcId, bool bToggle = true);
 	// P 키(DG2): 파티 창 여닫기
 	void OnPartyInput();
-	// G 키(DG2): 크로스헤어에 가장 가까운 플레이어를 파티에 초대한다. 채널·파티장·정원 검증은 서버가 한다.
-	void OnPartyInviteInput();
 	// K 키(A6.3b, D-234): 경매 창을 조회 모드로 여닫는다(검색·구매·내 목록 보기). 등록·취소·수령은 경매 NPC 앞에서 F 키로 연다.
 	void OnAuctionInput();
 	void OnQuestInput();
-	// 크로스헤어(화면 중앙)에 가장 가까운 다른 플레이어(살아 있는). 카메라 정면에서 약 25도 안에 없으면 nullptr. 거래·파티 초대가 함께 쓴다.
-	const class AJMPlayer* FindCrosshairPlayer() const;
 	// 줍기 안내(HUD)를 지금 가까운 드랍에 맞춘다. 대상이 바뀔 때만 HUD를 고친다.
 	void UpdateInteractPrompt();
+	// 우클릭 입력(IA_CancelAim): 조준 중이면 취소, 커서가 보이면 커서 자리 상호작용(UI6, D-274)
+	void OnRightClickInput();
+
+public:
+	// ---- 커서 모드 상호작용(UI6, D-274) ----
+	enum class EPickKind : uint8 { None, Npc, Player, Portal };
+	struct FPickResult
+	{
+		EPickKind Kind = EPickKind::None;
+		int32 Id = 0;       // NPC·플레이어 = 오브젝트 id, 포털 = 포털 id
+	};
+	// 화면 좌표(뷰포트 픽셀)에 가장 가까운 NPC(하는 일이 있는)·다른 플레이어(살아 있는)·포털. 몸(발~머리)을 화면에 투영한 선분과의 거리로 고른다.
+	FPickResult PickAtScreen(const FVector2D& ScreenPos) const;
+	// 커서가 보일 때 월드를 클릭했다(창 위 클릭은 UI가 먼저 받는다). 우클릭 = 대상에 상호작용(NPC·포털 자동 걷기, 플레이어 메뉴),
+	// 대상이 없거나 좌클릭이면 플레이어 메뉴를 닫고 창이 없으면 커서 모드를 끈다.
+	void HandleCursorClick(bool bRightButton, const FVector2D& ScreenPos);
+	// 둘러보기(Left Alt 누르는 동안): 이동 방향을 누른 순간의 카메라 방향으로 고정하고 카메라만 돈다.
+	void SetFreeLook(bool bEnable);
+	// 자동 걷기 멈춤(방향키·공격·스킬·사망·순간이동·Room 이동). Reason이 있으면 멈춘 이유를 알림 줄로
+	void StopAutoWalk(const TCHAR* Reason = nullptr);
+	bool IsAutoWalking() const { return AutoWalk.Kind != EPickKind::None; }
+	// 개발용(InteractShow): 커서 모드·둘러보기·자동 걷기·마우스 아래 대상을 글로
+	FString DevInteractState() const;
 
 public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -122,15 +141,9 @@ protected:
 	// 상호작용(F 키, A6.2): 지금은 바닥 드랍 줍기
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> InteractAction;
-	// 거래 요청(T 키, A6.3a)
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> TradeAction;
-	// 파티 창 여닫기(P 키, DG2)
+	// 파티 창 여닫기(P 키, DG2). 거래 요청 T·파티 초대 G 키는 우클릭 플레이어 메뉴로 바뀌어 없앴다(UI6, D-274)
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> PartyAction;
-	// 파티 초대(G 키, DG2)
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> PartyInviteAction;
 	// 경매 창 여닫기(K 키, A6.3b)
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> AuctionAction;
@@ -146,6 +159,34 @@ protected:
 	int32 InteractNpcId = 0;
 	// 안내 중인 포털 id(0 = 없음). 드랍·NPC가 없을 때만 안내한다 (L5)
 	int32 InteractPortalId = 0;
+
+	// ---- UI6(D-274) ----
+	// 직선 자동 걷기: 대상(NPC·포털)과 시작 시각, 막힘 판정용 마지막 기준 위치·시각
+	struct FAutoWalk
+	{
+		EPickKind Kind = EPickKind::None;
+		int32 Id = 0;
+		double StartTime = 0.0;          // 월드 초
+		double CheckTime = 0.0;
+		FVector CheckLocation = FVector::ZeroVector;
+	};
+	FAutoWalk AutoWalk;
+	void StartAutoWalk(EPickKind Kind, int32 Id);
+	void TickAutoWalk();
+	// 둘러보기 중이면 이동 기준 방향(누른 순간의 카메라 yaw)
+	bool bFreeLook = false;
+	float FreeLookMoveYaw = 0.f;
+	// 커서 모양 갱신 주기
+	float CursorPickTimer = 0.f;
+	void UpdateHoverCursor();
+	// MovementTable(PossessedBy)
+	float AutoWalkTimeoutSec = 10.f;
+	float AutoWalkStuckSec = 1.f;
+	float PickMaxDistCm = 3000.f;
+	float PickScreenRadiusPx = 40.f;
+	class UJMUIManager* GetUIManager() const;
+	void OpenPlayerMenu(int32 PlayerId);
+	void ClosePlayerMenu();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))

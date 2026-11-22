@@ -97,6 +97,8 @@ namespace JMUIStyle
 		Disabled.TintColor = FSlateColor(FLinearColor(0.45f, 0.45f, 0.45f, 0.8f));
 		Style.SetDisabled(Disabled);
 		Button->SetStyle(Style);
+		// 버튼 위 커서 = 클릭 가능(UI2 하드웨어 커서 Hand, D-274)
+		Button->SetCursor(EMouseCursor::Hand);
 		// 어두운 버튼 바탕 위 글자는 밝게(ButtonText 행)
 		if (UTextBlock* Label = Cast<UTextBlock>(Button->GetContent()))
 			Label->SetColorAndOpacity(FSlateColor(Color(WorldContext, TEXT("ButtonText"), FLinearColor(0.87f, 0.78f, 0.55f))));
