@@ -2340,11 +2340,11 @@
    {
     "label": "Ta_north0",
     "mesh": "/Game/Environment/Dungeon/Props/WallTorch/SM_WallTorch",
-    "x": -10.25,
-    "y": 26.0,
+    "x": -7.25,
+    "y": 22.75,
     "z": 2.1,
     "height_m": 1.2,
-    "yaw": -90.0
+    "yaw": 0.0
    },
    {
     "label": "Pil_b_north00",
@@ -3554,8 +3554,8 @@
    },
    {
     "label": "Torch_a_north0",
-    "x": -9.8,
-    "y": 26.0,
+    "x": -7.25,
+    "y": 23.2,
     "z": 3.45,
     "intensity": 30,
     "radius_m": 13,

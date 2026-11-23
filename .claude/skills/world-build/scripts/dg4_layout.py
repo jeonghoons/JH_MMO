@@ -41,6 +41,8 @@ CORRIDORS = {
     "b_north": (16.0, 36.5, 22.5, 29.5),     # 방2 북쪽 문 → 북쪽으로
     "b_west": (29.5, 36.5, -9.0, 22.5),      # 꺾어서 서쪽 → 우두머리 방 동쪽 문
 }
+# 통로 방향을 폭·길이로 판정할 수 없는 것(길이가 폭과 비슷함)만 적는다 — a_north는 x 방향(a_east 끝 → 방2), y로 판정하면 횃불이 a_east 바닥 위 허공에 놓였음(CL1 리뷰, 2026-11-24)
+CORRIDOR_ALONG_X = {"a_north": True}
 # 문: (방, 면 N/S/E/W, 면을 따라가는 좌표의 가운데, 통로 폭)
 DOORS = [
     ("start", "N", -26.0, 7.0), ("room1", "S", -26.0, 7.0), ("room1", "E", -14.0, 7.0),
@@ -186,7 +188,7 @@ def build():
 
     # 통로: 약 10m마다 양쪽 벽에 번갈아 기둥(벽에 반쯤 묻음)과 불빛
     for name, (x0, x1, y0, y1) in CORRIDORS.items():
-        along_x = (x1 - x0) > (y1 - y0)
+        along_x = CORRIDOR_ALONG_X.get(name, (x1 - x0) > (y1 - y0))
         length = (x1 - x0) if along_x else (y1 - y0)
         n = max(1, int(round(length / 10.0)))
         for i in range(n):
