@@ -48,7 +48,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\ProtoBuf\Include;$(SolutionDir)ThirdParty\Json\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\ProtoBuf\Include;$(SolutionDir)ThirdParty\Json\Include;$(SolutionDir)ThirdParty\Detour\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 /wd4251 /wd4100 /wd4946 /wd4244 /wd4267 /wd4996 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -70,12 +70,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BotEngine.cpp" />
+    <ClCompile Include="BotNav.cpp" />
+    <ClCompile Include="..\ThirdParty\Detour\Source\DetourAlloc.cpp" />
+    <ClCompile Include="..\ThirdParty\Detour\Source\DetourAssert.cpp" />
+    <ClCompile Include="..\ThirdParty\Detour\Source\DetourCommon.cpp" />
+    <ClCompile Include="..\ThirdParty\Detour\Source\DetourNavMesh.cpp" />
+    <ClCompile Include="..\ThirdParty\Detour\Source\DetourNavMeshQuery.cpp" />
+    <ClCompile Include="..\ThirdParty\Detour\Source\DetourNode.cpp" />
     <ClCompile Include="..\Server\Protocol\Enum.pb.cc" />
     <ClCompile Include="..\Server\Protocol\Protocol.pb.cc" />
     <ClCompile Include="..\Server\Protocol\Struct.pb.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BotEngine.h" />
+    <ClInclude Include="BotNav.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -64,6 +64,9 @@ struct ServerConfig
 	int dbItemFailEvery = 0;        // 0보다 크면 아이템 트랜잭션을 이 횟수마다 한 번 일부러 롤백한다(DB 실패 시험, D-162)
 	// 더미 봇이 처음 들어가는 Room(DG3b): town(기본 — 실제 규칙) / field(사냥터 Room에 바로) / split(들어오는 순서대로 번갈아). 구역으로 나뉜 레벨에서만 뜻이 있다
 	std::string dummyRoom = "town";
+	int dummyTownPercent = 30;      // DummyRoom=spread일 때 마을 Room에 넣는 비율(%) — 나머지는 사냥터 스폰 지점마다 고르게(A5.1, D-292)
+	// 봇의 is_dummy 로그인(공용 dummy 계정 우회)을 받는다(A5.1, D-291). 꺼져 있으면 is_dummy 요청과 dummy 계정 로그인을 모두 거부한다
+	bool allowDummyLogin = false;
 	// Room 이동의 잡 사이(서비스 → 떠나기, 떠나기 → 들어오기)를 이만큼 늦춘다 — 그 구간의 접속 해제·사망·중복 요청 시험용
 	int moveHandoffDelayMs = 0;
 	int dbSaveDelayMs = 0;          // 아이템 트랜잭션·진행 상황 저장을 실행하기 전에 이만큼 멈춘다(빠른 재접속·중복 접속 시험, A2.7). DB 작업 스레드를 막으므로 시험에만 쓴다
@@ -81,6 +84,7 @@ struct ServerConfig
 	std::string mapNameFrom = "default";
 	std::string maxDungeonInstancesFrom = "default", loadTimeoutSecFrom = "default";
 	std::string moveWaitTimeoutMsFrom = "default", dummyRoomFrom = "default", moveHandoffDelayMsFrom = "default";
+	std::string dummyTownPercentFrom = "default", allowDummyLoginFrom = "default";
 
 	// 실제로 쓸 워커 스레드 수 (0이면 CPU 코어 수 / 2, 최소 1)
 	int ResolvedWorkerThreads() const;

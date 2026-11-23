@@ -174,7 +174,7 @@ private:
 
 	vector<Channel> _channels;                          // [i] = 채널 i+1. 한번 만든 채널은 서버가 꺼질 때까지 둔다
 	bool _levelSplit = false;                           // 레벨의 마커에 town·field 구역이 있다 → 채널마다 마을·사냥터 Room을 따로 만든다
-	int _dummySeq = 0;                                  // [Debug] DummyRoom=split 의 번갈아 넣기 순번
+	int64_t _dummySeq = 0;                              // [Debug] DummyRoom=split·spread 의 배정 순번
 	bool _channelCreateFailed = false;                  // 새 채널 생성에 실패했다 — 로그인마다 다시 시도하지 않는다
 	int _nextRoomId = 0;
 

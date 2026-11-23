@@ -8,6 +8,59 @@
 
 extern shared_ptr<DatabaseWorker> GDBWorker;
 
+namespace
+{
+    // 더미 봇 외형(A5.1, D-294): 모든 더미가 DB의 공용 dummy 캐릭터 하나라 체형·장비가 같으므로, 메모리에서만 무작위로 바꾼다(DB에는 쓰지 않음 —
+    // 더미는 장착·아이템 요청이 거부되고 진행 상황도 저장하지 않는다). 시드는 세션 id라 같은 순서로 들어오면 같은 차림이 된다.
+    // 후보는 ItemTable에서 슬롯·무기 종류로 모은다(하드코딩 없음).
+    void DressDummy(Player& player, int seed)
+    {
+        static const struct Candidates
+        {
+            vector<int> armor[5];         // Head~Boots
+            vector<int> weapon[3];        // Sword, Bow, TwoHandSword
+            vector<int> offhand;
+            Candidates()
+            {
+                for (const auto& [itemId, d] : DataManager::GetItemTable())
+                {
+                    const int slot = static_cast<int>(d.slot);
+                    if (slot >= static_cast<int>(ItemSlot::Head) && slot <= static_cast<int>(ItemSlot::Boots)) armor[slot - 1].push_back(itemId);
+                    else if (d.slot == ItemSlot::Offhand) offhand.push_back(itemId);
+                    else if (d.slot == ItemSlot::Weapon)
+                    {
+                        if (d.weaponType == WeaponType::Sword) weapon[0].push_back(itemId);
+                        else if (d.weaponType == WeaponType::Bow) weapon[1].push_back(itemId);
+                        else if (d.weaponType == WeaponType::TwoHandSword) weapon[2].push_back(itemId);
+                    }
+                }
+            }
+        } candidates;
+
+        mt19937 rng(static_cast<uint32_t>(seed) * 2654435761u + 12345u);
+        auto pick = [&rng](const vector<int>& list) { return list.empty() ? 0 : list[uniform_int_distribution<size_t>(0, list.size() - 1)(rng)]; };
+        auto chance = [&rng](int percent) { return static_cast<int>(rng() % 100) < percent; };
+
+        player.SetPlayerType(chance(50) ? Protocol::PLAYER_TYPE_FEMALE : Protocol::PLAYER_TYPE_MALE);
+
+        // 방어구 5칸: 칸마다 티어 무작위, 약 15%는 빈칸
+        for (int i = 0; i < 5; ++i)
+            player.SetEquippedItem(static_cast<Protocol::EquipPart>(i + 1), chance(15) ? 0 : pick(candidates.armor[i]));
+
+        // 무기: 한손검·활·양손검 1/3씩. 방패는 한손검일 때만 50%
+        const int weaponKind = static_cast<int>(rng() % 3);
+        player.SetEquippedItem(Protocol::EQUIP_PART_WEAPON, pick(candidates.weapon[weaponKind]));
+        player.SetEquippedItem(Protocol::EQUIP_PART_OFFHAND, (weaponKind == 0 && chance(50)) ? pick(candidates.offhand) : 0);
+
+        player.RecalcStat();
+        player.GetStat().FillHpMp();
+
+        const auto& eq = player.GetInfo().equip_items();
+        LOG_DEBUG("Lobby", "더미 {} 외형: 체형 {} 장비 {},{},{},{},{},{},{}", seed, static_cast<int>(player.GetInfo().player_type()),
+            eq.Get(0), eq.Get(1), eq.Get(2), eq.Get(3), eq.Get(4), eq.Get(5), eq.Get(6));
+    }
+}
+
 AuthLobby::AuthLobby(HANDLE iocpHandle) : _jobQueue(make_shared<JobQueue>(iocpHandle))
 {
 }
@@ -37,6 +90,12 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
     // 방금 읽은 DB 값은 그 저장 전의 값일 수 있으므로 버리고, 목록에서 빠진 뒤 DB 조회부터 다시 한다.
     wstring playerName(info.playerName);
     const bool isDummy = (playerName == L"dummy");   // 더미 봇은 전원이 한 캐릭터라 제외
+    // 일반 로그인으로 dummy 계정을 직접 넣어도 우회가 되므로 여기서도 막는다(A5.1, D-291)
+    if (isDummy && false == GServerConfig.allowDummyLogin)
+    {
+        OnLoginFailed(session, Protocol::LOGIN_RESULT_NO_ACCOUNT);
+        return;
+    }
     if (false == isDummy)
     {
         const auto it = _online.find(info.playerUID);
@@ -60,6 +119,8 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
 
     player->SetName(playerName);
     player->isDummy = isDummy;
+    if (isDummy)
+        DressDummy(*player, objectId);
 
     if (false == isDummy)
     {

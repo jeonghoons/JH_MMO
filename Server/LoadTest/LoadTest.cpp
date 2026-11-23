@@ -139,6 +139,7 @@ int main(int argc, char** argv)
 		(allPing.empty() ? 0.0 : allPing.back() / 1000.0), allPing.size());
 	printf("[summary] moveCorrected=%lld pongs=%lld totalRecvBytes=%lld peakBotRecv=%.1fKB/s\n",
 		GStat.moveCorrected.load(), GStat.pongRecv.load(), GStat.bytesRecv.load(), peakBotKBps);
+	printf("[summary] nav: pathSearch=%lld pathFail=%lld\n", GStat.pathSearch.load(), GStat.pathFail.load());
 	if (GConfig.hunt)
 		printf("[summary] hunt: monsterAdded=%lld monsterDead(SC_DEAD)=%lld monsterRemoved(SC_REMOVE_OBJECT)=%lld damagePackets=%lld\n",
 			GStat.monsterAdded.load(), GStat.monsterDead.load(), GStat.monsterRemoved.load(), GStat.damageRecv.load());

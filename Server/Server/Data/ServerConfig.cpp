@@ -238,9 +238,21 @@ namespace
 			}
 			else if (name == "Debug.DummyRoom")
 			{
-				if (e.value != "town" && e.value != "field" && e.value != "split") { err = where + "DummyRoom must be town, field or split: '" + e.value + "'"; return false; }
+				if (e.value != "town" && e.value != "field" && e.value != "split" && e.value != "spread") { err = where + "DummyRoom must be town, field, split or spread: '" + e.value + "'"; return false; }
 				cfg.dummyRoom = e.value;
 				cfg.dummyRoomFrom = from;
+			}
+			else if (name == "Debug.DummyTownPercent")
+			{
+				if (!ParseInt(e.value, 0, 100, cfg.dummyTownPercent)) { err = where + "DummyTownPercent must be 0~100: '" + e.value + "'"; return false; }
+				cfg.dummyTownPercentFrom = from;
+			}
+			else if (name == "Debug.AllowDummyLogin")
+			{
+				if (e.value == "true" || e.value == "1") cfg.allowDummyLogin = true;
+				else if (e.value == "false" || e.value == "0" || e.value.empty()) cfg.allowDummyLogin = false;
+				else { err = where + "AllowDummyLogin must be true/false: '" + e.value + "'"; return false; }
+				cfg.allowDummyLoginFrom = from;
 			}
 			else if (name == "Debug.MoveHandoffDelayMs")
 			{
@@ -368,6 +380,8 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "World.MaxDungeonInstances = {}  ({})", maxDungeonInstances, maxDungeonInstancesFrom);
 	LOG_INFO("Config", "World.LoadTimeoutSec      = {}  ({})", loadTimeoutSec, loadTimeoutSecFrom);
 	LOG_INFO("Config", "Debug.DummyRoom           = {}  ({})", dummyRoom, dummyRoomFrom);
+	LOG_INFO("Config", "Debug.DummyTownPercent    = {}  ({})", dummyTownPercent, dummyTownPercentFrom);
+	LOG_INFO("Config", "Debug.AllowDummyLogin     = {}  ({})", allowDummyLogin, allowDummyLoginFrom);
 	LOG_INFO("Config", "Debug.MoveHandoffDelayMs  = {}  ({})", moveHandoffDelayMs, moveHandoffDelayMsFrom);
 	LOG_INFO("Config", "Debug.DbSaveDelayMs       = {}  ({})", dbSaveDelayMs, dbSaveDelayMsFrom);
 	LOG_INFO("Config", "Debug.DevCommands         = {}  ({})", devCommands, devCommandsFrom);

@@ -179,6 +179,12 @@ void PacketHandler::Handle_CS_LOGIN(shared_ptr<GameSession> session, Protocol::C
     string pw = pkt.account_pw();
 
     if (pkt.is_dummy()) {
+        // 공용 dummy 계정 우회는 부하 시험 설정에서만 받는다(A5.1, D-291). 없는 계정처럼 거부한다
+        if (false == GServerConfig.allowDummyLogin)
+        {
+            GLobby->PushJob(&AuthLobby::OnLoginFailed, session, Protocol::LOGIN_RESULT_NO_ACCOUNT);
+            return;
+        }
         id = "dummy";
         pw = "dummy";
     }

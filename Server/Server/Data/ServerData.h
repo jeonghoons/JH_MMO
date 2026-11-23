@@ -566,6 +566,9 @@ public:
 	// 가입 시 지급하는 기본 장비(ItemTable.Starter = 1), 슬롯 순서
 	static const std::vector<const ItemData*>& GetStarterItems() { return _starterItems; }
 
+	// ItemTable 전체(읽기 전용). 더미 봇 외형 고르기(A5.1, D-294)처럼 조건으로 후보를 모을 때 쓴다
+	static const std::unordered_map<int, ItemData>& GetItemTable() { return _itemTable; }
+
 	static const ItemData* GetItemData(int itemId)
 	{
 		auto it = _itemTable.find(itemId);

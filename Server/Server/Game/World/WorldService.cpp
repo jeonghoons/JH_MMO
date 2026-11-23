@@ -192,6 +192,15 @@ void WorldService::EnterWorld(shared_ptr<Player> player)
 		const string& mode = GServerConfig.dummyRoom;
 		if (mode == "field" || (mode == "split" && (_dummySeq++ % 2) == 1))
 			room = channel.field;
+		else if (mode == "spread")
+		{
+			// 마을 DummyTownPercent% : 사냥터 나머지(A5.1, D-292). 들어오는 순서대로 고르게 섞어 어느 시점에 세어도 비율이 맞게 한다
+			const int64_t n = _dummySeq++;
+			const int64_t p = GServerConfig.dummyTownPercent;
+			const bool toTown = ((n + 1) * p / 100) > (n * p / 100);
+			if (false == toTown)
+				room = channel.field;
+		}
 	}
 	entry.entered = true;
 	entry.room = room;

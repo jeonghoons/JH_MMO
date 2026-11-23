@@ -182,6 +182,13 @@ bool Room::InitRoom(bool allowBroken)
 	return true;   // 맵을 읽지 못했어도 여기까지 왔으면(allowBroken) 방은 돌고 있다
 }
 
+// 시작 마커 z = 지면 + 100cm(캐릭터 중심 높이). 내비메시 보정은 지면 높이를 주므로 캐릭터를 세울 때 이만큼 올린다
+static constexpr float START_UP_CM = 100.f;
+
+// 더미 봇의 캐릭터 중심 높이 = 바닥 + 플레이어 캡슐 반높이(BP_Player·BP_MyPlayer CapsuleHalfHeight 96, 메시 Z −88).
+// 원격 캐릭터는 중력 없이 받은 z에 그대로 서므로 시작 마커의 +100을 쓰면 4cm 떠 보인다(A5.1). 봇(BotEngine SendMove)과 같은 값
+static constexpr float DUMMY_STAND_UP_CM = 96.f;
+
 // [Debug] DummySpawnZone 원 안에서 내비메시 위의 점을 고른다(핫존·시야 경계 시험). 구역이 없거나 다 찼거나 못 찾으면 false
 bool Room::PickDummyZonePosition(Protocol::PositionInfo& out)
 {
@@ -198,6 +205,15 @@ bool Room::PickDummyZonePosition(Protocol::PositionInfo& out)
 
 	const float cx = zone->x, cy = zone->y, r = zone->r;
 	const float zGuess = _gameMap.GetPlayerStarts().empty() ? 0.f : _gameMap.GetPlayerStarts()[0].Pos.Z;
+	if (PickNavPointInCircle(cx, cy, r, zGuess, false, out)) return true;
+	LOG_WARN("Room", "DummySpawnZone({},{},{}) 안에서 내비메시 위치를 찾지 못해 무작위 위치에 배치합니다", cx, cy, r);
+	return false;
+}
+
+bool Room::PickNavPointInCircle(float cx, float cy, float r, float zGuess, bool avoidSafe, Protocol::PositionInfo& out)
+{
+	NavmeshManager* nav = _gameMap.GetNavManager();
+	if (nav == nullptr) return false;
 	for (int i = 0; i < 30; ++i)
 	{
 		const float angle = Utils::GetRandom<float>(0.f, 6.2831853f);
@@ -205,12 +221,69 @@ bool Room::PickDummyZonePosition(Protocol::PositionInfo& out)
 		out.set_x(cx + cosf(angle) * dist);
 		out.set_y(cy + sinf(angle) * dist);
 		out.set_z(zGuess);
-		if (!_gameMap.GetNavManager()->AdjustPositionToNavMesh(out)) continue;
+		if (!nav->AdjustPositionToNavMesh(out)) continue;
 		const float dx = out.x() - cx, dy = out.y() - cy;
-		if (dx * dx + dy * dy <= r * r) return true;
+		if (dx * dx + dy * dy > r * r) continue;
+		if (avoidSafe && (_gameMap.IsInSafeZone(out.x(), out.y()) || _gameMap.IsInOtherAreaZone(out.x(), out.y()))) continue;
+		return true;
 	}
-	LOG_WARN("Room", "DummySpawnZone({},{},{}) 안에서 내비메시 위치를 찾지 못해 무작위 위치에 배치합니다", cx, cy, r);
 	return false;
+}
+
+bool Room::PickDummySpreadPosition(Protocol::PositionInfo& out)
+{
+	NavmeshManager* nav = _gameMap.GetNavManager();
+	if (nav == nullptr) return false;
+
+	if (_info.kind == RoomKind::Town)
+	{
+		// 마을: 이 구역 안전 구역 원 안. 원이 벽 밖 땅에 걸칠 수 있으므로 이 구역 시작 지점에서 길이 이어지는 점만 쓴다.
+		const PlayerStartPoint* start = nullptr;
+		for (const PlayerStartPoint& p : _gameMap.GetPlayerStarts())
+			if (_gameMap.InArea(p.Area)) { start = &p; break; }
+		vector<const SafeZonePoint*> zones;
+		for (const SafeZonePoint& z : _gameMap.GetSafeZones())
+			if (_gameMap.InArea(z.Area)) zones.push_back(&z);
+		if (start == nullptr || zones.empty()) return false;
+
+		Protocol::PositionInfo from;
+		from.set_x(start->Pos.X); from.set_y(start->Pos.Y); from.set_z(start->Pos.Z);
+		if (!nav->AdjustPositionToNavMesh(from)) return false;
+		const size_t zoneIndex = _dummySpreadSeq++ % zones.size();
+		const SafeZonePoint& zone = *zones[zoneIndex];
+		for (int i = 0; i < 10; ++i)
+		{
+			if (!PickNavPointInCircle(zone.Pos.X, zone.Pos.Y, zone.Radius, zone.Pos.Z, false, out)) continue;
+			vector<Protocol::PositionInfo> path;
+			if (!nav->FindPath(from, out, path) || path.empty()) continue;
+			const float dx = path.back().x() - out.x(), dy = path.back().y() - out.y();
+			if (dx * dx + dy * dy <= 100.f * 100.f) { CountDummySpread(zoneIndex, zones.size()); return true; }   // 끝점이 목표에 닿음 = 벽 안
+		}
+		return false;
+	}
+
+	// 사냥터: 이 구역의 몬스터 스폰 지점을 차례로 돌며 스폰 원 + 5m 둘레(안전 구역 밖)
+	constexpr float SPREAD_EXTRA_CM = 500.f;
+	vector<const MonsterSpawnPoint*> spawns;
+	for (const MonsterSpawnPoint& sp : _gameMap.GetMonsterSpawns())
+		if (_gameMap.InArea(sp.Area) && !_gameMap.IsInSafeZone(sp.Pos.X, sp.Pos.Y)) spawns.push_back(&sp);
+	if (spawns.empty()) return false;
+	const size_t spawnIndex = _dummySpreadSeq++ % spawns.size();
+	const MonsterSpawnPoint& sp = *spawns[spawnIndex];
+	if (!PickNavPointInCircle(sp.Pos.X, sp.Pos.Y, sp.SpawnRadius + SPREAD_EXTRA_CM, sp.Pos.Z, true, out)) return false;
+	CountDummySpread(spawnIndex, spawns.size());
+	return true;
+}
+
+void Room::CountDummySpread(size_t index, size_t pointCount)
+{
+	if (_dummySpreadCount.size() != pointCount) _dummySpreadCount.assign(pointCount, 0);
+	++_dummySpreadCount[index];
+	int total = 0;
+	for (int c : _dummySpreadCount) total += c;
+	if (total % 50 != 0) return;
+	const auto [lo, hi] = minmax_element(_dummySpreadCount.begin(), _dummySpreadCount.end());
+	LOG_INFO("Room", "Room {}({}) 더미 분산 배치 {}명: 지점 {}곳, 지점별 {}~{}명", _info.roomId, _info.area, total, pointCount, *lo, *hi);
 }
 
 // [Debug] ViewAudit: 플레이어마다 방 안의 모든 캐릭터와의 실제 수평 거리를 직접 계산해(전수 검사 = 정답) 시야 목록과 비교한다.
@@ -948,7 +1021,6 @@ Protocol::PositionInfo Room::PickStartPosition()
 
 	// 마커 중심에서 반경 3m 안의 걷는 자리. 마커 z는 지면 + 100cm이고 내비메시 보정은 지면 높이를 주므로 같은 만큼 올린다.
 	constexpr float START_SCATTER_CM = 300.f;
-	constexpr float START_UP_CM = 100.f;
 	NavmeshManager* nav = GetNavManager();
 	for (int i = 0; i < 8 && nav != nullptr; ++i)
 	{
@@ -976,11 +1048,16 @@ void Room::PlaceNewPlayer(const shared_ptr<Player>& player)
 	Protocol::PositionInfo pos = PickStartPosition();
 	if (player->isDummy)
 	{
-		// 더미 봇([Debug]): DummySpawnZone이 있으면 그 안, 없으면 구역이 있는 마을 Room은 시작 지점(실제 규칙),
+		// 더미 봇([Debug]): DummySpawnZone이 있으면 그 안, DummyRoom=spread면 PickDummySpreadPosition, 그 밖에 구역이 있는 마을 Room은 시작 지점(실제 규칙),
 		// 그 밖(사냥터 Room·구역이 없는 Room)은 걷는 영역 전체에서 무작위(다른 구역 Room의 땅 = 마을 안은 피한다).
+		// 세 경우 모두 높이는 내비메시 바닥이므로 캐릭터 중심 높이(바닥 + DUMMY_STAND_UP_CM)로 올린다 —
+		// 클라이언트는 받은 z를 캡슐 중심으로 쓰므로 바닥 그대로면 원격 캐릭터가 땅에 묻혀 보인다(A5.1).
 		Protocol::PositionInfo dummyPos;
+		bool picked = false;
 		if (PickDummyZonePosition(dummyPos))
-			pos = dummyPos;
+			picked = true;
+		else if (GServerConfig.dummyRoom == "spread" && !_info.area.empty() && _info.kind != RoomKind::Dungeon && PickDummySpreadPosition(dummyPos))
+			picked = true;   // 마을·사냥터에 고르게(A5.1, D-292). 못 찾으면 아래 기존 규칙
 		else if (_info.area.empty() || _info.kind != RoomKind::Town)
 		{
 			for (int i = 0; i < 20; ++i)
@@ -988,6 +1065,11 @@ void Room::PlaceNewPlayer(const shared_ptr<Player>& player)
 				dummyPos = _gameMap.GetNavManager()->GetRandomPosition();
 				if (!_gameMap.IsInOtherAreaZone(dummyPos.x(), dummyPos.y())) break;
 			}
+			picked = true;
+		}
+		if (picked)
+		{
+			dummyPos.set_z(dummyPos.z() + DUMMY_STAND_UP_CM);
 			pos = dummyPos;
 		}
 	}

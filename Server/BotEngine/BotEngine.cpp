@@ -24,6 +24,7 @@
 #include <unordered_set>
 
 #include "BotEngine.h"
+#include "BotNav.h"
 #include "../Server/Protocol/Protocol.pb.h"
 #include <nlohmann/json.hpp>
 
@@ -42,6 +43,7 @@ BotConfig GConfig;
 BotCounters GStat;
 vector<pair<float, float>> GMonsterSpawns;
 vector<pair<float, float>> GDungeonSpawns;
+vector<TownZone> GTownZones;
 
 static atomic<bool> GRunning{ true };
 static atomic<bool> GShuttingDown{ false };
@@ -150,6 +152,13 @@ struct Bot
 	long long nextPartyInviteUs = 0;
 	long long nextPartyLeaveUs = 0;
 	int partyInviteCursor = 0;        // 묶음 안에서 다음에 초대해 볼 자리
+	// 길찾기(A5.1, BotNav): 지금 따라가는 길의 꺾이는 점들과 그 길을 찾은 목표. 보정·Room 이동·부활·순간이동이면 버린다
+	vector<array<float, 3>> path;
+	size_t pathIdx = 0;
+	// --town-wander: 처음 배치된 곳(0 = 아직 모름, 1 = 마을, 2 = 사냥터). 마을 출신만 마을을 걷고, 사냥터 출신은 마을에서 부활해도 포털로 돌아간다
+	int home = 0;
+	bool pathValid = false;
+	float pathGoalX = 0, pathGoalY = 0;
 };
 
 // 봇 번호 → 오브젝트 id(로그인 응답으로 받은 값, 0 = 아직 모름). 파티 초대 대상을 찾는 데 쓴다(워커 스레드 사이 공유).
@@ -170,7 +179,14 @@ static void SendMove(Bot& b, long long now, float nx, float ny, float yaw, Proto
 {
 	Protocol::CS_MOVE_PACKET mv;
 	Protocol::PositionInfo* p = mv.mutable_pos_info();
-	p->set_x(nx); p->set_y(ny); p->set_z(b.z); p->set_yaw(yaw);
+	// 높이는 새 위치의 바닥 기준(A5.1): 실제 클라이언트처럼 딛고 선 높이를 보낸다. 서버는 받은 z를 저장하고 다음 이동의 시작점을 그 위아래 3m에서 찾으므로,
+	// 처음 z를 계속 보내면 언덕·내리막에서 이동이 모두 거부된다. 메시가 없거나 바닥을 못 찾으면 지금 z
+	// z는 실제 클라이언트처럼 캐릭터 중심 높이(바닥 + 캡슐 반높이 96cm — BP_Player CapsuleHalfHeight, 서버 Room.cpp DUMMY_STAND_UP_CM과 같은 값).
+	// 바닥 그대로 보내면 다른 클라이언트 화면에서 땅에 묻힌다
+	constexpr float kStandUpCm = 96.f;
+	float nz = b.z, ground = 0.f;
+	if (BotNav::SnapZ(b.levelName, nx, ny, b.z, ground)) nz = ground + kStandUpCm;
+	p->set_x(nx); p->set_y(ny); p->set_z(nz); p->set_yaw(yaw);
 	p->set_state(state);
 	// 실제 클라이언트처럼 속도를 싣는다(원격 클라이언트의 외삽·걷기 애니메이션이 이 값을 쓴다, MC4.1b). 이동 스탯 이하로 자른다.
 	const double elapsedSec = (now - b.lastMoveSentUs) / 1e6;
@@ -201,7 +217,62 @@ static void SendMove(Bot& b, long long now, float nx, float ny, float yaw, Proto
 
 	SendPacket(b, Protocol::CS_MOVE, mv);
 	b.lastMoveSentUs = now;
-	b.x = nx; b.y = ny;   // 서버가 거부하면 보정 패킷(SC_MOVE_OBJECT)으로 되돌려진다.
+	b.x = nx; b.y = ny; b.z = nz;   // 서버가 거부하면 보정 패킷(SC_MOVE_OBJECT)으로 되돌려진다.
+}
+
+// (tx, ty)를 향한 한 걸음(최대 stride). 내비메시가 있으면 걷는 영역 위의 길(꺾이는 점)을 따라가고, 없으면 직선(A5.1).
+// 목표가 2m 넘게 바뀌었거나 길을 다 걸었으면 길을 다시 찾는다. 목표에 닿을 수 없으면 가장 가까이 갈 수 있는 곳까지 간다.
+static void StepToward(Bot& b, float tx, float ty, float stride, float& nx, float& ny, float& yaw)
+{
+	nx = b.x; ny = b.y;
+	if (BotNav::Has(b.levelName))
+	{
+		const float gdx = tx - b.pathGoalX, gdy = ty - b.pathGoalY;
+		if (!b.pathValid || b.pathIdx >= b.path.size() || gdx * gdx + gdy * gdy > 200.f * 200.f)
+		{
+			b.pathValid = BotNav::FindPath(b.levelName, b.x, b.y, b.z, tx, ty, b.path);
+			b.pathIdx = 0;
+			b.pathGoalX = tx; b.pathGoalY = ty;
+			GStat.pathSearch.fetch_add(1);
+			if (!b.pathValid) GStat.pathFail.fetch_add(1);
+		}
+		if (b.pathValid)
+		{
+			float remain = stride;
+			while (remain > 0.f && b.pathIdx < b.path.size())
+			{
+				const array<float, 3>& wp = b.path[b.pathIdx];
+				const float dx = wp[0] - nx, dy = wp[1] - ny;
+				const float d = sqrtf(dx * dx + dy * dy);
+				if (d > 1.f) yaw = atan2f(dy, dx) * 180.f / 3.14159265f;
+				if (d <= remain) { nx = wp[0]; ny = wp[1]; remain -= d; ++b.pathIdx; }
+				else { nx += dx / d * remain; ny += dy / d * remain; remain = 0.f; }
+			}
+			return;
+		}
+	}
+	const float dx = tx - b.x, dy = ty - b.y;
+	const float d = sqrtf(dx * dx + dy * dy);
+	if (d > 1.f)
+	{
+		const float s = min(stride, d);
+		nx = b.x + dx / d * s; ny = b.y + dy / d * s;
+		yaw = atan2f(dy, dx) * 180.f / 3.14159265f;
+	}
+}
+
+// 무작위 목표를 길이 닿는 곳으로 바꾼다: 길의 끝(닿을 수 있는 가장 가까운 곳)을 목표로 삼아, 막힌 목표 앞에서 제자리걸음하지 않게 한다
+// 길을 못 찾으면(목표가 걷는 영역에서 멀리 떨어짐 등) false — 부르는 쪽이 다른 목표를 고른다. 메시가 없으면 늘 true(직선)
+static bool ClampGoalToPath(Bot& b)
+{
+	if (!BotNav::Has(b.levelName)) return true;
+	b.pathValid = BotNav::FindPath(b.levelName, b.x, b.y, b.z, b.goalX, b.goalY, b.path);
+	b.pathIdx = 0;
+	GStat.pathSearch.fetch_add(1);
+	if (!b.pathValid) { GStat.pathFail.fetch_add(1); return false; }
+	b.goalX = b.path.back()[0]; b.goalY = b.path.back()[1];
+	b.pathGoalX = b.goalX; b.pathGoalY = b.goalY;
+	return true;
 }
 
 // ---------------------------------------------------------------- Room 이동 (DG3b)
@@ -245,12 +316,29 @@ static const array<float, 3>* NearestTownPortal(const Bot& b)
 // 사냥 봇이 지금 마을 포털로 나가야 하면 그 포털을, 아니면 nullptr.
 // 사냥터 Room(inField)과 던전은 아니다. 마을 Room(TOWN)이면 마을 쪽 포털이 목록에 있을 때 그렇다.
 // 아직 모르면(로그인 직후) 몬스터가 안 보이고 마을 쪽 포털이 목록에 있을 때만 그렇다 — 사냥터의 포털 목록에는 마을 쪽 포털이 없다.
+static bool WandersTown(const Bot& b);
 static const array<float, 3>* HuntTownPortal(const Bot& b)
 {
-	if (!GConfig.hunt || b.inField) return nullptr;
+	if (!GConfig.hunt || b.inField || WandersTown(b)) return nullptr;
 	if (b.roomKind == static_cast<int>(Protocol::ROOM_KIND_FIELD) || b.roomKind == static_cast<int>(Protocol::ROOM_KIND_DUNGEON)) return nullptr;
 	if (b.roomKind == static_cast<int>(Protocol::ROOM_KIND_NONE) && !b.monsters.empty()) return nullptr;
 	return NearestTownPortal(b);
+}
+
+// 지금 마을 Room에 있는가. 로그인 직후(Room 종류를 아직 모름)에는 포털 목록에 마을 쪽 문 포털(101~103)이 있으면 마을이다
+static bool InTownRoom(const Bot& b)
+{
+	if (b.roomKind == static_cast<int>(Protocol::ROOM_KIND_TOWN)) return true;
+	if (b.roomKind != static_cast<int>(Protocol::ROOM_KIND_NONE)) return false;
+	for (const array<float, 3>& p : b.portals)
+		if (IsTownDoorPortal(p[2])) return true;
+	return false;
+}
+
+// --town-wander이고 마을 출신이며 지금 마을에 있으면 마을 안을 걷는다(포털로 나가지 않음)
+static bool WandersTown(const Bot& b)
+{
+	return GConfig.townWander && b.home == 1 && InTownRoom(b);
 }
 
 #pragma pack(push, 1)
@@ -454,7 +542,9 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		{
 			b.x = pkt.object_info().position().x();
 			b.y = pkt.object_info().position().y();
+			b.z = pkt.object_info().position().z();   // 서버가 아는 높이로 되돌린다(A5.1 — 전에는 버려서 틀린 z가 남았다)
 			b.correctionSeq = pkt.correction_seq();
+			b.pathValid = false;
 			GStat.moveCorrected.fetch_add(1);
 			b.moveFailures = min(b.moveFailures + 3, 8);
 			b.hasGoal = false;   // 막혔으면 무작위 이동 목표를 새로 고른다
@@ -536,6 +626,7 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		b.y = pkt.pos_info().y();
 		b.z = pkt.pos_info().z();
 		b.correctionSeq = pkt.correction_seq();
+		b.pathValid = false;
 		b.lastMoveSentUs = NowUs();   // 서버 이동 예산이 0에서 다시 모이므로 여기서부터 걸음을 잰다
 		b.hasGoal = false;
 		b.spawnTarget = -1;
@@ -599,6 +690,7 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		b.blockedCount = 0;
 		b.moveFailures = 0;
 		b.aiming = false;             // Room이 바뀌면 조준은 서버에서도 풀린다
+		b.pathValid = false;
 		b.nextHuntPortalUs = 0;
 		if (b.index == 0)
 			printf("[bot] bot0 room change: kind=%d pos=(%.0f, %.0f, %.0f) seq=%u\n", static_cast<int>(pkt.kind()), b.x, b.y, b.z, pkt.correction_seq());
@@ -666,6 +758,7 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		b.lastMoveSentUs = NowUs();
 		b.hasGoal = false;
 		b.moveFailures = 0;
+		b.pathValid = false;
 		GStat.portalMoved.fetch_add(1);
 		break;
 	}
@@ -864,6 +957,8 @@ static void WorkerMain(int workerIndex, int workerCount)
 					}
 				}
 				const bool canAct = !b.dead || GConfig.chaos;
+				// 처음 배치된 곳: 입장 직후 포털 목록이 오면 정한다(마을 쪽 문 포털이 있으면 마을)
+				if (b.home == 0 && !b.portals.empty()) b.home = InTownRoom(b) ? 1 : 2;
 
 				// hunt 프로필은 주변에 알려진 몬스터가 없을 때만 무작위로 돌아다니며 몬스터를 찾는다.
 				if (canAct && GConfig.move && now >= b.nextMoveUs && (!GConfig.hunt || b.monsters.empty() || (GConfig.dungeon && b.roomKind != static_cast<int>(Protocol::ROOM_KIND_DUNGEON))))
@@ -879,12 +974,9 @@ static void WorkerMain(int workerIndex, int workerCount)
 							// 막혀서 보정이 쌓이면(moveFailures 3 이상) 이 분기를 건너뛰고 무작위 이동으로 비킨다.
 							const float dx = (*tp)[0] - b.x, dy = (*tp)[1] - b.y;
 							const float dist = sqrtf(dx * dx + dy * dy);
-							if (dist > kPortalStopCm)
-							{
-								const float stride = min({ 500.f, dist - kPortalStopCm, MaxStep(b, now) });
-								nx = b.x + dx / dist * stride; ny = b.y + dy / dist * stride;
-							}
 							yaw = atan2f(dy, dx) * 180.f / 3.14159265f;
+							if (dist > kPortalStopCm)
+								StepToward(b, (*tp)[0], (*tp)[1], min({ 500.f, dist - kPortalStopCm, MaxStep(b, now) }), nx, ny, yaw);
 						}
 						else if (GConfig.turn)
 					{
@@ -909,11 +1001,10 @@ static void WorkerMain(int workerIndex, int workerCount)
 					else if (GConfig.zone && b.roomKind != static_cast<int>(Protocol::ROOM_KIND_DUNGEON) && zoneDist > GConfig.zoneR && b.moveFailures < 3)
 					{
 						// 핫존 밖이면 중심 쪽으로 걸어간다(길 찾기 없음 — 막히면 아래 무작위 이동으로 잠시 비킨다).
-						const float stride = min({ 500.f, zoneDist, MaxStep(b, now) });
-						nx = b.x + zdx / zoneDist * stride; ny = b.y + zdy / zoneDist * stride;
-						yaw = atan2f(zdy, zdx) * 180.f / 3.14159265f;
+						StepToward(b, GConfig.zoneX, GConfig.zoneY, min({ 500.f, zoneDist, MaxStep(b, now) }), nx, ny, yaw);
 					}
-					else if ((!GConfig.zone || b.roomKind == static_cast<int>(Protocol::ROOM_KIND_DUNGEON)) && GConfig.hunt && !HuntSpawns(b).empty() && b.moveFailures < 3)
+					else if ((!GConfig.zone || b.roomKind == static_cast<int>(Protocol::ROOM_KIND_DUNGEON)) && GConfig.hunt && !HuntSpawns(b).empty() && b.moveFailures < 3
+						&& !WandersTown(b))
 					{
 						// 맵 정보가 있으면 가장 가까운 몬스터 스폰 쪽으로 한 걸음씩 다가간다. 막혀서 보정되면 잠시 무작위로 돌아다니고, 계속 막히면 목표를 바꾼다.
 						// 던전 안에서는 던전 레벨의 스폰(--dungeon-map)을 쓴다(핫존은 입구 앞에 세우는 용도라 던전 안에서는 무시).
@@ -930,20 +1021,28 @@ static void WorkerMain(int workerIndex, int workerCount)
 						const auto& spawn = spawns[b.spawnTarget];
 						const float dx = spawn.first - b.x, dy = spawn.second - b.y;
 						const float dist = sqrtf(dx * dx + dy * dy);
-						const float stride = min({ 500.f, dist, MaxStep(b, now) });
-						if (dist > 1.f) { nx = b.x + dx / dist * stride; ny = b.y + dy / dist * stride; }
 						yaw = atan2f(dy, dx) * 180.f / 3.14159265f;
+						if (dist > 1.f) StepToward(b, spawn.first, spawn.second, min({ 500.f, dist, MaxStep(b, now) }), nx, ny, yaw);
 					}
 					else
 					{
 						// 목표 지점으로 걷는다. 도착·시간 초과(10초)·막힘(보정)이면 새 목표: 10~30m 떨어진 임의 지점,
-						// 핫존 안이면 존 반경 안의 임의 지점(길 찾기는 없다 — 막히면 다른 목표로 바꿀 뿐).
+						// 핫존 안이면 존 반경 안의 임의 지점, --town-wander 마을 봇은 마을 안전 구역 안. 내비메시가 있으면 길을 따라간다(A5.1).
 						float gdx = b.goalX - b.x, gdy = b.goalY - b.y;
 						float goalDist = sqrtf(gdx * gdx + gdy * gdy);
 						if (!b.hasGoal || goalDist < 100.f || now >= b.goalUntilUs)
+						for (int attempt = 0; attempt < 5; ++attempt)   // 길이 닿지 않는 목표면 다른 목표를 고른다(최대 5번, 그래도 못 찾으면 직선)
 						{
 							const float angle = (rand() % 3600) * 0.1f * 3.14159265f / 180.f;
-							if (GConfig.zone && zoneDist <= GConfig.zoneR)
+							if (WandersTown(b) && !GTownZones.empty())
+							{
+								// --town-wander: 마을 안전 구역 안의 임의 지점(구역이 여럿이면 하나를 고름)
+								const TownZone& tz = GTownZones[rand() % GTownZones.size()];
+								const float d = tz.r * sqrtf((rand() % 1000) / 1000.f);
+								b.goalX = tz.x + cosf(angle) * d;
+								b.goalY = tz.y + sinf(angle) * d;
+							}
+							else if (GConfig.zone && zoneDist <= GConfig.zoneR)
 							{
 								const float d = GConfig.zoneR * sqrtf((rand() % 1000) / 1000.f);
 								b.goalX = GConfig.zoneX + cosf(angle) * d;
@@ -957,14 +1056,15 @@ static void WorkerMain(int workerIndex, int workerCount)
 							}
 							b.hasGoal = true;
 							b.goalUntilUs = now + 10'000'000LL;
+							const bool reachable = ClampGoalToPath(b);
 							gdx = b.goalX - b.x; gdy = b.goalY - b.y;
 							goalDist = sqrtf(gdx * gdx + gdy * gdy);
+							if (reachable) break;
 						}
 						if (goalDist > 1.f)
 						{
-							const float stride = min(goalDist, step);
-							nx = b.x + gdx / goalDist * stride; ny = b.y + gdy / goalDist * stride;
 							yaw = atan2f(gdy, gdx) * 180.f / 3.14159265f;
+							StepToward(b, b.goalX, b.goalY, min(goalDist, step), nx, ny, yaw);
 						}
 						if (b.moveFailures > 0) --b.moveFailures;   // 무작위 이동을 몇 번 하면 다시 스폰(또는 핫존) 쪽으로 향한다
 					}
@@ -1006,8 +1106,9 @@ static void WorkerMain(int workerIndex, int workerCount)
 					if (dist > 120.f)
 					{
 						const float stride = min(dist - 100.f, MaxStep(b, now));
-						SendMove(b, now, b.x + dx / dist * stride, b.y + dy / dist * stride, yaw,
-							stride < dist - 100.f ? Protocol::MOVE_STATE_RUN : Protocol::MOVE_STATE_IDLE);
+						float nx = b.x, ny = b.y, moveYaw = yaw;
+						StepToward(b, tx, ty, stride, nx, ny, moveYaw);
+						SendMove(b, now, nx, ny, yaw, stride < dist - 100.f ? Protocol::MOVE_STATE_RUN : Protocol::MOVE_STATE_IDLE);
 					}
 
 					// 일반공격(슬롯 0)을 보내고, 3번에 한 번은 1번 스킬(슬롯 1)을 쓴다.
@@ -1406,7 +1507,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 void BotEngine::Usage(const char* program)
 {
 	printf("%s --bots N --ramp-rate R --duration S [--host H] [--port P] [--threads T]\n"
-		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--shop-interval ms] [--portal-interval ms] [--party-size N] [--party-churn-sec S] [--dungeon] [--dungeon-stay-sec S] [--dungeon-map logic.json] [--aim] [--map logic.json] [--out file.csv] [--server-proc name.exe]\n"
+		"         [--move-interval ms] [--ping-interval ms] [--profile move|idle|hunt] [--body male|female] [--chaos] [--equip-interval ms] [--give-gear] [--give-interval ms] [--slot-interval ms] [--shop-interval ms] [--portal-interval ms] [--party-size N] [--party-churn-sec S] [--dungeon] [--dungeon-stay-sec S] [--dungeon-map logic.json] [--aim] [--map logic.json] [--nav-dir dir] [--town-wander] [--out file.csv] [--server-proc name.exe]\n"
 		"         [--zone x,y,r]   (hotspot: bots walk to (x,y) and stay within radius r cm)\n",
 		program);
 }
@@ -1447,6 +1548,8 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 		else if (a == "--party-size") { if (!(v = next("--party-size"))) return false; GConfig.partySize = atoi(v); }
 		else if (a == "--party-churn-sec") { if (!(v = next("--party-churn-sec"))) return false; GConfig.partyChurnSec = atoi(v); }
 		else if (a == "--give-interval") { if (!(v = next("--give-interval"))) return false; GConfig.giveIntervalMs = atoi(v); }
+		else if (a == "--nav-dir") { if (!(v = next("--nav-dir"))) return false; GConfig.navDir = v; }
+		else if (a == "--town-wander") GConfig.townWander = true;
 		else if (a == "--map") { if (!(v = next("--map"))) return false; GConfig.mapLogic = v; }
 		else if (a == "--out") { if (!(v = next("--out"))) return false; GConfig.outFile = v; }
 		else if (a == "--server-proc") { if (!(v = next("--server-proc"))) return false; GConfig.serverProc = v; }
@@ -1488,9 +1591,14 @@ static void LoadMonsterSpawns()
 			nlohmann::json root;
 			file >> root;
 			for (const auto& marker : root.at("markers"))
-				if (marker.at("type").get<string>() == "MonsterSpawn")
+			{
+				const string type = marker.at("type").get<string>();
+				if (type == "MonsterSpawn")
 					GMonsterSpawns.push_back({ marker.at("position").at("x").get<float>(), marker.at("position").at("y").get<float>() });
-			printf("[bot] monster spawns loaded: %zu (%s)\n", GMonsterSpawns.size(), path.c_str());
+				else if (type == "SafeZone" && marker.value("area", string()) == "town")
+					GTownZones.push_back({ marker.at("position").at("x").get<float>(), marker.at("position").at("y").get<float>(), marker.value("radius", 0.f) });
+			}
+			printf("[bot] monster spawns loaded: %zu, town zones: %zu (%s)\n", GMonsterSpawns.size(), GTownZones.size(), path.c_str());
 		}
 		catch (const exception& e) { printf("[bot] map json error: %s\n", e.what()); }
 	}
@@ -1523,8 +1631,9 @@ void BotEngine::Start()
 	WSAStartup(MAKEWORD(2, 2), &wsa);
 	srand(static_cast<unsigned>(time(nullptr)));
 
-	if (GConfig.hunt || GConfig.trackWorld)
+	if (GConfig.hunt || GConfig.trackWorld || GConfig.townWander)
 		LoadMonsterSpawns();
+	BotNav::SetDir(GConfig.navDir);
 
 	GBotObjectIds = make_unique<atomic<int>[]>(max(1, GConfig.bots));
 	for (int i = 0; i < GConfig.bots; ++i) GBotObjectIds[i].store(0);

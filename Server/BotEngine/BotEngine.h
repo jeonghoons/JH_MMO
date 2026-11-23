@@ -43,6 +43,8 @@ struct BotConfig
 	std::string serverProc = "GameServer.exe";
 	std::string mapLogic;          // 맵 로직 JSON(몬스터 스폰 위치). hunt 프로필의 봇이 가까운 스폰으로 이동하는 데 쓴다
 	bool trackWorld = false;   // 시각화(DummyClient)용: 몬스터 위치·사망을 추적하고 스냅숏을 공개한다
+	std::string navDir;        // --nav-dir: 레벨 내비메시(<레벨>_Geo.nav) 폴더. 비면 작업 폴더 기준 후보에서 찾는다(A5.1, BotNav)
+	bool townWander = false;   // --town-wander: 마을 Room의 사냥 봇이 포털로 나가지 않고 마을 안전 구역 안을 걷는다(서버 DummyRoom=spread의 마을 비율 유지, A5.1)
 	bool zone = false;         // 핫존: 봇이 (zoneX, zoneY)로 걸어가 반경 zoneR 안에서만 움직인다 (--zone x,y,r)
 	float zoneX = 0, zoneY = 0, zoneR = 0;
 };
@@ -75,6 +77,7 @@ struct BotCounters
 	std::atomic<long long> partyInviteSent{ 0 }, partyInviteRecv{ 0 }, partyStateRecv{ 0 }, partyLeaveSent{ 0 }, partyResult{ 0 };
 	std::atomic<long long> partyResultBy[16]{};
 	std::atomic<int> partyIn{ 0 };   // 지금 파티에 든 봇 수(마지막으로 받은 상태 기준)
+	std::atomic<long long> pathSearch{ 0 }, pathFail{ 0 };   // 길찾기(A5.1, BotNav) 횟수 / 실패(시작점을 메시에서 못 찾음 등 — 그때는 직선)
 	std::atomic<long long> selfDead{ 0 }, reviveSent{ 0 }, selfRevived{ 0 };   // 내 SC_DEAD / CS_REVIVE / 내 SC_REVIVE (A2.4)
 	std::atomic<int> connected{ 0 }, inGame{ 0 };
 	// 구간(리포트 간격) 동안 봇 한 명이 받은 최대 바이트. 리포터가 읽으며 0으로 되돌리고 windowEpoch를 올린다.
@@ -103,6 +106,8 @@ extern BotConfig GConfig;
 extern BotCounters GStat;
 extern std::vector<std::pair<float, float>> GDungeonSpawns;   // --dungeon-map 의 몬스터 스폰 위치
 extern std::vector<std::pair<float, float>> GMonsterSpawns;   // 맵 로직 JSON에서 읽은 몬스터 스폰 위치
+struct TownZone { float x = 0, y = 0, r = 0; };
+extern std::vector<TownZone> GTownZones;   // 맵 로직 JSON의 마을(area town) 안전 구역 — --town-wander 봇이 걷는 곳
 
 namespace BotEngine
 {

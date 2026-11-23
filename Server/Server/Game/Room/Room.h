@@ -505,6 +505,11 @@ private:
 
 	// [Debug] 부하·검증 시험용
 	bool PickDummyZonePosition(Protocol::PositionInfo& out);   // DummySpawnZone 안의 내비메시 위치
+	// (cx, cy) 반경 r 원 안의 내비메시 위 점(바닥 z). avoidSafe면 안전 구역(이 구역·다른 구역 모두)은 피한다. 30번 시도해 못 찾으면 false
+	bool PickNavPointInCircle(float cx, float cy, float r, float zGuess, bool avoidSafe, Protocol::PositionInfo& out);
+	// [Debug] DummyRoom=spread(A5.1, D-292): 사냥터 Room은 몬스터 스폰 지점을 차례로 돌며 그 둘레, 마을 Room은 안전 구역 안(시작 지점에서 걸어갈 수 있는 곳)
+	bool PickDummySpreadPosition(Protocol::PositionInfo& out);
+	void CountDummySpread(size_t index, size_t pointCount);   // 지점별 배치 수를 세고 50명마다 분포 로그
 	void AuditViews();                                         // ViewAudit: 시야 목록을 실제 거리와 비교
 
 	unordered_map<int, shared_ptr<GameObject>> _objects;
@@ -541,6 +546,8 @@ private:
 	// 이 Room 구역의 PlayerStart(GameMap::GetPlayerStarts의 색인)와 다음에 고를 차례(DG3b)
 	vector<int> _startIndices;
 	size_t _nextStart = 0;
+	size_t _dummySpreadSeq = 0;   // PickDummySpreadPosition의 차례(방 잡 안에서만 읽고 씀)
+	vector<int> _dummySpreadCount;   // 지점(사냥터 = 스폰, 마을 = 안전 구역)별로 배치한 더미 수 — 50명마다 로그로 분포 확인
 
 	GameMap				_gameMap;
 
