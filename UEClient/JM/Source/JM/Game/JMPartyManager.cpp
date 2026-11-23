@@ -80,7 +80,7 @@ void UJMPartyManager::HandleState(const Protocol::SC_PARTY_STATE_PACKET& Pkt)
 
 	if (bWasInParty && !bNowInParty)
 	{
-		if (!bSelfLeft) ShowMessage(FText::FromString(TEXT("파티가 해산되었습니다.")));
+		if (!bSelfLeft) ShowMessage(FText::FromString(TEXT("파티가 해산되었습니다.")), true);
 		bSelfLeft = false;
 	}
 }
@@ -97,7 +97,9 @@ void UJMPartyManager::HandleResult(Protocol::PacketId Request, Protocol::PartyRe
 		OnPartyChanged.Broadcast();
 	}
 	if (Request == Protocol::CS_PARTY_LEAVE) bSelfLeft = false;
-	ShowMessage(PartyResultText(Result));
+	// 상대의 응답·시간 경과로 끝난 것은 알림 줄, 요청이 막힌 것은 확인 창
+	const bool bNotice = Result == Protocol::PARTY_RESULT_DECLINED || Result == Protocol::PARTY_RESULT_TIMEOUT || Result == Protocol::PARTY_RESULT_NO_INVITE;
+	ShowMessage(PartyResultText(Result), bNotice);
 }
 
 void UJMPartyManager::Clear()
@@ -150,10 +152,11 @@ void UJMPartyManager::SetWindowVisible(bool bVisible)
 	}
 }
 
-void UJMPartyManager::ShowMessage(const FText& Message)
+void UJMPartyManager::ShowMessage(const FText& Message, bool bNotice)
 {
 	if (UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr)
 	{
-		UIManager->ShowSystemMessage(Message);
+		if (bNotice) UIManager->ShowNotice(Message);
+		else UIManager->ShowSystemMessage(Message);
 	}
 }

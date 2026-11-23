@@ -52,7 +52,8 @@ public:
 
 private:
 	void SetWindowVisible(bool bVisible);
-	void ShowMessage(const FText& Message);
+	// bNotice = 확인이 필요 없는 안내(거절됨·시간 초과·해산) → 사라지는 알림 줄, 아니면 거부 → 확인 창(FP1, D-289)
+	void ShowMessage(const FText& Message, bool bNotice = false);
 
 	int32 PartyId = 0;
 	int32 LeaderId = 0;

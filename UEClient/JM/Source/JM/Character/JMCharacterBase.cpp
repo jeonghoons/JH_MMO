@@ -186,13 +186,7 @@ void AJMCharacterBase::SetSkillAiming(int32 SkillId)
 	{
 		UE_LOG(LogTemp, Log, TEXT("[SkillAim] %s id=%d %s skill=%d mul=%.2f"), IsMyPlayer ? TEXT("Me") : TEXT("Remote"), ObjectInfo.id(),
 			SkillId != 0 ? TEXT("ON") : TEXT("OFF"), SkillId, Mul);
-#if !UE_BUILD_SHIPPING
-		// 활 조준 애니메이션(MC4.2d-2) 전까지 원격 조준 상태를 눈으로 확인하는 임시 표시
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, SkillId != 0 ? FColor::Yellow : FColor::Silver,
-				FString::Printf(TEXT("[SkillAim] %s id=%d %s (skill %d, x%.1f)"), IsMyPlayer ? TEXT("Me") : TEXT("Remote"), ObjectInfo.id(),
-					SkillId != 0 ? TEXT("ON") : TEXT("OFF"), SkillId, Mul));
-#endif
+		// 화면 임시 표시는 활 조준 애니메이션 확인(MC4.2d-2, FP1 D-289)이 끝나 지웠다 — 로그만 남김
 	}
 }
 
