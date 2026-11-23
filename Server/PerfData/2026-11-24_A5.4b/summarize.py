@@ -24,7 +24,7 @@ def fmt(v):
 def one(run):
     path = os.path.join(RUNS, run)
     out = [run]
-    with open(os.path.join(path, 'loadtest_summary.csv'), encoding='utf-8') as f:
+    with open(os.path.join(path, 'loadtest.summary.csv'), encoding='utf-8') as f:
         s = next(csv.DictReader(f))
     out += [f"{s['connect_ok']}/{s['bots']}", s['connect_fail'], s['login_fail'], s['login_retry'], s['login_give_up'],
             f"{s['enter_p50_ms']}/{s['enter_p99_ms']}/{s['enter_max_ms']}", f"{s['login_p50_ms']}/{s['login_p99_ms']}",
@@ -43,5 +43,5 @@ head = ['실행', '접속', '접속실패', '로그인실패', '재시도', '포
 print('| ' + ' | '.join(head) + ' |')
 print('|' + '---|' * len(head))
 for run in sorted(os.listdir(RUNS), key=lambda r: (len(r), r)):
-    if run.startswith('login_') and os.path.exists(os.path.join(RUNS, run, 'loadtest_summary.csv')):
+    if run.startswith('login_') and os.path.exists(os.path.join(RUNS, run, 'loadtest.summary.csv')):
         print('| ' + ' | '.join(one(run)) + ' |')

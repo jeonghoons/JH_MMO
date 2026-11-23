@@ -1,0 +1,2 @@
+bots,duration_s,connect_attempts,connect_ok,connect_fail,login_ok,login_fail,login_retry,login_give_up,login_timeout,unexpected_close,login_p50_ms,login_p95_ms,login_p99_ms,login_max_ms,login_n,ping_p50_ms,ping_p95_ms,ping_p99_ms,ping_max_ms,ping_n,sent_ps_avg,recv_ps_avg,server_cpu_avg_pct,server_cpu_max_pct,server_mem_max_mb,bot_cpu_avg_pct,bot_cpu_max_pct,bot_mem_max_mb
+250,75,250,250,0,250,0,0,0,0,0,1.1,1.4,1.8,2.0,250,2.2,13.2,14.6,16.8,18000,1444,17908,18,26,42,15,21,10

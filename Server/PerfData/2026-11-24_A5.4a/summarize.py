@@ -38,7 +38,7 @@ def one(run):
     out = [run, str(len(rows))]
     for _, col in COLS:
         out.append(med_max([float(r[col]) for r in rows]))
-    summ = os.path.join(path, 'loadtest_summary.csv')
+    summ = os.path.join(path, 'loadtest.summary.csv')
     if os.path.exists(summ):
         with open(summ, encoding='utf-8') as f:
             s = next(csv.DictReader(f))

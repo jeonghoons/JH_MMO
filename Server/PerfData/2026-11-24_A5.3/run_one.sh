@@ -1,5 +1,5 @@
 #!/bin/bash
-# A5.3 측정 1회(A5.2 run_one.sh 사본 — 동작 같음): 서버를 새로 띄우고(설정 사본) 봇을 돌린 뒤 서버를 끈다. 결과는 runs/<이름>/ 에 남긴다(loadtest.csv + A5.3 loadtest_summary.csv).
+# A5.3 측정 1회(A5.2 run_one.sh 사본 — 동작 같음): 서버를 새로 띄우고(설정 사본) 봇을 돌린 뒤 서버를 끈다. 결과는 runs/<이름>/ 에 남긴다(loadtest.csv + A5.3 loadtest.summary.csv).
 # 사용: [LOGIN=dummy|account] [DUMMYROOM=spread] [TOWNPCT=30] [BOTTHREADS=4] [DBCONN=4] run_one.sh <이름> <워커 수(0=기본)> <봇 수> <초당 접속> <지속 초> [zone "x,y,r"] [봇 추가 인자]
 # LOGIN=account(기본 dummy): 서버를 띄우기 전에 bot_accounts.sql로 봇 계정(bot_0~bot_4999, D-296)을 처음 상태로 되돌리고, 봇은 --login account로 일반 로그인한다.
 #   설정 사본에 [Debug] BotAccountPrefix=bot_ 를 넣어 봇 계정도 DummyRoom(spread)으로 배치한다(D-297). 끝나면 db_check.sql 결과를 db_before.txt·db_after.txt로 남긴다.

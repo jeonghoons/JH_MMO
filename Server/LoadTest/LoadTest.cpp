@@ -56,13 +56,14 @@ struct RunStat
 	double Avg() const { return n > 0 ? sum / n : 0.0; }
 };
 
-// "dir\loadtest.csv" → "dir\loadtest_summary.csv"
+// "dir\loadtest.csv" → "dir\loadtest.summary.csv"
+// (밑줄을 쓰면 .gitignore의 Server/**/loadtest_*.csv — 기본 이름 loadtest_<시각>.csv용 — 에 걸려 커밋되지 않는다, A5.4c)
 static string SummaryPath(const string& out)
 {
 	const size_t slash = out.find_last_of("\\/");
 	const size_t dot = out.find_last_of('.');
-	if (dot == string::npos || (slash != string::npos && dot < slash)) return out + "_summary.csv";
-	return out.substr(0, dot) + "_summary" + out.substr(dot);
+	if (dot == string::npos || (slash != string::npos && dot < slash)) return out + ".summary.csv";
+	return out.substr(0, dot) + ".summary" + out.substr(dot);
 }
 
 int main(int argc, char** argv)
@@ -179,7 +180,7 @@ int main(int argc, char** argv)
 	}
 	sort(allEnter.begin(), allEnter.end());
 
-	// A5.3: 실행 전체 요약 한 줄(단계별 비교·보고서용). 구간 CSV 이름에 _summary를 붙인다.
+	// A5.3: 실행 전체 요약 한 줄(단계별 비교·보고서용). 구간 CSV 이름에 .summary를 붙인다(SummaryPath).
 	{
 		const double runSec = max(0.001, (NowUs() - startUs) / 1e6);
 		const string sumPath = SummaryPath(GConfig.outFile);
