@@ -13,6 +13,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
+#include <psapi.h>
 
 #include "../BotEngine/BotEngine.h"
 
@@ -38,6 +39,32 @@ static double SelfCpuPct()
 	return pct;
 }
 
+// 이 프로세스(봇)의 메모리(작업 집합, MB). 봇 수를 늘릴 때 봇 쪽 한계를 보는 데 쓴다(A5.3).
+static double SelfMemMb()
+{
+	PROCESS_MEMORY_COUNTERS pmc{};
+	if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) return 0.0;
+	return pmc.WorkingSetSize / (1024.0 * 1024.0);
+}
+
+// 구간 값의 평균·최대(요약 CSV용)
+struct RunStat
+{
+	double sum = 0.0, maxV = 0.0;
+	int n = 0;
+	void Add(double v) { sum += v; maxV = max(maxV, v); ++n; }
+	double Avg() const { return n > 0 ? sum / n : 0.0; }
+};
+
+// "dir\loadtest.csv" → "dir\loadtest_summary.csv"
+static string SummaryPath(const string& out)
+{
+	const size_t slash = out.find_last_of("\\/");
+	const size_t dot = out.find_last_of('.');
+	if (dot == string::npos || (slash != string::npos && dot < slash)) return out + "_summary.csv";
+	return out.substr(0, dot) + "_summary" + out.substr(dot);
+}
+
 int main(int argc, char** argv)
 {
 	if (!BotEngine::ParseArgs(argc, argv)) return 1;
@@ -60,9 +87,11 @@ int main(int argc, char** argv)
 
 	ofstream csv(GConfig.outFile);
 	csv << "t_sec,connected,in_game,connect_fail,unexpected_close,login_p50_ms,login_p95_ms,ping_p50_ms,ping_p95_ms,ping_p99_ms,ping_max_ms,"
-		"sent_ps,recv_ps,recv_kbps,move_corrected,server_cpu_pct,server_mem_mb,max_bot_recv_KBps,bot_cpu_pct,room_change,move_rejected\n";
+		"sent_ps,recv_ps,recv_kbps,move_corrected,server_cpu_pct,server_mem_mb,max_bot_recv_KBps,bot_cpu_pct,room_change,move_rejected,"
+		"connect_attempts,connect_ok,login_ok,login_fail,login_retry,login_give_up,login_timeout,login_p99_ms,bot_mem_mb\n";
 
 	vector<uint32_t> allPing, allLogin;
+	RunStat serverCpuStat, serverMemStat, botCpuStat, botMemStat;   // 요약 CSV(A5.3)
 	double peakBotKBps = 0.0;   // 구간별 봇 1명 최대 수신량 중 가장 큰 값
 	const long long startUs = NowUs();
 	long long lastReportUs = startUs;
@@ -95,13 +124,15 @@ int main(int argc, char** argv)
 		double cpu, mem;
 		proc.Sample(cpu, mem);
 		const double botCpu = SelfCpuPct();
+		const double botMem = SelfMemMb();
+		serverCpuStat.Add(cpu); serverMemStat.Add(mem); botCpuStat.Add(botCpu); botMemStat.Add(botMem);
 		// 이번 구간에 가장 많이 받은 봇 한 명의 수신량(KB/s). 읽고 나서 구간을 넘긴다.
 		const double maxBotKBps = GStat.maxBotBytesWindow.exchange(0) / dt / 1024.0;
 		GStat.windowEpoch.fetch_add(1);
 		peakBotKBps = max(peakBotKBps, maxBotKBps);
 
-		char line[512];
-		snprintf(line, sizeof(line),
+		char line[1024];
+		const int len = snprintf(line, sizeof(line),
 			"%.0f,%d,%d,%lld,%lld,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.0f,%.0f,%.0f,%lld,%.0f,%.0f,%.1f,%.0f,%lld,%lld",
 			elapsed, GStat.connected.load(), GStat.inGame.load(), GStat.connectFail.load(), GStat.unexpectedClose.load(),
 			Percentile(login, 0.50) / 1000.0, Percentile(login, 0.95) / 1000.0,
@@ -109,6 +140,11 @@ int main(int argc, char** argv)
 			(ping.empty() ? 0.0 : ping.back() / 1000.0),
 			(sent - lastSent) / dt, (recv - lastRecv) / dt, (bytes - lastBytes) / dt / 1024.0 * 8.0,
 			corrected - lastCorrected, cpu, mem, maxBotKBps, botCpu, roomChange - lastRoomChange, moveRejected - lastMoveRejected);
+		// A5.3: 접속·로그인 누적 수, 구간 로그인 p99, 봇 메모리
+		snprintf(line + len, sizeof(line) - len, ",%lld,%lld,%lld,%lld,%lld,%lld,%lld,%.1f,%.0f",
+			GStat.connectAttempts.load(), GStat.connectOk.load(), GStat.loginOk.load(), GStat.loginFail.load(),
+			GStat.loginRetry.load(), GStat.loginGiveUp.load(), GStat.loginTimeout.load(),
+			Percentile(login, 0.99) / 1000.0, botMem);
 		csv << line << "\n";
 		csv.flush();
 
@@ -128,6 +164,33 @@ int main(int argc, char** argv)
 
 	sort(allPing.begin(), allPing.end());
 	sort(allLogin.begin(), allLogin.end());
+
+	// A5.3: 실행 전체 요약 한 줄(단계별 비교·보고서용). 구간 CSV 이름에 _summary를 붙인다.
+	{
+		const double runSec = max(0.001, (NowUs() - startUs) / 1e6);
+		const string sumPath = SummaryPath(GConfig.outFile);
+		ofstream sum(sumPath);
+		sum << "bots,duration_s,connect_attempts,connect_ok,connect_fail,login_ok,login_fail,login_retry,login_give_up,login_timeout,unexpected_close,"
+			"login_p50_ms,login_p95_ms,login_p99_ms,login_max_ms,login_n,ping_p50_ms,ping_p95_ms,ping_p99_ms,ping_max_ms,ping_n,"
+			"sent_ps_avg,recv_ps_avg,server_cpu_avg_pct,server_cpu_max_pct,server_mem_max_mb,bot_cpu_avg_pct,bot_cpu_max_pct,bot_mem_max_mb\n";
+		char row[1024];
+		snprintf(row, sizeof(row),
+			"%d,%.0f,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,"
+			"%.1f,%.1f,%.1f,%.1f,%zu,%.1f,%.1f,%.1f,%.1f,%zu,"
+			"%.0f,%.0f,%.0f,%.0f,%.0f,%.0f,%.0f,%.0f",
+			GConfig.bots, runSec, GStat.connectAttempts.load(), GStat.connectOk.load(), GStat.connectFail.load(),
+			GStat.loginOk.load(), GStat.loginFail.load(), GStat.loginRetry.load(), GStat.loginGiveUp.load(), GStat.loginTimeout.load(),
+			GStat.unexpectedClose.load(),
+			Percentile(allLogin, 0.50) / 1000.0, Percentile(allLogin, 0.95) / 1000.0, Percentile(allLogin, 0.99) / 1000.0,
+			(allLogin.empty() ? 0.0 : allLogin.back() / 1000.0), allLogin.size(),
+			Percentile(allPing, 0.50) / 1000.0, Percentile(allPing, 0.95) / 1000.0, Percentile(allPing, 0.99) / 1000.0,
+			(allPing.empty() ? 0.0 : allPing.back() / 1000.0), allPing.size(),
+			GStat.pktSent.load() / runSec, GStat.pktRecv.load() / runSec,
+			serverCpuStat.Avg(), serverCpuStat.maxV, serverMemStat.maxV, botCpuStat.Avg(), botCpuStat.maxV, botMemStat.maxV);
+		sum << row << "\n";
+		printf("[loadtest] summary csv: %s\n", sumPath.c_str());
+	}
+
 	printf("\n[summary] attempts=%lld ok=%lld fail=%lld loginOk=%lld loginFail=%lld unexpectedClose=%lld protocolError=%lld sendDropped=%lld\n",
 		GStat.connectAttempts.load(), GStat.connectOk.load(), GStat.connectFail.load(), GStat.loginOk.load(), GStat.loginFail.load(),
 		GStat.unexpectedClose.load(), GStat.protocolError.load(), GStat.sendDropped.load());
