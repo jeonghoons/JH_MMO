@@ -1,0 +1,65 @@
+[loadtest] host=127.0.0.1:8888 bots=2500 ramp=100/s duration=145s threads=4 profile=idle=25,move=15,chat=10,hunt=20,loot=20,trade=5,auction=5 login=account body=male chaos=0 out=C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.4c\runs\s5000_2\pc_loadtest.csv
+[bot] data tables loaded: skills 15, auction npc 1002, shop npc 1001 (../../Common/DataTable/)
+[bot] auction npc marker: (-15600, 3500)
+[bot] monster spawns loaded: 49, town zones: 1 (../MapResource/Export/Continent01/Logic/Continent01_Logic.json)
+[bot] bot0 login: id=329 playerType=2 maxHp=1020 attack=45 attackSpeed=1.00 moveSpeed=500.0 pos=(0, 0, 0)
+[bot] nav loaded: Resource/Map/Continent01_Geo.nav
+[bot] bot0 sees object id=329 type=1 playerType=2 template=0 pos=(10295,10664)
+[bot] bot0 inventory: items=11 gold=3766 slots=80
+[t=  5s] connected=499 inGame=499 connFail=0 closed=0 | ping p50/p95/p99/max=2.1/10.1/11.1/12.0 ms | sent/s=1264 recv/s=28502 | server cpu=136% mem=122MB | maxBot=37.0KB/s botCpu=0%
+[t= 10s] connected=1007 inGame=1007 connFail=0 closed=0 | ping p50/p95/p99/max=2.4/10.0/11.3/13.3 ms | sent/s=3324 recv/s=94136 | server cpu=272% mem=198MB | maxBot=45.4KB/s botCpu=216%
+[t= 15s] connected=1521 inGame=1510 connFail=0 closed=0 | ping p50/p95/p99/max=3.5/10.7/12.4/19.1 ms | sent/s=5498 recv/s=170255 | server cpu=455% mem=274MB | maxBot=49.5KB/s botCpu=340%
+[t= 20s] connected=2020 inGame=1923 connFail=0 closed=0 | ping p50/p95/p99/max=17.8/92.8/181.2/256.2 ms | sent/s=7529 recv/s=244140 | server cpu=546% mem=335MB | maxBot=50.7KB/s botCpu=354%
+[t= 25s] connected=2383 inGame=2208 connFail=33 closed=0 | ping p50/p95/p99/max=139.3/531.0/596.2/681.8 ms | sent/s=8574 recv/s=290583 | server cpu=545% mem=373MB | maxBot=50.0KB/s botCpu=357%
+[t= 30s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=292.5/857.6/1192.5/1360.8 ms | sent/s=9652 recv/s=344041 | server cpu=572% mem=399MB | maxBot=51.9KB/s botCpu=375%
+[t= 35s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=502.2/1491.2/1835.4/1934.0 ms | sent/s=9712 recv/s=380900 | server cpu=562% mem=402MB | maxBot=53.7KB/s botCpu=375%
+[t= 40s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=354.2/1960.0/2067.0/2127.8 ms | sent/s=9792 recv/s=399998 | server cpu=562% mem=405MB | maxBot=56.4KB/s botCpu=372%
+[t= 45s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=453.6/1991.9/2209.8/2390.1 ms | sent/s=9918 recv/s=412211 | server cpu=567% mem=409MB | maxBot=57.6KB/s botCpu=380%
+[t= 51s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=650.9/2760.2/3449.0/3586.2 ms | sent/s=9825 recv/s=420218 | server cpu=562% mem=410MB | maxBot=57.5KB/s botCpu=378%
+[t= 56s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=691.2/4067.6/4247.7/4411.3 ms | sent/s=9868 recv/s=436691 | server cpu=571% mem=410MB | maxBot=59.6KB/s botCpu=372%
+[t= 61s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=824.5/4530.6/4636.1/4708.3 ms | sent/s=9842 recv/s=452739 | server cpu=566% mem=410MB | maxBot=58.5KB/s botCpu=369%
+[t= 66s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=832.3/4382.8/4522.4/4632.5 ms | sent/s=9937 recv/s=469402 | server cpu=572% mem=410MB | maxBot=59.6KB/s botCpu=376%
+[t= 71s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=703.2/4700.6/5195.8/5355.1 ms | sent/s=9930 recv/s=480419 | server cpu=568% mem=410MB | maxBot=59.0KB/s botCpu=378%
+[t= 76s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=526.3/5609.1/5995.1/6143.0 ms | sent/s=9746 recv/s=499698 | server cpu=573% mem=411MB | maxBot=60.8KB/s botCpu=378%
+[t= 81s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=500.1/6192.8/6294.5/6403.7 ms | sent/s=9744 recv/s=508941 | server cpu=561% mem=411MB | maxBot=62.6KB/s botCpu=379%
+[t= 86s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=428.9/6242.2/6335.1/6433.8 ms | sent/s=9728 recv/s=502682 | server cpu=562% mem=412MB | maxBot=61.4KB/s botCpu=375%
+[t= 91s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=449.2/6690.5/6869.8/6928.2 ms | sent/s=9639 recv/s=491152 | server cpu=568% mem=413MB | maxBot=58.2KB/s botCpu=373%
+[t= 96s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=322.2/7220.3/7508.1/7633.8 ms | sent/s=9689 recv/s=515939 | server cpu=566% mem=413MB | maxBot=60.8KB/s botCpu=370%
+[t=101s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=463.4/7303.2/7459.3/7595.5 ms | sent/s=9560 recv/s=509864 | server cpu=565% mem=413MB | maxBot=60.1KB/s botCpu=376%
+[t=106s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=546.1/7004.3/7268.7/7371.0 ms | sent/s=9607 recv/s=517713 | server cpu=567% mem=414MB | maxBot=59.7KB/s botCpu=379%
+[t=111s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=518.7/6340.4/6634.7/6699.8 ms | sent/s=9697 recv/s=514479 | server cpu=567% mem=414MB | maxBot=60.0KB/s botCpu=375%
+[t=116s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=524.3/5483.1/5718.4/5808.6 ms | sent/s=9692 recv/s=524282 | server cpu=567% mem=414MB | maxBot=60.2KB/s botCpu=383%
+[t=121s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=334.4/5087.3/5207.7/5325.3 ms | sent/s=9713 recv/s=519575 | server cpu=567% mem=414MB | maxBot=60.6KB/s botCpu=374%
+[t=126s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=462.4/4349.5/4747.2/4902.0 ms | sent/s=9725 recv/s=527486 | server cpu=569% mem=414MB | maxBot=60.5KB/s botCpu=369%
+[t=131s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=641.9/4352.9/4895.7/5059.1 ms | sent/s=9468 recv/s=514639 | server cpu=555% mem=414MB | maxBot=60.6KB/s botCpu=368%
+[bot] bot0 room change: kind=1 pos=(-14357, 5198, 102) seq=1
+[bot] bot0 revived: hp=1020 pos=(-14357, 5198, 102) seq=1
+[t=136s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=509.1/5149.6/5319.4/5390.2 ms | sent/s=9417 recv/s=525211 | server cpu=560% mem=415MB | maxBot=61.3KB/s botCpu=376%
+[t=141s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=327.8/5258.2/5371.1/5456.4 ms | sent/s=9609 recv/s=526475 | server cpu=564% mem=415MB | maxBot=59.9KB/s botCpu=364%
+[t=145s] connected=2500 inGame=2500 connFail=33 closed=0 | ping p50/p95/p99/max=9.0/3968.1/5178.2/5273.2 ms | sent/s=10158 recv/s=379878 | server cpu=497% mem=275MB | maxBot=49.1KB/s botCpu=381%
+[loadtest] summary csv: C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.4c\runs\s5000_2\pc_loadtest.summary.csv
+
+[summary] attempts=2533 ok=2500 fail=33 loginOk=2500 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 10.4/2190.9/2325.2/2443.4 ms (n=2500)
+[summary] enter   p50/p95/p99/max = 21.8/3918.9/5473.0/7110.4 ms (n=2500)
+[summary] ping   p50/p95/p99/max = 358.2/4727.9/6922.1/7633.8 ms (n=329269)
+[summary] moveCorrected=338 pongs=329272 totalRecvBytes=5739145816 peakBotRecv=62.6KB/s
+[summary] nav: pathSearch=63536 pathFail=536
+[summary] profiles: idle=625 move=375 chat=250 hunt=500 loot=500 trade=125 auction=125
+[summary] login: retry=33 giveUp=0 timeout=0 fail by LoginResult:
+[summary] lock: moveHeldByLock=4376
+[summary] chat: sent=2162 recv(SC_CHAT)=588207
+[summary] loot: dropSeen=36333 pickupSent=12179 pickupOk=4431 dropItemSent=0
+[summary] trade: requestSent=326 requestRecv=322 offerSent=590 confirmSent=516 cancelSent=52 end=644
+[summary] trade end by TradeResult: SUCCESS=516 DECLINED=32 CANCELLED=96
+[summary] trade rejected by TradeResult: TARGET_BUSY=4 NOT_ALLOWED=78
+[summary] trade rejected by request: REQUEST=4 SET_OFFER=44 LOCK=30 CANCEL=4
+[summary] auction sent/ok: search=887/887 register=1076/1072 buy=639/464 cancel=122/122 my=617/617 claim=395/392 listRecv=887 myRecv=617 mailNotice=486
+[summary] auction result by AuctionResult: SUCCESS=2050 SOLD=120 NOT_ENOUGH_GOLD=1 TRY_LATER=9 NOT_ENOUGH_COUNT=28 ALREADY_CLOSED=24
+[summary] hunt: monsterAdded=54674 monsterDead(SC_DEAD)=38377 monsterRemoved(SC_REMOVE_OBJECT)=49457 damagePackets=285490
+[summary] attack: sent=31839 ok(own SC_ATTACK)=22275 rejected(SC_ATTACK_RESULT)=9564 by AttackResult: 1=24 2=384 3=1298 4=13 7=364 8=3203 9=1814 11=2464
+[summary] growth: mpChangeRecv=22314 expRecv=15043
+[summary] revive: selfDead(own SC_DEAD)=140 reviveSent(CS_REVIVE)=280 selfRevived(own SC_REVIVE)=134
+[summary] inventory: SC_INVENTORY=2500 SC_INVENTORY_UPDATE=7024 giveSent=0 slotMoveSent=0 itemRejected(SC_ITEM_RESULT)=7596 by ItemResult: 4=1229 5=9 7=1102 8=64 9=5192
+[summary] portal: sent=733 moved(SC_TELEPORT)=0
+[summary] room: roomChange(SC_ROOM_CHANGE)=371 moveRejected(SC_MOVE_RESULT)=0 by MoveResult:

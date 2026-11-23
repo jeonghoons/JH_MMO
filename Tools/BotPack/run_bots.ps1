@@ -103,6 +103,11 @@ foreach ($stage in $Stages) {
         } catch { }
     }
     "exit $($p.ExitCode)" | Add-Content "$out\args.txt"
+    # 공개 저장소에 올리므로 결과 파일의 서버 IP를 가린다(A5.4c 노트북 Claude 제안)
+    foreach ($f in "args.txt", "console.txt") {
+        $fp = Join-Path $out $f
+        if (Test-Path $fp) { (Get-Content $fp -Raw) -replace [regex]::Escape($ServerIp), "<SERVER_IP>" | Set-Content $fp -Encoding utf8 -NoNewline }
+    }
     Write-Host "[bots] $stage — 끝(exit $($p.ExitCode))"
     Get-Content "$out\console.txt" | Select-String "\[summary\] (attempts|login |enter|ping)" | ForEach-Object { Write-Host "   $_" }
 
