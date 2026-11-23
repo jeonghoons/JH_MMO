@@ -1626,7 +1626,7 @@
       "socket": "head",
       "fit": "helm",
       "target_tris": 4000,
-      "yaw": 90.0,
+      "yaw": 0.0,
       "width_ratio": 1.6,
       "depth_ratio": 1.5,
       "top_cm": 3.0,
