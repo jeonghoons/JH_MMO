@@ -77,6 +77,12 @@ void Listener::ProcessAccept(AcceptEvent* acceptEvent)
 	::setsockopt(session->GetSocket(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
 		(char*)&_listenSocket, sizeof(_listenSocket));
 
+	if (Session::TcpNoDelay())
+	{
+		BOOL noDelay = TRUE;
+		::setsockopt(session->GetSocket(), IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&noDelay), sizeof(noDelay));
+	}
+
 	SOCKADDR_IN sockAddress;
 	int sizeOfSockAddr = sizeof(sockAddress);
 	if (SOCKET_ERROR == ::getpeername(session->GetSocket(), reinterpret_cast<SOCKADDR*>(&sockAddress), &sizeOfSockAddr))

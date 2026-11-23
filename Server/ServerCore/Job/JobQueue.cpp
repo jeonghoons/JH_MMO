@@ -16,6 +16,7 @@ namespace
 	constexpr size_t SEND_BATCH_SIZE = 16;
 
 	thread_local JobQueue* LCurrentJobQueue = nullptr;
+	thread_local const Job* LCurrentJob = nullptr;
 
 	// 작업 실행 구간 표시. 예외로 빠져나가도 반드시 되돌린다.
 	struct CurrentQueueScope
@@ -57,6 +58,11 @@ void JobQueue::Dispatch(IocpEvent* iocpEvent, int numBytes)
 JobQueue* JobQueue::Current()
 {
 	return LCurrentJobQueue;
+}
+
+const Job* JobQueue::CurrentJob()
+{
+	return LCurrentJob;
 }
 
 void JobQueue::SetSendBatch(int intervalMs, function<void(int)> wakeFn)
@@ -171,8 +177,12 @@ void JobQueue::ExecuteJobs()
 		shared_ptr<Job> job;
 		while (_jobQueue.try_pop(job)) {
 			const long long runStartUs = NowUs();
+			_queuedCount.fetch_sub(1, memory_order_relaxed);
 			NetStats::AddMs(NetStats::JobWaitMs, (runStartUs - job->_enqueueUs) / 1000);
+			const Job* prevJob = LCurrentJob;   // 큐 범위(CurrentQueueScope)처럼 겹쳐 실행돼도 되돌린다
+			LCurrentJob = job.get();
 			job->Execute();
+			LCurrentJob = prevJob;
 			job = nullptr;
 			NetStats::JobsExecuted.fetch_add(1, memory_order_relaxed);
 

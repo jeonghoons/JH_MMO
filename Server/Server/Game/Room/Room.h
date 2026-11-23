@@ -502,6 +502,7 @@ private:
 	const WorldData* _world = nullptr;
 	atomic<int> _playerCount = 0;   // = _players.size(). 입장·퇴장 때 맞춘다
 	int _tickCount = 0;  // Update 횟수. 1초(10틱)마다 시야 인원 지표·시야 감사를 하는 데 쓴다
+	int _movesSinceTick = 0;  // 직전 틱 이후 받은 이동 패킷 수(지표 Metrics::TickMoves, A5.4a)
 
 	// [Debug] 부하·검증 시험용
 	bool PickDummyZonePosition(Protocol::PositionInfo& out);   // DummySpawnZone 안의 내비메시 위치

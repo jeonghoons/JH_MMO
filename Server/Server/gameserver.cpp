@@ -75,6 +75,7 @@ int main(int argc, char* argv[])
 		[]() { return make_shared<GameSession>(); }
 	);
 
+	Session::SetTcpNoDelay(GServerConfig.tcpNoDelay);   // accept 전에 정한다(A5.4a)
 	if (service->Start() == false) {
 		LOG_ERROR("Server", "{}:{} 포트를 열 수 없습니다(이미 사용 중이거나 주소가 잘못됨).", GServerConfig.bindIp, GServerConfig.port);
 		exit(-1);

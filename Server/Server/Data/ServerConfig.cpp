@@ -124,6 +124,13 @@ namespace
 				if (!ParseInt(e.value, 0, 1000000, cfg.sendQueueLimit)) { err = where + "SendQueueLimit must be 0~1000000: '" + e.value + "'"; return false; }
 				cfg.sendQueueLimitFrom = from;
 			}
+			else if (name == "Network.TcpNoDelay")
+			{
+				if (e.value == "true" || e.value == "1") cfg.tcpNoDelay = true;
+				else if (e.value == "false" || e.value == "0") cfg.tcpNoDelay = false;
+				else { err = where + "TcpNoDelay must be true/false: '" + e.value + "'"; return false; }
+				cfg.tcpNoDelayFrom = from;
+			}
 			else if (name == "Network.LoginWaitTimeoutSec")
 			{
 				if (!ParseInt(e.value, 1, 600, cfg.loginWaitTimeoutSec)) { err = where + "LoginWaitTimeoutSec must be 1~600: '" + e.value + "'"; return false; }
@@ -370,6 +377,7 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "Network.LoginCloseForceSec = {}  ({})", loginCloseForceSec, loginCloseForceSecFrom);
 	LOG_INFO("Config", "Network.IdleTimeoutSec    = {}  ({})", idleTimeoutSec, idleTimeoutSecFrom);
 	LOG_INFO("Config", "Network.SendQueueLimit    = {}  ({})", sendQueueLimit, sendQueueLimitFrom);
+	LOG_INFO("Config", "Network.TcpNoDelay        = {}  ({})", tcpNoDelay, tcpNoDelayFrom);
 	LOG_INFO("Config", "Database.ConnectionString = {}  ({})", MaskSecrets(dbConnectionString), dbConnectionStringFrom);
 	LOG_INFO("Config", "Database.Connections      = {}  ({})", dbConnections, dbConnectionsFrom);
 	LOG_INFO("Config", "Database.PlayerSaveIntervalSec = {}  ({})", playerSaveIntervalSec, playerSaveIntervalSecFrom);

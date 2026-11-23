@@ -29,6 +29,9 @@ struct ServerConfig
 	int idleTimeoutSec = 60;        // 이 시간 동안 아무것도 받지 못한 연결을 끊는다(D-220). 0이면 끔. 클라이언트는 5초마다 CS_PING을 보낸다
 	int sendQueueLimit = 4000;      // 세션 하나의 송신 큐에 쌓일 수 있는 패킷 수(D-221). 넘으면 끊는다. 0이면 끔
 	std::string idleTimeoutSecFrom = "default", sendQueueLimitFrom = "default";
+	// 받아들인 소켓의 TCP_NODELAY(A5.4a 비교용). 기본 끔(Nagle 켜짐 — 지금까지의 측정과 같음)
+	bool tcpNoDelay = false;
+	std::string tcpNoDelayFrom = "default";
 
 	// [Database]
 	std::string dbConnectionString = "Driver={ODBC Driver 17 for SQL Server};Server=.\\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;";

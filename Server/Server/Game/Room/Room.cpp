@@ -338,7 +338,20 @@ void Room::Update(long long elapsedTime)
 		const long long lateUs = max<long long>(0, (currentTick - elapsedTime - 100) * 1000);
 		Metrics::TickLate.Add(lateUs);
 		Metrics::TickLateByKind[static_cast<int>(_info.kind)].Add(lateUs);
+
+		// 틱 지연 분해(A5.4a): 예정 시각(직전 틱 시작 + 100ms) → 타이머가 큐에 넣음 → 실행 시작
+		if (const Job* job = JobQueue::CurrentJob())
+		{
+			const long long dueUs = (elapsedTime + 100) * 1000;
+			const long long startUs = JobQueue::NowUs();
+			Metrics::TickTimerLate.Add(max<long long>(0, job->_enqueueUs - dueUs));
+			Metrics::TickQueueWait.Add(max<long long>(0, startUs - job->_enqueueUs));
+			Metrics::TickJobsAhead.Add(job->_aheadAtPush);
+		}
+		if (!_players.empty())
+			Metrics::TickMoves.Add(_movesSinceTick);
 	}
+	_movesSinceTick = 0;
 
 	// 서버가 멈췄다 재개되는 등 틱 간격이 비정상이면 한 번에 큰 이동이 일어나지 않게 기본 간격으로 대체한다.
 	if (dt <= 0.f || dt > 0.5f) dt = 0.1f;
@@ -619,6 +632,7 @@ void Room::SetPlayerParty(shared_ptr<Player> player, int partyId, uint32_t seq)
 
 void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, uint32_t correctionSeq)
 {
+	++_movesSinceTick;   // 받은 이동 작업 수(버리는 것 포함 — 큐를 차지한 작업 수를 본다, A5.4a)
 	if (nullptr == Id2Player(player->GetId()))
 		return;
 	// Room 이동 표시 중의 요청은 버린다(DG3b). 도착하면 SC_ROOM_CHANGE의 위치·보정 순번으로 다시 맞춰진다.

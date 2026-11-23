@@ -26,6 +26,7 @@ public:
 
 public:
 	long long				_enqueueUs = 0;	// 잡 큐에 넣은 시각(us, JobQueue::Push가 적음) — 큐 대기 시간 지표용
+	int						_aheadAtPush = 0;	// 넣을 때 그 큐에 이미 쌓여 있던(아직 시작 안 한) 작업 수 — 틱 지연 분해 지표용(A5.4a)
 
 private:
 	function<void()>		_func;

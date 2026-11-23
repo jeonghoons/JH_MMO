@@ -1,0 +1,4 @@
+1795468237 --bots 1000 --ramp-rate 100 --duration 90 --threads 4 --move-interval 200 --body male --login dummy --town-wander --profile move --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.4a\runs\bal_m1000_ndfalse_1\loadtest.csv
+nodelay false power 381b4222-f694-41f0-9685-ff5bb260df2e login dummy dummyRoom field townPct 30 dbConn 4
+loadtest exit 0
+run_id 20261124_061034

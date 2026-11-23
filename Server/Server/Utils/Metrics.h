@@ -159,6 +159,11 @@ namespace Metrics
 	inline SampleStat TickBody;     // Room::Update 본문 처리 시간(us)
 	// Room 종류별 틱 표본(DG3b — 채널 인원을 마을·사냥터에 나눠 잴 때 어느 쪽이 느린지 본다). [0] = 마을, [1] = 사냥터, [2] = 던전
 	inline SampleStat TickLateByKind[3];
+	// 틱 지연 분해(A5.4a, D-242): 틱 작업 하나마다 표본 1개. TickLate ≈ 타이머 늦음 + 큐 대기(+ IOCP 배정)
+	inline SampleStat TickTimerLate;  // 예정 시각 → 타이머 스레드가 Room 잡 큐에 넣은 시각(us)
+	inline SampleStat TickQueueWait;  // 잡 큐에 넣은 시각 → 틱 실행 시작(us) — 앞에 쌓인 작업(이동 패킷 등)을 기다린 시간
+	inline SampleStat TickJobsAhead;  // 틱을 넣을 때 그 Room 잡 큐에 이미 쌓여 있던 작업 수
+	inline SampleStat TickMoves;      // 직전 틱 이후 그 Room이 처리한 이동 패킷 수(플레이어가 있는 Room만) — 도착 몰림
 	inline SampleStat TickBodyByKind[3];
 	inline SampleStat SendWakeLate; // 송신 깨우기 작업(Room::OnSendWake)이 예약 시각보다 늦게 돈 시간(us) (P1b — Timer 해상도 + IOCP 대기)
 	inline SampleStat ViewPlayers;  // 플레이어 한 명의 시야 안 다른 플레이어 수 (1초마다 플레이어별 표본)

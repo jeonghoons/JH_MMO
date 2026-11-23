@@ -40,6 +40,9 @@ public:
 	long long	LastRecvMs() const { return _lastRecvMs.load(memory_order_relaxed); }
 	// 세션 하나의 송신 큐에 쌓일 수 있는 패킷 수 상한(0 = 없음). 넘으면 그 세션을 끊는다 — 받지 않는 클라이언트 대책(D-221).
 	static void	SetSendQueueLimit(int limit) { s_sendQueueLimit.store(limit); }
+	// 받아들인 소켓에 TCP_NODELAY(Nagle 끔)를 켤지(A5.4a 비교용, 기본 끔). Listener가 accept 완료 때 읽는다.
+	static void	SetTcpNoDelay(bool on) { s_tcpNoDelay.store(on); }
+	static bool	TcpNoDelay() { return s_tcpNoDelay.load(memory_order_relaxed); }
 
 	// 패킷을 송신 큐에 넣는다. 잡 큐(Room·로비)의 작업을 실행 중인 스레드에서 부르면 바로 보내지 않고 그 잡 큐에
 	// 등록해 두었다가 작업이 끝난 뒤 세션당 WSASend 1회로 보낸다(송신 묶기 P1b — JobQueue.h). 그 밖의 스레드에서는 바로 보낸다.
@@ -89,6 +92,7 @@ private:
 	atomic<long long>	_lastRecvMs = 0;
 
 	static inline atomic<int> s_sendQueueLimit = 0;
+	static inline atomic<bool> s_tcpNoDelay = false;
 
 	RecvEvent		_recvEvent;
 	SendEvent		_sendEvent; // 패킷을 모아서 보내기 위해서 재사용

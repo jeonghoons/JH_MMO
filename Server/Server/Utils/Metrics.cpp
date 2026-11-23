@@ -30,7 +30,9 @@ namespace
 		"session_objects,handles,sendq_total,idle_kicks,sendq_kicks,channels,roster,channel_max,"
 		"town_players,field_players,tick_late_p99_town_ms,tick_late_p99_field_ms,tick_body_p99_town_ms,tick_body_p99_field_ms,room_moves,"
 		"rooms_alive,monsters,drops,dungeon_players,tick_late_p99_dungeon_ms,tick_body_p99_dungeon_ms,dungeons,dungeons_created,dungeons_closed,"
-		"auction_listings,auction_db_inflight,auction_search_ps,auction_try_later";
+		"auction_listings,auction_db_inflight,auction_search_ps,auction_try_later,"
+		"tick_timer_late_p99_ms,tick_timer_late_max_ms,tick_queue_wait_p50_ms,tick_queue_wait_p99_ms,tick_queue_wait_max_ms,"
+		"tick_jobs_ahead_p50,tick_jobs_ahead_p99,tick_jobs_ahead_max,tick_moves_p50,tick_moves_p99,tick_moves_max";
 
 	// 누적 카운터의 구간 증가량을 초당 값으로 바꾼다.
 	struct RateCounter
@@ -183,6 +185,11 @@ namespace
 				lateKind[k] = Metrics::TickLateByKind[k].TakeAndReset();
 				bodyKind[k] = Metrics::TickBodyByKind[k].TakeAndReset();
 			}
+			// 틱 지연 분해(A5.4a)
+			const Metrics::Percentiles tTimer = Metrics::TickTimerLate.TakeAndReset();
+			const Metrics::Percentiles tWait = Metrics::TickQueueWait.TakeAndReset();
+			const Metrics::Percentiles tAhead = Metrics::TickJobsAhead.TakeAndReset();
+			const Metrics::Percentiles tMoves = Metrics::TickMoves.TakeAndReset();
 			const Metrics::Percentiles viewP = Metrics::ViewPlayers.TakeAndReset();
 			const Metrics::Percentiles viewO = Metrics::ViewObjects.TakeAndReset();
 			const int sendQueueMax = NetStats::SendQueueMax.exchange(0);
@@ -233,7 +240,8 @@ namespace
 				"party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)={}/{}/{} {}/{}/{}/{}/{} {}/{} "
 				"roomsAlive={} dungeon(now/created/closed players)={}/{}/{} {} tickLateP99(dungeon ms)={:.1f} tickBodyP99(dungeon ms)={:.2f} "
 				"auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)={}/{} {:.1f} {}/{}/{}/{}/{} {}/{} {}/{} "
-				"quest(total accept/complete/kill/reject save sent/fail inflight)={}/{}/{}/{} {}/{} {} mailNotice={}",
+				"quest(total accept/complete/kill/reject save sent/fail inflight)={}/{}/{}/{} {}/{} {} mailNotice={} "
+				"tickSplit(timerLate p99/max ms queueWait p50/p99/max ms ahead p50/p99/max moves p50/p99/max)={:.1f}/{:.1f} {:.1f}/{:.1f}/{:.1f} {:.0f}/{:.0f}/{:.0f} {:.0f}/{:.0f}/{:.0f}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, sendCallsPs, bufsPerSend, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
@@ -272,7 +280,9 @@ namespace
 				Metrics::AuctionRegistered.load(), Metrics::AuctionBought.load(), Metrics::AuctionCancelled.load(), Metrics::AuctionClaimed.load(), Metrics::AuctionExpired.load(),
 				Metrics::AuctionRejected.load(), Metrics::AuctionTryLater.load(), Metrics::AuctionPartialBuys.load(), Metrics::AuctionConflicts.load(),
 				Metrics::QuestAccepted.load(), Metrics::QuestCompleted.load(), Metrics::QuestKillCredits.load(), Metrics::QuestRejected.load(),
-				Metrics::QuestSaveSent.load(), Metrics::QuestSaveFailed.load(), Metrics::QuestSaveInFlight.load(), Metrics::MailNotices.load());
+				Metrics::QuestSaveSent.load(), Metrics::QuestSaveFailed.load(), Metrics::QuestSaveInFlight.load(), Metrics::MailNotices.load(),
+				tTimer.p99 / 1000.0, tTimer.max / 1000.0, tWait.p50 / 1000.0, tWait.p99 / 1000.0, tWait.max / 1000.0,
+				tAhead.p50, tAhead.p99, tAhead.max, tMoves.p50, tMoves.p99, tMoves.max);
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << runId << "," << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","
@@ -290,7 +300,9 @@ namespace
 				<< roomsAlive << "," << Metrics::Monsters.load() << "," << Metrics::Drops.load() << "," << kindPlayers[2] << ","
 				<< lateKind[2].p99 / 1000.0 << "," << bodyKind[2].p99 / 1000.0 << ","
 				<< Metrics::DungeonInstances.load() << "," << Metrics::DungeonCreated.load() << "," << Metrics::DungeonClosed.load() << ","
-				<< Metrics::AuctionListings.load() << "," << Metrics::AuctionDbInFlight.load() << "," << auctionSearchPs << "," << Metrics::AuctionTryLater.load() << "\n";
+				<< Metrics::AuctionListings.load() << "," << Metrics::AuctionDbInFlight.load() << "," << auctionSearchPs << "," << Metrics::AuctionTryLater.load() << ","
+				<< tTimer.p99 / 1000.0 << "," << tTimer.max / 1000.0 << "," << tWait.p50 / 1000.0 << "," << tWait.p99 / 1000.0 << "," << tWait.max / 1000.0 << ","
+				<< tAhead.p50 << "," << tAhead.p99 << "," << tAhead.max << "," << tMoves.p50 << "," << tMoves.p99 << "," << tMoves.max << "\n";
 			csv.flush();
 		}
 	}

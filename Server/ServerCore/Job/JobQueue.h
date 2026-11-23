@@ -24,6 +24,7 @@ public:
 	void Push(shared_ptr<Job> job)
 	{
 		job->_enqueueUs = NowUs();
+		job->_aheadAtPush = _queuedCount.fetch_add(1, memory_order_relaxed);
 		_jobQueue.push(job);
 		RegisterJobs();
 	}
@@ -33,6 +34,7 @@ public:
 	{
 		shared_ptr<Job> job = make_shared<Job>(owner, memFunc, std::forward<Arguments>(args)...);
 		job->_enqueueUs = NowUs();
+		job->_aheadAtPush = _queuedCount.fetch_add(1, memory_order_relaxed);
 		_jobQueue.push(job);
 		RegisterJobs();
 	}
@@ -56,6 +58,9 @@ public:
 
 	// 이 스레드가 지금 실행 중인 잡 큐(작업 실행 중이 아니면 nullptr). Session::Send가 묶을지 판단하는 데 쓴다.
 	static JobQueue* Current();
+	// 이 스레드가 지금 실행 중인 작업(작업 실행 중이 아니면 nullptr). 작업 안에서 자기 대기 시간(_enqueueUs)·
+	// 넣을 때 앞에 있던 작업 수(_aheadAtPush)를 읽는 데 쓴다(Room::Update의 틱 지연 분해, A5.4a).
+	static const Job* CurrentJob();
 
 	// Session::Send 전용: 이 큐가 작업을 실행 중인 스레드에서만 부른다(Current() == this).
 	void AddPendingSend(shared_ptr<Session> session);
@@ -86,6 +91,7 @@ private:
 	concurrency::concurrent_queue<shared_ptr<Job>> _jobQueue;
 	atomic<bool> _isProcessing = false;
 	atomic<long long> _postedUs = 0;	// 마지막으로 IOCP에 실행을 포스트한 시각(지표용)
+	atomic<int> _queuedCount = 0;		// 넣었지만 아직 시작하지 않은 작업 수(지표용 — Push에서 +1, 꺼낼 때 -1)
 
 	// 송신 묶기 상태 — 작업을 실행 중인 스레드만 접근한다.
 	vector<shared_ptr<Session>>	_pendingSends;

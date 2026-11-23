@@ -1,0 +1,13 @@
+done bal_m250_ndfalse_1
+done bal_m250_ndtrue_1
+done bal_m250_ndfalse_2
+done bal_m250_ndtrue_2
+done bal_m1000_ndfalse_1
+done bal_m1000_ndtrue_1
+done hp_m250_ndfalse_1
+done hp_m250_ndtrue_1
+done hp_m250_ndfalse_2
+done hp_m250_ndtrue_2
+done hp_m1000_ndfalse_1
+done hp_m1000_ndtrue_1
+[matrix] done
