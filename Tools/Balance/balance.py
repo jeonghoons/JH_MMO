@@ -146,19 +146,19 @@ BIG_HP_POTION = 600
 DPS_SIM_SEC = 60                         # 지속 DPS = 허수아비를 60초 때린 평균(MP 소모·회복 포함)
 
 CONSUMABLES = [
-    # id, 이름, 효과, 값, 재사용(ms), 구매가, 판매가
-    (8001, "HP 물약", "HealHp", 200, 5000, 30, 5),
-    (8002, "MP 물약", "HealMp", 100, 5000, 30, 5),
-    (8003, "큰 HP 물약", "HealHp", 600, 5000, 90, 15),
-    (8004, "큰 MP 물약", "HealMp", 300, 5000, 90, 15),
+    # id, 이름, 효과, 값, 재사용(ms), 구매가, 판매가, 한 칸 최대 수량(MaxStack — 경매 한 등록의 최대 수량이기도 함, D-281)
+    (8001, "HP 물약", "HealHp", 200, 5000, 30, 5, 100),
+    (8002, "MP 물약", "HealMp", 100, 5000, 30, 5, 100),
+    (8003, "큰 HP 물약", "HealHp", 600, 5000, 90, 15, 100),
+    (8004, "큰 MP 물약", "HealMp", 300, 5000, 90, 15, 100),
 ]
 LOOT = [
-    # id, 이름, 떨어뜨리는 몬스터, 판매가
-    (8051, "거친 가죽 조각", 1001, 10),
-    (8052, "뒤틀린 뿔", 1002, 20),
-    (8053, "숲 군주의 송곳니", 1003, 100),
-    (8054, "이끼 낀 돌조각", 1004, 30),
-    (8055, "던전 군주의 문장", 1005, 300),
+    # id, 이름, 떨어뜨리는 몬스터, 판매가, 한 칸 최대 수량(MaxStack, D-281)
+    (8051, "거친 가죽 조각", 1001, 10, 100),
+    (8052, "뒤틀린 뿔", 1002, 20, 100),
+    (8053, "숲 군주의 송곳니", 1003, 100, 100),
+    (8054, "이끼 낀 돌조각", 1004, 30, 100),
+    (8055, "던전 군주의 문장", 1005, 300, 100),
 ]
 
 # 드랍(만분율, 아이템 한 종류마다 독립 — D-157). 그 등급 9종에 같은 확률
@@ -406,9 +406,13 @@ def checks(lines, grades):
             errors.append(f"소비 아이템 ID 구간 위반 {c[0]}")
         if c[5] < c[6]:
             errors.append(f"구매가 < 판매가 {c[0]}")
+        if not (1 <= c[7] <= 9999):
+            errors.append(f"MaxStack 범위(1~9999) 위반 {c[0]}")
     for l in LOOT:
         if not (8051 <= l[0] <= 8099):
             errors.append(f"전리품 ID 구간 위반 {l[0]}")
+        if not (1 <= l[4] <= 9999):
+            errors.append(f"MaxStack 범위(1~9999) 위반 {l[0]}")
     if SHOP_GEAR_BUY < SELL_PRICE[0]:
         errors.append("00등급 구매가 < 판매가")
     ids = [it["id"] for it in ITEMS] + [c[0] for c in CONSUMABLES] + [l[0] for l in LOOT]
@@ -554,11 +558,11 @@ def item_shop_drop_plans():
         rows[it["id"]] = cols
     for c in CONSUMABLES:
         rows[c[0]] = dict(Slot="None", Grade="Common", Tier="None", WeaponType="None", BonusAttackDamage=0, BonusMaxHp=0,
-                          BonusMaxMp=0, Starter=0, RequiredLevel=1, MaxStack=20, UseEffect=c[2], UseValue=c[3],
+                          BonusMaxMp=0, Starter=0, RequiredLevel=1, MaxStack=c[7], UseEffect=c[2], UseValue=c[3],
                           UseCooldownMs=c[4], SellPrice=c[6], DisplayName=c[1])
     for l in LOOT:
         rows[l[0]] = dict(Slot="None", Grade="Common", Tier="None", WeaponType="None", BonusAttackDamage=0, BonusMaxHp=0,
-                          BonusMaxMp=0, Starter=0, RequiredLevel=1, MaxStack=99, UseEffect="None", UseValue=0,
+                          BonusMaxMp=0, Starter=0, RequiredLevel=1, MaxStack=l[4], UseEffect="None", UseValue=0,
                           UseCooldownMs=0, SellPrice=l[3], DisplayName=l[1])
     updates, adds = {}, {}
     for rid, cols in rows.items():
@@ -636,9 +640,9 @@ def main():
         L.append(f"| {it['id']} | {it['name']} | {it['grade']:02d} | {it['slot']} | {it['weapon']} | {it['atk']} | {it['hp']} | {it['mp']} | {it['sell']} | {it['starter']} |")
         rows.append([it["id"], it["slot"], GRADE_ENUM[it["grade"]], TIER_ENUM[it["grade"]], it["weapon"], it["atk"], it["hp"], it["mp"], it["starter"], 1, 1, "None", 0, 0, it["sell"], it["name"]])
     for c in CONSUMABLES:
-        rows.append([c[0], "None", "Common", "None", "None", 0, 0, 0, 0, 1, 20, c[2], c[3], c[4], c[6], c[1]])
+        rows.append([c[0], "None", "Common", "None", "None", 0, 0, 0, 0, 1, c[7], c[2], c[3], c[4], c[6], c[1]])
     for l in LOOT:
-        rows.append([l[0], "None", "Common", "None", "None", 0, 0, 0, 0, 1, 99, "None", 0, 0, l[3], l[1]])
+        rows.append([l[0], "None", "Common", "None", "None", 0, 0, 0, 0, 1, l[4], "None", 0, 0, l[3], l[1]])
     write_csv("ItemTable.preview.csv", ["Name", "Slot", "Grade", "Tier", "WeaponType", "BonusAttackDamage", "BonusMaxHp", "BonusMaxMp", "Starter", "RequiredLevel", "MaxStack", "UseEffect", "UseValue", "UseCooldownMs", "SellPrice", "DisplayName"], rows)
     L.append("")
 

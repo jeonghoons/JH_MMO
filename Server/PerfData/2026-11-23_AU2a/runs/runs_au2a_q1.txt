@@ -1,0 +1,156 @@
+== main (server pid 22572, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=false, data repo)
+PASS list-on-enter
+PASS list-after-inventory
+PASS no-mail-notice
+PASS npc-kind
+[   2.35] Test1 시작 자리 (-14024,-199) 경비대장까지 4791cm, NPC id 900000002
+PASS accept-too-far
+PASS too-far-no-row
+[  18.57] 경비대장 앞: Test1 244cm Test2 255cm
+PASS accept
+PASS accept-db
+PASS request-again
+PASS complete-not-finished
+PASS request-unaccepted-accepts
+PASS accept-any-level
+[ 166.93] 처치 15번 129초, SC_QUEST_UPDATE [(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15)], DB 확인 {1: '1,1,0', 7: '1,7,0', 15: '1,15,0'}
+PASS kill-updates
+PASS kill-saved-each
+PASS kill-other-quest-same
+PASS kill-other-player-same
+PASS kill-16th-same
+PASS complete
+PASS complete-order
+PASS complete-reward
+PASS complete-exp-cap
+PASS complete-db
+PASS accept-done
+PASS collect-9
+PASS collect-10
+PASS collect-taken
+PASS collect-reward
+PASS collect-exp
+PASS collect-exp-saved-now
+PASS collect-db
+PASS multi-accept
+PASS prehold-first-is-accept
+PASS multi-full
+PASS multi-complete
+PASS multi-small-first
+PASS multi-reward-slot
+PASS inv-full
+PASS inv-full-same
+PASS gold-full
+PASS gold-full-same
+[ 253.97] 재접속 뒤 퀘스트 [('Test1', {1: (2, 15), 3: (1, 0)}), ('Test2', {1: (1, 0), 2: (2, 0)}), ('Test3', {2: (2, 0)}), ('Test4', {2: (1, 0)})]
+PASS relogin-same
+PASS relogin-list
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 44 / FAIL 0
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=18/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=2/2/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=6/3/15/8 15/0 0 mailNotice=0 
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS main (PASS 44)
+== cut (server pid 2392, DevCommands=true DbSaveDelayMs=1500 DbItemFailEvery=0 PortalNoRange=false, data repo)
+PASS accept
+PASS cut-accept
+[  46.43] 완료 직후 끊김: 다시 로그인 3.9초, 퀘스트 {2: (2, 0)}, 레벨 5 → 6 경험치 265 → 2765 (기대 (6, 2765)), 골드 1000 → 2000
+PASS cut-complete-quest
+PASS cut-complete-items
+PASS cut-complete-exp
+PASS cut-kill
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 8 / FAIL 0
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=6/0/0 0 login(total kick/busy/forced)=3/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1/1/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=3/1/1/0 1/0 0 mailNotice=0 
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS cut (PASS 8)
+테이블 사본: dungeon
+== dungeon (server pid 28644, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=true, data C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-22_Q1\runs\dungeon\data)
+PASS accept-3
+PASS in-dungeon
+PASS boss-seen
+PASS member-hit-boss
+PASS member-dead
+[ 131.38] 우두머리 [100207] 처치: a [(129.16992378234863, 3, 1, 1)] b(죽음 True) [(129.1222004890442, 3, 1, 1)] c(우두머리에서 7548cm) [(129.1390838623047, 3, 1, 1)]
+PASS credit-killer
+PASS credit-dead-member
+PASS credit-out-of-view-member
+PASS exp-only-killer
+PASS credit-saved
+PASS complete-member
+PASS complete-member-reward
+PASS complete-killer
+PASS complete-far
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 16 / FAIL 0
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=6/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=9/9/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 2/2/0/0/0 1/1 roomsAlive=2 dungeon(now/created/closed players)=0/1/1 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=3/2/3/1 3/0 0 mailNotice=0 
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS dungeon (PASS 16)
+테이블 사본: mail
+== mail (server pid 16604, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=false, data C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-22_Q1\runs\mail\data)
+PASS no-notice-empty-mailbox
+PASS register
+PASS buy
+PASS sale-notice
+PASS sale-notice-seller-only
+PASS sale-mail-exists
+FAIL potion-row: 물약 새 행 []
+Traceback (most recent call last):
+  File "C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-22_Q1\quest_test.py", line 814, in <module>
+    CASES[name]()
+    ~~~~~~~~~~~^^
+  File "C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-22_Q1\quest_test.py", line 642, in t_mail
+    res, lid2 = at.register(a, potion[0], 3, 200, cs)
+                               ~~~~~~^^^
+IndexError: list index out of range
+FAIL mail-run: IndexError: list index out of range
+
+합계 PASS 6 / FAIL 2
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=4/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 1/1/0/0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=0/0/0/0 0/0 0 mailNotice=1 
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP FAIL mail (잔류·오류:, PASS 6, FAIL 2, ERROR 로그 0)
+== err (server pid 26336, DevCommands=false DbSaveDelayMs=400 DbItemFailEvery=0 PortalNoRange=false, data repo)
+PASS too-far
+PASS npc-missing
+PASS npc-not-quest
+PASS quest-missing
+[  23.93] 요청 연타 8회: 성공 [(1, 0)] 거부 [5, 5, 4, 4, 13, 13, 13]
+PASS spam-one-success
+PASS spam-rejects
+PASS spam-db-one-row
+PASS after-spam
+PASS in-trade
+PASS after-trade
+PASS dummy
+[  27.93] 깨진 패킷을 보내는 중 Test1 연결이 끊김(예상): [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+PASS bad-packets
+[  29.08] 깨진 패킷 뒤 Test1 연결 끊김, 그 사이 받은 거부 [13, 9, 9]
+PASS dead
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 15 / FAIL 0
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=2/0/2 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1/1/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=2/0/0/24 0/0 0 mailNotice=0 
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS err (PASS 15)
+== fail (server pid 14716, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=2 PortalNoRange=false, data repo)
+PASS accept-rollback
+PASS accept-retry
+PASS accept-b
+PASS complete-rollback
+PASS complete-rollback-same
+PASS complete-rollback-db
+PASS complete-retry
+PASS complete-retry-db
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 10 / FAIL 0
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=11/5/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=2/1/0/0 0/0 0 mailNotice=0 
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS fail (PASS 10)

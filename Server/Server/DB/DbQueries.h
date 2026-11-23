@@ -12,7 +12,7 @@
 namespace DbQueries
 {
 	// 이 서버 코드가 기대하는 스키마 버전 = 마지막 마이그레이션 순번. DB의 Schema_Version과 다르면 서버가 시작하지 않는다.
-	constexpr int DB_SCHEMA_VERSION = 9;
+	constexpr int DB_SCHEMA_VERSION = 10;
 
 	// 결과: 열 1 = 적용된 마지막 마이그레이션 순번(행이 없으면 0). 테이블이 없으면 실행 실패.
 	inline const wchar_t* const SelectSchemaVersion = L"SELECT ISNULL(MAX([Version]), 0) FROM [Schema_Version]";
@@ -95,7 +95,7 @@ namespace DbQueries
 	// 아이템 트랜잭션(A3.3, D-153·D-165). 모든 쿼리가 같은 틀과 같은 결과 모양을 쓴다(DatabaseWorker::ExecItemOp가 읽는다).
 	//   - 틀: TRY 안에서 BEGIN TRAN → 문장들(@n에 바뀐 행 수 누적) → @n이 기대와 같으면 COMMIT, 아니면 ROLLBACK. 오류는 CATCH에서 ROLLBACK.
 	//   - 결과: 항상 결과 집합 하나. 열 = Ok(1 성공 / 0 실패), Kind(0 상태 행 · 1 새 ItemDbId · 2 골드 잔액 · 3 거래 상대의 골드 잔액 ·
-	//     4 새 ListingId · 5·6·7 수령한 아이템의 ItemDbId·ItemId·Count · 8 만료 처리된 ListingId · 9 실패 사유(Ok 0, AuctionResult) — A4.3), V(값).
+	//     4 새 ListingId · 5·6·7 수령한 아이템의 ItemDbId·ItemId·Count · 8 만료 처리된 ListingId · 9 실패 사유(Ok 0, AuctionResult) — A4.3 · 10 구매 뒤 등록의 남은 수량 — D-281), V(값).
 	//     성공이면 상태 행 1개 + 새 행·골드 행, 실패면 (0, 0, 오류 번호 또는 0) 1행. 행을 하나도 못 읽으면 실패로 본다
 	//     (DBConnection::Execute는 배치 첫 문장의 성공만 알려 주므로 결과 행으로 판정한다).
 	//   - 모든 UPDATE는 기대 상태(OwnerId·Location·EquipSlot·Count)를 WHERE에 적는다.
@@ -386,11 +386,11 @@ namespace DbQueries
 	// ---------------------------------------------------------------------------------------------------------------
 
 	// 등록(고정 쿼리). 파라미터: 1 PlayerId, 2 Fail, 3 DbId, 4 Expect(그 행의 지금 수량), 5 Count(올리는 수량), 6 Slot(그 행의 칸),
-	//                          7 ItemId, 8 Price, 9 DurationSec
+	//                          7 ItemId, 8 UnitPrice(1개당 가격 — D-281), 9 DurationSec
 	// 통째(Count = Expect)면 그 행을 경매 보관으로 옮기고, 일부면 원래 행의 수량을 줄이고 경매 보관에 새 행을 만든다. 새 ListingId는 Kind 4 행으로.
 	inline const std::wstring AuctionRegister =
 		std::wstring(L"SET NOCOUNT ON; SET XACT_ABORT ON; "
-		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @A BIGINT = ?, @Expect INT = ?, @Count INT = ?, @Slot INT = ?, @Item INT = ?, @Price BIGINT = ?, @Dur INT = ?; "
+		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @A BIGINT = ?, @Expect INT = ?, @Count INT = ?, @Slot INT = ?, @Item INT = ?, @Unit BIGINT = ?, @Dur INT = ?; "
 		L"DECLARE @Esc BIGINT = @A; ")
 		+ ItemOpHead +
 		L"IF @Count >= @Expect BEGIN "
@@ -401,28 +401,48 @@ namespace DbQueries
 		L"WHERE ItemDbId = @A AND OwnerId = @P AND Location = 1 AND BagSlot = @Slot AND ItemId = @Item AND [Count] = @Expect AND @Count > 0; SET @n += @@ROWCOUNT; "
 		L"IF @n = 1 BEGIN INSERT INTO [Player_Item] (OwnerId, ItemId, [Count], Location, EquipSlot, BagSlot) VALUES (@P, @Item, @Count, 3, 0, -1); SET @Esc = SCOPE_IDENTITY(); END END "
 		L"IF @n = 1 BEGIN "
-		L"INSERT INTO [Auction_Listing] (SellerId, ItemDbId, ItemId, [Count], Price, State, ExpireAt) "
-		L"VALUES (@P, @Esc, @Item, @Count, @Price, 1, DATEADD(SECOND, @Dur, SYSUTCDATETIME())); "
+		L"INSERT INTO [Auction_Listing] (SellerId, ItemDbId, ItemId, [Count], InitialCount, UnitPrice, State, ExpireAt) "
+		L"VALUES (@P, @Esc, @Item, @Count, @Count, @Unit, 1, DATEADD(SECOND, @Dur, SYSUTCDATETIME())); "
 		L"INSERT INTO @R (Kind, V) VALUES (4, SCOPE_IDENTITY()); END "
 		+ ItemOpTail(L"1");
 
-	// 즉시 구매(고정 쿼리). 파라미터: 1 PlayerId(구매자), 2 Fail, 3 ListingId
-	// 등록을 팔림으로 바꾸면서 판매자·아이템·값을 읽고, 구매자 골드를 줄이고(잔액 부족이면 0행 → 롤백), 아이템을 구매자 수령함으로 옮긴다.
-	// 우편 2행: 구매자에게 구매품, 판매자에게 대금. 구매자 잔액은 Kind 2 행으로. 판매자 골드는 수령할 때 늘어난다.
+	// 즉시 구매 — 부분 구매(고정 쿼리, D-281). 파라미터: 1 PlayerId(구매자), 2 Fail, 3 ListingId, 4 Qty(사는 수량)
+	// ① 등록의 남은 수량을 N만큼 줄인다(조건 Count >= N — 동시에 온 구매가 겹쳐도 이중 판매가 없다, 다 팔리면 State 2). 바뀐 뒤 값은 OUTPUT으로 받는다
+	//    (UPDATE 안의 "@변수 = 열"은 바뀌기 전·후 어느 값인지 헷갈리므로 쓰지 않는다).
+	// ② 구매자 골드를 N × 1개당 가격만큼 줄인다(잔액 부족이면 0행 → 롤백).
+	// ③ 다 팔렸으면 경매 보관 행을 통째로 구매자 수령함(Location 4)으로, 아니면 보관 행 수량을 N 줄이고 구매자 수령함에 새 행.
+	//    보관 행의 수량은 늘 등록의 남은 수량과 같다 — WHERE에 기대 수량을 적는다.
+	// ④ 우편 2행(구매자에게 구매품, 판매자에게 대금) + Auction_Sale 1행. 결과: Kind 2 = 구매자 잔액, Kind 10 = 남은 수량.
+	// 기대 행 수 @W: 통째 3(등록·골드·보관 행), 일부 4(+ 새 행 — INSERT는 직접 센다). 등록 UPDATE가 0행이어도 @W는 3이라 롤백된다.
 	inline const std::wstring AuctionBuy =
 		std::wstring(L"SET NOCOUNT ON; SET XACT_ABORT ON; "
-		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @L BIGINT = ?; "
-		L"DECLARE @Seller BIGINT, @Item BIGINT, @Price BIGINT; ")
+		L"DECLARE @P BIGINT = ?, @Fail INT = ?, @L BIGINT = ?, @Qty INT = ?; "
+		L"DECLARE @Seller BIGINT, @Esc BIGINT, @Unit BIGINT, @ItemId INT, @Left INT, @Gold BIGINT, @Buy BIGINT, @W INT = 3; "
+		L"DECLARE @U TABLE (SellerId BIGINT, ItemDbId BIGINT, UnitPrice BIGINT, ItemId INT, LeftCount INT); ")
 		+ ItemOpHead +
-		L"UPDATE [Auction_Listing] SET State = 2, BuyerId = @P, ClosedAt = SYSDATETIME(), @Seller = SellerId, @Item = ItemDbId, @Price = Price "
-		L"WHERE ListingId = @L AND State = 1 AND SellerId <> @P; SET @n += @@ROWCOUNT; "
+		L"UPDATE [Auction_Listing] SET [Count] = [Count] - @Qty, State = CASE WHEN [Count] = @Qty THEN 2 ELSE 1 END, "
+		L"ClosedAt = CASE WHEN [Count] = @Qty THEN SYSDATETIME() ELSE NULL END "
+		L"OUTPUT inserted.SellerId, inserted.ItemDbId, inserted.UnitPrice, inserted.ItemId, inserted.[Count] INTO @U "
+		L"WHERE ListingId = @L AND State = 1 AND SellerId <> @P AND @Qty >= 1 AND [Count] >= @Qty; SET @n += @@ROWCOUNT; "
 		L"IF @n = 1 BEGIN "
-		L"UPDATE [Player_Info] SET Gold = Gold - @Price WHERE PlayerId = @P AND Gold >= @Price; SET @n += @@ROWCOUNT; "
-		L"UPDATE [Player_Item] SET OwnerId = @P, Location = 4, UpdatedAt = SYSDATETIME() WHERE ItemDbId = @Item AND OwnerId = @Seller AND Location = 3; SET @n += @@ROWCOUNT; "
-		L"IF @n = 3 BEGIN "
-		L"INSERT INTO [Player_Mail] (PlayerId, Kind, Gold, ItemDbId, ListingId) VALUES (@P, 2, 0, @Item, @L), (@Seller, 1, @Price, NULL, @L); "
-		L"INSERT INTO @R (Kind, V) SELECT 2, Gold FROM [Player_Info] WHERE PlayerId = @P; END END "
-		+ ItemOpTail(L"3");
+		L"SELECT @Seller = SellerId, @Esc = ItemDbId, @Unit = UnitPrice, @ItemId = ItemId, @Left = LeftCount FROM @U; "
+		L"SET @Gold = @Unit * @Qty; "
+		L"UPDATE [Player_Info] SET Gold = Gold - @Gold WHERE PlayerId = @P AND Gold >= @Gold; SET @n += @@ROWCOUNT; "
+		L"IF @n = 2 BEGIN "
+		L"IF @Left = 0 BEGIN "
+		L"UPDATE [Player_Item] SET OwnerId = @P, Location = 4, UpdatedAt = SYSDATETIME() "
+		L"WHERE ItemDbId = @Esc AND OwnerId = @Seller AND Location = 3 AND [Count] = @Qty; SET @n += @@ROWCOUNT; SET @Buy = @Esc; END "
+		L"ELSE BEGIN SET @W = 4; "
+		L"UPDATE [Player_Item] SET [Count] = [Count] - @Qty, UpdatedAt = SYSDATETIME() "
+		L"WHERE ItemDbId = @Esc AND OwnerId = @Seller AND Location = 3 AND [Count] = @Left + @Qty; SET @n += @@ROWCOUNT; "
+		L"IF @n = 3 BEGIN INSERT INTO [Player_Item] (OwnerId, ItemId, [Count], Location, EquipSlot, BagSlot) VALUES (@P, @ItemId, @Qty, 4, 0, -1); "
+		L"SET @Buy = SCOPE_IDENTITY(); SET @n += 1; END END "
+		L"IF @n = @W BEGIN "
+		L"INSERT INTO [Player_Mail] (PlayerId, Kind, Gold, ItemDbId, ListingId) VALUES (@P, 2, 0, @Buy, @L), (@Seller, 1, @Gold, NULL, @L); "
+		L"INSERT INTO [Auction_Sale] (ListingId, BuyerId, [Count], Gold) VALUES (@L, @P, @Qty, @Gold); "
+		L"INSERT INTO @R (Kind, V) SELECT 2, Gold FROM [Player_Info] WHERE PlayerId = @P; "
+		L"INSERT INTO @R (Kind, V) VALUES (10, @Left); END END END "
+		+ ItemOpTail(L"@W");
 
 	// 취소(고정 쿼리). 파라미터: 1 PlayerId(판매자), 2 Fail, 3 ListingId. 아이템은 판매자의 수령함으로(취소 반환).
 	inline const std::wstring AuctionCancel =
@@ -488,17 +508,17 @@ namespace DbQueries
 			+ ItemOpTail(L"(SELECT COUNT(*) FROM @E)");
 	}
 
-	// 판매 중인 등록 읽기. 결과: ListingId, SellerId, ItemId, Count, Price, RemainSec(만료까지 남은 초 — 지났으면 0 이하)
+	// 판매 중인 등록 읽기. 결과: ListingId, SellerId, ItemId, Count(남은 수량), UnitPrice, RemainSec(만료까지 남은 초 — 지났으면 0 이하)
 	// 서버 시작 때 전부(SelectActiveListings), 결과를 알 수 없는 등록 뒤 그 판매자 것만(SelectSellerListings — 파라미터: 1 SellerId)
 	inline const wchar_t* const SelectActiveListings =
-		L"SELECT ListingId, SellerId, ItemId, [Count], Price, DATEDIFF(SECOND, SYSUTCDATETIME(), ExpireAt) AS RemainSec "
+		L"SELECT ListingId, SellerId, ItemId, [Count], UnitPrice, DATEDIFF(SECOND, SYSUTCDATETIME(), ExpireAt) AS RemainSec "
 		L"FROM [Auction_Listing] WHERE State = 1 ORDER BY ListingId";
 	inline const wchar_t* const SelectSellerListings =
-		L"SELECT ListingId, SellerId, ItemId, [Count], Price, DATEDIFF(SECOND, SYSUTCDATETIME(), ExpireAt) AS RemainSec "
+		L"SELECT ListingId, SellerId, ItemId, [Count], UnitPrice, DATEDIFF(SECOND, SYSUTCDATETIME(), ExpireAt) AS RemainSec "
 		L"FROM [Auction_Listing] WHERE State = 1 AND SellerId = ? ORDER BY ListingId";
 
-	// 등록 하나의 상태 읽기(실패한 구매·취소 뒤 목록을 DB에 맞출 때). 파라미터: 1 ListingId. 결과: State (행이 없으면 없는 등록)
-	inline const wchar_t* const SelectListingState = L"SELECT CAST(State AS INT) FROM [Auction_Listing] WHERE ListingId = ?";
+	// 등록 하나의 상태 읽기(실패한 구매·취소 뒤 목록을 DB에 맞출 때). 파라미터: 1 ListingId. 결과: State, Count(남은 수량) (행이 없으면 없는 등록)
+	inline const wchar_t* const SelectListingState = L"SELECT CAST(State AS INT), [Count] FROM [Auction_Listing] WHERE ListingId = ?";
 
 	// 수령함 읽기(오래된 것부터). 파라미터: 1 PlayerId. limit = 한 번에 읽을 수(서비스는 보여 줄 수 + 1을 읽어 "더 있음"을 안다).
 	// 결과: MailId, Kind, Gold, ItemId(아이템 우편이 아니면 0), Count, ListingId

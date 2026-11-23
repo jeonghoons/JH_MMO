@@ -1,0 +1,21 @@
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300
+FAIL basic: AssertionError: 구매품 수령 실패
+FAIL partial: AssertionError: 수령 실패
+FAIL partbuy: AssertionError: 구매품 수령
+PASS rejects  (DB 아이템 89965, 골드 606758)
+PASS dungeon  (DB 아이템 89965, 골드 606758)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=35/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=5/5/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/1/1 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 4/4/1/4/0 52/0 
+GROUP FAIL plain (잔류·오류:, 시나리오 실패 6, ERROR 로그 0)
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300
+FAIL race: TimeoutError: 시간 초과: Test1 개발 지급 1101 x1 (거부 [])
+FAIL cancelrace: TimeoutError: 시간 초과: Test1 개발 지급 1101 x1 (거부 [])
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=1/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 
+GROUP FAIL race (잔류·오류:, 시나리오 실패 4, ERROR 로그 0)
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300, AuctionFetchRows=4, AuctionPageRows=2
+FAIL search: TimeoutError: 시간 초과: Test1 개발 지급 1101 x1 (거부 [])
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=2/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 
+GROUP FAIL search (잔류·오류:, 시나리오 실패 2, ERROR 로그 0)
+EconomyTable: AuctionSearchIntervalMs=5000, AuctionActionIntervalMs=1000
+PASS interval  (DB 아이템 89899, 골드 606408)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=0/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 4/0 
+GROUP PASS interval

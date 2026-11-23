@@ -1533,7 +1533,7 @@ class AuctionListingInfo final :
     kCountFieldNumber = 3,
     kItemIdFieldNumber = 2,
     kRemainSecFieldNumber = 5,
-    kPriceFieldNumber = 4,
+    kUnitPriceFieldNumber = 4,
     kMineFieldNumber = 6,
   };
   // int64 listing_id = 1;
@@ -1572,13 +1572,13 @@ class AuctionListingInfo final :
   void _internal_set_remain_sec(int32_t value);
   public:
 
-  // int64 price = 4;
-  void clear_price();
-  int64_t price() const;
-  void set_price(int64_t value);
+  // int64 unit_price = 4;
+  void clear_unit_price();
+  int64_t unit_price() const;
+  void set_unit_price(int64_t value);
   private:
-  int64_t _internal_price() const;
-  void _internal_set_price(int64_t value);
+  int64_t _internal_unit_price() const;
+  void _internal_set_unit_price(int64_t value);
   public:
 
   // bool mine = 6;
@@ -1602,7 +1602,7 @@ class AuctionListingInfo final :
     int64_t count_;
     int32_t item_id_;
     int32_t remain_sec_;
-    int64_t price_;
+    int64_t unit_price_;
     bool mine_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -3114,24 +3114,24 @@ inline void AuctionListingInfo::set_count(int64_t value) {
   // @@protoc_insertion_point(field_set:Protocol.AuctionListingInfo.count)
 }
 
-// int64 price = 4;
-inline void AuctionListingInfo::clear_price() {
-  _impl_.price_ = int64_t{0};
+// int64 unit_price = 4;
+inline void AuctionListingInfo::clear_unit_price() {
+  _impl_.unit_price_ = int64_t{0};
 }
-inline int64_t AuctionListingInfo::_internal_price() const {
-  return _impl_.price_;
+inline int64_t AuctionListingInfo::_internal_unit_price() const {
+  return _impl_.unit_price_;
 }
-inline int64_t AuctionListingInfo::price() const {
-  // @@protoc_insertion_point(field_get:Protocol.AuctionListingInfo.price)
-  return _internal_price();
+inline int64_t AuctionListingInfo::unit_price() const {
+  // @@protoc_insertion_point(field_get:Protocol.AuctionListingInfo.unit_price)
+  return _internal_unit_price();
 }
-inline void AuctionListingInfo::_internal_set_price(int64_t value) {
+inline void AuctionListingInfo::_internal_set_unit_price(int64_t value) {
   
-  _impl_.price_ = value;
+  _impl_.unit_price_ = value;
 }
-inline void AuctionListingInfo::set_price(int64_t value) {
-  _internal_set_price(value);
-  // @@protoc_insertion_point(field_set:Protocol.AuctionListingInfo.price)
+inline void AuctionListingInfo::set_unit_price(int64_t value) {
+  _internal_set_unit_price(value);
+  // @@protoc_insertion_point(field_set:Protocol.AuctionListingInfo.unit_price)
 }
 
 // int32 remain_sec = 5;

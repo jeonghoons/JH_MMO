@@ -12,6 +12,7 @@
 constexpr int DROP_ID_BEGIN = 1000000000;      // 드랍 오브젝트 id 시작(방마다 따로 증가, int32 끝에 닿으면 처음으로)
 constexpr int NPC_ID_BEGIN = 900000000;        // 마을 NPC 오브젝트 id 시작(방을 만들 때 마커 순서대로 — 플레이어·몬스터·드랍과 겹치지 않음, L4)
 constexpr int MAX_CHAT_LEN = 100;               // 채팅 한 줄 최대 글자 수(UTF-16 문자 기준)
+constexpr size_t AUCTION_KEYWORD_MAX = 20;       // 경매 검색어 최대 글자 수(UTF-16 문자 기준, D-281)
 constexpr long long CHAT_MIN_INTERVAL_MS = 500;  // 같은 플레이어의 채팅 최소 간격(도배 방지)
 
 class Session;
@@ -219,11 +220,14 @@ public:
 	// 쓰는 곳(D-234): 검색·구매·내 목록은 던전 밖 어디서나, 등록·취소·수령은 경매 NPC(TownNpc::IsAuction) 근처에서만.
 	// 결과는 본인에게 SC_AUCTION_RESULT(성공·거부 모두), 아이템·골드 변화는 SC_INVENTORY_UPDATE.
 	// 검색·내 목록: 여기서는 검증만 하고 경매 서비스가 세션에 직접 답한다(itemOp를 쓰지 않는다). 더미 봇도 검색은 할 수 있다.
-	void PlayerAuctionSearch(shared_ptr<Player> player, int slot, int page);
+	// 검색(D-281): query SEARCH = keyword(PacketHandler가 정리)로 새로 찾고 기억 — 간격 AuctionSearchIntervalMs,
+	//   SORT·MORE = 기억한 검색어로 — 간격 AuctionActionIntervalMs. slot(필터)은 지금 0만.
+	void PlayerAuctionSearch(shared_ptr<Player> player, int slot, Protocol::AuctionQuery query, wstring keyword, Protocol::AuctionSort sort, bool desc, int64_t cursorKey, int64_t cursorId);
 	void PlayerAuctionMy(shared_ptr<Player> player);
 	// 등록·구매·취소: 검증하고 itemOp를 켠 뒤 경매 서비스로 보낸다(StartItemOp) → 서비스가 목록으로 검증 → DB → 서비스 → OnItemOpDone.
-	void PlayerAuctionRegister(shared_ptr<Player> player, int npcId, int64_t itemDbId, int count, int64_t price);
-	void PlayerAuctionBuy(shared_ptr<Player> player, int64_t listingId);
+	// 등록 값은 1개당 가격(D-281 — 총액 = 단가 × 수량 ≤ GoldMax), 구매는 수량을 골라 일부만 살 수 있다.
+	void PlayerAuctionRegister(shared_ptr<Player> player, int npcId, int64_t itemDbId, int count, int64_t unitPrice);
+	void PlayerAuctionBuy(shared_ptr<Player> player, int64_t listingId, int count);
 	void PlayerAuctionCancel(shared_ptr<Player> player, int npcId, int64_t listingId);
 	// 수령: 서비스를 거치지 않고 Room → DB → Room. 우편 내용(아이템인지 골드인지)은 DB가 읽어 판단한다 — 여기서는 들어갈 빈 칸만 골라 보낸다.
 	void PlayerMailClaim(shared_ptr<Player> player, int npcId, int64_t mailId);
@@ -455,9 +459,9 @@ private:
 	// ---- 경매장(A4.3) ----
 	enum class AuctionRequest
 	{
-		Search,      // 검색: 요청 간격만 본다. 더미 봇 허용
-		My,          // 내 등록 + 수령함 조회: 요청 간격만 본다
-		Change,      // 구매: 아이템 요청 공통 검사(요청 간격·진행 중인 작업·Room 이동)
+		Search,      // 검색: 요청 간격은 부르는 쪽이 query 종류로 본다(D-281). 더미 봇 허용
+		My,          // 내 등록 + 수령함 조회: 경매 요청 간격(auctionAction)
+		Change,      // 구매: 경매 요청 간격 + 아이템 요청 공통 검사(요청 간격·진행 중인 작업·Room 이동)
 		NpcChange,   // 등록·취소·수령: Change + 경매 NPC 존재·이용 거리(EconomyTable.ShopRangeCm)
 	};
 	// 경매 요청 공통 검증: 방 안 → 더미 봇(검색만 허용) → 생존 → 던전 아님 → 요청 간격(·진행 중인 작업) → 경매 NPC·거리. 통과하면 SUCCESS.

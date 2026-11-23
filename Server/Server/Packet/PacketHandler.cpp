@@ -589,7 +589,20 @@ void PacketHandler::Handle_CS_AUCTION_SEARCH(shared_ptr<GameSession> session, Pr
     shared_ptr<Room> room = player->GetCurrentRoom();
     if (room == nullptr) return;
 
-    room->PushJob(&Room::PlayerAuctionSearch, player, static_cast<int>(pkt.slot()), static_cast<int>(pkt.page()));
+    // 검색어(D-281): 채팅과 같은 정리(잘못된 UTF-8·제어 문자·앞뒤 공백) 뒤 AUCTION_KEYWORD_MAX 글자까지. SEARCH가 아니면 서버가 기억한 검색어를 쓴다
+    wstring keyword;
+    if (pkt.query() == Protocol::AUCTION_QUERY_SEARCH)
+    {
+        keyword = SanitizeChat(pkt.keyword());
+        if (keyword.size() > AUCTION_KEYWORD_MAX)
+        {
+            size_t cut = AUCTION_KEYWORD_MAX;
+            if (IS_HIGH_SURROGATE(keyword[cut - 1])) --cut;   // 서로게이트 쌍의 앞쪽만 남기지 않는다
+            keyword.resize(cut);
+        }
+    }
+    room->PushJob(&Room::PlayerAuctionSearch, player, static_cast<int>(pkt.slot()), pkt.query(), keyword, pkt.sort(), static_cast<bool>(pkt.desc()),
+        static_cast<int64_t>(pkt.cursor_key()), static_cast<int64_t>(pkt.cursor_id()));
 }
 
 void PacketHandler::Handle_CS_AUCTION_REGISTER(shared_ptr<GameSession> session, Protocol::CS_AUCTION_REGISTER_PACKET& pkt)
@@ -601,7 +614,7 @@ void PacketHandler::Handle_CS_AUCTION_REGISTER(shared_ptr<GameSession> session, 
     if (room == nullptr) return;
 
     room->PushJob(&Room::PlayerAuctionRegister, player, static_cast<int>(pkt.npc_id()), static_cast<int64_t>(pkt.item_db_id()),
-        static_cast<int>(pkt.count()), static_cast<int64_t>(pkt.price()));
+        static_cast<int>(pkt.count()), static_cast<int64_t>(pkt.unit_price()));
 }
 
 void PacketHandler::Handle_CS_AUCTION_BUY(shared_ptr<GameSession> session, Protocol::CS_AUCTION_BUY_PACKET& pkt)
@@ -612,7 +625,9 @@ void PacketHandler::Handle_CS_AUCTION_BUY(shared_ptr<GameSession> session, Proto
     shared_ptr<Room> room = player->GetCurrentRoom();
     if (room == nullptr) return;
 
-    room->PushJob(&Room::PlayerAuctionBuy, player, static_cast<int64_t>(pkt.listing_id()));
+    // 수량(D-281): int 범위 밖은 0(거부)으로
+    const int64_t count = pkt.count();
+    room->PushJob(&Room::PlayerAuctionBuy, player, static_cast<int64_t>(pkt.listing_id()), (count < 1 || count > INT32_MAX) ? 0 : static_cast<int>(count));
 }
 
 void PacketHandler::Handle_CS_AUCTION_CANCEL(shared_ptr<GameSession> session, Protocol::CS_AUCTION_CANCEL_PACKET& pkt)

@@ -386,16 +386,17 @@ bool DataManager::Init()
 
 	// ItemTable: Name(=itemId), Slot, Grade, Tier, WeaponType, BonusAttackDamage, BonusMaxHp, Starter,
 	//            RequiredLevel, MaxStack, UseEffect, UseValue, UseCooldownMs, SellPrice
-	// (DisplayName, Icon, MeshM, MeshF, StaticMesh 등 외형 열은 클라이언트 전용이라 읽지 않는다)
+	//            + DisplayName(경매 이름 검색용으로만 — D-281)
+	// (Icon, MeshM, MeshF, StaticMesh 등 외형 열은 클라이언트 전용이라 읽지 않는다)
 	CsvFile item;
 	if (!item.Load((dir / "ItemTable.csv").string(), err)) { LOG_ERROR("Data", "{}", err); return false; }
 
 	for (const CsvRow& row : item.Rows())
 	{
 		ItemData d{};
-		std::string slot, grade, tier, weapon, useEffect;
+		std::string slot, grade, tier, weapon, useEffect, displayName;
 		int starter = 0;
-		if (!row.GetInt("Name", d.itemId, err) || !row.GetString("Slot", slot, err) ||
+		if (!row.GetInt("Name", d.itemId, err) || !row.GetString("DisplayName", displayName, err) || !row.GetString("Slot", slot, err) ||
 			!row.GetString("Grade", grade, err) || !row.GetString("Tier", tier, err) ||
 			!row.GetString("WeaponType", weapon, err) ||
 			!row.GetInt("BonusAttackDamage", d.bonusAttackDamage, err) || !row.GetInt("BonusMaxHp", d.bonusMaxHp, err) || !row.GetInt("BonusMaxMp", d.bonusMaxMp, err) ||
@@ -416,6 +417,13 @@ bool DataManager::Init()
 			return false;
 		}
 		d.starter = (starter == 1);
+
+		d.searchName = NormalizeSearchText(Utils::UTF8ToWString(displayName));
+		if (d.searchName.empty())
+		{
+			LOG_ERROR("Data", "{}DisplayName 이 비어 있습니다 (경매 이름 검색에 씀)", where);
+			return false;
+		}
 
 		if (!ParseItemSlot(slot, d.slot))
 		{
@@ -651,8 +659,12 @@ bool DataManager::Init()
 			{ "AuctionMaxListings", &e.auctionMaxListings, 1, 100 },
 			{ "AuctionMinPrice", &e.auctionMinPrice, 1, 2000000000 },
 			{ "AuctionMaxPrice", &e.auctionMaxPrice, 1, 2000000000 },
-			{ "AuctionPageSize", &e.auctionPageSize, 1, 100 },
+			{ "AuctionMailPageSize", &e.auctionMailPageSize, 1, 100 },
 			{ "AuctionExpireCheckSec", &e.auctionExpireCheckSec, 1, 3600 },
+			{ "AuctionPageRows", &e.auctionPageRows, 1, 50 },
+			{ "AuctionFetchRows", &e.auctionFetchRows, 1, 100 },          // 한 줄 약 40바이트 — 100줄이어도 패킷 상한 8192 안
+			{ "AuctionSearchIntervalMs", &e.auctionSearchIntervalMs, 0, 60000 },
+			{ "AuctionActionIntervalMs", &e.auctionActionIntervalMs, 0, 60000 },
 			{ "ShopRangeCm", &e.shopRangeCm, 1, 5000 },
 			{ "PartyMaxMembers", &e.partyMaxMembers, 2, 100 },
 			{ "PartyInviteTimeoutSec", &e.partyInviteTimeoutSec, 1, 600 },
@@ -680,9 +692,10 @@ bool DataManager::Init()
 			}
 		}
 		if (e.dropLifeSec < e.dropOwnerSec || e.tradeMaxItems > e.inventorySlots ||
-			e.auctionMinPrice > e.auctionMaxPrice || e.auctionMaxPrice > e.goldMax)
+			e.auctionMinPrice > e.auctionMaxPrice || e.auctionMaxPrice > e.goldMax ||
+			e.auctionFetchRows < e.auctionPageRows || e.auctionFetchRows % e.auctionPageRows != 0)
 		{
-			LOG_ERROR("Data", "{} line {}: 값 사이의 관계가 맞지 않습니다 (DropLifeSec >= DropOwnerSec, TradeMaxItems <= InventorySlots, AuctionMinPrice <= AuctionMaxPrice <= GoldMax)", economy.Path(), row.Line());
+			LOG_ERROR("Data", "{} line {}: 값 사이의 관계가 맞지 않습니다 (DropLifeSec >= DropOwnerSec, TradeMaxItems <= InventorySlots, AuctionMinPrice <= AuctionMaxPrice <= GoldMax, AuctionFetchRows = AuctionPageRows의 배수)", economy.Path(), row.Line());
 			return false;
 		}
 	}
@@ -1050,6 +1063,31 @@ bool DataManager::Init()
 		_playerStatTable.size(), _skillTable.size(), _monsterTable.size(), _itemTable.size(), _movementTable.size(), _worldTable.size(), dropRows, spawnRows,
 		_economy.inventorySlots, _economy.goldMax, _economy.dropOwnerSec, _economy.dropLifeSec);
 	return true;
+}
+
+std::wstring DataManager::NormalizeSearchText(const std::wstring& text)
+{
+	std::wstring out;
+	out.reserve(text.size());
+	for (const wchar_t c : text)
+	{
+		if (iswspace(c) || c == L'　') continue;   // 공백(전각 공백 포함)은 지운다
+		out.push_back((c >= L'A' && c <= L'Z') ? static_cast<wchar_t>(c - L'A' + L'a') : c);
+	}
+	return out;
+}
+
+std::vector<int> DataManager::FindItemsByName(const std::wstring& normalizedKeyword)
+{
+	std::vector<int> ids;
+	if (normalizedKeyword.empty()) return ids;
+	for (const auto& [itemId, item] : _itemTable)
+	{
+		if (item.searchName.find(normalizedKeyword) != std::wstring::npos)
+			ids.push_back(itemId);
+	}
+	std::sort(ids.begin(), ids.end());
+	return ids;
 }
 
 void DataManager::RollDrops(int monsterId, std::vector<DropResult>& out)

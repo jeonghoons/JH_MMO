@@ -6,6 +6,7 @@
 -- 2026-11-17: Player_QuickSlot(액티브 칸에 올린 아이템 종류) 추가 (migrations/0006_2026-11-17_a36_quick_slot.sql)
 -- 2026-11-17: Trade_Log(성사된 1:1 거래 기록) 추가 (migrations/0007_2026-11-17_a42_trade_log.sql)
 -- 2026-11-22: Player_Quest(받은 퀘스트의 상태·처치 진행) 추가 (migrations/0009_2026-11-22_q1_quest.sql)
+-- 2026-11-23: Auction_Listing 1개당 가격(UnitPrice)·처음 수량(InitialCount)·Count = 남은 수량, Price·BuyerId 삭제, Auction_Sale(판매 한 건) 추가 (migrations/0010_2026-11-23_au2_auction.sql)
 -- 이 파일은 새 DB 생성용이다. 기존 DB는 migrate.ps1로 올린다. 스키마를 바꾸면 마이그레이션 + 이 파일 + Server/DB/DbQueries.h의 DB_SCHEMA_VERSION을 함께 고친다.
 USE [master]
 GO
@@ -267,19 +268,19 @@ CREATE TABLE [dbo].[Trade_Log](
  CONSTRAINT [PK_Trade_Log] PRIMARY KEY CLUSTERED ([TradeId] ASC)
 ) ON [PRIMARY]
 GO
-/****** 개체: Table [dbo].[Auction_Listing] — 경매 등록 1건 = 1행. State 1 판매 중 · 2 팔림 · 3 만료 · 4 취소. ExpireAt은 UTC (A4.3) ******/
+/****** 개체: Table [dbo].[Auction_Listing] — 경매 등록 1건 = 1행. State 1 판매 중 · 2 팔림(남은 수량 0) · 3 만료 · 4 취소. Count = 남은 수량(부분 구매), UnitPrice = 1개당 가격. ExpireAt은 UTC (A4.3, D-281) ******/
 CREATE TABLE [dbo].[Auction_Listing](
 	[ListingId] [bigint] IDENTITY(1,1) NOT NULL,
 	[SellerId] [bigint] NOT NULL,
 	[ItemDbId] [bigint] NOT NULL,
 	[ItemId] [int] NOT NULL,
 	[Count] [int] NOT NULL,
-	[Price] [bigint] NOT NULL,
 	[State] [tinyint] NOT NULL CONSTRAINT [DF_Auction_Listing_State] DEFAULT ((1)),
-	[BuyerId] [bigint] NULL,
 	[CreatedAt] [datetime2](0) NOT NULL CONSTRAINT [DF_Auction_Listing_CreatedAt] DEFAULT (sysdatetime()),
 	[ExpireAt] [datetime2](0) NOT NULL,
 	[ClosedAt] [datetime2](0) NULL,
+	[UnitPrice] [bigint] NOT NULL,
+	[InitialCount] [int] NOT NULL,
  CONSTRAINT [PK_Auction_Listing] PRIMARY KEY CLUSTERED ([ListingId] ASC)
 ) ON [PRIMARY]
 GO
@@ -292,9 +293,34 @@ REFERENCES [dbo].[Player_Info] ([PlayerId])
 GO
 ALTER TABLE [dbo].[Auction_Listing]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Listing_State] CHECK  (([State]>=(1) AND [State]<=(4)))
 GO
-ALTER TABLE [dbo].[Auction_Listing]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Listing_Count] CHECK  (([Count]>=(1)))
+ALTER TABLE [dbo].[Auction_Listing]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Listing_Count] CHECK  (([Count]>=(0) AND [Count]<=[InitialCount]))
 GO
-ALTER TABLE [dbo].[Auction_Listing]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Listing_Price] CHECK  (([Price]>=(1)))
+ALTER TABLE [dbo].[Auction_Listing]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Listing_UnitPrice] CHECK  (([UnitPrice]>=(1)))
+GO
+ALTER TABLE [dbo].[Auction_Listing]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Listing_InitialCount] CHECK  (([InitialCount]>=(1)))
+GO
+/****** 개체: Table [dbo].[Auction_Sale] — 경매 판매 한 건(부분 구매 포함) = 1행. Gold = Count × 그때의 1개당 가격 (AU2a, D-281) ******/
+CREATE TABLE [dbo].[Auction_Sale](
+	[SaleId] [bigint] IDENTITY(1,1) NOT NULL,
+	[ListingId] [bigint] NOT NULL,
+	[BuyerId] [bigint] NOT NULL,
+	[Count] [int] NOT NULL,
+	[Gold] [bigint] NOT NULL,
+	[CreatedAt] [datetime2](0) NOT NULL CONSTRAINT [DF_Auction_Sale_CreatedAt] DEFAULT (sysdatetime()),
+ CONSTRAINT [PK_Auction_Sale] PRIMARY KEY CLUSTERED ([SaleId] ASC)
+) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [IX_Auction_Sale_Listing] ON [dbo].[Auction_Sale] ([ListingId] ASC)
+GO
+ALTER TABLE [dbo].[Auction_Sale]  WITH CHECK ADD  CONSTRAINT [FK_Auction_Sale_Auction_Listing] FOREIGN KEY([ListingId])
+REFERENCES [dbo].[Auction_Listing] ([ListingId])
+GO
+ALTER TABLE [dbo].[Auction_Sale]  WITH CHECK ADD  CONSTRAINT [FK_Auction_Sale_Player_Info] FOREIGN KEY([BuyerId])
+REFERENCES [dbo].[Player_Info] ([PlayerId])
+GO
+ALTER TABLE [dbo].[Auction_Sale]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Sale_Count] CHECK  (([Count]>=(1)))
+GO
+ALTER TABLE [dbo].[Auction_Sale]  WITH CHECK ADD  CONSTRAINT [CK_Auction_Sale_Gold] CHECK  (([Gold]>=(1)))
 GO
 /****** 개체: Table [dbo].[Player_Mail] — 수령함 1건 = 1행. Kind 1 판매 대금(Gold) · 2 구매품 · 3 만료 반환 · 4 취소 반환(ItemDbId = Player_Item.Location 4). 받으면 지운다 (A4.3) ******/
 CREATE TABLE [dbo].[Player_Mail](
@@ -355,7 +381,8 @@ INSERT INTO [dbo].[Schema_Version] ([Version], [Name]) VALUES
 	(6, N'0006_2026-11-17_a36_quick_slot (schema.sql)'),
 	(7, N'0007_2026-11-17_a42_trade_log (schema.sql)'),
 	(8, N'0008_2026-11-21_a43_auction (schema.sql)'),
-	(9, N'0009_2026-11-22_q1_quest (schema.sql)')
+	(9, N'0009_2026-11-22_q1_quest (schema.sql)'),
+	(10, N'0010_2026-11-23_au2_auction (schema.sql)')
 GO
 USE [master]
 GO

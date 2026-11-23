@@ -57,10 +57,12 @@ public:
 
     // Dev console commands (A6.3b auction): the same requests the auction window sends, for checks without mouse input.
     //   "AuctionOpen [npc 0|1]"                opens the window: 0 = browse mode (K key), 1 = at the nearest auction NPC in view (F key).
-    //   "AuctionSearch [slot] [page]"          requests a search page (slot 0 = all, 1-7 = equip slot, 8 = other).
+    //   "AuctionSearch [keyword] [sort] [desc]" searches by item name (empty = all). sort 0 unit price, 1 total, 2 remaining time (-1 = keep), desc 0|1. (AU2b)
+    //   "AuctionSort <sort> [desc]"            changes the sort of the current search.
+    //   "AuctionPage <page>"                   moves to a page (1-based); past the cached rows it requests the next batch.
     //   "AuctionMy"                            requests my listings + mailbox.
-    //   "AuctionRegister <itemId> <count> <price>"  registers an item of that kind from my bag (NPC mode).
-    //   "AuctionBuy <listingId>"               buys a listing (0 = the first listing in the current page that is not mine).
+    //   "AuctionRegister <itemId> <count> <unitPrice>"  registers an item of that kind from my bag (NPC mode).
+    //   "AuctionBuy <listingId> [count]"       buys count from a listing (0 = the first listing in the current page that is not mine).
     //   "AuctionCancel <listingId>"            cancels my listing (0 = my first listing).
     //   "MailClaim <mailId>"                   claims a mail (0 = the first mail).
     //   "AuctionShow"                          logs the search page, my listings and the mailbox.
@@ -70,13 +72,17 @@ public:
     UFUNCTION(Exec)
     void AuctionOpen(int32 AtNpc = 0);
     UFUNCTION(Exec)
-    void AuctionSearch(int32 Slot = 0, int32 Page = 0);
+    void AuctionSearch(const FString& Keyword = TEXT(""), int32 Sort = -1, int32 Desc = 0);
+    UFUNCTION(Exec)
+    void AuctionSort(int32 Sort = 0, int32 Desc = 0);
+    UFUNCTION(Exec)
+    void AuctionPage(int32 Page = 1);
     UFUNCTION(Exec)
     void AuctionMy();
     UFUNCTION(Exec)
-    void AuctionRegister(int32 ItemId, int32 Count = 1, int32 Price = 1);
+    void AuctionRegister(int32 ItemId, int32 Count = 1, int32 UnitPrice = 1);
     UFUNCTION(Exec)
-    void AuctionBuy(int32 ListingId = 0);
+    void AuctionBuy(int32 ListingId = 0, int32 Count = 1);
     UFUNCTION(Exec)
     void AuctionCancel(int32 ListingId = 0);
     UFUNCTION(Exec)

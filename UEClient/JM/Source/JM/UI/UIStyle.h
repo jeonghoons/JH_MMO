@@ -22,6 +22,9 @@ namespace JMUIStyle
 	// 표의 브러시 행(Texture·MarginPx·Color)으로 Out을 채운다. 행·텍스처가 없으면 false(Out은 그대로)
 	JM_API bool MakeBrush(const UObject* WorldContext, FName Key, FSlateBrush& Out);
 
+	// 금액·수량 표시: 세 자리마다 쉼표(20,000). 로캘과 무관하게 같은 모양으로 만든다(AU2b, D-281)
+	JM_API FString GoldText(int64 Value);
+
 	// 위젯 트리에 공용 스타일을 입힌다(UJMUserWidget이 처음 만들어질 때 부름):
 	//   글자(TextBlock·EditableText·EditableTextBox) = 글꼴(이름이 TxtTitle로 시작하면 Title, 나머지 Body)
 	//   Border "Panel" = 창 바탕(Window), Border "SlotBg" = 칸 바탕(Slot), Button "Btn*" = 버튼(Button·ButtonHover) (UI3)

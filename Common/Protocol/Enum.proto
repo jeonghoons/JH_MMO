@@ -278,12 +278,12 @@ enum AuctionResult {
     AUCTION_RESULT_BUSY = 4;             // 이 플레이어의 다른 아이템 작업이 진행 중·Room 이동 중 (클라는 문구를 띄우지 않음)
     AUCTION_RESULT_TOO_FREQUENT = 5;     // 요청 간격 (클라는 문구를 띄우지 않음)
     AUCTION_RESULT_NOT_ALLOWED = 6;      // 더미 봇(검색은 허용), 범위 밖 값
-    AUCTION_RESULT_NO_LISTING = 7;       // 없는 등록·이미 끝난 등록·내 것이 아닌 등록(취소)
-    AUCTION_RESULT_SOLD = 8;             // 다른 요청이 먼저 처리 중이거나 이미 팔림
+    AUCTION_RESULT_NO_LISTING = 7;       // 없는 등록(끝난 지 오래돼 사유를 모름)·내 것이 아닌 등록(취소)
+    AUCTION_RESULT_SOLD = 8;             // 다 팔림 — "이미 판매 완료되었습니다." (D-281)
     AUCTION_RESULT_OWN_ITEM = 9;         // 내가 올린 물품은 살 수 없음
     AUCTION_RESULT_NOT_ENOUGH_GOLD = 10;
     AUCTION_RESULT_LISTING_LIMIT = 11;   // EconomyTable.AuctionMaxListings
-    AUCTION_RESULT_BAD_PRICE = 12;       // EconomyTable.AuctionMinPrice ~ AuctionMaxPrice 밖
+    AUCTION_RESULT_BAD_PRICE = 12;       // 1개당 가격이 EconomyTable.AuctionMinPrice ~ AuctionMaxPrice 밖이거나 총액(단가 × 수량)이 GoldMax 초과 (D-281)
     AUCTION_RESULT_NO_ITEM = 13;         // 인벤토리 위치의 내 아이템이 아님(장착 중 포함)·수량 오류
     AUCTION_RESULT_IN_TRADE = 14;        // 1:1 거래에 올린 아이템
     AUCTION_RESULT_INVENTORY_FULL = 15;  // 수령: 빈 칸 없음
@@ -293,6 +293,23 @@ enum AuctionResult {
     AUCTION_RESULT_IN_DUNGEON = 19;      // 던전 안에서는 경매를 쓸 수 없음 (D-234)
     AUCTION_RESULT_TRY_LATER = 20;       // 경매 요청이 몰려 있음 — 잠시 뒤에 다시 (ServerConfig AuctionDbMaxInFlight, D-235)
     AUCTION_RESULT_NO_MAIL = 21;         // 수령: 없는 우편
+    AUCTION_RESULT_NOT_ENOUGH_COUNT = 22; // 구매: 남은 수량(예약 제외)이 모자람 — 남은 수량은 SC_AUCTION_RESULT.remain (D-281)
+    AUCTION_RESULT_LISTING_BUSY = 23;    // 취소: 그 등록의 구매가 처리 중 — 잠시 뒤에 다시 (D-281)
+    AUCTION_RESULT_ALREADY_CLOSED = 24;  // 구매: 만료·취소로 끝난 등록 — "판매가 끝난 물품입니다." (D-281)
+}
+
+// CS_AUCTION_SEARCH_PACKET.sort — 정렬 기준 (D-281). 같은 값이면 ListingId(먼저 등록한 것)가 앞(내림차순이면 뒤집힘)
+enum AuctionSort {
+    AUCTION_SORT_UNIT_PRICE = 0;   // 1개당 가격
+    AUCTION_SORT_TOTAL_PRICE = 1;  // 가격 = 남은 수량 × 1개당 가격
+    AUCTION_SORT_REMAIN = 2;       // 남은 시간(만료 시각)
+}
+
+// CS_AUCTION_SEARCH_PACKET.query — 검색 요청의 종류 (D-281). 간격: SEARCH = EconomyTable.AuctionSearchIntervalMs, 나머지 = AuctionActionIntervalMs
+enum AuctionQuery {
+    AUCTION_QUERY_SEARCH = 0;  // 검색·새로고침: keyword로 처음부터. 서버가 검색어를 기억한다
+    AUCTION_QUERY_SORT = 1;    // 정렬 변경: 기억한 검색어로 처음부터 (keyword는 무시)
+    AUCTION_QUERY_MORE = 2;    // 다음 묶음: 기억한 검색어로 cursor 다음부터 (keyword는 무시)
 }
 
 // 퀘스트 상태 (QuestInfo.state). DB Player_Quest.State와 같은 값이고, 행이 없으면 NONE이다 (Q1)

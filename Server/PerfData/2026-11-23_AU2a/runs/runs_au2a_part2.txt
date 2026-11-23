@@ -1,0 +1,28 @@
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300, AuctionDurationSec=6, AuctionExpireCheckSec=1
+  expire: 팔림 5, 만료 2
+PASS expire  (DB 아이템 89870, 골드 607408)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=32/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 10/6/1/2/4 8/0 
+GROUP PASS expire
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300, AuctionMaxListings=2, GoldMax=3000, AuctionMaxPrice=2500
+PASS limits  (DB 아이템 89880, 골드 607908)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=34/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=2/0 0.0 4/2/0/1/0 6/0 
+GROUP PASS limits
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300
+  fail: DB_ERROR 4번 뒤 모두 성공
+PASS fail  (DB 아이템 89858, 골드 606408)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=9/4/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 1/1/0/2/0 4/0 
+GROUP PASS fail
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300
+PASS busy  (DB 아이템 89858, 골드 606408)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=4/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 1/0/1/1/0 2/2 
+GROUP PASS busy
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300
+PASS cut  (DB 아이템 89858, 골드 606408)
+PASS movewait  (DB 아이템 89859, 골드 606408)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=7/0/0 0 login(total kick/busy/forced)=2/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1/1/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 2/2/0/1/0 0/0 
+GROUP PASS cut
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300
+PASS restart1  (DB 아이템 89860, 골드 606408)
+PASS restart2  (DB 아이템 89860, 골드 606408)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=4/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/1/0/3/1 1/0 
+GROUP PASS restart

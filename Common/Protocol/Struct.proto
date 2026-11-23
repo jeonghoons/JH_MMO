@@ -67,12 +67,12 @@ message ItemInfo {
 	int32 slot = 5;           // 인벤토리 칸 번호(0부터). 장착 중이면 -1. 서버가 DB(Player_Item.BagSlot)에 저장한다 (A6.1)
 }
 
-// 경매 등록 한 건 (A4.3). 검색 결과(SC_AUCTION_LIST)와 내 등록(SC_AUCTION_MY)에 쓴다
+// 경매 등록 한 건 (A4.3, D-281). 검색 결과(SC_AUCTION_LIST)와 내 등록(SC_AUCTION_MY)에 쓴다
 message AuctionListingInfo {
 	int64 listing_id = 1;
 	int32 item_id = 2;        // ItemTable ID
-	int64 count = 3;          // 묶음 수량 (구매는 통째로만)
-	int64 price = 4;          // 묶음 전체의 값
+	int64 count = 3;          // 남은 수량 (부분 구매 가능)
+	int64 unit_price = 4;     // 1개당 가격 (가격 = count × unit_price)
 	int32 remain_sec = 5;     // 만료까지 남은 초 (0 = 곧 만료)
 	bool mine = 6;            // 내가 올린 등록 (살 수 없음)
 }

@@ -294,12 +294,13 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MAIL_NOTICE(Protocol::MailKind 
 	return MakeSendBuffer(packet, Protocol::SC_MAIL_NOTICE);
 }
 
-shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_AUCTION_RESULT(Protocol::PacketId request, Protocol::AuctionResult result, int64_t id)
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_AUCTION_RESULT(Protocol::PacketId request, Protocol::AuctionResult result, int64_t id, int64_t remain)
 {
 	Protocol::SC_AUCTION_RESULT_PACKET packet;
 	packet.set_request(request);
 	packet.set_result(result);
 	packet.set_id(id);
+	packet.set_remain(remain);
 	return MakeSendBuffer(packet, Protocol::SC_AUCTION_RESULT);
 }
 

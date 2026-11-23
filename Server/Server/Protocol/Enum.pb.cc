@@ -22,7 +22,7 @@ namespace _pbi = _pb::internal;
 
 namespace Protocol {
 }  // namespace Protocol
-static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[22];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[24];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_Enum_2eproto = nullptr;
 const uint32_t TableStruct_Enum_2eproto::offsets[1] = {};
 static constexpr ::_pbi::MigrationSchema* schemas = nullptr;
@@ -154,7 +154,7 @@ const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   "Y_FULL\020\014\022\032\n\026TRADE_RESULT_GOLD_FULL\020\r\022\025\n\021"
   "TRADE_RESULT_BUSY\020\016\022\034\n\030TRADE_RESULT_NOT_"
   "ALLOWED\020\017\022\031\n\025TRADE_RESULT_DB_ERROR\020\020\022\026\n\022"
-  "TRADE_RESULT_MOVED\020\021*\234\005\n\rAuctionResult\022\027"
+  "TRADE_RESULT_MOVED\020\021*\205\006\n\rAuctionResult\022\027"
   "\n\023AUCTION_RESULT_NONE\020\000\022\032\n\026AUCTION_RESUL"
   "T_SUCCESS\020\001\022\036\n\032AUCTION_RESULT_NOT_IN_ROO"
   "M\020\002\022\027\n\023AUCTION_RESULT_DEAD\020\003\022\027\n\023AUCTION_"
@@ -171,42 +171,49 @@ const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   "ULT_DB_ERROR\020\021\022\032\n\026AUCTION_RESULT_TOO_FAR"
   "\020\022\022\035\n\031AUCTION_RESULT_IN_DUNGEON\020\023\022\034\n\030AUC"
   "TION_RESULT_TRY_LATER\020\024\022\032\n\026AUCTION_RESUL"
-  "T_NO_MAIL\020\025*U\n\nQuestState\022\024\n\020QUEST_STATE"
-  "_NONE\020\000\022\026\n\022QUEST_STATE_ACTIVE\020\001\022\031\n\025QUEST"
-  "_STATE_COMPLETED\020\002*\215\004\n\013QuestResult\022\025\n\021QU"
-  "EST_RESULT_NONE\020\000\022\030\n\024QUEST_RESULT_SUCCES"
-  "S\020\001\022\034\n\030QUEST_RESULT_NOT_IN_ROOM\020\002\022\025\n\021QUE"
-  "ST_RESULT_DEAD\020\003\022\025\n\021QUEST_RESULT_BUSY\020\004\022"
-  "\035\n\031QUEST_RESULT_TOO_FREQUENT\020\005\022\034\n\030QUEST_"
-  "RESULT_NOT_ALLOWED\020\006\022\031\n\025QUEST_RESULT_NO_"
-  "QUEST\020\007\022\030\n\024QUEST_RESULT_TOO_FAR\020\010\022\031\n\025QUE"
-  "ST_RESULT_IN_TRADE\020\t\022\037\n\033QUEST_RESULT_ALR"
-  "EADY_ACTIVE\020\n\022\035\n\031QUEST_RESULT_ALREADY_DO"
-  "NE\020\013\022\033\n\027QUEST_RESULT_NOT_ACTIVE\020\014\022\035\n\031QUE"
-  "ST_RESULT_NOT_FINISHED\020\r\022 \n\034QUEST_RESULT"
-  "_NOT_ENOUGH_ITEM\020\016\022\037\n\033QUEST_RESULT_INVEN"
-  "TORY_FULL\020\017\022\032\n\026QUEST_RESULT_GOLD_FULL\020\020\022"
-  "\031\n\025QUEST_RESULT_DB_ERROR\020\021*\202\001\n\010MailKind\022"
-  "\022\n\016MAIL_KIND_NONE\020\000\022\027\n\023MAIL_KIND_SALE_GO"
-  "LD\020\001\022\031\n\025MAIL_KIND_BOUGHT_ITEM\020\002\022\025\n\021MAIL_"
-  "KIND_EXPIRED\020\003\022\027\n\023MAIL_KIND_CANCELLED\020\004*"
-  "Y\n\007NpcKind\022\021\n\rNPC_KIND_NONE\020\000\022\021\n\rNPC_KIN"
-  "D_SHOP\020\001\022\024\n\020NPC_KIND_AUCTION\020\002\022\022\n\016NPC_KI"
-  "ND_QUEST\020\003*t\n\nTradePhase\022\024\n\020TRADE_PHASE_"
-  "NONE\020\000\022\032\n\026TRADE_PHASE_REQUESTING\020\001\022\030\n\024TR"
-  "ADE_PHASE_OFFERING\020\002\022\032\n\026TRADE_PHASE_CONF"
-  "IRMING\020\003*\326\001\n\013LoginResult\022\025\n\021LOGIN_RESULT"
-  "_NONE\020\000\022\030\n\024LOGIN_RESULT_SUCCESS\020\001\022\033\n\027LOG"
-  "IN_RESULT_NO_ACCOUNT\020\002\022\037\n\033LOGIN_RESULT_W"
-  "RONG_PASSWORD\020\003\022\"\n\036LOGIN_RESULT_ALREADY_"
-  "LOGGED_IN\020\004\022\035\n\031LOGIN_RESULT_SERVER_ERROR"
-  "\020\005\022\025\n\021LOGIN_RESULT_BUSY\020\006*C\n\nKickReason\022"
-  "\024\n\020KICK_REASON_NONE\020\000\022\037\n\033KICK_REASON_DUP"
-  "LICATE_LOGIN\020\001b\006proto3"
+  "T_NO_MAIL\020\025\022#\n\037AUCTION_RESULT_NOT_ENOUGH"
+  "_COUNT\020\026\022\037\n\033AUCTION_RESULT_LISTING_BUSY\020"
+  "\027\022!\n\035AUCTION_RESULT_ALREADY_CLOSED\020\030*a\n\013"
+  "AuctionSort\022\033\n\027AUCTION_SORT_UNIT_PRICE\020\000"
+  "\022\034\n\030AUCTION_SORT_TOTAL_PRICE\020\001\022\027\n\023AUCTIO"
+  "N_SORT_REMAIN\020\002*X\n\014AuctionQuery\022\030\n\024AUCTI"
+  "ON_QUERY_SEARCH\020\000\022\026\n\022AUCTION_QUERY_SORT\020"
+  "\001\022\026\n\022AUCTION_QUERY_MORE\020\002*U\n\nQuestState\022"
+  "\024\n\020QUEST_STATE_NONE\020\000\022\026\n\022QUEST_STATE_ACT"
+  "IVE\020\001\022\031\n\025QUEST_STATE_COMPLETED\020\002*\215\004\n\013Que"
+  "stResult\022\025\n\021QUEST_RESULT_NONE\020\000\022\030\n\024QUEST"
+  "_RESULT_SUCCESS\020\001\022\034\n\030QUEST_RESULT_NOT_IN"
+  "_ROOM\020\002\022\025\n\021QUEST_RESULT_DEAD\020\003\022\025\n\021QUEST_"
+  "RESULT_BUSY\020\004\022\035\n\031QUEST_RESULT_TOO_FREQUE"
+  "NT\020\005\022\034\n\030QUEST_RESULT_NOT_ALLOWED\020\006\022\031\n\025QU"
+  "EST_RESULT_NO_QUEST\020\007\022\030\n\024QUEST_RESULT_TO"
+  "O_FAR\020\010\022\031\n\025QUEST_RESULT_IN_TRADE\020\t\022\037\n\033QU"
+  "EST_RESULT_ALREADY_ACTIVE\020\n\022\035\n\031QUEST_RES"
+  "ULT_ALREADY_DONE\020\013\022\033\n\027QUEST_RESULT_NOT_A"
+  "CTIVE\020\014\022\035\n\031QUEST_RESULT_NOT_FINISHED\020\r\022 "
+  "\n\034QUEST_RESULT_NOT_ENOUGH_ITEM\020\016\022\037\n\033QUES"
+  "T_RESULT_INVENTORY_FULL\020\017\022\032\n\026QUEST_RESUL"
+  "T_GOLD_FULL\020\020\022\031\n\025QUEST_RESULT_DB_ERROR\020\021"
+  "*\202\001\n\010MailKind\022\022\n\016MAIL_KIND_NONE\020\000\022\027\n\023MAI"
+  "L_KIND_SALE_GOLD\020\001\022\031\n\025MAIL_KIND_BOUGHT_I"
+  "TEM\020\002\022\025\n\021MAIL_KIND_EXPIRED\020\003\022\027\n\023MAIL_KIN"
+  "D_CANCELLED\020\004*Y\n\007NpcKind\022\021\n\rNPC_KIND_NON"
+  "E\020\000\022\021\n\rNPC_KIND_SHOP\020\001\022\024\n\020NPC_KIND_AUCTI"
+  "ON\020\002\022\022\n\016NPC_KIND_QUEST\020\003*t\n\nTradePhase\022\024"
+  "\n\020TRADE_PHASE_NONE\020\000\022\032\n\026TRADE_PHASE_REQU"
+  "ESTING\020\001\022\030\n\024TRADE_PHASE_OFFERING\020\002\022\032\n\026TR"
+  "ADE_PHASE_CONFIRMING\020\003*\326\001\n\013LoginResult\022\025"
+  "\n\021LOGIN_RESULT_NONE\020\000\022\030\n\024LOGIN_RESULT_SU"
+  "CCESS\020\001\022\033\n\027LOGIN_RESULT_NO_ACCOUNT\020\002\022\037\n\033"
+  "LOGIN_RESULT_WRONG_PASSWORD\020\003\022\"\n\036LOGIN_R"
+  "ESULT_ALREADY_LOGGED_IN\020\004\022\035\n\031LOGIN_RESUL"
+  "T_SERVER_ERROR\020\005\022\025\n\021LOGIN_RESULT_BUSY\020\006*"
+  "C\n\nKickReason\022\024\n\020KICK_REASON_NONE\020\000\022\037\n\033K"
+  "ICK_REASON_DUPLICATE_LOGIN\020\001b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_Enum_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Enum_2eproto = {
-    false, false, 6942, descriptor_table_protodef_Enum_2eproto,
+    false, false, 7236, descriptor_table_protodef_Enum_2eproto,
     "Enum.proto",
     &descriptor_table_Enum_2eproto_once, nullptr, 0, 0,
     schemas, file_default_instances, TableStruct_Enum_2eproto::offsets,
@@ -615,6 +622,39 @@ bool AuctionResult_IsValid(int value) {
     case 19:
     case 20:
     case 21:
+    case 22:
+    case 23:
+    case 24:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AuctionSort_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
+  return file_level_enum_descriptors_Enum_2eproto[15];
+}
+bool AuctionSort_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AuctionQuery_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
+  return file_level_enum_descriptors_Enum_2eproto[16];
+}
+bool AuctionQuery_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
       return true;
     default:
       return false;
@@ -623,7 +663,7 @@ bool AuctionResult_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* QuestState_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[15];
+  return file_level_enum_descriptors_Enum_2eproto[17];
 }
 bool QuestState_IsValid(int value) {
   switch (value) {
@@ -638,7 +678,7 @@ bool QuestState_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* QuestResult_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[16];
+  return file_level_enum_descriptors_Enum_2eproto[18];
 }
 bool QuestResult_IsValid(int value) {
   switch (value) {
@@ -668,7 +708,7 @@ bool QuestResult_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MailKind_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[17];
+  return file_level_enum_descriptors_Enum_2eproto[19];
 }
 bool MailKind_IsValid(int value) {
   switch (value) {
@@ -685,7 +725,7 @@ bool MailKind_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* NpcKind_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[18];
+  return file_level_enum_descriptors_Enum_2eproto[20];
 }
 bool NpcKind_IsValid(int value) {
   switch (value) {
@@ -701,7 +741,7 @@ bool NpcKind_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* TradePhase_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[19];
+  return file_level_enum_descriptors_Enum_2eproto[21];
 }
 bool TradePhase_IsValid(int value) {
   switch (value) {
@@ -717,7 +757,7 @@ bool TradePhase_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* LoginResult_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[20];
+  return file_level_enum_descriptors_Enum_2eproto[22];
 }
 bool LoginResult_IsValid(int value) {
   switch (value) {
@@ -736,7 +776,7 @@ bool LoginResult_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* KickReason_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[21];
+  return file_level_enum_descriptors_Enum_2eproto[23];
 }
 bool KickReason_IsValid(int value) {
   switch (value) {

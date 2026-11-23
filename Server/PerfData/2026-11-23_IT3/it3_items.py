@@ -75,7 +75,7 @@ def main():
     head = next(d for d, r in c.bag(1401).items())
     res, listing = at.register(c, head, 1, 500)
     check("auction-register-1401", res == at.A_SUCCESS and head not in c.items, f"result {res}")
-    found, _ = at.search_all(c, 1)
+    found, _ = at.search_all(c)
     check("auction-search-1401", any(l["id"] == listing and l["item"] == 1401 for l in found), f"{found[:3]}")
     check("auction-cancel", at.cancel(c, listing) == at.A_SUCCESS, "")
     view = at.my(c)

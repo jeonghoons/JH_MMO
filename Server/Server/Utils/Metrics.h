@@ -102,6 +102,8 @@ namespace Metrics
 	inline std::atomic<long long> AuctionExpired{ 0 };      // 만료 반환한 등록 수
 	inline std::atomic<long long> AuctionRejected{ 0 };     // 거부·실패(SC_AUCTION_RESULT, 성공이 아닌 것 — TRY_LATER 포함)
 	inline std::atomic<long long> AuctionTryLater{ 0 };     // 혼잡 기준에 걸려 받지 않은 수(만료 묶음을 미룬 것 포함)
+	inline std::atomic<long long> AuctionPartialBuys{ 0 };  // 성공한 구매 중 등록을 다 사지 않은 것(D-281). AuctionBought에도 든다
+	inline std::atomic<long long> AuctionConflicts{ 0 };    // 수량 예약에 걸린 거부(NOT_ENOUGH_COUNT·LISTING_BUSY — 같은 등록에 요청이 겹침, D-281)
 	// 퀘스트(Q1): Room이 적는다. 수락·완료는 아이템 작업(itemOp 지표에도 든다), 저장은 처치 진행 저장. 마지막 것만 지금 값, 나머지는 누적
 	inline std::atomic<long long> QuestAccepted{ 0 };
 	inline std::atomic<long long> QuestCompleted{ 0 };

@@ -1,0 +1,23 @@
+테이블 사본: mail
+== mail (server pid 20452, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=false, data C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-22_Q1\runs\mail\data)
+PASS no-notice-empty-mailbox
+PASS register
+PASS buy
+PASS sale-notice
+PASS sale-notice-seller-only
+PASS sale-mail-exists
+PASS register-2
+PASS expire-notice
+PASS register-3
+PASS buy-offline
+PASS login-notice
+PASS login-notice-order
+PASS login-no-notice
+PASS no-resend-on-room-move
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 16 / FAIL 0
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=8/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=1/1/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 3/2/0/0/1 1/0 quest(total accept/complete/kill/reject save sent/fail inflight)=0/0/0/0 0/0 0 mailNotice=3 
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS mail (PASS 16)

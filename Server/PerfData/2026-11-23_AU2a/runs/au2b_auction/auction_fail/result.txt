@@ -1,0 +1,2 @@
+  fail: DB_ERROR 4번 뒤 모두 성공
+PASS fail  (DB 아이템 89858, 골드 606408)

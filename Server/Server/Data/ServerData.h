@@ -145,18 +145,19 @@ struct DB_ItemOp {
 	int32_t auctionExpectCount = 0;           // 그 행의 지금 수량(기대 상태)
 	int32_t auctionCount = 0;                 // 올리는 수량(1 ~ auctionExpectCount, 같으면 행을 통째로 경매 보관으로 옮긴다)
 	int32_t auctionSlot = -1;                 // 그 행이 지금 있는 칸(기대 상태)
-	int64_t auctionPrice = 0;                 // 묶음 전체의 값. AuctionBuy에서는 서비스가 목록의 값을 적는다(로그용)
+	int64_t auctionUnitPrice = 0;             // 1개당 가격(D-281). AuctionBuy에서는 서비스가 목록의 값을 적는다(로그·알림용)
 	int32_t auctionDurationSec = 0;           // 등록 기간(EconomyTable.AuctionDurationSec)
 	// AuctionBuy·AuctionCancel
 	int64_t listingId = 0;                    // 대상 등록
-	int64_t auctionGold = 0;                  // AuctionBuy: 요청 때의 보유 골드(서비스가 가격과 비교한다 — 서비스는 Player를 만지지 않는다)
+	int32_t auctionBuyCount = 0;              // AuctionBuy: 사는 수량(1 ~ 남은 수량, D-281). 서비스가 예약하고, 결과가 오면 예약을 돌려준다
+	int64_t auctionGold = 0;                  // AuctionBuy: 요청 때의 보유 골드(서비스가 수량 × 단가와 비교한다 — 서비스는 Player를 만지지 않는다)
 	int64_t auctionSellerUID = 0;             // AuctionBuy: 서비스가 목록에서 적는다(판매자 — 판매 알림을 붙일 자리)
 	// MailClaim — 골드 상한은 goldMax에 담는다
 	int64_t mailId = 0;
 	int32_t claimSlot = -1;                   // 아이템이면 들어갈 인벤토리 칸(-1 = 빈 칸 없음 — 아이템 우편이면 DB가 INVENTORY_FULL로 거부)
-	// AuctionBuy: 서비스가 목록에서 적는다 — 팔린 물건의 종류·수량(판매자에게 보내는 수령함 알림용, D-262). itemId는 DB 바인딩에 쓰므로 따로 둔다
+	// AuctionBuy: 서비스가 목록에서 적는다 — 팔린 물건의 종류(판매자에게 보내는 수령함 알림용, D-262). itemId는 DB 바인딩에 쓰므로 따로 둔다.
+	// 팔린 수량은 auctionBuyCount
 	int32_t auctionItemId = 0;
-	int32_t auctionItemCount = 0;
 
 	// 퀘스트(Q1). QuestAccept는 questId만 쓴다.
 	// QuestComplete — 보상 아이템은 Give의 필드(itemId·fills·newCounts·newSlots)에, 보상 골드는 goldDelta·goldMax에 담는다.
@@ -177,6 +178,7 @@ struct DB_ItemOpResult {
 	// 경매장(A4.3)
 	int32_t auctionResult = 0;       // 실패 사유(Protocol::AuctionResult, 0 = 없음): 서비스가 거부했거나(DB에 가지 않음) DB가 사유를 알려 줌(수령)
 	int64_t listingId = 0;           // AuctionRegister: 새 등록의 ListingId
+	int64_t auctionRemain = 0;       // AuctionBuy: 성공이면 DB의 남은 수량, NOT_ENOUGH_COUNT면 서비스가 본 남은 수량(예약 제외) — SC_AUCTION_RESULT.remain (D-281)
 	int64_t claimDbId = 0;           // MailClaim: 받은 아이템 행(골드 우편이면 0)
 	int32_t claimItemId = 0;
 	int32_t claimCount = 0;
@@ -188,8 +190,8 @@ struct DB_AuctionListing {
 	int64_t listingId = 0;
 	int64_t sellerUID = 0;
 	int32_t itemId = 0;
-	int32_t count = 0;
-	int64_t price = 0;
+	int32_t count = 0;               // 남은 수량
+	int64_t unitPrice = 0;           // 1개당 가격 (D-281)
 	int32_t remainSec = 0;           // 만료까지 남은 초(지났으면 0 이하). DB 시계 기준 — 받은 쪽이 서버 시계로 바꾼다
 };
 
@@ -296,9 +298,10 @@ enum class ItemUseEffect
 	HealMp   // UseValue만큼 MP 회복 (IT3)
 };
 
-// ItemTable 중 서버가 읽는 열. 외형(메시·아이콘·이름)은 클라이언트 전용이라 읽지 않는다.
+// ItemTable 중 서버가 읽는 열. 외형(메시·아이콘)은 클라이언트 전용이라 읽지 않는다. 이름은 경매 검색용으로만 읽는다(D-281).
 struct ItemData
 {
+	std::wstring searchName; // DisplayName을 경매 검색용으로 맞춘 것(DataManager::NormalizeSearchText — 공백 제거·영문 소문자)
 	int itemId;            // 슬롯(1자리) + 티어(1자리) + 일련번호(2자리). 예: 6101 = 천 한손검, 8001 = HP 물약(슬롯 None = 8, 티어 None = 0)
 	ItemSlot slot;
 	ItemGrade grade;
@@ -395,10 +398,14 @@ struct EconomyData
 	int tradeMaxItems;           // 한 사람이 올리는 아이템 수
 	int auctionDurationSec;      // 등록 기간
 	int auctionMaxListings;      // 1인 등록 수
-	int auctionMinPrice;
-	int auctionMaxPrice;
-	int auctionPageSize;         // 목록 한 쪽
+	int auctionMinPrice;         // 1개당 가격 하한 (D-281)
+	int auctionMaxPrice;         // 1개당 가격 상한. 총액(단가 × 수량)은 GoldMax 이하
+	int auctionMailPageSize;     // 수령함을 한 번에 읽는 수
 	int auctionExpireCheckSec;   // 만료 검사 주기
+	int auctionPageRows;         // 클라이언트 한 쪽 줄 수 (D-281)
+	int auctionFetchRows;        // 검색 응답 한 번의 줄 수(AuctionPageRows의 배수)
+	int auctionSearchIntervalMs; // 검색·새로고침 간격
+	int auctionActionIntervalMs; // 정렬 변경·다음 묶음·내 목록·구매·등록·취소·수령 간격
 	int shopRangeCm;             // 상점 NPC 이용 거리 (L4)
 	int partyMaxMembers;         // 파티 정원 (DG2, D-217)
 	int partyInviteTimeoutSec;   // 파티 초대 응답 대기
@@ -564,6 +571,11 @@ public:
 		if (it != _itemTable.end()) return &it->second;
 		return nullptr;
 	}
+
+	// 경매 검색용 글자 맞추기(D-281): 공백(스페이스·탭 등)을 지우고 영문 대문자를 소문자로. 아이템 이름과 검색어에 같이 쓴다
+	static std::wstring NormalizeSearchText(const std::wstring& text);
+	// 이름(searchName)에 정리된 검색어가 들어 있는 아이템 id들(오름차순). 빈 검색어면 빈 목록 — 부르는 쪽이 "전체"로 따로 다룬다
+	static std::vector<int> FindItemsByName(const std::wstring& normalizedKeyword);
 
 	static const SkillData* GetSkillData(int skillId)
 	{

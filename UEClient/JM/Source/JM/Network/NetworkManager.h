@@ -65,10 +65,11 @@ public:
 	void SendShopSell(int32 NpcId, int64 ItemDbId, int32 Count);
 	// 경매장(A6.3b). 검색·구매·내 목록은 던전 밖 어디서나, 등록·취소·수령은 경매 NPC(NpcId) 근처에서만 — 검증은 서버가 한다.
 	// 결과는 SC_AUCTION_LIST / SC_AUCTION_MY / SC_AUCTION_RESULT, 아이템·골드 변화는 SC_INVENTORY_UPDATE
-	void SendAuctionSearch(int32 Slot, int32 Page);
+	// Query = Protocol::AuctionQuery(0 검색 · 1 정렬 변경 · 2 다음 묶음), Sort = Protocol::AuctionSort. 검색어는 검색(0) 때만 쓰인다(AU2, D-281)
+	void SendAuctionSearch(int32 Query, const FString& Keyword, int32 Sort, bool bDesc, int64 CursorKey, int64 CursorId);
 	void SendAuctionMy();
-	void SendAuctionBuy(int64 ListingId);
-	void SendAuctionRegister(int32 NpcId, int64 ItemDbId, int32 Count, int64 Price);
+	void SendAuctionBuy(int64 ListingId, int32 Count);
+	void SendAuctionRegister(int32 NpcId, int64 ItemDbId, int32 Count, int64 UnitPrice);
 	void SendAuctionCancel(int32 NpcId, int64 ListingId);
 	void SendMailClaim(int32 NpcId, int64 MailId);
 	// 퀘스트 수락·완료 요청 하나(Q1, D-264): 어느 쪽인지는 서버가 내 퀘스트 상태로 정한다. NpcId = 퀘스트 NPC의 오브젝트 id

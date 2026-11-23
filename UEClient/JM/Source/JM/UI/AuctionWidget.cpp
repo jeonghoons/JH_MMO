@@ -15,6 +15,7 @@
 #include "Game/DataManager.h"
 #include "Game/JMAuctionManager.h"
 #include "Game/JMInventoryManager.h"
+#include "Protocol/Enum.pb.h"
 
 namespace
 {
@@ -25,6 +26,18 @@ namespace
 	const FLinearColor RowColor(0.10f, 0.10f, 0.12f, 1.f);
 	const FLinearColor RowSelectedColor(0.55f, 0.40f, 0.10f, 1.f);
 	const FLinearColor MineTextColor(1.f, 0.85f, 0.3f, 1.f);
+	const FLinearColor ClosedTextColor(0.42f, 0.42f, 0.42f, 1.f);
+	// 검색어 최대 글자 수(서버 AUCTION_KEYWORD_MAX)·표시용 합계 상한(검증은 서버 — GoldMax)
+	constexpr int32 KeywordMaxLen = 20;
+	constexpr int64 TotalPriceMax = 2000000000LL;
+	const TCHAR* const SortNames[] = { TEXT("1개당 가격"), TEXT("가격"), TEXT("남은 시간") };
+
+	FString DigitsOnly(const FString& Text)
+	{
+		FString Out;
+		for (const TCHAR Ch : Text) if (Ch >= TEXT('0') && Ch <= TEXT('9')) Out.AppendChar(Ch);
+		return Out;
+	}
 
 	void SetShown(UWidget* Widget, bool bShown)
 	{
@@ -48,6 +61,18 @@ void UAuctionRowButton::SetRow(const FString& Text, bool bSelected, const FLinea
 		Label->SetColorAndOpacity(FSlateColor(TextColor));
 	}
 	SetBackgroundColor(bSelected ? RowSelectedColor : RowColor);
+}
+
+void UAuctionRowButton::SetColumns(const FString& Unit, const FString& Total, const FString& Remain, const FLinearColor& TextColor)
+{
+	UTextBlock* const Cols[] = { ColUnit, ColTotal, ColRemain };
+	const FString* const Texts[] = { &Unit, &Total, &Remain };
+	for (int32 Col = 0; Col < 3; ++Col)
+	{
+		if (Cols[Col] == nullptr) continue;
+		Cols[Col]->SetText(FText::FromString(*Texts[Col]));
+		Cols[Col]->SetColorAndOpacity(FSlateColor(TextColor));
+	}
 }
 
 void UAuctionRowButton::SetIcon(UTexture2D* Texture, const FLinearColor& GradeColor)
@@ -93,6 +118,28 @@ void UAuctionWidget::NativeConstruct()
 	if (BtnClaim) BtnClaim->OnClicked.AddUniqueDynamic(this, &UAuctionWidget::OnClaimClicked);
 	if (EditRegCount) EditRegCount->OnTextChanged.AddUniqueDynamic(this, &UAuctionWidget::OnEditChanged);
 	if (EditRegPrice) EditRegPrice->OnTextChanged.AddUniqueDynamic(this, &UAuctionWidget::OnEditChanged);
+	if (BtnSearch) BtnSearch->OnClicked.AddUniqueDynamic(this, &UAuctionWidget::OnSearchClicked);
+	if (EditSearch)
+	{
+		EditSearch->OnTextChanged.AddUniqueDynamic(this, &UAuctionWidget::OnSearchTextChanged);
+		EditSearch->OnTextCommitted.AddUniqueDynamic(this, &UAuctionWidget::OnSearchTextCommitted);
+	}
+	if (BtnSortUnit) BtnSortUnit->OnClicked.AddUniqueDynamic(this, &UAuctionWidget::OnSortUnitClicked);
+	if (BtnSortTotal) BtnSortTotal->OnClicked.AddUniqueDynamic(this, &UAuctionWidget::OnSortTotalClicked);
+	if (BtnSortRemain) BtnSortRemain->OnClicked.AddUniqueDynamic(this, &UAuctionWidget::OnSortRemainClicked);
+	if (EditBuyCount)
+	{
+		EditBuyCount->OnTextChanged.AddUniqueDynamic(this, &UAuctionWidget::OnBuyCountChanged);
+		EditBuyCount->OnTextCommitted.AddUniqueDynamic(this, &UAuctionWidget::OnBuyCountCommitted);
+	}
+	if (BtnBuyMax) BtnBuyMax->OnClicked.AddUniqueDynamic(this, &UAuctionWidget::OnBuyMaxClicked);
+	// 열 머리의 폭을 목록 줄의 열과 같게 맞춘다(값은 Col*Width 한 곳).
+	if (ColUnitBox) ColUnitBox->SetWidthOverride(ColUnitWidth);
+	if (ColTotalBox) ColTotalBox->SetWidthOverride(ColTotalWidth);
+	if (ColRemainBox) ColRemainBox->SetWidthOverride(ColRemainWidth);
+	if (ColIconSpacer) ColIconSpacer->SetWidthOverride(RowIconSize + 8.f);
+	// 필터는 나중에 넣는다(D-281) — 자리만 남기고 숨긴다.
+	if (FilterBox) FilterBox->SetVisibility(ESlateVisibility::Collapsed);
 
 	if (UJMAuctionManager* Auction = GetAuctionManager())
 	{
@@ -129,7 +176,14 @@ void UAuctionWidget::OnAuctionChanged()
 		ActiveTab = ETab::Search;
 		SelectedListingId = SelectedMyListingId = SelectedMailId = 0;
 		RegCountFor = 0;
+		BuyCountFor = 0;
 		if (EditRegPrice) EditRegPrice->SetText(FText::GetEmpty());
+		// 지난 검색어를 검색칸에 되돌려 놓는다(창을 닫아도 검색 조건은 남는다).
+		if (EditSearch)
+		{
+			TGuardValue<bool> Guard(bEditingText, true);
+			EditSearch->SetText(FText::FromString(Auction->GetKeyword()));
+		}
 	}
 	bWasOpen = Auction->IsOpen();
 	bWasAtNpc = Auction->IsAtNpc();
@@ -150,9 +204,8 @@ void UAuctionWidget::SetTab(ETab Tab, bool bRequest)
 	{
 		if (UJMAuctionManager* Auction = GetAuctionManager())
 		{
-			// 검색 탭은 지금 필터·쪽을, 나머지는 내 등록 + 수령함(등록 수 상한·가격 범위도 함께 온다)을 다시 받는다.
-			if (Tab == ETab::Search) Auction->RequestSearch(Auction->GetSearchSlot(), Auction->GetSearchPage());
-			else Auction->RequestMy();
+			// 검색 탭은 받아 둔 결과를 그대로 보여 주고(목록은 갱신하지 않음 — D-281), 나머지는 내 등록 + 수령함(등록 수 상한·가격 범위도 함께 온다)을 다시 받는다.
+			if (Tab != ETab::Search) Auction->RequestMy();
 		}
 	}
 	Refresh();
@@ -177,19 +230,19 @@ FString UAuctionWidget::RemainText(int32 RemainSec)
 {
 	if (RemainSec >= 3600) return FString::Printf(TEXT("%d시간 %d분"), RemainSec / 3600, (RemainSec % 3600) / 60);
 	if (RemainSec >= 60) return FString::Printf(TEXT("%d분"), RemainSec / 60);
-	return TEXT("곧 만료");
+	return TEXT("1분 미만");
 }
 
 int64 UAuctionWidget::ReadNumber(const UEditableTextBox* Box) const
 {
 	if (Box == nullptr) return 0;
-	const FString Text = Box->GetText().ToString().TrimStartAndEnd();
-	if (Text.IsEmpty() || !Text.IsNumeric()) return 0;
+	const FString Text = DigitsOnly(Box->GetText().ToString());
+	if (Text.IsEmpty()) return 0;
 	// 표시 계산이 넘치지 않게만 막는다. 범위 검증은 서버가 한다.
 	return FMath::Clamp<int64>(FCString::Atoi64(*Text), 0, 2000000000LL);
 }
 
-UAuctionRowButton* UAuctionWidget::MakeRow(UPanelWidget* Panel, int32 Index)
+UAuctionRowButton* UAuctionWidget::MakeRow(UPanelWidget* Panel, int32 Index, bool bColumns)
 {
 	if (Panel == nullptr || WidgetTree == nullptr) return nullptr;
 	UAuctionRowButton* Button = WidgetTree->ConstructWidget<UAuctionRowButton>(UAuctionRowButton::StaticClass());
@@ -218,10 +271,30 @@ UAuctionRowButton* UAuctionWidget::MakeRow(UPanelWidget* Panel, int32 Index)
 	{
 		LabelSlot->SetVerticalAlignment(VAlign_Center);
 		LabelSlot->SetPadding(FMargin(8.f, 0.f, 0.f, 0.f));
+		// 4열 줄은 이름이 남는 폭을 차지하고 숫자 열이 오른쪽에 붙는다
+		if (bColumns) LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+	}
+	if (bColumns)
+	{
+		// 숫자 열 셋(1개당 가격 · 가격 · 남은 시간): 폭을 고정하고 오른쪽으로 붙인다(AU2b, D-281)
+		UTextBlock* Cols[3] = { nullptr, nullptr, nullptr };
+		const float Widths[3] = { ColUnitWidth, ColTotalWidth, ColRemainWidth };
+		for (int32 Col = 0; Col < 3; ++Col)
+		{
+			USizeBox* ColSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+			UTextBlock* ColText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+			ColText->SetFont(FontInfo);
+			ColText->SetJustification(ETextJustify::Right);
+			ColSize->SetWidthOverride(Widths[Col]);
+			ColSize->AddChild(ColText);
+			if (UHorizontalBoxSlot* ColSlot = RowBox->AddChildToHorizontalBox(ColSize)) ColSlot->SetVerticalAlignment(VAlign_Center);
+			Cols[Col] = ColText;
+		}
+		Button->SetColumnLabels(Cols[0], Cols[1], Cols[2]);
 	}
 	if (UButtonSlot* ButtonSlot = Cast<UButtonSlot>(Button->AddChild(RowBox)))
 	{
-		ButtonSlot->SetHorizontalAlignment(HAlign_Left);
+		ButtonSlot->SetHorizontalAlignment(bColumns ? HAlign_Fill : HAlign_Left);
 		ButtonSlot->SetPadding(FMargin(6.f, 2.f));
 	}
 	Button->Setup(Index, Label);
@@ -230,12 +303,12 @@ UAuctionRowButton* UAuctionWidget::MakeRow(UPanelWidget* Panel, int32 Index)
 	return Button;
 }
 
-void UAuctionWidget::FillRows(UPanelWidget* Panel, TArray<TObjectPtr<UAuctionRowButton>>& Rows, int32 Count, void (UAuctionWidget::*OnClick)(int32), TFunctionRef<void(UAuctionRowButton&, int32)> Fill)
+void UAuctionWidget::FillRows(UPanelWidget* Panel, TArray<TObjectPtr<UAuctionRowButton>>& Rows, int32 Count, bool bColumns, void (UAuctionWidget::*OnClick)(int32), TFunctionRef<void(UAuctionRowButton&, int32)> Fill)
 {
 	if (Panel == nullptr) return;
 	while (Rows.Num() < Count)
 	{
-		UAuctionRowButton* Row = MakeRow(Panel, Rows.Num());
+		UAuctionRowButton* Row = MakeRow(Panel, Rows.Num(), bColumns);
 		if (Row == nullptr) return;
 		Row->OnRowClicked.BindUObject(this, OnClick);
 		Rows.Add(Row);
@@ -264,7 +337,7 @@ void UAuctionWidget::Refresh()
 	const bool bAtNpc = Auction->IsAtNpc();
 
 	if (TxtTitle) TxtTitle->SetText(FText::FromString(bAtNpc ? TEXT("경매장") : TEXT("경매장 — 조회")));
-	if (TxtGold) TxtGold->SetText(FText::FromString(FString::Printf(TEXT("%lld G"), Gold)));
+	if (TxtGold) TxtGold->SetText(FText::FromString(FString::Printf(TEXT("%s G"), *JMUIStyle::GoldText(Gold))));
 	if (TxtStatus) TxtStatus->SetText(FText::FromString(Auction->GetStatusText()));
 
 	// ---- 탭: 고른 탭의 패널만 보이고, 고른 탭의 버튼은 눌린 것처럼 꺼 둔다 ----
@@ -278,34 +351,81 @@ void UAuctionWidget::Refresh()
 	if (BtnTabMail) BtnTabMail->SetIsEnabled(ActiveTab != ETab::Mail);
 
 	// ---- 검색 ----
-	FillRows(FilterBox, FilterButtons, FilterCount, &UAuctionWidget::OnFilterClicked, [Auction](UAuctionRowButton& Row, int32 Index) {
-		Row.SetRow(FilterNames[Index], Index == Auction->GetSearchSlot(), FLinearColor::White);
-	});
+	const bool bCanSearch = Auction->CanSearch();
+	const bool bCanAct = Auction->CanAct();
+	if (BtnSearch) BtnSearch->SetIsEnabled(bCanSearch);
+	if (BtnRefresh) BtnRefresh->SetIsEnabled(bCanSearch);
+	if (TxtSearchBtn)
+	{
+		// 검색 간격이 남으면 남은 초를 붙인다
+		const int32 WaitSec = FMath::CeilToInt(Auction->SearchWaitSec());
+		TxtSearchBtn->SetText(FText::FromString(bCanSearch ? FString(TEXT("검색")) : FString::Printf(TEXT("검색 · %d초"), FMath::Max(1, WaitSec))));
+	}
+	// 열 머리: 정렬 중인 열에 방향 표시
+	UTextBlock* const SortTexts[] = { TxtSortUnit, TxtSortTotal, TxtSortRemain };
+	UButton* const SortButtons[] = { BtnSortUnit, BtnSortTotal, BtnSortRemain };
+	for (int32 Index = 0; Index < 3; ++Index)
+	{
+		if (SortTexts[Index])
+		{
+			const bool bActive = Auction->GetSort() == Index;
+			SortTexts[Index]->SetText(FText::FromString(bActive ? FString::Printf(TEXT("%s %s"), SortNames[Index], Auction->IsSortDesc() ? TEXT("▼") : TEXT("▲")) : FString(SortNames[Index])));
+		}
+		if (SortButtons[Index]) SortButtons[Index]->SetIsEnabled(bCanAct);
+	}
 
+	// 지금 쪽의 줄(받아 둔 줄 캐시의 한 구간)
 	const TArray<FJMAuctionListing>& Listings = Auction->GetListings();
-	const FJMAuctionListing* Selected = Listings.FindByPredicate([this](const FJMAuctionListing& L) { return L.ListingId == SelectedListingId; });
+	int32 PageFirst = 0, PageNum = 0;
+	Auction->GetPageRange(PageFirst, PageNum);
+	const FJMAuctionListing* Selected = Auction->FindListing(SelectedListingId);
+	if (Selected && Selected->bClosed) Selected = nullptr;   // 끝난 줄은 고를 수 없다
 	if (Selected == nullptr) SelectedListingId = 0;
-	FillRows(SearchList, SearchRows, Listings.Num(), &UAuctionWidget::OnSearchRowClicked, [this, &Listings](UAuctionRowButton& Row, int32 Index) {
-		const FJMAuctionListing& L = Listings[Index];
-		Row.SetRow(FString::Printf(TEXT("%s x%lld      %lld G      %s%s"), *ItemName(L.ItemId), L.Count, L.Price, *RemainText(L.RemainSec), L.bMine ? TEXT("   [내 등록]") : TEXT("")),
-			L.ListingId == SelectedListingId, L.bMine ? MineTextColor : FLinearColor::White);
-		ApplyRowIcon(Row, L.ItemId);
+	FillRows(SearchList, SearchRows, PageNum, true, &UAuctionWidget::OnSearchRowClicked, [this, &Listings, PageFirst](UAuctionRowButton& Row, int32 Index) {
+		const FJMAuctionListing& L = Listings[PageFirst + Index];
+		FillListingRow(Row, L, L.ListingId == SelectedListingId, true);
 	});
 
-	const int32 PageSize = FMath::Max(1, Auction->GetPageSize());
-	const int32 Total = Auction->GetSearchTotal();
-	const int32 Page = Auction->GetSearchPage();
-	const int32 PageCount = FMath::Max(1, (Total + PageSize - 1) / PageSize);
-	if (TxtPage) TxtPage->SetText(FText::FromString(FString::Printf(TEXT("%d / %d쪽 · %d건"), Page + 1, PageCount, Total)));
-	if (BtnPrev) BtnPrev->SetIsEnabled(Page > 0);
-	if (BtnNext) BtnNext->SetIsEnabled(Page + 1 < PageCount);
+	const int32 Page = Auction->GetPage();
+	const int32 PageCount = Auction->GetPageCount();
+	if (TxtPage) TxtPage->SetText(FText::FromString(FString::Printf(TEXT("%d / %d쪽 · 총 %s건"), Page, PageCount, *JMUIStyle::GoldText(Auction->GetSearchTotal()))));
+	if (BtnPrev) BtnPrev->SetIsEnabled(Page > 1);
+	if (BtnNext) BtnNext->SetIsEnabled(Auction->CanNextPage());
+
+	// 구매 수량: 스택 아이템을 골랐을 때만 칸이 보인다. 고른 줄이 바뀌면 1로 되돌린다.
+	const bool bStackSelected = Selected != nullptr && !Selected->bMine && IsStackItem(Selected->ItemId);
+	if (SelectedListingId != BuyCountFor)
+	{
+		BuyCountFor = SelectedListingId;
+		if (EditBuyCount)
+		{
+			TGuardValue<bool> Guard(bEditingText, true);
+			EditBuyCount->SetText(FText::FromString(TEXT("1")));
+		}
+	}
+	// 구매 응답으로 그 줄의 남은 수량이 줄었으면 칸의 수량도 남은 수량으로 덮어쓴다(입력할 때와 같은 규칙)
+	if (bStackSelected && EditBuyCount && ReadNumber(EditBuyCount) > Selected->Count)
+	{
+		TGuardValue<bool> Guard(bEditingText, true);
+		EditBuyCount->SetText(FText::FromString(FString::Printf(TEXT("%lld"), Selected->Count)));
+	}
+	SetShown(BuyCountBox, bStackSelected);
+	const int32 Qty = Selected ? BuyCount(*Selected) : 0;
+	const int64 BuyTotal = Selected ? Selected->UnitPrice * Qty : 0;
 	if (TxtSearchInfo)
 	{
-		if (Selected == nullptr) TxtSearchInfo->SetText(FText::FromString(Listings.Num() == 0 ? TEXT("판매 중인 등록이 없습니다") : TEXT("살 등록을 고르세요")));
-		else if (Selected->bMine) TxtSearchInfo->SetText(FText::FromString(TEXT("내가 올린 등록입니다")));
-		else TxtSearchInfo->SetText(FText::FromString(FString::Printf(TEXT("구매: %s x%lld — %lld G%s"), *ItemName(Selected->ItemId), Selected->Count, Selected->Price, Gold < Selected->Price ? TEXT(" · 골드 부족") : TEXT(""))));
+		FString Info;
+		if (Auction->IsWaitingMore()) Info = TEXT("다음 목록을 불러오는 중입니다");
+		else if (Selected == nullptr) Info = !Auction->HasSearchResult() ? TEXT("") : Listings.Num() == 0 ? TEXT("검색 결과가 없습니다") : TEXT("살 물품을 고르세요");
+		else if (Selected->bMine) Info = TEXT("내가 올린 물품입니다");
+		else
+		{
+			Info = FString::Printf(TEXT("%s · 1개당 %s G · 합계 %s G"), *ItemName(Selected->ItemId), *JMUIStyle::GoldText(Selected->UnitPrice), *JMUIStyle::GoldText(BuyTotal));
+			if (Qty >= 1 && Gold < BuyTotal) Info += TEXT(" · 골드 부족");
+		}
+		TxtSearchInfo->SetText(FText::FromString(Info));
 	}
-	if (BtnBuy) BtnBuy->SetIsEnabled(Selected != nullptr && !Selected->bMine && Gold >= Selected->Price);
+	if (BtnBuy) BtnBuy->SetIsEnabled(Selected != nullptr && !Selected->bMine && Qty >= 1 && Qty <= Selected->Count && Gold >= BuyTotal && bCanAct);
 
 	// ---- 등록(경매 NPC 앞에서만): 인벤토리에서 우클릭한 행 ----
 	const FJMInventoryItem* RegItem = nullptr;
@@ -326,26 +446,31 @@ void UAuctionWidget::Refresh()
 	const int32 MaxListings = Auction->GetMaxListings();
 	const int32 MyCount = Auction->GetMyListings().Num();
 	const bool bListingFull = MaxListings > 0 && MyCount >= MaxListings;
-	const bool bPriceOk = RegPrice >= FMath::Max<int64>(1, Auction->GetMinPrice()) && (Auction->GetMaxPrice() <= 0 || RegPrice <= Auction->GetMaxPrice());
+	// RegPrice = 1개당 가격(AU2, D-281). 합계 = 수량 × 1개당 — 범위 검증은 서버가 하고 여기서는 버튼만 미리 끈다.
+	const int64 RegTotal = RegCount * RegPrice;
+	const bool bPriceOk = RegPrice >= FMath::Max<int64>(1, Auction->GetMinPrice()) && (Auction->GetMaxPrice() <= 0 || RegPrice <= Auction->GetMaxPrice()) && RegTotal <= TotalPriceMax;
 	if (TxtRegisterInfo)
 	{
 		FString Info;
 		if (!bAtNpc) Info = TEXT("등록은 마을의 경매 관리인 앞에서 할 수 있습니다");
 		else if (RegItem == nullptr) Info = TEXT("등록할 아이템을 인벤토리에서 우클릭하세요");
-		else Info = FString::Printf(TEXT("등록: %s  %lld / %lld개  값 %lld G"), *ItemName(RegItem->ItemId), RegCount, RegItem->Count, RegPrice);
+		else
+		{
+			Info = FString::Printf(TEXT("등록: %s %lld / %lld개 · 1개당 %s G · 합계 %s G"), *ItemName(RegItem->ItemId), RegCount, RegItem->Count, *JMUIStyle::GoldText(RegPrice), *JMUIStyle::GoldText(RegTotal));
+			if (RegTotal > TotalPriceMax) Info += TEXT(" · 합계가 너무 큽니다");
+		}
 		if (bAtNpc && MaxListings > 0)
-			Info += FString::Printf(TEXT("\n내 등록 %d / %d건, 값 %lld ~ %lld G%s"), MyCount, MaxListings, Auction->GetMinPrice(), Auction->GetMaxPrice(), bListingFull ? TEXT(" — 더 등록할 수 없습니다") : TEXT(""));
+			Info += FString::Printf(TEXT("\n내 등록 %d / %d건 · 1개당 가격 %s ~ %s G%s"), MyCount, MaxListings, *JMUIStyle::GoldText(Auction->GetMinPrice()), *JMUIStyle::GoldText(Auction->GetMaxPrice()), bListingFull ? TEXT(" · 더 등록할 수 없습니다") : TEXT(""));
 		TxtRegisterInfo->SetText(FText::FromString(Info));
 	}
-	if (BtnRegister) BtnRegister->SetIsEnabled(RegItem != nullptr && RegCount >= 1 && RegCount <= RegItem->Count && bPriceOk && !bListingFull);
+	if (BtnRegister) BtnRegister->SetIsEnabled(RegItem != nullptr && RegCount >= 1 && RegCount <= RegItem->Count && bPriceOk && !bListingFull && bCanAct);
 
 	// ---- 내 등록 ----
 	const TArray<FJMAuctionListing>& MyListings = Auction->GetMyListings();
 	if (!MyListings.ContainsByPredicate([this](const FJMAuctionListing& L) { return L.ListingId == SelectedMyListingId; })) SelectedMyListingId = 0;
-	FillRows(MyList, MyRows, MyListings.Num(), &UAuctionWidget::OnMyRowClicked, [this, &MyListings](UAuctionRowButton& Row, int32 Index) {
+	FillRows(MyList, MyRows, MyListings.Num(), true, &UAuctionWidget::OnMyRowClicked, [this, &MyListings](UAuctionRowButton& Row, int32 Index) {
 		const FJMAuctionListing& L = MyListings[Index];
-		Row.SetRow(FString::Printf(TEXT("%s x%lld      %lld G      %s"), *ItemName(L.ItemId), L.Count, L.Price, *RemainText(L.RemainSec)), L.ListingId == SelectedMyListingId, FLinearColor::White);
-		ApplyRowIcon(Row, L.ItemId);
+		FillListingRow(Row, L, L.ListingId == SelectedMyListingId, false);
 	});
 	if (TxtMyInfo)
 	{
@@ -354,17 +479,17 @@ void UAuctionWidget::Refresh()
 		else if (MyCount > 0) Info += TEXT(" — 취소하면 아이템은 수령함으로 돌아갑니다");
 		TxtMyInfo->SetText(FText::FromString(Info));
 	}
-	if (BtnCancel) BtnCancel->SetIsEnabled(bAtNpc && SelectedMyListingId != 0);
+	if (BtnCancel) BtnCancel->SetIsEnabled(bAtNpc && SelectedMyListingId != 0 && bCanAct);
 
 	// ---- 수령함 ----
 	const TArray<FJMAuctionMail>& Mails = Auction->GetMails();
 	if (!Mails.ContainsByPredicate([this](const FJMAuctionMail& M) { return M.MailId == SelectedMailId; })) SelectedMailId = 0;
-	FillRows(MailList, MailRows, Mails.Num(), &UAuctionWidget::OnMailRowClicked, [this, &Mails](UAuctionRowButton& Row, int32 Index) {
+	FillRows(MailList, MailRows, Mails.Num(), false, &UAuctionWidget::OnMailRowClicked, [this, &Mails](UAuctionRowButton& Row, int32 Index) {
 		const FJMAuctionMail& M = Mails[Index];
 		FString Text;
 		switch (M.Kind)
 		{
-		case Protocol::MAIL_KIND_SALE_GOLD: Text = FString::Printf(TEXT("판매 대금      %lld G"), M.Gold); break;
+		case Protocol::MAIL_KIND_SALE_GOLD: Text = FString::Printf(TEXT("판매 대금      %s G"), *JMUIStyle::GoldText(M.Gold)); break;
 		case Protocol::MAIL_KIND_BOUGHT_ITEM: Text = FString::Printf(TEXT("구매품      %s x%lld"), *ItemName(M.ItemId), M.Count); break;
 		case Protocol::MAIL_KIND_EXPIRED: Text = FString::Printf(TEXT("만료 반환      %s x%lld"), *ItemName(M.ItemId), M.Count); break;
 		case Protocol::MAIL_KIND_CANCELLED: Text = FString::Printf(TEXT("취소 반환      %s x%lld"), *ItemName(M.ItemId), M.Count); break;
@@ -379,20 +504,25 @@ void UAuctionWidget::Refresh()
 		if (!bAtNpc) Info += TEXT(" — 수령은 경매 관리인 앞에서 할 수 있습니다");
 		TxtMailInfo->SetText(FText::FromString(Info));
 	}
-	if (BtnClaim) BtnClaim->SetIsEnabled(bAtNpc && SelectedMailId != 0);
+	if (BtnClaim) BtnClaim->SetIsEnabled(bAtNpc && SelectedMailId != 0 && bCanAct);
+	LastCooldownState = CooldownState();
 }
 
 void UAuctionWidget::OnFilterClicked(int32 FilterSlot)
 {
-	SelectedListingId = 0;
-	if (UJMAuctionManager* Auction = GetAuctionManager()) Auction->RequestSearch(FilterSlot, 0);
+	// 필터는 나중에 넣는다(D-281). 버튼 줄이 숨겨져 있어 불리지 않는다.
 }
 
 void UAuctionWidget::OnSearchRowClicked(int32 Index)
 {
 	const UJMAuctionManager* Auction = GetAuctionManager();
-	if (Auction == nullptr || !Auction->GetListings().IsValidIndex(Index)) return;
-	SelectedListingId = Auction->GetListings()[Index].ListingId;
+	if (Auction == nullptr) return;
+	int32 PageFirst = 0, PageNum = 0;
+	Auction->GetPageRange(PageFirst, PageNum);
+	if (Index < 0 || Index >= PageNum) return;
+	const FJMAuctionListing& Listing = Auction->GetListings()[PageFirst + Index];
+	if (Listing.bClosed) return;   // 끝난 줄은 고를 수 없다
+	SelectedListingId = Listing.ListingId;
 	Refresh();
 }
 
@@ -429,23 +559,136 @@ void UAuctionWidget::OnCloseClicked()
 
 void UAuctionWidget::OnPrevClicked()
 {
-	if (UJMAuctionManager* Auction = GetAuctionManager()) Auction->RequestSearch(Auction->GetSearchSlot(), Auction->GetSearchPage() - 1);
+	if (UJMAuctionManager* Auction = GetAuctionManager()) Auction->SetPage(Auction->GetPage() - 1);
 }
 
 void UAuctionWidget::OnNextClicked()
 {
-	if (UJMAuctionManager* Auction = GetAuctionManager()) Auction->RequestSearch(Auction->GetSearchSlot(), Auction->GetSearchPage() + 1);
+	if (UJMAuctionManager* Auction = GetAuctionManager()) Auction->SetPage(Auction->GetPage() + 1);
 }
 
-void UAuctionWidget::OnRefreshClicked()
+void UAuctionWidget::DoSearch()
 {
-	if (UJMAuctionManager* Auction = GetAuctionManager()) Auction->RequestSearch(Auction->GetSearchSlot(), Auction->GetSearchPage());
+	UJMAuctionManager* Auction = GetAuctionManager();
+	if (Auction == nullptr) return;
+	// 검색칸이 없으면(옛 WBP) 지난 검색어로 다시 찾는다
+	if (Auction->Search(EditSearch ? EditSearch->GetText().ToString() : Auction->GetKeyword())) SelectedListingId = 0;
+}
+
+// [새로고침]은 [검색]과 같은 동작이다(D-281)
+void UAuctionWidget::OnRefreshClicked() { DoSearch(); }
+void UAuctionWidget::OnSearchClicked() { DoSearch(); }
+
+void UAuctionWidget::OnSearchTextChanged(const FText& Text)
+{
+	if (bEditingText || EditSearch == nullptr) return;
+	const FString Current = Text.ToString();
+	if (Current.Len() <= KeywordMaxLen) return;
+	TGuardValue<bool> Guard(bEditingText, true);
+	EditSearch->SetText(FText::FromString(Current.Left(KeywordMaxLen)));
+}
+
+void UAuctionWidget::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitMethod)
+{
+	if (CommitMethod == ETextCommit::OnEnter) DoSearch();
+}
+
+void UAuctionWidget::OnSortUnitClicked() { if (UJMAuctionManager* Auction = GetAuctionManager()) Auction->ToggleSort(Protocol::AUCTION_SORT_UNIT_PRICE); }
+void UAuctionWidget::OnSortTotalClicked() { if (UJMAuctionManager* Auction = GetAuctionManager()) Auction->ToggleSort(Protocol::AUCTION_SORT_TOTAL_PRICE); }
+void UAuctionWidget::OnSortRemainClicked() { if (UJMAuctionManager* Auction = GetAuctionManager()) Auction->ToggleSort(Protocol::AUCTION_SORT_REMAIN); }
+
+bool UAuctionWidget::IsStackItem(int32 ItemId) const
+{
+	const UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;
+	const FItemTableRow* Row = DataManager ? DataManager->FindItemById(ItemId) : nullptr;
+	return Row != nullptr && Row->MaxStack > 1;
+}
+
+void UAuctionWidget::FillListingRow(UAuctionRowButton& Row, const FJMAuctionListing& Listing, bool bSelected, bool bMarkMine) const
+{
+	// 이름은 스택 아이템만 "이름(남은 수량)" (D-281). 끝난 줄은 회색 + "판매 완료", 내 등록은 노란 글자.
+	const FString Name = IsStackItem(Listing.ItemId) ? FString::Printf(TEXT("%s(%s)"), *ItemName(Listing.ItemId), *JMUIStyle::GoldText(Listing.Count)) : ItemName(Listing.ItemId);
+	const FLinearColor Color = Listing.bClosed ? ClosedTextColor : (bMarkMine && Listing.bMine) ? MineTextColor : FLinearColor::White;
+	Row.SetRow(Name, bSelected, Color);
+	Row.SetColumns(JMUIStyle::GoldText(Listing.UnitPrice), JMUIStyle::GoldText(Listing.TotalPrice()), Listing.bClosed ? FString(TEXT("판매 완료")) : RemainText(Listing.RemainSec), Color);
+	ApplyRowIcon(Row, Listing.ItemId);
+}
+
+int32 UAuctionWidget::BuyCount(const FJMAuctionListing& Listing) const
+{
+	if (!IsStackItem(Listing.ItemId) || EditBuyCount == nullptr) return 1;
+	return static_cast<int32>(FMath::Clamp<int64>(ReadNumber(EditBuyCount), 0, Listing.Count));
+}
+
+void UAuctionWidget::OnBuyCountChanged(const FText& Text)
+{
+	if (bEditingText) return;
+	const UJMAuctionManager* Auction = GetAuctionManager();
+	const FJMAuctionListing* Selected = Auction ? Auction->FindListing(SelectedListingId) : nullptr;
+	if (EditBuyCount && Selected)
+	{
+		// 숫자만 남기고, 남은 수량보다 크면 남은 수량으로 덮어쓴다(50개 남았는데 70 → 50). 빈칸·0은 입력 중이므로 그대로 둔다.
+		const FString Current = Text.ToString();
+		FString Fixed = DigitsOnly(Current);
+		if (!Fixed.IsEmpty() && (Fixed.Len() > 9 || FCString::Atoi64(*Fixed) > Selected->Count)) Fixed = FString::Printf(TEXT("%lld"), Selected->Count);
+		if (Fixed != Current)
+		{
+			TGuardValue<bool> Guard(bEditingText, true);
+			EditBuyCount->SetText(FText::FromString(Fixed));
+		}
+	}
+	Refresh();
+}
+
+void UAuctionWidget::OnBuyCountCommitted(const FText& Text, ETextCommit::Type CommitMethod)
+{
+	// 칸을 벗어났는데 비었거나 0이면 1로 채운다
+	if (EditBuyCount && ReadNumber(EditBuyCount) < 1)
+	{
+		TGuardValue<bool> Guard(bEditingText, true);
+		EditBuyCount->SetText(FText::FromString(TEXT("1")));
+	}
+	Refresh();
+}
+
+void UAuctionWidget::OnBuyMaxClicked()
+{
+	const UJMAuctionManager* Auction = GetAuctionManager();
+	const FJMAuctionListing* Selected = Auction ? Auction->FindListing(SelectedListingId) : nullptr;
+	if (EditBuyCount == nullptr || Selected == nullptr) return;
+	{
+		TGuardValue<bool> Guard(bEditingText, true);
+		EditBuyCount->SetText(FText::FromString(FString::Printf(TEXT("%lld"), Selected->Count)));
+	}
+	Refresh();
 }
 
 void UAuctionWidget::OnBuyClicked()
 {
 	// 골드·등록 상태 검증은 서버가 하고 거부는 시스템 메시지로 온다.
-	if (UJMAuctionManager* Auction = GetAuctionManager()) Auction->Buy(SelectedListingId);
+	UJMAuctionManager* Auction = GetAuctionManager();
+	const FJMAuctionListing* Selected = Auction ? Auction->FindListing(SelectedListingId) : nullptr;
+	if (Selected == nullptr) return;
+	const int32 Qty = BuyCount(*Selected);
+	if (Qty >= 1) Auction->Buy(SelectedListingId, Qty);
+}
+
+int32 UAuctionWidget::CooldownState() const
+{
+	const UJMAuctionManager* Auction = GetAuctionManager();
+	if (Auction == nullptr) return 0;
+	return FMath::CeilToInt(Auction->SearchWaitSec()) * 4 + (Auction->CanAct() ? 2 : 0) + (Auction->CanSearch() ? 1 : 0);
+}
+
+void UAuctionWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	// 요청 간격이 풀리거나 남은 초가 바뀌면 버튼 상태를 다시 그린다(0.2초마다 확인)
+	CooldownAccum += InDeltaTime;
+	if (CooldownAccum < 0.2f) return;
+	CooldownAccum = 0.f;
+	const UJMAuctionManager* Auction = GetAuctionManager();
+	if (Auction && Auction->IsOpen() && CooldownState() != LastCooldownState) Refresh();
 }
 
 void UAuctionWidget::OnRegisterClicked()

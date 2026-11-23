@@ -60,6 +60,13 @@ namespace JMUIStyle
 		return Color(WorldContext, FName(*FString::Printf(TEXT("Grade_%s"), *Name)), FLinearColor(0.34f, 0.34f, 0.34f));
 	}
 
+	FString GoldText(int64 Value)
+	{
+		FString Digits = FString::Printf(TEXT("%lld"), Value < 0 ? -Value : Value);
+		for (int32 Pos = Digits.Len() - 3; Pos > 0; Pos -= 3) Digits.InsertAt(Pos, TEXT(","));
+		return Value < 0 ? TEXT("-") + Digits : Digits;
+	}
+
 	bool MakeBrush(const UObject* WorldContext, FName Key, FSlateBrush& Out)
 	{
 		const FUIStyleTableRow* Row = FindRow(WorldContext, Key);

@@ -1,0 +1,7 @@
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300
+  race: 통째 이긴 수 {'Test2': 2, 'Test3': 2}, 부분 산 수 {'Test2': 12, 'Test3': 8, 'Test4': 12}
+PASS race  (DB 아이템 89901, 골드 609408)
+  cancelrace: 취소 4, 구매 4, 부분 구매 먼저
+PASS cancelrace  (DB 아이템 89914, 골드 609668)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=78/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 17/17/9/0/0 20/0 
+GROUP PASS race

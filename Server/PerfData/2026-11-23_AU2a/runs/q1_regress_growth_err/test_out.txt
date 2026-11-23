@@ -1,0 +1,16 @@
+== regress growth_err (server pid 27588, port 8897, DevCommands=false PortalNoRange=false, data C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-22_Q1\runs\regress_growth_err\data)
+PASS dev-exp-disabled
+PASS err-table
+PASS spend
+[   8.55] 연타 30회: 거부 [3, 3, 3, 3, 3, 3, 3, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11] 받아들임 0 MP [0, 5, 10, 15, 20, 25, 30]
+PASS spam-rejected
+PASS spam-no-cast
+PASS spam-mp-nonneg
+PASS bad-slot
+PASS out-of-range-slot-dropped
+[  13.16] 깨진 패킷 뒤 Test2 연결 끊김
+PASS server-alive
+
+합계 PASS 9 / FAIL 0
+ERROR 줄 수: 0
+REGRESS PASS growth_err (PASS 9/9)

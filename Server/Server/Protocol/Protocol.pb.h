@@ -3141,9 +3141,28 @@ class CS_AUCTION_SEARCH_PACKET final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kKeywordFieldNumber = 4,
     kSlotFieldNumber = 1,
-    kPageFieldNumber = 2,
+    kQueryFieldNumber = 3,
+    kSortFieldNumber = 5,
+    kDescFieldNumber = 6,
+    kCursorKeyFieldNumber = 7,
+    kCursorIdFieldNumber = 8,
   };
+  // string keyword = 4;
+  void clear_keyword();
+  const std::string& keyword() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_keyword(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_keyword();
+  PROTOBUF_NODISCARD std::string* release_keyword();
+  void set_allocated_keyword(std::string* keyword);
+  private:
+  const std::string& _internal_keyword() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_keyword(const std::string& value);
+  std::string* _internal_mutable_keyword();
+  public:
+
   // int32 slot = 1;
   void clear_slot();
   int32_t slot() const;
@@ -3153,13 +3172,49 @@ class CS_AUCTION_SEARCH_PACKET final :
   void _internal_set_slot(int32_t value);
   public:
 
-  // int32 page = 2;
-  void clear_page();
-  int32_t page() const;
-  void set_page(int32_t value);
+  // .Protocol.AuctionQuery query = 3;
+  void clear_query();
+  ::Protocol::AuctionQuery query() const;
+  void set_query(::Protocol::AuctionQuery value);
   private:
-  int32_t _internal_page() const;
-  void _internal_set_page(int32_t value);
+  ::Protocol::AuctionQuery _internal_query() const;
+  void _internal_set_query(::Protocol::AuctionQuery value);
+  public:
+
+  // .Protocol.AuctionSort sort = 5;
+  void clear_sort();
+  ::Protocol::AuctionSort sort() const;
+  void set_sort(::Protocol::AuctionSort value);
+  private:
+  ::Protocol::AuctionSort _internal_sort() const;
+  void _internal_set_sort(::Protocol::AuctionSort value);
+  public:
+
+  // bool desc = 6;
+  void clear_desc();
+  bool desc() const;
+  void set_desc(bool value);
+  private:
+  bool _internal_desc() const;
+  void _internal_set_desc(bool value);
+  public:
+
+  // int64 cursor_key = 7;
+  void clear_cursor_key();
+  int64_t cursor_key() const;
+  void set_cursor_key(int64_t value);
+  private:
+  int64_t _internal_cursor_key() const;
+  void _internal_set_cursor_key(int64_t value);
+  public:
+
+  // int64 cursor_id = 8;
+  void clear_cursor_id();
+  int64_t cursor_id() const;
+  void set_cursor_id(int64_t value);
+  private:
+  int64_t _internal_cursor_id() const;
+  void _internal_set_cursor_id(int64_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:Protocol.CS_AUCTION_SEARCH_PACKET)
@@ -3170,8 +3225,13 @@ class CS_AUCTION_SEARCH_PACKET final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr keyword_;
     int32_t slot_;
-    int32_t page_;
+    int query_;
+    int sort_;
+    bool desc_;
+    int64_t cursor_key_;
+    int64_t cursor_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -3303,7 +3363,7 @@ class CS_AUCTION_REGISTER_PACKET final :
     kItemDbIdFieldNumber = 2,
     kNpcIdFieldNumber = 1,
     kCountFieldNumber = 3,
-    kPriceFieldNumber = 4,
+    kUnitPriceFieldNumber = 4,
   };
   // int64 item_db_id = 2;
   void clear_item_db_id();
@@ -3332,13 +3392,13 @@ class CS_AUCTION_REGISTER_PACKET final :
   void _internal_set_count(int32_t value);
   public:
 
-  // int64 price = 4;
-  void clear_price();
-  int64_t price() const;
-  void set_price(int64_t value);
+  // int64 unit_price = 4;
+  void clear_unit_price();
+  int64_t unit_price() const;
+  void set_unit_price(int64_t value);
   private:
-  int64_t _internal_price() const;
-  void _internal_set_price(int64_t value);
+  int64_t _internal_unit_price() const;
+  void _internal_set_unit_price(int64_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:Protocol.CS_AUCTION_REGISTER_PACKET)
@@ -3352,7 +3412,7 @@ class CS_AUCTION_REGISTER_PACKET final :
     int64_t item_db_id_;
     int32_t npc_id_;
     int32_t count_;
-    int64_t price_;
+    int64_t unit_price_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -3482,6 +3542,7 @@ class CS_AUCTION_BUY_PACKET final :
 
   enum : int {
     kListingIdFieldNumber = 1,
+    kCountFieldNumber = 2,
   };
   // int64 listing_id = 1;
   void clear_listing_id();
@@ -3490,6 +3551,15 @@ class CS_AUCTION_BUY_PACKET final :
   private:
   int64_t _internal_listing_id() const;
   void _internal_set_listing_id(int64_t value);
+  public:
+
+  // int64 count = 2;
+  void clear_count();
+  int64_t count() const;
+  void set_count(int64_t value);
+  private:
+  int64_t _internal_count() const;
+  void _internal_set_count(int64_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:Protocol.CS_AUCTION_BUY_PACKET)
@@ -3501,6 +3571,7 @@ class CS_AUCTION_BUY_PACKET final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     int64_t listing_id_;
+    int64_t count_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -11885,10 +11956,17 @@ class SC_AUCTION_LIST_PACKET final :
 
   enum : int {
     kListingsFieldNumber = 5,
+    kCursorKeysFieldNumber = 10,
+    kKeywordFieldNumber = 11,
     kSlotFieldNumber = 1,
-    kPageFieldNumber = 2,
     kTotalCountFieldNumber = 3,
-    kPageSizeFieldNumber = 4,
+    kQueryFieldNumber = 6,
+    kSortFieldNumber = 7,
+    kDescFieldNumber = 8,
+    kHasMoreFieldNumber = 9,
+    kPageRowsFieldNumber = 12,
+    kSearchIntervalMsFieldNumber = 13,
+    kActionIntervalMsFieldNumber = 14,
   };
   // repeated .Protocol.AuctionListingInfo listings = 5;
   int listings_size() const;
@@ -11908,6 +11986,42 @@ class SC_AUCTION_LIST_PACKET final :
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo >&
       listings() const;
 
+  // repeated int64 cursor_keys = 10;
+  int cursor_keys_size() const;
+  private:
+  int _internal_cursor_keys_size() const;
+  public:
+  void clear_cursor_keys();
+  private:
+  int64_t _internal_cursor_keys(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int64_t >&
+      _internal_cursor_keys() const;
+  void _internal_add_cursor_keys(int64_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int64_t >*
+      _internal_mutable_cursor_keys();
+  public:
+  int64_t cursor_keys(int index) const;
+  void set_cursor_keys(int index, int64_t value);
+  void add_cursor_keys(int64_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int64_t >&
+      cursor_keys() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int64_t >*
+      mutable_cursor_keys();
+
+  // string keyword = 11;
+  void clear_keyword();
+  const std::string& keyword() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_keyword(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_keyword();
+  PROTOBUF_NODISCARD std::string* release_keyword();
+  void set_allocated_keyword(std::string* keyword);
+  private:
+  const std::string& _internal_keyword() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_keyword(const std::string& value);
+  std::string* _internal_mutable_keyword();
+  public:
+
   // int32 slot = 1;
   void clear_slot();
   int32_t slot() const;
@@ -11915,15 +12029,6 @@ class SC_AUCTION_LIST_PACKET final :
   private:
   int32_t _internal_slot() const;
   void _internal_set_slot(int32_t value);
-  public:
-
-  // int32 page = 2;
-  void clear_page();
-  int32_t page() const;
-  void set_page(int32_t value);
-  private:
-  int32_t _internal_page() const;
-  void _internal_set_page(int32_t value);
   public:
 
   // int32 total_count = 3;
@@ -11935,13 +12040,67 @@ class SC_AUCTION_LIST_PACKET final :
   void _internal_set_total_count(int32_t value);
   public:
 
-  // int32 page_size = 4;
-  void clear_page_size();
-  int32_t page_size() const;
-  void set_page_size(int32_t value);
+  // .Protocol.AuctionQuery query = 6;
+  void clear_query();
+  ::Protocol::AuctionQuery query() const;
+  void set_query(::Protocol::AuctionQuery value);
   private:
-  int32_t _internal_page_size() const;
-  void _internal_set_page_size(int32_t value);
+  ::Protocol::AuctionQuery _internal_query() const;
+  void _internal_set_query(::Protocol::AuctionQuery value);
+  public:
+
+  // .Protocol.AuctionSort sort = 7;
+  void clear_sort();
+  ::Protocol::AuctionSort sort() const;
+  void set_sort(::Protocol::AuctionSort value);
+  private:
+  ::Protocol::AuctionSort _internal_sort() const;
+  void _internal_set_sort(::Protocol::AuctionSort value);
+  public:
+
+  // bool desc = 8;
+  void clear_desc();
+  bool desc() const;
+  void set_desc(bool value);
+  private:
+  bool _internal_desc() const;
+  void _internal_set_desc(bool value);
+  public:
+
+  // bool has_more = 9;
+  void clear_has_more();
+  bool has_more() const;
+  void set_has_more(bool value);
+  private:
+  bool _internal_has_more() const;
+  void _internal_set_has_more(bool value);
+  public:
+
+  // int32 page_rows = 12;
+  void clear_page_rows();
+  int32_t page_rows() const;
+  void set_page_rows(int32_t value);
+  private:
+  int32_t _internal_page_rows() const;
+  void _internal_set_page_rows(int32_t value);
+  public:
+
+  // int32 search_interval_ms = 13;
+  void clear_search_interval_ms();
+  int32_t search_interval_ms() const;
+  void set_search_interval_ms(int32_t value);
+  private:
+  int32_t _internal_search_interval_ms() const;
+  void _internal_set_search_interval_ms(int32_t value);
+  public:
+
+  // int32 action_interval_ms = 14;
+  void clear_action_interval_ms();
+  int32_t action_interval_ms() const;
+  void set_action_interval_ms(int32_t value);
+  private:
+  int32_t _internal_action_interval_ms() const;
+  void _internal_set_action_interval_ms(int32_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:Protocol.SC_AUCTION_LIST_PACKET)
@@ -11953,10 +12112,18 @@ class SC_AUCTION_LIST_PACKET final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListingInfo > listings_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int64_t > cursor_keys_;
+    mutable std::atomic<int> _cursor_keys_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr keyword_;
     int32_t slot_;
-    int32_t page_;
     int32_t total_count_;
-    int32_t page_size_;
+    int query_;
+    int sort_;
+    bool desc_;
+    bool has_more_;
+    int32_t page_rows_;
+    int32_t search_interval_ms_;
+    int32_t action_interval_ms_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -12309,6 +12476,7 @@ class SC_AUCTION_RESULT_PACKET final :
     kRequestFieldNumber = 1,
     kResultFieldNumber = 2,
     kIdFieldNumber = 3,
+    kRemainFieldNumber = 4,
   };
   // .Protocol.PacketId request = 1;
   void clear_request();
@@ -12337,6 +12505,15 @@ class SC_AUCTION_RESULT_PACKET final :
   void _internal_set_id(int64_t value);
   public:
 
+  // int64 remain = 4;
+  void clear_remain();
+  int64_t remain() const;
+  void set_remain(int64_t value);
+  private:
+  int64_t _internal_remain() const;
+  void _internal_set_remain(int64_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.SC_AUCTION_RESULT_PACKET)
  private:
   class _Internal;
@@ -12348,6 +12525,7 @@ class SC_AUCTION_RESULT_PACKET final :
     int request_;
     int result_;
     int64_t id_;
+    int64_t remain_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -15229,24 +15407,154 @@ inline void CS_AUCTION_SEARCH_PACKET::set_slot(int32_t value) {
   // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_SEARCH_PACKET.slot)
 }
 
-// int32 page = 2;
-inline void CS_AUCTION_SEARCH_PACKET::clear_page() {
-  _impl_.page_ = 0;
+// .Protocol.AuctionQuery query = 3;
+inline void CS_AUCTION_SEARCH_PACKET::clear_query() {
+  _impl_.query_ = 0;
 }
-inline int32_t CS_AUCTION_SEARCH_PACKET::_internal_page() const {
-  return _impl_.page_;
+inline ::Protocol::AuctionQuery CS_AUCTION_SEARCH_PACKET::_internal_query() const {
+  return static_cast< ::Protocol::AuctionQuery >(_impl_.query_);
 }
-inline int32_t CS_AUCTION_SEARCH_PACKET::page() const {
-  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_SEARCH_PACKET.page)
-  return _internal_page();
+inline ::Protocol::AuctionQuery CS_AUCTION_SEARCH_PACKET::query() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_SEARCH_PACKET.query)
+  return _internal_query();
 }
-inline void CS_AUCTION_SEARCH_PACKET::_internal_set_page(int32_t value) {
+inline void CS_AUCTION_SEARCH_PACKET::_internal_set_query(::Protocol::AuctionQuery value) {
   
-  _impl_.page_ = value;
+  _impl_.query_ = value;
 }
-inline void CS_AUCTION_SEARCH_PACKET::set_page(int32_t value) {
-  _internal_set_page(value);
-  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_SEARCH_PACKET.page)
+inline void CS_AUCTION_SEARCH_PACKET::set_query(::Protocol::AuctionQuery value) {
+  _internal_set_query(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_SEARCH_PACKET.query)
+}
+
+// string keyword = 4;
+inline void CS_AUCTION_SEARCH_PACKET::clear_keyword() {
+  _impl_.keyword_.ClearToEmpty();
+}
+inline const std::string& CS_AUCTION_SEARCH_PACKET::keyword() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_SEARCH_PACKET.keyword)
+  return _internal_keyword();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void CS_AUCTION_SEARCH_PACKET::set_keyword(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.keyword_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_SEARCH_PACKET.keyword)
+}
+inline std::string* CS_AUCTION_SEARCH_PACKET::mutable_keyword() {
+  std::string* _s = _internal_mutable_keyword();
+  // @@protoc_insertion_point(field_mutable:Protocol.CS_AUCTION_SEARCH_PACKET.keyword)
+  return _s;
+}
+inline const std::string& CS_AUCTION_SEARCH_PACKET::_internal_keyword() const {
+  return _impl_.keyword_.Get();
+}
+inline void CS_AUCTION_SEARCH_PACKET::_internal_set_keyword(const std::string& value) {
+  
+  _impl_.keyword_.Set(value, GetArenaForAllocation());
+}
+inline std::string* CS_AUCTION_SEARCH_PACKET::_internal_mutable_keyword() {
+  
+  return _impl_.keyword_.Mutable(GetArenaForAllocation());
+}
+inline std::string* CS_AUCTION_SEARCH_PACKET::release_keyword() {
+  // @@protoc_insertion_point(field_release:Protocol.CS_AUCTION_SEARCH_PACKET.keyword)
+  return _impl_.keyword_.Release();
+}
+inline void CS_AUCTION_SEARCH_PACKET::set_allocated_keyword(std::string* keyword) {
+  if (keyword != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.keyword_.SetAllocated(keyword, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.keyword_.IsDefault()) {
+    _impl_.keyword_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:Protocol.CS_AUCTION_SEARCH_PACKET.keyword)
+}
+
+// .Protocol.AuctionSort sort = 5;
+inline void CS_AUCTION_SEARCH_PACKET::clear_sort() {
+  _impl_.sort_ = 0;
+}
+inline ::Protocol::AuctionSort CS_AUCTION_SEARCH_PACKET::_internal_sort() const {
+  return static_cast< ::Protocol::AuctionSort >(_impl_.sort_);
+}
+inline ::Protocol::AuctionSort CS_AUCTION_SEARCH_PACKET::sort() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_SEARCH_PACKET.sort)
+  return _internal_sort();
+}
+inline void CS_AUCTION_SEARCH_PACKET::_internal_set_sort(::Protocol::AuctionSort value) {
+  
+  _impl_.sort_ = value;
+}
+inline void CS_AUCTION_SEARCH_PACKET::set_sort(::Protocol::AuctionSort value) {
+  _internal_set_sort(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_SEARCH_PACKET.sort)
+}
+
+// bool desc = 6;
+inline void CS_AUCTION_SEARCH_PACKET::clear_desc() {
+  _impl_.desc_ = false;
+}
+inline bool CS_AUCTION_SEARCH_PACKET::_internal_desc() const {
+  return _impl_.desc_;
+}
+inline bool CS_AUCTION_SEARCH_PACKET::desc() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_SEARCH_PACKET.desc)
+  return _internal_desc();
+}
+inline void CS_AUCTION_SEARCH_PACKET::_internal_set_desc(bool value) {
+  
+  _impl_.desc_ = value;
+}
+inline void CS_AUCTION_SEARCH_PACKET::set_desc(bool value) {
+  _internal_set_desc(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_SEARCH_PACKET.desc)
+}
+
+// int64 cursor_key = 7;
+inline void CS_AUCTION_SEARCH_PACKET::clear_cursor_key() {
+  _impl_.cursor_key_ = int64_t{0};
+}
+inline int64_t CS_AUCTION_SEARCH_PACKET::_internal_cursor_key() const {
+  return _impl_.cursor_key_;
+}
+inline int64_t CS_AUCTION_SEARCH_PACKET::cursor_key() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_SEARCH_PACKET.cursor_key)
+  return _internal_cursor_key();
+}
+inline void CS_AUCTION_SEARCH_PACKET::_internal_set_cursor_key(int64_t value) {
+  
+  _impl_.cursor_key_ = value;
+}
+inline void CS_AUCTION_SEARCH_PACKET::set_cursor_key(int64_t value) {
+  _internal_set_cursor_key(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_SEARCH_PACKET.cursor_key)
+}
+
+// int64 cursor_id = 8;
+inline void CS_AUCTION_SEARCH_PACKET::clear_cursor_id() {
+  _impl_.cursor_id_ = int64_t{0};
+}
+inline int64_t CS_AUCTION_SEARCH_PACKET::_internal_cursor_id() const {
+  return _impl_.cursor_id_;
+}
+inline int64_t CS_AUCTION_SEARCH_PACKET::cursor_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_SEARCH_PACKET.cursor_id)
+  return _internal_cursor_id();
+}
+inline void CS_AUCTION_SEARCH_PACKET::_internal_set_cursor_id(int64_t value) {
+  
+  _impl_.cursor_id_ = value;
+}
+inline void CS_AUCTION_SEARCH_PACKET::set_cursor_id(int64_t value) {
+  _internal_set_cursor_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_SEARCH_PACKET.cursor_id)
 }
 
 // -------------------------------------------------------------------
@@ -15313,24 +15621,24 @@ inline void CS_AUCTION_REGISTER_PACKET::set_count(int32_t value) {
   // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_REGISTER_PACKET.count)
 }
 
-// int64 price = 4;
-inline void CS_AUCTION_REGISTER_PACKET::clear_price() {
-  _impl_.price_ = int64_t{0};
+// int64 unit_price = 4;
+inline void CS_AUCTION_REGISTER_PACKET::clear_unit_price() {
+  _impl_.unit_price_ = int64_t{0};
 }
-inline int64_t CS_AUCTION_REGISTER_PACKET::_internal_price() const {
-  return _impl_.price_;
+inline int64_t CS_AUCTION_REGISTER_PACKET::_internal_unit_price() const {
+  return _impl_.unit_price_;
 }
-inline int64_t CS_AUCTION_REGISTER_PACKET::price() const {
-  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_REGISTER_PACKET.price)
-  return _internal_price();
+inline int64_t CS_AUCTION_REGISTER_PACKET::unit_price() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_REGISTER_PACKET.unit_price)
+  return _internal_unit_price();
 }
-inline void CS_AUCTION_REGISTER_PACKET::_internal_set_price(int64_t value) {
+inline void CS_AUCTION_REGISTER_PACKET::_internal_set_unit_price(int64_t value) {
   
-  _impl_.price_ = value;
+  _impl_.unit_price_ = value;
 }
-inline void CS_AUCTION_REGISTER_PACKET::set_price(int64_t value) {
-  _internal_set_price(value);
-  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_REGISTER_PACKET.price)
+inline void CS_AUCTION_REGISTER_PACKET::set_unit_price(int64_t value) {
+  _internal_set_unit_price(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_REGISTER_PACKET.unit_price)
 }
 
 // -------------------------------------------------------------------
@@ -15355,6 +15663,26 @@ inline void CS_AUCTION_BUY_PACKET::_internal_set_listing_id(int64_t value) {
 inline void CS_AUCTION_BUY_PACKET::set_listing_id(int64_t value) {
   _internal_set_listing_id(value);
   // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_BUY_PACKET.listing_id)
+}
+
+// int64 count = 2;
+inline void CS_AUCTION_BUY_PACKET::clear_count() {
+  _impl_.count_ = int64_t{0};
+}
+inline int64_t CS_AUCTION_BUY_PACKET::_internal_count() const {
+  return _impl_.count_;
+}
+inline int64_t CS_AUCTION_BUY_PACKET::count() const {
+  // @@protoc_insertion_point(field_get:Protocol.CS_AUCTION_BUY_PACKET.count)
+  return _internal_count();
+}
+inline void CS_AUCTION_BUY_PACKET::_internal_set_count(int64_t value) {
+  
+  _impl_.count_ = value;
+}
+inline void CS_AUCTION_BUY_PACKET::set_count(int64_t value) {
+  _internal_set_count(value);
+  // @@protoc_insertion_point(field_set:Protocol.CS_AUCTION_BUY_PACKET.count)
 }
 
 // -------------------------------------------------------------------
@@ -18865,26 +19193,6 @@ inline void SC_AUCTION_LIST_PACKET::set_slot(int32_t value) {
   // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.slot)
 }
 
-// int32 page = 2;
-inline void SC_AUCTION_LIST_PACKET::clear_page() {
-  _impl_.page_ = 0;
-}
-inline int32_t SC_AUCTION_LIST_PACKET::_internal_page() const {
-  return _impl_.page_;
-}
-inline int32_t SC_AUCTION_LIST_PACKET::page() const {
-  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.page)
-  return _internal_page();
-}
-inline void SC_AUCTION_LIST_PACKET::_internal_set_page(int32_t value) {
-  
-  _impl_.page_ = value;
-}
-inline void SC_AUCTION_LIST_PACKET::set_page(int32_t value) {
-  _internal_set_page(value);
-  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.page)
-}
-
 // int32 total_count = 3;
 inline void SC_AUCTION_LIST_PACKET::clear_total_count() {
   _impl_.total_count_ = 0;
@@ -18903,26 +19211,6 @@ inline void SC_AUCTION_LIST_PACKET::_internal_set_total_count(int32_t value) {
 inline void SC_AUCTION_LIST_PACKET::set_total_count(int32_t value) {
   _internal_set_total_count(value);
   // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.total_count)
-}
-
-// int32 page_size = 4;
-inline void SC_AUCTION_LIST_PACKET::clear_page_size() {
-  _impl_.page_size_ = 0;
-}
-inline int32_t SC_AUCTION_LIST_PACKET::_internal_page_size() const {
-  return _impl_.page_size_;
-}
-inline int32_t SC_AUCTION_LIST_PACKET::page_size() const {
-  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.page_size)
-  return _internal_page_size();
-}
-inline void SC_AUCTION_LIST_PACKET::_internal_set_page_size(int32_t value) {
-  
-  _impl_.page_size_ = value;
-}
-inline void SC_AUCTION_LIST_PACKET::set_page_size(int32_t value) {
-  _internal_set_page_size(value);
-  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.page_size)
 }
 
 // repeated .Protocol.AuctionListingInfo listings = 5;
@@ -18960,6 +19248,243 @@ inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::AuctionListi
 SC_AUCTION_LIST_PACKET::listings() const {
   // @@protoc_insertion_point(field_list:Protocol.SC_AUCTION_LIST_PACKET.listings)
   return _impl_.listings_;
+}
+
+// .Protocol.AuctionQuery query = 6;
+inline void SC_AUCTION_LIST_PACKET::clear_query() {
+  _impl_.query_ = 0;
+}
+inline ::Protocol::AuctionQuery SC_AUCTION_LIST_PACKET::_internal_query() const {
+  return static_cast< ::Protocol::AuctionQuery >(_impl_.query_);
+}
+inline ::Protocol::AuctionQuery SC_AUCTION_LIST_PACKET::query() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.query)
+  return _internal_query();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_query(::Protocol::AuctionQuery value) {
+  
+  _impl_.query_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_query(::Protocol::AuctionQuery value) {
+  _internal_set_query(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.query)
+}
+
+// .Protocol.AuctionSort sort = 7;
+inline void SC_AUCTION_LIST_PACKET::clear_sort() {
+  _impl_.sort_ = 0;
+}
+inline ::Protocol::AuctionSort SC_AUCTION_LIST_PACKET::_internal_sort() const {
+  return static_cast< ::Protocol::AuctionSort >(_impl_.sort_);
+}
+inline ::Protocol::AuctionSort SC_AUCTION_LIST_PACKET::sort() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.sort)
+  return _internal_sort();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_sort(::Protocol::AuctionSort value) {
+  
+  _impl_.sort_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_sort(::Protocol::AuctionSort value) {
+  _internal_set_sort(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.sort)
+}
+
+// bool desc = 8;
+inline void SC_AUCTION_LIST_PACKET::clear_desc() {
+  _impl_.desc_ = false;
+}
+inline bool SC_AUCTION_LIST_PACKET::_internal_desc() const {
+  return _impl_.desc_;
+}
+inline bool SC_AUCTION_LIST_PACKET::desc() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.desc)
+  return _internal_desc();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_desc(bool value) {
+  
+  _impl_.desc_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_desc(bool value) {
+  _internal_set_desc(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.desc)
+}
+
+// bool has_more = 9;
+inline void SC_AUCTION_LIST_PACKET::clear_has_more() {
+  _impl_.has_more_ = false;
+}
+inline bool SC_AUCTION_LIST_PACKET::_internal_has_more() const {
+  return _impl_.has_more_;
+}
+inline bool SC_AUCTION_LIST_PACKET::has_more() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.has_more)
+  return _internal_has_more();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_has_more(bool value) {
+  
+  _impl_.has_more_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_has_more(bool value) {
+  _internal_set_has_more(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.has_more)
+}
+
+// repeated int64 cursor_keys = 10;
+inline int SC_AUCTION_LIST_PACKET::_internal_cursor_keys_size() const {
+  return _impl_.cursor_keys_.size();
+}
+inline int SC_AUCTION_LIST_PACKET::cursor_keys_size() const {
+  return _internal_cursor_keys_size();
+}
+inline void SC_AUCTION_LIST_PACKET::clear_cursor_keys() {
+  _impl_.cursor_keys_.Clear();
+}
+inline int64_t SC_AUCTION_LIST_PACKET::_internal_cursor_keys(int index) const {
+  return _impl_.cursor_keys_.Get(index);
+}
+inline int64_t SC_AUCTION_LIST_PACKET::cursor_keys(int index) const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.cursor_keys)
+  return _internal_cursor_keys(index);
+}
+inline void SC_AUCTION_LIST_PACKET::set_cursor_keys(int index, int64_t value) {
+  _impl_.cursor_keys_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.cursor_keys)
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_add_cursor_keys(int64_t value) {
+  _impl_.cursor_keys_.Add(value);
+}
+inline void SC_AUCTION_LIST_PACKET::add_cursor_keys(int64_t value) {
+  _internal_add_cursor_keys(value);
+  // @@protoc_insertion_point(field_add:Protocol.SC_AUCTION_LIST_PACKET.cursor_keys)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int64_t >&
+SC_AUCTION_LIST_PACKET::_internal_cursor_keys() const {
+  return _impl_.cursor_keys_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int64_t >&
+SC_AUCTION_LIST_PACKET::cursor_keys() const {
+  // @@protoc_insertion_point(field_list:Protocol.SC_AUCTION_LIST_PACKET.cursor_keys)
+  return _internal_cursor_keys();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int64_t >*
+SC_AUCTION_LIST_PACKET::_internal_mutable_cursor_keys() {
+  return &_impl_.cursor_keys_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int64_t >*
+SC_AUCTION_LIST_PACKET::mutable_cursor_keys() {
+  // @@protoc_insertion_point(field_mutable_list:Protocol.SC_AUCTION_LIST_PACKET.cursor_keys)
+  return _internal_mutable_cursor_keys();
+}
+
+// string keyword = 11;
+inline void SC_AUCTION_LIST_PACKET::clear_keyword() {
+  _impl_.keyword_.ClearToEmpty();
+}
+inline const std::string& SC_AUCTION_LIST_PACKET::keyword() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.keyword)
+  return _internal_keyword();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void SC_AUCTION_LIST_PACKET::set_keyword(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.keyword_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.keyword)
+}
+inline std::string* SC_AUCTION_LIST_PACKET::mutable_keyword() {
+  std::string* _s = _internal_mutable_keyword();
+  // @@protoc_insertion_point(field_mutable:Protocol.SC_AUCTION_LIST_PACKET.keyword)
+  return _s;
+}
+inline const std::string& SC_AUCTION_LIST_PACKET::_internal_keyword() const {
+  return _impl_.keyword_.Get();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_keyword(const std::string& value) {
+  
+  _impl_.keyword_.Set(value, GetArenaForAllocation());
+}
+inline std::string* SC_AUCTION_LIST_PACKET::_internal_mutable_keyword() {
+  
+  return _impl_.keyword_.Mutable(GetArenaForAllocation());
+}
+inline std::string* SC_AUCTION_LIST_PACKET::release_keyword() {
+  // @@protoc_insertion_point(field_release:Protocol.SC_AUCTION_LIST_PACKET.keyword)
+  return _impl_.keyword_.Release();
+}
+inline void SC_AUCTION_LIST_PACKET::set_allocated_keyword(std::string* keyword) {
+  if (keyword != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.keyword_.SetAllocated(keyword, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.keyword_.IsDefault()) {
+    _impl_.keyword_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:Protocol.SC_AUCTION_LIST_PACKET.keyword)
+}
+
+// int32 page_rows = 12;
+inline void SC_AUCTION_LIST_PACKET::clear_page_rows() {
+  _impl_.page_rows_ = 0;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::_internal_page_rows() const {
+  return _impl_.page_rows_;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::page_rows() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.page_rows)
+  return _internal_page_rows();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_page_rows(int32_t value) {
+  
+  _impl_.page_rows_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_page_rows(int32_t value) {
+  _internal_set_page_rows(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.page_rows)
+}
+
+// int32 search_interval_ms = 13;
+inline void SC_AUCTION_LIST_PACKET::clear_search_interval_ms() {
+  _impl_.search_interval_ms_ = 0;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::_internal_search_interval_ms() const {
+  return _impl_.search_interval_ms_;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::search_interval_ms() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.search_interval_ms)
+  return _internal_search_interval_ms();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_search_interval_ms(int32_t value) {
+  
+  _impl_.search_interval_ms_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_search_interval_ms(int32_t value) {
+  _internal_set_search_interval_ms(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.search_interval_ms)
+}
+
+// int32 action_interval_ms = 14;
+inline void SC_AUCTION_LIST_PACKET::clear_action_interval_ms() {
+  _impl_.action_interval_ms_ = 0;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::_internal_action_interval_ms() const {
+  return _impl_.action_interval_ms_;
+}
+inline int32_t SC_AUCTION_LIST_PACKET::action_interval_ms() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_LIST_PACKET.action_interval_ms)
+  return _internal_action_interval_ms();
+}
+inline void SC_AUCTION_LIST_PACKET::_internal_set_action_interval_ms(int32_t value) {
+  
+  _impl_.action_interval_ms_ = value;
+}
+inline void SC_AUCTION_LIST_PACKET::set_action_interval_ms(int32_t value) {
+  _internal_set_action_interval_ms(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_LIST_PACKET.action_interval_ms)
 }
 
 // -------------------------------------------------------------------
@@ -19182,6 +19707,26 @@ inline void SC_AUCTION_RESULT_PACKET::_internal_set_id(int64_t value) {
 inline void SC_AUCTION_RESULT_PACKET::set_id(int64_t value) {
   _internal_set_id(value);
   // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_RESULT_PACKET.id)
+}
+
+// int64 remain = 4;
+inline void SC_AUCTION_RESULT_PACKET::clear_remain() {
+  _impl_.remain_ = int64_t{0};
+}
+inline int64_t SC_AUCTION_RESULT_PACKET::_internal_remain() const {
+  return _impl_.remain_;
+}
+inline int64_t SC_AUCTION_RESULT_PACKET::remain() const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_AUCTION_RESULT_PACKET.remain)
+  return _internal_remain();
+}
+inline void SC_AUCTION_RESULT_PACKET::_internal_set_remain(int64_t value) {
+  
+  _impl_.remain_ = value;
+}
+inline void SC_AUCTION_RESULT_PACKET::set_remain(int64_t value) {
+  _internal_set_remain(value);
+  // @@protoc_insertion_point(field_set:Protocol.SC_AUCTION_RESULT_PACKET.remain)
 }
 
 // -------------------------------------------------------------------

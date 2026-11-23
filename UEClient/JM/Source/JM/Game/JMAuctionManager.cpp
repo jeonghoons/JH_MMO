@@ -7,24 +7,33 @@
 #include "Game/JMTradeManager.h"
 #include "Network/NetworkManager.h"
 #include "UI/JMUIManager.h"
+#include "UI/UIStyle.h"
 #include "UI/WidgetNames.h"
 #include "Engine/GameInstance.h"
 #include "TimerManager.h"
 
 namespace
 {
+	// 검색어 최대 글자 수(서버 AUCTION_KEYWORD_MAX와 같다 — 넘는 부분은 서버도 자른다)
+	constexpr int32 KeywordMaxLen = 20;
+	// 서버 시계·전송 시간 차이로 간격에 걸리지 않게 두는 여유(초)
+	constexpr double IntervalSlackSec = 0.1;
+
 	// 거부·실패 사유를 사용자에게 보일 문구. BUSY·TOO_FREQUENT는 띄우지 않는다(부르는 쪽에서 거른다).
-	FText AuctionResultText(Protocol::AuctionResult Result)
+	FText AuctionResultText(Protocol::AuctionResult Result, int64 Remain)
 	{
 		switch (Result)
 		{
 		case Protocol::AUCTION_RESULT_DEAD: return FText::FromString(TEXT("사망 중에는 경매장을 이용할 수 없습니다."));
-		case Protocol::AUCTION_RESULT_NO_LISTING: return FText::FromString(TEXT("없는 등록이거나 이미 끝난 등록입니다."));
-		case Protocol::AUCTION_RESULT_SOLD: return FText::FromString(TEXT("다른 사람이 먼저 구매했거나 처리 중인 등록입니다."));
+		case Protocol::AUCTION_RESULT_NO_LISTING: return FText::FromString(TEXT("판매가 끝난 물품입니다."));
+		case Protocol::AUCTION_RESULT_ALREADY_CLOSED: return FText::FromString(TEXT("판매가 끝난 물품입니다."));
+		case Protocol::AUCTION_RESULT_SOLD: return FText::FromString(TEXT("이미 판매 완료되었습니다."));
+		case Protocol::AUCTION_RESULT_NOT_ENOUGH_COUNT: return FText::FromString(FString::Printf(TEXT("남은 수량은 %lld개입니다."), Remain));
+		case Protocol::AUCTION_RESULT_LISTING_BUSY: return FText::FromString(TEXT("처리 중인 물품입니다. 잠시 뒤에 다시 시도해 주세요."));
 		case Protocol::AUCTION_RESULT_OWN_ITEM: return FText::FromString(TEXT("내가 등록한 물품은 구매할 수 없습니다."));
 		case Protocol::AUCTION_RESULT_NOT_ENOUGH_GOLD: return FText::FromString(TEXT("골드가 부족합니다."));
 		case Protocol::AUCTION_RESULT_LISTING_LIMIT: return FText::FromString(TEXT("더 등록할 수 없습니다."));
-		case Protocol::AUCTION_RESULT_BAD_PRICE: return FText::FromString(TEXT("가격이 범위를 벗어났습니다."));
+		case Protocol::AUCTION_RESULT_BAD_PRICE: return FText::FromString(TEXT("1개당 가격이 범위를 벗어났거나 합계가 너무 큽니다."));
 		case Protocol::AUCTION_RESULT_NO_ITEM: return FText::FromString(TEXT("등록할 수 없는 아이템이거나 수량이 맞지 않습니다."));
 		case Protocol::AUCTION_RESULT_IN_TRADE: return FText::FromString(TEXT("거래에 올린 아이템은 등록할 수 없습니다."));
 		case Protocol::AUCTION_RESULT_INVENTORY_FULL: return FText::FromString(TEXT("인벤토리에 빈 칸이 없습니다."));
@@ -44,7 +53,7 @@ namespace
 		Out.ListingId = Info.listing_id();
 		Out.ItemId = Info.item_id();
 		Out.Count = Info.count();
-		Out.Price = Info.price();
+		Out.UnitPrice = Info.unit_price();
 		Out.RemainSec = Info.remain_sec();
 		Out.bMine = Info.mine();
 		return Out;
@@ -53,15 +62,50 @@ namespace
 
 void UJMAuctionManager::HandleList(const Protocol::SC_AUCTION_LIST_PACKET& Pkt)
 {
-	SearchSlot = Pkt.slot();
-	SearchPage = Pkt.page();
-	SearchTotal = Pkt.total_count();
-	PageSize = FMath::Max(1, Pkt.page_size());
-	Listings.Reset();
-	for (const Protocol::AuctionListingInfo& Info : Pkt.listings())
+	const int32 Query = static_cast<int32>(Pkt.query());
+	const int32 PktSort = static_cast<int32>(Pkt.sort());
+	const bool bMore = Query == Protocol::AUCTION_QUERY_MORE;
+	// 다음 묶음은 지금 캐시에 이어 붙는 것만 받는다(그 사이 검색·정렬을 새로 했으면 낡은 응답이다).
+	if (bMore && (!bWaitingMore || PktSort != SortKind || Pkt.desc() != bSortDesc))
 	{
-		Listings.Add(ToListing(Info));
+		UE_LOG(LogTemp, Log, TEXT("Auction: 낡은 다음 묶음 응답을 버립니다."));
+		return;
 	}
+
+	if (Pkt.page_rows() > 0) PageRows = Pkt.page_rows();
+	if (Pkt.search_interval_ms() > 0) SearchIntervalSec = Pkt.search_interval_ms() / 1000.0;
+	if (Pkt.action_interval_ms() > 0) ActionIntervalSec = Pkt.action_interval_ms() / 1000.0;
+
+	if (!bMore)
+	{
+		// 검색·정렬: 캐시를 갈아 끼우고 1쪽부터. 검색어·정렬은 서버가 실제로 쓴 값을 따른다.
+		Listings.Reset();
+		CurrentPage = 1;
+		SortKind = PktSort;
+		bSortDesc = Pkt.desc();
+		Keyword = UTF8_TO_TCHAR(Pkt.keyword().c_str());
+	}
+	const int32 KeyCount = Pkt.cursor_keys_size();
+	for (int32 Index = 0; Index < Pkt.listings_size(); ++Index)
+	{
+		FJMAuctionListing Listing = ToListing(Pkt.listings(Index));
+		Listing.CursorKey = Index < KeyCount ? Pkt.cursor_keys(Index) : 0;
+		Listings.Add(Listing);
+	}
+	bHasMore = Pkt.has_more();
+	bHasResult = true;
+	// 더 받을 것이 없으면 받은 줄 수가 전체다(그 사이 팔려 총 건수가 달라졌어도 빈 쪽이 생기지 않게).
+	SearchTotal = bHasMore ? FMath::Max<int32>(Pkt.total_count(), Listings.Num()) : Listings.Num();
+
+	if (bMore && PendingPage > 0)
+	{
+		// 기다리던 쪽으로 넘어간다(받은 줄이 없으면 마지막 쪽에 머문다).
+		CurrentPage = FMath::Clamp(PendingPage, 1, GetPageCount());
+	}
+	bWaitingMore = false;
+	PendingPage = 0;
+	UE_LOG(LogTemp, Log, TEXT("Auction list: query=%d keyword='%s' sort=%d desc=%d rows=%d cache=%d total=%d more=%d page=%d/%d"), Query, *Keyword, SortKind, bSortDesc ? 1 : 0,
+		Pkt.listings_size(), Listings.Num(), SearchTotal, bHasMore ? 1 : 0, CurrentPage, GetPageCount());
 	OnAuctionChanged.Broadcast();
 }
 
@@ -97,11 +141,15 @@ void UJMAuctionManager::HandleResult(const Protocol::SC_AUCTION_RESULT_PACKET& P
 {
 	const Protocol::PacketId Request = Pkt.request();
 	const Protocol::AuctionResult Result = Pkt.result();
-	UE_LOG(LogTemp, Log, TEXT("Auction result: request=%d result=%d id=%lld"), static_cast<int32>(Request), static_cast<int32>(Result), static_cast<int64>(Pkt.id()));
+	const int64 Remain = Pkt.remain();
+	UE_LOG(LogTemp, Log, TEXT("Auction result: request=%d result=%d id=%lld remain=%lld"), static_cast<int32>(Request), static_cast<int32>(Result), static_cast<int64>(Pkt.id()), Remain);
+
+	// 구매 응답이 가리키는 줄(보고 있는 목록은 다시 받지 않고 이 줄만 고친다 — D-281)
+	FJMAuctionListing* Bought = Request == Protocol::CS_AUCTION_BUY ? FindListingMutable(Pkt.id() != 0 ? Pkt.id() : LastBuyListingId) : nullptr;
 
 	if (Result == Protocol::AUCTION_RESULT_SUCCESS)
 	{
-		// 성공은 확인 창을 띄우지 않고 창 아래 한 줄로 알린 뒤, 바뀐 목록을 다시 받는다(아이템·골드는 SC_INVENTORY_UPDATE로 이미 왔다).
+		// 성공은 확인 창을 띄우지 않고 창 아래 한 줄로 알린다(아이템·골드는 SC_INVENTORY_UPDATE로 이미 왔다).
 		switch (Request)
 		{
 		case Protocol::CS_AUCTION_REGISTER:
@@ -111,7 +159,11 @@ void UJMAuctionManager::HandleResult(const Protocol::SC_AUCTION_RESULT_PACKET& P
 			break;
 		case Protocol::CS_AUCTION_BUY:
 			StatusText = TEXT("구매했습니다. 산 물건은 경매 관리인에게서 수령하세요.");
-			RequestSearch(SearchSlot, SearchPage);
+			if (Bought)
+			{
+				Bought->Count = FMath::Max<int64>(0, Remain);
+				if (Bought->Count == 0) Bought->bClosed = true;
+			}
 			break;
 		case Protocol::CS_AUCTION_CANCEL:
 			StatusText = TEXT("등록을 취소했습니다. 아이템은 수령함으로 돌아갔습니다.");
@@ -128,55 +180,154 @@ void UJMAuctionManager::HandleResult(const Protocol::SC_AUCTION_RESULT_PACKET& P
 		return;
 	}
 
-	// 요청 간격·진행 중인 작업은 조용히 넘긴다(다른 아이템 요청과 같은 규칙). 다만 버려진 것이 조회면 잠시 뒤 다시 보낸다.
-	if (Result == Protocol::AUCTION_RESULT_TOO_FREQUENT && bOpen && (Request == Protocol::CS_AUCTION_SEARCH || Request == Protocol::CS_AUCTION_MY))
+	// 요청 간격에 걸렸다(창이 버튼을 꺼 두므로 드물다): 조용히 넘기고 그 간격만 다시 건다. 버려진 것이 내 목록이면 간격이 풀릴 때 다시 보낸다.
+	if (Result == Protocol::AUCTION_RESULT_TOO_FREQUENT)
 	{
-		(Request == Protocol::CS_AUCTION_SEARCH ? bRetrySearch : bRetryMy) = true;
-		ScheduleRetry();
+		const double Now = FPlatformTime::Seconds();
+		if (Request == Protocol::CS_AUCTION_SEARCH && RequestedQuery == Protocol::AUCTION_QUERY_SEARCH) NextSearchTime = Now + SearchIntervalSec + IntervalSlackSec;
+		else if (Request == Protocol::CS_AUCTION_MY) NextMyTime = Now + ActionIntervalSec + IntervalSlackSec;
+		else NextActionTime = Now + ActionIntervalSec + IntervalSlackSec;
+		if (Request == Protocol::CS_AUCTION_SEARCH) { bWaitingMore = false; PendingPage = 0; }
+		if (Request == Protocol::CS_AUCTION_MY && bOpen) { bMyPending = true; FlushMy(); }
+		OnAuctionChanged.Broadcast();
 		return;
 	}
-	if (Result == Protocol::AUCTION_RESULT_BUSY || Result == Protocol::AUCTION_RESULT_TOO_FREQUENT) return;
+	if (Request == Protocol::CS_AUCTION_SEARCH) { bWaitingMore = false; PendingPage = 0; }
+	if (Result == Protocol::AUCTION_RESULT_BUSY) { OnAuctionChanged.Broadcast(); return; }
 
-	ShowMessage(AuctionResultText(Result));
-	// 지금은 쓸 수 없는 상태면 창을 닫는다. 팔렸거나 없는 등록이면 목록이 낡은 것이므로 다시 받는다.
-	if (Result == Protocol::AUCTION_RESULT_IN_DUNGEON || Result == Protocol::AUCTION_RESULT_DEAD)
+	// 구매 거부: 그 줄만 고친다(다 팔림·만료·취소 = 끝난 줄, 수량 부족 = 남은 수량으로).
+	if (Bought)
 	{
-		Close();
+		if (Result == Protocol::AUCTION_RESULT_SOLD || Result == Protocol::AUCTION_RESULT_ALREADY_CLOSED || Result == Protocol::AUCTION_RESULT_NO_LISTING) Bought->bClosed = true;
+		else if (Result == Protocol::AUCTION_RESULT_NOT_ENOUGH_COUNT && Remain > 0) Bought->Count = Remain;
 	}
-	else if (bOpen && Request == Protocol::CS_AUCTION_BUY && (Result == Protocol::AUCTION_RESULT_SOLD || Result == Protocol::AUCTION_RESULT_NO_LISTING))
-	{
-		RequestSearch(SearchSlot, SearchPage);
-	}
+	ShowMessage(AuctionResultText(Result, Remain));
+	// 지금은 쓸 수 없는 상태면 창을 닫는다.
+	if (Result == Protocol::AUCTION_RESULT_IN_DUNGEON || Result == Protocol::AUCTION_RESULT_DEAD) Close();
+	else OnAuctionChanged.Broadcast();
 }
 
-void UJMAuctionManager::ScheduleRetry()
+// ---------------------------------------------------------------------------------------------------------------
+// 요청 간격
+bool UJMAuctionManager::CanSearch() const { return FPlatformTime::Seconds() >= NextSearchTime; }
+bool UJMAuctionManager::CanAct() const { return FPlatformTime::Seconds() >= NextActionTime; }
+float UJMAuctionManager::SearchWaitSec() const { return static_cast<float>(FMath::Max(0.0, NextSearchTime - FPlatformTime::Seconds())); }
+void UJMAuctionManager::MarkAction() { NextActionTime = FPlatformTime::Seconds() + ActionIntervalSec + IntervalSlackSec; }
+
+void UJMAuctionManager::FlushMy()
 {
+	if (!bMyPending) return;
+	if (!bOpen) { bMyPending = false; return; }
 	UGameInstance* GameInstance = GetGameInstance();
-	if (GameInstance == nullptr || GameInstance->GetTimerManager().IsTimerActive(RetryTimer)) return;
-	// 서버의 요청 간격(EconomyTable.ItemMinIntervalMs 100ms)보다 넉넉히 기다린다.
-	GameInstance->GetTimerManager().SetTimer(RetryTimer, this, &UJMAuctionManager::RetryQueries, 0.25f, false);
+	if (GameInstance == nullptr) return;
+	const double Wait = NextMyTime - FPlatformTime::Seconds();
+	if (Wait > 0.0)
+	{
+		GameInstance->GetTimerManager().SetTimer(MyTimer, this, &UJMAuctionManager::FlushMy, static_cast<float>(Wait) + 0.02f, false);
+		return;
+	}
+	bMyPending = false;
+	NextMyTime = FPlatformTime::Seconds() + ActionIntervalSec + IntervalSlackSec;
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendAuctionMy();
 }
 
-void UJMAuctionManager::RetryQueries()
+// ---------------------------------------------------------------------------------------------------------------
+// 검색 결과
+int32 UJMAuctionManager::GetPageCount() const
 {
-	if (!bOpen) { bRetrySearch = bRetryMy = false; return; }
+	const int32 Rows = FMath::Max(1, PageRows);
+	return FMath::Max(1, (SearchTotal + Rows - 1) / Rows);
+}
+
+void UJMAuctionManager::GetPageRange(int32& OutFirst, int32& OutNum) const
+{
+	const int32 Rows = FMath::Max(1, PageRows);
+	OutFirst = FMath::Max(0, (CurrentPage - 1) * Rows);
+	OutNum = FMath::Clamp(Listings.Num() - OutFirst, 0, Rows);
+}
+
+const FJMAuctionListing* UJMAuctionManager::FindListing(int64 ListingId) const
+{
+	return ListingId == 0 ? nullptr : Listings.FindByPredicate([ListingId](const FJMAuctionListing& L) { return L.ListingId == ListingId; });
+}
+
+FJMAuctionListing* UJMAuctionManager::FindListingMutable(int64 ListingId)
+{
+	return ListingId == 0 ? nullptr : Listings.FindByPredicate([ListingId](const FJMAuctionListing& L) { return L.ListingId == ListingId; });
+}
+
+bool UJMAuctionManager::CanNextPage() const
+{
+	if (CurrentPage >= GetPageCount() || bWaitingMore) return false;
+	if (Listings.Num() > CurrentPage * FMath::Max(1, PageRows)) return true;
+	return bHasMore && CanAct();
+}
+
+bool UJMAuctionManager::SendSearch(Protocol::AuctionQuery Query, int64 CursorKey, int64 CursorId)
+{
 	UNetworkManager* NetManager = UNetworkManager::Get(this);
-	if (NetManager == nullptr) return;
-	if (bRetrySearch)
+	if (NetManager == nullptr) return false;
+	RequestedQuery = static_cast<int32>(Query);
+	NetManager->SendAuctionSearch(RequestedQuery, RequestedKeyword, RequestedSort, bRequestedDesc, CursorKey, CursorId);
+	return true;
+}
+
+bool UJMAuctionManager::Search(const FString& InKeyword, int32 InSort, bool bInDesc)
+{
+	if (!bOpen || !CanSearch()) return false;
+	RequestedKeyword = InKeyword.TrimStartAndEnd().Left(KeywordMaxLen);
+	RequestedSort = InSort >= 0 ? InSort : SortKind;
+	bRequestedDesc = InSort >= 0 ? bInDesc : bSortDesc;
+	if (!SendSearch(Protocol::AUCTION_QUERY_SEARCH, 0, 0)) return false;
+	NextSearchTime = FPlatformTime::Seconds() + SearchIntervalSec + IntervalSlackSec;
+	bWaitingMore = false;
+	PendingPage = 0;
+	OnAuctionChanged.Broadcast();
+	return true;
+}
+
+bool UJMAuctionManager::Sort(int32 InSort, bool bInDesc)
+{
+	if (!bOpen || !CanAct()) return false;
+	RequestedKeyword = Keyword;   // 서버는 기억한 검색어를 쓴다(이 값은 보지 않는다)
+	RequestedSort = InSort;
+	bRequestedDesc = bInDesc;
+	if (!SendSearch(Protocol::AUCTION_QUERY_SORT, 0, 0)) return false;
+	MarkAction();
+	bWaitingMore = false;
+	PendingPage = 0;
+	OnAuctionChanged.Broadcast();
+	return true;
+}
+
+bool UJMAuctionManager::ToggleSort(int32 InSort)
+{
+	return Sort(InSort, InSort == SortKind ? !bSortDesc : false);
+}
+
+void UJMAuctionManager::SetPage(int32 Page)
+{
+	if (!bOpen) return;
+	const int32 Rows = FMath::Max(1, PageRows);
+	Page = FMath::Clamp(Page, 1, GetPageCount());
+	if (Page == CurrentPage) return;
+	if (Listings.Num() > (Page - 1) * Rows)
 	{
-		bRetrySearch = false;
-		UE_LOG(LogTemp, Log, TEXT("Auction: retry search slot=%d page=%d"), RequestedSlot, RequestedPage);
-		NetManager->SendAuctionSearch(RequestedSlot, RequestedPage);
+		CurrentPage = Page;
+		OnAuctionChanged.Broadcast();
+		return;
 	}
-	else if (bRetryMy)
-	{
-		bRetryMy = false;
-		UE_LOG(LogTemp, Log, TEXT("Auction: retry my"));
-		NetManager->SendAuctionMy();
-	}
-	// 둘 다 걸렸으면 나머지는 다음 차례에(연달아 보내면 또 간격에 걸린다). 지금은 타이머 콜백 안이라 이 타이머가 아직 "활성"으로 보이므로
-	// ScheduleRetry(활성이면 건너뜀)를 쓰지 않고 바로 다시 건다.
-	if (bRetrySearch || bRetryMy) GetGameInstance()->GetTimerManager().SetTimer(RetryTimer, this, &UJMAuctionManager::RetryQueries, 0.25f, false);
+	// 캐시 끝을 넘는다: 마지막 줄의 커서로 다음 묶음을 받고, 응답이 오면 넘어간다.
+	if (!bHasMore || bWaitingMore || !CanAct() || Listings.Num() == 0) return;
+	const FJMAuctionListing& Last = Listings.Last();
+	RequestedKeyword = Keyword;
+	RequestedSort = SortKind;
+	bRequestedDesc = bSortDesc;
+	if (!SendSearch(Protocol::AUCTION_QUERY_MORE, Last.CursorKey, Last.ListingId)) return;
+	MarkAction();
+	bWaitingMore = true;
+	PendingPage = Page;
+	OnAuctionChanged.Broadcast();
 }
 
 void UJMAuctionManager::HandleMailNotice(const Protocol::SC_MAIL_NOTICE_PACKET& Pkt)
@@ -191,8 +342,8 @@ void UJMAuctionManager::HandleMailNotice(const Protocol::SC_MAIL_NOTICE_PACKET& 
 	const FString ItemName = Item ? Item->DisplayName.ToString() : FString::Printf(TEXT("아이템 %d"), Pkt.item_id());
 	if (Pkt.kind() == Protocol::MAIL_KIND_SALE_GOLD)
 	{
-		Message = FString::Printf(TEXT("경매에 올린 물품이 팔렸습니다: %s ×%lld. 대금 %lld골드를 경매 관리인의 수령함에서 받으세요."),
-			*ItemName, static_cast<int64>(Pkt.count()), static_cast<int64>(Pkt.gold()));
+		Message = FString::Printf(TEXT("경매에 올린 물품이 팔렸습니다: %s ×%lld. 대금 %s골드를 경매 관리인의 수령함에서 받으세요."),
+			*ItemName, static_cast<int64>(Pkt.count()), *JMUIStyle::GoldText(Pkt.gold()));
 	}
 	else if (Pkt.kind() == Protocol::MAIL_KIND_EXPIRED)
 	{
@@ -222,15 +373,22 @@ void UJMAuctionManager::ClearMailNotice()
 
 void UJMAuctionManager::Clear()
 {
-	bRetrySearch = bRetryMy = false;
 	bOpen = false;
 	NpcId = 0;
-	SearchSlot = SearchPage = SearchTotal = 0;
+	bMyPending = false;
+	bWaitingMore = false;
+	PendingPage = 0;
+	CurrentPage = 1;
+	SearchTotal = 0;
+	bHasMore = false;
+	bHasResult = false;
+	Keyword.Reset();
 	Listings.Reset();
 	MyListings.Reset();
 	Mails.Reset();
 	bMailMore = false;
 	RegisterCandidate = 0;
+	LastBuyListingId = 0;
 	StatusText.Reset();
 	OnAuctionChanged.Broadcast();
 }
@@ -249,8 +407,9 @@ void UJMAuctionManager::Open(int32 InNpcId)
 	StatusText.Reset();
 	SetWindowVisible(true);
 	OnAuctionChanged.Broadcast();
-	// 지금 필터의 첫 쪽부터. 던전 안·사망 중이면 서버가 거부하고(HandleResult) 창이 닫힌다.
-	RequestSearch(SearchSlot, 0);
+	// 검색 간격이 지났으면 지난 검색어로 다시 찾는다. 아니면 이전 결과를 그대로 보여 준다(D-281).
+	// 던전 안·사망 중이면 서버가 거부하고(HandleResult) 창이 닫힌다.
+	Search(Keyword);
 }
 
 void UJMAuctionManager::Close()
@@ -260,6 +419,9 @@ void UJMAuctionManager::Close()
 	bOpen = false;
 	NpcId = 0;
 	RegisterCandidate = 0;
+	bMyPending = false;
+	bWaitingMore = false;
+	PendingPage = 0;
 	if (UJMUIManager* UIManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMUIManager>() : nullptr)
 	{
 		UIManager->SetWidgetVisible(WidgetNames::Auction, false);
@@ -269,42 +431,44 @@ void UJMAuctionManager::Close()
 	OnAuctionChanged.Broadcast();
 }
 
-void UJMAuctionManager::RequestSearch(int32 Slot, int32 Page)
-{
-	if (!bOpen) return;
-	RequestedSlot = Slot;
-	RequestedPage = FMath::Max(0, Page);
-	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendAuctionSearch(RequestedSlot, RequestedPage);
-}
-
 void UJMAuctionManager::RequestMy()
 {
 	if (!bOpen) return;
-	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendAuctionMy();
+	bMyPending = true;
+	FlushMy();
 }
 
-void UJMAuctionManager::Buy(int64 ListingId)
+void UJMAuctionManager::Buy(int64 ListingId, int32 Count)
 {
-	if (!bOpen || ListingId == 0) return;
-	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendAuctionBuy(ListingId);
+	if (!bOpen || ListingId == 0 || Count < 1 || !CanAct()) return;
+	LastBuyListingId = ListingId;
+	MarkAction();
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendAuctionBuy(ListingId, Count);
+	OnAuctionChanged.Broadcast();
 }
 
-void UJMAuctionManager::Register(int64 ItemDbId, int32 Count, int64 Price)
+void UJMAuctionManager::Register(int64 ItemDbId, int32 Count, int64 UnitPrice)
 {
-	if (!IsAtNpc() || ItemDbId == 0 || Count < 1) return;
-	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendAuctionRegister(NpcId, ItemDbId, Count, Price);
+	if (!IsAtNpc() || ItemDbId == 0 || Count < 1 || !CanAct()) return;
+	MarkAction();
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendAuctionRegister(NpcId, ItemDbId, Count, UnitPrice);
+	OnAuctionChanged.Broadcast();
 }
 
 void UJMAuctionManager::Cancel(int64 ListingId)
 {
-	if (!IsAtNpc() || ListingId == 0) return;
+	if (!IsAtNpc() || ListingId == 0 || !CanAct()) return;
+	MarkAction();
 	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendAuctionCancel(NpcId, ListingId);
+	OnAuctionChanged.Broadcast();
 }
 
 void UJMAuctionManager::Claim(int64 MailId)
 {
-	if (!IsAtNpc() || MailId == 0) return;
+	if (!IsAtNpc() || MailId == 0 || !CanAct()) return;
+	MarkAction();
 	if (UNetworkManager* NetManager = UNetworkManager::Get(this)) NetManager->SendMailClaim(NpcId, MailId);
+	OnAuctionChanged.Broadcast();
 }
 
 void UJMAuctionManager::SetRegisterCandidate(int64 ItemDbId)

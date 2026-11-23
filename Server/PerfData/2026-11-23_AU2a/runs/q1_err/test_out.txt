@@ -1,0 +1,23 @@
+== err (server pid 26336, DevCommands=false DbSaveDelayMs=400 DbItemFailEvery=0 PortalNoRange=false, data repo)
+PASS too-far
+PASS npc-missing
+PASS npc-not-quest
+PASS quest-missing
+[  23.93] 요청 연타 8회: 성공 [(1, 0)] 거부 [5, 5, 4, 4, 13, 13, 13]
+PASS spam-one-success
+PASS spam-rejects
+PASS spam-db-one-row
+PASS after-spam
+PASS in-trade
+PASS after-trade
+PASS dummy
+[  27.93] 깨진 패킷을 보내는 중 Test1 연결이 끊김(예상): [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+PASS bad-packets
+[  29.08] 깨진 패킷 뒤 Test1 연결 끊김, 그 사이 받은 거부 [13, 9, 9]
+PASS dead
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 15 / FAIL 0
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS err (PASS 15)

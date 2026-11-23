@@ -1,0 +1,76 @@
+== regress growth_main (server pid 5792, port 8897, DevCommands=true PortalNoRange=false, data repo)
+PASS login-self-exp
+PASS login-mp-full
+PASS login-stat
+PASS other-no-exp
+[   2.18] Test1 level=1 exp=0 stat={'max_hp': 600, 'hp': 300, 'atk': 10, 'max_mp': 100, 'mp': 100} / Test2 level=1 exp=0 stat={'max_hp': 600, 'hp': 600, 'atk': 10, 'max_mp': 100, 'mp': 100}
+[   2.79] Test2 레벨 5로 올림(DEV 5000) stat {'max_hp': 1000, 'hp': 1000, 'atk': 18, 'max_mp': 140, 'mp': 140}
+[  14.93] HP 회복 Test1 300 → [420, 540, 600] 시각 [4.32, 9.37, 14.39] 간격 [5.05, 5.03] (입장 2.79)
+PASS hp-regen-values
+PASS hp-regen-interval
+PASS hp-regen-aoi
+PASS mp-full-no-packet
+PASS mp-spend
+PASS mp-before-attack
+[  20.06] MP 회복 Test2 125 → [132, 139, 140] 간격 [1.01, 1.04]
+PASS mp-regen-idle
+PASS mp-regen-interval
+PASS mp-regen-stops
+PASS kill-exp-solo
+PASS kill-exp-not-others
+[  50.65] Test2 → 몬스터 피해 [(68, 182), (98, 84), (68, 16), (16, 0)] (기대 2002 98 / 2001 68), 몬스터 HP 250, 내 시전 [(42.82, 2001), (44.42, 2002), (46.86, 2001), (48.52, 2001)], 거부 [(39.933701038360596, 9, 2, 0)]
+PASS damage-formula-sword
+PASS damage-formula-monster
+[  62.70] Test2 MP [(44.42, 125), (44.69, 126), (45.7, 127), (46.69, 128), (47.69, 129), (48.72, 130), (49.72, 131), (50.74, 132), (51.73, 133), (52.75, 134), (53.74, 135), (54.75, 140)] 마지막 타격 49.14
+PASS mp-regen-combat
+PASS mp-regen-after-combat
+[  62.70] Test2 HP 회복 [(58.79, 1000)] (마지막 타격 49.14)
+PASS hp-regen-after-combat
+[ 107.45] 파티 분배: Test1 [(105.23842144012451, 55, 55)] Test2 [(105.22097587585449, 155, 55)] Test3 [] (1인 몫 100, 2인 몫 55)
+PASS party-share-2
+PASS party-other-room-excluded
+[ 108.68] DEV 4000: Test1 levelups [(107.44655513763428, 2, 4, {'max_hp': 900, 'hp': 900, 'atk': 16, 'max_mp': 130, 'mp': 130})] exp (107.44665813446045, 1055, 4000) 기대 level 4 exp 1055 stat {'max_hp': 900, 'atk': 16, 'max_mp': 130}
+PASS levelup-once
+PASS levelup-stat
+PASS levelup-full
+PASS levelup-exp
+PASS levelup-aoi
+PASS levelup-order
+PASS party-level-update
+PASS cap-level
+PASS cap-stat
+PASS cap-no-more
+PASS dev-exp-bad--5
+PASS dev-exp-bad-1000000001
+PASS cap-kill
+[ 124.63] Test4 레벨 5로 올림(DEV 5000) stat {'max_hp': 1000, 'hp': 1000, 'atk': 18, 'max_mp': 140, 'mp': 140}
+[ 171.41] Test4 3002 시전: 몬스터 거리 15cm (3.1초 뒤)
+[ 177.50] Test4(활, 공격력 18) → 몬스터 피해 [54, 35, 35, 54, 35] (기대 3001 54, 3002 틱 35)
+PASS damage-formula-bow
+[ 186.35] 재접속: Test1 level 30 exp 0 stat {'max_hp': 3500, 'hp': 3500, 'atk': 68, 'max_mp': 390, 'mp': 390} / Test2 level 5 exp 210 stat {'max_hp': 1000, 'hp': 1000, 'atk': 18, 'max_mp': 140, 'mp': 140} (나갈 때 MP 125)
+PASS relogin-level-exp
+PASS relogin-mp-full
+PASS db-saved
+
+합계 PASS 39 / FAIL 0
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=2/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=3/3/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 2/2/0/0/0 1/1 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=0/0/0/0 0/0 0 mailNotice=0 
+ERROR 줄 수: 0
+REGRESS PASS growth_main (PASS 39/39)
+== regress growth_err (server pid 27588, port 8897, DevCommands=false PortalNoRange=false, data C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-22_Q1\runs\regress_growth_err\data)
+PASS dev-exp-disabled
+PASS err-table
+PASS spend
+[   8.55] 연타 30회: 거부 [3, 3, 3, 3, 3, 3, 3, 3, 3, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11] 받아들임 0 MP [0, 5, 10, 15, 20, 25, 30]
+PASS spam-rejected
+PASS spam-no-cast
+PASS spam-mp-nonneg
+PASS bad-slot
+PASS out-of-range-slot-dropped
+[  13.16] 깨진 패킷 뒤 Test2 연결 끊김
+PASS server-alive
+
+합계 PASS 9 / FAIL 0
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=0/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=0/0/0/0 0/0 0 mailNotice=0 
+ERROR 줄 수: 0
+REGRESS PASS growth_err (PASS 9/9)
+4 71 0

@@ -637,9 +637,9 @@ def t_mail():
     check("sale-mail-exists", at.find_mail(view, lid, at.MAIL_SALE) is not None, f"수령함 {view['mails']}")
 
     # ---- 만료: 판매자에게 EXPIRED(물건·수량) ----
-    potion = at.give(a, ITEM_POTION, 3, cs)
-    check("potion-row", len(potion) == 1, f"물약 새 행 {potion}")
-    res, lid2 = at.register(a, potion[0], 3, 200, cs)
+    # 물약 3개를 받아 가장 많은 행에서 3개를 올린다(MaxStack 100 — D-281부터 기존 스택에 합쳐져 새 행이 생기지 않을 수 있다)
+    potion_row = at.stack_row(a, ITEM_POTION, 3, cs)
+    res, lid2 = at.register(a, potion_row, 3, 200, cs)
     check("register-2", res == at.A_SUCCESS, f"등록 {res}")
     n = len(a.mail_notices)
     wait_all(cs, lambda: len(a.mail_notices) > n, 20.0, "만료 SC_MAIL_NOTICE")

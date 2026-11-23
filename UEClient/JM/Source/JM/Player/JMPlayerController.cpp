@@ -233,9 +233,27 @@ void AJMPlayerController::AuctionOpen(int32 AtNpc)
 	Auction->Open(NpcId);
 }
 
-void AJMPlayerController::AuctionSearch(int32 Slot, int32 Page)
+void AJMPlayerController::AuctionSearch(const FString& Keyword, int32 Sort, int32 Desc)
 {
-	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr) Auction->RequestSearch(Slot, Page);
+	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr)
+	{
+		const bool bSent = Auction->Search(Keyword, Sort, Desc != 0);
+		UE_LOG(LogTemp, Log, TEXT("AuctionSearch: keyword='%s' sort=%d desc=%d sent=%d wait=%.1f"), *Keyword, Sort, Desc, bSent ? 1 : 0, Auction->SearchWaitSec());
+	}
+}
+
+void AJMPlayerController::AuctionSort(int32 Sort, int32 Desc)
+{
+	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr)
+	{
+		const bool bSent = Auction->Sort(Sort, Desc != 0);
+		UE_LOG(LogTemp, Log, TEXT("AuctionSort: sort=%d desc=%d sent=%d"), Sort, Desc, bSent ? 1 : 0);
+	}
+}
+
+void AJMPlayerController::AuctionPage(int32 Page)
+{
+	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr) Auction->SetPage(Page);
 }
 
 void AJMPlayerController::AuctionMy()
@@ -243,7 +261,7 @@ void AJMPlayerController::AuctionMy()
 	if (UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr) Auction->RequestMy();
 }
 
-void AJMPlayerController::AuctionRegister(int32 ItemId, int32 Count, int32 Price)
+void AJMPlayerController::AuctionRegister(int32 ItemId, int32 Count, int32 UnitPrice)
 {
 	UGameInstance* GameInstance = GetGameInstance();
 	UJMAuctionManager* Auction = GameInstance ? GameInstance->GetSubsystem<UJMAuctionManager>() : nullptr;
@@ -255,26 +273,29 @@ void AJMPlayerController::AuctionRegister(int32 ItemId, int32 Count, int32 Price
 		UE_LOG(LogTemp, Warning, TEXT("AuctionRegister: 인벤토리에 item=%d 이(가) 없습니다."), ItemId);
 		return;
 	}
-	UE_LOG(LogTemp, Log, TEXT("AuctionRegister: item=%d dbId=%lld count=%d price=%d"), ItemId, ItemDbId, Count, Price);
+	UE_LOG(LogTemp, Log, TEXT("AuctionRegister: item=%d dbId=%lld count=%d unitPrice=%d"), ItemId, ItemDbId, Count, UnitPrice);
 	Auction->SetRegisterCandidate(ItemDbId);
-	Auction->Register(ItemDbId, Count, Price);
+	Auction->Register(ItemDbId, Count, UnitPrice);
 }
 
-void AJMPlayerController::AuctionBuy(int32 ListingId)
+void AJMPlayerController::AuctionBuy(int32 ListingId, int32 Count)
 {
 	UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr;
 	if (Auction == nullptr) return;
 	int64 Target = ListingId;
 	if (Target == 0)
 	{
-		// 지금 쪽에서 내 것이 아닌 첫 등록
-		for (const FJMAuctionListing& Listing : Auction->GetListings())
+		// 지금 쪽에서 내 것이 아니고 끝나지 않은 첫 등록
+		int32 First = 0, Num = 0;
+		Auction->GetPageRange(First, Num);
+		for (int32 Index = First; Index < First + Num; ++Index)
 		{
-			if (!Listing.bMine) { Target = Listing.ListingId; break; }
+			const FJMAuctionListing& Listing = Auction->GetListings()[Index];
+			if (!Listing.bMine && !Listing.bClosed) { Target = Listing.ListingId; break; }
 		}
 	}
-	UE_LOG(LogTemp, Log, TEXT("AuctionBuy: listing=%lld"), Target);
-	Auction->Buy(Target);
+	UE_LOG(LogTemp, Log, TEXT("AuctionBuy: listing=%lld count=%d"), Target, Count);
+	Auction->Buy(Target, Count);
 }
 
 void AJMPlayerController::AuctionCancel(int32 ListingId)
@@ -302,12 +323,22 @@ void AJMPlayerController::AuctionShow()
 	const UJMAuctionManager* Auction = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMAuctionManager>() : nullptr;
 	const UJMInventoryManager* Inventory = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMInventoryManager>() : nullptr;
 	if (Auction == nullptr) return;
-	UE_LOG(LogTemp, Log, TEXT("AuctionShow: open=%d atNpc=%d gold=%lld slot=%d page=%d total=%d status='%s'"), Auction->IsOpen() ? 1 : 0, Auction->IsAtNpc() ? 1 : 0,
-		Inventory ? Inventory->GetGold() : 0, Auction->GetSearchSlot(), Auction->GetSearchPage(), Auction->GetSearchTotal(), *Auction->GetStatusText());
+	UE_LOG(LogTemp, Log, TEXT("AuctionShow: open=%d atNpc=%d gold=%lld keyword='%s' sort=%d desc=%d page=%d/%d rows=%d cache=%d total=%d waitMore=%d searchWait=%.1f canAct=%d status='%s'"),
+		Auction->IsOpen() ? 1 : 0, Auction->IsAtNpc() ? 1 : 0, Inventory ? Inventory->GetGold() : 0, *Auction->GetKeyword(), Auction->GetSort(), Auction->IsSortDesc() ? 1 : 0,
+		Auction->GetPage(), Auction->GetPageCount(), Auction->GetPageRows(), Auction->GetListings().Num(), Auction->GetSearchTotal(), Auction->IsWaitingMore() ? 1 : 0,
+		Auction->SearchWaitSec(), Auction->CanAct() ? 1 : 0, *Auction->GetStatusText());
+	int32 PageFirst = 0, PageNum = 0;
+	Auction->GetPageRange(PageFirst, PageNum);
+	int32 RowIndex = 0;
 	for (const FJMAuctionListing& Listing : Auction->GetListings())
-		UE_LOG(LogTemp, Log, TEXT("AuctionShow: list listing=%lld item=%d count=%lld price=%lld remain=%d mine=%d"), Listing.ListingId, Listing.ItemId, Listing.Count, Listing.Price, Listing.RemainSec, Listing.bMine ? 1 : 0);
+	{
+		UE_LOG(LogTemp, Log, TEXT("AuctionShow: list[%d]%s listing=%lld item=%d count=%lld unit=%lld total=%lld remain=%d mine=%d closed=%d"), RowIndex,
+			RowIndex >= PageFirst && RowIndex < PageFirst + PageNum ? TEXT("*") : TEXT(""), Listing.ListingId, Listing.ItemId, Listing.Count, Listing.UnitPrice, Listing.TotalPrice(),
+			Listing.RemainSec, Listing.bMine ? 1 : 0, Listing.bClosed ? 1 : 0);
+		++RowIndex;
+	}
 	for (const FJMAuctionListing& Listing : Auction->GetMyListings())
-		UE_LOG(LogTemp, Log, TEXT("AuctionShow: my listing=%lld item=%d count=%lld price=%lld remain=%d"), Listing.ListingId, Listing.ItemId, Listing.Count, Listing.Price, Listing.RemainSec);
+		UE_LOG(LogTemp, Log, TEXT("AuctionShow: my listing=%lld item=%d count=%lld unit=%lld remain=%d"), Listing.ListingId, Listing.ItemId, Listing.Count, Listing.UnitPrice, Listing.RemainSec);
 	for (const FJMAuctionMail& Mail : Auction->GetMails())
 		UE_LOG(LogTemp, Log, TEXT("AuctionShow: mail=%lld kind=%d gold=%lld item=%d count=%lld listing=%lld"), Mail.MailId, Mail.Kind, Mail.Gold, Mail.ItemId, Mail.Count, Mail.ListingId);
 }

@@ -107,10 +107,16 @@ message CS_SHOP_SELL_PACKET {
 }
 
 // 포털 사용 요청(L5, D-203). 도착지는 서버가 정한다. 성공은 SC_TELEPORT, 거부(없는 포털·거리 밖·사망·시전 중·너무 잦음)는 응답 없이 버린다.
-// 경매 검색 (A4.3). 던전 밖 어디서나. 응답은 SC_AUCTION_LIST, 거부는 SC_AUCTION_RESULT.
+// 경매 검색 (A4.3 → D-281). 던전 밖 어디서나. 응답은 SC_AUCTION_LIST(EconomyTable.AuctionFetchRows줄), 거부는 SC_AUCTION_RESULT.
 message CS_AUCTION_SEARCH_PACKET {
-	int32 slot = 1;         // 0 = 전체, 1~7 = 장비 슬롯(EquipPart), 8 = 소비·그 밖(슬롯 없는 아이템)
-	int32 page = 2;         // 0부터. 가격 오름차순으로 EconomyTable.AuctionPageSize개씩
+	int32 slot = 1;            // 필터 자리 — 지금은 0(전체)만. 1~7 = 장비 슬롯, 8 = 슬롯 없는 아이템은 나중에
+	reserved 2;                // 옛 page
+	AuctionQuery query = 3;    // SEARCH = 새 검색(keyword), SORT·MORE = 서버가 기억한 검색어로
+	string keyword = 4;        // SEARCH 때만: 아이템 이름 일부(공백·영문 대소문자 무시, 최대 20자). 빈칸 = 전체
+	AuctionSort sort = 5;
+	bool desc = 6;             // 내림차순
+	int64 cursor_key = 7;      // MORE 때만: 받은 마지막 줄의 SC_AUCTION_LIST.cursor_keys 값(서버가 정한 정렬 값)
+	int64 cursor_id = 8;       // MORE 때만: 받은 마지막 줄의 listing_id
 }
 
 // 경매 등록 (경매 NPC 근처에서만, D-234). 성공하면 그 수량이 인벤토리에서 빠진다(SC_INVENTORY_UPDATE + SC_AUCTION_RESULT).
@@ -118,12 +124,13 @@ message CS_AUCTION_REGISTER_PACKET {
 	int32 npc_id = 1;       // 경매 NPC의 오브젝트 id
 	int64 item_db_id = 2;   // 올릴 행 (인벤토리 위치의 내 아이템, 장착 중·거래에 올린 것은 안 됨)
 	int32 count = 3;        // 1 ~ 그 행의 수량 (스택 일부만 올릴 수 있다)
-	int64 price = 4;        // 묶음 전체의 값 (EconomyTable.AuctionMinPrice ~ AuctionMaxPrice)
+	int64 unit_price = 4;   // 1개당 가격 (EconomyTable.AuctionMinPrice ~ AuctionMaxPrice, 총액 ≤ GoldMax — D-281)
 }
 
-// 즉시 구매 (던전 밖 어디서나). 골드만 줄고 산 물건은 수령함으로 간다.
+// 즉시 구매 (던전 밖 어디서나). 골드만 줄고 산 물건은 수령함으로 간다. 수량을 골라 일부만 살 수 있다(D-281).
 message CS_AUCTION_BUY_PACKET {
 	int64 listing_id = 1;
+	int64 count = 2;        // 1 ~ 남은 수량. 값 = count × unit_price
 }
 
 // 내 등록 취소 (경매 NPC 근처에서만). 아이템은 수령함으로 간다.
@@ -447,13 +454,21 @@ message SC_SHOP_OPEN_PACKET {
 	repeated ShopItem items = 2;        // ShopTable 행 순서
 }
 
-// 경매 검색 결과 한 쪽 (본인, A4.3)
+// 경매 검색 결과 한 묶음 (본인, A4.3 → D-281). 클라이언트는 이 줄들을 page_rows줄씩 쪽으로 나눠 보이고, 끝에 닿으면 MORE로 다음 묶음을 받는다.
 message SC_AUCTION_LIST_PACKET {
-	int32 slot = 1;                           // 요청한 필터
-	int32 page = 2;                           // 이 쪽 번호(0부터). 요청한 쪽이 범위를 넘으면 마지막 쪽
-	int32 total_count = 3;                    // 이 필터의 판매 중인 등록 수
-	int32 page_size = 4;                      // EconomyTable.AuctionPageSize
-	repeated AuctionListingInfo listings = 5; // 가격 오름차순
+	int32 slot = 1;                           // 요청한 필터 (지금은 0)
+	reserved 2, 4;                            // 옛 page, page_size
+	int32 total_count = 3;                    // 이 검색어의 판매 중인 등록 수(응답 시점)
+	repeated AuctionListingInfo listings = 5; // 정렬 순서대로, 최대 EconomyTable.AuctionFetchRows줄
+	AuctionQuery query = 6;                   // 응답한 요청의 종류 (SEARCH·SORT면 처음부터, MORE면 이어 붙임)
+	AuctionSort sort = 7;
+	bool desc = 8;
+	bool has_more = 9;                        // 이 뒤로 더 있다(MORE로 받는다)
+	repeated int64 cursor_keys = 10;          // listings와 같은 순서의 정렬 값 — MORE의 cursor_key로 마지막 것을 돌려준다
+	string keyword = 11;                      // 서버가 기억한 검색어(정리된 것)
+	int32 page_rows = 12;                     // EconomyTable.AuctionPageRows (한 쪽 줄 수)
+	int32 search_interval_ms = 13;            // EconomyTable.AuctionSearchIntervalMs (검색·새로고침 간격)
+	int32 action_interval_ms = 14;            // EconomyTable.AuctionActionIntervalMs (정렬·다음 묶음·구매 등 간격)
 }
 
 // 내 등록 + 수령함 (본인, A4.3)
@@ -471,6 +486,7 @@ message SC_AUCTION_RESULT_PACKET {
 	PacketId request = 1;                     // 요청의 패킷 id
 	AuctionResult result = 2;
 	int64 id = 3;                             // 대상 listing_id (등록 성공이면 새 등록의 id, 수령이면 mail_id)
+	int64 remain = 4;                         // 구매 성공·NOT_ENOUGH_COUNT: 그 등록의 남은 수량(예약 제외, D-281). 그 밖은 0
 }
 
 // 스킬 조준 상태. 켜기 = AOI 방송(본인 포함), 클라 취소·시전 실패 해제 = 본인 제외 방송,

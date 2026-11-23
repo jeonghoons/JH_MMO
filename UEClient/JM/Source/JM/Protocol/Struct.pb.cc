@@ -141,7 +141,7 @@ PROTOBUF_CONSTEXPR AuctionListingInfo::AuctionListingInfo(
   , /*decltype(_impl_.count_)*/int64_t{0}
   , /*decltype(_impl_.item_id_)*/0
   , /*decltype(_impl_.remain_sec_)*/0
-  , /*decltype(_impl_.price_)*/int64_t{0}
+  , /*decltype(_impl_.unit_price_)*/int64_t{0}
   , /*decltype(_impl_.mine_)*/false
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct AuctionListingInfoDefaultTypeInternal {
@@ -278,7 +278,7 @@ const uint32_t TableStruct_Struct_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
   PROTOBUF_FIELD_OFFSET(::Protocol::AuctionListingInfo, _impl_.listing_id_),
   PROTOBUF_FIELD_OFFSET(::Protocol::AuctionListingInfo, _impl_.item_id_),
   PROTOBUF_FIELD_OFFSET(::Protocol::AuctionListingInfo, _impl_.count_),
-  PROTOBUF_FIELD_OFFSET(::Protocol::AuctionListingInfo, _impl_.price_),
+  PROTOBUF_FIELD_OFFSET(::Protocol::AuctionListingInfo, _impl_.unit_price_),
   PROTOBUF_FIELD_OFFSET(::Protocol::AuctionListingInfo, _impl_.remain_sec_),
   PROTOBUF_FIELD_OFFSET(::Protocol::AuctionListingInfo, _impl_.mine_),
   ~0u,  // no _has_bits_
@@ -352,23 +352,23 @@ const char descriptor_table_protodef_Struct_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "\022\021\n\tconfirmed\030\005 \001(\010\"u\n\010ItemInfo\022\022\n\nitem_"
   "db_id\030\001 \001(\003\022\017\n\007item_id\030\002 \001(\005\022\r\n\005count\030\003 "
   "\001(\003\022\'\n\nequip_part\030\004 \001(\0162\023.Protocol.Equip"
-  "Part\022\014\n\004slot\030\005 \001(\005\"y\n\022AuctionListingInfo"
+  "Part\022\014\n\004slot\030\005 \001(\005\"~\n\022AuctionListingInfo"
   "\022\022\n\nlisting_id\030\001 \001(\003\022\017\n\007item_id\030\002 \001(\005\022\r\n"
-  "\005count\030\003 \001(\003\022\r\n\005price\030\004 \001(\003\022\022\n\nremain_se"
-  "c\030\005 \001(\005\022\014\n\004mine\030\006 \001(\010\"\177\n\010MailInfo\022\017\n\007mai"
-  "l_id\030\001 \001(\003\022 \n\004kind\030\002 \001(\0162\022.Protocol.Mail"
-  "Kind\022\014\n\004gold\030\003 \001(\003\022\017\n\007item_id\030\004 \001(\005\022\r\n\005c"
-  "ount\030\005 \001(\003\022\022\n\nlisting_id\030\006 \001(\003\"T\n\tQuestI"
-  "nfo\022\020\n\010quest_id\030\001 \001(\005\022#\n\005state\030\002 \001(\0162\024.P"
-  "rotocol.QuestState\022\020\n\010progress\030\003 \001(\005b\006pr"
-  "oto3"
+  "\005count\030\003 \001(\003\022\022\n\nunit_price\030\004 \001(\003\022\022\n\nrema"
+  "in_sec\030\005 \001(\005\022\014\n\004mine\030\006 \001(\010\"\177\n\010MailInfo\022\017"
+  "\n\007mail_id\030\001 \001(\003\022 \n\004kind\030\002 \001(\0162\022.Protocol"
+  ".MailKind\022\014\n\004gold\030\003 \001(\003\022\017\n\007item_id\030\004 \001(\005"
+  "\022\r\n\005count\030\005 \001(\003\022\022\n\nlisting_id\030\006 \001(\003\"T\n\tQ"
+  "uestInfo\022\020\n\010quest_id\030\001 \001(\005\022#\n\005state\030\002 \001("
+  "\0162\024.Protocol.QuestState\022\020\n\010progress\030\003 \001("
+  "\005b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_Struct_2eproto_deps[1] = {
   &::descriptor_table_Enum_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_Struct_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Struct_2eproto = {
-    false, false, 1324, descriptor_table_protodef_Struct_2eproto,
+    false, false, 1329, descriptor_table_protodef_Struct_2eproto,
     "Struct.proto",
     &descriptor_table_Struct_2eproto_once, descriptor_table_Struct_2eproto_deps, 1, 9,
     schemas, file_default_instances, TableStruct_Struct_2eproto::offsets,
@@ -2578,7 +2578,7 @@ AuctionListingInfo::AuctionListingInfo(const AuctionListingInfo& from)
     , decltype(_impl_.count_){}
     , decltype(_impl_.item_id_){}
     , decltype(_impl_.remain_sec_){}
-    , decltype(_impl_.price_){}
+    , decltype(_impl_.unit_price_){}
     , decltype(_impl_.mine_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
@@ -2598,7 +2598,7 @@ inline void AuctionListingInfo::SharedCtor(
     , decltype(_impl_.count_){int64_t{0}}
     , decltype(_impl_.item_id_){0}
     , decltype(_impl_.remain_sec_){0}
-    , decltype(_impl_.price_){int64_t{0}}
+    , decltype(_impl_.unit_price_){int64_t{0}}
     , decltype(_impl_.mine_){false}
     , /*decltype(_impl_._cached_size_)*/{}
   };
@@ -2663,10 +2663,10 @@ const char* AuctionListingInfo::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // int64 price = 4;
+      // int64 unit_price = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
-          _impl_.price_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          _impl_.unit_price_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -2734,10 +2734,10 @@ uint8_t* AuctionListingInfo::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt64ToArray(3, this->_internal_count(), target);
   }
 
-  // int64 price = 4;
-  if (this->_internal_price() != 0) {
+  // int64 unit_price = 4;
+  if (this->_internal_unit_price() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt64ToArray(4, this->_internal_price(), target);
+    target = ::_pbi::WireFormatLite::WriteInt64ToArray(4, this->_internal_unit_price(), target);
   }
 
   // int32 remain_sec = 5;
@@ -2788,9 +2788,9 @@ size_t AuctionListingInfo::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_remain_sec());
   }
 
-  // int64 price = 4;
-  if (this->_internal_price() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_price());
+  // int64 unit_price = 4;
+  if (this->_internal_unit_price() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_unit_price());
   }
 
   // bool mine = 6;
@@ -2828,8 +2828,8 @@ void AuctionListingInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   if (from._internal_remain_sec() != 0) {
     _this->_internal_set_remain_sec(from._internal_remain_sec());
   }
-  if (from._internal_price() != 0) {
-    _this->_internal_set_price(from._internal_price());
+  if (from._internal_unit_price() != 0) {
+    _this->_internal_set_unit_price(from._internal_unit_price());
   }
   if (from._internal_mine() != 0) {
     _this->_internal_set_mine(from._internal_mine());

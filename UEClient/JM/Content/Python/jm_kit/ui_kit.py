@@ -278,24 +278,50 @@ def ui_import_texture(args):
 
 def ui_pie(args):
     """PIE 화면의 위젯을 이름으로 찾아 조작한다(UI7 — 마우스·키보드 없이 Claude가 로그인 화면을 시험).
-    args = {"world": 0, "actions": [["set", "EditSignUpId", "Test1"], ["click", "BtnGoSignUp"], ["enter", "EditAccountPassword"], ["read", "TxtServerStatus"]]}
-      set = 입력칸 글자, click = 버튼 OnClicked, enter = 입력칸 Enter 확정(OnTextCommitted), read = 글자·보임 상태
+    args = {"world": 0, "owner": "WBP_Auction"(선택, 2인 PIE에서만), "actions": [["set", "EditSignUpId", "Test1"], ["click", "BtnGoSignUp"], ["enter", "EditAccountPassword"], ["read", "TxtServerStatus"]]}
+      set = 입력칸 글자, type = 입력칸 글자 + 바뀜 이벤트(OnTextChanged), click = 버튼 OnClicked(꺼진 버튼은 누르지 않음), enter = 입력칸 Enter 확정(OnTextCommitted), read = 글자·보임 상태
     한 호출 안에서는 프레임이 진행되지 않으므로 서버 응답은 다음 호출에서 본다."""
     worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
     if not worlds:
         return {"error": "PIE가 실행 중이 아님"}
     w = worlds[min(int(args.get("world", 0)), len(worlds) - 1)]
     found = {}
+    # 창이 여럿이면(2인 PIE) 그 창의 게임 인스턴스에 딸린 위젯만 고른다(AU2b — 이름이 같은 위젯이 창마다 있다)
+    gi = unreal.GameplayStatics.get_game_instance(w)
+    live = set()
+    owner_prefix = args.get("owner")
+    if gi is not None and len(worlds) > 1:
+        for cls in (unreal.EditableText, unreal.EditableTextBox, unreal.Button, unreal.TextBlock, unreal.WidgetSwitcher, unreal.Image):
+            for wd in unreal.ObjectIterator(cls):
+                try:
+                    if wd.get_typed_outer(unreal.GameInstance) != gi:
+                        continue
+                    # 레벨 전환 전의 위젯이 아직 남아 있을 수 있다 — 화면에 붙어 있는 사용자 위젯의 것을 먼저 고른다
+                    owner = wd.get_typed_outer(unreal.UserWidget)
+                    # args.owner = 창의 위젯 클래스 이름 앞부분(예 "WBP_Auction") — 같은 이름의 위젯이 다른 창에도 있을 때 범위를 좁힌다
+                    if owner_prefix and not (owner and owner.get_class().get_name().startswith(owner_prefix)):
+                        continue
+                    # (화면에 그려진 적이 있는 것 = 캐시된 크기가 0이 아님. 창은 JMUIManager의 뿌리 위젯 아래에 있어 is_in_viewport로는 가릴 수 없다)
+                    is_live = bool(owner and unreal.SlateLibrary.get_local_size(owner.get_cached_geometry()).x > 0)
+                    name = wd.get_name()
+                    if name not in found or (is_live and name not in live):
+                        found[name] = wd
+                    if is_live:
+                        live.add(name)
+                except Exception:
+                    pass
     # PIE 월드 패키지(UEDPIE_n_<레벨>) 아래에 있는 위젯만 고른다
     prefix = w.get_outermost().get_path_name()
-    for cls in (unreal.EditableText, unreal.Button, unreal.TextBlock, unreal.WidgetSwitcher, unreal.Image):
+    for cls in (unreal.EditableText, unreal.EditableTextBox, unreal.Button, unreal.TextBlock, unreal.WidgetSwitcher, unreal.Image):
         for wd in unreal.ObjectIterator(cls):
+            if found and gi is not None and len(worlds) > 1:
+                break
             if wd.get_path_name().startswith(prefix) or wd.get_outermost().get_path_name() == prefix:
                 found.setdefault(wd.get_name(), wd)
     if not found:
         # 위젯의 바깥 객체가 게임 인스턴스인 경우 — PIE 인스턴스 번호로 거른다
         tag = "UEDPIE_%d" % int(args.get("world", 0))
-        for cls in (unreal.EditableText, unreal.Button, unreal.TextBlock, unreal.WidgetSwitcher, unreal.Image):
+        for cls in (unreal.EditableText, unreal.EditableTextBox, unreal.Button, unreal.TextBlock, unreal.WidgetSwitcher, unreal.Image):
             for wd in unreal.ObjectIterator(cls):
                 p = wd.get_path_name()
                 if tag in p or "GameInstance" in p:
@@ -310,7 +336,15 @@ def ui_pie(args):
         if kind == "set":
             wd.set_text(unreal.Text(act[2]))
             out.append([kind, name, "ok"])
+        elif kind == "type":
+            # 입력칸에 글자를 넣고 바뀜 이벤트까지 보낸다(코드로 넣은 글자는 OnTextChanged가 불리지 않는다 — AU2b 구매 수량 칸)
+            wd.set_text(unreal.Text(act[2]))
+            wd.on_text_changed.broadcast(wd.get_text())
+            out.append([kind, name, str(wd.get_text())])
         elif kind == "click":
+            if isinstance(wd, unreal.Button) and not wd.get_is_enabled():
+                out.append([kind, name, "꺼짐"])
+                continue
             wd.on_clicked.broadcast()
             out.append([kind, name, "ok"])
         elif kind == "enter":

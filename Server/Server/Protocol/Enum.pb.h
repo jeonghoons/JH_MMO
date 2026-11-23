@@ -591,12 +591,15 @@ enum AuctionResult : int {
   AUCTION_RESULT_IN_DUNGEON = 19,
   AUCTION_RESULT_TRY_LATER = 20,
   AUCTION_RESULT_NO_MAIL = 21,
+  AUCTION_RESULT_NOT_ENOUGH_COUNT = 22,
+  AUCTION_RESULT_LISTING_BUSY = 23,
+  AUCTION_RESULT_ALREADY_CLOSED = 24,
   AuctionResult_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   AuctionResult_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool AuctionResult_IsValid(int value);
 constexpr AuctionResult AuctionResult_MIN = AUCTION_RESULT_NONE;
-constexpr AuctionResult AuctionResult_MAX = AUCTION_RESULT_NO_MAIL;
+constexpr AuctionResult AuctionResult_MAX = AUCTION_RESULT_ALREADY_CLOSED;
 constexpr int AuctionResult_ARRAYSIZE = AuctionResult_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AuctionResult_descriptor();
@@ -612,6 +615,58 @@ inline bool AuctionResult_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, AuctionResult* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AuctionResult>(
     AuctionResult_descriptor(), name, value);
+}
+enum AuctionSort : int {
+  AUCTION_SORT_UNIT_PRICE = 0,
+  AUCTION_SORT_TOTAL_PRICE = 1,
+  AUCTION_SORT_REMAIN = 2,
+  AuctionSort_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  AuctionSort_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool AuctionSort_IsValid(int value);
+constexpr AuctionSort AuctionSort_MIN = AUCTION_SORT_UNIT_PRICE;
+constexpr AuctionSort AuctionSort_MAX = AUCTION_SORT_REMAIN;
+constexpr int AuctionSort_ARRAYSIZE = AuctionSort_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AuctionSort_descriptor();
+template<typename T>
+inline const std::string& AuctionSort_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, AuctionSort>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function AuctionSort_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    AuctionSort_descriptor(), enum_t_value);
+}
+inline bool AuctionSort_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, AuctionSort* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AuctionSort>(
+    AuctionSort_descriptor(), name, value);
+}
+enum AuctionQuery : int {
+  AUCTION_QUERY_SEARCH = 0,
+  AUCTION_QUERY_SORT = 1,
+  AUCTION_QUERY_MORE = 2,
+  AuctionQuery_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  AuctionQuery_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool AuctionQuery_IsValid(int value);
+constexpr AuctionQuery AuctionQuery_MIN = AUCTION_QUERY_SEARCH;
+constexpr AuctionQuery AuctionQuery_MAX = AUCTION_QUERY_MORE;
+constexpr int AuctionQuery_ARRAYSIZE = AuctionQuery_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AuctionQuery_descriptor();
+template<typename T>
+inline const std::string& AuctionQuery_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, AuctionQuery>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function AuctionQuery_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    AuctionQuery_descriptor(), enum_t_value);
+}
+inline bool AuctionQuery_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, AuctionQuery* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AuctionQuery>(
+    AuctionQuery_descriptor(), name, value);
 }
 enum QuestState : int {
   QUEST_STATE_NONE = 0,
@@ -913,6 +968,16 @@ template <> struct is_proto_enum< ::Protocol::AuctionResult> : ::std::true_type 
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::AuctionResult>() {
   return ::Protocol::AuctionResult_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::AuctionSort> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::AuctionSort>() {
+  return ::Protocol::AuctionSort_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::AuctionQuery> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::AuctionQuery>() {
+  return ::Protocol::AuctionQuery_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::QuestState> : ::std::true_type {};
 template <>

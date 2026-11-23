@@ -1964,11 +1964,13 @@ Protocol::AuctionResult Room::CheckAuctionRequest(const shared_ptr<Player>& play
 	// 던전 안에서는 경매를 쓸 수 없다(D-234).
 	if (_info.kind == RoomKind::Dungeon) return Protocol::AUCTION_RESULT_IN_DUNGEON;
 
-	if (kind == AuctionRequest::Search || kind == AuctionRequest::My)
-	{
-		if (!player->auctionQuery.IsReady()) return Protocol::AUCTION_RESULT_TOO_FREQUENT;
-		return Protocol::AUCTION_RESULT_SUCCESS;
-	}
+	// 검색의 간격은 query 종류마다 달라 PlayerAuctionSearch가 본다(D-281).
+	if (kind == AuctionRequest::Search) return Protocol::AUCTION_RESULT_SUCCESS;
+	// 내 목록은 같은 길이(AuctionActionIntervalMs)의 간격을 따로 갖는다 — 등록·취소·수령 성공 뒤 클라이언트가 자동으로 다시 받는데,
+	// 이 요청이 사용자가 누른 다음 등록·구매를 막지 않게(AU2b PIE에서 확인, D-281).
+	if (kind == AuctionRequest::My) return player->auctionMy.IsReady() ? Protocol::AUCTION_RESULT_SUCCESS : Protocol::AUCTION_RESULT_TOO_FREQUENT;
+	// 그 밖의 경매 요청(정렬 변경·다음 묶음·구매·등록·취소·수령)은 경매 요청 간격을 함께 쓴다.
+	if (!player->auctionAction.IsReady()) return Protocol::AUCTION_RESULT_TOO_FREQUENT;
 
 	// 아이템·골드가 바뀌는 요청: 요청 간격 → Room 이동 중·진행 중인 작업(BUSY)
 	const Protocol::ItemResult check = CheckItemRequest(player);
@@ -1989,19 +1991,49 @@ Protocol::AuctionResult Room::CheckAuctionRequest(const shared_ptr<Player>& play
 	return Protocol::AUCTION_RESULT_SUCCESS;
 }
 
-void Room::PlayerAuctionSearch(shared_ptr<Player> player, int slot, int page)
+void Room::PlayerAuctionSearch(shared_ptr<Player> player, int slot, Protocol::AuctionQuery query, wstring keyword, Protocol::AuctionSort sort, bool desc, int64_t cursorKey, int64_t cursorId)
 {
 	if (player == nullptr) return;
+	auto reject = [&](Protocol::AuctionResult result) { SendAuctionReject(player, Protocol::CS_AUCTION_SEARCH, result, 0); };
 
 	const Protocol::AuctionResult check = CheckAuctionRequest(player, AuctionRequest::Search, 0);
-	if (check != Protocol::AUCTION_RESULT_SUCCESS) { SendAuctionReject(player, Protocol::CS_AUCTION_SEARCH, check, 0); return; }
-	if (slot < 0 || slot >= AuctionService::FILTER_COUNT || page < 0) { SendAuctionReject(player, Protocol::CS_AUCTION_SEARCH, Protocol::AUCTION_RESULT_NOT_ALLOWED, 0); return; }
+	if (check != Protocol::AUCTION_RESULT_SUCCESS) { reject(check); return; }
+	// 필터(slot)는 나중(D-281) — 지금은 0(전체)만 받는다.
+	if (slot != 0 || !Protocol::AuctionQuery_IsValid(query) || !Protocol::AuctionSort_IsValid(sort)) { reject(Protocol::AUCTION_RESULT_NOT_ALLOWED); return; }
+
+	// 간격(D-281): 새 검색·새로고침은 AuctionSearchIntervalMs, 정렬 변경·다음 묶음은 AuctionActionIntervalMs.
+	const EconomyData& economy = DataManager::GetEconomy();
+	const bool newSearch = (query == Protocol::AUCTION_QUERY_SEARCH);
+	Cooldown& cooldown = newSearch ? player->auctionSearch : player->auctionAction;
+	if (!cooldown.IsReady()) { reject(Protocol::AUCTION_RESULT_TOO_FREQUENT); return; }
 
 	const shared_ptr<GameSession> session = player->GetSession();
 	if (session == nullptr) return;
 
-	player->auctionQuery.Reset(DataManager::GetEconomy().itemMinIntervalMs);
-	GAuction->PushJob(&AuctionService::Search, session, player->GetPlayerUID(), slot, page);
+	if (newSearch)
+	{
+		// 검색어를 기억한다 — SORT·MORE는 요청의 keyword를 보지 않고 이 값으로 찾는다(검색어를 바꿔 검색 간격을 피하지 못하게).
+		const wstring normalized = DataManager::NormalizeSearchText(keyword);
+		player->auctionSearchAll = normalized.empty();
+		player->auctionItemIds = player->auctionSearchAll ? vector<int>{} : DataManager::FindItemsByName(normalized);
+		player->auctionKeyword = Utils::WStringToUTF8(keyword);
+		cooldown.Reset(economy.auctionSearchIntervalMs);
+	}
+	else
+	{
+		cooldown.Reset(economy.auctionActionIntervalMs);
+	}
+
+	AuctionService::SearchRequest request;
+	request.query = query;
+	request.sort = sort;
+	request.desc = desc;
+	request.all = player->auctionSearchAll;
+	request.itemIds = player->auctionItemIds;
+	request.keyword = player->auctionKeyword;
+	request.cursorKey = (query == Protocol::AUCTION_QUERY_MORE) ? cursorKey : 0;
+	request.cursorId = (query == Protocol::AUCTION_QUERY_MORE) ? cursorId : 0;
+	GAuction->PushJob(&AuctionService::Search, session, player->GetPlayerUID(), request);
 }
 
 void Room::PlayerAuctionMy(shared_ptr<Player> player)
@@ -2017,11 +2049,11 @@ void Room::PlayerAuctionMy(shared_ptr<Player> player)
 	// 수령함은 DB에서 읽는다 — 혼잡 기준(D-235)에 든다. 서비스가 답을 보낼 때(AuctionService::OnMailRead) 진행 수를 줄인다.
 	if (!AuctionService::TryBeginDbWork()) { SendAuctionReject(player, Protocol::CS_AUCTION_MY, Protocol::AUCTION_RESULT_TRY_LATER, 0); return; }
 
-	player->auctionQuery.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	player->auctionMy.Reset(DataManager::GetEconomy().auctionActionIntervalMs);
 	GAuction->PushJob(&AuctionService::QueryMy, session, player->GetPlayerUID());
 }
 
-void Room::PlayerAuctionRegister(shared_ptr<Player> player, int npcId, int64_t itemDbId, int count, int64_t price)
+void Room::PlayerAuctionRegister(shared_ptr<Player> player, int npcId, int64_t itemDbId, int count, int64_t unitPrice)
 {
 	if (player == nullptr) return;
 	auto reject = [&](Protocol::AuctionResult result) { SendAuctionReject(player, Protocol::CS_AUCTION_REGISTER, result, 0); };
@@ -2037,7 +2069,9 @@ void Room::PlayerAuctionRegister(shared_ptr<Player> player, int npcId, int64_t i
 	if (IsItemInTrade(player, itemDbId)) { reject(Protocol::AUCTION_RESULT_IN_TRADE); return; }
 
 	const EconomyData& economy = DataManager::GetEconomy();
-	if (price < economy.auctionMinPrice || price > economy.auctionMaxPrice) { reject(Protocol::AUCTION_RESULT_BAD_PRICE); return; }
+	// 값은 1개당 가격(D-281). 총액(단가 × 수량)이 골드 상한을 넘으면 판매자가 받을 수 없으므로 거부한다(수량 ≤ MaxStack이라 곱은 넘치지 않음).
+	if (unitPrice < economy.auctionMinPrice || unitPrice > economy.auctionMaxPrice ||
+		unitPrice * static_cast<int64_t>(count) > static_cast<int64_t>(economy.goldMax)) { reject(Protocol::AUCTION_RESULT_BAD_PRICE); return; }
 
 	// 혼잡 기준(D-235). 여기를 지나면 결과 적용(ApplyItemOpResult)에서 진행 수를 줄인다.
 	if (!AuctionService::TryBeginDbWork()) { reject(Protocol::AUCTION_RESULT_TRY_LATER); return; }
@@ -2049,14 +2083,15 @@ void Room::PlayerAuctionRegister(shared_ptr<Player> player, int npcId, int64_t i
 	op.auctionExpectCount = owned->count;
 	op.auctionCount = count;
 	op.auctionSlot = owned->slot;
-	op.auctionPrice = price;
+	op.auctionUnitPrice = unitPrice;
 	op.auctionDurationSec = economy.auctionDurationSec;
 
 	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	player->auctionAction.Reset(economy.auctionActionIntervalMs);
 	StartItemOp(player, op);
 }
 
-void Room::PlayerAuctionBuy(shared_ptr<Player> player, int64_t listingId)
+void Room::PlayerAuctionBuy(shared_ptr<Player> player, int64_t listingId, int count)
 {
 	if (player == nullptr) return;
 	auto reject = [&](Protocol::AuctionResult result) { SendAuctionReject(player, Protocol::CS_AUCTION_BUY, result, listingId); };
@@ -2064,17 +2099,22 @@ void Room::PlayerAuctionBuy(shared_ptr<Player> player, int64_t listingId)
 	const Protocol::AuctionResult check = CheckAuctionRequest(player, AuctionRequest::Change, 0);
 	if (check != Protocol::AUCTION_RESULT_SUCCESS) { reject(check); return; }
 	if (listingId <= 0) { reject(Protocol::AUCTION_RESULT_NO_LISTING); return; }
+	// 수량(D-281 — 부분 구매): 1 이상. 남은 수량과의 비교는 서비스가 예약과 함께 한다.
+	if (count < 1) { reject(Protocol::AUCTION_RESULT_NOT_ALLOWED); return; }
 
 	if (!AuctionService::TryBeginDbWork()) { reject(Protocol::AUCTION_RESULT_TRY_LATER); return; }
 
-	// 등록의 존재·값·판매자는 서비스의 목록이 안다. 여기서는 보유 골드를 실어 보내 서비스가 값과 비교하게 한다.
+	// 등록의 존재·값·판매자·남은 수량은 서비스의 목록이 안다. 여기서는 보유 골드를 실어 보내 서비스가 수량 × 단가와 비교하게 한다.
 	// 산 물건은 수령함으로 가므로 빈 칸은 보지 않는다.
+	const EconomyData& economy = DataManager::GetEconomy();
 	DB_ItemOp op;
 	op.kind = ItemOpKind::AuctionBuy;
 	op.listingId = listingId;
+	op.auctionBuyCount = count;
 	op.auctionGold = player->GetGold();
 
-	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	player->auctionAction.Reset(economy.auctionActionIntervalMs);
 	StartItemOp(player, op);
 }
 
@@ -2093,7 +2133,9 @@ void Room::PlayerAuctionCancel(shared_ptr<Player> player, int npcId, int64_t lis
 	op.kind = ItemOpKind::AuctionCancel;
 	op.listingId = listingId;
 
-	player->itemOp.interval.Reset(DataManager::GetEconomy().itemMinIntervalMs);
+	const EconomyData& economy = DataManager::GetEconomy();
+	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	player->auctionAction.Reset(economy.auctionActionIntervalMs);
 	StartItemOp(player, op);
 }
 
@@ -2120,6 +2162,7 @@ void Room::PlayerMailClaim(shared_ptr<Player> player, int npcId, int64_t mailId)
 	op.goldMax = economy.goldMax;
 
 	player->itemOp.interval.Reset(economy.itemMinIntervalMs);
+	player->auctionAction.Reset(economy.auctionActionIntervalMs);
 	StartItemOp(player, op);
 }
 
@@ -3313,7 +3356,7 @@ void Room::ApplyItemOpResult(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpR
 				? static_cast<Protocol::AuctionResult>(result.auctionResult) : Protocol::AUCTION_RESULT_DB_ERROR;
 			Metrics::AuctionRejected.fetch_add(1);
 			LOG_DEBUG("Auction", "실패 player={} uid={} request={} id={} result={}", player->GetId(), op.playerUID, Protocol::PacketId_Name(request), targetId, Protocol::AuctionResult_Name(reason));
-			if (session) session->Send(PacketSerializer::MAKE_SC_AUCTION_RESULT(request, reason, targetId));
+			if (session) session->Send(PacketSerializer::MAKE_SC_AUCTION_RESULT(request, reason, targetId, result.auctionRemain));
 			break;
 		}
 		if (op.kind == ItemOpKind::MailClaim) Metrics::AuctionClaimed.fetch_add(1);
@@ -3364,7 +3407,8 @@ void Room::ApplyItemOpResult(shared_ptr<Player> player, DB_ItemOp op, DB_ItemOpR
 		{
 			if (op.kind != ItemOpKind::AuctionCancel)
 				session->Send(PacketSerializer::MAKE_SC_INVENTORY_UPDATE(changed, removed, player->GetGold()));
-			session->Send(PacketSerializer::MAKE_SC_AUCTION_RESULT(request, Protocol::AUCTION_RESULT_SUCCESS, targetId));
+			session->Send(PacketSerializer::MAKE_SC_AUCTION_RESULT(request, Protocol::AUCTION_RESULT_SUCCESS, targetId,
+				op.kind == ItemOpKind::AuctionBuy ? result.auctionRemain : 0));
 		}
 		break;
 	}

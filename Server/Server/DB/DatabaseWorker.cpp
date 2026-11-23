@@ -373,13 +373,14 @@ DB_ItemOpResult DatabaseWorker::RunItemOp(DB_ItemOp& op)
 		dbConn->BindParam(5, &op.auctionCount, &paramLen[4]);
 		dbConn->BindParam(6, &op.auctionSlot, &paramLen[5]);
 		dbConn->BindParam(7, &op.itemId, &paramLen[6]);
-		dbConn->BindParam(8, &op.auctionPrice, &paramLen[7]);
+		dbConn->BindParam(8, &op.auctionUnitPrice, &paramLen[7]);
 		dbConn->BindParam(9, &op.auctionDurationSec, &paramLen[8]);
 		query = DbQueries::AuctionRegister.c_str();
 		break;
 	case ItemOpKind::AuctionBuy:
 		kindName = "AuctionBuy";
 		dbConn->BindParam(3, &op.listingId, &paramLen[2]);
+		dbConn->BindParam(4, &op.auctionBuyCount, &paramLen[3]);
 		query = DbQueries::AuctionBuy.c_str();
 		break;
 	case ItemOpKind::AuctionCancel:
@@ -460,6 +461,7 @@ DB_ItemOpResult DatabaseWorker::RunItemQuery(DBConnection* dbConn, const wchar_t
 			else if (outKind == 6) result.claimItemId = static_cast<int32_t>(outValue);
 			else if (outKind == 7) result.claimCount = static_cast<int32_t>(outValue);
 			else if (outKind == 8) result.expiredIds.push_back(outValue);
+			else if (outKind == 10) result.auctionRemain = outValue;
 		}
 	}
 	const long long endUs = Metrics::NowUs();
@@ -474,6 +476,7 @@ DB_ItemOpResult DatabaseWorker::RunItemQuery(DBConnection* dbConn, const wchar_t
 		result.gold = -1;
 		result.gold2 = -1;
 		result.listingId = 0;
+		result.auctionRemain = 0;
 		result.claimDbId = 0;
 		result.claimItemId = 0;
 		result.claimCount = 0;
@@ -527,7 +530,7 @@ bool DatabaseWorker::ReadListings(DBConnection* dbConn, int64_t sellerUID, vecto
 	dbConn->BindCol(2, &row.sellerUID, &colLen[1]);
 	dbConn->BindCol(3, &row.itemId, &colLen[2]);
 	dbConn->BindCol(4, &row.count, &colLen[3]);
-	dbConn->BindCol(5, &row.price, &colLen[4]);
+	dbConn->BindCol(5, &row.unitPrice, &colLen[4]);
 	dbConn->BindCol(6, &row.remainSec, &colLen[5]);
 
 	const bool executed = dbConn->Execute(sellerUID != 0 ? DbQueries::SelectSellerListings : DbQueries::SelectActiveListings);
@@ -558,17 +561,23 @@ void DatabaseWorker::ReadListingState(int64_t listingId)
 	SQLLEN paramLen = 0;
 	dbConn->BindParam(1, &listingId, &paramLen);
 	int32_t outState = 0;
-	SQLLEN colLen = 0;
-	dbConn->BindCol(1, &outState, &colLen);
+	int32_t outCount = 0;
+	SQLLEN colLen[2] = { 0 };
+	dbConn->BindCol(1, &outState, &colLen[0]);
+	dbConn->BindCol(2, &outCount, &colLen[1]);
 
-	// -1 = 읽지 못함, 0 = 없는 등록, 그 밖 = Auction_Listing.State
+	// -1 = 읽지 못함, 0 = 없는 등록, 그 밖 = Auction_Listing.State. count = 남은 수량(D-281 — 결과를 알 수 없는 부분 구매 뒤 맞춤)
 	int state = -1;
+	int count = 0;
 	if (dbConn->Execute(DbQueries::SelectListingState))
-		state = dbConn->Fetch() ? outState : 0;
+	{
+		if (dbConn->Fetch()) { state = outState; count = outCount; }
+		else state = 0;
+	}
 	dbConn->Unbind();
 	_dbConnectionPool->Push(dbConn);
 
-	GAuction->PushJob(&AuctionService::OnListingVerified, listingId, state);
+	GAuction->PushJob(&AuctionService::OnListingVerified, listingId, state, count);
 }
 
 void DatabaseWorker::ReadMail(shared_ptr<GameSession> session, int64_t playerUID, int limit)

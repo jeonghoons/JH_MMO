@@ -284,11 +284,16 @@ void UNetworkManager::SendShopSell(int32 NpcId, int64 ItemDbId, int32 Count)
 	SendProtocol(*this, pkt, Protocol::CS_SHOP_SELL);
 }
 
-void UNetworkManager::SendAuctionSearch(int32 Slot, int32 Page)
+void UNetworkManager::SendAuctionSearch(int32 Query, const FString& Keyword, int32 Sort, bool bDesc, int64 CursorKey, int64 CursorId)
 {
 	Protocol::CS_AUCTION_SEARCH_PACKET pkt;
-	pkt.set_slot(Slot);
-	pkt.set_page(Page);
+	pkt.set_slot(0);
+	pkt.set_query(static_cast<Protocol::AuctionQuery>(Query));
+	if (Query == Protocol::AUCTION_QUERY_SEARCH) pkt.set_keyword(TCHAR_TO_UTF8(*Keyword));
+	pkt.set_sort(static_cast<Protocol::AuctionSort>(Sort));
+	pkt.set_desc(bDesc);
+	pkt.set_cursor_key(CursorKey);
+	pkt.set_cursor_id(CursorId);
 	SendProtocol(*this, pkt, Protocol::CS_AUCTION_SEARCH);
 }
 
@@ -298,20 +303,21 @@ void UNetworkManager::SendAuctionMy()
 	SendProtocol(*this, pkt, Protocol::CS_AUCTION_MY);
 }
 
-void UNetworkManager::SendAuctionBuy(int64 ListingId)
+void UNetworkManager::SendAuctionBuy(int64 ListingId, int32 Count)
 {
 	Protocol::CS_AUCTION_BUY_PACKET pkt;
 	pkt.set_listing_id(ListingId);
+	pkt.set_count(Count);
 	SendProtocol(*this, pkt, Protocol::CS_AUCTION_BUY);
 }
 
-void UNetworkManager::SendAuctionRegister(int32 NpcId, int64 ItemDbId, int32 Count, int64 Price)
+void UNetworkManager::SendAuctionRegister(int32 NpcId, int64 ItemDbId, int32 Count, int64 UnitPrice)
 {
 	Protocol::CS_AUCTION_REGISTER_PACKET pkt;
 	pkt.set_npc_id(NpcId);
 	pkt.set_item_db_id(ItemDbId);
 	pkt.set_count(Count);
-	pkt.set_price(Price);
+	pkt.set_unit_price(UnitPrice);
 	SendProtocol(*this, pkt, Protocol::CS_AUCTION_REGISTER);
 }
 

@@ -1,0 +1,5 @@
+PASS basic  (DB 아이템 89858, 골드 606408)
+PASS partial  (DB 아이템 89878, 골드 606408)
+PASS partbuy  (DB 아이템 89908, 골드 606758)
+PASS rejects  (DB 아이템 89930, 골드 606758)
+PASS dungeon  (DB 아이템 89930, 골드 606758)

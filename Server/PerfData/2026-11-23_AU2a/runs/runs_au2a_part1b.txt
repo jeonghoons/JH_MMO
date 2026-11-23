@@ -1,0 +1,18 @@
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300
+PASS basic  (DB 아이템 89858, 골드 606408)
+PASS partial  (DB 아이템 89878, 골드 606408)
+PASS partbuy  (DB 아이템 89908, 골드 606758)
+PASS rejects  (DB 아이템 89930, 골드 606758)
+PASS dungeon  (DB 아이템 89930, 골드 606758)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=36/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=5/5/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/1/1 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 4/4/1/8/0 50/0 
+GROUP PASS plain
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300
+  race: 통째 이긴 수 {'Test2': 2, 'Test3': 2}, 부분 산 수 {'Test2': 12, 'Test3': 8, 'Test4': 12}
+PASS race  (DB 아이템 89901, 골드 609408)
+FAIL cancelrace: AssertionError: 등록 [123, 124, 125, 126, 127, 128, 0, 0]
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=54/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=10/0 0.0 14/12/0/0/0 13/0 
+GROUP FAIL race (잔류·오류:, 시나리오 실패 2, ERROR 로그 0)
+EconomyTable: AuctionSearchIntervalMs=300, AuctionActionIntervalMs=300, AuctionFetchRows=4, AuctionPageRows=2
+PASS search  (DB 아이템 89886, 골드 606408)
+sessions=0 rooms=2 players=0 itemOp(total sent/fail/busy inflight)=17/0/0 0 login(total kick/busy/forced)=0/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=9/0 0.0 10/1/0/0/0 8/0 
+GROUP PASS search

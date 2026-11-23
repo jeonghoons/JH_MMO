@@ -113,8 +113,16 @@ public:
 		Cooldown interval;       // 아이템 요청 최소 간격(EconomyTable.ItemMinIntervalMs). 장착은 equipCooldown을 쓴다
 	};
 	ItemOpState itemOp;
-	// 경매 조회(검색·내 목록) 요청의 최소 간격(EconomyTable.ItemMinIntervalMs). 조회는 itemOp를 쓰지 않아 간격을 따로 잰다 (A4.3). Room 잡 안에서만
-	Cooldown auctionQuery;
+	// 경매 요청 간격(D-281). Room 잡 안에서만 읽고 쓴다.
+	//   auctionSearch = 검색·새로고침(EconomyTable.AuctionSearchIntervalMs),
+	//   auctionAction = 정렬 변경·다음 묶음·구매·등록·취소·수령(AuctionActionIntervalMs — 아이템 공용 간격 itemOp.interval과 따로)
+	Cooldown auctionSearch;
+	Cooldown auctionAction;
+	Cooldown auctionMy;   // 내 목록(같은 AuctionActionIntervalMs를 따로 잰다 — 자동으로 나가는 내 목록 요청이 등록·구매를 막지 않게)
+	// 마지막 검색(SORT·MORE가 이 값으로 찾는다 — 검색어를 바꿔 검색 간격을 피하지 못하게). Room 잡 안에서만
+	std::string auctionKeyword;          // 정리한 검색어(UTF-8, 표시용)
+	bool auctionSearchAll = true;        // 검색어가 비었다 = 전체
+	std::vector<int> auctionItemIds;     // 이름이 맞는 아이템 id(오름차순). 전체가 아닌데 비어 있으면 결과 0건
 
 	// 지금 클라이언트에 보이는 바닥 드랍 id(A3.4). 캐릭터 시야(_viewList)와 따로 관리한다(Room::UpdateDropView).
 	// Room 잡 안에서만 읽고 쓴다. 방에 들어올 때·나갈 때 비운다.

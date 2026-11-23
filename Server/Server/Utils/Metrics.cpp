@@ -232,7 +232,7 @@ namespace
 				"roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)={}/{}/{}/{}/{} {}/{}/{} "
 				"party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)={}/{}/{} {}/{}/{}/{}/{} {}/{} "
 				"roomsAlive={} dungeon(now/created/closed players)={}/{}/{} {} tickLateP99(dungeon ms)={:.1f} tickBodyP99(dungeon ms)={:.2f} "
-				"auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater)={}/{} {:.1f} {}/{}/{}/{}/{} {}/{} "
+				"auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)={}/{} {:.1f} {}/{}/{}/{}/{} {}/{} {}/{} "
 				"quest(total accept/complete/kill/reject save sent/fail inflight)={}/{}/{}/{} {}/{} {} mailNotice={}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, sendCallsPs, bufsPerSend, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
@@ -270,7 +270,7 @@ namespace
 				lateKind[2].p99 / 1000.0, bodyKind[2].p99 / 1000.0,
 				Metrics::AuctionListings.load(), Metrics::AuctionDbInFlight.load(), auctionSearchPs,
 				Metrics::AuctionRegistered.load(), Metrics::AuctionBought.load(), Metrics::AuctionCancelled.load(), Metrics::AuctionClaimed.load(), Metrics::AuctionExpired.load(),
-				Metrics::AuctionRejected.load(), Metrics::AuctionTryLater.load(),
+				Metrics::AuctionRejected.load(), Metrics::AuctionTryLater.load(), Metrics::AuctionPartialBuys.load(), Metrics::AuctionConflicts.load(),
 				Metrics::QuestAccepted.load(), Metrics::QuestCompleted.load(), Metrics::QuestKillCredits.load(), Metrics::QuestRejected.load(),
 				Metrics::QuestSaveSent.load(), Metrics::QuestSaveFailed.load(), Metrics::QuestSaveInFlight.load(), Metrics::MailNotices.load());
 

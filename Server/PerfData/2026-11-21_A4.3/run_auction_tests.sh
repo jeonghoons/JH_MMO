@@ -4,9 +4,11 @@
 # 사용: bash run_auction_tests.sh [Debug|Release] [묶음 이름...]   (묶음을 생략하면 전부). 결과: runs/auction_<묶음>/
 # 저장소의 ServerConfig.ini·DataTable은 건드리지 않는다(사본을 고쳐 --config·JH_DATA_DIR로 준다). 계정 Test1~Test4(비밀번호 1234)가 DB에 있어야 한다.
 # 모든 묶음은 [Debug] DevCommands=true(시험 아이템·골드 지급)·PortalNoRange=true(던전 입구를 걷지 않고 요청).
+# 경매 요청 간격(D-281 — 검색 5초·그 밖 1초)은 시험 시간을 줄이려고 모든 묶음에서 300ms로 줄인다(DEFAULT_TWEAK). 실제 값은 interval 묶음이 본다.
 CONF="${1:-Debug}"; shift
 HERE="$(cd "$(dirname "$0")" && pwd)"; SRV="$HERE/../../Server"; TABLES="$HERE/../../../Common/DataTable"
-ALL="plain race expire limits fail busy cut restart"
+ALL="plain race search interval expire limits fail busy cut restart"
+DEFAULT_TWEAK="AuctionSearchIntervalMs=300 AuctionActionIntervalMs=300"
 GROUPS_TO_RUN="${*:-$ALL}"
 TOTAL_FAIL=0
 
@@ -23,7 +25,7 @@ stop_server() {
 }
 
 run_group() {  # 이름 "sed 식" "EconomyTable 수정(열=값 ..., 없으면 빈 글)" 시나리오...   (시나리오에 "--restart"가 있으면 그 자리에서 서버를 다시 띄운다)
-  local name="$1" edits="$2" tables="$3"; shift 3
+  local name="$1" edits="$2" tables="$DEFAULT_TWEAK $3"; shift 3
   local RUN="$HERE/runs/auction_$name"
   rm -rf "$RUN"; mkdir -p "$RUN"
   sed -e "s/^DevCommands=.*/DevCommands=true/" -e "s/^PortalNoRange=.*/PortalNoRange=true/" -e "s/^Level=.*/Level=Debug/" \
@@ -84,8 +86,10 @@ run_group() {  # 이름 "sed 식" "EconomyTable 수정(열=값 ..., 없으면 �
 
 for g in $GROUPS_TO_RUN; do
   case "$g" in
-    plain)   run_group plain "" "" basic partial rejects dungeon ;;
+    plain)   run_group plain "" "" basic partial partbuy rejects dungeon ;;
     race)    run_group race "" "" race cancelrace ;;
+    search)  run_group search "" "AuctionFetchRows=4 AuctionPageRows=2" search ;;
+    interval) run_group interval "" "AuctionSearchIntervalMs=5000 AuctionActionIntervalMs=1000" interval ;;
     expire)  run_group expire "" "AuctionDurationSec=6 AuctionExpireCheckSec=1" expire ;;
     limits)  run_group limits "" "AuctionMaxListings=2 GoldMax=3000 AuctionMaxPrice=2500" limits ;;
     fail)    run_group fail "-e s/^DbItemFailEvery=.*/DbItemFailEvery=2/" "" fail ;;
