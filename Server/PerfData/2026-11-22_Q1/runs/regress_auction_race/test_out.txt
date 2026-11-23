@@ -1,4 +1,4 @@
-== regress auction_race (server pid 2160, port 8888, DevCommands=true PortalNoRange=true, data repo)
+== regress auction_race (server pid 22920, port 8888, DevCommands=true PortalNoRange=true, data repo)
   race: 통째 이긴 수 {'Test2': 2, 'Test3': 2}, 부분 산 수 {'Test2': 12, 'Test3': 8, 'Test4': 12}
 PASS race  (DB 아이템 89901, 골드 609408)
   cancelrace: 취소 4, 구매 4, 부분 구매 먼저

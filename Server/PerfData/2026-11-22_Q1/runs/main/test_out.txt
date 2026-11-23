@@ -1,19 +1,19 @@
-== main (server pid 8964, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=false, data repo)
+== main (server pid 19232, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=false, data repo)
 PASS list-on-enter
 PASS list-after-inventory
 PASS no-mail-notice
 PASS npc-kind
-[   2.40] Test1 시작 자리 (-13986,-57) 경비대장까지 4732cm, NPC id 900000002
+[  13.33] Test1 시작 자리 (-10659,94) 경비대장까지 1450cm, NPC id 900000002
 PASS accept-too-far
 PASS too-far-no-row
-[  18.90] 경비대장 앞: Test1 243cm Test2 254cm
+[  18.81] 경비대장 앞: Test1 249cm Test2 284cm
 PASS accept
 PASS accept-db
 PASS request-again
 PASS complete-not-finished
 PASS request-unaccepted-accepts
 PASS accept-any-level
-[ 287.17] 처치 15번 248초, SC_QUEST_UPDATE [(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15)], DB 확인 {1: '1,1,0', 7: '1,7,0', 15: '1,15,0'}
+[ 163.89] 처치 15번 125초, SC_QUEST_UPDATE [(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15)], DB 확인 {1: '1,1,0', 7: '1,7,0', 15: '1,15,0'}
 PASS kill-updates
 PASS kill-saved-each
 PASS kill-other-quest-same
@@ -42,7 +42,7 @@ PASS inv-full
 PASS inv-full-same
 PASS gold-full
 PASS gold-full-same
-[ 359.49] 재접속 뒤 퀘스트 [('Test1', {1: (2, 15), 3: (1, 0)}), ('Test2', {1: (1, 0), 2: (2, 0)}), ('Test3', {2: (2, 0)}), ('Test4', {2: (1, 0)})]
+[ 241.48] 재접속 뒤 퀘스트 [('Test1', {1: (2, 15), 3: (1, 0)}), ('Test2', {1: (1, 0), 2: (2, 0)}), ('Test3', {2: (2, 0)}), ('Test4', {2: (1, 0)})]
 PASS relogin-same
 PASS relogin-list
 PASS db-totals

@@ -1,9 +1,9 @@
-== err (server pid 14548, DevCommands=false DbSaveDelayMs=400 DbItemFailEvery=0 PortalNoRange=false, data repo)
+== err (server pid 20800, DevCommands=false DbSaveDelayMs=400 DbItemFailEvery=0 PortalNoRange=false, data repo)
 PASS too-far
 PASS npc-missing
 PASS npc-not-quest
 PASS quest-missing
-[  23.79] 요청 연타 8회: 성공 [(1, 0)] 거부 [5, 5, 4, 4, 13, 13, 13]
+[  23.92] 요청 연타 8회: 성공 [(1, 0)] 거부 [5, 5, 4, 4, 13, 13, 13]
 PASS spam-one-success
 PASS spam-rejects
 PASS spam-db-one-row
@@ -12,7 +12,7 @@ PASS in-trade
 PASS after-trade
 PASS dummy
 PASS bad-packets
-[  28.97] 깨진 패킷 뒤 Test1 연결 끊김, 그 사이 받은 거부 [13, 9, 9]
+[  29.09] 깨진 패킷 뒤 Test1 연결 끊김, 그 사이 받은 거부 [13, 9, 9]
 PASS dead
 PASS db-totals
 PASS db-totals-auction-data
