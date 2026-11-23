@@ -88,9 +88,10 @@ int main(int argc, char** argv)
 	ofstream csv(GConfig.outFile);
 	csv << "t_sec,connected,in_game,connect_fail,unexpected_close,login_p50_ms,login_p95_ms,ping_p50_ms,ping_p95_ms,ping_p99_ms,ping_max_ms,"
 		"sent_ps,recv_ps,recv_kbps,move_corrected,server_cpu_pct,server_mem_mb,max_bot_recv_KBps,bot_cpu_pct,room_change,move_rejected,"
-		"connect_attempts,connect_ok,login_ok,login_fail,login_retry,login_give_up,login_timeout,login_p99_ms,bot_mem_mb\n";
+		"connect_attempts,connect_ok,login_ok,login_fail,login_retry,login_give_up,login_timeout,login_p99_ms,bot_mem_mb,"
+		"enter_p50_ms,enter_p95_ms,enter_p99_ms,enter_n\n";
 
-	vector<uint32_t> allPing, allLogin;
+	vector<uint32_t> allPing, allLogin, allEnter;
 	RunStat serverCpuStat, serverMemStat, botCpuStat, botMemStat;   // 요약 CSV(A5.3)
 	double peakBotKBps = 0.0;   // 구간별 봇 1명 최대 수신량 중 가장 큰 값
 	const long long startUs = NowUs();
@@ -117,6 +118,11 @@ int main(int argc, char** argv)
 		allLogin.insert(allLogin.end(), login.begin(), login.end());
 		sort(ping.begin(), ping.end());
 		sort(login.begin(), login.end());
+		// A5.4b: 접속 시간(첫 연결 시작 → 방 입장, 재시도 포함)
+		vector<uint32_t> enter;
+		BotEngine::TakeEnterSamples(enter);
+		allEnter.insert(allEnter.end(), enter.begin(), enter.end());
+		sort(enter.begin(), enter.end());
 
 		const double dt = max(0.001, (now - lastReportUs) / 1e6);
 		long long sent = GStat.pktSent.load(), recv = GStat.pktRecv.load(), bytes = GStat.bytesRecv.load(), corrected = GStat.moveCorrected.load();
@@ -141,10 +147,12 @@ int main(int argc, char** argv)
 			(sent - lastSent) / dt, (recv - lastRecv) / dt, (bytes - lastBytes) / dt / 1024.0 * 8.0,
 			corrected - lastCorrected, cpu, mem, maxBotKBps, botCpu, roomChange - lastRoomChange, moveRejected - lastMoveRejected);
 		// A5.3: 접속·로그인 누적 수, 구간 로그인 p99, 봇 메모리
-		snprintf(line + len, sizeof(line) - len, ",%lld,%lld,%lld,%lld,%lld,%lld,%lld,%.1f,%.0f",
+		const int len2 = snprintf(line + len, sizeof(line) - len, ",%lld,%lld,%lld,%lld,%lld,%lld,%lld,%.1f,%.0f",
 			GStat.connectAttempts.load(), GStat.connectOk.load(), GStat.loginOk.load(), GStat.loginFail.load(),
 			GStat.loginRetry.load(), GStat.loginGiveUp.load(), GStat.loginTimeout.load(),
 			Percentile(login, 0.99) / 1000.0, botMem);
+		snprintf(line + len + len2, sizeof(line) - len - len2, ",%.1f,%.1f,%.1f,%zu",
+			Percentile(enter, 0.50) / 1000.0, Percentile(enter, 0.95) / 1000.0, Percentile(enter, 0.99) / 1000.0, enter.size());
 		csv << line << "\n";
 		csv.flush();
 
@@ -164,6 +172,12 @@ int main(int argc, char** argv)
 
 	sort(allPing.begin(), allPing.end());
 	sort(allLogin.begin(), allLogin.end());
+	{
+		vector<uint32_t> rest;   // 마지막 구간 뒤에 들어온 표본
+		BotEngine::TakeEnterSamples(rest);
+		allEnter.insert(allEnter.end(), rest.begin(), rest.end());
+	}
+	sort(allEnter.begin(), allEnter.end());
 
 	// A5.3: 실행 전체 요약 한 줄(단계별 비교·보고서용). 구간 CSV 이름에 _summary를 붙인다.
 	{
@@ -172,7 +186,8 @@ int main(int argc, char** argv)
 		ofstream sum(sumPath);
 		sum << "bots,duration_s,connect_attempts,connect_ok,connect_fail,login_ok,login_fail,login_retry,login_give_up,login_timeout,unexpected_close,"
 			"login_p50_ms,login_p95_ms,login_p99_ms,login_max_ms,login_n,ping_p50_ms,ping_p95_ms,ping_p99_ms,ping_max_ms,ping_n,"
-			"sent_ps_avg,recv_ps_avg,server_cpu_avg_pct,server_cpu_max_pct,server_mem_max_mb,bot_cpu_avg_pct,bot_cpu_max_pct,bot_mem_max_mb\n";
+			"sent_ps_avg,recv_ps_avg,server_cpu_avg_pct,server_cpu_max_pct,server_mem_max_mb,bot_cpu_avg_pct,bot_cpu_max_pct,bot_mem_max_mb,"
+			"enter_p50_ms,enter_p95_ms,enter_p99_ms,enter_max_ms,enter_n\n";
 		char row[1024];
 		snprintf(row, sizeof(row),
 			"%d,%.0f,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,"
@@ -187,7 +202,11 @@ int main(int argc, char** argv)
 			(allPing.empty() ? 0.0 : allPing.back() / 1000.0), allPing.size(),
 			GStat.pktSent.load() / runSec, GStat.pktRecv.load() / runSec,
 			serverCpuStat.Avg(), serverCpuStat.maxV, serverMemStat.maxV, botCpuStat.Avg(), botCpuStat.maxV, botMemStat.maxV);
-		sum << row << "\n";
+		char enterCols[160];
+		snprintf(enterCols, sizeof(enterCols), ",%.1f,%.1f,%.1f,%.1f,%zu",
+			Percentile(allEnter, 0.50) / 1000.0, Percentile(allEnter, 0.95) / 1000.0, Percentile(allEnter, 0.99) / 1000.0,
+			(allEnter.empty() ? 0.0 : allEnter.back() / 1000.0), allEnter.size());
+		sum << row << enterCols << "\n";
 		printf("[loadtest] summary csv: %s\n", sumPath.c_str());
 	}
 
@@ -197,7 +216,10 @@ int main(int argc, char** argv)
 	printf("[summary] login   p50/p95/p99/max = %.1f/%.1f/%.1f/%.1f ms (n=%zu)\n",
 		Percentile(allLogin, 0.50) / 1000.0, Percentile(allLogin, 0.95) / 1000.0, Percentile(allLogin, 0.99) / 1000.0,
 		(allLogin.empty() ? 0.0 : allLogin.back() / 1000.0), allLogin.size());
-	printf("[summary] ping    p50/p95/p99/max = %.1f/%.1f/%.1f/%.1f ms (n=%zu)\n",
+	printf("[summary] enter   p50/p95/p99/max = %.1f/%.1f/%.1f/%.1f ms (n=%zu)\n",
+		Percentile(allEnter, 0.50) / 1000.0, Percentile(allEnter, 0.95) / 1000.0, Percentile(allEnter, 0.99) / 1000.0,
+		(allEnter.empty() ? 0.0 : allEnter.back() / 1000.0), allEnter.size());
+	printf("[summary] ping   p50/p95/p99/max = %.1f/%.1f/%.1f/%.1f ms (n=%zu)\n",
 		Percentile(allPing, 0.50) / 1000.0, Percentile(allPing, 0.95) / 1000.0, Percentile(allPing, 0.99) / 1000.0,
 		(allPing.empty() ? 0.0 : allPing.back() / 1000.0), allPing.size());
 	printf("[summary] moveCorrected=%lld pongs=%lld totalRecvBytes=%lld peakBotRecv=%.1fKB/s\n",

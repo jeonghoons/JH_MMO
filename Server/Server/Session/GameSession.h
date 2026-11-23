@@ -18,6 +18,9 @@ public:
 	// OnDisconnected가 부르고, 로그인 처리 도중에 끊긴 경우(OnDisconnected가 _currPlayer를 못 본 경우)는 AuthLobby가 부른다.
 	void				HandlePlayerGone();
 
+	// CS_LOGIN을 받은 시각(us, Metrics::NowUs). 로비가 SC_LOGIN을 보낼 때 로그인 전체 시간 지표를 낸다(A5.4b).
+	atomic<long long>	loginRecvUs = 0;
+
 protected:
 	virtual void	OnDisconnected() override;
 	virtual void	OnRecvPacket(BYTE* buffer, int len) override;

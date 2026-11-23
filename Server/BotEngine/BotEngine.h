@@ -157,6 +157,8 @@ namespace BotEngine
 	double ElapsedSec();
 	// 마지막 호출 이후 쌓인 RTT 샘플(마이크로초)을 가져간다.
 	void TakeSamples(std::vector<uint32_t>& pingUs, std::vector<uint32_t>& loginUs);
+	// 마지막 호출 이후 쌓인 접속 시간 표본(첫 연결 시작 → 방 입장, 마이크로초, A5.4b). 부르지 않는 프런트엔드는 쌓이기만 한다.
+	void TakeEnterSamples(std::vector<uint32_t>& enterUs);
 	// 워커들이 마지막으로 공개한 봇·몬스터 상태를 모은다(몬스터는 id로 중복 제거). 워커는 50ms마다 공개한다.
 	void GetSnapshot(std::vector<BotView>& bots, std::vector<MonsterView>& monsters);
 	// 워커를 멈추고 소켓을 닫는다.

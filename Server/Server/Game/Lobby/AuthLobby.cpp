@@ -160,6 +160,16 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
 
     session->Send(sendBuffer);
 
+    // 로그인 처리량 지표(A5.4b): 이 로비 잡의 큐 대기, CS_LOGIN 받음 → 여기(SC_LOGIN 보냄)
+    {
+        const long long nowUs = Metrics::NowUs();
+        if (const Job* job = JobQueue::CurrentJob())
+            Metrics::LoginLobbyWaitUs.Add(max<long long>(0, nowUs - job->_enqueueUs));
+        const long long recvUs = session->loginRecvUs.exchange(0, memory_order_relaxed);
+        if (recvUs != 0)
+            Metrics::LoginTotalUs.Add(max<long long>(0, nowUs - recvUs));
+    }
+
     LOG_DEBUG("Lobby", "[{}] - 로그인 성공 및 객체 생성 완료", Utils::WStringToUTF8(playerName));
 
     // 위의 IsConnected 확인 뒤에 끊겼다면 OnDisconnected는 _currPlayer를 못 보고 지나갔을 수 있다.

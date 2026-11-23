@@ -1,0 +1,9 @@
+[login] TIME_WAIT 3317 — 기다림
+[login] TIME_WAIT 3317 — 기다림
+[login] TIME_WAIT 3320 — 기다림
+[login] TIME_WAIT 3319 — 기다림
+[login] TIME_WAIT 3319 — 기다림
+[login] TIME_WAIT 3319 — 기다림
+[login] TIME_WAIT 3
+done login_5000_db8
+[login] done

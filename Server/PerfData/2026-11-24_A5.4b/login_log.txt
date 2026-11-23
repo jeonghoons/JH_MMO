@@ -1,0 +1,13 @@
+[login] TIME_WAIT 35
+done login_50
+[login] TIME_WAIT 443
+done login_100
+[login] TIME_WAIT 1771
+done login_200
+[login] TIME_WAIT 4236 — 기다림
+[login] TIME_WAIT 4233 — 기다림
+[login] TIME_WAIT 4232 — 기다림
+[login] TIME_WAIT 4232 — 기다림
+[login] TIME_WAIT 2874
+done login_400
+[login] done

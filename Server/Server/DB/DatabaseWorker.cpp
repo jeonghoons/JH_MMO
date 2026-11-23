@@ -80,14 +80,31 @@ void DatabaseWorker::Run()
 		_dbJobQueue.WaitPop(job);
 
 		if (job) {
+			// DB 큐 대기·길이 지표(A5.4b): 넣은 시각 → 이 스레드가 꺼낸 시각
+			Metrics::DbQueueLen.fetch_sub(1, memory_order_relaxed);
+			Metrics::DbJobWaitUs.Add(max<long long>(0, Metrics::NowUs() - job->_enqueueUs));
 			job->Execute();
 		}
 	}
 }
 
+void DatabaseWorker::OnJobPushed()
+{
+	const int len = Metrics::DbQueueLen.fetch_add(1, memory_order_relaxed) + 1;
+	int prev = Metrics::DbQueueMax.load(memory_order_relaxed);
+	while (len > prev && !Metrics::DbQueueMax.compare_exchange_weak(prev, len, memory_order_relaxed)) {}
+}
+
 
 void DatabaseWorker::TryLogin(shared_ptr<GameSession> session, string recvId, string recvPw)
 {
+	// 로그인 DB 실행 시간(A5.4b) — 함수를 나갈 때 기록
+	struct ExecTimer
+	{
+		long long startUs = Metrics::NowUs();
+		~ExecTimer() { Metrics::LoginDbExecUs.Add(Metrics::NowUs() - startUs); }
+	} execTimer;
+
 	DBConnection* dbConn = _dbConnectionPool->Pop();
 	dbConn->Unbind();
 

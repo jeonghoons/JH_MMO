@@ -4,6 +4,7 @@
 #include "Network/IocpEvent.h"
 #include "Network/Session.h"
 #include "Network/NetAddress.h"
+#include "Network/NetStats.h"
 
 Listener::~Listener()
 {
@@ -91,6 +92,7 @@ void Listener::ProcessAccept(AcceptEvent* acceptEvent)
 		return;
 	}
 
+	NetStats::Accepts.fetch_add(1, memory_order_relaxed);
 	session->SetNetAddress(NetAddress(sockAddress));
 	int newId = IdGenerate();
 	session->SetId(newId);

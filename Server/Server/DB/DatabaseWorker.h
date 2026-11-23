@@ -25,6 +25,9 @@ public:
 	void PushDBJob(void(DatabaseWorker::* memFunc)(Arguments...), Arguments... args)
 	{
 		shared_ptr<Job> job = make_shared<Job>(shared_from_this(), memFunc, std::forward<Arguments>(args)...);
+		// DB 큐 대기·길이 지표(A5.4b) — Run이 꺼낼 때 대기 시간을 잰다
+		job->_enqueueUs = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+		OnJobPushed();
 		_dbJobQueue.Push(job);
 	}
 
@@ -62,6 +65,8 @@ public:
 	void SaveQuestProgress(shared_ptr<class Room> room, shared_ptr<class Player> player, int64_t playerUID, QuestProgressList progress);
 
 private:
+	// DB 큐에 작업을 넣을 때 큐 길이 지표를 올린다(A5.4b — Metrics::DbQueueLen/DbQueueMax).
+	void OnJobPushed();
 	// DB의 Schema_Version이 DbQueries::DB_SCHEMA_VERSION과 같은지 확인한다. 다르면 이유를 로그에 남기고 false.
 	bool CheckSchemaVersion();
 	// 아이템 작업 하나를 실행하고 결과를 돌려준다(바인딩 → 실행 → 결과 행 읽기). ExecItemOp·ExecAuctionOp가 쓴다.

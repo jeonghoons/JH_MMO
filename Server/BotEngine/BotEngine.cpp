@@ -77,6 +77,7 @@ struct SampleBuffer
 	mutex m;
 	vector<uint32_t> pingUs;
 	vector<uint32_t> loginUs;
+	vector<uint32_t> enterUs;   // 첫 연결 시작 → 내 SC_ADD_OBJECT(방 입장 끝), 재시도 포함(A5.4b)
 };
 static vector<unique_ptr<SampleBuffer>> GSamples;
 
@@ -103,6 +104,7 @@ struct Bot
 	SOCKET sock = INVALID_SOCKET;
 	BotState state = BotState::Idle;
 	long long connectStartUs = 0;
+	long long firstConnectUs = 0;   // 처음 연결을 시작한 시각(재시도해도 유지) — 접속 시간 표본(A5.4b)
 	long long loginSentUs = 0;
 	long long nextMoveUs = 0;
 	long long nextPingUs = 0;
@@ -536,6 +538,7 @@ static void StartConnect(Bot& b)
 	inet_pton(AF_INET, GConfig.host.c_str(), &addr.sin_addr);
 
 	b.connectStartUs = NowUs();
+	if (b.firstConnectUs == 0) b.firstConnectUs = b.connectStartUs;
 	b.state = BotState::Connecting;
 	if (connect(b.sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR &&
 		WSAGetLastError() != WSAEWOULDBLOCK)
@@ -721,6 +724,11 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		{
 			b.spawnKnown = true;
 			b.lastMoveSentUs = NowUs();
+			if (b.firstConnectUs != 0)
+			{
+				lock_guard<mutex> lock(samples.m);
+				samples.enterUs.push_back(static_cast<uint32_t>(min<long long>(UINT32_MAX, NowUs() - b.firstConnectUs)));
+			}
 			b.x = pkt.object_info().position().x();
 			b.y = pkt.object_info().position().y();
 			b.z = pkt.object_info().position().z();
@@ -1337,6 +1345,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 				fresh.index = b.index;
 				fresh.profile = b.profile;
 				fresh.retryCount = b.retryCount;
+				fresh.firstConnectUs = b.firstConnectUs;
 				b = std::move(fresh);
 			}
 			if (b.state == BotState::Idle && b.index < allowed)
@@ -2445,6 +2454,16 @@ void BotEngine::TakeSamples(vector<uint32_t>& pingUs, vector<uint32_t>& loginUs)
 		pingUs.insert(pingUs.end(), sb->pingUs.begin(), sb->pingUs.end());
 		loginUs.insert(loginUs.end(), sb->loginUs.begin(), sb->loginUs.end());
 		sb->pingUs.clear(); sb->loginUs.clear();
+	}
+}
+
+void BotEngine::TakeEnterSamples(vector<uint32_t>& enterUs)
+{
+	for (auto& sb : GSamples)
+	{
+		lock_guard<mutex> lock(sb->m);
+		enterUs.insert(enterUs.end(), sb->enterUs.begin(), sb->enterUs.end());
+		sb->enterUs.clear();
 	}
 }
 

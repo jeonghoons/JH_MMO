@@ -15,6 +15,7 @@ namespace NetStats
 	inline std::atomic<int>       SessionObjects{ 0 };  // 살아 있는 Session 객체 수(생성자 +1, 소멸자 -1)
 	inline std::atomic<long long> IdleKicks{ 0 };       // 유휴 타임아웃으로 끊은 세션 수(누적)
 	inline std::atomic<long long> SendQueueKicks{ 0 };  // 송신 큐 상한을 넘어 끊은 세션 수(누적)
+	inline std::atomic<long long> Accepts{ 0 };         // 받아들인 연결 수(누적, Listener::ProcessAccept — A5.4b)
 
 	// 송신 묶기(P1b) 조사 지표. 모두 누적.
 	// WSASend가 어느 경로에서 나갔는지: 잡 큐가 모아서(Flushes) / 송신 완료 직후 큐에 남은 것을 이어서(Continues — 송신 간격을 거치지 않음)

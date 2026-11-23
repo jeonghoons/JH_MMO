@@ -1,0 +1,31 @@
+[loadtest] host=127.0.0.1:8888 bots=5000 ramp=5000/s duration=50s threads=4 profile=idle login=account body=male chaos=0 out=C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.4b\runs\login_5000_db8\loadtest.csv
+[bot] data tables loaded: skills 15, auction npc 1002, shop npc 1001 (../../Common/DataTable/)
+[bot] auction npc marker: (-15600, 3500)
+[bot] monster spawns loaded: 49, town zones: 1 (../MapResource/Export/Continent01/Logic/Continent01_Logic.json)
+[bot] bot0 login: id=4 playerType=2 maxHp=1020 attack=45 attackSpeed=1.00 moveSpeed=500.0 pos=(0, 0, 0)
+[bot] bot0 sees object id=4 type=1 playerType=2 template=0 pos=(-15659,-12853)
+[bot] bot0 inventory: items=11 gold=3766 slots=80
+[t=  5s] connected=5000 inGame=5000 connFail=0 closed=0 | ping p50/p95/p99/max=2.0/4.0/11.4/37.6 ms | sent/s=6004 recv/s=80347 | server cpu=139% mem=393MB | maxBot=2.6KB/s botCpu=0%
+[t= 10s] connected=5000 inGame=5000 connFail=0 closed=0 | ping p50/p95/p99/max=2.5/4.6/12.4/17.6 ms | sent/s=4946 recv/s=61056 | server cpu=90% mem=396MB | maxBot=2.3KB/s botCpu=210%
+[t= 15s] connected=5000 inGame=5000 connFail=0 closed=0 | ping p50/p95/p99/max=3.1/5.5/12.2/17.4 ms | sent/s=5046 recv/s=64433 | server cpu=109% mem=397MB | maxBot=2.4KB/s botCpu=222%
+[t= 20s] connected=5000 inGame=5000 connFail=0 closed=0 | ping p50/p95/p99/max=3.5/5.9/12.1/16.3 ms | sent/s=5069 recv/s=64568 | server cpu=117% mem=397MB | maxBot=2.5KB/s botCpu=219%
+[t= 25s] connected=5000 inGame=5000 connFail=0 closed=0 | ping p50/p95/p99/max=3.9/6.4/12.9/18.2 ms | sent/s=4987 recv/s=55469 | server cpu=97% mem=397MB | maxBot=2.6KB/s botCpu=198%
+[bot] nav loaded: Resource/Map/Continent01_Geo.nav
+[t= 31s] connected=5000 inGame=5000 connFail=0 closed=0 | ping p50/p95/p99/max=4.2/6.6/12.7/19.1 ms | sent/s=4985 recv/s=56832 | server cpu=82% mem=398MB | maxBot=2.8KB/s botCpu=170%
+[t= 36s] connected=5000 inGame=5000 connFail=0 closed=0 | ping p50/p95/p99/max=4.9/10.8/13.6/19.8 ms | sent/s=6568 recv/s=137365 | server cpu=321% mem=400MB | maxBot=8.8KB/s botCpu=351%
+[t= 41s] connected=5000 inGame=5000 connFail=0 closed=0 | ping p50/p95/p99/max=6.2/13.7/16.4/25.5 ms | sent/s=8960 recv/s=280109 | server cpu=561% mem=400MB | maxBot=16.5KB/s botCpu=398%
+[t= 46s] connected=5000 inGame=5000 connFail=0 closed=0 | ping p50/p95/p99/max=6.4/14.3/17.5/23.9 ms | sent/s=9152 recv/s=293920 | server cpu=573% mem=401MB | maxBot=18.7KB/s botCpu=398%
+[t= 50s] connected=5000 inGame=5000 connFail=0 closed=0 | ping p50/p95/p99/max=6.6/14.5/17.4/23.5 ms | sent/s=8956 recv/s=299683 | server cpu=576% mem=401MB | maxBot=18.4KB/s botCpu=396%
+[loadtest] summary csv: C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.4b\runs\login_5000_db8\loadtest_summary.csv
+
+[summary] attempts=5000 ok=5000 fail=0 loginOk=5000 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 261.5/377.8/403.6/417.4 ms (n=5000)
+[summary] enter   p50/p95/p99/max = 342.6/868.7/892.8/1358.2 ms (n=5000)
+[summary] ping   p50/p95/p99/max = 4.1/11.7/15.2/37.6 ms (n=244734)
+[summary] moveCorrected=1 pongs=244835 totalRecvBytes=564223232 peakBotRecv=18.7KB/s
+[summary] nav: pathSearch=14882 pathFail=3
+[summary] profiles: idle=5000
+[summary] login: retry=0 giveUp=0 timeout=0 fail by LoginResult:
+[summary] revive: selfDead(own SC_DEAD)=1005 reviveSent(CS_REVIVE)=967 selfRevived(own SC_REVIVE)=967
+[summary] inventory: SC_INVENTORY=5000 SC_INVENTORY_UPDATE=0 giveSent=0 slotMoveSent=0 itemRejected(SC_ITEM_RESULT)=0 by ItemResult:
+[summary] room: roomChange(SC_ROOM_CHANGE)=967 moveRejected(SC_MOVE_RESULT)=0 by MoveResult:

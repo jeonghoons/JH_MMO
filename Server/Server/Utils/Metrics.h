@@ -58,6 +58,14 @@ namespace Metrics
 	inline std::atomic<long long> LoginBusy{ 0 };         // LOGIN_RESULT_BUSY 응답(대기 시간 초과·더 늦은 로그인에 밀림, 누적)
 	inline std::atomic<long long> LoginCloseForced{ 0 };  // 정리 신호가 오지 않아 접속 목록에서 강제로 뺀 횟수(누적, 0이어야 정상)
 
+	// 로그인 처리량(A5.4b). 표본은 us
+	inline SampleStat DbJobWaitUs;       // DB 작업 하나가 큐에 들어가 DB 스레드가 꺼내기까지(모든 DB 작업)
+	inline SampleStat LoginDbExecUs;     // TryLogin 실행 시간(로그인 조회 + 퀘스트 조회)
+	inline SampleStat LoginLobbyWaitUs;  // 로그인 성공 로비 잡(OnLoginSuccess)이 큐에 들어감 → SC_LOGIN을 보냄(대기 + 처리)
+	inline SampleStat LoginTotalUs;      // CS_LOGIN 받음 → SC_LOGIN 보냄(로비가 Send를 부른 시각, 송신 묶기 대기 제외)
+	inline std::atomic<int> DbQueueLen{ 0 };   // DB 큐에 쌓인 작업 수(현재)
+	inline std::atomic<int> DbQueueMax{ 0 };   // 구간 최대(리포터가 읽으며 0으로)
+
 	// 스킬 조준(MC4.2d-1, Room::PlayerSkillAim). 모두 누적
 	inline std::atomic<long long> AimOn{ 0 };         // 켜기 수락
 	inline std::atomic<long long> AimReject{ 0 };     // 켜기 거부

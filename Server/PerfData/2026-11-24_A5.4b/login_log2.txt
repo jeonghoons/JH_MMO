@@ -1,0 +1,30 @@
+[login] TIME_WAIT 3506 — 기다림
+[login] TIME_WAIT 3506 — 기다림
+[login] TIME_WAIT 3506 — 기다림
+[login] TIME_WAIT 3509 — 기다림
+[login] TIME_WAIT 3506 — 기다림
+[login] TIME_WAIT 3506 — 기다림
+[login] TIME_WAIT 3506 — 기다림
+[login] TIME_WAIT 4
+done login_800
+[login] TIME_WAIT 3835 — 기다림
+[login] TIME_WAIT 3835 — 기다림
+[login] TIME_WAIT 3835 — 기다림
+[login] TIME_WAIT 3835 — 기다림
+[login] TIME_WAIT 3835 — 기다림
+[login] TIME_WAIT 3834 — 기다림
+[login] TIME_WAIT 3833 — 기다림
+[login] TIME_WAIT 3833 — 기다림
+[login] TIME_WAIT 0
+done login_1600
+[login] TIME_WAIT 3821 — 기다림
+[login] TIME_WAIT 3821 — 기다림
+[login] TIME_WAIT 3824 — 기다림
+[login] TIME_WAIT 3824 — 기다림
+[login] TIME_WAIT 3824 — 기다림
+[login] TIME_WAIT 3822 — 기다림
+[login] TIME_WAIT 3822 — 기다림
+[login] TIME_WAIT 3822 — 기다림
+[login] TIME_WAIT 3
+done login_5000
+[login] done

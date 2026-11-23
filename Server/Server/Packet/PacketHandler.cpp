@@ -196,6 +196,7 @@ void PacketHandler::Handle_CS_LOGIN(shared_ptr<GameSession> session, Protocol::C
         return;
     }
 
+    session->loginRecvUs.store(Metrics::NowUs(), memory_order_relaxed);   // 로그인 전체 시간 지표(A5.4b)
     GDBWorker->PushDBJob(&DatabaseWorker::TryLogin, session, id, pw);
 }
 
