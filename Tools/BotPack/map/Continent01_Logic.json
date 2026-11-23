@@ -1,0 +1,1010 @@
+{
+	"mapName": "Continent01",
+	"version": 1,
+	"markers": [
+		{
+			"pointId": 0,
+			"type": "PlayerStart",
+			"area": "town",
+			"position":
+			{
+				"x": -14200,
+				"y": 0,
+				"z": 100,
+				"yaw": 0
+			}
+		},
+		{
+			"pointId": 501,
+			"type": "PlayerStart",
+			"area": "town",
+			"position":
+			{
+				"x": -9800,
+				"y": 0,
+				"z": 100,
+				"yaw": 180
+			}
+		},
+		{
+			"pointId": 502,
+			"type": "PlayerStart",
+			"area": "town",
+			"position":
+			{
+				"x": -14300,
+				"y": 5200,
+				"z": 100,
+				"yaw": -90
+			}
+		},
+		{
+			"pointId": 503,
+			"type": "PlayerStart",
+			"area": "town",
+			"position":
+			{
+				"x": -14700,
+				"y": -5000,
+				"z": 100,
+				"yaw": 90
+			}
+		},
+		{
+			"pointId": 1,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -16010.283212236771,
+				"y": -13026.4239881373,
+				"z": 51.755416265529206,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 2,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -4071.0015137200971,
+				"y": -15217.355090602507,
+				"z": 154.53459013051048,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 3,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 319.49926961706296,
+				"y": -14870.455107769032,
+				"z": 137.22465458299871,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 4,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -7370.8625018617031,
+				"y": -17745.013819639411,
+				"z": 157.57665188347673,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 5,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -20119.211982498451,
+				"y": -16341.114407026078,
+				"z": 202.34478963165469,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 6,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -14289.548234451337,
+				"y": -19759.711666827639,
+				"z": 204.10806227211128,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 7,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 5138.0547052806205,
+				"y": -12517.647379522808,
+				"z": 162.88429912724973,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 8,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 3979.8885749498909,
+				"y": -16368.154935229339,
+				"z": -53.600860411185892,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 9,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -11489.79583237977,
+				"y": -15159.082156632729,
+				"z": -28.473655203375273,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 10,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -1960.4488209907117,
+				"y": -9874.6365680033359,
+				"z": 148.73711405756447,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 11,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -11355.535307713388,
+				"y": -10558.434478515885,
+				"z": 105.80066809032697,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_w"
+		},
+		{
+			"pointId": 12,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 3291.5773912990089,
+				"y": 19665.500091129041,
+				"z": 207.28181498275711,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 13,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 2467.806938833914,
+				"y": 10668.92703903911,
+				"z": 25.655033710576404,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 14,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -5162.5084371023231,
+				"y": 14206.973045643599,
+				"z": 129.66533367389408,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 15,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -15323.272198501965,
+				"y": 14423.565168279336,
+				"z": -10.606192769365748,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 16,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -19570.919025764961,
+				"y": 10692.050497273012,
+				"z": 124.69490838558042,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 17,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -7179.0983204341583,
+				"y": 17435.774419348352,
+				"z": 137.18337772407619,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 18,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -11081.492461430527,
+				"y": 10398.567108351872,
+				"z": 142.35036861820873,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 19,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -309.20015352319297,
+				"y": 15926.88422082885,
+				"z": -84.715474396350828,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 20,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -15951.602195109723,
+				"y": 19940.067275995789,
+				"z": 21.655504807231665,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 21,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -19606.584837069589,
+				"y": 18219.457965691265,
+				"z": 49.685383347111376,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 22,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -2744.983870361054,
+				"y": 19926.850729516922,
+				"z": -74.789040281915192,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_e"
+		},
+		{
+			"pointId": 23,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -656.55435753037204,
+				"y": 6145.7545112590196,
+				"z": 193.01172078229803,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_n"
+		},
+		{
+			"pointId": 24,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 3728.3993478430775,
+				"y": -4117.740912690575,
+				"z": 239.28112851560962,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_n"
+		},
+		{
+			"pointId": 25,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 3994.0562551071125,
+				"y": 1965.0491388099595,
+				"z": 82.115260971421975,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_n"
+		},
+		{
+			"pointId": 26,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -1796.5735187652085,
+				"y": -2795.0258841200061,
+				"z": -22.414536602870314,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_n"
+		},
+		{
+			"pointId": 27,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": -213.64652884144562,
+				"y": 1274.6018019637361,
+				"z": 193.38693634817315,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_n"
+		},
+		{
+			"pointId": 28,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 130.98906190025872,
+				"y": -6186.6741582028635,
+				"z": -33.18622838893063,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "meadow_n"
+		},
+		{
+			"pointId": 29,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 19681.796309734182,
+				"y": -14529.108960913652,
+				"z": -9.8142521476974878,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 30,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 8092.8402245214356,
+				"y": 20144.678408385742,
+				"z": 150.93661078559757,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 31,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 10084.745206715379,
+				"y": -15328.080646100869,
+				"z": 227.78836493801467,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 32,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 15877.623382918198,
+				"y": -6235.9485624723047,
+				"z": -22.848656001607324,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 33,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 18728.955580773578,
+				"y": 3618.0549998915835,
+				"z": 61.739707654366264,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 34,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 19431.062422977171,
+				"y": 11067.666507623391,
+				"z": 208.60055386511451,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 35,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 11674.657419093533,
+				"y": 11356.827550953061,
+				"z": 434.2760868875381,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 36,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 16077.009446765502,
+				"y": -12724.853853515146,
+				"z": 297.05370267539632,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 37,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 8409.1513354032195,
+				"y": 1285.3894770851953,
+				"z": 79.36330193232736,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 38,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 14077.868115343223,
+				"y": 699.39052494190719,
+				"z": 301.06773178233544,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 39,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 12877.082316027225,
+				"y": 6504.3932925791241,
+				"z": 199.67507502655812,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 40,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 12794.759192466219,
+				"y": 17351.969364164426,
+				"z": 67.907539432448601,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 41,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 11870.771793136029,
+				"y": -5768.7906456475557,
+				"z": 136.01517838379661,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 42,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 19220.587185619523,
+				"y": -1592.7320827091394,
+				"z": 199.19233706840348,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 43,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 10482.703052660621,
+				"y": -9900.0941272073469,
+				"z": 308.87213489487078,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 44,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 13835.465576390186,
+				"y": -18994.22522191831,
+				"z": 195.40885309453421,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 45,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 15517.935869971077,
+				"y": 9689.1795112249165,
+				"z": 387.72350627100343,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 46,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 8403.02810142409,
+				"y": 7522.1436302446136,
+				"z": 109.8692113372588,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 47,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 18934.363898624586,
+				"y": -8857.5149977459441,
+				"z": 115.2468048293014,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 48,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 7933.9565252049824,
+				"y": 16129.822211574088,
+				"z": 162.02974275792272,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1001,
+			"spawnRadius": 1200,
+			"maxCount": 5,
+			"zoneName": "forest_n"
+		},
+		{
+			"pointId": 49,
+			"type": "MonsterSpawn",
+			"area": "field",
+			"position":
+			{
+				"x": 19507.366948438786,
+				"y": 7067.4393166481404,
+				"z": 99.025413593500986,
+				"yaw": 0
+			},
+			"monsterTemplateId": 1003,
+			"spawnRadius": 300,
+			"maxCount": 1,
+			"zoneName": "forest_boss"
+		},
+		{
+			"pointId": 100,
+			"type": "PortalTrigger",
+			"area": "field",
+			"position":
+			{
+				"x": 19020,
+				"y": -18800,
+				"z": 79,
+				"yaw": 0
+			},
+			"triggerRadius": 400,
+			"targetMap": "Continent01_Dungeon",
+			"targetPointId": 0
+		},
+		{
+			"pointId": 110,
+			"type": "PortalTrigger",
+			"area": "field",
+			"position":
+			{
+				"x": 18930,
+				"y": 18750,
+				"z": 84,
+				"yaw": 0
+			},
+			"triggerRadius": 400,
+			"targetMap": "Continent02",
+			"targetPointId": 0
+		},
+		{
+			"pointId": 101,
+			"type": "PortalTrigger",
+			"area": "town",
+			"position":
+			{
+				"x": -8400,
+				"y": 0,
+				"z": 95.457725947521865,
+				"yaw": 0
+			},
+			"triggerRadius": 300,
+			"targetMap": "Continent01",
+			"targetPointId": 201
+		},
+		{
+			"pointId": 201,
+			"type": "PortalTrigger",
+			"area": "field",
+			"position":
+			{
+				"x": -6400,
+				"y": 0,
+				"z": 18,
+				"yaw": 0
+			},
+			"triggerRadius": 300,
+			"targetMap": "Continent01",
+			"targetPointId": 101
+		},
+		{
+			"pointId": 102,
+			"type": "PortalTrigger",
+			"area": "town",
+			"position":
+			{
+				"x": -15000,
+				"y": 6600,
+				"z": 101.05247813411079,
+				"yaw": 0
+			},
+			"triggerRadius": 300,
+			"targetMap": "Continent01",
+			"targetPointId": 202
+		},
+		{
+			"pointId": 202,
+			"type": "PortalTrigger",
+			"area": "field",
+			"position":
+			{
+				"x": -15000,
+				"y": 8600,
+				"z": 119,
+				"yaw": 0
+			},
+			"triggerRadius": 300,
+			"targetMap": "Continent01",
+			"targetPointId": 102
+		},
+		{
+			"pointId": 103,
+			"type": "PortalTrigger",
+			"area": "town",
+			"position":
+			{
+				"x": -15000,
+				"y": -6600,
+				"z": 93.352769679300295,
+				"yaw": 0
+			},
+			"triggerRadius": 300,
+			"targetMap": "Continent01",
+			"targetPointId": 203
+		},
+		{
+			"pointId": 203,
+			"type": "PortalTrigger",
+			"area": "field",
+			"position":
+			{
+				"x": -15000,
+				"y": -8600,
+				"z": -20,
+				"yaw": 0
+			},
+			"triggerRadius": 300,
+			"targetMap": "Continent01",
+			"targetPointId": 103
+		},
+		{
+			"pointId": 300,
+			"type": "SafeZone",
+			"area": "town",
+			"position":
+			{
+				"x": -15000,
+				"y": 0,
+				"z": 100,
+				"yaw": 0
+			},
+			"radius": 7200
+		},
+		{
+			"pointId": 400,
+			"type": "Npc",
+			"area": "town",
+			"position":
+			{
+				"x": -14150,
+				"y": -2200,
+				"z": 100,
+				"yaw": 180
+			},
+			"npcTemplateId": 1001
+		},
+		{
+			"pointId": 401,
+			"type": "Npc",
+			"area": "town",
+			"position":
+			{
+				"x": -15600,
+				"y": 3500,
+				"z": 100,
+				"yaw": -90
+			},
+			"npcTemplateId": 1002
+		},
+		{
+			"pointId": 402,
+			"type": "Npc",
+			"area": "town",
+			"position":
+			{
+				"x": -9300,
+				"y": 600,
+				"z": 100,
+				"yaw": -90
+			},
+			"npcTemplateId": 1003
+		}
+	]
+}
