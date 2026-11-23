@@ -1,7 +1,7 @@
-== regress auction_plain (server pid 3156, port 8888, DevCommands=true PortalNoRange=true, data repo)
+== regress auction_plain (server pid 12824, port 8888, DevCommands=true PortalNoRange=true, data repo)
 PASS basic  (DB 아이템 89858, 골드 606408)
 PASS partial  (DB 아이템 89878, 골드 606408)
-PASS rejects  (DB 아이템 89879, 골드 606408)
-PASS dungeon  (DB 아이템 89879, 골드 606408)
+PASS rejects  (DB 아이템 89900, 골드 606408)
+PASS dungeon  (DB 아이템 89900, 골드 606408)
 ERROR 줄 수: 0
 REGRESS PASS auction_plain (PASS 4/4)
