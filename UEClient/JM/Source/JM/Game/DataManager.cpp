@@ -282,6 +282,7 @@ void UDataManager::PreloadGameAssets(FSimpleDelegate OnDone)
 			AddPath(Row->MeshM.ToSoftObjectPath());
 			AddPath(Row->MeshF.ToSoftObjectPath());
 			AddPath(Row->StaticMesh.ToSoftObjectPath());
+			AddPath(Row->Icon.ToSoftObjectPath());   // 바닥 드랍의 아이콘 판(FP1 D-287)
 		}
 	}
 

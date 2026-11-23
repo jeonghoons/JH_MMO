@@ -404,6 +404,10 @@ private:
 		unordered_set<int> hitIds;      // 이미 맞은 대상(한 번씩만)
 	};
 	vector<SkillProjectile> _projectiles;
+	// 투사체 판정 주기(방 틱 100ms와 따로, FP1 D-288). 투사체가 있을 때만 ProjectileTick이 자기를 다시 예약한다
+	static constexpr DWORD PROJECTILE_TICK_MS = 33;
+	bool _projectileTickPending = false;
+	void ProjectileTick();
 	void UpdateProjectiles();
 	// AimMaxMs가 지난 조준을 해제한다(Update마다). 본인에게는 seq를 실어, 다른 사람에게는 seq 없이 보낸다.
 	void UpdateAims(long long nowMs);

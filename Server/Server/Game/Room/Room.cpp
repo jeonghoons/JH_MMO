@@ -275,7 +275,7 @@ void Room::Update(long long elapsedTime)
 		object.second->Update(dt);
 	}
 	UpdateZones();
-	UpdateProjectiles();
+	// 투사체는 ProjectileTick(33ms)이 따로 돈다(FP1 D-288)
 	UpdateAims(currentTick);
 	{
 		const long long bodyUs = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - bodyStart).count();
@@ -3924,22 +3924,40 @@ void Room::CreatePierceProjectile(shared_ptr<Character> attacker, const SkillDat
 	SkillProjectile proj;
 	proj.attackerId = attacker->GetId();
 	const Protocol::PositionInfo& start = attacker->GetPosition();
-	proj.ox = start.x();
-	proj.oy = start.y();
 	const float yawRad = yawDeg * MathUtils::PI / 180.0f;
 	proj.dirX = std::cos(yawRad);
 	proj.dirY = std::sin(yawRad);
+	// 출발점 = 시전자 중심 + 앞 ProjStartFwdCm(클라이언트 화살과 같은 자리, FP1 D-288). 끝점(벽)은 중심에서 잰 거리라 그만큼 뺀다
+	proj.ox = start.x() + proj.dirX * skill.projStartFwdCm;
+	proj.oy = start.y() + proj.dirY * skill.projStartFwdCm;
 	proj.speed = skill.projSpeed;
 	proj.halfWidth = skill.width * 0.5f;
 	proj.damage = damage;
 	proj.lastTime = chrono::steady_clock::now();
 
-	const float maxDist = ComputePierceRange(start, yawDeg, skill);
+	const float maxDist = ComputePierceRange(start, yawDeg, skill) - skill.projStartFwdCm;
 	proj.maxDist = maxDist;
 	LOG_DEBUG("Combat", "Pierce 생성: 시전자 {} 출발 ({:.0f}, {:.0f}) yaw {:.1f} 사거리 {:.0f}/{:.0f}", proj.attackerId, proj.ox, proj.oy, yawDeg, maxDist, skill.range);
 	if (proj.maxDist <= 0.f) return;
 
 	_projectiles.push_back(std::move(proj));
+	// 방 틱(100ms)보다 촘촘히 판정한다 — 화살이 몸을 지나간 뒤 최대 100ms(100cm) 늦게 피해가 뜨던 것(FP1 D-288)
+	if (!_projectileTickPending)
+	{
+		_projectileTickPending = true;
+		ReserveJob(PROJECTILE_TICK_MS, &Room::ProjectileTick);
+	}
+}
+
+void Room::ProjectileTick()
+{
+	_projectileTickPending = false;
+	UpdateProjectiles();
+	if (!_projectiles.empty())
+	{
+		_projectileTickPending = true;
+		ReserveJob(PROJECTILE_TICK_MS, &Room::ProjectileTick);
+	}
 }
 
 void Room::UpdateProjectiles()

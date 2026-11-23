@@ -23,10 +23,11 @@ public:
 
 	// Attacker의 왼손 무기 소켓(활 — 없으면 몸 가운데)에서 Fx를 붙인 연출을 만든다.
 	// Target이 없으면 AimYaw 방향으로 MaxRange까지 날아간다. Speed = SkillTable.ProjSpeed(cm/s, 서버와 같은 값).
-	static AProjectileFx* Launch(AJMCharacterBase* Attacker, AJMCharacterBase* Target, UParticleSystem* Fx, float AimYaw, float Speed, float MaxRange);
+	static AProjectileFx* Launch(AJMCharacterBase* Attacker, AJMCharacterBase* Target, UParticleSystem* Fx, float AimYaw, float Speed, float MaxRange, float StartFwdCm = 0.f);
 
 	// 메시를 함께 싣는다(SK2 3003 빛의 화살, D-278): 진행 방향으로 눕혀 붙이고 GrowSec 동안 StartScale → EndScale로 키운다.
-	void AttachMesh(UStaticMesh* Mesh, float StartScale, float EndScale, float GrowSec);
+	// WidthCm > 0이면 굵기(Y·Z)를 판정 폭에 맞추고(길이와 따로), 메시 앞끝(+X)이 액터 위치(= 판정점)에 오게 뒤로 붙인다(FP1 D-288).
+	void AttachMesh(UStaticMesh* Mesh, float StartScale, float EndScale, float GrowSec, float WidthCm = 0.f);
 
 	// 서버가 알려 준 끝점(관통 투사체가 벽·지형에 막혀 멈추는 곳, SC_ATTACK aim 지점)에서 멈추게 남은 거리를 고친다(FP1).
 	void SetEndPoint(const FVector2D& End);
@@ -44,6 +45,9 @@ private:
 	float MeshStartScale = 1.f;
 	float MeshEndScale = 1.f;
 	float MeshGrowSec = 0.f;
+	float MeshWidthMul = 1.f;     // 굵기 배율 ÷ 길이 배율(판정 폭 ÷ (메시 폭 × 최종 배율))
+	float MeshFrontX = 0.f;       // 메시 로컬 앞끝 X(배율 1)
+	void ApplyMeshScale(float LenScale);
 	float Age = 0.f;
 
 	TWeakObjectPtr<AJMCharacterBase> Target;

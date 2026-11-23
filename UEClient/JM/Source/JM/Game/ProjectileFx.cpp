@@ -17,8 +17,6 @@ namespace
 	constexpr float ArriveDistCm = 40.f;
 	// 끈 뒤 리본 꼬리가 사라질 때까지 남겨 두는 시간
 	constexpr float FadeOutSec = 0.5f;
-	// 관통 투사체가 시전자 중심에서 앞으로 이만큼 나간 자리에서 보이기 시작한다(활을 든 손 앞)
-	constexpr float PierceStartForwardCm = 40.f;
 	// 지면 따라가기: 지면 위 높이 범위, 높이를 맞추는 속도, 아래로 찾는 깊이
 	constexpr float GroundHeightMinCm = 60.f;
 	constexpr float GroundHeightMaxCm = 200.f;
@@ -34,7 +32,7 @@ AProjectileFx::AProjectileFx()
 	SetCanBeDamaged(false);
 }
 
-AProjectileFx* AProjectileFx::Launch(AJMCharacterBase* Attacker, AJMCharacterBase* Target, UParticleSystem* Fx, float AimYaw, float Speed, float MaxRange)
+AProjectileFx* AProjectileFx::Launch(AJMCharacterBase* Attacker, AJMCharacterBase* Target, UParticleSystem* Fx, float AimYaw, float Speed, float MaxRange, float StartFwdCm)
 {
 	if (Attacker == nullptr || Speed <= 0.f) return nullptr;
 	UWorld* World = Attacker->GetWorld();
@@ -51,7 +49,7 @@ AProjectileFx* AProjectileFx::Launch(AJMCharacterBase* Attacker, AJMCharacterBas
 	if (Target == nullptr)
 	{
 		const FVector Center = Attacker->GetActorLocation();
-		Start = FVector(Center.X, Center.Y, Start.Z) + Dir * PierceStartForwardCm;
+		Start = FVector(Center.X, Center.Y, Start.Z) + Dir * StartFwdCm;
 	}
 	if (Target)
 	{
@@ -88,7 +86,7 @@ AProjectileFx* AProjectileFx::Launch(AJMCharacterBase* Attacker, AJMCharacterBas
 	return Proj;
 }
 
-void AProjectileFx::AttachMesh(UStaticMesh* Mesh, float StartScale, float EndScale, float GrowSec)
+void AProjectileFx::AttachMesh(UStaticMesh* Mesh, float StartScale, float EndScale, float GrowSec, float WidthCm)
 {
 	if (Mesh == nullptr) return;
 	MeshComp = NewObject<UStaticMeshComponent>(this, TEXT("ProjMesh"));
@@ -100,7 +98,20 @@ void AProjectileFx::AttachMesh(UStaticMesh* Mesh, float StartScale, float EndSca
 	MeshStartScale = StartScale;
 	MeshEndScale = EndScale;
 	MeshGrowSec = FMath::Max(0.f, GrowSec);
-	MeshComp->SetRelativeScale3D(FVector(MeshGrowSec > 0.f ? MeshStartScale : MeshEndScale));
+	const FBoxSphereBounds Bounds = Mesh->GetBounds();
+	MeshFrontX = Bounds.Origin.X + Bounds.BoxExtent.X;
+	const float MeshWidth = Bounds.BoxExtent.Y * 2.f;
+	MeshWidthMul = (WidthCm > 0.f && MeshWidth > 0.f && MeshEndScale > 0.f) ? WidthCm / (MeshWidth * MeshEndScale) : 1.f;
+	ApplyMeshScale(MeshGrowSec > 0.f ? MeshStartScale : MeshEndScale);
+}
+
+void AProjectileFx::ApplyMeshScale(float LenScale)
+{
+	if (MeshComp == nullptr) return;
+	const float Thick = LenScale * MeshWidthMul;
+	MeshComp->SetRelativeScale3D(FVector(LenScale, Thick, Thick));
+	// 화살 앞끝 = 액터 위치(서버 판정점). 원점이 가운데인 메시는 길이의 반(150cm)만큼 앞서 보였다(FP1 D-288)
+	MeshComp->SetRelativeLocation(FVector(-MeshFrontX * LenScale, 0.f, 0.f));
 }
 
 void AProjectileFx::Tick(float DeltaSeconds)
@@ -113,7 +124,7 @@ void AProjectileFx::Tick(float DeltaSeconds)
 	if (MeshComp && MeshGrowSec > 0.f)
 	{
 		const float Alpha = FMath::Clamp(Age / MeshGrowSec, 0.f, 1.f);
-		MeshComp->SetRelativeScale3D(FVector(FMath::Lerp(MeshStartScale, MeshEndScale, Alpha)));
+		ApplyMeshScale(FMath::Lerp(MeshStartScale, MeshEndScale, Alpha));
 	}
 
 	const FVector Here = GetActorLocation();

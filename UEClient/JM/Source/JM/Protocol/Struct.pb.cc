@@ -76,6 +76,7 @@ PROTOBUF_CONSTEXPR ObjectInfo::ObjectInfo(
   , /*decltype(_impl_.item_count_)*/int64_t{0}
   , /*decltype(_impl_.exp_)*/int64_t{0}
   , /*decltype(_impl_.npc_kind_)*/0
+  , /*decltype(_impl_.target_id_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct ObjectInfoDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ObjectInfoDefaultTypeInternal()
@@ -238,6 +239,7 @@ const uint32_t TableStruct_Struct_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
   PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.item_count_),
   PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.npc_kind_),
   PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.exp_),
+  PROTOBUF_FIELD_OFFSET(::Protocol::ObjectInfo, _impl_.target_id_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Protocol::TradeOfferItem, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -307,12 +309,12 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 0, -1, -1, sizeof(::Protocol::PositionInfo)},
   { 14, -1, -1, sizeof(::Protocol::StatInfo)},
   { 27, -1, -1, sizeof(::Protocol::ObjectInfo)},
-  { 46, -1, -1, sizeof(::Protocol::TradeOfferItem)},
-  { 55, -1, -1, sizeof(::Protocol::TradeOffer)},
-  { 66, -1, -1, sizeof(::Protocol::ItemInfo)},
-  { 77, -1, -1, sizeof(::Protocol::AuctionListingInfo)},
-  { 89, -1, -1, sizeof(::Protocol::MailInfo)},
-  { 101, -1, -1, sizeof(::Protocol::QuestInfo)},
+  { 47, -1, -1, sizeof(::Protocol::TradeOfferItem)},
+  { 56, -1, -1, sizeof(::Protocol::TradeOffer)},
+  { 67, -1, -1, sizeof(::Protocol::ItemInfo)},
+  { 78, -1, -1, sizeof(::Protocol::AuctionListingInfo)},
+  { 90, -1, -1, sizeof(::Protocol::MailInfo)},
+  { 102, -1, -1, sizeof(::Protocol::QuestInfo)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -335,7 +337,7 @@ const char descriptor_table_protodef_Struct_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "ocol.MoveState\"\203\001\n\010StatInfo\022\016\n\006max_hp\030\001 "
   "\001(\005\022\n\n\002hp\030\002 \001(\005\022\025\n\rattack_damage\030\003 \001(\005\022\024"
   "\n\014attack_speed\030\004 \001(\002\022\022\n\nmove_speed\030\005 \001(\002"
-  "\022\016\n\006max_mp\030\006 \001(\005\022\n\n\002mp\030\007 \001(\005\"\343\002\n\nObjectI"
+  "\022\016\n\006max_mp\030\006 \001(\005\022\n\n\002mp\030\007 \001(\005\"\366\002\n\nObjectI"
   "nfo\022\n\n\002id\030\001 \001(\005\022)\n\013object_type\030\002 \001(\0162\024.P"
   "rotocol.ObjectType\022)\n\013player_type\030\003 \001(\0162"
   "\024.Protocol.PlayerType\022(\n\010position\030\004 \001(\0132"
@@ -344,31 +346,31 @@ const char descriptor_table_protodef_Struct_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "\n\013equip_items\030\010 \003(\005\022\024\n\014aim_skill_id\030\t \001("
   "\005\022\014\n\004name\030\n \001(\t\022\r\n\005level\030\013 \001(\005\022\022\n\nitem_c"
   "ount\030\014 \001(\003\022#\n\010npc_kind\030\r \001(\0162\021.Protocol."
-  "NpcKind\022\013\n\003exp\030\016 \001(\003J\004\010\007\020\010\"D\n\016TradeOffer"
-  "Item\022\022\n\nitem_db_id\030\001 \001(\003\022\017\n\007item_id\030\002 \001("
-  "\005\022\r\n\005count\030\003 \001(\003\"y\n\nTradeOffer\022\021\n\tobject"
-  "_id\030\001 \001(\005\022\'\n\005items\030\002 \003(\0132\030.Protocol.Trad"
-  "eOfferItem\022\014\n\004gold\030\003 \001(\003\022\016\n\006locked\030\004 \001(\010"
-  "\022\021\n\tconfirmed\030\005 \001(\010\"u\n\010ItemInfo\022\022\n\nitem_"
-  "db_id\030\001 \001(\003\022\017\n\007item_id\030\002 \001(\005\022\r\n\005count\030\003 "
-  "\001(\003\022\'\n\nequip_part\030\004 \001(\0162\023.Protocol.Equip"
-  "Part\022\014\n\004slot\030\005 \001(\005\"~\n\022AuctionListingInfo"
-  "\022\022\n\nlisting_id\030\001 \001(\003\022\017\n\007item_id\030\002 \001(\005\022\r\n"
-  "\005count\030\003 \001(\003\022\022\n\nunit_price\030\004 \001(\003\022\022\n\nrema"
-  "in_sec\030\005 \001(\005\022\014\n\004mine\030\006 \001(\010\"\177\n\010MailInfo\022\017"
-  "\n\007mail_id\030\001 \001(\003\022 \n\004kind\030\002 \001(\0162\022.Protocol"
-  ".MailKind\022\014\n\004gold\030\003 \001(\003\022\017\n\007item_id\030\004 \001(\005"
-  "\022\r\n\005count\030\005 \001(\003\022\022\n\nlisting_id\030\006 \001(\003\"T\n\tQ"
-  "uestInfo\022\020\n\010quest_id\030\001 \001(\005\022#\n\005state\030\002 \001("
-  "\0162\024.Protocol.QuestState\022\020\n\010progress\030\003 \001("
-  "\005b\006proto3"
+  "NpcKind\022\013\n\003exp\030\016 \001(\003\022\021\n\ttarget_id\030\017 \001(\005J"
+  "\004\010\007\020\010\"D\n\016TradeOfferItem\022\022\n\nitem_db_id\030\001 "
+  "\001(\003\022\017\n\007item_id\030\002 \001(\005\022\r\n\005count\030\003 \001(\003\"y\n\nT"
+  "radeOffer\022\021\n\tobject_id\030\001 \001(\005\022\'\n\005items\030\002 "
+  "\003(\0132\030.Protocol.TradeOfferItem\022\014\n\004gold\030\003 "
+  "\001(\003\022\016\n\006locked\030\004 \001(\010\022\021\n\tconfirmed\030\005 \001(\010\"u"
+  "\n\010ItemInfo\022\022\n\nitem_db_id\030\001 \001(\003\022\017\n\007item_i"
+  "d\030\002 \001(\005\022\r\n\005count\030\003 \001(\003\022\'\n\nequip_part\030\004 \001"
+  "(\0162\023.Protocol.EquipPart\022\014\n\004slot\030\005 \001(\005\"~\n"
+  "\022AuctionListingInfo\022\022\n\nlisting_id\030\001 \001(\003\022"
+  "\017\n\007item_id\030\002 \001(\005\022\r\n\005count\030\003 \001(\003\022\022\n\nunit_"
+  "price\030\004 \001(\003\022\022\n\nremain_sec\030\005 \001(\005\022\014\n\004mine\030"
+  "\006 \001(\010\"\177\n\010MailInfo\022\017\n\007mail_id\030\001 \001(\003\022 \n\004ki"
+  "nd\030\002 \001(\0162\022.Protocol.MailKind\022\014\n\004gold\030\003 \001"
+  "(\003\022\017\n\007item_id\030\004 \001(\005\022\r\n\005count\030\005 \001(\003\022\022\n\nli"
+  "sting_id\030\006 \001(\003\"T\n\tQuestInfo\022\020\n\010quest_id\030"
+  "\001 \001(\005\022#\n\005state\030\002 \001(\0162\024.Protocol.QuestSta"
+  "te\022\020\n\010progress\030\003 \001(\005b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_Struct_2eproto_deps[1] = {
   &::descriptor_table_Enum_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_Struct_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Struct_2eproto = {
-    false, false, 1329, descriptor_table_protodef_Struct_2eproto,
+    false, false, 1348, descriptor_table_protodef_Struct_2eproto,
     "Struct.proto",
     &descriptor_table_Struct_2eproto_once, descriptor_table_Struct_2eproto_deps, 1, 9,
     schemas, file_default_instances, TableStruct_Struct_2eproto::offsets,
@@ -1220,6 +1222,7 @@ ObjectInfo::ObjectInfo(const ObjectInfo& from)
     , decltype(_impl_.item_count_){}
     , decltype(_impl_.exp_){}
     , decltype(_impl_.npc_kind_){}
+    , decltype(_impl_.target_id_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -1238,8 +1241,8 @@ ObjectInfo::ObjectInfo(const ObjectInfo& from)
     _this->_impl_.stat_ = new ::Protocol::StatInfo(*from._impl_.stat_);
   }
   ::memcpy(&_impl_.id_, &from._impl_.id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.npc_kind_) -
-    reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.npc_kind_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.target_id_) -
+    reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.target_id_));
   // @@protoc_insertion_point(copy_constructor:Protocol.ObjectInfo)
 }
 
@@ -1262,6 +1265,7 @@ inline void ObjectInfo::SharedCtor(
     , decltype(_impl_.item_count_){int64_t{0}}
     , decltype(_impl_.exp_){int64_t{0}}
     , decltype(_impl_.npc_kind_){0}
+    , decltype(_impl_.target_id_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.name_.InitDefault();
@@ -1308,8 +1312,8 @@ void ObjectInfo::Clear() {
   }
   _impl_.stat_ = nullptr;
   ::memset(&_impl_.id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.npc_kind_) -
-      reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.npc_kind_));
+      reinterpret_cast<char*>(&_impl_.target_id_) -
+      reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.target_id_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1427,6 +1431,14 @@ const char* ObjectInfo::_InternalParse(const char* ptr, ::_pbi::ParseContext* ct
       case 14:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 112)) {
           _impl_.exp_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 target_id = 15;
+      case 15:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 120)) {
+          _impl_.target_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1550,6 +1562,12 @@ uint8_t* ObjectInfo::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt64ToArray(14, this->_internal_exp(), target);
   }
 
+  // int32 target_id = 15;
+  if (this->_internal_target_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(15, this->_internal_target_id(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1649,6 +1667,11 @@ size_t ObjectInfo::ByteSizeLong() const {
       ::_pbi::WireFormatLite::EnumSize(this->_internal_npc_kind());
   }
 
+  // int32 target_id = 15;
+  if (this->_internal_target_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_target_id());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -1706,6 +1729,9 @@ void ObjectInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PRO
   if (from._internal_npc_kind() != 0) {
     _this->_internal_set_npc_kind(from._internal_npc_kind());
   }
+  if (from._internal_target_id() != 0) {
+    _this->_internal_set_target_id(from._internal_target_id());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -1731,8 +1757,8 @@ void ObjectInfo::InternalSwap(ObjectInfo* other) {
       &other->_impl_.name_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ObjectInfo, _impl_.npc_kind_)
-      + sizeof(ObjectInfo::_impl_.npc_kind_)
+      PROTOBUF_FIELD_OFFSET(ObjectInfo, _impl_.target_id_)
+      + sizeof(ObjectInfo::_impl_.target_id_)
       - PROTOBUF_FIELD_OFFSET(ObjectInfo, _impl_.position_)>(
           reinterpret_cast<char*>(&_impl_.position_),
           reinterpret_cast<char*>(&other->_impl_.position_));

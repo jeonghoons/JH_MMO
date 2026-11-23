@@ -40,6 +40,7 @@ message ObjectInfo {
 	int64 item_count = 12;    // 바닥 드랍(OBJECT_TYPE_ITEM)의 수량. template_id = ItemTable ID(0 = 골드, 이때는 금액). 그 밖은 0 (A3.4)
 	NpcKind npc_kind = 13;    // NPC(OBJECT_TYPE_NPC)가 하는 일: 상점·경매. 그 밖은 0 (A4.3, D-234)
 	int64 exp = 14;           // 지금 레벨 안의 누적 경험치. 본인에게 보내는 ObjectInfo(내 캐릭터 입장)에만 채우고 다른 사람에게는 0 (A2.3b, D-254)
+	int32 target_id = 15;     // 몬스터가 지금 쫓는 대상의 오브젝트 id(0 = 없음·복귀 중). 클라이언트는 몬스터 HP바를 숨길 때 쓴다(FP1, D-286). 그 밖은 0
 }
 
 // 아이템 한 개(스택이면 한 묶음) = DB Player_Item 한 행 (A3.3, D-153)

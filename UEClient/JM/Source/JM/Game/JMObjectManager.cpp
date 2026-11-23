@@ -21,6 +21,7 @@
 #include "Game/DropItemActor.h"
 #include "Game/JMShopManager.h"
 #include "Game/JMAuctionManager.h"
+#include "Game/JMPartyManager.h"
 #include "Game/ProjectileFx.h"
 #include "Components/WidgetComponent.h"
 #include "UI/NameplateWidget.h"
@@ -88,6 +89,8 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 		if (ADropItemActor* Drop = World->SpawnActor<ADropItemActor>(DropClass, DropLoc, FRotator::ZeroRotator, DropParams))
 		{
 			Drop->InitDrop(ObjectId, ObjInfo.template_id(), ObjInfo.item_count());
+			float FallFromZ = 0.f;
+			if (FindDropFallStart(DropLoc, FallFromZ)) Drop->StartFall(FallFromZ);
 			Drops.Add(ObjectId, Drop);
 		}
 		return;
@@ -177,6 +180,8 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 	if (SpawnedActor)
 	{
 		SpawnedActor->SetPlayerData(ObjInfo);
+		if (ANpcCharacter* Monster = Cast<ANpcCharacter>(SpawnedActor))
+			Monster->SetTargetIsAlly(IsAllyId(ObjInfo.target_id()));
 		Objects.Add(ObjectId, SpawnedActor);
 
 		// 이미 죽어 있는 플레이어가 시야에 들어왔다(사망 상태 = hp 0, D-149). 바로 사망 자세로 둔다.
@@ -364,7 +369,51 @@ void UJMObjectManager::HandleMove(const Protocol::ObjectInfo& ObjInfo, uint32 Co
 		}
 
 		(*FoundActor)->SetDestInfo(ObjInfo.position());
+		if (ANpcCharacter* Monster = Cast<ANpcCharacter>(*FoundActor))
+			Monster->SetTargetIsAlly(IsAllyId(ObjInfo.target_id()));
 	}
+}
+
+bool UJMObjectManager::FindDropFallStart(const FVector& DropLoc, float& OutZ)
+{
+	// 서버는 새 드랍과 시야에 새로 들어온 드랍을 같은 SC_ADD_OBJECT로 보낸다. 근처에서 방금 죽은 몬스터(서버 드랍 반경 80cm)나
+	// 바로 옆의 플레이어(버리기)가 있으면 새 드랍으로 보고 그 몸 가운데 높이에서 떨어뜨린다. 멀리서 시야에 들어온 드랍은 바닥에 그대로.
+	constexpr double DeathWindowSec = 1.5;
+	constexpr float MonsterRadiusCm = 200.f;
+	constexpr float PlayerRadiusCm = 150.f;
+	const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	RecentMonsterDeaths.RemoveAll([Now](const FRecentDeath& D) { return Now - D.Time > DeathWindowSec; });
+	for (const FRecentDeath& D : RecentMonsterDeaths)
+	{
+		if (FVector::DistSquared2D(D.Location, DropLoc) <= FMath::Square(MonsterRadiusCm))
+		{
+			OutZ = D.Location.Z;
+			return true;
+		}
+	}
+	for (const TPair<int32, TObjectPtr<AJMCharacterBase>>& Pair : Objects)
+	{
+		const AJMCharacterBase* Actor = Pair.Value.Get();
+		if (Actor && Actor->GetObjectInfo().object_type() == Protocol::OBJECT_TYPE_PLAYER &&
+			FVector::DistSquared2D(Actor->GetActorLocation(), DropLoc) <= FMath::Square(PlayerRadiusCm))
+		{
+			OutZ = Actor->GetActorLocation().Z;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UJMObjectManager::IsAllyId(int32 ObjectId) const
+{
+	if (ObjectId == 0) return false;
+	if (MyPlayer && MyPlayer->GetObjectInfo().id() == ObjectId) return true;
+	if (const UJMPartyManager* Party = GetGameInstance() ? GetGameInstance()->GetSubsystem<UJMPartyManager>() : nullptr)
+	{
+		for (const FJMPartyMember& Member : Party->GetMembers())
+			if (Member.ObjectId == ObjectId) return true;
+	}
+	return false;
 }
 
 void UJMObjectManager::HandleAttackResult(int32 Result, uint32 Seq, int32 RemainMs)
@@ -403,6 +452,9 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, int32 Targe
 			Attacker->FaceYaw(AimYaw);
 			Attacker->SetSkillAiming(0);
 		}
+		// 몬스터가 노린 대상도 HP바 표시 판단에 쓴다(FP1, D-286)
+		if (ANpcCharacter* Monster = Cast<ANpcCharacter>(Attacker))
+			Monster->SetTargetIsAlly(IsAllyId(TargetId));
 		if (Skill) Attacker->LockFacingForSkill(*Skill);
 
 		Attacker->OnAttack(Skill);
@@ -469,11 +521,12 @@ void UJMObjectManager::SpawnSkillFx(AJMCharacterBase* Attacker, const FSkillTabl
 		const float Speed = Skill.ProjSpeed;
 		const float MaxRange = Skill.Range;
 		const float StartScale = Skill.ProjStartScale, EndScale = Skill.ProjMeshScale, GrowSec = Skill.ProjGrowMs / 1000.f;
-		auto Launch = [WeakAttacker, WeakFx, WeakMesh, AimYaw, Speed, MaxRange, StartScale, EndScale, GrowSec, OutProjectile]()
+		const float StartFwd = Skill.ProjStartFwdCm, WidthCm = Skill.Width;
+		auto Launch = [WeakAttacker, WeakFx, WeakMesh, AimYaw, Speed, MaxRange, StartScale, EndScale, GrowSec, StartFwd, WidthCm, OutProjectile]()
 			{
 				if (!WeakAttacker.IsValid()) return;
-				AProjectileFx* Proj = AProjectileFx::Launch(WeakAttacker.Get(), nullptr, WeakFx.Get(), AimYaw, Speed, MaxRange);
-				if (Proj && WeakMesh.IsValid()) Proj->AttachMesh(WeakMesh.Get(), StartScale, EndScale, GrowSec);
+				AProjectileFx* Proj = AProjectileFx::Launch(WeakAttacker.Get(), nullptr, WeakFx.Get(), AimYaw, Speed, MaxRange, StartFwd);
+				if (Proj && WeakMesh.IsValid()) Proj->AttachMesh(WeakMesh.Get(), StartScale, EndScale, GrowSec, WidthCm);
 				if (Proj && OutProjectile.IsValid()) *OutProjectile = Proj;
 			};
 		if (Skill.HitDelayMs > 0)
@@ -621,6 +674,8 @@ void UJMObjectManager::HandleDamage(int32 AttackerId, int32 TargetId, int32 Dama
 
 		(*FoundActor)->OnDamaged(Damage, RemainHp);
 		SpawnHitFx(AttackerId, *FoundActor);
+		if (ANpcCharacter* Monster = Cast<ANpcCharacter>(*FoundActor); Monster && IsAllyId(AttackerId))
+			Monster->OnHitByAlly();
 
 		if (*FoundActor == MyPlayer)
 		{
@@ -702,6 +757,8 @@ void UJMObjectManager::HandleDead(int32 CharacterId, int32 ReviveDelayMs)
 		if (*FoundActor == nullptr) return;
 
 		(*FoundActor)->OnDead();
+		if (Cast<ANpcCharacter>(*FoundActor) && GetWorld())
+			RecentMonsterDeaths.Add({ (*FoundActor)->GetActorLocation(), GetWorld()->GetTimeSeconds() });
 
 		if (*FoundActor == MyPlayer)
 		{

@@ -221,7 +221,8 @@ bool DataManager::Init()
 			!row.GetInt("BaseDamage", d.baseDamage, err) || !row.GetFloat("ProjSpeed", d.projSpeed, err) ||
 			!row.GetInt("DurationMs", d.durationMs, err) || !row.GetInt("TickMs", d.tickMs, err) ||
 			!row.GetFloat("AimMoveSpeedMul", d.aimMoveSpeedMul, err) || !row.GetInt("AimMaxMs", d.aimMaxMs, err) ||
-			!row.GetInt("MpCost", d.mpCost, err) || !row.GetInt("AttackScale", d.attackScale, err))
+			!row.GetInt("MpCost", d.mpCost, err) || !row.GetInt("AttackScale", d.attackScale, err) ||
+			!row.GetFloat("ProjStartFwdCm", d.projStartFwdCm, err))
 		{
 			LOG_ERROR("Data", "{}", err);
 			return false;
@@ -263,7 +264,7 @@ bool DataManager::Init()
 		}
 
 		if (d.hitDelayMs < 0 || d.cooldownMs < 0 || d.animMs <= 0 || (d.slot > 0 && d.cooldownMs <= 0) || d.baseDamage < 0 || d.slot < 0 || d.slot > 5 ||
-			d.castRange < 0.f || d.radius < 0.f || d.angle < 0.f || d.range < 0.f || d.width < 0.f || d.projSpeed < 0.f ||
+			d.castRange < 0.f || d.radius < 0.f || d.angle < 0.f || d.range < 0.f || d.width < 0.f || d.projSpeed < 0.f || d.projStartFwdCm < 0.f ||
 			d.durationMs < 0 || d.tickMs < 0 || d.moveLockMs < 0 || d.moveLockMs > d.animMs)
 		{
 			LOG_ERROR("Data", "{}값이 허용 범위를 벗어났습니다 (Slot 0~5, 나머지 음수 불가, AnimMs>0, 스킬(Slot 1~5)은 CooldownMs>0, 0 <= MoveLockMs <= AnimMs)", where);

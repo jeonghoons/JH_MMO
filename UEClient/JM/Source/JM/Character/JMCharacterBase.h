@@ -42,7 +42,8 @@ public:
 	virtual void SetPlayerData(const Protocol::ObjectInfo& ObjInfo);
 	virtual void OnDamaged(int32_t Damage, int32_t RemainHP);
 	// 서버가 알려 준 HP를 그대로 반영한다(물약 회복 등 — 피격 연출 없음, A3.6)
-	void SetServerHp(int32 Hp) { ObjectInfo.mutable_stat()->set_hp(Hp); }
+	// 몬스터는 HP바를 갱신하려고 오버라이드한다(FP1 — SC_CHANGE_HP 회복이 HP바에 안 보이던 것)
+	virtual void SetServerHp(int32 Hp) { ObjectInfo.mutable_stat()->set_hp(Hp); }
 	// 성장·MP(A2.3b, D-254): 서버가 알려 준 값을 그대로 반영한다. 경험치는 내 캐릭터에만 온다(SC_GAIN_EXP·본인 SC_ADD_OBJECT)
 	void SetServerMp(int32 Mp) { ObjectInfo.mutable_stat()->set_mp(Mp); }
 	void SetServerExp(int64 Exp) { ObjectInfo.set_exp(Exp); }

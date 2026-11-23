@@ -131,6 +131,14 @@ private:
 	TMap<int32, int32> LastAttackSkill;
 	void SpawnHitFx(int32 AttackerId, AJMCharacterBase* Target);
 
+	// 오브젝트 id가 나 또는 내 파티원인가(몬스터 HP바 표시, FP1 D-286). 0은 아님
+	bool IsAllyId(int32 ObjectId) const;
+
+	// 방금 생긴 드랍을 떨어뜨릴 높이(FP1 D-287): 최근 죽은 몬스터(몸 가운데) 또는 가까운 플레이어(버리기). 없으면 0 = 바닥에 그대로
+	struct FRecentDeath { FVector Location; double Time; };
+	TArray<FRecentDeath> RecentMonsterDeaths;
+	bool FindDropFallStart(const FVector& DropLoc, float& OutZ);
+
 	// 레벨이 바뀌는 Room 이동에서 새 레벨의 내 캐릭터에 넘길 값(DG3c-2). 이 매니저는 GameInstance 수명이라 레벨 전환에도 남는다.
 	// 서버는 Room 이동 때 보정 순번을 +1만 하고 쿨타임도 이어 가는데, SC_ADD_OBJECT에는 그 값이 없어 SC_ROOM_CHANGE에서 받아 둬야 한다.
 	struct FRoomTravelCarry

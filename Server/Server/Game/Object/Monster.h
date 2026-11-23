@@ -53,6 +53,8 @@ public:
 	// FSM
 	void UpdateAI();
 	void ChangeState(MonsterState newState);
+	// ObjectInfo.target_id를 지금 대상에 맞추고 바뀌었으면 SC_MOVE로 알린다(FP1, D-286 — 클라이언트 HP바 숨김용)
+	void SyncTargetId();
 
 	void UpdateNone();
 	void UpdatePatrol();

@@ -513,6 +513,10 @@ void AJMMyPlayer::ShowSkillIndicator(const FSkillTableRow& Skill, const FAimResu
 	const float Depth = (Skill.HitShape == ESkillHitShape::Sector) ? 120.f
 		: (Skill.HitShape == ESkillHitShape::Zone) ? 400.f : FMath::Max(120.f, Extent * 0.25f);
 	SkillIndicator->DecalSize = FVector(Depth, Extent, Extent);
+	// 깊어진 투영이 내 몸·장비에 칠해지지 않게 한다(장비 메시는 장착 때 새로 붙으므로 표시할 때마다 끈다)
+	TInlineComponentArray<UPrimitiveComponent*> MyPrims(this);
+	for (UPrimitiveComponent* Prim : MyPrims)
+		if (Prim && Prim->bReceivesDecals) Prim->SetReceivesDecals(false);
 	SkillIndicator->SetWorldLocation(FVector(Center.X, Center.Y, FeetZ));
 	SkillIndicator->SetWorldRotation(FRotator(-90.f, 0.f, 0.f));
 	SkillIndicatorMID->SetScalarParameterValue(TEXT("CenterX"), Center.X);
@@ -618,6 +622,19 @@ void AJMMyPlayer::CastSkillSlot(int32 Slot)
 	PendingCast.PrevLocalActionUntil = LocalActionUntil;
 	PendingCast.PrevMoveLockUntil = MoveLockUntil;
 	++StatCastSent;
+
+	// 관통 투사체는 서버가 시전을 받는 순간의 위치로 끝점(벽)을 정한다. 움직이던 중이면 멈춘 자리를 공격보다 먼저 보내
+	// 서버 끝점이 묵은 위치(최대 약 1m 뒤)로 계산되지 않게 한다(FP1 D-288). 서버의 이동 최소 간격 안이면 보내지 않는다.
+	if (Skill->HitShape == ESkillHitShape::Pierce && Skill->MoveLockMs > 0 && TimeSinceMoveSend >= MoveMinInterval &&
+		GetVelocity().SizeSquared2D() > 1.f)
+	{
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement()) MoveComp->StopMovementImmediately();
+		SyncTransformToInfo();
+		NetManager->SendMove(ObjectInfo.position(), true, CorrectionSeq);
+		FNetMoveStats::Get().AddSend();
+		MovePacketSendTimer = MoveSendInterval;
+		TimeSinceMoveSend = 0.f;
+	}
 
 	NetManager->SendAttack(Slot, Aim.TargetId, Aim.Yaw, Aim.Point.X, Aim.Point.Y, PendingCast.Seq);
 

@@ -96,10 +96,11 @@ SKILL_SHAPE = {
                HitFx="/Game/FX/Hit/P_Hit_Slash_Heavy.P_Hit_Slash_Heavy",
                Icon="/Game/UI/Icons/Skill/T_Icon_Skill_2003.T_Icon_Skill_2003"),
     3002: dict(AimMaxMs=10000, Icon="/Game/UI/Icons/Skill/T_Icon_Skill_3002.T_Icon_Skill_3002"),
-    3003: dict(TargetingType="NonTargeted", HitShape="Pierce", CastRange=0, Radius=0, Angle=0, Range=2500, Width=80,
+    3003: dict(TargetingType="NonTargeted", HitShape="Pierce", CastRange=0, Radius=0, Angle=0, Range=2500, Width=150,
                ProjSpeed=1000, AimMaxMs=10000, AimMoveSpeedMul="0.4", HitFx="/Game/FX/Hit/P_Hit_Arrow.P_Hit_Arrow",
                # 빛의 화살(VARCO, jm_kit.skill_fx si_arrow_import — 길이 3m·굵기 80cm): 나갈 때 0.27배(약 80cm, 일반 화살) → 0.2초에 1배
-               ProjMesh="/Game/FX/Proj/LightArrow/SM_Proj_LightArrow.SM_Proj_LightArrow", ProjMeshScale="1.0", ProjStartScale="0.27", ProjGrowMs=200,
+               # FP1(D-288): 판정 폭 80 → 150(화면의 몸 폭에 맞춤 — 메시 굵기는 클라이언트가 Width에 맞춤), 나갈 때 0.6배, 출발 = 시전자 중심 + 앞 40cm(서버·클라 공용)
+               ProjMesh="/Game/FX/Proj/LightArrow/SM_Proj_LightArrow.SM_Proj_LightArrow", ProjMeshScale="1.0", ProjStartScale="0.6", ProjGrowMs=200, ProjStartFwdCm=40,
                Fx="/Game/FX/Proj/P_Proj_Arrow_Charged.P_Proj_Arrow_Charged",
                Montage=_ANIM + "Bow/AM_Bow_Skill1.AM_Bow_Skill1", Icon="/Game/UI/Icons/Skill/T_Icon_Skill_3003.T_Icon_Skill_3003"),
     4001: dict(TargetingType="Targeted", HitShape="Sector", CastRange=350, Radius=230, Angle=180),
@@ -535,7 +536,8 @@ def datatable_plan():
             sk[sid] = dict(shape)
     for sid in MONSTER_SKILL_IDS:
         sk[sid] = {"BaseDamage": MONSTER_BASE_DAMAGE}
-    plans.append(merge_table("SkillTable.csv", [("MpCost", "AimMaxMs", "0"), ("AttackScale", "MpCost", "100"), ("HitFx", "FxBaseRadius", "")],
+    plans.append(merge_table("SkillTable.csv", [("MpCost", "AimMaxMs", "0"), ("AttackScale", "MpCost", "100"), ("HitFx", "FxBaseRadius", ""),
+                                              ("ProjStartFwdCm", "ProjGrowMs", "0")],
                              sk, fill_if_empty=SKILL_ASSET_FILL, add_rows=sk_new))
     plans.extend(item_shop_drop_plans())
     return plans

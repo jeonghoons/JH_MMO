@@ -437,6 +437,7 @@ struct SkillData
 	float width;        // 투사체/직선 폭
 	int baseDamage;
 	float projSpeed;    // 투사체 이동 속도 (units/sec)
+	float projStartFwdCm; // 관통 투사체 출발점 = 시전자 중심 + 앞으로 이만큼(클라이언트 화살과 같은 값, FP1 D-288)
 	int durationMs;      // Zone: 장판 지속 시간
 	int tickMs;          // Zone: 한 대상에게 피해를 주는 최소 간격
 	float aimMoveSpeedMul; // 스킬 조준 중 이동 속도 배율 (0 < 값 <= 1, MC4.2d-1)

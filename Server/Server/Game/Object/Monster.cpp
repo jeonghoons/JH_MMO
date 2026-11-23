@@ -62,6 +62,21 @@ void Monster::Update(float deltaTime)
 			room->NPCMove(std::static_pointer_cast<Monster>(shared_from_this()));
 		}
 	}
+
+	SyncTargetId();
+}
+
+void Monster::SyncTargetId()
+{
+	// 대상이 바뀐 경로가 여러 곳(피격·색적·복귀·잠듦)이라 틱 끝에서 한 번 비교해 바뀌었을 때만 알린다(FP1, D-286).
+	// 클라이언트는 이 값으로 몬스터 HP바를 숨긴다 — 복귀(RETURN)·배회 중에는 0.
+	int targetId = 0;
+	if (_monsterState == MonsterState::TRACE || _monsterState == MonsterState::ATTACK || _monsterState == MonsterState::HIT)
+		if (auto target = _targetPlayer.lock()) targetId = target->GetId();
+	if (_objectInfo.target_id() == targetId) return;
+	_objectInfo.set_target_id(targetId);
+	if (auto room = GetCurrentRoom())
+		room->BroadcastAOI(static_pointer_cast<Character>(shared_from_this()), PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_from_this()));
 }
 
 void Monster::OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker)

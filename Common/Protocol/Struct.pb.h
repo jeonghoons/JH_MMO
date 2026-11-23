@@ -662,6 +662,7 @@ class ObjectInfo final :
     kItemCountFieldNumber = 12,
     kExpFieldNumber = 14,
     kNpcKindFieldNumber = 13,
+    kTargetIdFieldNumber = 15,
   };
   // repeated int32 equip_items = 8;
   int equip_items_size() const;
@@ -816,6 +817,15 @@ class ObjectInfo final :
   void _internal_set_npc_kind(::Protocol::NpcKind value);
   public:
 
+  // int32 target_id = 15;
+  void clear_target_id();
+  int32_t target_id() const;
+  void set_target_id(int32_t value);
+  private:
+  int32_t _internal_target_id() const;
+  void _internal_set_target_id(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.ObjectInfo)
  private:
   class _Internal;
@@ -838,6 +848,7 @@ class ObjectInfo final :
     int64_t item_count_;
     int64_t exp_;
     int npc_kind_;
+    int32_t target_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -2756,6 +2767,26 @@ inline void ObjectInfo::_internal_set_exp(int64_t value) {
 inline void ObjectInfo::set_exp(int64_t value) {
   _internal_set_exp(value);
   // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.exp)
+}
+
+// int32 target_id = 15;
+inline void ObjectInfo::clear_target_id() {
+  _impl_.target_id_ = 0;
+}
+inline int32_t ObjectInfo::_internal_target_id() const {
+  return _impl_.target_id_;
+}
+inline int32_t ObjectInfo::target_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.target_id)
+  return _internal_target_id();
+}
+inline void ObjectInfo::_internal_set_target_id(int32_t value) {
+  
+  _impl_.target_id_ = value;
+}
+inline void ObjectInfo::set_target_id(int32_t value) {
+  _internal_set_target_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.target_id)
 }
 
 // -------------------------------------------------------------------

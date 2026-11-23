@@ -79,4 +79,6 @@ struct FSkillTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ProjMeshScale = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ProjStartScale = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) int32 ProjGrowMs = 0;
+	// 관통 투사체 출발점 = 시전자 중심 + 앞으로 이만큼(cm). 서버도 같은 열을 읽어 판정 출발점으로 쓴다(FP1 D-288)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) float ProjStartFwdCm = 0.f;
 };
