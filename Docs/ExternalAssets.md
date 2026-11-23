@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | ~~`Content/ParagonGreystone`~~ | Paragon: Greystone | (Fab 링크 기입) | **2026-11-12 삭제** — 쓰던 FX 의존은 `Content/FX/Dep/Greystone`(git 포함). 설치 불필요 | — |
 | ~~`Content/ParagonSparrow`~~ | Paragon: Sparrow | (Fab 링크 기입) | **2026-11-12 삭제** — 쓰던 FX 의존은 `Content/FX/Dep/Sparrow`(git 포함). 설치 불필요 | — |
-| `Content/ParagonRampage` | Paragon: Rampage | (Fab 링크 기입) | 몬스터(메시·스켈레톤 등). FX가 쓰던 의존은 2026-11-12 `Content/FX/Dep/Rampage`로 옮겨 팩에서 빠짐 — 새로 받으면 그 에셋이 팩 쪽에도 다시 생기지만 참조하지 않음 | Fab 라이브러리 → Add to Project → `JM` |
+| `Content/ParagonRampage` | Paragon: Rampage | (Fab 링크 기입) | 몬스터(메시·스켈레톤 등). FX가 쓰던 의존은 2026-11-12 `Content/FX/Dep/Rampage`로 옮겨 팩에서 빠짐 — 새로 받으면 그 에셋이 팩 쪽에도 다시 생기지만 참조하지 않음. **설치 필수 유지** — 몬스터 메시·스켈레톤·텍스처는 이 팩 경로 그대로 참조(M3 Move는 2026-11-24 폐기, D-290·D-227) | Fab 라이브러리 → Add to Project → `JM` |
 | `Content/ParagonProps` | Paragon: Props | (Fab 링크 기입) | 환경 소품. **2026-11-21 DG4부터 다시 필요** — 던전 맵 `Continent01_Dungeon`과 대륙의 던전 입구 문틀이 `Monolith/Ruins/Meshes`의 벽·기둥·잔해·원형 바닥을 **이 폴더 경로 그대로** 참조합니다(Fab 에셋은 공개 저장소에 올릴 수 없어 Move해 커밋하지 않음, D-227 — 이 팩이 없으면 던전의 Ruins 장식이 보이지 않고 충돌·내비메시는 그대로). **새 맵 `Continent01`은 이 폴더를 쓰지 않음** — 쓰는 바위 메시·재질은 2026-11-18 `Content/World/Dep/ParagonProps`로 옮김(git 포함, 텍스처 2K로 축소 — D-191·D-192). 옛 맵 `ParagonSample`과 던전 제작(DG4 `Monolith/Ruins` 예정)에 필요. 새로 받으면 옮긴 에셋이 팩 쪽에도 다시 생기지만 `Continent01`은 참조하지 않음 | 위와 동일 |
 | `Content/KiteDemo` | Kite Demo | (Fab 링크 기입) | 자연물(나무·바위·풀·지면 타일). **새 맵 `Continent01`은 이 폴더를 쓰지 않음** — 쓰는 에셋은 2026-11-18 `Content/World/Dep/KiteDemo`로 옮김(git 포함, 텍스처 2K로 축소 — D-191·D-192). 옛 맵 `ParagonSample`에만 필요 | 위와 동일 |
 | `Content/LevelPrototyping`, `Content/StarterContent` | UE 템플릿 기본 에셋 | - | 프로토타이핑용 | 새 프로젝트 템플릿에서 가져오기 |
