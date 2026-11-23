@@ -33,6 +33,8 @@ void UJMObjectManager::ClearObjects()
 	Npcs.Empty();
 	Portals.Empty();
 	LastAttackSkill.Empty();
+	// 사망 기록의 시각은 월드 시간이라 새 레벨(0부터 다시 셈)에서는 지워지지 않는다(CL1 리뷰 C4).
+	RecentMonsterDeaths.Empty();
 	MyPlayer = nullptr;
 	// 던전 상태는 Room에 딸린 값이다. 레벨 전환 너머로 넘길 값(TravelCarry·MyReviveReadySec)은 여기서 지우지 않는다(ResetRoomTravel).
 	ClearDungeonState();
@@ -42,6 +44,7 @@ void UJMObjectManager::ResetRoomTravel()
 {
 	TravelCarry = FRoomTravelCarry();
 	MyReviveReadySec = 0.0;
+	MyItemCooldowns.Empty();
 }
 
 void UJMObjectManager::NoteEnterRoomSent()
@@ -208,6 +211,15 @@ void UJMObjectManager::HandleSpawn(const Protocol::ObjectInfo& ObjInfo)
 			if (TravelCarry.bActive)
 			{
 				MyPlayer->ApplyTravelState(TravelCarry.CorrectionSeq, TravelCarry.AttackSeq, TravelCarry.AimSeq, TravelCarry.SkillCooldownEnd);
+
+				// 아이템 재사용 대기는 HUD에만 있어 새 HUD에 남은 시간을 다시 넣는다(끝난 것은 버림).
+				const double CooldownNow = FPlatformTime::Seconds();
+				for (auto It = MyItemCooldowns.CreateIterator(); It; ++It)
+				{
+					if (It->Value.EndSec <= CooldownNow) { It.RemoveCurrent(); continue; }
+					if (UCombatHudWidget* Hud = GetCombatHud())
+						Hud->SetItemCooldownRemain(It->Key, FMath::CeilToInt32((It->Value.EndSec - CooldownNow) * 1000.0), It->Value.TotalMs);
+				}
 
 				// 로딩 시간(완료 기준의 측정값): 서버는 SC_ROOM_CHANGE부터 CS_ENTER_ROOM까지 LoadTimeoutSec(60초)을 기다린다.
 				const double Now = FPlatformTime::Seconds();
@@ -613,6 +625,8 @@ void UJMObjectManager::HandleUseItem(int32 ObjectId, int32 ItemId, int32 Hp, int
 			Hud->SetHp(Hp, MyPlayer->GetObjectInfo().stat().max_hp());
 			Hud->StartItemCooldown(ItemId, CooldownMs);
 		}
+		// 레벨 전환 뒤 새 HUD에 남은 시간을 다시 그리려고 끝 시각을 남겨 둔다(서버는 재사용 대기를 이어 감 — CL1 리뷰 C2).
+		if (CooldownMs > 0) MyItemCooldowns.Add(ItemId, { FPlatformTime::Seconds() + CooldownMs / 1000.0, CooldownMs });
 	}
 }
 
@@ -796,8 +810,9 @@ void UJMObjectManager::HandleRoomChange(const Protocol::SC_ROOM_CHANGE_PACKET& P
 
 	// 던전 상태는 옛 Room의 것이다. 나갈 때 해제 패킷이 없으므로 여기서 지운다(새 Room이 던전이면 SC_DUNGEON_STATE가 다시 온다).
 	ClearDungeonState();
-	// 옛 Room 공격자의 마지막 스킬(피격 이펙트용)도 버린다.
+	// 옛 Room 공격자의 마지막 스킬(피격 이펙트용)과 몬스터 사망 기록(드랍 낙하 높이용)도 버린다.
 	LastAttackSkill.Empty();
+	RecentMonsterDeaths.Empty();
 
 	// 레벨 이름은 PIE 접두사를 뺀 짧은 이름으로 비교한다. 레벨 전환이 걸려 있으면(아직 옛 레벨이 열려 있음) 가는 중인 레벨이 기준이다.
 	const FString NewMap = UTF8_TO_TCHAR(Pkt.map_name().c_str());

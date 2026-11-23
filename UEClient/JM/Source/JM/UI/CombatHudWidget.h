@@ -35,6 +35,8 @@ public:
 	void SetCooldownRemain(int32 SkillSlot, int32 RemainMs, int32 TotalMs);
 	// 서버가 확정한 아이템 사용(SC_USE_ITEM)의 재사용 시간을 그 종류가 든 칸에 표시한다 (A3.6)
 	void StartItemCooldown(int32 ItemId, int32 CooldownMs);
+	// 그 아이템 칸의 재사용 표시를 남은 시간으로 맞춘다. 레벨 전환 뒤 새 HUD에 다시 넣을 때 쓴다 (CL1 리뷰 C2)
+	void SetItemCooldownRemain(int32 ItemId, int32 RemainMs, int32 TotalMs);
 
 	// 상호작용 안내(A6.2): 주울 수 있는 드랍이 가까이 있으면 "[F] 줍기: 이름". 빈 글이면 숨긴다.
 	void SetInteractPrompt(const FText& Prompt);

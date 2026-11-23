@@ -315,6 +315,17 @@ void UCombatHudWidget::StartItemCooldown(int32 ItemId, int32 CooldownMs)
 	}
 }
 
+void UCombatHudWidget::SetItemCooldownRemain(int32 ItemId, int32 RemainMs, int32 TotalMs)
+{
+	for (USkillSlotWidget* SlotWidget : GetSlotWidgets())
+	{
+		const int32 Index = SlotWidget->GetSkillSlot() - 1;
+		if (!CurrentQuickSlots.IsValidIndex(Index)) continue;
+		const FQuickSlot& QuickSlot = CurrentQuickSlots[Index];
+		if (QuickSlot.Kind == EQuickSlotKind::Item && QuickSlot.Value == ItemId) SlotWidget->SetCooldownRemain(RemainMs, TotalMs);
+	}
+}
+
 void UCombatHudWidget::SetInteractPrompt(const FText& Prompt)
 {
 	if (TxtInteract == nullptr) return;

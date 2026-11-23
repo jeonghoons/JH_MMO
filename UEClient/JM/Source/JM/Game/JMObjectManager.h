@@ -154,6 +154,11 @@ private:
 	};
 	FRoomTravelCarry TravelCarry;
 
+	// 내 아이템 재사용 대기(아이템 ID → 끝 시각·전체 길이). 스킬 쿨타임과 달리 HUD에만 있어 레벨 전환 뒤 다시 그리려고 둔다(CL1 리뷰 C2).
+	// 로그인 화면으로 돌아갈 때(ResetRoomTravel) 비운다.
+	struct FItemCooldown { double EndSec = 0.0; int32 TotalMs = 0; };
+	TMap<int32, FItemCooldown> MyItemCooldowns;
+
 	// 내 캐릭터가 부활할 수 있게 되는 시각(FPlatformTime::Seconds, 0 = 죽지 않음). 죽은 채 다른 레벨에 도착하면(파티장 따라가기·내보냄)
 	// 서버가 SC_DEAD를 다시 보내지 않으므로, 이 값으로 부활 창의 남은 시간을 다시 맞춘다.
 	double MyReviveReadySec = 0.0;

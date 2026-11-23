@@ -1263,6 +1263,7 @@ void Room::PlayerArriveRoom(shared_ptr<Player> player)
 		Metrics::RoomMoveCanceled.fetch_add(1);
 		RequestProgressSave(player);
 		RequestQuickSlotSave(player);
+		RequestQuestSave(player);   // 대기 중 미룬 퀘스트 진행도 여기서 저장(CL1 리뷰 S1)
 		NotifyClosedIfDone(player);
 		return;
 	}
@@ -1342,6 +1343,7 @@ void Room::PlayerLoadDone(shared_ptr<Player> player)
 		Metrics::RoomMoveCanceled.fetch_add(1);
 		RequestProgressSave(player);
 		RequestQuickSlotSave(player);
+		RequestQuestSave(player);   // CL1 리뷰 S1
 		NotifyClosedIfDone(player);
 		return;
 	}
