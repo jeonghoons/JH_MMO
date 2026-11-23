@@ -1,0 +1,26 @@
+ok exit=0 
+dup_id exit=127 dup_id\QuestTable.csv line 3: 퀘스트 ID 1 는 1 이상이고 중복되지 않아야 합니다
+id_zero exit=127 id_zero\QuestTable.csv line 2: 퀘스트 ID 0 는 1 이상이고 중복되지 않아야 합니다
+name_empty exit=127 name_empty\QuestTable.csv line 2: DisplayName 이 비어 있습니다
+npc_missing exit=127 npc_missing\QuestTable.csv line 2: NpcId 1999 는 NpcTable에 있고 상점(ShopId)·경매(Auction) NPC가 아니어야 합니다
+npc_shop exit=127 npc_shop\QuestTable.csv line 2: NpcId 1001 는 NpcTable에 있고 상점(ShopId)·경매(Auction) NPC가 아니어야 합니다
+npc_auction exit=127 npc_auction\QuestTable.csv line 2: NpcId 1002 는 NpcTable에 있고 상점(ShopId)·경매(Auction) NPC가 아니어야 합니다
+kind_bad exit=127 kind_bad\QuestTable.csv line 2: Kind 는 Kill/Collect 중 하나여야 합니다 ('Talk')
+kill_no_monster exit=127 kill_no_monster\QuestTable.csv line 2: Kill 퀘스트의 TargetId 8052 가 MonsterTable에 없습니다
+collect_no_item exit=127 collect_no_item\QuestTable.csv line 3: Collect 퀘스트의 TargetId 1001 가 ItemTable에 없습니다
+count_zero exit=127 count_zero\QuestTable.csv line 2: Count 0 는 1 이상이어야 합니다
+collect_too_many exit=127 collect_too_many\QuestTable.csv line 3: Count 2971 는 1 이상이고 인벤토리에 담을 수 있는 수(MaxStack 99 × InventorySlots 30) 이하여야 합니다
+collect_max_ok exit=0 
+level_zero exit=127 level_zero\QuestTable.csv line 2: RecommendLevel 0 는 1 이상 최대 레벨 30 이하여야 합니다
+level_over exit=127 level_over\QuestTable.csv line 2: RecommendLevel 31 는 1 이상 최대 레벨 30 이하여야 합니다
+exp_negative exit=127 exp_negative\QuestTable.csv line 2: 보상이 허용 범위를 벗어났습니다 (0 <= RewardExp <= 1000000000, 0 <= RewardGold <= EconomyTable.GoldMax 2000000000)
+gold_over exit=127 gold_over\QuestTable.csv line 2: 보상이 허용 범위를 벗어났습니다 (0 <= RewardExp <= 1000000000, 0 <= RewardGold <= EconomyTable.GoldMax 2000000000)
+reward_no_item exit=127 reward_no_item\QuestTable.csv line 2: RewardItemId 999999 가 ItemTable에 없습니다 (아이템 보상이 없으면 0)
+reward_count_0 exit=127 reward_count_0\QuestTable.csv line 2: RewardItemCount 0 는 1 이상이고 그 아이템의 MaxStack 20 이하여야 합니다
+reward_over_stack exit=127 reward_over_stack\QuestTable.csv line 3: RewardItemCount 2 는 1 이상이고 그 아이템의 MaxStack 1 이하여야 합니다
+reward_none_ok exit=0 
+reward_none_count exit=127 reward_none_count\QuestTable.csv line 2: RewardItemId 가 0이면 RewardItemCount 도 0이어야 합니다 (5)
+no_npc_column exit=127 no_npc_column\QuestTable.csv: column 'NpcId' does not exist
+no_desc_ok exit=0 
+no_file exit=127 no_file\QuestTable.csv: file cannot be opened
+npc_row_gone exit=127 npc_row_gone\QuestTable.csv line 2: NpcId 1003 는 NpcTable에 있고 상점(ShopId)·경매(Auction) NPC가 아니어야 합니다

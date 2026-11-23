@@ -1,0 +1,8 @@
+PASS start-sword-equipped
+PASS twohand-removes-offhand
+PASS twohand-equipped
+PASS twohand-rejects-offhand
+PASS twohand-skills
+
+합계 PASS 5 / FAIL 0
+ERROR 줄 수: 0

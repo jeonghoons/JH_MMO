@@ -1,0 +1,8 @@
+PASS loader-width0 (종료 코드 127)
+2026-11-23 05:42:31.132 ERROR [T26104] [Data] C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-23_SK2\runs\loader\width0\data\SkillTable.csv line 8: Pierce 스킬은 NonTargeted 이고 Range, Width, ProjSpeed 가 모두 0보다 커야 합니다
+PASS loader-speed0 (종료 코드 127)
+2026-11-23 05:42:31.564 ERROR [T25500] [Data] C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-23_SK2\runs\loader\speed0\data\SkillTable.csv line 8: Pierce 스킬은 NonTargeted 이고 Range, Width, ProjSpeed 가 모두 0보다 커야 합니다
+PASS loader-range0 (종료 코드 127)
+2026-11-23 05:42:31.994 ERROR [T28092] [Data] C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-23_SK2\runs\loader\range0\data\SkillTable.csv line 8: Pierce 스킬은 NonTargeted 이고 Range, Width, ProjSpeed 가 모두 0보다 커야 합니다
+PASS loader-targeted (종료 코드 127)
+2026-11-23 05:42:32.422 ERROR [T2264] [Data] C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-23_SK2\runs\loader\targeted\data\SkillTable.csv line 8: Pierce 스킬은 NonTargeted 이고 Range, Width, ProjSpeed 가 모두 0보다 커야 합니다

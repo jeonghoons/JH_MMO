@@ -1,0 +1,15 @@
+Name,Font,Typeface,Color,Texture,MarginPx
+Body,/Game/UI/Fonts/F_Body.F_Body,Regular,"(R=255,G=255,B=255,A=255)",,0
+Title,/Game/UI/Fonts/F_Title.F_Title,Bold,"(R=255,G=255,B=255,A=255)",,0
+Window,,None,"(R=255,G=255,B=255,A=255)",/Game/UI/Frame/T_UI_Window.T_UI_Window,24
+Button,,None,"(R=255,G=255,B=255,A=255)",/Game/UI/Frame/T_UI_Button.T_UI_Button,8
+ButtonHover,,None,"(R=255,G=255,B=255,A=255)",/Game/UI/Frame/T_UI_Button_Hover.T_UI_Button_Hover,8
+Slot,,None,"(R=255,G=255,B=255,A=255)",/Game/UI/Frame/T_UI_Slot.T_UI_Slot,8
+ButtonText,,None,"(R=240,G=222,B=170,A=255)",,0
+Slot_Empty,,None,"(R=150,G=125,B=80,A=255)",,0
+Grade_Common,,None,"(R=157,G=157,B=157,A=255)",,0
+Grade_Uncommon,,None,"(R=30,G=255,B=0,A=255)",,0
+Grade_Rare,,None,"(R=0,G=112,B=221,A=255)",,0
+Grade_Epic,,None,"(R=163,G=53,B=238,A=255)",,0
+ServerOnline,,None,"(R=60,G=200,B=90,A=255)",,0
+ServerOffline,,None,"(R=220,G=70,B=50,A=255)",,0

@@ -1,0 +1,15 @@
+== fail (server pid 15992, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=2 PortalNoRange=false, data repo)
+PASS accept-rollback
+PASS accept-retry
+PASS accept-b
+PASS complete-rollback
+PASS complete-rollback-same
+PASS complete-rollback-db
+PASS complete-retry
+PASS complete-retry-db
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 10 / FAIL 0
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS fail (PASS 10)

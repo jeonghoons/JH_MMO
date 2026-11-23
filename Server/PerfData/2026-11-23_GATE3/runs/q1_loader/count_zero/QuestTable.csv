@@ -1,0 +1,4 @@
+Name,DisplayName,NpcId,Kind,TargetId,Count,RecommendLevel,RewardExp,RewardGold,RewardItemId,RewardItemCount,Description
+1,초원 정리,1003,Kill,1001,0,1,1000,300,8001,5,마을 밖 초원의 하급 몬스터를 15마리 처치하세요.
+2,뿔 모으기,1003,Collect,8052,10,10,5000,1000,4201,1,뒤틀린 뿔 10개를 모아 경비대장에게 가져오세요. 완료하면 뿔을 가져갑니다.
+3,던전의 군주,1003,Kill,1005,1,20,10000,3000,8004,5,던전의 우두머리를 처치하세요. 같은 던전의 파티원이 처치해도 인정됩니다.

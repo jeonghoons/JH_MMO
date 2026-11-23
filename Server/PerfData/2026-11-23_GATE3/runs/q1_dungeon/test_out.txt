@@ -1,0 +1,22 @@
+== dungeon (server pid 24176, DevCommands=true DbSaveDelayMs=0 DbItemFailEvery=0 PortalNoRange=true, data C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-22_Q1\runs\dungeon\data)
+PASS accept-3
+PASS in-dungeon
+PASS boss-seen
+PASS member-hit-boss
+PASS member-dead
+[ 128.82] 우두머리 [100207] 처치: a [(126.7274284362793, 3, 1, 1)] b(죽음 True) [(126.75386834144592, 3, 1, 1)] c(우두머리에서 7305cm) [(126.78489780426025, 3, 1, 1)]
+PASS credit-killer
+PASS credit-dead-member
+PASS credit-out-of-view-member
+PASS exp-only-killer
+PASS credit-saved
+PASS complete-member
+PASS complete-member-reward
+PASS complete-killer
+PASS complete-far
+PASS db-totals
+PASS db-totals-auction-data
+
+합계 PASS 16 / FAIL 0
+ERROR 줄 수: 0 / WARN 줄 수: 0
+GROUP PASS dungeon (PASS 16)
