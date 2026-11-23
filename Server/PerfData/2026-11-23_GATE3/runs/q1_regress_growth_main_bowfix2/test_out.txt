@@ -1,0 +1,57 @@
+== regress growth_main (server pid 26856, port 8897, DevCommands=true PortalNoRange=false, data repo)
+PASS login-self-exp
+PASS login-mp-full
+PASS login-stat
+PASS other-no-exp
+[   2.18] Test1 level=1 exp=0 stat={'max_hp': 600, 'hp': 300, 'atk': 10, 'max_mp': 100, 'mp': 100} / Test2 level=1 exp=0 stat={'max_hp': 600, 'hp': 600, 'atk': 10, 'max_mp': 100, 'mp': 100}
+[   2.78] Test2 레벨 5로 올림(DEV 5000) stat {'max_hp': 1000, 'hp': 1000, 'atk': 18, 'max_mp': 140, 'mp': 140}
+[  14.87] HP 회복 Test1 300 → [420, 540, 600] 시각 [4.18, 9.23, 14.27] 간격 [5.05, 5.05] (입장 2.78)
+PASS hp-regen-values
+PASS hp-regen-interval
+PASS hp-regen-aoi
+PASS mp-full-no-packet
+PASS mp-spend
+PASS mp-before-attack
+[  19.89] MP 회복 Test2 125 → [132, 139, 140] 간격 [1.02, 1.0]
+PASS mp-regen-idle
+PASS mp-regen-interval
+PASS mp-regen-stops
+PASS kill-exp-solo
+PASS kill-exp-not-others
+[  50.28] Test2 → 몬스터 피해 [(68, 182), (98, 84), (68, 16), (16, 0)] (기대 2002 98 / 2001 68), 몬스터 HP 250, 내 시전 [(40.85, 2001), (42.46, 2002), (46.48, 2001), (48.09, 2001)], 거부 [(44.869746923446655, 2, 4, 0)]
+PASS damage-formula-sword
+PASS damage-formula-monster
+[  62.32] Test2 MP [(42.46, 125), (42.55, 126), (43.56, 127), (44.57, 128), (45.59, 129), (46.6, 130), (47.6, 131), (48.62, 132), (49.62, 133), (50.65, 134), (51.66, 135), (52.64, 136), (53.65, 137), (54.69, 140)] 마지막 타격 48.71
+PASS mp-regen-combat
+PASS mp-regen-after-combat
+[  62.32] Test2 HP 회복 [(58.69, 1000)] (마지막 타격 48.71)
+PASS hp-regen-after-combat
+[ 136.78] 파티 분배: Test1 [(134.67163825035095, 55, 55)] Test2 [(134.65464234352112, 155, 55)] Test3 [] (1인 몫 100, 2인 몫 55)
+PASS party-share-2
+PASS party-other-room-excluded
+[ 138.04] DEV 4000: Test1 levelups [(136.7765862941742, 2, 4, {'max_hp': 900, 'hp': 900, 'atk': 16, 'max_mp': 130, 'mp': 130})] exp (136.77662754058838, 1055, 4000) 기대 level 4 exp 1055 stat {'max_hp': 900, 'atk': 16, 'max_mp': 130}
+PASS levelup-once
+PASS levelup-stat
+PASS levelup-full
+PASS levelup-exp
+PASS levelup-aoi
+PASS levelup-order
+PASS party-level-update
+PASS cap-level
+PASS cap-stat
+PASS cap-no-more
+PASS dev-exp-bad--5
+PASS dev-exp-bad-1000000001
+PASS cap-kill
+[ 160.18] Test4 레벨 5로 올림(DEV 5000) stat {'max_hp': 1000, 'hp': 1000, 'atk': 18, 'max_mp': 140, 'mp': 140}
+[ 206.41] Test4 3002 시전: 몬스터 거리 38cm (3.9초 뒤)
+[ 212.36] Test4(활, 공격력 18) → 몬스터 피해 [54, 35, 35, 35, 54] (기대 3001 54, 3002 틱 35)
+PASS damage-formula-bow
+[ 221.21] 재접속: Test1 level 30 exp 0 stat {'max_hp': 3500, 'hp': 3500, 'atk': 68, 'max_mp': 390, 'mp': 390} / Test2 level 5 exp 210 stat {'max_hp': 1000, 'hp': 1000, 'atk': 18, 'max_mp': 140, 'mp': 140} (나갈 때 MP 132)
+PASS relogin-level-exp
+PASS relogin-mp-full
+PASS db-saved
+
+합계 PASS 39 / FAIL 0
+ERROR 줄 수: 0
+REGRESS PASS growth_main (PASS 39/39)

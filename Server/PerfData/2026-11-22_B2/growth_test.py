@@ -411,7 +411,19 @@ def t_main():
     _, mx, my, mz = mons[target]
     if math.hypot(mx - d.x, my - d.y) > 900:
         d.walk_to(mx, my, stop_cm=700, tz=mz, limit_s=20)
-    d.attack(target, mx, my, slot=1)   # 3002 장판(지점 = 몬스터)
+    # 3002 장판은 몬스터를 끌어온 뒤 내 자리에 깐다(2026-11-23 검증 게이트): 몬스터 발밑에 깔면 맞은 몬스터가 곧바로 쫓아 나와
+    # (경직은 공격만 막고 이동은 막지 않음, 속도 400) 틱 수가 실행마다 1~5번으로 갈렸다. 실제 쓰임(내 앞에 깔고 붙은 몬스터가 머묾)과 같게 한다.
+    d.attack(target, mx, my, slot=0)   # 3001로 끌어오기(1001은 맞아야 쫓아옴)
+    t_pull = time.time()
+    while time.time() - t_pull < 10.0:
+        pump_all(cs4, 0.2)
+        if target in d.dead_ids or target not in d.objects:
+            break
+        _, mx, my, mz = d.objects[target]
+        if math.hypot(mx - d.x, my - d.y) <= 250 and time.time() - t_pull > 1.9:   # 붙었고 기본 공격 동작(1.73초)도 끝남
+            break
+    log(f"Test4 3002 시전: 몬스터 거리 {math.hypot(mx - d.x, my - d.y):.0f}cm ({time.time() - t_pull:.1f}초 뒤)")
+    d.attack(target, d.x, d.y, slot=1)   # 3002 장판(지점 = 내 자리)
     pump_all(cs4, 1.0)
     for _ in range(12):
         if target in d.dead_ids or d.dead:
