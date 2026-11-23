@@ -254,6 +254,12 @@ namespace
 				else { err = where + "AllowDummyLogin must be true/false: '" + e.value + "'"; return false; }
 				cfg.allowDummyLoginFrom = from;
 			}
+			else if (name == "Debug.BotAccountPrefix")
+			{
+				if (e.value.size() > 16) { err = where + "BotAccountPrefix must be 16 characters or fewer: '" + e.value + "'"; return false; }
+				cfg.botAccountPrefix = e.value;
+				cfg.botAccountPrefixFrom = from;
+			}
 			else if (name == "Debug.MoveHandoffDelayMs")
 			{
 				if (!ParseInt(e.value, 0, 60000, cfg.moveHandoffDelayMs)) { err = where + "MoveHandoffDelayMs must be 0~60000: '" + e.value + "'"; return false; }
@@ -382,6 +388,7 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "Debug.DummyRoom           = {}  ({})", dummyRoom, dummyRoomFrom);
 	LOG_INFO("Config", "Debug.DummyTownPercent    = {}  ({})", dummyTownPercent, dummyTownPercentFrom);
 	LOG_INFO("Config", "Debug.AllowDummyLogin     = {}  ({})", allowDummyLogin, allowDummyLoginFrom);
+	LOG_INFO("Config", "Debug.BotAccountPrefix    = '{}'  ({})", botAccountPrefix, botAccountPrefixFrom);
 	LOG_INFO("Config", "Debug.MoveHandoffDelayMs  = {}  ({})", moveHandoffDelayMs, moveHandoffDelayMsFrom);
 	LOG_INFO("Config", "Debug.DbSaveDelayMs       = {}  ({})", dbSaveDelayMs, dbSaveDelayMsFrom);
 	LOG_INFO("Config", "Debug.DevCommands         = {}  ({})", devCommands, devCommandsFrom);

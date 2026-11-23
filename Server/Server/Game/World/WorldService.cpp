@@ -147,6 +147,7 @@ void WorldService::RegisterPlayer(shared_ptr<Player> player)
 	entry.session = player->GetSession();
 	entry.channel = channel->id;
 	entry.isDummy = player->isDummy;
+	entry.isLoadBot = player->isLoadBot;
 	entry.level = player->GetInfo().level();
 
 	++channel->population;
@@ -187,7 +188,7 @@ void WorldService::EnterWorld(shared_ptr<Player> player)
 	// 처음 들어가는 곳은 마을 Room이다. 더미 봇만 [Debug] DummyRoom으로 사냥터에 바로 넣을 수 있다(부하 시험).
 	const Channel& channel = _channels[entry.channel - 1];
 	shared_ptr<Room> room = channel.town;
-	if (entry.isDummy && channel.field != nullptr)
+	if ((entry.isDummy || entry.isLoadBot) && channel.field != nullptr)
 	{
 		const string& mode = GServerConfig.dummyRoom;
 		if (mode == "field" || (mode == "split" && (_dummySeq++ % 2) == 1))

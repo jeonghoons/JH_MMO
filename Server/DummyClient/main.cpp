@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 
 	printf("[dummyclient] host=%s:%d bots=%d ramp=%d/s threads=%d profile=%s body=%s chaos=%d\n",
 		GConfig.host.c_str(), GConfig.port, GConfig.bots, GConfig.rampRate, GConfig.threads,
-		GConfig.hunt ? "hunt" : (GConfig.move ? "move" : "idle"), GConfig.body.c_str(), GConfig.chaos ? 1 : 0);
+		GConfig.mixText.c_str(), GConfig.body.c_str(), GConfig.chaos ? 1 : 0);
 
 	HINSTANCE inst = GetModuleHandleW(nullptr);
 	WNDCLASSW wc{};

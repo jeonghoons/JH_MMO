@@ -119,6 +119,12 @@ void AuthLobby::OnLoginSuccess(shared_ptr<GameSession> session, DB_PlayerInfo in
 
     player->SetName(playerName);
     player->isDummy = isDummy;
+    // 부하 시험 계정(A5.2, D-297): 이름이 [Debug] BotAccountPrefix로 시작하면 배치만 더미처럼(DummyRoom). 외형·아이템·저장은 DB 그대로
+    if (false == isDummy && false == GServerConfig.botAccountPrefix.empty())
+    {
+        const wstring prefix(GServerConfig.botAccountPrefix.begin(), GServerConfig.botAccountPrefix.end());
+        player->isLoadBot = playerName.rfind(prefix, 0) == 0;
+    }
     if (isDummy)
         DressDummy(*player, objectId);
 

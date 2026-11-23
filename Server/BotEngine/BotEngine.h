@@ -7,6 +7,12 @@
 #include <string>
 #include <vector>
 
+// ---------------------------------------------------------------- 프로필 (A5.2, D-298)
+// 봇마다 하나. --profile X는 모두 같게, --mix idle=25,move=15,...는 번호 순서대로 비율에 맞게 섞는다.
+// Idle = 잠수(제자리, 30~90초마다 몇 m), Move = 무작위 이동, Turn = 90° 꺾기(MC4.1b), Chat = 이동 + 채팅, Hunt = 사냥,
+// Loot = 사냥 + 드랍 줍기·버리기, Trade = 마을에서 다른 거래 봇과 1:1 거래, Auction = 경매 NPC 앞에서 검색·등록·구매·수령·취소
+enum class BotProfile : int { Idle = 0, Move, Turn, Chat, Hunt, Loot, Trade, Auction, Count };
+
 // ---------------------------------------------------------------- 설정
 struct BotConfig
 {
@@ -18,10 +24,11 @@ struct BotConfig
 	int threads = 4;
 	int moveIntervalMs = 1000;
 	int pingIntervalMs = 1000;
-	bool move = true;          // 무작위 이동
+	// 아래 셋은 "이 실행에 그 프로필이 하나라도 있는가"(ParseArgs가 --profile·--mix로 채움). 봇마다의 행동은 Bot::profile로 정한다
+	bool move = true;          // 움직이는 프로필(Idle 외)이 있다
 	std::string body = "male";     // 체형. male: dummy 계정 로그인, female: fem_* 계정 가입 후 로그인 (무기는 MC3.2 전까지 없음 = 맨손)
 	bool chaos = false;         // 일부 공격 요청을 일부러 잘못된 값으로 보낸다(오류 테스트)
-	bool hunt = false;         // 가장 가까운 몬스터에게 이동해 공격 (hunt 프로필)
+	bool hunt = false;         // 사냥하는 프로필(Hunt·Loot)이 있다
 	bool turn = false;         // turn 프로필(MC4.1b): 직선으로 걷다 turnIntervalMs마다 90° 꺾음 — 원격 이동 표시 측정용(--move-interval 200과 함께)
 	int turnIntervalMs = 1500;
 	bool turnSend = false;     // --turn-send: 꺾는 순간 모서리 위치를 바로 보내고 새 방향은 60ms 뒤부터(클라 '방향 바뀌면 즉시 송신' 모사, MC4.1b)
@@ -45,6 +52,17 @@ struct BotConfig
 	bool trackWorld = false;   // 시각화(DummyClient)용: 몬스터 위치·사망을 추적하고 스냅숏을 공개한다
 	std::string navDir;        // --nav-dir: 레벨 내비메시(<레벨>_Geo.nav) 폴더. 비면 작업 폴더 기준 후보에서 찾는다(A5.1, BotNav)
 	bool townWander = false;   // --town-wander: 마을 Room의 사냥 봇이 포털로 나가지 않고 마을 안전 구역 안을 걷는다(서버 DummyRoom=spread의 마을 비율 유지, A5.1)
+	int mix[static_cast<int>(BotProfile::Count)] = { 0, 100 };   // 프로필별 비율(%) — 기본 = 모두 Move
+	std::string mixText = "move";                                // 시작 줄에 찍을 이름
+	// 로그인(A5.2, D-296·D-300): false = is_dummy(공용 dummy 계정), true = bot_<번호 + accountStart> / 1234 일반 로그인(SQL로 미리 만든 계정)
+	bool accountLogin = false;
+	int accountStart = 0;
+	int loginRetries = 5;      // 로그인 실패·응답 없음·연결 실패 때 다시 시도하는 횟수(1·2·4…30초 지수 백오프)
+	int loginTimeoutMs = 15000;
+	std::string dataDir;       // --data-dir: Common/DataTable 폴더(SkillTable·NpcTable). 비면 작업 폴더 기준 후보
+	int chatIntervalMs = 15000;    // Chat 봇의 채팅 간격(±50%)
+	int tradeIntervalMs = 20000;   // Trade 봇이 다음 거래를 시작하기까지(±50%)
+	int auctionIntervalMs = 3000;  // Auction 봇의 요청 사이 간격(±50%, 서버 간격 AuctionActionIntervalMs 1초보다 길게)
 	bool zone = false;         // 핫존: 봇이 (zoneX, zoneY)로 걸어가 반경 zoneR 안에서만 움직인다 (--zone x,y,r)
 	float zoneX = 0, zoneY = 0, zoneR = 0;
 };
@@ -79,6 +97,19 @@ struct BotCounters
 	std::atomic<int> partyIn{ 0 };   // 지금 파티에 든 봇 수(마지막으로 받은 상태 기준)
 	std::atomic<long long> pathSearch{ 0 }, pathFail{ 0 };   // 길찾기(A5.1, BotNav) 횟수 / 실패(시작점을 메시에서 못 찾음 등 — 그때는 직선)
 	std::atomic<long long> selfDead{ 0 }, reviveSent{ 0 }, selfRevived{ 0 };   // 내 SC_DEAD / CS_REVIVE / 내 SC_REVIVE (A2.4)
+	// A5.2 프로필
+	std::atomic<int> profileBots[static_cast<int>(BotProfile::Count)]{};   // 프로필별 봇 수(정해진 수, 접속 여부와 무관)
+	std::atomic<long long> loginRetry{ 0 }, loginGiveUp{ 0 }, loginTimeout{ 0 };
+	std::atomic<long long> loginFailBy[8]{};                               // LoginResult 값별
+	std::atomic<long long> moveHeldByLock{ 0 }, attackHeld{ 0 };           // 이동 잠금 때문에 보내지 않은 이동 / 쿨타임·동작 중이라 미룬 공격
+	std::atomic<long long> chatSent{ 0 }, chatRecv{ 0 };
+	std::atomic<long long> dropSeen{ 0 }, pickupSent{ 0 }, pickupOk{ 0 }, dropItemSent{ 0 };
+	std::atomic<long long> tradeRequestSent{ 0 }, tradeRequestRecv{ 0 }, tradeOfferSent{ 0 }, tradeConfirmSent{ 0 }, tradeCancelSent{ 0 }, tradeEnd{ 0 };
+	std::atomic<long long> tradeEndBy[24]{}, tradeRejectBy[24]{};         // SC_TRADE_END / SC_TRADE_RESULT 를 TradeResult 값별로
+	std::atomic<long long> tradeRejectReq[8]{};                           // SC_TRADE_RESULT 를 거부된 요청별로(0 REQUEST 1 RESPOND 2 SET_OFFER 3 LOCK 4 CONFIRM 5 CANCEL)
+	// 경매: 요청별 송신(0 검색 1 등록 2 구매 3 취소 4 내 목록 5 수령) / SC_AUCTION_RESULT를 AuctionResult 값별로
+	std::atomic<long long> auctionSent[6]{}, auctionOk[6]{}, auctionResultBy[32]{};
+	std::atomic<long long> auctionListRecv{ 0 }, auctionMyRecv{ 0 }, mailNoticeRecv{ 0 };
 	std::atomic<int> connected{ 0 }, inGame{ 0 };
 	// 구간(리포트 간격) 동안 봇 한 명이 받은 최대 바이트. 리포터가 읽으며 0으로 되돌리고 windowEpoch를 올린다.
 	std::atomic<long long> maxBotBytesWindow{ 0 };
@@ -112,6 +143,7 @@ extern std::vector<TownZone> GTownZones;   // 맵 로직 JSON의 마을(area tow
 namespace BotEngine
 {
 	long long NowUs();
+	const char* ProfileName(BotProfile p);
 	uint32_t Percentile(const std::vector<uint32_t>& sorted, double p);
 
 	// 명령줄 인자를 GConfig에 채운다. 잘못됐거나 --help면 false.

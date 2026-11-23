@@ -31,6 +31,7 @@ public:
 	void SetPlayerType(Protocol::PlayerType type) { _objectInfo.set_player_type(type); }
 	int channel = 0;   // 로그인 때 WorldService가 배정하고 접속이 끝날 때까지 바뀌지 않는다(D-215). 0 = 아직 배정 전
 	bool isDummy = false;
+	bool isLoadBot = false;   // 부하 시험 계정([Debug] BotAccountPrefix, A5.2) — 배치만 더미와 같고 나머지는 일반 플레이어
 
 	// 캐릭터 이름(Player_Info.Name). 로그인 때 정해지고 바뀌지 않는다. ObjectInfo.name(UTF-8)에도 실어 HUD·다른 플레이어에게 보낸다(A2.3a).
 	void SetName(const wstring& name) { _name = name; _objectInfo.set_name(Utils::WStringToUTF8(name)); }

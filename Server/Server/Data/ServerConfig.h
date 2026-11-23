@@ -67,6 +67,9 @@ struct ServerConfig
 	int dummyTownPercent = 30;      // DummyRoom=spread일 때 마을 Room에 넣는 비율(%) — 나머지는 사냥터 스폰 지점마다 고르게(A5.1, D-292)
 	// 봇의 is_dummy 로그인(공용 dummy 계정 우회)을 받는다(A5.1, D-291). 꺼져 있으면 is_dummy 요청과 dummy 계정 로그인을 모두 거부한다
 	bool allowDummyLogin = false;
+	// 부하 시험 계정(A5.2, D-297): 비어 있지 않으면 캐릭터 이름이 이 접두어로 시작하는 일반 계정(예: bot_)도 더미처럼 DummyRoom·DummySpawnZone으로 배치한다.
+	// 배치만 같고 로그인·아이템·저장은 일반 플레이어와 같은 DB 경로다. 기본은 빈 값(꺼짐)
+	std::string botAccountPrefix;
 	// Room 이동의 잡 사이(서비스 → 떠나기, 떠나기 → 들어오기)를 이만큼 늦춘다 — 그 구간의 접속 해제·사망·중복 요청 시험용
 	int moveHandoffDelayMs = 0;
 	int dbSaveDelayMs = 0;          // 아이템 트랜잭션·진행 상황 저장을 실행하기 전에 이만큼 멈춘다(빠른 재접속·중복 접속 시험, A2.7). DB 작업 스레드를 막으므로 시험에만 쓴다
@@ -84,7 +87,7 @@ struct ServerConfig
 	std::string mapNameFrom = "default";
 	std::string maxDungeonInstancesFrom = "default", loadTimeoutSecFrom = "default";
 	std::string moveWaitTimeoutMsFrom = "default", dummyRoomFrom = "default", moveHandoffDelayMsFrom = "default";
-	std::string dummyTownPercentFrom = "default", allowDummyLoginFrom = "default";
+	std::string dummyTownPercentFrom = "default", allowDummyLoginFrom = "default", botAccountPrefixFrom = "default";
 
 	// 실제로 쓸 워커 스레드 수 (0이면 CPU 코어 수 / 2, 최소 1)
 	int ResolvedWorkerThreads() const;

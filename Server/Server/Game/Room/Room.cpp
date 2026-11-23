@@ -1043,10 +1043,11 @@ Protocol::PositionInfo Room::PickStartPosition()
 
 void Room::PlaceNewPlayer(const shared_ptr<Player>& player)
 {
-	if (_gameMap.GetPlayerStarts().empty() && !player->isDummy) return;   // 시작 지점이 없는 맵: 지금 위치 그대로(기존 동작)
+	const bool placeAsDummy = player->isDummy || player->isLoadBot;   // 부하 시험 계정도 더미처럼 배치(A5.2, D-297)
+	if (_gameMap.GetPlayerStarts().empty() && !placeAsDummy) return;   // 시작 지점이 없는 맵: 지금 위치 그대로(기존 동작)
 
 	Protocol::PositionInfo pos = PickStartPosition();
-	if (player->isDummy)
+	if (placeAsDummy)
 	{
 		// 더미 봇([Debug]): DummySpawnZone이 있으면 그 안, DummyRoom=spread면 PickDummySpreadPosition, 그 밖에 구역이 있는 마을 Room은 시작 지점(실제 규칙),
 		// 그 밖(사냥터 Room·구역이 없는 Room)은 걷는 영역 전체에서 무작위(다른 구역 Room의 땅 = 마을 안은 피한다).

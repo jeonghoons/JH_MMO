@@ -49,9 +49,9 @@ int main(int argc, char** argv)
 		GConfig.outFile = name;
 	}
 
-	printf("[loadtest] host=%s:%d bots=%d ramp=%d/s duration=%ds threads=%d profile=%s body=%s chaos=%d out=%s\n",
+	printf("[loadtest] host=%s:%d bots=%d ramp=%d/s duration=%ds threads=%d profile=%s login=%s body=%s chaos=%d out=%s\n",
 		GConfig.host.c_str(), GConfig.port, GConfig.bots, GConfig.rampRate, GConfig.durationSec,
-		GConfig.threads, GConfig.hunt ? "hunt" : GConfig.turn ? "turn" : (GConfig.move ? "move" : "idle"), GConfig.body.c_str(), GConfig.chaos ? 1 : 0, GConfig.outFile.c_str());
+		GConfig.threads, GConfig.mixText.c_str(), GConfig.accountLogin ? "account" : "dummy", GConfig.body.c_str(), GConfig.chaos ? 1 : 0, GConfig.outFile.c_str());
 
 	BotEngine::Start();
 
@@ -140,6 +140,56 @@ int main(int argc, char** argv)
 	printf("[summary] moveCorrected=%lld pongs=%lld totalRecvBytes=%lld peakBotRecv=%.1fKB/s\n",
 		GStat.moveCorrected.load(), GStat.pongRecv.load(), GStat.bytesRecv.load(), peakBotKBps);
 	printf("[summary] nav: pathSearch=%lld pathFail=%lld\n", GStat.pathSearch.load(), GStat.pathFail.load());
+	// A5.2 프로필별 인원·로그인 재시도·행동 집계
+	printf("[summary] profiles:");
+	for (int k = 0; k < static_cast<int>(BotProfile::Count); ++k)
+		if (GStat.profileBots[k].load() > 0) printf(" %s=%d", BotEngine::ProfileName(static_cast<BotProfile>(k)), GStat.profileBots[k].load());
+	printf("\n");
+	{
+		static const char* const kLoginName[8] = { "NONE", "SUCCESS", "NO_ACCOUNT", "WRONG_PASSWORD", "ALREADY_LOGGED_IN", "SERVER_ERROR", "BUSY", "7" };
+		printf("[summary] login: retry=%lld giveUp=%lld timeout=%lld fail by LoginResult:", GStat.loginRetry.load(), GStat.loginGiveUp.load(), GStat.loginTimeout.load());
+		for (int i = 0; i < 8; ++i)
+			if (GStat.loginFailBy[i].load() > 0) printf(" %s=%lld", kLoginName[i], GStat.loginFailBy[i].load());
+		printf("\n");
+	}
+	if (GConfig.hunt)
+		printf("[summary] lock: moveHeldByLock=%lld\n", GStat.moveHeldByLock.load());
+	if (GStat.chatSent.load() > 0 || GStat.chatRecv.load() > 0)
+		printf("[summary] chat: sent=%lld recv(SC_CHAT)=%lld\n", GStat.chatSent.load(), GStat.chatRecv.load());
+	if (GStat.dropSeen.load() > 0 || GStat.pickupSent.load() > 0)
+		printf("[summary] loot: dropSeen=%lld pickupSent=%lld pickupOk=%lld dropItemSent=%lld\n",
+			GStat.dropSeen.load(), GStat.pickupSent.load(), GStat.pickupOk.load(), GStat.dropItemSent.load());
+	if (GStat.tradeRequestSent.load() > 0 || GStat.tradeRequestRecv.load() > 0)
+	{
+		static const char* const kTradeName[24] = { "NONE", "SUCCESS", "NO_TARGET", "TOO_FAR", "TARGET_BUSY", "DECLINED", "TIMEOUT", "CANCELLED", "DEAD", "DISCONNECTED",
+			"LOCKED", "INVALID_OFFER", "INVENTORY_FULL", "GOLD_FULL", "BUSY", "NOT_ALLOWED", "DB_ERROR", "MOVED", "18", "19", "20", "21", "22", "23" };
+		printf("[summary] trade: requestSent=%lld requestRecv=%lld offerSent=%lld confirmSent=%lld cancelSent=%lld end=%lld\n",
+			GStat.tradeRequestSent.load(), GStat.tradeRequestRecv.load(), GStat.tradeOfferSent.load(), GStat.tradeConfirmSent.load(), GStat.tradeCancelSent.load(), GStat.tradeEnd.load());
+		printf("[summary] trade end by TradeResult:");
+		for (int i = 0; i < 24; ++i)
+			if (GStat.tradeEndBy[i].load() > 0) printf(" %s=%lld", kTradeName[i], GStat.tradeEndBy[i].load());
+		printf("\n[summary] trade rejected by TradeResult:");
+		for (int i = 0; i < 24; ++i)
+			if (GStat.tradeRejectBy[i].load() > 0) printf(" %s=%lld", kTradeName[i], GStat.tradeRejectBy[i].load());
+		static const char* const kTradeReq[8] = { "REQUEST", "RESPOND", "SET_OFFER", "LOCK", "CONFIRM", "CANCEL", "6", "7" };
+		printf("\n[summary] trade rejected by request:");
+		for (int i = 0; i < 8; ++i)
+			if (GStat.tradeRejectReq[i].load() > 0) printf(" %s=%lld", kTradeReq[i], GStat.tradeRejectReq[i].load());
+		printf("\n");
+	}
+	if (GStat.auctionSent[0].load() + GStat.auctionSent[4].load() > 0)
+	{
+		static const char* const kAuctionReq[6] = { "search", "register", "buy", "cancel", "my", "claim" };
+		static const char* const kAuctionName[32] = { "NONE", "SUCCESS", "NOT_IN_ROOM", "DEAD", "BUSY", "TOO_FREQUENT", "NOT_ALLOWED", "NO_LISTING", "SOLD", "OWN_ITEM",
+			"NOT_ENOUGH_GOLD", "LISTING_LIMIT", "BAD_PRICE", "NO_ITEM", "IN_TRADE", "INVENTORY_FULL", "GOLD_FULL", "DB_ERROR", "TOO_FAR", "IN_DUNGEON", "TRY_LATER", "NO_MAIL",
+			"NOT_ENOUGH_COUNT", "LISTING_BUSY", "ALREADY_CLOSED", "25", "26", "27", "28", "29", "30", "31" };
+		printf("[summary] auction sent/ok:");
+		for (int i = 0; i < 6; ++i) printf(" %s=%lld/%lld", kAuctionReq[i], GStat.auctionSent[i].load(), GStat.auctionOk[i].load());
+		printf(" listRecv=%lld myRecv=%lld mailNotice=%lld\n[summary] auction result by AuctionResult:", GStat.auctionListRecv.load(), GStat.auctionMyRecv.load(), GStat.mailNoticeRecv.load());
+		for (int i = 0; i < 32; ++i)
+			if (GStat.auctionResultBy[i].load() > 0) printf(" %s=%lld", kAuctionName[i], GStat.auctionResultBy[i].load());
+		printf("\n");
+	}
 	if (GConfig.hunt)
 		printf("[summary] hunt: monsterAdded=%lld monsterDead(SC_DEAD)=%lld monsterRemoved(SC_REMOVE_OBJECT)=%lld damagePackets=%lld\n",
 			GStat.monsterAdded.load(), GStat.monsterDead.load(), GStat.monsterRemoved.load(), GStat.damageRecv.load());

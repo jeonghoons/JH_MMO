@@ -96,6 +96,7 @@ private:
 		int channel = 0;
 		weak_ptr<Room> room;      // 지금 있는 Room(입장 전에는 비어 있음). Room 이동(DG3b)에서 도착 Room이 갱신한다
 		bool isDummy = false;
+		bool isLoadBot = false;   // [Debug] BotAccountPrefix 계정 — 처음 Room을 더미처럼 DummyRoom으로 정한다(A5.2)
 		bool entered = false;     // 입장 요청을 처리했다(두 번째 요청을 거른다)
 		int partyId = 0;          // 파티 번호(0 = 없음). Room 잡이 읽는 사본은 Player::partyId (NotifyPartyId로 알림)
 		int level = 0;            // 레벨(파티 창 표시용). 로그인 때 적고 레벨업 때 OnPlayerLevelChanged가 갱신한다(A2.3b)
