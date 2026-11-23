@@ -178,6 +178,13 @@ void AJMPlayer::ResetWeaponToBack()
 void AJMPlayer::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
 {
 	Super::SetPlayerData(ObjInfo);
+	// 인벤토리 미리보기(늘 손에 든 Idle)는 Tick이 꺼져 있어 속도가 0으로 돌아오지 않는다 — 받은 속도를 버린다(FP1)
+	if (bAlwaysDrawn)
+	{
+		DestPosition.set_v_x(0.f);
+		DestPosition.set_v_y(0.f);
+		DestPosition.set_v_z(0.f);
+	}
 	RefreshEquipment();
 }
 

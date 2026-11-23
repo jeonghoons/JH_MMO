@@ -171,6 +171,10 @@ void UInventoryWidget::UpdatePreview()
 	{
 		Protocol::ObjectInfo Copy = Info;
 		Copy.set_aim_skill_id(0);
+		// 내 캐릭터의 지금 속도까지 복사되면 미리보기(액터 Tick 꺼짐)가 걷기·뛰기 자세로 굳는다 — 무기별 Idle로 고정(FP1)
+		Copy.mutable_position()->set_v_x(0.f);
+		Copy.mutable_position()->set_v_y(0.f);
+		Copy.mutable_position()->set_v_z(0.f);
 		PreviewActor->SetPlayerData(Copy);
 		PreviewPlayerType = static_cast<int32>(Info.player_type());
 		PreviewItems = Items;
