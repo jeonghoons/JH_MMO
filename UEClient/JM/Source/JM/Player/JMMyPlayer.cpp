@@ -74,6 +74,13 @@ AJMMyPlayer::AJMMyPlayer()
 void AJMMyPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 몸은 이동 방향을 보고, 카메라 방향은 조준 중에만 본다(ApplyAimRotationMode). BP_MyPlayer 기본값에
+	// 컨트롤러 회전(desired·pitch·roll)이 켜져 있어 공격의 방향 고정 동안 몸이 마우스를 따라 돌고 위아래로 기울었다(FP1).
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+	if (UCharacterMovementComponent* Move = GetCharacterMovement()) Move->bUseControllerDesiredRotation = false;
 }
 
 void AJMMyPlayer::PossessedBy(AController* NewController)
