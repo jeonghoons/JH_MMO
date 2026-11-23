@@ -9,7 +9,7 @@ sed -e "s/^Port=.*/Port=$PORT/" \
     -e "s/^DevCommands=.*/DevCommands=true/" \
     -e "s/^Level=.*/Level=Debug/" \
     -e "s#^Dir=.*#Dir=../PerfData/2026-11-23_SK2/runs/sk2/logs#" \
-    "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+    -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 unset JH_DATA_DIR
 cd "$SRV"
 ../x64/Debug/GameServer.exe --config "$(cygpath -w "$RUN/ServerConfig.ini")" > "$RUN/server_console.txt" 2>&1 &

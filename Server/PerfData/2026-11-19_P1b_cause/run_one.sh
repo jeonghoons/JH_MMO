@@ -17,7 +17,7 @@ sed -e "s/^WorkerThreads=.*/WorkerThreads=$WORKERS/" \
     -e "s/^SendFlushIntervalMs=.*/SendFlushIntervalMs=${FLUSH_MS:-0}/" \
     -e "s/^TimerResolutionMs=.*/TimerResolutionMs=${TIMER_MS:-0}/" \
     -e "s#^Dir=.*#Dir=../PerfData/$SET/runs/$NAME/logs#" \
-    "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+    -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 # P1b 전 exe(SERVER_EXE로 지정)는 새 설정 키를 모르므로 지운다
 if [ -n "${OLD_EXE:-}" ]; then sed -i -e "/^SendFlushIntervalMs=/d" -e "/^TimerResolutionMs=/d" "$RUN/ServerConfig.ini"; fi
 

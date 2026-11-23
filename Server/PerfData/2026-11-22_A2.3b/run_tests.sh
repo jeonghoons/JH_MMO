@@ -17,7 +17,7 @@ for B in $BUNDLES; do
   sed -e "s/^Port=.*/Port=$PORT/" \
       -e "s/^DevCommands=.*/DevCommands=$DEV/" \
       -e "s#^Dir=.*#Dir=../PerfData/2026-11-22_A2.3b/runs/$B/logs#" \
-      "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+      -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
   unset JH_DATA_DIR
   if [ "$B" = "err" ]; then
     cp -r "$REPO/Common/DataTable" "$RUN/data"

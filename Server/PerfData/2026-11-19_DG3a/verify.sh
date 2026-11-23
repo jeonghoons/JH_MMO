@@ -8,7 +8,7 @@ PY="python -I -X utf8"
 rm -rf "$RUN"; mkdir -p "$RUN"
 sed -e "s/^IdleTimeoutSec=.*/IdleTimeoutSec=10/" \
     -e "s#^Dir=.*#Dir=../PerfData/$SET/runs/verify/logs#" \
-    "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+    -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 taskkill //IM GameServer.exe //F > /dev/null 2>&1
 cd "$SRV"
 ../x64/Release/GameServer.exe --config "$(cygpath -w "$RUN/ServerConfig.ini")" > "$RUN/server_console.txt" 2>&1 &

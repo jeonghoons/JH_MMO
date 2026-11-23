@@ -10,7 +10,7 @@ if echo "$WHAT" | grep -qw raw; then
   RUN="$HERE/runs/regress_raw"
   rm -rf "$RUN"; mkdir -p "$RUN"
   sed -e "s/^DevCommands=.*/DevCommands=true/" -e "s/^PortalNoRange=.*/PortalNoRange=true/" -e "s/^Level=.*/Level=Debug/" \
-      -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/regress_raw/logs#" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+      -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/regress_raw/logs#" -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
   unset JH_DATA_DIR
   taskkill //IM GameServer.exe //F > /dev/null 2>&1
   cd "$SRV"

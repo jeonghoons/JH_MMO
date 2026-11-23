@@ -1,0 +1,4 @@
+1795458931 --bots 250 --ramp-rate 50 --duration 75 --threads 4 --move-interval 200 --body male --profile hunt --town-wander --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\hunt250_navon\loadtest.csv
+dummyRoom spread townPct 30 allowDummy true
+loadtest exit 0
+run_id 20261124_033528

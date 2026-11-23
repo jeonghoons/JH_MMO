@@ -3,7 +3,7 @@
 # 마지막 봇이 사라진 뒤 [metrics]의 sessions·players·sendQ가 0으로 돌아오는지 본다. 결과: runs/chaos/.
 HERE="$(cd "$(dirname "$0")" && pwd)"; SRV="$HERE/../../Server"; RUN="$HERE/runs/chaos"
 rm -rf "$RUN"; mkdir -p "$RUN"
-sed -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/chaos/logs#" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+sed -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/chaos/logs#" -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 taskkill //IM GameServer.exe //F > /dev/null 2>&1
 cd "$SRV"
 ../x64/Release/GameServer.exe --config "$(cygpath -w "$RUN/ServerConfig.ini")" > "$RUN/server_console.txt" 2>&1 &

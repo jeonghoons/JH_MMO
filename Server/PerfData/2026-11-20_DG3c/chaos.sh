@@ -8,7 +8,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"; SRV="$HERE/../../Server"; RUN="$HERE/runs
 ENTRANCE="19020,-18800,300"
 rm -rf "$RUN"; mkdir -p "$RUN"
 sed -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/chaos/logs#" -e "s/^DummyRoom=.*/DummyRoom=field/" -e "s/^DummySpawnZone=.*/DummySpawnZone=$ENTRANCE/" \
-    -e "s/^PortalNoRange=.*/PortalNoRange=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+    -e "s/^PortalNoRange=.*/PortalNoRange=true/" -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 taskkill //IM GameServer.exe //F > /dev/null 2>&1
 cd "$SRV"
 ../x64/Release/GameServer.exe --config "$(cygpath -w "$RUN/ServerConfig.ini")" > "$RUN/server_console.txt" 2>&1 &

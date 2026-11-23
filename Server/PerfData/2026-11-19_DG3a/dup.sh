@@ -2,7 +2,7 @@
 # DG3a: 중복 접속·빠른 재접속 회귀(dup_login.py). DbSaveDelayMs=1500으로 마지막 저장을 늦춘 서버에서 돌린다. 결과: runs/dup/
 HERE="$(cd "$(dirname "$0")" && pwd)"; SRV="$HERE/../../Server"; RUN="$HERE/runs/dup"
 rm -rf "$RUN"; mkdir -p "$RUN"
-sed -e "s/^DbSaveDelayMs=.*/DbSaveDelayMs=1500/" -e "s/^Level=.*/Level=Debug/" -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/dup/logs#" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+sed -e "s/^DbSaveDelayMs=.*/DbSaveDelayMs=1500/" -e "s/^Level=.*/Level=Debug/" -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/dup/logs#" -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 taskkill //IM GameServer.exe //F > /dev/null 2>&1
 cd "$SRV"
 ../x64/Release/GameServer.exe --config "$(cygpath -w "$RUN/ServerConfig.ini")" > "$RUN/server_console.txt" 2>&1 &

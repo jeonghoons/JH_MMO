@@ -1,0 +1,4 @@
+1795460442 --bots 1000 --ramp-rate 50 --duration 90 --threads 4 --move-interval 200 --body male --profile hunt --town-wander --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\ramp1000_hunt\loadtest.csv
+dummyRoom spread townPct 30 allowDummy true
+loadtest exit 0
+run_id 20261124_040039

@@ -1,0 +1,964 @@
+2026-11-24 03:53:06.094 INFO  [T27872] [Logger] 로그 파일: ../PerfData/2026-11-24_A5.1/runs/looks_100/logs\GameServer_20261124_035306.log
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Network.BindIp            = 127.0.0.1  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Network.Port              = 8888  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Network.WorkerThreads     = 0 -> 6  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Network.SendFlushIntervalMs = 10  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Network.TimerResolutionMs = 1  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Network.AttackEarlyToleranceMs = 100  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Network.LoginWaitTimeoutSec = 10  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Network.LoginCloseForceSec = 30  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Network.IdleTimeoutSec    = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Network.SendQueueLimit    = 4000  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Database.ConnectionString = Driver={ODBC Driver 17 for SQL Server};Server=.\SQLEXPRESS;Database=GameServer;Trusted_Connection=Yes;  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Database.Connections      = 4  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Database.PlayerSaveIntervalSec = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Database.AuctionDbMaxInFlight = 16  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Log.Level                 = Debug  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Log.Dir                   = ../PerfData/2026-11-24_A5.1/runs/looks_100/logs  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] World.MapName             = Continent01  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Debug.DummySpawnZone      = (끔: 맵 전체 무작위)  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Debug.ViewAudit           = false  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] World.MoveWaitTimeoutMs   = 5000  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] World.MaxDungeonInstances = 250  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] World.LoadTimeoutSec      = 60  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Debug.DummyRoom           = spread  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Debug.DummyTownPercent    = 30  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Debug.AllowDummyLogin     = true  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Debug.MoveHandoffDelayMs  = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Debug.DbSaveDelayMs       = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Debug.DevCommands         = false  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Debug.PortalNoRange       = false  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Config] Debug.DbItemFailEvery     = 0  (C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\looks_100\ServerConfig.ini)
+2026-11-24 03:53:06.094 INFO  [T27872] [Data] DataTable 경로: C:\Users\kjhkjh\KJH\JH_MMO\Common\DataTable
+2026-11-24 03:53:06.097 INFO  [T27872] [Data] 상점·NPC 로드 완료 (ShopTable 13행·상점 1곳, NpcTable 3행, 상점 이용 거리 400cm)
+2026-11-24 03:53:06.097 INFO  [T27872] [Data] 퀘스트 로드 완료 (QuestTable 3행)
+2026-11-24 03:53:06.097 INFO  [T27872] [Data] 로드 완료 (PlayerStatTable 30행, SkillTable 15행, MonsterTable 5행, ItemTable 45행, MovementTable 1행, WorldTable 2행, DropTable 92행, SpawnTable 8행, EconomyTable: 인벤토리 80칸·골드 상한 2000000000·드랍 소유 30초/소멸 60초)
+2026-11-24 03:53:06.100 INFO  [T27872] [Server] 127.0.0.1:8888 에서 접속 대기 시작
+2026-11-24 03:53:06.141 INFO  [T27872] [DB] DB 서버 Connected
+2026-11-24 03:53:06.143 INFO  [T27872] [DB] DB 스키마 버전 10
+2026-11-24 03:53:06.148 INFO  [T27872] [Navmesh] 로드 성공.
+2026-11-24 03:53:06.148 INFO  [T27872] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 3, PortalTrigger 8, SafeZone 1)
+2026-11-24 03:53:06.148 INFO  [T27872] [World] 레벨 Continent01: 마을·사냥터 구역으로 나눔(채널마다 Room 2개)
+2026-11-24 03:53:06.148 INFO  [T27872] [Navmesh] 로드 성공.
+2026-11-24 03:53:06.149 INFO  [T27872] [GameMap] 로직 데이터 로드 완료! (PlayerStart 1, MonsterSpawn 6, Npc 0, PortalTrigger 1, SafeZone 0)
+2026-11-24 03:53:06.149 INFO  [T27872] [World] 던전 레벨 Continent01_Dungeon: 포털 100 로 입장 (인스턴스 상한 250)
+2026-11-24 03:53:06.149 INFO  [T27872] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 3, PortalTrigger 8, SafeZone 1)
+2026-11-24 03:53:06.149 INFO  [T27872] [Room] Room 1(채널 1, Continent01 구역 'town'): 몬스터 스폰 없음
+2026-11-24 03:53:06.149 INFO  [T27872] [Room] 마을 NPC 배치: id 900000000 종류 1001 상점 1 위치 (-14150, -2200, 2)
+2026-11-24 03:53:06.149 INFO  [T27872] [Room] 마을 NPC 배치: id 900000001 종류 1002 상점 0 위치 (-15600, 3500, 2)
+2026-11-24 03:53:06.149 INFO  [T27872] [Room] 마을 NPC 배치: id 900000002 종류 1003 상점 0 위치 (-9300, 600, 2)
+2026-11-24 03:53:06.149 INFO  [T27872] [Room] 마을 NPC: 마커 3곳, 배치 3명
+2026-11-24 03:53:06.149 INFO  [T27872] [Room] Room 1 포털: 마커 8개 중 쓸 수 있는 것 3개, 시작 지점 4곳
+2026-11-24 03:53:06.150 INFO  [T27872] [GameMap] 로직 데이터 로드 완료! (PlayerStart 4, MonsterSpawn 49, Npc 3, PortalTrigger 8, SafeZone 1)
+2026-11-24 03:53:06.152 INFO  [T27872] [Room] Room 2(채널 1, Continent01 구역 'field') 몬스터 스폰: 지점 49곳, 몬스터 201마리 (forest_boss 1, forest_n 60, meadow_e 55, meadow_n 30, meadow_w 55)
+2026-11-24 03:53:06.152 INFO  [T27872] [Room] Room 2 포털: 마커 8개 중 쓸 수 있는 것 4개, 시작 지점 0곳
+2026-11-24 03:53:06.152 INFO  [T27872] [World] 채널 1 생성 (레벨 Continent01, 마을 Room 1, 사냥터 Room 2, 3.1ms)
+2026-11-24 03:53:06.152 INFO  [T27872] [Auction] 경매 목록 로드 완료 (판매 중 0건, 그중 기간이 지난 것 0건 — 첫 검사에서 만료 처리)
+2026-11-24 03:53:06.535 DEBUG [T11288] [Session] DisConnect[1] :Recv 0
+2026-11-24 03:53:06.535 DEBUG [T27728] [Session] ~Session[1]
+2026-11-24 03:53:09.891 DEBUG [T17756] [Lobby] 더미 5 외형: 체형 1 장비 1401,2401,3201,4401,5201,6302,0
+2026-11-24 03:53:09.891 DEBUG [T11288] [World] 세션 5 등록: 채널 1 (인원 1)
+2026-11-24 03:53:09.891 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.891 DEBUG [T17756] [Lobby] 더미 4 외형: 체형 2 장비 1401,0,3201,4101,5101,6102,0
+2026-11-24 03:53:09.891 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.891 DEBUG [T11288] [World] 세션 4 등록: 채널 1 (인원 2)
+2026-11-24 03:53:09.892 DEBUG [T14840] [Room] Client[5] Enter Room
+2026-11-24 03:53:09.892 DEBUG [T14840] [Room] Client[4] Enter Room
+2026-11-24 03:53:09.893 DEBUG [T14840] [Lobby] 더미 6 외형: 체형 2 장비 1201,2201,3201,0,5301,6302,0
+2026-11-24 03:53:09.893 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.893 DEBUG [T11288] [World] 세션 6 등록: 채널 1 (인원 3)
+2026-11-24 03:53:09.893 DEBUG [T14840] [Lobby] 더미 7 외형: 체형 2 장비 1101,0,3101,4301,0,6401,7301
+2026-11-24 03:53:09.893 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.893 DEBUG [T11288] [World] 세션 7 등록: 채널 1 (인원 4)
+2026-11-24 03:53:09.893 DEBUG [T14840] [Lobby] 더미 3 외형: 체형 2 장비 1101,2401,3301,4301,5101,6301,7301
+2026-11-24 03:53:09.893 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.893 DEBUG [T17756] [World] 세션 3 등록: 채널 1 (인원 5)
+2026-11-24 03:53:09.893 DEBUG [T11288] [Room] Client[6] Enter Room
+2026-11-24 03:53:09.893 DEBUG [T17756] [Room] Client[7] Enter Room
+2026-11-24 03:53:09.893 DEBUG [T11288] [Lobby] 더미 2 외형: 체형 1 장비 0,0,3101,0,5201,6202,0
+2026-11-24 03:53:09.893 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.893 DEBUG [T6372] [World] 세션 2 등록: 채널 1 (인원 6)
+2026-11-24 03:53:09.893 DEBUG [T17756] [Room] Client[3] Enter Room
+2026-11-24 03:53:09.893 DEBUG [T17756] [Room] Client[2] Enter Room
+2026-11-24 03:53:09.948 DEBUG [T11288] [Lobby] 더미 8 외형: 체형 2 장비 1101,2401,3401,4401,0,6103,0
+2026-11-24 03:53:09.948 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.948 DEBUG [T6372] [World] 세션 8 등록: 채널 1 (인원 7)
+2026-11-24 03:53:09.948 DEBUG [T11288] [Lobby] 더미 11 외형: 체형 2 장비 0,2301,3201,4101,5401,6302,0
+2026-11-24 03:53:09.948 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.948 DEBUG [T6372] [World] 세션 11 등록: 채널 1 (인원 8)
+2026-11-24 03:53:09.948 DEBUG [T11288] [Lobby] 더미 9 외형: 체형 2 장비 1201,2401,3201,4101,5401,6402,0
+2026-11-24 03:53:09.948 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.948 DEBUG [T14840] [World] 세션 9 등록: 채널 1 (인원 9)
+2026-11-24 03:53:09.948 DEBUG [T17756] [Room] Client[8] Enter Room
+2026-11-24 03:53:09.948 DEBUG [T14840] [Room] Client[11] Enter Room
+2026-11-24 03:53:09.948 DEBUG [T14840] [Room] Client[9] Enter Room
+2026-11-24 03:53:09.948 DEBUG [T17756] [Lobby] 더미 10 외형: 체형 1 장비 1301,2301,0,4301,5201,6402,0
+2026-11-24 03:53:09.948 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.948 DEBUG [T6372] [World] 세션 10 등록: 채널 1 (인원 10)
+2026-11-24 03:53:09.948 DEBUG [T6372] [Room] Client[10] Enter Room
+2026-11-24 03:53:09.948 DEBUG [T6372] [Lobby] 더미 12 외형: 체형 2 장비 1201,2401,3101,4401,5301,6401,7201
+2026-11-24 03:53:09.948 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:09.948 DEBUG [T17756] [World] 세션 12 등록: 채널 1 (인원 11)
+2026-11-24 03:53:09.948 DEBUG [T17756] [Room] Client[12] Enter Room
+2026-11-24 03:53:10.037 DEBUG [T6372] [Lobby] 더미 13 외형: 체형 1 장비 1401,2201,3101,4301,5101,6301,0
+2026-11-24 03:53:10.037 DEBUG [T11288] [World] 세션 13 등록: 채널 1 (인원 12)
+2026-11-24 03:53:10.037 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.037 DEBUG [T6372] [Lobby] 더미 16 외형: 체형 2 장비 1201,0,3401,4301,5401,6303,0
+2026-11-24 03:53:10.037 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.037 DEBUG [T11288] [World] 세션 16 등록: 채널 1 (인원 13)
+2026-11-24 03:53:10.038 DEBUG [T27728] [Room] Client[13] Enter Room
+2026-11-24 03:53:10.038 DEBUG [T11288] [Lobby] 더미 14 외형: 체형 1 장비 1201,2201,3401,4101,5101,6203,0
+2026-11-24 03:53:10.038 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.038 DEBUG [T17756] [World] 세션 14 등록: 채널 1 (인원 14)
+2026-11-24 03:53:10.038 DEBUG [T27728] [Room] Client[16] Enter Room
+2026-11-24 03:53:10.038 DEBUG [T11288] [Room] Client[14] Enter Room
+2026-11-24 03:53:10.038 DEBUG [T17756] [Lobby] 더미 15 외형: 체형 2 장비 1201,2401,3201,0,5201,6101,0
+2026-11-24 03:53:10.038 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.038 DEBUG [T27728] [World] 세션 15 등록: 채널 1 (인원 15)
+2026-11-24 03:53:10.038 DEBUG [T11288] [Room] Client[15] Enter Room
+2026-11-24 03:53:10.039 DEBUG [T6372] [Lobby] 더미 17 외형: 체형 2 장비 0,2201,3301,4301,0,6102,0
+2026-11-24 03:53:10.039 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.039 DEBUG [T11288] [World] 세션 17 등록: 채널 1 (인원 16)
+2026-11-24 03:53:10.039 DEBUG [T6372] [Lobby] 더미 18 외형: 체형 1 장비 1201,2301,3201,4401,5401,6402,0
+2026-11-24 03:53:10.039 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.039 DEBUG [T11288] [World] 세션 18 등록: 채널 1 (인원 17)
+2026-11-24 03:53:10.039 DEBUG [T17756] [Room] Client[17] Enter Room
+2026-11-24 03:53:10.039 DEBUG [T6372] [Room] Client[18] Enter Room
+2026-11-24 03:53:10.147 DEBUG [T27728] [Lobby] 더미 19 외형: 체형 2 장비 1201,0,0,4101,5101,6103,0
+2026-11-24 03:53:10.147 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.147 DEBUG [T11288] [World] 세션 19 등록: 채널 1 (인원 18)
+2026-11-24 03:53:10.147 DEBUG [T11288] [Lobby] 더미 20 외형: 체형 1 장비 1401,2301,3201,4301,5101,6203,0
+2026-11-24 03:53:10.147 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.147 DEBUG [T6372] [World] 세션 20 등록: 채널 1 (인원 19)
+2026-11-24 03:53:10.147 DEBUG [T27728] [Room] Client[19] Enter Room
+2026-11-24 03:53:10.147 DEBUG [T6372] [Room] Client[20] Enter Room
+2026-11-24 03:53:10.161 DEBUG [T14840] [Lobby] 더미 23 외형: 체형 1 장비 0,2401,0,4301,5401,6101,0
+2026-11-24 03:53:10.161 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.161 DEBUG [T11288] [World] 세션 23 등록: 채널 1 (인원 20)
+2026-11-24 03:53:10.161 DEBUG [T6372] [Lobby] 더미 21 외형: 체형 2 장비 1301,2401,3101,4301,5101,6402,0
+2026-11-24 03:53:10.161 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.161 DEBUG [T14840] [World] 세션 21 등록: 채널 1 (인원 21)
+2026-11-24 03:53:10.161 DEBUG [T11288] [Room] Client[23] Enter Room
+2026-11-24 03:53:10.161 DEBUG [T6372] [Lobby] 더미 22 외형: 체형 2 장비 1201,2201,3101,4201,5101,6101,7101
+2026-11-24 03:53:10.161 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.161 DEBUG [T27728] [Room] Client[21] Enter Room
+2026-11-24 03:53:10.161 DEBUG [T17756] [World] 세션 22 등록: 채널 1 (인원 22)
+2026-11-24 03:53:10.161 DEBUG [T27728] [Room] Client[22] Enter Room
+2026-11-24 03:53:10.252 DEBUG [T14840] [Lobby] 더미 24 외형: 체형 1 장비 1201,2101,3401,0,5101,6102,0
+2026-11-24 03:53:10.252 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.252 DEBUG [T17756] [World] 세션 24 등록: 채널 1 (인원 23)
+2026-11-24 03:53:10.252 DEBUG [T14840] [Lobby] 더미 26 외형: 체형 1 장비 1301,2301,3401,0,5201,6403,0
+2026-11-24 03:53:10.252 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.252 DEBUG [T17756] [World] 세션 26 등록: 채널 1 (인원 24)
+2026-11-24 03:53:10.252 DEBUG [T14840] [Lobby] 더미 28 외형: 체형 1 장비 0,2301,3401,4101,5101,6402,0
+2026-11-24 03:53:10.252 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.252 DEBUG [T27728] [World] 세션 28 등록: 채널 1 (인원 25)
+2026-11-24 03:53:10.252 DEBUG [T17756] [Room] Client[24] Enter Room
+2026-11-24 03:53:10.252 DEBUG [T14840] [Lobby] 더미 25 외형: 체형 2 장비 1201,2401,3401,0,5301,6302,0
+2026-11-24 03:53:10.252 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.252 DEBUG [T27728] [World] 세션 25 등록: 채널 1 (인원 26)
+2026-11-24 03:53:10.252 DEBUG [T6372] [Room] Client[26] Enter Room
+2026-11-24 03:53:10.252 DEBUG [T17756] [Room] Client[28] Enter Room
+2026-11-24 03:53:10.252 DEBUG [T14840] [Room] Client[25] Enter Room
+2026-11-24 03:53:10.266 DEBUG [T17756] [Lobby] 더미 27 외형: 체형 1 장비 1201,2201,3101,0,5301,6201,7201
+2026-11-24 03:53:10.266 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.266 DEBUG [T11288] [World] 세션 27 등록: 채널 1 (인원 27)
+2026-11-24 03:53:10.266 DEBUG [T11288] [Room] Client[27] Enter Room
+2026-11-24 03:53:10.357 DEBUG [T11288] [Lobby] 더미 29 외형: 체형 1 장비 1301,2301,3301,4201,5401,6301,0
+2026-11-24 03:53:10.357 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.357 DEBUG [T6372] [World] 세션 29 등록: 채널 1 (인원 28)
+2026-11-24 03:53:10.357 DEBUG [T6372] [Room] Client[29] Enter Room
+2026-11-24 03:53:10.373 DEBUG [T17756] [Lobby] 더미 30 외형: 체형 2 장비 1201,0,3201,4101,5201,6202,0
+2026-11-24 03:53:10.373 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.373 DEBUG [T11288] [World] 세션 30 등록: 채널 1 (인원 29)
+2026-11-24 03:53:10.373 DEBUG [T6372] [Lobby] 더미 33 외형: 체형 2 장비 1401,0,3301,4201,5101,6103,0
+2026-11-24 03:53:10.373 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.373 DEBUG [T11288] [Room] Client[30] Enter Room
+2026-11-24 03:53:10.373 DEBUG [T17756] [World] 세션 33 등록: 채널 1 (인원 30)
+2026-11-24 03:53:10.373 DEBUG [T27728] [Room] Client[33] Enter Room
+2026-11-24 03:53:10.373 DEBUG [T17756] [Lobby] 더미 34 외형: 체형 1 장비 1301,0,3101,4201,5401,6201,7401
+2026-11-24 03:53:10.373 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.373 DEBUG [T27728] [World] 세션 34 등록: 채널 1 (인원 31)
+2026-11-24 03:53:10.373 DEBUG [T17756] [Lobby] 더미 31 외형: 체형 1 장비 1301,0,3301,4301,5301,6202,0
+2026-11-24 03:53:10.373 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.373 DEBUG [T27728] [World] 세션 31 등록: 채널 1 (인원 32)
+2026-11-24 03:53:10.373 DEBUG [T17756] [Lobby] 더미 32 외형: 체형 2 장비 1201,2301,3101,0,5401,6303,0
+2026-11-24 03:53:10.373 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.373 DEBUG [T11288] [World] 세션 32 등록: 채널 1 (인원 33)
+2026-11-24 03:53:10.373 DEBUG [T6372] [Room] Client[34] Enter Room
+2026-11-24 03:53:10.373 DEBUG [T6372] [Room] Client[31] Enter Room
+2026-11-24 03:53:10.373 DEBUG [T6372] [Room] Client[32] Enter Room
+2026-11-24 03:53:10.463 DEBUG [T17756] [Lobby] 더미 36 외형: 체형 1 장비 0,2301,3401,0,5101,6302,0
+2026-11-24 03:53:10.463 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.463 DEBUG [T14840] [World] 세션 36 등록: 채널 1 (인원 34)
+2026-11-24 03:53:10.464 DEBUG [T17756] [Lobby] 더미 37 외형: 체형 2 장비 1401,2101,3201,4401,0,6203,0
+2026-11-24 03:53:10.464 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.464 DEBUG [T14840] [World] 세션 37 등록: 채널 1 (인원 35)
+2026-11-24 03:53:10.464 DEBUG [T14840] [Lobby] 더미 35 외형: 체형 2 장비 1201,0,3401,4301,5301,6303,0
+2026-11-24 03:53:10.464 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.464 DEBUG [T6372] [World] 세션 35 등록: 채널 1 (인원 36)
+2026-11-24 03:53:10.464 DEBUG [T17756] [Room] Client[36] Enter Room
+2026-11-24 03:53:10.464 DEBUG [T11288] [Room] Client[37] Enter Room
+2026-11-24 03:53:10.464 DEBUG [T11288] [Room] Client[35] Enter Room
+2026-11-24 03:53:10.464 DEBUG [T14840] [Lobby] 더미 38 외형: 체형 1 장비 0,2201,0,4101,0,6101,0
+2026-11-24 03:53:10.464 DEBUG [T17756] [World] 세션 38 등록: 채널 1 (인원 37)
+2026-11-24 03:53:10.464 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.464 DEBUG [T11288] [Room] Client[38] Enter Room
+2026-11-24 03:53:10.464 DEBUG [T11288] [Lobby] 더미 39 외형: 체형 1 장비 1401,2401,3201,4401,5401,6403,0
+2026-11-24 03:53:10.464 DEBUG [T6372] [World] 세션 39 등록: 채널 1 (인원 38)
+2026-11-24 03:53:10.464 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.464 DEBUG [T6372] [Room] Client[39] Enter Room
+2026-11-24 03:53:10.572 DEBUG [T11208] [Lobby] 더미 40 외형: 체형 2 장비 1201,2301,3201,4101,0,6402,0
+2026-11-24 03:53:10.572 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.572 DEBUG [T6372] [World] 세션 40 등록: 채널 1 (인원 39)
+2026-11-24 03:53:10.572 DEBUG [T11208] [Lobby] 더미 43 외형: 체형 2 장비 1201,2301,0,4201,5301,6103,0
+2026-11-24 03:53:10.572 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.572 DEBUG [T6372] [World] 세션 43 등록: 채널 1 (인원 40)
+2026-11-24 03:53:10.572 DEBUG [T27728] [Room] Client[40] Enter Room
+2026-11-24 03:53:10.572 DEBUG [T17756] [Room] Client[43] Enter Room
+2026-11-24 03:53:10.574 DEBUG [T11208] [Lobby] 더미 41 외형: 체형 1 장비 1201,2101,3401,4101,5301,6301,7201
+2026-11-24 03:53:10.574 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.574 DEBUG [T27728] [World] 세션 41 등록: 채널 1 (인원 41)
+2026-11-24 03:53:10.574 DEBUG [T11208] [Lobby] 더미 42 외형: 체형 2 장비 0,2401,3301,4301,5101,6401,0
+2026-11-24 03:53:10.574 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.574 DEBUG [T27728] [World] 세션 42 등록: 채널 1 (인원 42)
+2026-11-24 03:53:10.574 DEBUG [T6372] [Room] Client[41] Enter Room
+2026-11-24 03:53:10.574 DEBUG [T11208] [Lobby] 더미 44 외형: 체형 1 장비 1101,0,3201,4201,5201,6202,0
+2026-11-24 03:53:10.574 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.574 DEBUG [T27728] [World] 세션 44 등록: 채널 1 (인원 43)
+2026-11-24 03:53:10.574 DEBUG [T6372] [Room] Client[42] Enter Room
+2026-11-24 03:53:10.574 DEBUG [T27728] [Room] Client[44] Enter Room
+2026-11-24 03:53:10.678 DEBUG [T27728] [Lobby] 더미 47 외형: 체형 1 장비 1301,2201,3401,4201,5301,6203,0
+2026-11-24 03:53:10.678 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.678 DEBUG [T11288] [World] 세션 47 등록: 채널 1 (인원 44)
+2026-11-24 03:53:10.679 DEBUG [T27728] [Lobby] 더미 46 외형: 체형 2 장비 1401,2201,3301,0,5201,6401,0
+2026-11-24 03:53:10.679 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.679 DEBUG [T11288] [World] 세션 46 등록: 채널 1 (인원 45)
+2026-11-24 03:53:10.679 DEBUG [T27728] [Lobby] 더미 48 외형: 체형 1 장비 1301,2401,3201,4201,5201,6302,0
+2026-11-24 03:53:10.679 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.679 DEBUG [T6372] [World] 세션 48 등록: 채널 1 (인원 46)
+2026-11-24 03:53:10.679 DEBUG [T11288] [Room] Client[47] Enter Room
+2026-11-24 03:53:10.679 DEBUG [T27728] [Lobby] 더미 45 외형: 체형 2 장비 1301,0,3301,0,5301,6202,0
+2026-11-24 03:53:10.679 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.679 DEBUG [T11208] [Room] Client[46] Enter Room
+2026-11-24 03:53:10.679 DEBUG [T6372] [World] 세션 45 등록: 채널 1 (인원 47)
+2026-11-24 03:53:10.679 DEBUG [T11208] [Room] Client[48] Enter Room
+2026-11-24 03:53:10.679 DEBUG [T11288] [Room] Client[45] Enter Room
+2026-11-24 03:53:10.680 DEBUG [T11288] [Lobby] 더미 50 외형: 체형 1 장비 1101,2101,3301,4201,5301,6401,0
+2026-11-24 03:53:10.680 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.680 DEBUG [T27728] [World] 세션 50 등록: 채널 1 (인원 48)
+2026-11-24 03:53:10.680 DEBUG [T11288] [Lobby] 더미 49 외형: 체형 2 장비 1301,2401,3401,4101,5401,6102,0
+2026-11-24 03:53:10.680 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.680 DEBUG [T27728] [World] 세션 49 등록: 채널 1 (인원 49)
+2026-11-24 03:53:10.680 DEBUG [T11288] [Room] Client[50] Enter Room
+2026-11-24 03:53:10.680 DEBUG [T27728] [Room] Client[49] Enter Room
+2026-11-24 03:53:10.793 DEBUG [T14840] [Lobby] 더미 52 외형: 체형 1 장비 1401,2101,3101,4201,0,6402,0
+2026-11-24 03:53:10.793 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.793 DEBUG [T27728] [World] 세션 52 등록: 채널 1 (인원 50)
+2026-11-24 03:53:10.793 DEBUG [T14840] [Lobby] 더미 51 외형: 체형 1 장비 1201,0,3401,0,0,6402,0
+2026-11-24 03:53:10.793 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.793 DEBUG [T27728] [World] 세션 51 등록: 채널 1 (인원 51)
+2026-11-24 03:53:10.793 DEBUG [T27728] [Room] Client[52] Enter Room
+2026-11-24 03:53:10.793 DEBUG [T11208] [Room] Client[51] Enter Room
+2026-11-24 03:53:10.796 DEBUG [T27728] [Lobby] 더미 53 외형: 체형 2 장비 1301,2101,3301,4101,5401,6403,0
+2026-11-24 03:53:10.796 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.796 DEBUG [T11208] [World] 세션 53 등록: 채널 1 (인원 52)
+2026-11-24 03:53:10.796 DEBUG [T6372] [Room] Client[53] Enter Room
+2026-11-24 03:53:10.796 DEBUG [T27728] [Lobby] 더미 54 외형: 체형 2 장비 1401,2101,3301,4201,5301,6101,7301
+2026-11-24 03:53:10.796 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.796 DEBUG [T11208] [World] 세션 54 등록: 채널 1 (인원 53)
+2026-11-24 03:53:10.796 DEBUG [T27728] [Lobby] 더미 55 외형: 체형 2 장비 1201,2201,3401,4401,5401,6102,0
+2026-11-24 03:53:10.796 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.796 DEBUG [T11208] [World] 세션 55 등록: 채널 1 (인원 54)
+2026-11-24 03:53:10.797 DEBUG [T27728] [Room] Client[54] Enter Room
+2026-11-24 03:53:10.797 DEBUG [T6372] [Room] Client[55] Enter Room
+2026-11-24 03:53:10.890 DEBUG [T11208] [Lobby] 더미 56 외형: 체형 2 장비 1101,2101,3301,4401,5101,6303,0
+2026-11-24 03:53:10.890 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.890 DEBUG [T6372] [World] 세션 56 등록: 채널 1 (인원 55)
+2026-11-24 03:53:10.890 DEBUG [T11208] [Lobby] 더미 58 외형: 체형 1 장비 1201,2201,0,4101,5101,6301,7101
+2026-11-24 03:53:10.890 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.890 DEBUG [T6372] [World] 세션 58 등록: 채널 1 (인원 56)
+2026-11-24 03:53:10.890 DEBUG [T11208] [Lobby] 더미 57 외형: 체형 2 장비 1301,2201,3401,4301,5301,6301,7301
+2026-11-24 03:53:10.890 DEBUG [T6372] [Room] Client[56] Enter Room
+2026-11-24 03:53:10.890 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.890 DEBUG [T27728] [World] 세션 57 등록: 채널 1 (인원 57)
+2026-11-24 03:53:10.890 DEBUG [T11208] [Lobby] 더미 59 외형: 체형 2 장비 1101,2401,3201,4201,5101,6402,0
+2026-11-24 03:53:10.890 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.890 DEBUG [T14840] [World] 세션 59 등록: 채널 1 (인원 58)
+2026-11-24 03:53:10.890 DEBUG [T6372] [Room] Client[58] Enter Room
+2026-11-24 03:53:10.890 DEBUG [T14840] [Room] Client[57] Enter Room
+2026-11-24 03:53:10.890 DEBUG [T11208] [Room] Client[59] Enter Room
+2026-11-24 03:53:10.891 DEBUG [T6372] [Lobby] 더미 60 외형: 체형 2 장비 1301,2201,0,4401,5401,6101,7101
+2026-11-24 03:53:10.891 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:10.891 DEBUG [T11288] [World] 세션 60 등록: 채널 1 (인원 59)
+2026-11-24 03:53:10.891 DEBUG [T11288] [Room] Client[60] Enter Room
+2026-11-24 03:53:11.010 DEBUG [T11208] [Lobby] 더미 62 외형: 체형 2 장비 1301,2201,3301,0,5301,6101,0
+2026-11-24 03:53:11.010 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.010 DEBUG [T27728] [World] 세션 62 등록: 채널 1 (인원 60)
+2026-11-24 03:53:11.010 DEBUG [T11208] [Lobby] 더미 61 외형: 체형 2 장비 1401,2401,3301,4301,0,6402,0
+2026-11-24 03:53:11.010 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.010 DEBUG [T6372] [World] 세션 61 등록: 채널 1 (인원 61)
+2026-11-24 03:53:11.010 DEBUG [T11208] [Lobby] 더미 63 외형: 체형 1 장비 1301,0,3401,4201,5101,6201,7301
+2026-11-24 03:53:11.010 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.010 DEBUG [T27728] [World] 세션 63 등록: 채널 1 (인원 62)
+2026-11-24 03:53:11.010 DEBUG [T6372] [Room] Client[62] Enter Room
+2026-11-24 03:53:11.010 DEBUG [T11208] [Lobby] 더미 64 외형: 체형 2 장비 1401,2401,0,4301,5101,6302,0
+2026-11-24 03:53:11.010 DEBUG [T11208] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.010 DEBUG [T17756] [World] 세션 64 등록: 채널 1 (인원 63)
+2026-11-24 03:53:11.010 DEBUG [T27728] [Room] Client[61] Enter Room
+2026-11-24 03:53:11.011 DEBUG [T27728] [Room] Client[63] Enter Room
+2026-11-24 03:53:11.011 DEBUG [T27728] [Room] Client[64] Enter Room
+2026-11-24 03:53:11.011 DEBUG [T11288] [Lobby] 더미 65 외형: 체형 2 장비 1101,0,3201,4201,5101,6403,0
+2026-11-24 03:53:11.011 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.011 DEBUG [T27728] [World] 세션 65 등록: 채널 1 (인원 64)
+2026-11-24 03:53:11.011 DEBUG [T27728] [Room] Client[65] Enter Room
+2026-11-24 03:53:11.101 DEBUG [T27728] [Lobby] 더미 66 외형: 체형 2 장비 1401,2301,3101,4201,5401,6403,0
+2026-11-24 03:53:11.101 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.101 DEBUG [T11208] [World] 세션 66 등록: 채널 1 (인원 65)
+2026-11-24 03:53:11.101 DEBUG [T27728] [Lobby] 더미 68 외형: 체형 2 장비 1301,2401,3201,4401,5201,6101,7201
+2026-11-24 03:53:11.101 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.101 DEBUG [T11208] [World] 세션 68 등록: 채널 1 (인원 66)
+2026-11-24 03:53:11.101 DEBUG [T27728] [Lobby] 더미 67 외형: 체형 2 장비 1401,0,3301,4301,5201,6101,7301
+2026-11-24 03:53:11.101 DEBUG [T11208] [Room] Client[66] Enter Room
+2026-11-24 03:53:11.101 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.101 DEBUG [T17756] [World] 세션 67 등록: 채널 1 (인원 67)
+2026-11-24 03:53:11.101 DEBUG [T27728] [Lobby] 더미 69 외형: 체형 1 장비 0,2301,0,4101,5301,6202,0
+2026-11-24 03:53:11.101 DEBUG [T11208] [Room] Client[68] Enter Room
+2026-11-24 03:53:11.101 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.101 DEBUG [T17756] [World] 세션 69 등록: 채널 1 (인원 68)
+2026-11-24 03:53:11.102 DEBUG [T11208] [Room] Client[69] Enter Room
+2026-11-24 03:53:11.102 DEBUG [T6372] [Room] Client[67] Enter Room
+2026-11-24 03:53:11.102 DEBUG [T11288] [Lobby] 더미 71 외형: 체형 1 장비 0,2201,3301,4201,0,6201,7301
+2026-11-24 03:53:11.102 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.102 DEBUG [T6372] [World] 세션 71 등록: 채널 1 (인원 69)
+2026-11-24 03:53:11.102 DEBUG [T11288] [Lobby] 더미 70 외형: 체형 2 장비 1401,2201,3101,4201,5401,6202,0
+2026-11-24 03:53:11.102 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.102 DEBUG [T6372] [World] 세션 70 등록: 채널 1 (인원 70)
+2026-11-24 03:53:11.103 DEBUG [T27728] [Room] Client[71] Enter Room
+2026-11-24 03:53:11.103 DEBUG [T6372] [Room] Client[70] Enter Room
+2026-11-24 03:53:11.153 INFO  [T9500] [metrics] sessions=70 rooms=2 players=70 monsters=201 in/s=81 out/s=352 sendCalls/s=146 bufsPerSend=2.41 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=223/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.8/1.0/2.0/2.0/2.0 tickBody(avg/p50/p95/p99/max ms)=0.04/0.01/0.07/0.97/1.29 viewPlayers(avg/p99/max)=2.3/9/9 viewObjects(avg/p99/max)=9.4/22/22 sendQ(total/sessionMax)=0/34 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=177/1 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=146/0/0/3 flushGap(p50/p90/p99 ms)=30/127/127 sendWake(per s, late avg/p50/p99/max ms)=15 0.8/0.8/1.9/1.9 jobs(exec/repost per s)=144/0 jobWait(p50/p90/p99 ms)=0/0/0 jobRunMax=1.3ms flushRunMax=0.6ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=4/9 flushRuns/s=72 conn(sessionObjs/handles idleKick/sendqKick)=71/389 0/0 world(channels/roster/chMax)=1/70/70 kind(town/field players)=21/49 tickLateP99(town/field ms)=2.0/2.0 tickBodyP99(town/field ms)=0.01/1.29 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=0/0/0/0 0/0 0 mailNotice=0
+2026-11-24 03:53:11.210 DEBUG [T17756] [Lobby] 더미 72 외형: 체형 2 장비 1101,2101,0,4201,5201,6102,0
+2026-11-24 03:53:11.210 DEBUG [T27728] [World] 세션 72 등록: 채널 1 (인원 71)
+2026-11-24 03:53:11.210 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.210 INFO  [T27728] [Room] Room 2(field) 더미 분산 배치 50명: 지점 49곳, 지점별 1~2명
+2026-11-24 03:53:11.210 DEBUG [T27728] [Room] Client[72] Enter Room
+2026-11-24 03:53:11.212 DEBUG [T27728] [Lobby] 더미 73 외형: 체형 1 장비 1101,2401,3401,4401,0,6403,0
+2026-11-24 03:53:11.212 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.212 DEBUG [T17756] [World] 세션 73 등록: 채널 1 (인원 72)
+2026-11-24 03:53:11.213 DEBUG [T6372] [Room] Client[73] Enter Room
+2026-11-24 03:53:11.215 DEBUG [T14840] [Lobby] 더미 74 외형: 체형 1 장비 1101,2101,3401,4101,5301,6401,7301
+2026-11-24 03:53:11.215 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.215 DEBUG [T6372] [World] 세션 74 등록: 채널 1 (인원 73)
+2026-11-24 03:53:11.216 DEBUG [T6372] [Room] Client[74] Enter Room
+2026-11-24 03:53:11.216 DEBUG [T14840] [Lobby] 더미 75 외형: 체형 1 장비 1101,2301,3301,4401,5401,6402,0
+2026-11-24 03:53:11.216 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.216 DEBUG [T6372] [World] 세션 75 등록: 채널 1 (인원 74)
+2026-11-24 03:53:11.216 DEBUG [T6372] [Lobby] 더미 76 외형: 체형 2 장비 1301,2201,3101,0,5401,6103,0
+2026-11-24 03:53:11.216 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.216 DEBUG [T11208] [World] 세션 76 등록: 채널 1 (인원 75)
+2026-11-24 03:53:11.216 DEBUG [T14840] [Room] Client[75] Enter Room
+2026-11-24 03:53:11.216 DEBUG [T11208] [Room] Client[76] Enter Room
+2026-11-24 03:53:11.318 DEBUG [T11288] [Lobby] 더미 77 외형: 체형 1 장비 1301,2401,3301,4101,5401,6302,0
+2026-11-24 03:53:11.318 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.318 DEBUG [T14840] [World] 세션 77 등록: 채널 1 (인원 76)
+2026-11-24 03:53:11.318 DEBUG [T11288] [Lobby] 더미 78 외형: 체형 1 장비 1101,2401,3101,4201,5301,6101,0
+2026-11-24 03:53:11.318 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.318 DEBUG [T17756] [World] 세션 78 등록: 채널 1 (인원 77)
+2026-11-24 03:53:11.318 DEBUG [T17756] [Room] Client[77] Enter Room
+2026-11-24 03:53:11.318 DEBUG [T6372] [Room] Client[78] Enter Room
+2026-11-24 03:53:11.318 DEBUG [T11288] [Lobby] 더미 79 외형: 체형 2 장비 1201,2101,3201,4401,5301,6303,0
+2026-11-24 03:53:11.318 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.318 DEBUG [T27728] [World] 세션 79 등록: 채널 1 (인원 78)
+2026-11-24 03:53:11.319 DEBUG [T27728] [Lobby] 더미 80 외형: 체형 2 장비 1201,2101,3101,4201,5301,6102,0
+2026-11-24 03:53:11.319 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.319 DEBUG [T17756] [World] 세션 80 등록: 채널 1 (인원 79)
+2026-11-24 03:53:11.319 DEBUG [T14840] [Room] Client[79] Enter Room
+2026-11-24 03:53:11.319 DEBUG [T11288] [Room] Client[80] Enter Room
+2026-11-24 03:53:11.322 DEBUG [T17756] [Lobby] 더미 81 외형: 체형 2 장비 1201,0,0,0,5401,6202,0
+2026-11-24 03:53:11.322 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.322 DEBUG [T11288] [World] 세션 81 등록: 채널 1 (인원 80)
+2026-11-24 03:53:11.322 DEBUG [T11288] [Lobby] 더미 82 외형: 체형 2 장비 1301,2101,3301,4201,5301,6402,0
+2026-11-24 03:53:11.322 DEBUG [T11288] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.322 DEBUG [T17756] [World] 세션 82 등록: 채널 1 (인원 81)
+2026-11-24 03:53:11.322 DEBUG [T6372] [Room] Client[81] Enter Room
+2026-11-24 03:53:11.322 DEBUG [T17756] [Room] Client[82] Enter Room
+2026-11-24 03:53:11.426 DEBUG [T6372] [Lobby] 더미 84 외형: 체형 1 장비 1401,2201,3201,4201,5401,6302,0
+2026-11-24 03:53:11.426 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.426 DEBUG [T17756] [World] 세션 84 등록: 채널 1 (인원 82)
+2026-11-24 03:53:11.426 DEBUG [T6372] [Lobby] 더미 83 외형: 체형 2 장비 1301,2201,3101,4401,0,6401,0
+2026-11-24 03:53:11.426 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.426 DEBUG [T6372] [Lobby] 더미 86 외형: 체형 1 장비 1201,2401,3301,4101,5301,6403,0
+2026-11-24 03:53:11.426 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.426 DEBUG [T17756] [World] 세션 83 등록: 채널 1 (인원 83)
+2026-11-24 03:53:11.426 DEBUG [T17756] [World] 세션 86 등록: 채널 1 (인원 84)
+2026-11-24 03:53:11.427 DEBUG [T6372] [Lobby] 더미 85 외형: 체형 1 장비 1301,2201,3101,4201,5101,6302,0
+2026-11-24 03:53:11.427 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.427 DEBUG [T11208] [World] 세션 85 등록: 채널 1 (인원 85)
+2026-11-24 03:53:11.427 DEBUG [T17756] [Room] Client[84] Enter Room
+2026-11-24 03:53:11.427 DEBUG [T27728] [Room] Client[86] Enter Room
+2026-11-24 03:53:11.427 DEBUG [T17756] [Room] Client[83] Enter Room
+2026-11-24 03:53:11.427 DEBUG [T17756] [Room] Client[85] Enter Room
+2026-11-24 03:53:11.427 DEBUG [T17756] [Lobby] 더미 87 외형: 체형 1 장비 0,2201,3201,4201,5101,6203,0
+2026-11-24 03:53:11.427 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.427 DEBUG [T27728] [World] 세션 87 등록: 채널 1 (인원 86)
+2026-11-24 03:53:11.427 DEBUG [T27728] [Room] Client[87] Enter Room
+2026-11-24 03:53:11.531 DEBUG [T27728] [Lobby] 더미 88 외형: 체형 2 장비 1301,2201,3401,4301,5101,6201,7401
+2026-11-24 03:53:11.531 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.531 DEBUG [T11208] [World] 세션 88 등록: 채널 1 (인원 87)
+2026-11-24 03:53:11.531 DEBUG [T27728] [Lobby] 더미 89 외형: 체형 2 장비 1201,2101,3301,4201,5301,6402,0
+2026-11-24 03:53:11.531 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.531 DEBUG [T11208] [World] 세션 89 등록: 채널 1 (인원 88)
+2026-11-24 03:53:11.531 DEBUG [T27728] [Lobby] 더미 91 외형: 체형 1 장비 0,2201,3101,4401,5201,6201,7101
+2026-11-24 03:53:11.531 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.531 DEBUG [T11208] [World] 세션 91 등록: 채널 1 (인원 89)
+2026-11-24 03:53:11.531 DEBUG [T6372] [Room] Client[88] Enter Room
+2026-11-24 03:53:11.531 DEBUG [T27728] [Lobby] 더미 90 외형: 체형 2 장비 1301,2401,3301,4301,5101,6403,0
+2026-11-24 03:53:11.531 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.531 DEBUG [T14840] [World] 세션 90 등록: 채널 1 (인원 90)
+2026-11-24 03:53:11.531 DEBUG [T11288] [Room] Client[89] Enter Room
+2026-11-24 03:53:11.531 DEBUG [T6372] [Room] Client[90] Enter Room
+2026-11-24 03:53:11.531 DEBUG [T11288] [Room] Client[91] Enter Room
+2026-11-24 03:53:11.531 DEBUG [T17756] [Lobby] 더미 92 외형: 체형 2 장비 1401,2401,3301,4201,5101,6302,0
+2026-11-24 03:53:11.531 DEBUG [T17756] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.531 DEBUG [T11288] [World] 세션 92 등록: 채널 1 (인원 91)
+2026-11-24 03:53:11.531 DEBUG [T11288] [Room] Client[92] Enter Room
+2026-11-24 03:53:11.637 DEBUG [T27728] [Lobby] 더미 93 외형: 체형 1 장비 0,0,3401,4201,5101,6301,0
+2026-11-24 03:53:11.637 DEBUG [T27728] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.637 DEBUG [T14840] [World] 세션 93 등록: 채널 1 (인원 92)
+2026-11-24 03:53:11.637 DEBUG [T14840] [Lobby] 더미 95 외형: 체형 2 장비 1101,2201,3301,4401,5101,6301,0
+2026-11-24 03:53:11.637 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.637 DEBUG [T27728] [World] 세션 95 등록: 채널 1 (인원 93)
+2026-11-24 03:53:11.637 DEBUG [T14840] [Lobby] 더미 94 외형: 체형 2 장비 1201,2401,3201,4201,5301,6201,7301
+2026-11-24 03:53:11.637 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.637 DEBUG [T6372] [World] 세션 94 등록: 채널 1 (인원 94)
+2026-11-24 03:53:11.637 DEBUG [T17756] [Room] Client[93] Enter Room
+2026-11-24 03:53:11.637 DEBUG [T14840] [Lobby] 더미 96 외형: 체형 1 장비 1101,2401,0,4201,5401,6202,0
+2026-11-24 03:53:11.637 DEBUG [T14840] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.637 DEBUG [T27728] [World] 세션 96 등록: 채널 1 (인원 95)
+2026-11-24 03:53:11.637 DEBUG [T11208] [Room] Client[95] Enter Room
+2026-11-24 03:53:11.637 DEBUG [T17756] [Room] Client[94] Enter Room
+2026-11-24 03:53:11.637 DEBUG [T17756] [Room] Client[96] Enter Room
+2026-11-24 03:53:11.638 DEBUG [T6372] [Lobby] 더미 97 외형: 체형 1 장비 1401,2201,3301,4401,5101,6402,0
+2026-11-24 03:53:11.638 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.638 DEBUG [T17756] [World] 세션 97 등록: 채널 1 (인원 96)
+2026-11-24 03:53:11.638 DEBUG [T11288] [Room] Client[97] Enter Room
+2026-11-24 03:53:11.638 DEBUG [T6372] [Lobby] 더미 98 외형: 체형 1 장비 1101,2101,3101,4401,0,6402,0
+2026-11-24 03:53:11.638 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.638 DEBUG [T17756] [World] 세션 98 등록: 채널 1 (인원 97)
+2026-11-24 03:53:11.638 DEBUG [T17756] [Room] Client[98] Enter Room
+2026-11-24 03:53:11.744 DEBUG [T6372] [Lobby] 더미 101 외형: 체형 1 장비 1401,2301,0,4101,5201,6203,0
+2026-11-24 03:53:11.744 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.744 DEBUG [T11288] [World] 세션 101 등록: 채널 1 (인원 98)
+2026-11-24 03:53:11.744 DEBUG [T11288] [Room] Client[101] Enter Room
+2026-11-24 03:53:11.744 DEBUG [T6372] [Lobby] 더미 100 외형: 체형 1 장비 1301,2101,3401,0,5301,6102,0
+2026-11-24 03:53:11.744 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.744 DEBUG [T14840] [World] 세션 100 등록: 채널 1 (인원 99)
+2026-11-24 03:53:11.744 DEBUG [T6372] [Lobby] 더미 99 외형: 체형 1 장비 1401,2301,3101,0,5101,6101,0
+2026-11-24 03:53:11.744 DEBUG [T6372] [Lobby] [dummy] - 로그인 성공 및 객체 생성 완료
+2026-11-24 03:53:11.744 DEBUG [T27728] [World] 세션 99 등록: 채널 1 (인원 100)
+2026-11-24 03:53:11.744 DEBUG [T6372] [Room] Client[100] Enter Room
+2026-11-24 03:53:11.744 DEBUG [T27728] [Room] Client[99] Enter Room
+2026-11-24 03:53:16.155 INFO  [T9500] [metrics] sessions=100 rooms=2 players=100 monsters=201 in/s=597 out/s=3800 sendCalls/s=1854 bufsPerSend=2.05 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=2662/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=1.0/1.0/2.0/4.0/5.0 tickBody(avg/p50/p95/p99/max ms)=0.63/0.12/1.93/2.48/3.96 viewPlayers(avg/p99/max)=5.2/17/18 viewObjects(avg/p99/max)=12.4/25/26 sendQ(total/sessionMax)=0/20 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=197/1 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1896/0/0/820 flushGap(p50/p90/p99 ms)=32/100/127 sendWake(per s, late avg/p50/p99/max ms)=54 0.8/0.7/2.0/2.5 jobs(exec/repost per s)=684/16 jobWait(p50/p90/p99 ms)=0/1/3 jobRunMax=4.0ms flushRunMax=1.8ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=27/56 flushRuns/s=384 conn(sessionObjs/handles idleKick/sendqKick)=101/419 0/0 world(channels/roster/chMax)=1/100/100 kind(town/field players)=30/70 tickLateP99(town/field ms)=4.0/5.0 tickBodyP99(town/field ms)=0.12/3.96 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=0/0/0/0 0/0 0 mailNotice=0
+2026-11-24 03:53:21.156 INFO  [T9500] [metrics] sessions=100 rooms=2 players=100 monsters=201 in/s=590 out/s=4270 sendCalls/s=1705 bufsPerSend=2.50 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=5111/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=1.1/1.0/2.0/4.0/4.0 tickBody(avg/p50/p95/p99/max ms)=0.41/0.01/1.11/1.30/1.30 viewPlayers(avg/p99/max)=6.2/21/24 viewObjects(avg/p99/max)=13.6/25/28 sendQ(total/sessionMax)=0/13 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=205/1 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1742/0/0/926 flushGap(p50/p90/p99 ms)=68/100/127 sendWake(per s, late avg/p50/p99/max ms)=35 0.7/0.7/2.1/2.5 jobs(exec/repost per s)=645/10 jobWait(p50/p90/p99 ms)=0/0/2 jobRunMax=1.3ms flushRunMax=1.0ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=16/25 flushRuns/s=316 conn(sessionObjs/handles idleKick/sendqKick)=101/419 0/0 world(channels/roster/chMax)=1/100/100 kind(town/field players)=30/70 tickLateP99(town/field ms)=4.0/4.0 tickBodyP99(town/field ms)=0.01/1.30 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=0/0/0/0 0/0 0 mailNotice=0
+2026-11-24 03:53:26.156 INFO  [T9500] [metrics] sessions=100 rooms=2 players=100 monsters=201 in/s=599 out/s=4959 sendCalls/s=1705 bufsPerSend=2.91 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=7609/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/2.0/4.0 tickBody(avg/p50/p95/p99/max ms)=0.50/0.01/1.62/2.02/2.60 viewPlayers(avg/p99/max)=7.3/27/28 viewObjects(avg/p99/max)=14.6/27/28 sendQ(total/sessionMax)=0/14 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=213/2 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1768/0/0/1008 flushGap(p50/p90/p99 ms)=64/100/127 sendWake(per s, late avg/p50/p99/max ms)=37 0.8/0.8/2.0/2.4 jobs(exec/repost per s)=657/12 jobWait(p50/p90/p99 ms)=0/1/3 jobRunMax=2.6ms flushRunMax=0.7ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=20/30 flushRuns/s=286 conn(sessionObjs/handles idleKick/sendqKick)=101/419 0/0 world(channels/roster/chMax)=1/100/100 kind(town/field players)=30/70 tickLateP99(town/field ms)=2.0/4.0 tickBodyP99(town/field ms)=0.01/2.60 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=0/0/0/0 0/0 0 mailNotice=0
+2026-11-24 03:53:29.775 DEBUG [T27728] [Session] DisConnect[3] :Recv 0
+2026-11-24 03:53:29.775 DEBUG [T6372] [Session] DisConnect[5] :Recv 0
+2026-11-24 03:53:29.775 DEBUG [T17756] [Session] DisConnect[2] :Recv 0
+2026-11-24 03:53:29.775 DEBUG [T27728] [Session] DisConnect[8] :Recv 0
+2026-11-24 03:53:29.775 DEBUG [T11288] [Session] DisConnect[4] :Recv 0
+2026-11-24 03:53:29.775 DEBUG [T27728] [Session] DisConnect[7] :Recv 0
+2026-11-24 03:53:29.775 DEBUG [T17756] [Session] ~Session[2]
+2026-11-24 03:53:29.775 DEBUG [T17756] [Session] DisConnect[11] :Recv 0
+2026-11-24 03:53:29.775 DEBUG [T6372] [Session] ~Session[5]
+2026-11-24 03:53:29.775 DEBUG [T6372] [Session] DisConnect[9] :Recv 0
+2026-11-24 03:53:29.775 DEBUG [T27728] [Session] DisConnect[6] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] ~Session[4]
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[12] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[17] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[13] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] ~Session[9]
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[10] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] ~Session[12]
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[18] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[15] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[14] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[21] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[23] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[19] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] ~Session[15]
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] ~Session[17]
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[25] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] ~Session[19]
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] ~Session[21]
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[28] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[27] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[16] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[31] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[8] Leave
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[20] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] ~Session[28]
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[30] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[33] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[22] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[7] Leave
+2026-11-24 03:53:29.776 DEBUG [T14840] [Session] DisConnect[38] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Session] DisConnect[24] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[10] Leave
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] ~Session[30]
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[26] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[18] Leave
+2026-11-24 03:53:29.776 DEBUG [T14840] [Session] DisConnect[36] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] ~Session[22]
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[14] Leave
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[32] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[23] Leave
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] ~Session[32]
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[27] Leave
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[42] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[41] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Session] DisConnect[43] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[34] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[46] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[33] Leave
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[29] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[38] Leave
+2026-11-24 03:53:29.776 DEBUG [T6372] [World] 세션 8 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T6372] [World] 세션 7 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T6372] [World] 세션 10 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T6372] [World] 세션 18 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T6372] [World] 세션 14 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] ~Session[46]
+2026-11-24 03:53:29.776 DEBUG [T6372] [World] 세션 23 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T6372] [World] 세션 27 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T6372] [World] 세션 33 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[37] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[47] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] ~Session[29]
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[50] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[3] Leave
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[55] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[44] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[5] Leave
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[26] Leave
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[5]
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[35] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[2] Leave
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[53] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[2]
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[4] Leave
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[4]
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[11] Leave
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[58] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[9] Leave
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[57] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[45] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[9]
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[63] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] ~Session[44]
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] ~Session[58]
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[60] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[49] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[39] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] ~Session[63]
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[54] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[65] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[6] Leave
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[40] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[17] Leave
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] ~Session[49]
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[68] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[17]
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[36] Leave
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[12] Leave
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] ~Session[54]
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[12]
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] ~Session[68]
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[62] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[56] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[43] Leave
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[76] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[47] Leave
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[55] Leave
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[57] Leave
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] ~Session[56]
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[45] Leave
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[48] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[65] Leave
+2026-11-24 03:53:29.776 DEBUG [T11208] [Room] Player[62] Leave
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 3 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 38 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[66] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 5 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[13] Leave
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] ~Session[48]
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 2 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[15] Leave
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[61] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 4 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 11 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 9 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[81] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[15]
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 6 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[51] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 26 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[21] Leave
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 17 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[74] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 12 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[69] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 36 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 43 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 47 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 55 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[21]
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 57 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 45 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 65 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[19] Leave
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 62 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 13 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 15 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] ~Session[51]
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[19]
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 21 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T11208] [World] 세션 19 정리: 채널 1
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] ~Session[66]
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[25] Leave
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[52] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11208] [Session] DisConnect[75] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[82] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[28] Leave
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[28]
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[16] Leave
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] ~Session[69]
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[71] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[78] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[31] Leave
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[20] Leave
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[30] Leave
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] ~Session[82]
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[30]
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[22] Leave
+2026-11-24 03:53:29.776 DEBUG [T17756] [Session] DisConnect[86] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Object] ~Player[22]
+2026-11-24 03:53:29.776 DEBUG [T11208] [Session] DisConnect[72] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] ~Session[71]
+2026-11-24 03:53:29.776 DEBUG [T11288] [Session] DisConnect[85] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T6372] [Session] DisConnect[89] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T27728] [Session] DisConnect[59] :Recv 0
+2026-11-24 03:53:29.776 DEBUG [T14840] [Room] Player[24] Leave
+2026-11-24 03:53:29.776 DEBUG [T11208] [Session] DisConnect[95] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T17756] [Session] DisConnect[79] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T6372] [Session] ~Session[89]
+2026-11-24 03:53:29.777 DEBUG [T11208] [Session] DisConnect[88] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[32] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [Session] DisConnect[80] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[32]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[42] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [Session] DisConnect[92] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[41] Leave
+2026-11-24 03:53:29.777 DEBUG [T27728] [Session] DisConnect[64] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T11288] [Session] DisConnect[98] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[34] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [Session] DisConnect[93] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[46] Leave
+2026-11-24 03:53:29.777 DEBUG [T17756] [Session] DisConnect[83] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T11208] [Session] DisConnect[101] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[46]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[29] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [Session] DisConnect[67] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[29]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[37] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [Session] DisConnect[100] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T27728] [Session] DisConnect[90] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[50] Leave
+2026-11-24 03:53:29.777 DEBUG [T27728] [Session] DisConnect[70] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T11288] [Session] DisConnect[96] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[81] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[44] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [Session] DisConnect[73] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[52] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[44]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[35] Leave
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[75] Leave
+2026-11-24 03:53:29.777 DEBUG [T6372] [Session] DisConnect[97] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[53] Leave
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[78] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[58] Leave
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[86] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 25 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 28 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 16 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[58]
+2026-11-24 03:53:29.777 DEBUG [T27728] [Session] DisConnect[77] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[95] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 31 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[88] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [Session] DisConnect[84] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[63] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 20 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[98] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 30 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 22 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 24 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[67] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 32 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[63]
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 42 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 41 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 34 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[60] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 46 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[90] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 29 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 37 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 50 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 81 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[70] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 44 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 52 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 35 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[49] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 75 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 53 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 78 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 58 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T6372] [Session] DisConnect[87] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 86 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 95 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[49]
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 88 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 98 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 63 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 67 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[39] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 90 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T27728] [Session] DisConnect[91] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 70 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 60 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T17756] [Session] ~Session[93]
+2026-11-24 03:53:29.777 DEBUG [T11288] [World] 세션 49 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [Session] DisConnect[94] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T11288] [Session] DisConnect[99] :Recv 0
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[54] Leave
+2026-11-24 03:53:29.777 DEBUG [T17756] [Room] Player[99] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[54]
+2026-11-24 03:53:29.777 DEBUG [T6372] [World] 세션 39 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[40] Leave
+2026-11-24 03:53:29.777 DEBUG [T6372] [World] 세션 99 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T6372] [World] 세션 54 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[68] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[68]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[56] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[56]
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 40 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 68 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[76] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 56 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[48] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[48]
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 76 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 48 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[66] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[66]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[61] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[51] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 66 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 61 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[51]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[74] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 51 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[69] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 74 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[69]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[82] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[82]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[71] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[71]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[72] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[85] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[89] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[89]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[59] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 69 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[79] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 82 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 71 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 72 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 85 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 89 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[80] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 59 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 79 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[92] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 80 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[64] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 92 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[93] Leave
+2026-11-24 03:53:29.777 DEBUG [T14840] [Object] ~Player[93]
+2026-11-24 03:53:29.777 DEBUG [T14840] [Room] Player[83] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 64 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 93 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 83 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [Room] Player[101] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [Room] Player[100] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 101 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [Room] Player[96] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [Room] Player[73] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 100 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 96 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [Room] Player[97] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 73 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [Room] Player[77] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [Room] Player[84] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 97 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 77 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11288] [Room] Player[87] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [Room] Player[91] Leave
+2026-11-24 03:53:29.777 DEBUG [T11288] [Room] Player[94] Leave
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 84 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 87 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 91 정리: 채널 1
+2026-11-24 03:53:29.777 DEBUG [T11208] [World] 세션 94 정리: 채널 1
+2026-11-24 03:53:29.785 DEBUG [T11208] [Object] ~Player[16]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Session] ~Session[16]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Object] ~Player[6]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Session] ~Session[6]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Object] ~Player[40]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Session] ~Session[40]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Object] ~Player[74]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Session] ~Session[74]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Object] ~Player[79]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Session] ~Session[79]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Object] ~Player[101]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Session] ~Session[101]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Object] ~Player[100]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Session] ~Session[100]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Object] ~Player[96]
+2026-11-24 03:53:29.785 DEBUG [T11208] [Session] ~Session[96]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Object] ~Player[24]
+2026-11-24 03:53:29.785 DEBUG [T14840] [Object] ~Player[37]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Session] ~Session[24]
+2026-11-24 03:53:29.785 DEBUG [T14840] [Session] ~Session[37]
+2026-11-24 03:53:29.785 DEBUG [T14840] [Object] ~Player[39]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Object] ~Player[92]
+2026-11-24 03:53:29.785 DEBUG [T14840] [Session] ~Session[39]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Session] ~Session[92]
+2026-11-24 03:53:29.785 DEBUG [T14840] [Object] ~Player[72]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Object] ~Player[41]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Session] ~Session[41]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Object] ~Player[60]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Session] ~Session[60]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Object] ~Player[64]
+2026-11-24 03:53:29.785 DEBUG [T14840] [Session] ~Session[72]
+2026-11-24 03:53:29.785 DEBUG [T14840] [Object] ~Player[13]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Session] ~Session[64]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Object] ~Player[50]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Session] ~Session[50]
+2026-11-24 03:53:29.785 DEBUG [T11288] [Object] ~Player[31]
+2026-11-24 03:53:29.785 DEBUG [T14840] [Session] ~Session[13]
+2026-11-24 03:53:29.785 DEBUG [T14840] [Object] ~Player[77]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[77]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[85]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[31]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[53]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[85]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[73]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[53]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[59]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[59]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[83]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[73]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[83]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[11]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[35]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[11]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[97]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[97]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[91]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[35]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[87]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[91]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[94]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[87]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[94]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[42]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[42]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[84]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[84]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[34]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[76]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[34]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[76]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[25]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[3]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Object] ~Player[27]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[25]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[20]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[3]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Session] ~Session[27]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Object] ~Player[81]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[20]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Session] ~Session[81]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Object] ~Player[45]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Session] ~Session[45]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Object] ~Player[38]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Session] ~Session[38]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Object] ~Player[90]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Session] ~Session[90]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Object] ~Player[23]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Session] ~Session[23]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Object] ~Player[14]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Session] ~Session[14]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Object] ~Player[78]
+2026-11-24 03:53:29.786 DEBUG [T11208] [Session] ~Session[78]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[47]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[65]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[47]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[65]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[70]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[98]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[70]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[98]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[88]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[88]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[52]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[7]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[7]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[52]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[18]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Object] ~Player[75]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Session] ~Session[18]
+2026-11-24 03:53:29.786 DEBUG [T14840] [Session] ~Session[75]
+2026-11-24 03:53:29.786 DEBUG [T11288] [Object] ~Player[33]
+2026-11-24 03:53:29.787 DEBUG [T14840] [Object] ~Player[36]
+2026-11-24 03:53:29.787 DEBUG [T14840] [Session] ~Session[36]
+2026-11-24 03:53:29.787 DEBUG [T14840] [Object] ~Player[10]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[33]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Object] ~Player[86]
+2026-11-24 03:53:29.787 DEBUG [T14840] [Session] ~Session[10]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[86]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Object] ~Player[95]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[95]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Object] ~Player[67]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[67]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Object] ~Player[57]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[57]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Object] ~Player[99]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[99]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Object] ~Player[43]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[43]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Object] ~Player[26]
+2026-11-24 03:53:29.787 DEBUG [T14840] [Object] ~Player[61]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[26]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Object] ~Player[8]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[8]
+2026-11-24 03:53:29.787 DEBUG [T14840] [Session] ~Session[61]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Object] ~Player[55]
+2026-11-24 03:53:29.787 DEBUG [T14840] [Object] ~Player[80]
+2026-11-24 03:53:29.787 DEBUG [T14840] [Session] ~Session[80]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[55]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Object] ~Player[62]
+2026-11-24 03:53:29.787 DEBUG [T11288] [Session] ~Session[62]
+2026-11-24 03:53:31.157 INFO  [T9500] [metrics] sessions=0 rooms=2 players=0 monsters=201 in/s=434 out/s=3743 sendCalls/s=1230 bufsPerSend=2.97 atk(req/ok per s)=0.0/0.0 zones(total created/hits)=0/0 move(total ok/speed/nav/bad/stale/rate)=9409/0/0/0/0/0 tickLate(avg/p50/p95/p99/max ms)=0.9/1.0/2.0/3.0/3.0 tickBody(avg/p50/p95/p99/max ms)=0.37/0.01/1.24/2.16/2.16 viewPlayers(avg/p99/max)=7.8/28/29 viewObjects(avg/p99/max)=15.4/28/29 sendQ(total/sessionMax)=0/29 logDrop=0 viewAudit(must/missing mustNot/extra)=0/0 0/0 aoi(nodes/depth)=213/1 itemOp(total sent/fail/busy inflight)=0/0/0 0 itemOpMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 equipApplyMs(n avg/p50/p99/max)=0 0.0/0.0/0.0/0.0 progressSave(total sent/coalesced/fail inflight)=0/0/0 0 progressSaveMs(n exec avg/p99/max total avg/p99/max)=0 0.0/0.0/0.0 0.0/0.0/0.0 aim(total on/reject/off/castClear/timeout)=0/0/0/0/0 atkReject(total sent/earlyOk)=0/0 revive(total deaths/ok/reject/deadMove)=0/0/0/0 portal(total ok/reject)=0/0 login(total kick/busy/forced)=0/0/0 drops(now kills/created/expired/evicted)=0 0/0/0/0 pickup(picked/discarded)=0/0 trades=0 sendPath(flush/continue/direct/kick per s)=1262/1/0/689 flushGap(p50/p90/p99 ms)=62/100/127 sendWake(per s, late avg/p50/p99/max ms)=25 0.8/0.7/1.9/2.0 jobs(exec/repost per s)=519/9 jobWait(p50/p90/p99 ms)=0/0/1 jobRunMax=2.2ms flushRunMax=0.7ms jobDispatch(p50/p90/p99 ms)=0/0/0 busy(job/flush ms per s)=15/22 flushRuns/s=211 conn(sessionObjs/handles idleKick/sendqKick)=1/319 0/0 world(channels/roster/chMax)=1/0/0 kind(town/field players)=0/0 tickLateP99(town/field ms)=2.0/3.0 tickBodyP99(town/field ms)=0.01/2.16 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=0/0/0/0/0 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 0/0/0/0/0 0/0 roomsAlive=2 dungeon(now/created/closed players)=0/0/0 0 tickLateP99(dungeon ms)=0.0 tickBodyP99(dungeon ms)=0.00 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=0/0 0.0 0/0/0/0/0 0/0 0/0 quest(total accept/complete/kill/reject save sent/fail inflight)=0/0/0/0 0/0 0 mailNotice=0

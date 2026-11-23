@@ -1,0 +1,4 @@
+1795458760 --bots 100 --ramp-rate 50 --duration 40 --threads 4 --move-interval 200 --body male --profile hunt --town-wander --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.1\runs\smoke_100\loadtest.csv
+dummyRoom spread townPct 30 allowDummy true
+loadtest exit 0
+run_id 20261124_033236

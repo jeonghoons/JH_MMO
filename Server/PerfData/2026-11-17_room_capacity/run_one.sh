@@ -12,7 +12,7 @@ rm -rf "$RUN"; mkdir -p "$RUN"
 sed -e "s/^MapName=.*/MapName=$MAP/" -e "s/^WorkerThreads=.*/WorkerThreads=$WORKERS/" \
     -e "s/^DummySpawnZone=.*/DummySpawnZone=$ZONE/" \
     -e "s#^Dir=.*#Dir=../PerfData/2026-11-17_room_capacity/runs/$NAME/logs#" \
-    "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+    -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 
 taskkill //IM GameServer.exe //F > /dev/null 2>&1
 cd "$SRV"

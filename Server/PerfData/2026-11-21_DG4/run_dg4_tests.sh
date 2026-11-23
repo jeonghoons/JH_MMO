@@ -13,7 +13,7 @@ run_group() {  # 이름 "sed 식" "테이블 수정 묶음(tweak_tables.py, 없�
   local name="$1" edits="$2" tables="$3"; shift 3
   local RUN="$HERE/runs/dungeon_$name"
   rm -rf "$RUN"; mkdir -p "$RUN"
-  sed -e "s/^PortalNoRange=.*/PortalNoRange=true/" -e "s/^Level=.*/Level=Debug/" -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/dungeon_$name/logs#" $edits "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+  sed -e "s/^PortalNoRange=.*/PortalNoRange=true/" -e "s/^Level=.*/Level=Debug/" -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/dungeon_$name/logs#" $edits -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
   unset JH_DATA_DIR
   if [ -n "$tables" ]; then
     cp -r "$TABLES" "$RUN/data"

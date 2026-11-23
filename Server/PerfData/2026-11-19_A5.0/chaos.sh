@@ -4,7 +4,7 @@
 # sessionObjs의 바닥은 1이다(Listener가 다음 접속용 세션을 하나 미리 만들어 둔다).
 HERE="$(cd "$(dirname "$0")" && pwd)"; SRV="$HERE/../../Server"; RUN="$HERE/runs/chaos"
 rm -rf "$RUN"; mkdir -p "$RUN"
-sed -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/chaos/logs#" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+sed -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/chaos/logs#" -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 taskkill //IM GameServer.exe //F > /dev/null 2>&1
 cd "$SRV"
 ../x64/Release/GameServer.exe --config "$(cygpath -w "$RUN/ServerConfig.ini")" > "$RUN/server_console.txt" 2>&1 &

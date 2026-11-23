@@ -28,7 +28,7 @@ for W in $WHAT; do
     *) echo "모르는 이름: $W"; TOTAL_FAIL=1; continue ;;
   esac
   sed -e "s/^Port=.*/Port=$PORT/" -e "s/^DevCommands=.*/DevCommands=$DEV/" -e "s/^PortalNoRange=.*/PortalNoRange=$NORANGE/" -e "s/^Level=.*/Level=Debug/" \
-      -e "s#^Dir=.*#Dir=../PerfData/2026-11-22_Q1/runs/regress_$W/logs#" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+      -e "s#^Dir=.*#Dir=../PerfData/2026-11-22_Q1/runs/regress_$W/logs#" -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
   unset JH_DATA_DIR
   sql "$HERE/restore_accounts.sql" > "$RUN/restore_before.txt" 2>&1 || { echo "REGRESS FAIL $W (계정 복원 실패)"; TOTAL_FAIL=1; continue; }
   case "$W" in

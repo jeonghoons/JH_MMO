@@ -20,7 +20,7 @@ sed -e "s/^WorkerThreads=.*/WorkerThreads=$WORKERS/" \
     -e "s/^PortalNoRange=.*/PortalNoRange=${PORTALNORANGE:-false}/" \
     -e "s/^MaxDungeonInstances=.*/MaxDungeonInstances=${MAXDUNGEON:-250}/" \
     -e "s#^Dir=.*#Dir=../PerfData/$SET/runs/$NAME/logs#" \
-    "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+    -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 if [ -n "${SERVER_EXE:-}" ]; then sed -i -e "/^DummyRoom=/d" -e "/^MoveHandoffDelayMs=/d" -e "/^MoveWaitTimeoutMs=/d" "$RUN/ServerConfig.ini"; fi
 
 taskkill //IM GameServer.exe //F > /dev/null 2>&1

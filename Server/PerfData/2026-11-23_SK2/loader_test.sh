@@ -8,7 +8,7 @@ case_run() {   # $1 이름, $2 sed 식(3003 행에 적용)
   local D="$OUT/$1"; mkdir -p "$D/data"; cp "$DATA"/*.csv "$D/data/"
   sed -i "/^3003,/ $2" "$D/data/SkillTable.csv"
   grep "^3003," "$D/data/SkillTable.csv" | cut -d, -f1-16 > "$D/row.txt"
-  sed -e "s/^Port=.*/Port=8895/" -e "s#^Dir=.*#Dir=#" "$SRV/ServerConfig.ini" > "$D/ServerConfig.ini"
+  sed -e "s/^Port=.*/Port=8895/" -e "s#^Dir=.*#Dir=#" -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$D/ServerConfig.ini"
   (cd "$SRV" && JH_DATA_DIR="$(cygpath -w "$D/data")" timeout 20 ../x64/Debug/GameServer.exe --config "$(cygpath -w "$D/ServerConfig.ini")" > "$D/console.txt" 2>&1); local rc=$?
   if grep -q "Pierce 스킬은" "$D/console.txt" && [ $rc -ne 124 ]; then echo "PASS loader-$1 (종료 코드 $rc)"; else echo "FAIL loader-$1 (종료 코드 $rc)"; tail -5 "$D/console.txt"; fi
   grep -m1 "Pierce 스킬은" "$D/console.txt"

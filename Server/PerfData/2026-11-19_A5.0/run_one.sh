@@ -14,7 +14,7 @@ rm -rf "$RUN"; mkdir -p "$RUN"
 sed -e "s/^WorkerThreads=.*/WorkerThreads=$WORKERS/" \
     -e "s/^DummySpawnZone=.*/DummySpawnZone=$ZONE/" \
     -e "s#^Dir=.*#Dir=../PerfData/$SET/runs/$NAME/logs#" \
-    "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+    -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 
 taskkill //IM GameServer.exe //F > /dev/null 2>&1
 cd "$SRV"

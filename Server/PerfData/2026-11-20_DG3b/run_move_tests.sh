@@ -12,7 +12,7 @@ run_group() {  # 이름 "sed 식" 시나리오...
   local name="$1" edits="$2"; shift 2
   local RUN="$HERE/runs/move_$name"
   rm -rf "$RUN"; mkdir -p "$RUN"
-  sed -e "s/^DevCommands=.*/DevCommands=true/" -e "s/^Level=.*/Level=Debug/" -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/move_$name/logs#" $edits "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+  sed -e "s/^DevCommands=.*/DevCommands=true/" -e "s/^Level=.*/Level=Debug/" -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/move_$name/logs#" $edits -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
   taskkill //IM GameServer.exe //F > /dev/null 2>&1
   cd "$SRV"
   ../x64/$CONF/GameServer.exe --config "$(cygpath -w "$RUN/ServerConfig.ini")" > "$RUN/server_console.txt" 2>&1 &

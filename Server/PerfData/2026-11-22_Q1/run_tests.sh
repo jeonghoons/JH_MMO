@@ -39,7 +39,7 @@ for B in $BUNDLES; do
       -e "s/^DbItemFailEvery=.*/DbItemFailEvery=$FAILEVERY/" \
       -e "s/^Level=.*/Level=Debug/" \
       -e "s#^Dir=.*#Dir=../PerfData/2026-11-22_Q1/runs/$B/logs#" \
-      "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+      -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
   unset JH_DATA_DIR
   if [ -n "$TABLES" ]; then
     cp -r "$REPO/Common/DataTable" "$RUN/data"

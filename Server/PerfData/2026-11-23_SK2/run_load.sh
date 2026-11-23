@@ -13,7 +13,7 @@ rm -rf "$RUN"; mkdir -p "$RUN"
 sed -e "s/^Port=.*/Port=$PORT/" \
     -e "s/^DummyRoom=.*/DummyRoom=field/" \
     -e "s#^Dir=.*#Dir=../PerfData/2026-11-23_SK2/runs/$NAME/logs#" \
-    "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+    -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
 
 cd "$SRV"
 if [ -n "${DATA:-}" ]; then export JH_DATA_DIR="$(cygpath -w "$DATA")"; else unset JH_DATA_DIR; fi

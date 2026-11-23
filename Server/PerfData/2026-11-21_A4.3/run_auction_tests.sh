@@ -29,7 +29,7 @@ run_group() {  # 이름 "sed 식" "EconomyTable 수정(열=값 ..., 없으면 �
   local RUN="$HERE/runs/auction_$name"
   rm -rf "$RUN"; mkdir -p "$RUN"
   sed -e "s/^DevCommands=.*/DevCommands=true/" -e "s/^PortalNoRange=.*/PortalNoRange=true/" -e "s/^Level=.*/Level=Debug/" \
-      -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/auction_$name/logs#" $edits "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
+      -e "s#^Dir=.*#Dir=../PerfData/$(basename "$HERE")/runs/auction_$name/logs#" $edits -e "s/^AllowDummyLogin=.*/AllowDummyLogin=true/" "$SRV/ServerConfig.ini" > "$RUN/ServerConfig.ini"
   unset JH_DATA_DIR
   if [ -n "$tables" ]; then
     cp -r "$TABLES" "$RUN/data"
