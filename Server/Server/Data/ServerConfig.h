@@ -44,7 +44,7 @@ struct ServerConfig
 	std::string logDir = "Logs";    // 비우면 파일에 쓰지 않는다(콘솔만)
 
 	// [World] — 이 서버 프로세스가 띄우는 레벨(D-172). 맵 리소스 파일 이름(Resource/Map/<이름>_Geo.nav, MapResource/Export/<이름>)이자 WorldTable.MapName
-	std::string mapName = "ParagonSample";
+	std::string mapName = "Continent01";
 	// Room 이동(DG3b, D-216) 전에 끝나지 않은 일(DB 작업·저장)을 기다리는 최대 시간. 넘으면 이동을 취소하고 MOVE_RESULT_TIMEOUT
 	int moveWaitTimeoutMs = 5000;
 	// 던전 인스턴스 수의 서버 전체 상한(DG3c, D-218). 넘으면 새 인스턴스를 만들지 않고 MOVE_RESULT_DUNGEON_FULL

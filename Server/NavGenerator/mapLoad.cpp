@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 		navPath = argv[2];
 	}
 	else {
-		std::string mapName = (argc == 2) ? argv[1] : "ParagonSample";
+		std::string mapName = (argc == 2) ? argv[1] : "Continent01";
 		binPath = "../MapResource/Export/" + mapName + "/Geometry/" + mapName + "_Geo.bin";
 		navPath = "../Server/Resource/Map/" + mapName + "_Geo.nav";
 	}

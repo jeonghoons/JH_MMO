@@ -1475,7 +1475,7 @@ bool BotEngine::ParseArgs(int argc, char** argv)
 // 맵 로직 JSON에서 몬스터 스폰 위치를 읽는다.
 static void LoadMonsterSpawns()
 {
-	const char* candidates[] = { "../../MapResource/Export/ParagonSample/Logic/ParagonSample_Logic.json", "../MapResource/Export/ParagonSample/Logic/ParagonSample_Logic.json" };
+	const char* candidates[] = { "../../MapResource/Export/Continent01/Logic/Continent01_Logic.json", "../MapResource/Export/Continent01/Logic/Continent01_Logic.json" };
 	string path = GConfig.mapLogic;
 	if (path.empty())
 		for (const char* cand : candidates) { ifstream probe(cand); if (probe.is_open()) { path = cand; break; } }

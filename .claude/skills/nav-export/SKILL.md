@@ -14,7 +14,7 @@ UE에서 맵 지오메트리를 다시 export할 때마다 NavGenerator를 다�
 - 맵마다 따로 실행한다(출력 폴더가 맵 이름으로 나뉨 — `Continent01`, `Continent01_Dungeon`).
 - NavGenerator만: 빌드는 `msbuild Server.sln /p:Configuration=Debug /p:Platform=x64 /t:NavGenerator`.
 
-사용법: `NavGenerator.exe <GeoBinPath> <NavOutputPath>` (인자를 생략하면 기본 맵 `ParagonSample`을 사용해 `../MapResource/Export/<맵>/Geometry/<맵>_Geo.bin`을 읽어 `../Server/Resource/Map/<맵>_Geo.nav`로 출력). 
+사용법: `NavGenerator.exe <GeoBinPath> <NavOutputPath>` (인자를 생략하면 기본 맵 `Continent01`을 사용해 `../MapResource/Export/<맵>/Geometry/<맵>_Geo.bin`을 읽어 `../Server/Resource/Map/<맵>_Geo.nav`로 출력). 
 
 가장 넓은 연결 영역만 걷기 가능으로 남기고 나머지 섬(능선 꼭대기, 바위·건물 윗면)은 폴리곤 flags를 0으로 꺼서 서버 질의에서 빠지게 합니다(2026-11-17, 출력의 `[Prune]` 줄). 폴리곤 메시 정점이 단일 타일 상한(65,534)을 넘으면 실패로 끝납니다. 검증용으로 `NavMesh_Output.obj`와 무작위 표본 `NavMesh_Samples.csv`(UE 좌표)를 작업 폴더에 씁니다. 
 

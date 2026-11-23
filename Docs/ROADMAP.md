@@ -179,7 +179,6 @@ MC4.2·MC4.3·MC4.5는 ② 콘텐츠 다듬기, M3은 ③ 폴더·코드 정리�
 - `ExportSkillTiming.bat` 확인: 에디터를 닫을 때 돌려 SkillTable 1001이 "변경 없음"인지(MC4.2a 때 같은 규칙으로 CSV를 직접 씀) (MC4.2a, `TESTING.md` 2026-11-08)
 - A0.4 재확인: `dt` 클램프와 맵 밖 좌표(`GameMap` 셀 클램프)는 재현 수단이 없어 코드 리뷰만 — 하니스로 재확인 (A0.4, `TESTING.md` 2026-10-20)
 - 이동 높이 z는 클라이언트 값을 그대로 저장: 3m 넘게 어긋난 z(예: 50m 위)를 보내면 받아들여지고 그 뒤 모든 이동이 지형 검사에서 거부됨(시작 폴리곤을 못 찾음) — 서버가 내비메시 높이로 맞추거나 높이 차이를 검증 (S1 한계, A5.1 메모와 같은 원인, 2026-11-18 L2e 오류 시험에서 재확인)
-- 봇의 맵 Logic JSON 기본 경로가 `ParagonSample`로 적혀 있음(`BotEngine.cpp` `LoadMonsterSpawns`) — 새 맵에서는 `--map ../MapResource/Export/Continent01/Logic/Continent01_Logic.json`을 줘야 사냥 봇이 스폰으로 감. 서버 `MapName`을 따르게 하거나 기본값 교체 (2026-11-18 L2e, A5.1·A5.2 때 함께)
 - 200명 봇 램프 1회에서 예상 밖 접속 종료 1건(Debug 서버, 서버 경고·오류 0, 같은 조건으로 Debug 1회·Release 1회 더 돌려 재현 안 됨) — 다시 나오면 Debug 로그 레벨로 원인 확인 (2026-11-18 L2e)
 
 ### ②-6. NPC 외형 (2026-11-23 신설, D-280)
