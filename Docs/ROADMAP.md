@@ -166,7 +166,6 @@ MC4.2·MC4.3·MC4.5는 ② 콘텐츠 다듬기, M3은 ③ 폴더·코드 정리�
 - 스킬 판정 범위 재측정: 2001(반경 190·각도 180)·2002(각도 360) 수치의 측정 근거였던 Greystone 모션이 Downward Slash 등으로 바뀜 → 새 모션 기준으로 다시 재서 `SkillTable.csv` 확인 (DECISIONS D-034, 2026-11-12 W5)
 - 로딩 화면 이미지: 사용자가 이미지를 구해 오면 `WBP_SystemMessage` 대기(Waiting) 배경에 적용 (수동 작업 기록, 2026-11-06 예정이었음)
 - 연결 끊김 화면 처리(메시지·로그인 복귀): U1 시스템 메시지 창(`UJMUIManager::ShowSystemMessage`) 사용. 서버가 입장을 거부하거나 입장 중 끊기면 "방에 입장하는 중..." 창이 닫히지 않는 문제도 함께 (TODO, M0.5-1)
-- (2026-11-17 맵 제작은 L1·L2로 올림, D-167 — `KiteDemo`·`ParagonProps`에서 새 맵이 쓰는 에셋은 남기므로 삭제 범위는 L2 뒤 다시 정함) 자체 제작 맵으로 교체 후 `ParagonSample` 맵·`KiteDemo`·`StarterContent`·`_Core/Materials·Environment` 제외·삭제 — 인게임 레벨 이름 하드코딩은 L2e에서 없앰(서버가 알려 줌, D-185), 로그인 레벨 `DevMap`만 코드에 남음 (M0.5 이월, `DECISIONS.md` 2026-10-21)
 - 하드코딩 → 데이터: 서버 주소/포트, 캡슐/보간/카메라/이동 임계값(인게임 맵 이름은 L2e에서 해결 — D-185), UI 위젯 이름·크기(`MovementTable`/`UITable`) (TODO 2026-10-20)
 - 몬스터 데이터: `template_id` 기반 메시/AnimBP 로드(`DT_CharacterAsset`은 2026-11-10 삭제 — 필요하면 몬스터 전용 테이블을 새로 설계) (TODO)
 - 렌더 설정(레이트레이싱 등) MMO 클라이언트 기준 재검토, 안드로이드 토큰 저장소 노출 확인 (TODO)
