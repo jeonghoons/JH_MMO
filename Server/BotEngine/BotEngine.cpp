@@ -93,6 +93,7 @@ struct Bot
 	// 인벤토리(A3.3): item_db_id -> (item_id, equip_part). SC_INVENTORY·SC_INVENTORY_UPDATE로 채운다
 	unordered_map<long long, pair<int, int>> items;
 	bool inventoryKnown = false;
+	int maxSlots = 30;         // SC_INVENTORY.max_slots(서버 EconomyTable.InventorySlots)
 	int gearGiveIndex = 0;        // --give-gear: 다음에 요청할 지급 목록 위치
 	long long nextGiveUs = 0;
 	long long nextSlotMoveUs = 0;
@@ -714,6 +715,7 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		for (const Protocol::ItemInfo& item : pkt.items())
 			b.items[item.item_db_id()] = { item.item_id(), static_cast<int>(item.equip_part()) };
 		b.inventoryKnown = true;
+		if (pkt.max_slots() > 0) b.maxSlots = pkt.max_slots();
 		if (b.index == 0) printf("[bot] bot0 inventory: items=%d gold=%lld slots=%d\n", pkt.items_size(), static_cast<long long>(pkt.gold()), pkt.max_slots());
 		break;
 	}
@@ -1206,7 +1208,7 @@ static void WorkerMain(int workerIndex, int workerCount)
 					{
 						Protocol::CS_MOVE_ITEM_PACKET mv;
 						mv.set_item_db_id(dbId);
-						mv.set_to_slot((GConfig.chaos && rand() % 20 == 0) ? 30 + rand() % 100 : rand() % 30);
+						mv.set_to_slot((GConfig.chaos && rand() % 20 == 0) ? b.maxSlots + rand() % 100 : rand() % b.maxSlots);
 						SendPacket(b, Protocol::CS_MOVE_ITEM, mv);
 						GStat.slotMoveSent.fetch_add(1);
 					}

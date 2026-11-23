@@ -26,10 +26,20 @@ protected:
 
 	// 인벤토리 격자의 열 수. 칸 수는 서버가 알려 준다(SC_INVENTORY.max_slots).
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (ClampMin = "1"))
-	int32 Columns = 6;
+	int32 Columns = 8;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UUniformGridPanel> BagGrid;
+
+	// BagGrid를 감싼 스크롤(D-285 — 8열 × 10줄 중 보이는 것은 일부). 아이템을 끄는 중 위·아래 끝에 커서가 가면 스크롤한다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UScrollBox> BagScroll;
+
+	// 끄는 중 자동 스크롤: 위·아래 끝에서 이 거리(px) 안이면 초당 DragScrollSpeed(px)로 움직인다
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DragScrollEdgePx = 40.f;
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DragScrollSpeed = 600.f;
 
 	// 장착 칸 7개를 넣는 곳(세로 상자 등 아무 패널).
 	UPROPERTY(meta = (BindWidgetOptional))

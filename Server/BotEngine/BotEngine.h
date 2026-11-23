@@ -28,7 +28,7 @@ struct BotConfig
 	bool aim = false;          // --aim (MC4.2d-1): 활을 장착하고, 1번 스킬은 조준을 켜고 300~800ms 느리게 움직인 뒤 쏜다(10%는 취소). hunt와 함께
 	int equipIntervalMs = 0;   // >0이면 이 간격(±50%)마다 무작위 장비 교체 요청(내 인벤토리의 item_db_id 기준, A3.3), 10%는 바로 한 번 더 보냄(빈도 제한 시험)
 	bool giveGear = false;     // --give-gear: 입장 후 판금 세트·활을 개발 지급 명령으로 받는다(서버 [Debug] DevCommands=true, 개별 계정 필요). 장착 시험 준비
-	int slotIntervalMs = 0;    // >0이면 이 간격(±50%)마다 인벤토리 아이템 하나를 무작위 칸(0~29)으로 옮긴다(CS_MOVE_ITEM, A6.1)
+	int slotIntervalMs = 0;    // >0이면 이 간격(±50%)마다 인벤토리 아이템 하나를 무작위 칸(0 ~ 서버가 알려 준 칸 수 - 1)으로 옮긴다(CS_MOVE_ITEM, A6.1)
 	int shopIntervalMs = 0;    // >0이면 이 간격(±50%)마다 시야 안의 상점 NPC에 구매(물약 1~3개)와 판매(인벤토리 행 하나에서 1개)를 번갈아 요청한다(L4). NPC 근처에 있어야 하므로 --zone과 함께 쓴다
 	int portalIntervalMs = 0;  // >0이면 이 간격(±50%)마다 가장 가까운 포털에 CS_PORTAL을 보낸다(L5). 반경 밖이면 서버가 버리므로 --zone으로 포털 앞에 세운다
 	int partySize = 0;         // --party-size N (DG2): 봇을 번호순으로 N명씩 묶어 파티를 맺는다(묶음의 첫 봇이 나머지를 오브젝트 id로 초대, 받은 초대는 모두 수락)

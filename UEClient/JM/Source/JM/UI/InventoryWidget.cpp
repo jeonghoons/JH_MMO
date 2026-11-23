@@ -4,6 +4,9 @@
 #include "UI/WidgetNames.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "Components/ScrollBox.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
@@ -76,6 +79,25 @@ void UInventoryWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 	Super::NativeTick(MyGeometry, InDeltaTime);
 	// 접힌(Collapsed) 창은 Tick이 오지 않으므로 닫혀 있는 동안은 찍지 않는다
 	UpdatePreview();
+
+	// 아이템을 끄는 중이면 가방 스크롤의 위·아래 끝에서 자동으로 스크롤한다(D-285)
+	if (BagScroll && UWidgetBlueprintLibrary::IsDragDropping() && FSlateApplication::IsInitialized())
+	{
+		const FGeometry& Geo = BagScroll->GetCachedGeometry();
+		const FVector2D Local = Geo.AbsoluteToLocal(FSlateApplication::Get().GetCursorPos());
+		const FVector2D Size = Geo.GetLocalSize();
+		if (Local.X >= 0.f && Local.X <= Size.X && Size.Y > 0.f)
+		{
+			float Dir = 0.f;
+			if (Local.Y >= -DragScrollEdgePx && Local.Y < DragScrollEdgePx) Dir = -1.f;
+			else if (Local.Y > Size.Y - DragScrollEdgePx && Local.Y <= Size.Y + DragScrollEdgePx) Dir = 1.f;
+			if (Dir != 0.f)
+			{
+				const float Offset = FMath::Clamp(BagScroll->GetScrollOffset() + Dir * DragScrollSpeed * InDeltaTime, 0.f, BagScroll->GetScrollOffsetOfEnd());
+				BagScroll->SetScrollOffset(Offset);
+			}
+		}
+	}
 }
 
 bool UInventoryWidget::EnsurePreview()
