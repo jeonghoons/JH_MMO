@@ -100,6 +100,11 @@ ID `D-NNN`의 NNN = 원본 표의 데이터 행 순번(R#, 세 자리). 새 결�
 - **D-291** (2026-11-24) `[Debug] AllowDummyLogin`(기본 false): 꺼지면 `is_dummy` 요청과 `dummy` 계정 일반 로그인을 `NO_ACCOUNT`로 거부. 시험 스크립트는 설정 사본에 true
 - **D-292** (2026-11-24) `[Debug] DummyRoom=spread` + `DummyTownPercent`(30): 마을 30 : 사냥터 70을 들어오는 순서대로 고르게, 사냥터는 스폰 지점마다 차례로(스폰 원 + 5m), 마을은 안전 구역 안(시작 지점에서 길이 이어지는 곳), 높이 = 바닥 + 96. 봇 `--town-wander` = 마을 출신은 마을 안을 걷고 사냥터 출신은 부활 뒤 포털로
 - **D-294** (2026-11-24) 더미 외형 = 로그인 때 메모리에서 무작위(체형 반반, 방어구 칸마다 ItemTable 후보·15% 빈칸, 무기 한손검·활·양손검 1/3, 한손검이면 방패 50%), DB는 그대로
+- **D-296** (2026-11-24) 봇 계정 `bot_0`~`bot_4999`(1234) = `PerfData/2026-11-24_A5.2/bot_accounts.sql`(`make_bot_accounts.py` 생성, 지우고 다시 넣어 처음 상태 — 서버를 끈 채로), 외형 D-294 규칙·물약·장비·골드 포함. 봇 `--login account` = 일반 로그인(실제 DB 경로), `--login dummy` = 공용 dummy(빠른 회귀)
+- **D-297** (2026-11-24) `[Debug] BotAccountPrefix`(기본 빈 값): 이름이 이 접두어인 계정(`isLoadBot`)은 처음 Room·위치만 더미처럼 `DummyRoom`(spread) — 나머지는 일반 플레이어
+- **D-298** (2026-11-24) 봇 프로필 = idle·move·turn·chat·hunt·loot·trade·auction(봇마다), `--profile X` 전원 / `--mix a=25,b=15,...` 번호 순서대로 비율. A5.4 기본 비율 초안 idle 25 · move 15 · chat 10 · hunt 20 · loot 20 · trade 5 · auction 5(가정값)
+- **D-299** (2026-11-24) 사냥 봇은 `SkillTable`로 서버와 같은 동작 시간·쿨타임·이동 잠금을 지키고(`BotEngine/BotData`), 죽은 몬스터·닿지 않은 대상은 공격하지 않음
+- **D-300** (2026-11-24) 봇 로그인 재시도(1·2·4…30초, 5번). A5.4 = 로그인 한계 먼저 → 그 안의 속도로 콘텐츠 시험 → 콘텐츠 지표는 전원 입장 뒤 구간만. 로그인 우회는 한계를 못 고칠 때만
 - **D-055** (2026-10-31) 서버 설정 = 계층형 INI(기본값 → `ServerConfig.ini` → `.local.ini` → 환경변수 `JH_DB_CONNECTION` → 명령줄), 시작 시 엄격 검증(fail-fast), `PWD` 가림, 게임 수치는 DataTable
 - **D-056** (2026-10-31) 로거 = 자체 비동기(`Utils/Logger`): 게임 스레드는 push만, 큐 가득 차면(65,536) 버리고 `logDrop` 집계. 서버 소스·출력 UTF-8 통일 — 게임 스레드를 막지 않는 것이 우선
 - **D-052** (2026-10-30) 이동 = 클라 예측 + 서버 검증·보정(속도 토큰 버킷·내비메시·NaN·빈도, `correction_seq`로 연쇄 차단), 속도는 서버 스탯 `MoveSpeed`, 허용치는 `MovementTable` `Server*` 열
