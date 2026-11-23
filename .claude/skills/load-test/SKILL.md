@@ -17,10 +17,11 @@ description: LoadTest·DummyClient 봇으로 부하 시험, 연결 혼란 시험
 
 ## ServerConfig `[Debug]` 키
 
+- `AllowDummyLogin=true`(A5.1, D-291 — **봇(`is_dummy`) 로그인에 필요**. 기본 false면 `is_dummy` 요청과 공용 `dummy` 계정 일반 로그인이 `LOGIN_RESULT_NO_ACCOUNT`로 거부됨. `Server/PerfData/*/*.sh`의 설정 사본은 모두 true를 넣음 — 새 시험 스크립트를 만들 때도 넣는다)
 - `DummySpawnZone=x,y,r[,n];...`(더미 봇 로그인을 들어오는 순서대로 앞 구역부터 n명씩 원 안에 배치 = 핫존·시야 경계 시험, 비우면 맵 전체 무작위)
 - `ViewAudit=true`(방마다 1초에 한 번 플레이어 시야 목록을 실제 거리와 비교 — 거리 ≤ `WorldTable.ViewRadiusCm`인데 없으면 누락, > R+`ViewHysteresisCm`인데 있으면 초과, `[metrics] viewAudit(must/missing mustNot/extra)` 누적과 처음 10건 WARN 로그. 전수 검사라 부하 측정 때는 끈다)
 - `DbSaveDelayMs=<ms>`(아이템 트랜잭션·진행 상황 저장 실행 전에 멈춤 — 빠른 재접속·중복 접속·결과 도착 전 접속 해제 시험용, DB 작업 스레드를 막으므로 평소에는 0)
-- `DummyRoom=town|field|split`(DG3b — 더미 봇이 처음 들어가는 Room: `town` = 마을(실제 규칙, 사냥 봇은 문 포털로 나감), `field` = 사냥터 Room에 바로(걷는 영역 무작위 또는 `DummySpawnZone`), `split` = 번갈아. `DummySpawnZone` 좌표는 그 Room의 구역 안이어야 함)
+- `DummyRoom=town|field|split`(DG3b — 더미 봇이 처음 들어가는 Room: `town` = 마을(실제 규칙, 사냥 봇은 문 포털로 나감), `field` = 사냥터 Room에 바로(걷는 영역 무작위 또는 `DummySpawnZone`), `split` = 번갈아, `spread` = 마을 `DummyTownPercent`%(기본 30) : 사냥터 나머지를 들어오는 순서대로 고르게 — 사냥터는 몬스터 스폰 지점을 차례로 돌며 스폰 원 + 5m 안, 마을은 안전 구역 안(A5.1, D-292 — 본 부하 시험 기본, 지점별 배치 수는 50명마다 `더미 분산 배치` Info 로그). `DummySpawnZone` 좌표는 그 Room의 구역 안이어야 함)
 - `MoveHandoffDelayMs=<ms>`(DG3b — Room 이동의 잡 사이(서비스 → 떠나기, 떠나기 → 들어오기)를 늦춤: 그 구간의 접속 해제·사망·중복 요청 시험용)
 - `PortalNoRange=true`(DG3c — 포털 사용 요청의 거리 검사만 건너뜀: 같은 구역 Room 안이면 어디서든 그 포털을 요청. 던전 입구 100이 사냥터 북서쪽 끝이라 원시 소켓 클라이언트가 걷지 않고 요청하고, 봇이 던전 출구를 요청할 때 씀)
 - `DevCommands=true`(개발 지급 명령 `CS_DEV_GIVE`를 받음)
@@ -30,6 +31,8 @@ description: LoadTest·DummyClient 봇으로 부하 시험, 연결 혼란 시험
 
 ## 기능별 봇 인자
 
+- 내비메시(A5.1, D-293): 봇은 서버와 같은 `<레벨>_Geo.nav`를 읽어 이동 z를 바닥에 맞추고 길을 따라 걷는다. 작업 폴더 `Server/Server`에서 띄우면 자동으로 찾고(`[bot] nav loaded:`), 다른 곳이면 `--nav-dir <폴더>`. 못 찾으면 예전처럼 z 유지·직선(A/B 비교용으로 없는 폴더를 주면 됨). 요약 `[summary] nav: pathSearch=… pathFail=…`
+- 마을 비율 유지: `--town-wander`(마을에서 시작한 사냥 봇은 문 포털로 나가지 않고 마을 안전 구역 안을 걸음, 사냥터 출신은 마을에서 부활하면 포털로 돌아감 — `DummyRoom=spread`와 함께). 본 부하 시험 실행기는 `Server/PerfData/2026-11-24_A5.1/run_one.sh`(기본 `DummyRoom=spread`·`AllowDummyLogin=true`, 봇 프로세스 CPU `bot_cpu.csv`도 기록)
 - 개발 지급·칸 옮기기: `--give-gear`·`--give-interval`·`--slot-interval`(서버 `DevCommands=true` 필요)
 - 상점: `--shop-interval`
 - 포털: `--portal-interval`(가장 가까운 포털에 요청 — 반경 밖이면 거부되므로 `DummySpawnZone`으로 포털 앞에 세움)
