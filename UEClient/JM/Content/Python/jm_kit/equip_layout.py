@@ -26,6 +26,9 @@ items.json·ItemTable.csv의 경로를 고친다.
   eq_archive_dirs {dry_run}  옮긴 뒤 남은 빈 Plate 폴더 삭제. 기본 dry_run
   eq_glow_master {rebuild}   03등급 발광 부모 머티리얼 M_Equip_PBR_Glow(D-267)
   eq_glow {keys, params, rebuild_master}  M_03_*의 부모를 발광 머티리얼로 — params는 공통 {이름: 값} 또는 {"<키>": {...}}
+  eq_icon_warm {keys}     아이콘 촬영 전 데우기(새로 켠 에디터·다시 컴파일한 머티리얼에서 첫 촬영이 비거나 회색) → 몇 초 뒤 icon_shoot → eq_icon_warm_clear
+  eq_color_dump {prefix}  등급(예 "01_") 아이템 메시가 쓰는 머티리얼과 최상위 부모(D-279)
+  eq_color {prefix, desat, tint, keys}  그 인스턴스에 Desat·Tint(부모에 매개변수가 없으면 그 자리에서 더함 — 기본값이면 외형 그대로)
 """
 import json
 import os
@@ -695,6 +698,23 @@ def run(step, args=None):
         return archive_items(bool(args.get("write", False)))
     if step == "eq_archive_dirs":
         return archive_empty_dirs(args.get("dry_run", True))
+    if step in ("eq_icon_warm", "eq_icon_warm_clear"):
+        # 아이콘 촬영 전 데우기(icon.warm) — 이 호출 뒤 몇 초 지나 KitTools.icon_shoot, 끝나면 eq_icon_warm_clear
+        import importlib
+        from . import icon
+        importlib.reload(icon)
+        if step == "eq_icon_warm_clear":
+            return icon.warm_clear()
+        keys = args.get("keys")
+        return icon.warm(keys.split(",") if isinstance(keys, str) else keys)
+    if step in ("eq_color_dump", "eq_color"):
+        # 등급 색 보정(D-279): garment.item_materials / apply_grade_color
+        import importlib
+        from . import garment
+        importlib.reload(garment)
+        if step == "eq_color_dump":
+            return garment.item_materials(args.get("prefix", "01_"))
+        return garment.apply_grade_color(args.get("prefix", "01_"), args.get("desat"), args.get("tint"), args.get("keys"))
     if step in ("eq_glow", "eq_glow_master"):
         # 03등급 재질 발광(D-267): garment.ensure_glow_master / apply_grade_glow
         import importlib

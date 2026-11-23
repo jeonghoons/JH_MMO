@@ -1365,7 +1365,106 @@ def ensure_pbr_master(rebuild=False):
     MEL.connect_material_property(orm, "B", MP.MP_METALLIC)
     MEL.recompile_material(mat)
     EAL.save_loaded_asset(mat)
+    ensure_color_params(PBR_MASTER)
     return PBR_MASTER
+
+
+# 색 보정(D-279): 부모 머티리얼의 BaseColor 입력 앞에 Desaturation(Desat) × Tint를 끼운다. 기본값(0, 흰색)이면 외형 그대로.
+COLOR_DEFAULTS = {"Desat": 0.0, "Tint": (1.0, 1.0, 1.0)}
+
+
+def ensure_color_params(material_path):
+    """부모 머티리얼(UMaterial)에 Desat·Tint 매개변수를 그 자리에서 더한다(이미 있으면 그대로). 에셋을 지우지 않으므로 인스턴스 연결이 유지된다.
+    반환: {"material", "added": bool}."""
+    MEL = unreal.MaterialEditingLibrary
+    mat = unreal.load_asset(material_path)
+    if not isinstance(mat, unreal.Material):
+        raise RuntimeError(f"UMaterial이 아님: {material_path}")
+    if "Desat" in [str(n) for n in MEL.get_scalar_parameter_names(mat)]:
+        return {"material": material_path, "added": False}
+    MP = unreal.MaterialProperty
+    src = MEL.get_material_property_input_node(mat, MP.MP_BASE_COLOR)
+    if src is None:
+        raise RuntimeError(f"BaseColor 입력이 비어 있음: {material_path}")
+    src_out = MEL.get_material_property_input_node_output_name(mat, MP.MP_BASE_COLOR)
+    x = src.get_editor_property("material_expression_editor_x") + 250
+    y = src.get_editor_property("material_expression_editor_y")
+    ds = MEL.create_material_expression(mat, unreal.MaterialExpressionDesaturation, x, y)
+    MEL.connect_material_expressions(src, src_out, ds, "")
+    frac = MEL.create_material_expression(mat, unreal.MaterialExpressionScalarParameter, x - 200, y + 150)
+    frac.set_editor_property("parameter_name", "Desat")
+    frac.set_editor_property("default_value", COLOR_DEFAULTS["Desat"])
+    MEL.connect_material_expressions(frac, "", ds, "Fraction")
+    tint = MEL.create_material_expression(mat, unreal.MaterialExpressionVectorParameter, x, y + 250)
+    tint.set_editor_property("parameter_name", "Tint")
+    tint.set_editor_property("default_value", unreal.LinearColor(*COLOR_DEFAULTS["Tint"], 1.0))
+    mul = MEL.create_material_expression(mat, unreal.MaterialExpressionMultiply, x + 200, y)
+    MEL.connect_material_expressions(ds, "", mul, "A")
+    MEL.connect_material_expressions(tint, "", mul, "B")
+    MEL.connect_material_property(mul, "", MP.MP_BASE_COLOR)
+    MEL.recompile_material(mat)
+    EAL.save_loaded_asset(mat)
+    return {"material": material_path, "added": True}
+
+
+def _root_material(mi):
+    m = mi
+    while isinstance(m, unreal.MaterialInstance):
+        m = m.get_editor_property("parent")
+    return m
+
+
+def item_materials(prefix):
+    """키가 prefix로 시작하는 아이템(예 "01_")의 메시(원본·남녀 결과)가 실제로 쓰는 머티리얼과 최상위 부모. 반환: {키: [{mesh, material, root}]}."""
+    out = {}
+    for key, it in load_items().items():
+        if not key.startswith(prefix):
+            continue
+        paths = [it.get("source")]
+        if it.get("out"):
+            paths += [out_path(it, b) for b in ("M", "F")]
+        rows = []
+        for p in paths:
+            if not p or not EAL.does_asset_exist(p):
+                continue
+            mesh = unreal.load_asset(p)
+            slots = mesh.static_materials if isinstance(mesh, unreal.StaticMesh) else mesh.materials
+            for s in slots:
+                mi = s.material_interface
+                if mi is None:
+                    continue
+                root = _root_material(mi)
+                rows.append({"mesh": p, "material": mi.get_path_name().split(".")[0],
+                             "root": root.get_path_name().split(".")[0] if root else None})
+        out[key] = rows
+    return out
+
+
+def apply_grade_color(prefix, desat=None, tint=None, keys=None):
+    """prefix 등급(예 "01_") 아이템이 쓰는 머티리얼 인스턴스에 Desat·Tint를 넣는다(부모에 매개변수가 없으면 먼저 더함).
+    keys로 일부만 고를 수 있다. 주의: use_pbr_master는 매개변수를 모두 지우므로 그 뒤에는 이 함수를 다시 부른다."""
+    MEL = unreal.MaterialEditingLibrary
+    done, roots = {}, {}
+    for key, rows in item_materials(prefix).items():
+        if keys and key not in keys:
+            continue
+        for r in rows:
+            if r["material"] in done or not r["root"]:
+                continue
+            mi = unreal.load_asset(r["material"])
+            if not isinstance(mi, unreal.MaterialInstanceConstant):
+                done[r["material"]] = {"skip": "인스턴스가 아님"}
+                continue
+            if r["root"] not in roots:
+                roots[r["root"]] = ensure_color_params(r["root"])["added"]
+            if desat is not None:
+                MEL.set_material_instance_scalar_parameter_value(mi, "Desat", float(desat))
+            if tint is not None:
+                MEL.set_material_instance_vector_parameter_value(mi, "Tint", unreal.LinearColor(*tint[:3], 1.0))
+            MEL.update_material_instance(mi)
+            EAL.save_loaded_asset(mi)
+            done[r["material"]] = {"key": key, "desat": desat, "tint": tint}
+    return {"materials": done, "roots_added": roots}
 
 
 GLOW_MASTER = "/Game/Equipment/_Shared/M_Equip_PBR_Glow"   # 03등급 발광(D-267)
@@ -1506,7 +1605,8 @@ def apply_grade_glow(keys=GLOW_KEYS, params=None, rebuild_master=False):
 
 def use_pbr_master(item_key):
     """M_<Item>(머티리얼 인스턴스)의 부모를 M_Equip_PBR로 바꾸고 BaseColor·Normal·ORM을 지정한다.
-    ORM 텍스처는 선형(sRGB 끔)·마스크 압축으로 바꾼다. 반환: 머티리얼 경로."""
+    ORM 텍스처는 선형(sRGB 끔)·마스크 압축으로 바꾼다. 반환: 머티리얼 경로.
+    주의: 매개변수를 모두 지우므로 01등급 색 보정(Desat 0.4, D-279)도 사라진다 — 01을 다시 하면 eq_color {prefix "01_", desat 0.4}."""
     it = load_items()[item_key]
     dest_dir = src_dir(it)
     mi = unreal.load_asset(f"{dest_dir}/M_{item_key}")

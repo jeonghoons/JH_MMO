@@ -305,6 +305,40 @@ def _sheet(results, path, cell=256, cols=7):
     return path
 
 
+WARM_LABEL = "T_IconWarm"
+
+
+def warm(keys=None):
+    """촬영 전 데우기(2026-11-23): 에디터를 새로 켠 뒤나 부모 머티리얼을 다시 컴파일한 뒤에는 처음 그리는 메시가 빈 화면·회색 기본 재질로 찍힌다.
+    셰이더·텍스처는 파이썬 호출이 끝나 에디터가 프레임을 돌아야 준비되므로, 피사체를 모두 한 번 찍어 요청만 해 두고(액터는 남김, 텍스처 상주)
+    몇 초 뒤 별도 호출로 shoot한다. 끝나면 warm_clear. 반환: 데운 키 수."""
+    garment._not_playing()
+    items = garment.load_items()
+    keys = list(keys or items.keys())
+    world = UES.get_editor_world()
+    preview.clear(WARM_LABEL)
+    # 낮은 mip으로 찍히면 색이 뭉개진다(2026-11-23 02·03 방어구) — 쓰는 텍스처를 끝까지 불러오게 하고 warm_clear에서 되돌린다
+    unreal.SystemLibrary.execute_console_command(world, "r.Streaming.FullyLoadUsedTextures 1")
+    for key in keys:
+        actor, _ = _subject(key, items[key])
+        actor.set_actor_label(f"{WARM_LABEL}_{key}")
+        for comp in actor.get_components_by_class(unreal.MeshComponent):
+            if hasattr(comp, "prestream_textures"):
+                comp.prestream_textures(30.0, True)
+        center, radius = _bounds_center_radius(actor)
+        try:
+            _shoot_rgba(world, actor, _cam(center, max(radius, 1.0), 0.0, 0.0), center)
+        except Exception:
+            pass
+    return {"warmed": len(keys)}
+
+
+def warm_clear():
+    preview.clear(WARM_LABEL)
+    unreal.SystemLibrary.execute_console_command(UES.get_editor_world(), "r.Streaming.FullyLoadUsedTextures 0")
+    return {"cleared": True}
+
+
 def shoot(keys=None, import_assets=True, sheet=True):
     """items.json 아이템 아이콘을 찍는다(keys 없으면 전부). 반환: {키: {png, asset, fill, crop_px}, "_sheet": 경로}."""
     garment._not_playing()

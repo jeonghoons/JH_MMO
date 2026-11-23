@@ -7,6 +7,40 @@ description: VARCO 3D로 장비(방어구·무기·방패·투구)나 맵 소품
 
 MC2.3 판금 세트(2026-11-06)에서 얻은 요령이다. 투구는 4번 실패했다(누적 약 2,250 + 1,000포인트). 성공 조건은 **사슬 제거 + 눈높이 30° 회전 입력(초록 단색 배경) + 3만 폴리 생성 → UE `reduce_static_lods`로 4천**이었다.
 
+## 플로우 (D-279, 2026-11-23)
+
+플로우 하나에 노드가 120개를 넘어 나눴다. 기준과 화풍 규칙은 `Docs/DESIGN_ART_CONCEPT.md` §7-1~7-3에 있다.
+
+| 플로우 | flowId | 쓰임 |
+|---|---|---|
+| `JH_MMO_Style` | `f2468d14-3c35-4dbf-a6de-1da4860da5d9` | 기준 이미지 9장 + 문구 메모. 생성 노드 없음 |
+| `JH_MMO_Equip_00` | `afdfa486-22d8-4c18-8a07-c1cde781706b` | 00 천 |
+| `JH_MMO_Equip_01` | `cbf27b78-95ca-4b3b-8cd9-9fe5b395740e` | 01 가죽 |
+| `JH_MMO_Equip_02` | `cced49d3-f7aa-4eb2-a1f2-761defd9ee6c` | 02 강철 |
+| `JH_MMO_Equip_03` | `734624d4-daf4-4c46-a889-dee7a24d1081` | 03 근위 |
+| `JH_MMO_Env_Village` | `d8d1b742-2f04-4cc2-a878-7ad52df1a3c3` | 마을·정거장·성벽 소품 |
+| `JH_MMO_Env_Dungeon` | `0d842431-6c9c-4a2a-8dfc-9fc0540cb7e9` | 던전 소품 |
+| `JH_MMO_NPC` | `68d1c4bb-1494-4d11-a3b8-c91408483ee6` | 마을 NPC·몬스터(사람형 의상 줄 + 동물 줄) |
+| `JH_MMO_Archive` | `fb0fad37-d136-4ac6-b85c-006e9a98f533` | 옛 `JH_MMO`. 보관 전용, 새 노드 금지 |
+
+- **모든 VARCO 호출에 `flowId`를 넣는다.** 생략하면 브라우저에서 마지막으로 연 플로우에 작업이 들어간다.
+- 기록(`TESTING.md` 등)은 `플로우 이름/노드ID`로 적는다.
+- 각 플로우 위쪽에 템플릿 한 줄이 있다: `TextInput` → `GenerateImage`(기준 이미지 참조) → `EditImage`(멀티뷰) → `Generate3D`. 새 에셋은 이 줄을 복제해서 쓴다.
+- 기준 이미지는 출력 URL(`https://3d.varco.ai/api/objects/<해시>.png`)을 `ImageInput`에 그대로 넣는다. 다른 플로우의 URL도 다시 올리지 않고 쓸 수 있다.
+- 이미 만든 모델은 다시 만들지 않는다. 새 플로우는 새로 만드는 에셋에만 쓴다.
+
+## 화풍 수치 검사 (D-279)
+
+- 멀티뷰 확인 다음, 3D 생성 전에 돌린다: `python -I -X utf8 .claude/skills/varco-gear/scripts/lineup.py <시트.png> --stats <새 컨셉> <같은 묶음 승인 컨셉들>`
+  - 수치만 보려면 출력 파일 자리에 `-`를 넣는다.
+- 통과 조건: 같은 묶음 평균과 채도 차이 ±0.08 이내 + 눈으로 색·톤 / 질감·화풍 / 시대감 각 17/20 이상. 세계 기준 채도는 0.36이다.
+- 2026-11-23 사례: 01 가죽은 컨셉 채도 0.53으로 불합격이었다. 이미 만든 9개는 다시 생성하지 않았다. 대신 `M_Equip_PBR`의 `Desat`을 0.4로 넣어 아이콘 채도를 0.69에서 0.54로 낮췄다(`WorldTools.world_step` `eq_color {prefix "01_", desat 0.4}`, 0포인트).
+- UE 아이콘 수치는 조명이 달라 컨셉 기준값과 비교하지 않는다. 아이콘끼리 비교한다.
+- 아이콘을 다시 찍을 때(`kit-gear` `icon`):
+  - 에디터를 새로 켰거나 부모 머티리얼을 다시 컴파일했으면, 첫 촬영이 비거나 회색 또는 흐리게 나온다.
+  - 먼저 `world_step` `eq_icon_warm {keys}`(텍스처 완전 로드)를 하고 다음 호출에서 `icon_shoot`을 한다. 끝나면 `eq_icon_warm_clear`를 한다.
+  - 촬영 전에 백그라운드 절전(`bThrottleCPUWhenNotForeground`)을 끄고, 끝나면 되돌린다.
+
 ## 입력 이미지
 
 - 로컬 이미지 업로드는 base64를 도구 인자에 통째로 실어야 해서 1MB급 PNG는 불가 → VARCO 안에서 `EditImage`로 기존 노드 이미지를 편집한다(배경 교체 등). 기본 모델은 장당 약 50포인트.
