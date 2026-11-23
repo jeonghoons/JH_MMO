@@ -3794,6 +3794,17 @@ void Room::CastSkill(shared_ptr<Character> caster, int slot, int targetId, float
 			static_pointer_cast<Player>(caster)->BeginMoveLock(chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count(), timing.moveLockMs, *rule);
 	}
 
+	// 느린 관통 투사체는 지면 목표가 없으므로 aim 지점 자리에 벽·지형에 막혀 멈추는 끝점을 싣는다(FP1 — 클라이언트 화살이 같은 곳에서 멈춤).
+	// 이동 잠금으로 판정 시점의 출발점도 이 자리라 CreatePierceProjectile이 다시 계산해도 같은 값이 나온다.
+	if (skill->hitShape == HitShape::Pierce)
+	{
+		const Protocol::PositionInfo& from = caster->GetPosition();
+		const float range = ComputePierceRange(from, yaw, *skill);
+		const float yawRad = yaw * MathUtils::PI / 180.0f;
+		ax = from.x() + std::cos(yawRad) * range;
+		ay = from.y() + std::sin(yawRad) * range;
+	}
+
 	BroadcastAOI(caster, PacketSerializer::MAKE_SC_ATTACK(caster->GetId(), skill->skillId, targetId, yaw, ax, ay, static_cast<int>(timing.cooldownMs), seq), true);
 
 	// 피해 = 스킬 BaseDamage + 시전자 공격력 × AttackScale ÷ 100 (D-112·D-253). 시전 순간에 확정해 즉시 판정·투사체·장판(틱마다 같은 값)에 쓴다
@@ -3878,6 +3889,34 @@ void Room::UpdateZones()
 		++i;
 	}
 }
+float Room::ComputePierceRange(const Protocol::PositionInfo& start, float yawDeg, const SkillData& skill)
+{
+	// 벽·지형에 막히면 거기서 멈춘다(D-278): 끝점이 막혀 있으면 막히지 않는 가장 먼 거리를 이분 탐색으로 찾는다(RayCast는 막히지 않으면 true).
+	const float yawRad = yawDeg * MathUtils::PI / 180.0f;
+	const float dirX = std::cos(yawRad), dirY = std::sin(yawRad);
+	auto pointAt = [&](float dist)
+	{
+		Protocol::PositionInfo p = start;
+		p.set_x(start.x() + dirX * dist);
+		p.set_y(start.y() + dirY * dist);
+		return p;
+	};
+	float maxDist = skill.range;
+	NavmeshManager* nav = GetNavManager();
+	if (nav != nullptr && !nav->RayCast(start, pointAt(maxDist)))
+	{
+		float lo = 0.f, hi = maxDist;
+		for (int i = 0; i < 8; ++i)   // 2500cm 기준 약 10cm 정밀도
+		{
+			const float mid = (lo + hi) * 0.5f;
+			if (nav->RayCast(start, pointAt(mid))) lo = mid;
+			else hi = mid;
+		}
+		maxDist = lo;
+	}
+	return maxDist;
+}
+
 void Room::CreatePierceProjectile(shared_ptr<Character> attacker, const SkillData& skill, float yawDeg, int damage)
 {
 	if (_closed.load() || attacker == nullptr) return;
@@ -3895,27 +3934,7 @@ void Room::CreatePierceProjectile(shared_ptr<Character> attacker, const SkillDat
 	proj.damage = damage;
 	proj.lastTime = chrono::steady_clock::now();
 
-	// 벽·지형에 막히면 거기서 멈춘다(D-278): 끝점이 막혀 있으면 막히지 않는 가장 먼 거리를 이분 탐색으로 찾는다(RayCast는 막히지 않으면 true).
-	auto pointAt = [&](float dist)
-	{
-		Protocol::PositionInfo p = start;
-		p.set_x(proj.ox + proj.dirX * dist);
-		p.set_y(proj.oy + proj.dirY * dist);
-		return p;
-	};
-	float maxDist = skill.range;
-	NavmeshManager* nav = GetNavManager();
-	if (nav != nullptr && !nav->RayCast(start, pointAt(maxDist)))
-	{
-		float lo = 0.f, hi = maxDist;
-		for (int i = 0; i < 8; ++i)   // 2500cm 기준 약 10cm 정밀도
-		{
-			const float mid = (lo + hi) * 0.5f;
-			if (nav->RayCast(start, pointAt(mid))) lo = mid;
-			else hi = mid;
-		}
-		maxDist = lo;
-	}
+	const float maxDist = ComputePierceRange(start, yawDeg, skill);
 	proj.maxDist = maxDist;
 	LOG_DEBUG("Combat", "Pierce 생성: 시전자 {} 출발 ({:.0f}, {:.0f}) yaw {:.1f} 사거리 {:.0f}/{:.0f}", proj.attackerId, proj.ox, proj.oy, yawDeg, maxDist, skill.range);
 	if (proj.maxDist <= 0.f) return;

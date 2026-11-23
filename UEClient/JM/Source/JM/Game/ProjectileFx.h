@@ -28,6 +28,9 @@ public:
 	// 메시를 함께 싣는다(SK2 3003 빛의 화살, D-278): 진행 방향으로 눕혀 붙이고 GrowSec 동안 StartScale → EndScale로 키운다.
 	void AttachMesh(UStaticMesh* Mesh, float StartScale, float EndScale, float GrowSec);
 
+	// 서버가 알려 준 끝점(관통 투사체가 벽·지형에 막혀 멈추는 곳, SC_ATTACK aim 지점)에서 멈추게 남은 거리를 고친다(FP1).
+	void SetEndPoint(const FVector2D& End);
+
 	virtual void Tick(float DeltaSeconds) override;
 
 private:
@@ -48,4 +51,9 @@ private:
 	float Speed = 0.f;
 	float RemainDist = 0.f;
 	bool bFinished = false;
+	// 대상 없는 관통 투사체: 수평으로 나아가며 높이는 지면 + GroundHeight를 따라간다(FP1 — 비탈에서 땅에 묻히거나 떠 보이던 것)
+	bool bGroundFollow = false;
+	float GroundHeight = 0.f;
+	// 지면 높이(못 찾으면 false). 캐릭터·투사체가 아닌 고정 지형·충돌 도형만 본다
+	bool TraceGround(const FVector& At, float& OutZ) const;
 };

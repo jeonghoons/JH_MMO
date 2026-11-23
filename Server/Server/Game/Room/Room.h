@@ -320,6 +320,8 @@ public:
 	void CreateZone(shared_ptr<Character> attacker, const SkillData& skill, float x, float y, int damage);
 	// 느린 관통 투사체 (HitShape::Pierce, SK2 D-278): 시전자 위치에서 yaw 방향으로 날아가며 Room::UpdateProjectiles가 판정한다
 	void CreatePierceProjectile(shared_ptr<Character> attacker, const SkillData& skill, float yawDeg, int damage);
+	// 관통 투사체가 벽·지형(내비메시)에 막혀 멈추는 거리(최대 skill.range). SC_ATTACK의 aim 지점(끝점)에도 쓴다(FP1)
+	float ComputePierceRange(const Protocol::PositionInfo& start, float yawDeg, const SkillData& skill);
 	// Npc
 	void NpcEnterRoom(shared_ptr<Monster> monster);
 	// 스폰 마커 반경 안의 임의 위치에 몬스터 한 마리를 만든다. templateId·respawnMs는 SpawnTable 행(구역 이름이 없는 마커는 마커 값·0). respawnMs 0 = MonsterTable 값

@@ -384,6 +384,13 @@ void UJMObjectManager::HandleAttack(int32 AttackerId, int32 SkillId, int32 Targe
 
 		// 내 시전은 입력 때 이미 몽타주·이펙트·쿨타임을 시작했다(CP1). 확정만 하고 다시 재생하지 않는다.
 		// false = 먼저 시작한 것이 없거나(순번 0) 서버가 다른 스킬로 확정했다 → 아래에서 서버 값으로 재생한다.
+		// 관통 투사체: 서버가 aim 지점 자리에 벽·지형에 막혀 멈추는 끝점을 싣는다(FP1). 화살 연출이 나갈 때(또는 이미 나갔으면 ConfirmCast가) 쓴다.
+		if (UDataManager* DM = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr)
+		{
+			if (const FSkillTableRow* PierceSkill = DM->FindSkillById(SkillId); PierceSkill && PierceSkill->HitShape == ESkillHitShape::Pierce)
+				Attacker->SetPierceEnd(FVector2D(AimX, AimY));
+		}
+
 		if (Attacker == MyPlayer && MyPlayer->ConfirmCast(Seq, SkillId, AimX, AimY)) return;
 
 		UDataManager* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManager>() : nullptr;

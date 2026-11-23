@@ -24,6 +24,8 @@ void ANpcCharacter::SetPlayerData(const Protocol::ObjectInfo& ObjInfo)
 	{
 		bAppearanceApplied = true;
 		ApplyMonsterAppearance(ObjInfo.template_id());
+		// 스폰 위치는 서버 z(지면)라 크기를 입힌 뒤 캡슐 중심 높이로 올린다
+		SetActorLocation(FVector(ObjInfo.position().x(), ObjInfo.position().y(), ObjInfo.position().z() + GetServerZOffset()));
 	}
 
     if (UHpBarWidget* HpWidget = Cast<UHpBarWidget>(HpBarComponent->GetUserWidgetObject()))
@@ -53,6 +55,12 @@ void ANpcCharacter::ApplyMonsterAppearance(int32 TemplateId)
 	// 크기: 액터 전체에 곱한다(캡슐·메시·HP 막대 위치가 함께 변한다). 서버 판정은 같은 행의 BodyRadiusCm를 쓴다.
 	if (Row->Scale > 0.f && !FMath::IsNearlyEqual(Row->Scale, 1.f))
 		SetActorScale3D(FVector(Row->Scale));
+}
+
+float ANpcCharacter::GetServerZOffset() const
+{
+	const UCapsuleComponent* Capsule = GetCapsuleComponent();
+	return Capsule ? Capsule->GetScaledCapsuleHalfHeight() : 0.f;
 }
 
 void ANpcCharacter::OnDamaged(int damage, int remainHp)

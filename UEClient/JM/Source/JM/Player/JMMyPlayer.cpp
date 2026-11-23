@@ -22,6 +22,7 @@
 #include "Game/DropItemActor.h"
 #include "Game/JMInventoryManager.h"
 #include "Game/JMObjectManager.h"
+#include "Game/ProjectileFx.h"
 #include "Game/JMTradeManager.h"
 #include "Game/JMShopManager.h"
 #include "Game/JMPartyManager.h"
@@ -507,7 +508,11 @@ void AJMMyPlayer::ShowSkillIndicator(const FSkillTableRow& Skill, const FAimResu
 
 	constexpr float BorderCm = 8.f;
 	const float Extent = FMath::Max(HalfF, HalfS) + 20.f;
-	SkillIndicator->DecalSize = FVector(120.f, Extent, Extent);   // (위아래 투영 깊이, 바닥 두 축) — 깊이를 얕게 해 캐릭터 몸에 덜 묻게
+	// (위아래 투영 깊이, 바닥 두 축) — 깊이를 얕게 해 캐릭터 몸에 덜 묻게. 단 멀리 뻗는 모양(장판 지점·관통 25m)은 비탈에서
+	// 발 높이와 지면 차이가 1.2m를 넘으면 잘려 보였다 — 크기에 비례해 깊게(FP1)
+	const float Depth = (Skill.HitShape == ESkillHitShape::Sector) ? 120.f
+		: (Skill.HitShape == ESkillHitShape::Zone) ? 400.f : FMath::Max(120.f, Extent * 0.25f);
+	SkillIndicator->DecalSize = FVector(Depth, Extent, Extent);
 	SkillIndicator->SetWorldLocation(FVector(Center.X, Center.Y, FeetZ));
 	SkillIndicator->SetWorldRotation(FRotator(-90.f, 0.f, 0.f));
 	SkillIndicatorMID->SetScalarParameterValue(TEXT("CenterX"), Center.X);
@@ -677,6 +682,14 @@ bool AJMMyPlayer::ConfirmCast(uint32 Seq, int32 SkillId, float AimX, float AimY)
 		UE_LOG(LogTemp, Warning, TEXT("[Cast] 확정 스킬 불일치 seq=%u local=%d server=%d"), Seq, PendingCast.SkillId, SkillId);
 		UndoPendingCast();
 		return false;
+	}
+
+	// 관통 투사체가 확정보다 먼저 나갔으면(타격 시점이 왕복보다 짧음) 서버 끝점에서 멈추게 한다(FP1).
+	if (PendingCast.Projectile.IsValid())
+	{
+		FVector2D End;
+		if (AProjectileFx* Proj = Cast<AProjectileFx>(PendingCast.Projectile->Get()); Proj && ConsumePierceEnd(End))
+			Proj->SetEndPoint(End);
 	}
 
 	// 서버가 장판 지점을 다르게 보정했으면 이펙트를 그 자리로 옮긴다.

@@ -75,9 +75,12 @@ void AJMCharacterBase::ApplyNetworkMovement(float DeltaTime)
 	FVector DestVel(DestPosition.v_x(), DestPosition.v_y(), DestPosition.v_z());
 
 	const bool bRemotePlayer = ObjectInfo.object_type() == Protocol::OBJECT_TYPE_PLAYER;
-	if (FVector::Dist(CurrentLoc, DestPos) > RemoteSnapDistCm)
+	// 서버 z가 지면인 몬스터는 캡슐 중심 높이로 올려 따라간다. 지면을 따라가면 매 프레임 땅속으로 끌려 내려갔다가
+	// 이동 컴포넌트가 다시 밀어 올려, 서 있는 몬스터가 위아래로 떨었다(FP1 측정: 프레임마다 10~20cm 당김, 3~4cm 진동).
+	const FVector ZOffset(0.f, 0.f, GetServerZOffset());
+	if (FVector::Dist(CurrentLoc, DestPos + ZOffset) > RemoteSnapDistCm)
 	{
-		SetActorLocation(DestPos);
+		SetActorLocation(DestPos + ZOffset);
 		if (bRemotePlayer) FNetMoveStats::Get().AddSnap();
 	}
 	else
@@ -86,7 +89,7 @@ void AJMCharacterBase::ApplyNetworkMovement(float DeltaTime)
 		DestPosition.set_x(DestPos.X);
 		DestPosition.set_y(DestPos.Y);
 		DestPosition.set_z(DestPos.Z);
-		FVector NewLoc = FMath::VInterpTo(CurrentLoc, DestPos, DeltaTime, RemoteInterpSpeed);
+		FVector NewLoc = FMath::VInterpTo(CurrentLoc, DestPos + ZOffset, DeltaTime, RemoteInterpSpeed);
 		// 따라잡기 속도 상한(MC4.1b): 비례 추적은 차이가 크면(급회전 직후) 순간 속도가 이동 스탯의 몇 배가 된다.
 		// 한 프레임 이동량을 이동 스탯 × 배율로 자른다. 차이가 RemoteSnapDistCm를 넘으면 위에서 순간이동한다.
 		const float MaxSpeed = GetCharacterMovement() ? GetCharacterMovement()->MaxWalkSpeed : 0.f;
@@ -122,6 +125,24 @@ void AJMCharacterBase::SyncTransformToInfo()
 	PosInfo->set_v_x(CurrentVel.X);
 	PosInfo->set_v_y(CurrentVel.Y);
 	PosInfo->set_v_z(CurrentVel.Z);
+}
+
+void AJMCharacterBase::SetPierceEnd(const FVector2D& End)
+{
+	bHasPierceEnd = true;
+	PierceEnd = End;
+	PierceEndTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+}
+
+bool AJMCharacterBase::ConsumePierceEnd(FVector2D& OutEnd)
+{
+	if (!bHasPierceEnd) return false;
+	bHasPierceEnd = false;
+	// 타격 시점(수백 ms) 안에 쓰이지 않은 값은 다른 시전의 것이다(거부·취소된 시전)
+	constexpr double MaxAgeSec = 2.0;
+	if (GetWorld() && GetWorld()->GetTimeSeconds() - PierceEndTime > MaxAgeSec) return false;
+	OutEnd = PierceEnd;
+	return true;
 }
 
 void AJMCharacterBase::SetDestInfo(const Protocol::PositionInfo& PosInfo)

@@ -17,6 +17,14 @@ namespace
 	constexpr float ArriveDistCm = 40.f;
 	// 끈 뒤 리본 꼬리가 사라질 때까지 남겨 두는 시간
 	constexpr float FadeOutSec = 0.5f;
+	// 관통 투사체가 시전자 중심에서 앞으로 이만큼 나간 자리에서 보이기 시작한다(활을 든 손 앞)
+	constexpr float PierceStartForwardCm = 40.f;
+	// 지면 따라가기: 지면 위 높이 범위, 높이를 맞추는 속도, 아래로 찾는 깊이
+	constexpr float GroundHeightMinCm = 60.f;
+	constexpr float GroundHeightMaxCm = 200.f;
+	constexpr float GroundFollowInterpSpeed = 12.f;
+	constexpr float GroundTraceUpCm = 300.f;
+	constexpr float GroundTraceDownCm = 2000.f;
 }
 
 AProjectileFx::AProjectileFx()
@@ -39,6 +47,12 @@ AProjectileFx* AProjectileFx::Launch(AJMCharacterBase* Attacker, AJMCharacterBas
 	}
 
 	FVector Dir = FRotator(0.f, AimYaw, 0.f).Vector();
+	// 대상 없는 관통 투사체는 서버 판정선(시전자 중심에서 AimYaw 방향)과 같은 선을 날게 한다 — 손 소켓은 높이만 쓴다(FP1).
+	if (Target == nullptr)
+	{
+		const FVector Center = Attacker->GetActorLocation();
+		Start = FVector(Center.X, Center.Y, Start.Z) + Dir * PierceStartForwardCm;
+	}
 	if (Target)
 	{
 		const FVector ToTarget = Target->GetActorLocation() - Start;
@@ -54,6 +68,18 @@ AProjectileFx* AProjectileFx::Launch(AJMCharacterBase* Attacker, AJMCharacterBas
 	Proj->Direction = Dir;
 	Proj->Speed = Speed;
 	Proj->RemainDist = MaxRange;
+	if (Target == nullptr)
+	{
+		float GroundZ = 0.f;
+		if (Proj->TraceGround(Start, GroundZ))
+		{
+			Proj->bGroundFollow = true;
+			Proj->GroundHeight = FMath::Clamp(Start.Z - GroundZ, GroundHeightMinCm, GroundHeightMaxCm);
+		}
+		// 서버 끝점이 먼저 와 있으면(원격 시전, 또는 타격 시점보다 빨리 온 내 시전 확정) 거기서 멈춘다
+		FVector2D End;
+		if (Attacker->ConsumePierceEnd(End)) Proj->SetEndPoint(End);
+	}
 	if (Fx)
 	{
 		Proj->FxComp = UGameplayStatics::SpawnEmitterAttached(Fx, Proj->GetRootComponent(), NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
@@ -107,9 +133,39 @@ void AProjectileFx::Tick(float DeltaSeconds)
 		Direction = ToTarget / Dist;
 	}
 
-	SetActorLocationAndRotation(Here + Direction * Step, Direction.Rotation());
+	FVector Next = Here + Direction * Step;
+	if (bGroundFollow)
+	{
+		float GroundZ = 0.f;
+		if (TraceGround(Next, GroundZ))
+			Next.Z = FMath::FInterpTo(Here.Z, GroundZ + GroundHeight, DeltaSeconds, GroundFollowInterpSpeed);
+	}
+	const FVector Moved = Next - Here;
+	SetActorLocationAndRotation(Next, Moved.IsNearlyZero() ? Direction.Rotation() : Moved.Rotation());
 	RemainDist -= Step;
 	if (RemainDist <= 0.f) Finish();
+}
+
+void AProjectileFx::SetEndPoint(const FVector2D& End)
+{
+	// 남은 거리 = 지금 위치에서 끝점까지의 진행 방향 성분(수평). 이미 지났으면 바로 끝낸다
+	const FVector Here = GetActorLocation();
+	const FVector2D Dir2D = FVector2D(Direction.X, Direction.Y).GetSafeNormal();
+	RemainDist = FVector2D::DotProduct(End - FVector2D(Here.X, Here.Y), Dir2D);
+	if (RemainDist <= 0.f) Finish();
+}
+
+bool AProjectileFx::TraceGround(const FVector& At, float& OutZ) const
+{
+	UWorld* World = GetWorld();
+	if (World == nullptr) return false;
+	FHitResult Hit;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(ProjectileGround), false, this);
+	const FVector From = At + FVector(0.f, 0.f, GroundTraceUpCm);
+	const FVector To = At - FVector(0.f, 0.f, GroundTraceDownCm);
+	if (!World->LineTraceSingleByObjectType(Hit, From, To, FCollisionObjectQueryParams(ECC_WorldStatic), Params)) return false;
+	OutZ = Hit.ImpactPoint.Z;
+	return true;
 }
 
 void AProjectileFx::Finish()

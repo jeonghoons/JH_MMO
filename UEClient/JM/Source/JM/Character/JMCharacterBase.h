@@ -80,6 +80,12 @@ public:
 	virtual int32 GetWeaponStance() const { return IsSkillAiming() ? 2 : 1; }
 	// 보조손(방패)을 들었는가(MC4.2f, UJMAnimInstance.LeftArmOverrideAlpha). 플레이어만 장비가 있다.
 	virtual bool HasOffhandItem() const { return false; }
+	// 서버 위치 z에 더할 높이. 플레이어는 캡슐 중심을 주고받아 0, 서버가 지면 높이를 주는 몬스터는 캡슐 반높이(FP1)
+	virtual float GetServerZOffset() const { return 0.f; }
+
+	// 관통 투사체 끝점(FP1): SC_ATTACK의 aim 지점. 투사체 연출이 나갈 때 꺼내 쓴다(오래된 값은 버림)
+	void SetPierceEnd(const FVector2D& End);
+	bool ConsumePierceEnd(FVector2D& OutEnd);
 	// 장착 무기의 넣기 값(UEquipmentComponent가 로드 뒤 호출). bCanSheathe가 false면 무기를 항상 손에 든다.
 	virtual void SetSheatheData(bool bCanSheathe, float DelaySec, class UAnimMontage* Montage, float SwapSec) {}
 
@@ -114,6 +120,10 @@ protected:
 
 	// 사망한 뒤에는 서버가 보내는 좌표로 보간하지 않는다. 서버 Z는 바닥 높이라서 따라가면 캡슐 중심이 바닥까지 내려와 몸이 땅에 박힌다.
 	bool bIsDead = false;
+
+	bool bHasPierceEnd = false;
+	FVector2D PierceEnd = FVector2D::ZeroVector;
+	double PierceEndTime = 0.0;
 
 	int32 AimSkillId = 0;
 	float AimSpeedMul = 1.f;
