@@ -1,0 +1,8 @@
+done hunt250_cmp
+done idle_200
+done move_200
+done chat_200
+done hunt_200
+done loot_200
+done trade_200
+done auction_200

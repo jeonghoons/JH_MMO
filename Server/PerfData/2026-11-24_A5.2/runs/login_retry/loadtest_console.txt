@@ -1,0 +1,25 @@
+[loadtest] host=127.0.0.1:8888 bots=50 ramp=50/s duration=45s threads=2 profile=move login=account body=male chaos=0 out=C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A5.2\runs\login_retry\loadtest.csv
+[bot] data tables loaded: skills 15, auction npc 1002, shop npc 1001 (../../Common/DataTable/)
+[loadtest] server process 'GameServer.exe' not found; server CPU/memory columns will be 0
+[t=  5s] connected=0 inGame=0 connFail=52 closed=0 | ping p50/p95/p99/max=0.0/0.0/0.0/0.0 ms | sent/s=0 recv/s=0 | server cpu=0% mem=0MB | maxBot=0.0KB/s botCpu=0%
+[bot] nav loaded: Resource/Map/Continent01_Geo.nav
+[bot] bot0 login: id=7 playerType=2 maxHp=1020 attack=45 attackSpeed=1.00 moveSpeed=500.0 pos=(0, 0, 0)
+[bot] bot0 sees object id=7 type=1 playerType=2 template=0 pos=(-19074,-16643)
+[bot] bot0 inventory: items=11 gold=3772 slots=80
+[t= 10s] connected=50 inGame=50 connFail=95 closed=0 | ping p50/p95/p99/max=0.2/9.5/11.4/11.8 ms | sent/s=69 recv/s=495 | server cpu=0% mem=0MB | maxBot=2.0KB/s botCpu=3%
+[t= 15s] connected=50 inGame=50 connFail=95 closed=0 | ping p50/p95/p99/max=0.5/10.9/12.4/14.0 ms | sent/s=99 recv/s=763 | server cpu=0% mem=0MB | maxBot=2.7KB/s botCpu=4%
+[t= 20s] connected=50 inGame=50 connFail=95 closed=0 | ping p50/p95/p99/max=0.4/11.0/12.7/13.0 ms | sent/s=100 recv/s=772 | server cpu=0% mem=0MB | maxBot=2.3KB/s botCpu=4%
+[t= 25s] connected=50 inGame=50 connFail=95 closed=0 | ping p50/p95/p99/max=0.4/11.0/11.8/12.2 ms | sent/s=99 recv/s=760 | server cpu=0% mem=0MB | maxBot=2.0KB/s botCpu=2%
+[t= 30s] connected=50 inGame=50 connFail=95 closed=0 | ping p50/p95/p99/max=0.5/11.2/12.1/12.7 ms | sent/s=99 recv/s=784 | server cpu=0% mem=0MB | maxBot=2.5KB/s botCpu=3%
+[t= 35s] connected=50 inGame=50 connFail=95 closed=0 | ping p50/p95/p99/max=0.5/11.0/12.1/12.9 ms | sent/s=99 recv/s=786 | server cpu=0% mem=0MB | maxBot=2.7KB/s botCpu=3%
+[t= 40s] connected=50 inGame=50 connFail=95 closed=0 | ping p50/p95/p99/max=0.5/11.5/13.3/13.8 ms | sent/s=99 recv/s=740 | server cpu=0% mem=0MB | maxBot=2.7KB/s botCpu=4%
+[t= 45s] connected=50 inGame=50 connFail=95 closed=0 | ping p50/p95/p99/max=0.3/10.5/11.6/12.2 ms | sent/s=98 recv/s=755 | server cpu=0% mem=0MB | maxBot=2.4KB/s botCpu=4%
+
+[summary] attempts=145 ok=50 fail=95 loginOk=50 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 1.4/18.8/24.4/24.4 ms (n=50)
+[summary] ping    p50/p95/p99/max = 0.4/11.0/12.3/14.0 ms (n=1855)
+[summary] moveCorrected=0 pongs=1855 totalRecvBytes=2069667 peakBotRecv=2.7KB/s
+[summary] nav: pathSearch=329 pathFail=11
+[summary] profiles: move=50
+[summary] login: retry=95 giveUp=0 timeout=0 fail by LoginResult:
+[summary] inventory: SC_INVENTORY=50 SC_INVENTORY_UPDATE=0 giveSent=0 slotMoveSent=0 itemRejected(SC_ITEM_RESULT)=0 by ItemResult:

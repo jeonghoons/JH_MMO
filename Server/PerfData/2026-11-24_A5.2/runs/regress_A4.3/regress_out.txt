@@ -1,0 +1,20 @@
+PASS starts  (DB 아이템 338740, 골드 15493697 + 0 = 15493697)
+PASS trade  (DB 아이템 338740, 골드 15493697 + 0 = 15493697)
+PASS solo  (DB 아이템 338740, 골드 15493697)
+PASS isolate  (DB 아이템 338740, 골드 15493697)
+PASS cut_load  (DB 아이템 338740, 골드 15493697)
+PASS dup_load  (DB 아이템 338740, 골드 15493697)
+PASS party  (DB 아이템 338740, 골드 15493697)
+PASS revive  (DB 아이템 338740, 골드 15493697)
+sessions=0 players=0 itemOp(total sent/fail/busy inflight)=0/0/0 0 login(total kick/busy/forced)=1/0/0 world(channels/roster/chMax)=1/0/0 roomMove(total start/done/reject/timeout/cancel abortBusy/orphan/ownerBad)=29/26/1/0/2 0/0/0 party(now parties/members/invites total invite/accept/decline/timeout/reject created/disbanded)=0/0/0 3/3/0/0/2 2/2 dungeon(now/created/closed players)=0/8/8 0 auction(now listings/dbInFlight search/s total reg/buy/cancel/claim/expire reject/tryLater partial/conflict)=103/0 
+REGRESS RAW PASS (8 시나리오)
+done hunt_250
+A4.3 hunt_250: 표본 14행, 틱 지연 p99 중앙값 20.5ms(최대 44.0), 틱 본문 p99 중앙값 2.06ms, 잡 대기 p99 최대 47ms
+DG3c hunt_250: 표본 14행, 틱 지연 p99 중앙값 3.0ms(최대 13.0), 틱 본문 p99 중앙값 1.63ms, 잡 대기 p99 최대 25ms
+[summary] attempts=250 ok=250 fail=0 loginOk=250 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 1.7/3.9/5.3/6.5 ms (n=250)
+[summary] ping    p50/p95/p99/max = 1.4/13.2/23.9/66.5 ms (n=18064)
+[summary] moveCorrected=0 pongs=18064 totalRecvBytes=115361707 peakBotRecv=17.1KB/s
+[summary] nav: pathSearch=11995 pathFail=0
+[summary] profiles: hunt=250
+hunt_250 WARN·ERROR 로그 0
