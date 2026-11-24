@@ -16,7 +16,21 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 PERF = os.path.join(ROOT, 'Server', 'PerfData')
 LAPTOP = os.path.join(ROOT, 'Tools', 'BotPack', 'results')
 OUT = os.path.join(ROOT, 'Docs', 'benchmark')
+# --demo(A7.4 시연 영상 카드, D-311): 그림 4·5만 시연용 표기(내부 항목 ID·날짜·괄호 설명 없음)로 Docs/demo/fig/에 그린다. 보고서 그림은 건드리지 않음
+DEMO = '--demo' in sys.argv
+if DEMO:
+    OUT = os.path.join(ROOT, 'Docs', 'demo', 'fig')
 os.makedirs(OUT, exist_ok=True)
+
+
+def T(normal, demo):
+    return demo if DEMO else normal
+
+
+def save(fig, name):
+    if DEMO and not name.startswith(('4_', '5_')):
+        return
+    fig.savefig(os.path.join(OUT, name))
 
 plt.rcParams['font.family'] = 'Malgun Gothic'
 plt.rcParams['axes.unicode_minus'] = False
@@ -137,7 +151,7 @@ ax.axhline(20, color='#333', ls='--', lw=1)
 ax.annotate('합격선 20ms', (2.45, 20), fontsize=8, va='bottom', ha='right')
 ax.set_title('동접 인원별 서버 틱 지연 p99 — 2회 실행의 범위')
 fig.tight_layout()
-fig.savefig(os.path.join(OUT, '1_tick_late_by_players.png'))
+save(fig, ('1_tick_late_by_players.png'))
 plt.close(fig)
 
 # 그림 2: 인원별 송신 메시지/s
@@ -146,7 +160,7 @@ bar_pair(ax, 'out', ylabel='서버 송신 메시지/s')
 ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f'{v / 10000:g}만'))
 ax.set_title('동접 인원별 서버 송신 메시지 수 (Session::Send 호출 수)')
 fig.tight_layout()
-fig.savefig(os.path.join(OUT, '2_messages_out_by_players.png'))
+save(fig, ('2_messages_out_by_players.png'))
 plt.close(fig)
 
 # 그림 3: 인원별 서버 CPU·메모리
@@ -159,7 +173,7 @@ a1.set_title('서버 CPU (구간 중앙값)')
 bar_pair(a2, 'mem', ylabel='서버 작업 집합 MB')
 a2.set_title('서버 메모리 (구간 중앙값)')
 fig.tight_layout()
-fig.savefig(os.path.join(OUT, '3_cpu_memory_by_players.png'))
+save(fig, ('3_cpu_memory_by_players.png'))
 plt.close(fig)
 
 
@@ -174,8 +188,8 @@ def series(setname, run):
 
 
 fig, (a1, a2) = plt.subplots(2, 1, figsize=(9, 6.6), sharex=True)
-for setname, run, color, ls, name in [('2026-11-24_A5.4c', 's5000_1', BEFORE, '-', 'P2 전 1회'), ('2026-11-24_A5.4c', 's5000_2', BEFORE, '--', 'P2 전 2회'),
-                                      ('2026-11-24_A5.4d', 'd_s5000_1', AFTER, '-', 'P2 뒤 1회'), ('2026-11-24_A5.4d', 'd_s5000_2', AFTER, '--', 'P2 뒤 2회')]:
+for setname, run, color, ls, name in [('2026-11-24_A5.4c', 's5000_1', BEFORE, '-', T('P2 전 1회', '묶기 전 1회')), ('2026-11-24_A5.4c', 's5000_2', BEFORE, '--', T('P2 전 2회', '묶기 전 2회')),
+                                      ('2026-11-24_A5.4d', 'd_s5000_1', AFTER, '-', T('P2 뒤 1회', '묶기 후 1회')), ('2026-11-24_A5.4d', 'd_s5000_2', AFTER, '--', T('P2 뒤 2회', '묶기 후 2회'))]:
     s = series(setname, run)
     if s is None:
         continue
@@ -185,14 +199,14 @@ for setname, run, color, ls, name in [('2026-11-24_A5.4c', 's5000_1', BEFORE, '-
     if run == 'd_s5000_1':
         ax2 = a1.twinx()
         ax2.fill_between(t, players, color='#bbbbbb', alpha=0.25, step='mid')
-        ax2.set_ylabel('접속 인원 (회색, P2 뒤 1회)')
+        ax2.set_ylabel(T('접속 인원 (회색, P2 뒤 1회)', '접속 인원 (회색)'))
         ax2.set_ylim(0, 5500)
         ax2.grid(False)
 a1.set_yscale('log')
 a1.axhline(20, color='#333', ls='--', lw=1)
 a1.set_ylabel('틱 지연 p99 (ms, 로그)')
 a1.annotate('합격선 20ms', (2, 20), fontsize=8, va='bottom')
-a1.set_title('동접 5,000명 — 서버 시작부터의 시간축 (5초 구간)')
+a1.set_title(T('동접 5,000명 — 서버 시작부터의 시간축 (5초 구간)', '동접 5,000명 — 서버 시작부터의 시간축'))
 a1.legend(loc='upper left', fontsize=8)
 a2.set_yscale('log')
 a2.axhline(127, color='#333', ls=':', lw=1)
@@ -204,7 +218,7 @@ a1.annotate('측정 끝: 봇이 접속을 끊는 구간\n(집계 제외 — 접�
 a2.annotate('0은 그림에서 0.5로 표시', (186, 0.6), fontsize=8, ha='right', va='bottom', color='#555')
 a2.set_xlabel('서버 시작 뒤 경과 (초)')
 fig.tight_layout()
-fig.savefig(os.path.join(OUT, '4_5000_timeline.png'))
+save(fig, ('4_5000_timeline.png'))
 plt.close(fig)
 
 
@@ -232,19 +246,19 @@ for k in ('pre', 'after'):
 print()
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(9, 3.8))
 for ax, idx, ylabel, title in [(a1, 0, '핑 p99 (ms)', '핫존 100명 핑 p99'), (a2, 1, 'WSASend 1회당 메시지 수', '송신 묶임 정도')]:
-    for j, (k, color, name) in enumerate([('pre', BEFORE, '수정 전'), ('after', AFTER, '송신 묶기 후 (P1b)')]):
+    for j, (k, color, name) in enumerate([('pre', BEFORE, '수정 전'), ('after', AFTER, T('송신 묶기 후 (P1b)', '수정 후'))]):
         v = [x[idx] for x in p1[k]]
         b = ax.bar(j, np.mean(v), 0.55, color=color, yerr=[[np.mean(v) - min(v)], [max(v) - np.mean(v)]], capsize=4, ecolor='#444')
         fmt = '{:.2f}' if idx == 1 else '{:.1f}'
         ax.annotate(fmt.format(min(v)) + ('' if round(min(v), 2) == round(max(v), 2) else '~' + fmt.format(max(v))), (j, np.mean(v)), ha='center', va='bottom', fontsize=9, xytext=(0, 4), textcoords='offset points')
-    ax.set_xticks([0, 1], ['수정 전', 'P1b 후'])
+    ax.set_xticks([0, 1], ['수정 전', T('P1b 후', '수정 후')])
     ax.set_ylabel(ylabel)
     ax.set_title(title)
 a1.axhline(50, color='#333', ls='--', lw=1)
 a1.annotate('합격선 50ms', (1.3, 50), fontsize=8, va='bottom', ha='right')
-fig.suptitle('P1b 송신 묶기 (2026-11-19, 같은 PC·같은 시간대 2회씩)', fontsize=11)
+fig.suptitle(T('P1b 송신 묶기 (2026-11-19, 같은 PC·같은 시간대 2회씩)', '세션별 송신 묶기'), fontsize=11)
 fig.tight_layout()
-fig.savefig(os.path.join(OUT, '5_p1b_hotzone100.png'))
+save(fig, ('5_p1b_hotzone100.png'))
 plt.close(fig)
 
 
@@ -282,7 +296,7 @@ ax.set_ylabel('틱 지연 p99 (ms)')
 ax.set_title('서버 PC 전원 계획에 따른 틱 지연 (A5.4a, 같은 exe)')
 ax.legend()
 fig.tight_layout()
-fig.savefig(os.path.join(OUT, '6_power_plan.png'))
+save(fig, ('6_power_plan.png'))
 plt.close(fig)
 
 # 그림 7: 로그인 속도별 접속 시간 p99 (A5.4b, 계정 봇 idle, DB 연결 4)
@@ -312,7 +326,7 @@ ax.set_ylabel('접속 시간 (ms, 로그 축)')
 ax.set_title('로그인 처리량 — 첫 연결부터 방 입장까지 (A5.4b, DB 연결 4)')
 ax.legend()
 fig.tight_layout()
-fig.savefig(os.path.join(OUT, '7_login_throughput.png'))
+save(fig, ('7_login_throughput.png'))
 plt.close(fig)
 
 print('figures written to', OUT, file=sys.stderr)

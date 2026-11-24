@@ -1444,9 +1444,23 @@ def pie_walk(args):
     path = args.get("path") or [[args["x"], args["y"]]]
     if _pawn() is None:
         return {"error": "PIE 창 %d에 플레이어 폰이 없음" % idx}
+    # follow_cam(A7.4 시연 자동 플레이, D-311): 컨트롤러 yaw를 이동 방향으로 부드럽게 돌려 등 뒤 3인칭 시점을 만든다(카메라 붐이 컨트롤러 회전을 따름).
+    # pitch = 카메라 숙임(도, 음수가 내려다봄), turn_dps = 초당 최대 회전(도)
     walk = {"handle": None, "path": [[float(p[0]) * 100.0, float(p[1]) * 100.0] for p in path], "t0": time.time(),
-            "timeout": float(args.get("timeout", 40.0)), "tol": float(args.get("tol", 0.6)) * 100.0, "state": "walking"}
+            "timeout": float(args.get("timeout", 40.0)), "tol": float(args.get("tol", 0.6)) * 100.0, "state": "walking",
+            "follow": bool(args.get("follow_cam")), "pitch": float(args.get("pitch", -12.0)), "turn_dps": float(args.get("turn_dps", 180.0))}
     _PIE_WALKS[idx] = walk
+
+    def _follow(pawn, dx, dy, dt):
+        pc = pawn.get_controller()
+        if pc is None:
+            return
+        cur = pc.get_control_rotation()
+        want = math.degrees(math.atan2(dy, dx))
+        diff = (want - cur.yaw + 540.0) % 360.0 - 180.0
+        step_deg = walk["turn_dps"] * max(dt, 0.0)
+        yaw = want if abs(diff) <= step_deg else cur.yaw + math.copysign(step_deg, diff)
+        pc.set_control_rotation(unreal.Rotator(roll=0.0, pitch=walk["pitch"], yaw=yaw))
 
     def _tick(_dt):
         try:
@@ -1462,6 +1476,8 @@ def pie_walk(args):
                 return _stop("arrived", walk)
             dx, dy = walk["path"][0][0] - loc.x, walk["path"][0][1] - loc.y
             d = math.hypot(dx, dy)
+            if walk["follow"]:
+                _follow(pawn, dx, dy, _dt)
             pawn.add_movement_input(unreal.Vector(dx / d, dy / d, 0.0), 1.0, False)
         except Exception as e:   # PIE가 끝나 월드가 사라진 경우 등 — 콜백을 반드시 뗀다
             _stop("error: %s" % e, walk)
@@ -1470,13 +1486,207 @@ def pie_walk(args):
     return _report()
 
 
+# ── PIE 시나리오 재생(A7.4 시연 자동 플레이, D-311): 클립 한 개의 타임라인을 슬레이트 틱에서 차례로 실행 ──
+# MCP 호출 지연과 상관없이 일정한 박자로 움직이게 한다. 각 단계는 기존 world_step을 그대로 부른다(pie_exec·pie_walk·ui_pie·pp_aim 등).
+# args = {"name": 정의 이름, "steps": [[대기 ms, 단계 이름, 단계 args], ...]} — 대기 ms는 앞 단계가 끝난 뒤부터.
+#   특수 단계: ["wait_walk", {"world": n, "timeout": 초}] = 그 창의 pie_walk가 끝날 때까지 기다림(도착이 아니면 실패로 멈춤)
+#             ["goto", {"world": n, "to": "field" | "dungeon_front"}] = 포털 묶음(서버 [Debug] PortalNoRange=true 필요, 포털 재사용 대기만큼 사이를 둠)
+# {"status": true}면 진행 상태, {"stop": true}면 멈춤.
+if not hasattr(unreal, "_jm_pie_play"):
+    unreal._jm_pie_play = {}
+_PIE_PLAY = unreal._jm_pie_play
+
+_GOTO = {
+    "field": [["Portal 101"]],
+    # 사냥터 → 던전 안 → 출구로 나오면 던전 입구 앞(DG3c 출구 900의 도착지). 마을에서 부르면 101부터
+    "dungeon_front": [["Portal 101"], ["Portal 100"], ["Portal 900"]],
+}
+
+
+def pie_play(name, args):
+    import time
+    if args.get("status") or args.get("stop"):
+        p = _PIE_PLAY.get("cur")
+        if p and args.get("stop") and p.get("handle") is not None:
+            unreal.unregister_slate_post_tick_callback(p["handle"])
+            p["handle"] = None
+            p["state"] = "stopped"
+        out = {k: v for k, v in (p or {"state": "none"}).items() if k not in ("handle", "target", "log")}
+        if p:
+            out["log"] = [x for x in p["log"] if x[1] in ("kill", "hunt", "wait_walk", "approach", "aim_target") or x[0] == "error"][-12:]
+            out["t"] = round(time.time() - p["t0"], 1)
+        return out
+    old = _PIE_PLAY.get("cur")
+    if old and old.get("handle") is not None:
+        unreal.unregister_slate_post_tick_callback(old["handle"])
+    steps = []
+    for s in args.get("steps", []):
+        if s[1] == "goto":
+            a = s[2]
+            for i, cmd in enumerate(_GOTO[a["to"]]):
+                steps.append([s[0] if i == 0 else int(a.get("gap_ms", 6000)), "pie_exec", {"world": a.get("world", 0), "cmds": cmd}])
+        else:
+            steps.append(s)
+    play = {"handle": None, "i": 0, "n": len(steps), "state": "playing", "t_next": time.time() + steps[0][0] / 1000.0 if steps else 0,
+            "wait_until": None, "log": [], "t0": time.time()}
+    _PIE_PLAY["cur"] = play
+
+    def _finish(state):
+        if play.get("handle") is not None:
+            unreal.unregister_slate_post_tick_callback(play["handle"])
+            play["handle"] = None
+        play["state"] = state
+
+    def _tick(_dt):
+        try:
+            now = time.time()
+            if play["wait_until"] is not None:   # wait_walk 중
+                w = _PIE_WALKS.get(play["wait_world"])
+                st = w["state"] if w else "none"
+                if st == "walking" and now < play["wait_until"]:
+                    return
+                play["wait_until"] = None
+                if st != "arrived":
+                    play["log"].append([round(now - play["t0"], 2), "wait_walk", st])
+                    return _finish("failed: walk " + st)
+                play["i"] += 1
+                if play["i"] < play["n"]:
+                    play["t_next"] = now + steps[play["i"]][0] / 1000.0
+            if play["i"] >= play["n"]:
+                return _finish("done")
+            if now < play["t_next"]:
+                return
+            _, step, sargs = steps[play["i"]]
+            if step in ("hunt", "hunt_check"):
+                # 사냥 묶음: approach → AutoAttack → 잠깐 뒤 HUD 경험치 글자(TxtExp)를 읽어 바뀌었으면 처치 1(+ 줍기 Interact).
+                # args = {"world", "kills": 목표 처치 수, "slots": [공격 칸 순서](기본 [0]), "per": 칸마다 시전 수(기본 2),
+                #         "dist": 접근 거리 m, "pickup": 처치 뒤 줍기, "timeout": 초, "gap_ms": 공격 뒤 확인까지}
+                wi = int(sargs.get("world", 0))
+                h = sargs.setdefault("_h", {"kills": 0, "n": 0, "t0": now, "exp": None})
+                exp_now = None
+                try:
+                    r = run_step(name, "ui_pie", {"world": wi, "actions": [["read", "TxtExp"]]})
+                    exp_now = r["result"][0][2]
+                except Exception:
+                    pass
+                if step == "hunt":
+                    h["exp"] = exp_now
+                elif exp_now is not None and exp_now != h["exp"]:
+                    h["kills"] += 1
+                    h["exp"] = exp_now
+                    play["log"].append([round(now - play["t0"], 2), "kill", h["kills"], exp_now])
+                ins = []
+                if step == "hunt_check" and sargs.get("pickup") and h.get("picked", 0) < h["kills"]:
+                    h["picked"] = h["kills"]
+                    # 원거리(활)로 잡았으면 시체 자리까지 걸어간다(줍기 거리 3m)
+                    try:
+                        tgt = play.get("target")
+                        w = unreal.EditorLevelLibrary.get_pie_worlds(False)[wi]
+                        ml = unreal.GameplayStatics.get_player_pawn(w, 0).get_actor_location()
+                        tl = tgt.get_actor_location()
+                        if math.hypot(tl.x - ml.x, tl.y - ml.y) > 250.0:
+                            ins += [[300, "pie_walk", {"world": wi, "x": tl.x / 100.0, "y": tl.y / 100.0, "tol": 1.2, "timeout": 10, "follow_cam": True}],
+                                    [0, "wait_walk", {"world": wi, "timeout": 12}]]
+                    except Exception:
+                        pass
+                    # 드랍은 시체에서 떨어지는 연출 뒤에 생긴다(D-287) — 조금 기다렸다 줍고, 놓쳤을 때를 위해 한 번 더
+                    ins += [[1500, "pie_exec", {"world": wi, "cmds": ["Interact"]}], [1000, "pie_exec", {"world": wi, "cmds": ["Interact"]}]]
+                if h["kills"] < int(sargs.get("kills", 1)) and now - h["t0"] < float(sargs.get("timeout", 60.0)):
+                    slots = sargs.get("slots", [0])
+                    slot = slots[h["n"] % len(slots)]
+                    h["n"] += 1
+                    ins += [[0, "approach", {"world": wi, "dist": float(sargs.get("dist", 1.2))}],
+                            [100, "pie_exec", {"world": wi, "cmds": ["AutoAttack %d %d" % (int(sargs.get("per", 2)), slot)]}],
+                            [int(sargs.get("gap_ms", 1600)), "hunt_check", sargs]]
+                elif h["kills"] < int(sargs.get("kills", 1)):
+                    play["log"].append([round(now - play["t0"], 2), "hunt", "timeout", h["kills"]])
+                steps[play["i"] + 1:play["i"] + 1] = ins
+                play["n"] = len(steps)
+                play["i"] += 1
+                if play["i"] < play["n"]:
+                    play["t_next"] = now + steps[play["i"]][0] / 1000.0
+                return
+            if step == "approach":
+                # 가장 가까운 몬스터 앞 dist m까지 follow_cam으로 걸어가 조준한다(근접 무기 — 몬스터가 돌아다니므로 그때 위치로).
+                # args = {"world", "dist"(기본 1.5), "max_m"(이보다 먼 몬스터는 무시, 기본 40), "timeout"}
+                wi = int(sargs.get("world", 0))
+                w = unreal.EditorLevelLibrary.get_pie_worlds(False)[wi]
+                me = unreal.GameplayStatics.get_player_pawn(w, 0)
+                ml = me.get_actor_location()
+                import importlib
+                from jm_kit import pie_probe
+                importlib.reload(pie_probe)
+                bars = pie_probe._named_children(unreal.ProgressBar, {"HpProgressBar"})
+                best, bd = None, float(sargs.get("max_m", 40.0)) * 100.0
+                for a in unreal.GameplayStatics.get_all_actors_of_class(w, unreal.Character):
+                    if a.get_class().get_name() != "BP_Npc_C":
+                        continue
+                    if pie_probe._hp_ratio(a, bars) == 0:   # 죽어 쓰러진 몬스터(사라지기 전)는 고르지 않는다
+                        continue
+                    d = math.hypot(a.get_actor_location().x - ml.x, a.get_actor_location().y - ml.y)
+                    if d < bd:
+                        best, bd = a, d
+                if best is None:
+                    play["log"].append([round(now - play["t0"], 2), "approach", "no monster"])
+                    return _finish("failed: approach no monster")
+                tl = best.get_actor_location()
+                k = max(bd - float(sargs.get("dist", 1.5)) * 100.0, 0.0) / max(bd, 1.0)
+                tx, ty = ml.x + (tl.x - ml.x) * k, ml.y + (tl.y - ml.y) * k
+                steps[play["i"]] = [0, "pie_walk", {"world": wi, "x": tx / 100.0, "y": ty / 100.0, "tol": 0.5,
+                                                    "timeout": float(sargs.get("timeout", 15.0)), "follow_cam": True}]
+                play["target"] = best
+                steps[play["i"] + 1:play["i"] + 1] = [[0, "wait_walk", {"world": wi, "timeout": float(sargs.get("timeout", 15.0)) + 2}],
+                                                       [150, "aim_target", {"world": wi}]]
+                play["n"] = len(steps)
+                step, sargs = "pie_walk", steps[play["i"]][2]
+            if step == "aim_target":
+                # approach가 고른 그 몬스터 쪽으로 조준(pp_aim과 같은 방식 — 스프링 암 중심에서 대상까지). 사라졌으면 넘어감
+                wi = int(sargs.get("world", 0))
+                w = unreal.EditorLevelLibrary.get_pie_worlds(False)[wi]
+                pc = unreal.GameplayStatics.get_player_controller(w, 0)
+                me = pc.get_controlled_pawn() if pc else None
+                tgt = play.get("target")
+                try:
+                    if me is not None and tgt is not None:
+                        arms = me.get_components_by_class(unreal.SpringArmComponent)
+                        src = arms[0].get_world_location() if arms else me.get_actor_location()
+                        v = tgt.get_actor_location() - src
+                        pc.set_control_rotation(unreal.Rotator(roll=0.0, pitch=max(-25.0, math.degrees(math.atan2(v.z, math.hypot(v.x, v.y)))),
+                                                               yaw=math.degrees(math.atan2(v.y, v.x))))
+                except Exception as e:
+                    play["log"].append([round(now - play["t0"], 2), "aim_target", str(e)])
+                play["i"] += 1
+                if play["i"] < play["n"]:
+                    play["t_next"] = now + steps[play["i"]][0] / 1000.0
+                return
+            if step == "wait_walk":
+                play["wait_world"] = int(sargs.get("world", 0))
+                play["wait_until"] = now + float(sargs.get("timeout", 60.0))
+                return
+            res = run_step(name, step, dict(sargs))
+            short = res if not isinstance(res, dict) else {k: res[k] for k in list(res)[:4]}
+            play["log"].append([round(now - play["t0"], 2), step, short])
+            if isinstance(res, dict) and (res.get("error") or res.get("refused")):
+                return _finish("failed: %s" % (res.get("error") or res.get("refused")))
+            play["i"] += 1
+            if play["i"] < play["n"]:
+                play["t_next"] = now + steps[play["i"]][0] / 1000.0
+        except Exception as e:
+            play["log"].append(["error", str(e)])
+            _finish("error: %s" % e)
+
+    play["handle"] = unreal.register_slate_post_tick_callback(_tick)
+    return {"state": play["state"], "steps": play["n"]}
+
+
 # pie_exec가 받는 콘솔 명령(첫 단어, 소문자): 측정과 렌더 설정,
 # 그리고 게임의 개발용 콘솔 명령(AJMPlayerController — 서버가 검증하는 요청만 보냄: Give·Equip·Shop*, L4에서 추가)
 _PIE_EXEC_EXACT = {"csvprofile", "stat", "togglefullscreen", "give", "equip", "shopopen", "shopbuy", "shopsell", "shopclose", "netmovestats", "autoattack", "attackstats", "portal", "partyinvite", "partyrespond", "partyleave", "partyshow",
                    "auctionopen", "auctionsearch", "auctionsort", "auctionpage", "auctionmy", "auctionregister", "auctionbuy", "auctioncancel", "mailclaim", "auctionshow", "auctiontab", "auctionclose",
                    "questtalk", "questrequest", "questlog", "questshow", "questclose",
                    "highresshot", "shot", "uitoggle",
-                   "cursormode", "freelook", "rclick", "lclick", "rclickobject", "playermenu", "interactshow"}   # shot showui = UI 포함 캡처, uitoggle = 창 열기·닫기(D-270 UI 확인), cursormode~interactshow = UI6 커서 모드 우클릭(D-274) / 2026-11-22 무기별 사전 점검: PIE 화면을 Saved/Screenshots에 파일로 남김
+                   "cursormode", "freelook", "rclick", "lclick", "rclickobject", "playermenu", "interactshow",
+                   "interact", "quickslotset", "quickslot", "tradeoffer"}   # A7.4 시연 자동 플레이(D-311): F·숫자 키·칸 끌어 놓기·거래 제시와 같은 요청   # shot showui = UI 포함 캡처, uitoggle = 창 열기·닫기(D-270 UI 확인), cursormode~interactshow = UI6 커서 모드 우클릭(D-274) / 2026-11-22 무기별 사전 점검: PIE 화면을 Saved/Screenshots에 파일로 남김
 _PIE_EXEC_PREFIX = ("t.", "r.", "sg.", "grass.", "foliage.", "jm.")
 
 
@@ -1599,6 +1809,8 @@ def run_step(name, step, args=None):
         return {"widgets": len(found), "clicked": len(shown)}
     if step == "pie_walk":
         return pie_walk(args)
+    if step == "pie_play":
+        return pie_play(name, args)
     if step == "pie_pawn":
         # PIE 중인 플레이어 폰의 위치(m)와 그 자리의 지면 높이(정의 기준) — 서버 없는 걷기 자동 확인(TestAuto.txt)에서 씀
         worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)

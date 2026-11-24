@@ -46,6 +46,9 @@ protected:
 
 public:
 	// HUD 메뉴 버튼(UI8, D-277)이 단축키와 같은 처리를 부른다.
+	// 개발용 콘솔 명령(A7.4 시연 자동 플레이, D-311 — AJMPlayerController의 Interact·QuickSlot)이 키 입력과 같은 처리를 부른다.
+	void DevInteract() { OnInteractInput(); }
+	void DevQuickSlot(int32 Index) { OnQuickSlotInput(Index); }
 	void ToggleInventoryWindow() { OnInventoryInput(); }
 	void ToggleQuestWindow() { OnQuestInput(); }
 	void TogglePartyWindow() { OnPartyInput(); }

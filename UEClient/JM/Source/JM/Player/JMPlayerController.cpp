@@ -11,6 +11,7 @@
 #include "Game/JMInventoryManager.h"
 #include "Game/JMObjectManager.h"
 #include "Game/JMShopManager.h"
+#include "Game/JMTradeManager.h"
 #include "Game/JMPartyManager.h"
 #include "Game/JMAuctionManager.h"
 #include "Game/JMQuestManager.h"
@@ -375,6 +376,40 @@ void AJMPlayerController::Equip(int32 Part, int32 ItemId)
 	}
 	UE_LOG(LogTemp, Log, TEXT("Equip: part=%d item=%d dbId=%lld"), Part, ItemId, ItemDbId);
 	NetManager->SendChangeEquip(Part, ItemDbId);
+}
+
+void AJMPlayerController::Interact()
+{
+	// F 키와 같은 처리(A7.4 시연 자동 플레이, D-311) — 대상 선택과 요청은 AJMMyPlayer::OnInteractInput, 검증은 서버.
+	if (AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn())) MyPlayer->DevInteract();
+}
+
+void AJMPlayerController::QuickSlotSet(int32 Slot, int32 ItemId)
+{
+	// HUD 칸에 아이템을 끌어 놓은 것과 같은 요청(UCombatHudWidget::OnSlotItemDropped). 칸 번호는 1부터, 스킬이 있는 칸은 서버가 거부한다.
+	if (UNetworkManager* NetManager = UNetworkManager::Get(this))
+	{
+		UE_LOG(LogTemp, Log, TEXT("QuickSlotSet: slot=%d item=%d"), Slot, ItemId);
+		NetManager->SendSetQuickSlot(Slot, ItemId);
+	}
+}
+
+void AJMPlayerController::QuickSlot(int32 Slot)
+{
+	// 숫자 키 N과 같은 처리.
+	if (AJMMyPlayer* MyPlayer = Cast<AJMMyPlayer>(GetPawn())) MyPlayer->DevQuickSlot(Slot - 1);
+}
+
+void AJMPlayerController::TradeOffer(int32 ItemId, int32 Count)
+{
+	// 제시 단계에서 인벤토리 아이템을 우클릭한 것과 같은 처리(UInventoryWidget::OnSlotRightClicked → UJMTradeManager::AddItem).
+	UGameInstance* GameInstance = GetGameInstance();
+	UJMInventoryManager* Inventory = GameInstance ? GameInstance->GetSubsystem<UJMInventoryManager>() : nullptr;
+	UJMTradeManager* Trade = GameInstance ? GameInstance->GetSubsystem<UJMTradeManager>() : nullptr;
+	if (Inventory == nullptr || Trade == nullptr) return;
+	const int64 ItemDbId = Inventory->FindBagItemDbId(ItemId);
+	UE_LOG(LogTemp, Log, TEXT("TradeOffer: item=%d count=%d dbId=%lld offering=%d"), ItemId, Count, ItemDbId, Trade->IsOffering() ? 1 : 0);
+	if (ItemDbId != 0) Trade->AddItem(ItemDbId, Count);
 }
 
 void AJMPlayerController::Give(int32 ItemId, int32 Count)

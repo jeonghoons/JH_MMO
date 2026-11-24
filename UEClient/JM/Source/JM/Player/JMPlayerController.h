@@ -40,6 +40,20 @@ public:
     UFUNCTION(Exec)
     void Give(int32 ItemId, int32 Count = 1);
 
+    // Dev console commands (A7.4 demo auto-play, D-311): the same requests as key/mouse input, so Claude can play without a mouse.
+    //   "Interact"                    = F key (pick up the nearest drop, talk to an NPC, use a portal prompt).
+    //   "QuickSlotSet <slot 1~5> <itemId>" = dropping an item on HUD slot N (slots that hold a skill are rejected by the server).
+    //   "QuickSlot <slot 1~5>"        = number key N.
+    //   "TradeOffer <itemId> [count]" = right-clicking that item in the bag during the offer step (count 0 = whole stack).
+    UFUNCTION(Exec)
+    void Interact();
+    UFUNCTION(Exec)
+    void QuickSlotSet(int32 Slot, int32 ItemId);
+    UFUNCTION(Exec)
+    void QuickSlot(int32 Slot);
+    UFUNCTION(Exec)
+    void TradeOffer(int32 ItemId, int32 Count = 0);
+
     // Dev console commands (L4 shop): the same requests the shop window sends, for checks without mouse input.
     //   "ShopOpen"                 asks the nearest shop NPC in view for its item list (the window opens on SC_SHOP_OPEN).
     //   "ShopBuy <itemId> <count>"  buys from the open shop.
