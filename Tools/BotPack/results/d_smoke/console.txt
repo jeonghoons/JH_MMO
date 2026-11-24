@@ -1,0 +1,34 @@
+﻿[loadtest] host=<SERVER_IP>:8888 bots=20 ramp=20/s duration=30s threads=8 profile=idle=25,move=15,chat=10,hunt=20,loot=20,trade=5,auction=5 login=account body=male chaos=0 out=C:\Users\kjh98\MyProjects\JH_MMO\Tools\BotPack\results\d_smoke\loadtest.csv
+[bot] data tables loaded: skills 15, auction npc 1002, shop npc 1001 (C:\Users\kjh98\MyProjects\JH_MMO\Tools\BotPack\data/)
+[bot] auction npc marker: (-15600, 3500)
+[bot] monster spawns loaded: 49, town zones: 1 (C:\Users\kjh98\MyProjects\JH_MMO\Tools\BotPack\map\Continent01_Logic.json)
+[loadtest] server process 'none.exe' not found; server CPU/memory columns will be 0
+[bot] bot0 login: id=5 playerType=2 maxHp=1020 attack=45 attackSpeed=1.00 moveSpeed=500.0 pos=(0, 0, 0)
+[bot] bot0 sees object id=5 type=1 playerType=2 template=0 pos=(-4386,-14278)
+[bot] bot0 inventory: items=11 gold=3766 slots=80
+[bot] nav loaded: C:\Users\kjh98\MyProjects\JH_MMO\Tools\BotPack\nav/Continent01_Geo.nav
+[t=  5s] connected=20 inGame=20 connFail=0 closed=0 | ping p50/p95/p99/max=7.3/56.4/71.2/71.2 ms | sent/s=81 recv/s=226 | server cpu=0% mem=0MB | maxBot=1.9KB/s botCpu=0%
+[t= 10s] connected=20 inGame=20 connFail=0 closed=0 | ping p50/p95/p99/max=8.1/10.8/67.4/69.4 ms | sent/s=81 recv/s=218 | server cpu=0% mem=0MB | maxBot=1.5KB/s botCpu=0%
+[t= 15s] connected=20 inGame=20 connFail=0 closed=0 | ping p50/p95/p99/max=7.5/67.1/70.8/71.1 ms | sent/s=81 recv/s=232 | server cpu=0% mem=0MB | maxBot=1.3KB/s botCpu=3%
+[t= 20s] connected=20 inGame=20 connFail=0 closed=0 | ping p50/p95/p99/max=6.8/18.8/68.9/71.5 ms | sent/s=79 recv/s=218 | server cpu=0% mem=0MB | maxBot=1.3KB/s botCpu=4%
+[t= 25s] connected=20 inGame=20 connFail=0 closed=0 | ping p50/p95/p99/max=9.6/57.4/70.0/70.2 ms | sent/s=80 recv/s=240 | server cpu=0% mem=0MB | maxBot=1.3KB/s botCpu=4%
+[t= 30s] connected=20 inGame=20 connFail=0 closed=0 | ping p50/p95/p99/max=8.2/57.3/70.1/70.6 ms | sent/s=79 recv/s=245 | server cpu=0% mem=0MB | maxBot=1.4KB/s botCpu=2%
+[loadtest] summary csv: C:\Users\kjh98\MyProjects\JH_MMO\Tools\BotPack\results\d_smoke\loadtest.summary.csv
+
+[summary] attempts=20 ok=20 fail=0 loginOk=20 loginFail=0 unexpectedClose=0 protocolError=0 sendDropped=0
+[summary] login   p50/p95/p99/max = 10.1/20.0/29.7/29.7 ms (n=20)
+[summary] enter   p50/p95/p99/max = 32.2/49.5/52.3/52.3 ms (n=20)
+[summary] ping   p50/p95/p99/max = 8.0/57.0/70.2/71.5 ms (n=586)
+[summary] moveCorrected=0 pongs=587 totalRecvBytes=481544 peakBotRecv=1.9KB/s moveBatchRecv=4812
+[summary] nav: pathSearch=88 pathFail=0
+[summary] profiles: idle=5 move=3 chat=2 hunt=4 loot=4 trade=1 auction=1
+[summary] login: retry=0 giveUp=0 timeout=0 fail by LoginResult:
+[summary] lock: moveHeldByLock=2
+[summary] chat: sent=3 recv(SC_CHAT)=40
+[summary] loot: dropSeen=18 pickupSent=13 pickupOk=13 dropItemSent=0
+[summary] hunt: monsterAdded=148 monsterDead(SC_DEAD)=28 monsterRemoved(SC_REMOVE_OBJECT)=85 damagePackets=236
+[summary] attack: sent=70 ok(own SC_ATTACK)=61 rejected(SC_ATTACK_RESULT)=9 by AttackResult: 2=2 9=7
+[summary] growth: mpChangeRecv=124 expRecv=21
+[summary] inventory: SC_INVENTORY=20 SC_INVENTORY_UPDATE=13 giveSent=0 slotMoveSent=0 itemRejected(SC_ITEM_RESULT)=0 by ItemResult:
+[summary] portal: sent=1 moved(SC_TELEPORT)=0
+[summary] room: roomChange(SC_ROOM_CHANGE)=1 moveRejected(SC_MOVE_RESULT)=0 by MoveResult:

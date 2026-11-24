@@ -1,0 +1,2 @@
+﻿2026-11-24T09:45:47 --host <SERVER_IP> --port 8888 --bots 2500 --ramp-rate 100 --duration 145 --threads 8 --move-interval 200 --body male --login account --account-start 2500 --town-wander --mix idle=25,move=15,chat=10,hunt=20,loot=20,trade=5,auction=5 --nav-dir "C:\Users\kjh98\MyProjects\JH_MMO\Tools\BotPack\nav" --map "C:\Users\kjh98\MyProjects\JH_MMO\Tools\BotPack\map\Continent01_Logic.json" --data-dir "C:\Users\kjh98\MyProjects\JH_MMO\Tools\BotPack\data" --server-proc none.exe --out "C:\Users\kjh98\MyProjects\JH_MMO\Tools\BotPack\results\d_s5000_2\loadtest.csv"
+exit 0

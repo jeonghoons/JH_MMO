@@ -1,0 +1,8 @@
+﻿time      = 2026-11-24T09:29:37
+computer  = laptop
+cpu       = 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz cores=4 threads=8 maxMHz=2419
+memoryGB  = 7.7
+battery   = status=2 charge=100
+power     = 전원 구성표 GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (균형 조정)
+wifi      =     Radio type             : 802.11ax;     Receive rate (Mbps)    : 961;     Signal                 : 87% 
+stages    = d_smoke,d_s1000_1,d_s1000_2,d_s2500_1,d_s2500_2,d_s5000_1,d_s5000_2
