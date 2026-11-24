@@ -3,7 +3,7 @@
 ## 노트북 환경 (`env_d.txt`)
 - CPU: Intel Core i5-1135G7 (4코어/8스레드, 2.4GHz), 메모리 7.7GB
 - 전원: 충전기 연결(배터리 100%, 충전 중). 전원 모드(전원 연결 시 오버레이)는 실행 전부터 "최고 성능"(`ActiveOverlayAcPowerScheme = ded574b5-…`, 레지스트리로 확인) — `env_d.txt`의 `power` 줄은 전원 구성표(균형 조정)만 보여 줌. A5.4c와 같은 조건.
-- 네트워크: Wi-Fi 802.11ax, 수신 속도 1,201Mbps, 신호 87%
+- 네트워크: Wi-Fi 802.11ax, 수신 속도 961Mbps, 신호 87% (`env_d.txt` 기준 — 2026-11-24 A7.2에서 고침, 처음엔 A5.4c 값 1,201을 옮겨 적었음)
 - 실행 단계: d_smoke, d_s1000_1, d_s1000_2, d_s2500_1, d_s2500_2, d_s5000_1, d_s5000_2 (전 단계 exit 0, `error.txt` 없음)
 - LoadTest: pull한 새 빌드(`SC_MOVE_BATCH` 읽음 — 모든 단계 `moveBatchRecv` > 0)
 

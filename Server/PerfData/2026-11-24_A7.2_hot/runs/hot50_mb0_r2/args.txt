@@ -1,0 +1,5 @@
+1795484740 --bots 50 --ramp-rate 50 --duration 45 --threads 4 --move-interval 200 --body male --login dummy   --out C:\Users\kjhkjh\KJH\JH_MMO\Server\PerfData\2026-11-24_A7.2_hot\runs\hot50_mb0_r2\loadtest.csv --zone -14200,0,1000
+moveBatchMs 0 power 전원 구성표 GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c  (고성능)
+login dummy dummyRoom town townPct 30 dbConn 4
+loadtest exit 0
+run_id 20261124_104536

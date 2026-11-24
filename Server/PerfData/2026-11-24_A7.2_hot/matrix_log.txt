@@ -1,0 +1,9 @@
+done hot50_mb0_r1
+done hot50_mb33_r1
+done hot100_mb0_r1
+done hot100_mb33_r1
+done hot50_mb0_r2
+done hot50_mb33_r2
+done hot100_mb0_r2
+done hot100_mb33_r2
+matrix done
