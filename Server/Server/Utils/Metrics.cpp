@@ -136,6 +136,7 @@ namespace
 		RateCounter sendFlushes(NetStats::SendFlushes), sendContinues(NetStats::SendContinues), sendDirect(NetStats::SendDirect), sendKicks(NetStats::SendKicks);
 		RateCounter sendWakes(NetStats::SendWakes), jobsExecuted(NetStats::JobsExecuted), jobReposts(NetStats::JobReposts);
 		RateCounter auctionSearches(Metrics::AuctionSearches);
+		RateCounter moveBatchPackets(Metrics::MoveBatchPackets), moveBatchEntries(Metrics::MoveBatchEntries), moveBatchEarly(Metrics::MoveBatchEarly);
 		RateCounter accepts(NetStats::Accepts);
 		MsBucketStat flushGap(NetStats::FlushGapMs), jobWait(NetStats::JobWaitMs), jobDispatch(NetStats::JobDispatchMs);
 		RateCounter jobRunSum(NetStats::JobRunSumUs), flushRunSum(NetStats::FlushRunSumUs), flushRuns(NetStats::FlushRuns);
@@ -229,6 +230,7 @@ namespace
 			const double flushRunMaxMs = NetStats::FlushRunMaxUs.exchange(0) / 1000.0;
 			const Metrics::Percentiles wakeLate = Metrics::SendWakeLate.TakeAndReset();
 			const double auctionSearchPs = auctionSearches.Take();
+			const double mbPacketsPs = moveBatchPackets.Take(), mbEntriesPs = moveBatchEntries.Take(), mbEarlyPs = moveBatchEarly.Take();
 
 			LOG_INFO("metrics",
 				"sessions={} rooms={} players={} monsters={} in/s={:.0f} out/s={:.0f} sendCalls/s={:.0f} bufsPerSend={:.2f} atk(req/ok per s)={:.1f}/{:.1f} zones(total created/hits)={}/{} "
@@ -254,7 +256,7 @@ namespace
 				"quest(total accept/complete/kill/reject save sent/fail inflight)={}/{}/{}/{} {}/{} {} mailNotice={} "
 				"tickSplit(timerLate p99/max ms queueWait p50/p99/max ms ahead p50/p99/max moves p50/p99/max)={:.1f}/{:.1f} {:.1f}/{:.1f}/{:.1f} {:.0f}/{:.0f}/{:.0f} {:.0f}/{:.0f}/{:.0f} "
 				"loginRate(accepts/logins per s)={:.0f}/{:.0f} loginMs(total p50/p99/max dbExec p50/p99 lobby p99)={:.1f}/{:.1f}/{:.1f} {:.1f}/{:.1f} {:.1f} "
-				"dbWait(p50/p99/max ms queueMax)={:.1f}/{:.1f}/{:.1f} {}",
+				"dbWait(p50/p99/max ms queueMax)={:.1f}/{:.1f}/{:.1f} {} moveBatch(packets/entries/early per s)={:.0f}/{:.0f}/{:.0f}",
 				NetStats::Sessions.load(), rooms, players, Metrics::Monsters.load(), inPs, outPs, sendCallsPs, bufsPerSend, atkReqPs, atkOkPs, Metrics::ZonesCreated.load(), Metrics::ZoneHits.load(),
 				Metrics::MoveAccepted.load(), Metrics::MoveRejectSpeed.load(), Metrics::MoveRejectNav.load(), Metrics::MoveRejectInvalid.load(),
 				Metrics::MoveDroppedStale.load(), Metrics::MoveDroppedRate.load(),
@@ -297,7 +299,8 @@ namespace
 				tTimer.p99 / 1000.0, tTimer.max / 1000.0, tWait.p50 / 1000.0, tWait.p99 / 1000.0, tWait.max / 1000.0,
 				tAhead.p50, tAhead.p99, tAhead.max, tMoves.p50, tMoves.p99, tMoves.max,
 				acceptsPs, loginsPs, lgTotal.p50 / 1000.0, lgTotal.p99 / 1000.0, lgTotal.max / 1000.0, lgExec.p50 / 1000.0, lgExec.p99 / 1000.0, lgLobby.p99 / 1000.0,
-				dbWait.p50 / 1000.0, dbWait.p99 / 1000.0, dbWait.max / 1000.0, dbQueueMax);
+				dbWait.p50 / 1000.0, dbWait.p99 / 1000.0, dbWait.max / 1000.0, dbQueueMax,
+				mbPacketsPs, mbEntriesPs, mbEarlyPs);
 
 			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			csv << runId << "," << now << "," << NetStats::Sessions.load() << "," << rooms << "," << players << ","

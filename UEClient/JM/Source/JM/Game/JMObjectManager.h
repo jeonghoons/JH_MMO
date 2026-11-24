@@ -20,6 +20,8 @@ public:
 	void HandleDespawn(int32 ObjectId);
 	// 내 캐릭터에 대한 SC_MOVE는 서버가 내 이동을 거부했다는 보정이다(CorrectionSeq와 함께 적용).
 	void HandleMove(const Protocol::ObjectInfo& ObjInfo, uint32 CorrectionSeq);
+	// 다른 대상의 이동(SC_MOVE_OBJECT의 남의 이동, SC_MOVE_BATCH의 항목 — P2 D-307). 내 캐릭터 id면 무시한다(보정은 SC_MOVE_OBJECT로만 옴)
+	void HandleRemoteMove(int32 ObjectId, const Protocol::PositionInfo& Position, int32 TargetId);
 	// CooldownMs: 서버가 적용한 쿨타임(SC_ATTACK.cooldown_ms). 내 시전이면 HUD 슬롯에 표시한다.
 	// Seq: 시전자가 보낸 요청 순번(SC_ATTACK.seq). 내 시전은 입력 때 이미 시작했으므로(CP1) 순번이 있으면 다시 재생하지 않는다.
 	// TargetId: 대상 지정 스킬의 대상(SC_ATTACK.target_id). 투사체 연출이 이 대상을 향해 날아간다.

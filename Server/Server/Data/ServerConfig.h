@@ -16,6 +16,9 @@ struct ServerConfig
 	int workerThreads = 0;          // 0이면 CPU 코어 수 / 2
 	// 송신 묶기(P1b, D-206): 방 작업에서 한 세션에 보내는 WSASend 사이의 최소 간격(ms). 0이면 작업이 끝날 때마다 바로 보낸다
 	int sendFlushIntervalMs = 10;
+	// 이동 묶음(P2, D-307): 다른 대상의 일반 이동을 이 간격(ms)마다 수신자별 SC_MOVE_BATCH 하나로 보낸다. 0이면 묶지 않고 바로 보낸다
+	int moveBatchMs = 33;
+	std::string moveBatchMsFrom = "default";
 	// Windows 타이머 해상도(ms, timeBeginPeriod). 0이면 건드리지 않는다(시스템 기본 약 15.6ms — 예약 작업이 그만큼 늦게 깰 수 있다)
 	int timerResolutionMs = 1;
 	std::string timerResolutionMsFrom = "default";

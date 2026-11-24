@@ -1,0 +1,8 @@
+PASS starts  (DB 아이템 339798, 골드 15549888 + 0 = 15549888)
+PASS trade  (DB 아이템 339798, 골드 15549888 + 0 = 15549888)
+PASS solo  (DB 아이템 339798, 골드 15549888)
+PASS isolate  (DB 아이템 339798, 골드 15549888)
+PASS cut_load  (DB 아이템 339798, 골드 15549888)
+PASS dup_load  (DB 아이템 339798, 골드 15549888)
+PASS party  (DB 아이템 339798, 골드 15549888)
+PASS revive  (DB 아이템 339798, 골드 15549888)

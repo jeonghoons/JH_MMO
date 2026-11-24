@@ -37,6 +37,35 @@ shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_ptr<GameObje
 	return MakeSendBuffer(packet, Protocol::SC_MOVE_OBJECT);
 }
 
+void PacketSerializer::AppendMoveEntry(const shared_ptr<GameObject>& object, string& out)
+{
+	const Protocol::ObjectInfo& info = object->GetInfo();
+	Protocol::MoveEntry entry;
+	entry.set_id(info.id());
+	entry.mutable_position()->CopyFrom(info.position());
+	entry.set_target_id(info.target_id());
+	entry.set_move_time(object->GetLastMoveTime());
+
+	// SC_MOVE_BATCH_PACKET.moves = 필드 1, LEN 형식: 태그(0x0A) + 길이(varint) + 본문
+	uint32_t len = static_cast<uint32_t>(entry.ByteSizeLong());
+	out.push_back(static_cast<char>(0x0A));
+	while (len >= 0x80) { out.push_back(static_cast<char>((len & 0x7F) | 0x80)); len >>= 7; }
+	out.push_back(static_cast<char>(len));
+	entry.AppendToString(&out);
+}
+
+shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_MOVE_BATCH_RAW(const string& body)
+{
+	const uint16_t packetSize = static_cast<uint16_t>(body.size() + sizeof(PacketHeader));
+	shared_ptr<SendBuffer> sendBuffer = make_shared<SendBuffer>(packetSize);
+	PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->Buffer());
+	header->size = packetSize;
+	header->id = Protocol::SC_MOVE_BATCH;
+	memcpy(&header[1], body.data(), body.size());
+	sendBuffer->Commit(packetSize);
+	return sendBuffer;
+}
+
 shared_ptr<SendBuffer> PacketSerializer::MAKE_SC_ATTACK(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY, int cooldownMs, uint32_t seq)
 {
 	Protocol::SC_ATTACK_PACKET packet;

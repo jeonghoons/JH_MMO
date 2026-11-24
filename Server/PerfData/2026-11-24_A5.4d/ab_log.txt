@@ -1,0 +1,7 @@
+done dense500_mb0
+done dense500_mb33
+done mix1000_mb0
+done mix1000_mb33
+done mix2500_mb0
+done mix2500_mb33
+ab done

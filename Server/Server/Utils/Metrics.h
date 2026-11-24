@@ -131,6 +131,10 @@ namespace Metrics
 
 	// 플레이어 이동 검증 결과(누적, Room::PlayerMove). 보정을 보낸 경우 = Speed + Nav + Invalid
 	inline std::atomic<long long> MoveAccepted{ 0 };
+	// 이동 묶음(P2, D-307, 누적): 보낸 SC_MOVE_BATCH 수 · 그 안의 대상 항목 수 · 즉시 방송 앞에서 묶음을 기다리지 않고 따로 보낸 이동 수
+	inline std::atomic<long long> MoveBatchPackets{ 0 };
+	inline std::atomic<long long> MoveBatchEntries{ 0 };
+	inline std::atomic<long long> MoveBatchEarly{ 0 };
 	inline std::atomic<long long> MoveRejectSpeed{ 0 };    // 속도 예산 초과
 	inline std::atomic<long long> MoveRejectNav{ 0 };      // 내비메시로 갈 수 없는 위치
 	inline std::atomic<long long> MoveRejectInvalid{ 0 };  // NaN/Inf

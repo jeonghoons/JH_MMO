@@ -23,6 +23,7 @@ void FPacketHandler::Init()
 	RegisterHandler(Protocol::SC_ADD_OBJECT, &FPacketHandler::Handle_SC_ADD_OBJECT);
 	RegisterHandler(Protocol::SC_REMOVE_OBJECT, &FPacketHandler::Handle_SC_REMOVE_OBJECT);
 	RegisterHandler(Protocol::SC_MOVE_OBJECT, &FPacketHandler::Handle_SC_MOVE_OBJECT);
+	RegisterHandler(Protocol::SC_MOVE_BATCH, &FPacketHandler::Handle_SC_MOVE_BATCH);
 	RegisterHandler(Protocol::SC_ATTACK, &FPacketHandler::Handle_SC_ATTACK);
 	RegisterHandler(Protocol::SC_ATTACK_RESULT, &FPacketHandler::Handle_SC_ATTACK_RESULT);
 	RegisterHandler(Protocol::SC_DAMAGE, &FPacketHandler::Handle_SC_DAMAGE);
@@ -235,6 +236,16 @@ void FPacketHandler::Handle_SC_MOVE_OBJECT(TSharedPtr<NetworkSession>& session, 
 {
 	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
 		ObjectManager->HandleMove(pkt.object_info(), pkt.correction_seq());
+}
+
+// 다른 대상(플레이어·몬스터)의 이동 묶음(P2, D-307). 서버가 MoveBatchMs마다 그 사이 움직인 대상의 마지막 위치를 모아 보낸다.
+void FPacketHandler::Handle_SC_MOVE_BATCH(TSharedPtr<NetworkSession>& session, Protocol::SC_MOVE_BATCH_PACKET& pkt)
+{
+	if (UJMObjectManager* ObjectManager = GetObjectManager(session))
+	{
+		for (const Protocol::MoveEntry& Entry : pkt.moves())
+			ObjectManager->HandleRemoteMove(Entry.id(), Entry.position(), Entry.target_id());
+	}
 }
 
 void FPacketHandler::Handle_SC_ATTACK(TSharedPtr<NetworkSession>& session, Protocol::SC_ATTACK_PACKET& pkt)

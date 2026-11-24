@@ -129,12 +129,13 @@ enum PacketId : int {
   SC_QUEST_UPDATE = 2043,
   SC_QUEST_RESULT = 2044,
   SC_MAIL_NOTICE = 2045,
+  SC_MOVE_BATCH = 2046,
   PacketId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   PacketId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool PacketId_IsValid(int value);
 constexpr PacketId PacketId_MIN = PKT_NONE;
-constexpr PacketId PacketId_MAX = SC_MAIL_NOTICE;
+constexpr PacketId PacketId_MAX = SC_MOVE_BATCH;
 constexpr int PacketId_ARRAYSIZE = PacketId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PacketId_descriptor();

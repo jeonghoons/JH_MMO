@@ -95,6 +95,7 @@ enum PacketId {
     SC_QUEST_UPDATE = 2043;          // 퀘스트 하나의 상태·진행이 바뀜 (본인): 수락·처치 인정·완료
     SC_QUEST_RESULT = 2044;          // 퀘스트 요청 거부 결과 (본인에게만, 거부일 때만)
     SC_MAIL_NOTICE = 2045;           // 수령함에 받을 것이 있음 (본인): 경매 판매·만료 때, 로그인 때 수령함이 비어 있지 않으면
+    SC_MOVE_BATCH = 2046;            // 다른 대상(플레이어·몬스터)의 이동 묶음 (수신자별): MoveBatchMs마다 그 사이 움직인 대상의 마지막 위치 (P2, D-307)
 }
 
 // 던전 인스턴스 상태 (SC_DUNGEON_STATE_PACKET.state — DG3c)

@@ -76,7 +76,7 @@ void Monster::SyncTargetId()
 	if (_objectInfo.target_id() == targetId) return;
 	_objectInfo.set_target_id(targetId);
 	if (auto room = GetCurrentRoom())
-		room->BroadcastAOI(static_pointer_cast<Character>(shared_from_this()), PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_from_this()));
+		room->QueueMove(static_pointer_cast<Character>(shared_from_this()));   // 이동 묶음에 실림(P2, D-307)
 }
 
 void Monster::OnDamaged(int damage, int attackerId, std::shared_ptr<Character> attacker)
@@ -452,10 +452,8 @@ void Monster::StopMove()
 	MovableObject::StopMove();
 
 	auto room = GetCurrentRoom();
-	if (room != nullptr) {
-		shared_ptr<SendBuffer> MoveBuffer = PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_from_this());
-		room->BroadcastAOI(static_pointer_cast<Character>(shared_from_this()), MoveBuffer);
-	}
+	if (room != nullptr)
+		room->QueueMove(static_pointer_cast<Character>(shared_from_this()));   // 이동 묶음(P2, D-307)
 }
 
 void Monster::WakeUpByPlayer(std::shared_ptr<Player> player)
@@ -507,10 +505,8 @@ void Monster::FollowPath(float deltaTime)
 			if (Move(desPos))
 			{
 				auto room = GetCurrentRoom();
-				if (room != nullptr) {
-					shared_ptr<SendBuffer> MoveBuffer = PacketSerializer::MAKE_SC_MOVE_OBJECT(shared_from_this());
-					room->BroadcastAOI(static_pointer_cast<Character>(shared_from_this()), MoveBuffer);
-				}
+				if (room != nullptr)
+					room->QueueMove(static_pointer_cast<Character>(shared_from_this()));   // 이동 묶음(P2, D-307)
 			}
 			return;
 		}

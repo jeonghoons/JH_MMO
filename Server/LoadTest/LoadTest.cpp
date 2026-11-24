@@ -223,8 +223,8 @@ int main(int argc, char** argv)
 	printf("[summary] ping   p50/p95/p99/max = %.1f/%.1f/%.1f/%.1f ms (n=%zu)\n",
 		Percentile(allPing, 0.50) / 1000.0, Percentile(allPing, 0.95) / 1000.0, Percentile(allPing, 0.99) / 1000.0,
 		(allPing.empty() ? 0.0 : allPing.back() / 1000.0), allPing.size());
-	printf("[summary] moveCorrected=%lld pongs=%lld totalRecvBytes=%lld peakBotRecv=%.1fKB/s\n",
-		GStat.moveCorrected.load(), GStat.pongRecv.load(), GStat.bytesRecv.load(), peakBotKBps);
+	printf("[summary] moveCorrected=%lld pongs=%lld totalRecvBytes=%lld peakBotRecv=%.1fKB/s moveBatchRecv=%lld\n",
+		GStat.moveCorrected.load(), GStat.pongRecv.load(), GStat.bytesRecv.load(), peakBotKBps, GStat.moveBatchRecv.load());
 	printf("[summary] nav: pathSearch=%lld pathFail=%lld\n", GStat.pathSearch.load(), GStat.pathFail.load());
 	// A5.2 프로필별 인원·로그인 재시도·행동 집계
 	printf("[summary] profiles:");

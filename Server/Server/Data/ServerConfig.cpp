@@ -104,6 +104,11 @@ namespace
 				if (!ParseInt(e.value, 0, 200, cfg.sendFlushIntervalMs)) { err = where + "SendFlushIntervalMs must be 0~200: '" + e.value + "'"; return false; }
 				cfg.sendFlushIntervalMsFrom = from;
 			}
+			else if (name == "Network.MoveBatchMs")
+			{
+				if (!ParseInt(e.value, 0, 200, cfg.moveBatchMs)) { err = where + "MoveBatchMs must be 0~200: '" + e.value + "'"; return false; }
+				cfg.moveBatchMsFrom = from;
+			}
 			else if (name == "Network.TimerResolutionMs")
 			{
 				if (!ParseInt(e.value, 0, 16, cfg.timerResolutionMs)) { err = where + "TimerResolutionMs must be 0~16: '" + e.value + "'"; return false; }
@@ -371,6 +376,7 @@ void ServerConfig::Print() const
 	LOG_INFO("Config", "Network.Port              = {}  ({})", port, portFrom);
 	LOG_INFO("Config", "Network.WorkerThreads     = {} -> {}  ({})", workerThreads, ResolvedWorkerThreads(), workerThreadsFrom);
 	LOG_INFO("Config", "Network.SendFlushIntervalMs = {}  ({})", sendFlushIntervalMs, sendFlushIntervalMsFrom);
+	LOG_INFO("Config", "Network.MoveBatchMs       = {}  ({})", moveBatchMs, moveBatchMsFrom);
 	LOG_INFO("Config", "Network.TimerResolutionMs = {}  ({})", timerResolutionMs, timerResolutionMsFrom);
 	LOG_INFO("Config", "Network.AttackEarlyToleranceMs = {}  ({})", attackEarlyToleranceMs, attackEarlyToleranceMsFrom);
 	LOG_INFO("Config", "Network.LoginWaitTimeoutSec = {}  ({})", loginWaitTimeoutSec, loginWaitTimeoutSecFrom);

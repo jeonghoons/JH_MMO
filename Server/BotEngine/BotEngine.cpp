@@ -655,6 +655,30 @@ static void HandlePacket(Bot& b, SampleBuffer& samples, uint16_t id, const uint8
 		samples.pingUs.push_back(static_cast<uint32_t>(NowUs() - pkt.client_time()));
 		break;
 	}
+	case Protocol::SC_MOVE_BATCH:
+	{
+		// 다른 대상의 이동 묶음(P2, D-307). 위치를 따라가야 하는 봇(거래 상대·사냥 대상·시각화)만 파싱한다.
+		GStat.moveBatchRecv.fetch_add(1);
+		const bool trackPlayers = (b.profile == BotProfile::Trade);
+		const bool trackMonsters = GConfig.trackWorld || IsHunter(b);
+		if (!trackPlayers && !trackMonsters) return;
+		Protocol::SC_MOVE_BATCH_PACKET pkt;
+		if (!pkt.ParseFromArray(payload, len)) { GStat.protocolError.fetch_add(1); return; }
+		for (const Protocol::MoveEntry& e : pkt.moves())
+		{
+			if (trackPlayers)
+			{
+				auto pit = b.players.find(e.id());
+				if (pit != b.players.end()) { pit->second = { e.position().x(), e.position().y() }; continue; }
+			}
+			if (trackMonsters)
+			{
+				auto it = b.monsters.find(e.id());
+				if (it != b.monsters.end()) it->second = { e.position().x(), e.position().y() };
+			}
+		}
+		break;
+	}
 	case Protocol::SC_MOVE_OBJECT:
 	{
 		// 모든 이동 브로드캐스트를 파싱하면 비용이 크므로, object_info.id만 먼저 훑어서 내 것일 때만 파싱한다.

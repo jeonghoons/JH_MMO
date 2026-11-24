@@ -188,7 +188,11 @@ public:
 	// 클라이언트가 예측한 위치를 검증한다(서버 권위 이동, S1). 통과하면 저장·방송, 아니면 본인에게 보정 위치를 보낸다.
 	void PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position, uint32_t correctionSeq);
 	void Broadcast(shared_ptr<SendBuffer> sendBuffer);
+	// 그 대상에 관한 패킷을 시야 안 플레이어에게 바로 보낸다. 대상의 묶음 대기 이동이 있으면 먼저 보낸다(순서 유지, P2 D-307).
 	void BroadcastAOI(shared_ptr<class Character> viewableObj, shared_ptr<SendBuffer> sendBuffer, bool sendToSelf = false);
+	// 다른 사람에게 보일 일반 이동(P2, D-307): MoveBatchMs마다 FlushMoveBatch가 수신자별 SC_MOVE_BATCH로 보낸다(대상마다 마지막 위치만).
+	// MoveBatchMs 0이면 바로 SC_MOVE_OBJECT를 방송한다. 본인 보정은 여기로 보내지 않는다.
+	void QueueMove(shared_ptr<class Character> obj);
 
 	void PlayerChat(shared_ptr<Player> player, wstring msg);
 	// 파티 번호가 바뀌었다(DG2 — WorldService가 알림). 이 방이 그 플레이어의 소유 Room이 아니면(Room 이동 중) 소유 Room으로 넘긴다.
@@ -408,6 +412,11 @@ private:
 	static constexpr DWORD PROJECTILE_TICK_MS = 33;
 	bool _projectileTickPending = false;
 	void ProjectileTick();
+	// 이동 묶음(P2, D-307): 오브젝트 id → 대상. 대기 중인 것이 있을 때만 FlushMoveBatch를 예약한다
+	unordered_map<int, weak_ptr<class Character>> _pendingMoves;
+	bool _moveBatchPending = false;
+	void FlushMoveBatch();
+	void SendToViewers(const shared_ptr<class Character>& viewableObj, const shared_ptr<SendBuffer>& sendBuffer);
 	void UpdateProjectiles();
 	// AimMaxMs가 지난 조준을 해제한다(Update마다). 본인에게는 seq를 실어, 다른 사람에게는 seq 없이 보낸다.
 	void UpdateAims(long long nowMs);

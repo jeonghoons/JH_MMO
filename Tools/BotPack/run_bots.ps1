@@ -3,6 +3,8 @@
 #          → 서버가 내려가 포트가 닫힐 때까지 기다림 → TIME_WAIT가 줄 때까지 기다림 → 다음 단계.
 # 사용: powershell -ExecutionPolicy Bypass -File run_bots.ps1 [-ServerIp 1.2.3.4] [-Stages smoke,s1000_1,...]
 #       IP를 주지 않으면 server_ip.txt에서 읽고, 없으면 물어본다(server_ip.txt는 커밋하지 않음 — .gitignore).
+# A5.4d 재측정(D-306): 단계 이름 앞에 "d_"를 붙이면(d_s1000_1 등) 같은 정의로 돌고 결과는 results\d_<단계>\, 환경은 results\env_d.txt
+#       — A5.4c 결과를 덮어쓰지 않는다. 사용: .\run_bots.ps1 -Stages d_smoke,d_s1000_1,d_s1000_2,d_s2500_1,d_s2500_2,d_s5000_1,d_s5000_2
 param(
     [string]$ServerIp = "",
     [string[]]$Stages = @("smoke", "s1000_1", "s1000_2", "s2500_1", "s2500_2", "s5000_1", "s5000_2"),
@@ -59,12 +61,13 @@ $wifi = (netsh wlan show interfaces | Select-String "Signal|신호|Receive rate|
     "power     = $plan",
     "wifi      = $wifi",
     "stages    = $($Stages -join ',')"
-) | Set-Content -Path "$Results\env.txt" -Encoding utf8
+) | Set-Content -Path $(if ($Stages | Where-Object { $_ -like "d_*" }) { "$Results\env_d.txt" } else { "$Results\env.txt" }) -Encoding utf8
 
 $Cores = [int]$cpu.NumberOfLogicalProcessors
 foreach ($stage in $Stages) {
-    if (-not $Def.ContainsKey($stage)) { Write-Host "[bots] 모르는 단계: $stage"; continue }
-    $d = $Def[$stage]
+    $base = $stage -replace '^d_', ''   # A5.4d 재측정 단계는 같은 정의
+    if (-not $Def.ContainsKey($base)) { Write-Host "[bots] 모르는 단계: $stage"; continue }
+    $d = $Def[$base]
     $out = Join-Path $Results $stage
     if (Test-Path $out) { Remove-Item -Recurse -Force $out }
     New-Item -ItemType Directory -Force $out | Out-Null

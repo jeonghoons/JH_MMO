@@ -72,7 +72,7 @@ struct BotCounters
 {
 	std::atomic<long long> connectAttempts{ 0 }, connectOk{ 0 }, connectFail{ 0 };
 	std::atomic<long long> loginOk{ 0 }, loginFail{ 0 }, unexpectedClose{ 0 }, protocolError{ 0 }, sendDropped{ 0 };
-	std::atomic<long long> pktSent{ 0 }, pktRecv{ 0 }, bytesRecv{ 0 }, pongRecv{ 0 }, moveCorrected{ 0 };
+	std::atomic<long long> pktSent{ 0 }, pktRecv{ 0 }, bytesRecv{ 0 }, pongRecv{ 0 }, moveCorrected{ 0 }, moveBatchRecv{ 0 };
 	std::atomic<long long> monsterDead{ 0 }, monsterRemoved{ 0 }, monsterAdded{ 0 }, damageRecv{ 0 }, objectAdded{ 0 };
 	std::atomic<long long> aimSent{ 0 }, aimRecv{ 0 }, aimOwnOff{ 0 };   // CS_SKILL_AIM / 받은 SC_SKILL_AIM / 내 조준의 거부·시간 초과
 	std::atomic<long long> equipSent{ 0 }, equipOk{ 0 }, equipRejected{ 0 };   // 장착 요청 / 내 SC_CHANGE_EQUIP / SC_CHANGE_EQUIP_RESULT

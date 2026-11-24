@@ -380,10 +380,18 @@ void UJMObjectManager::HandleMove(const Protocol::ObjectInfo& ObjInfo, uint32 Co
 			return;
 		}
 
-		(*FoundActor)->SetDestInfo(ObjInfo.position());
-		if (ANpcCharacter* Monster = Cast<ANpcCharacter>(*FoundActor))
-			Monster->SetTargetIsAlly(IsAllyId(ObjInfo.target_id()));
+		HandleRemoteMove(ObjectId, ObjInfo.position(), ObjInfo.target_id());
 	}
+}
+
+void UJMObjectManager::HandleRemoteMove(int32 ObjectId, const Protocol::PositionInfo& Position, int32 TargetId)
+{
+	TObjectPtr<AJMCharacterBase>* FoundActor = Objects.Find(ObjectId);
+	if (FoundActor == nullptr || *FoundActor == nullptr || *FoundActor == MyPlayer) return;
+
+	(*FoundActor)->SetDestInfo(Position);
+	if (ANpcCharacter* Monster = Cast<ANpcCharacter>(*FoundActor))
+		Monster->SetTargetIsAlly(IsAllyId(TargetId));
 }
 
 bool UJMObjectManager::FindDropFallStart(const FVector& DropLoc, float& OutZ)

@@ -248,6 +248,20 @@ message SC_CHAT_PACKET {
 	string sender_name = 3;  // UTF-8 캐릭터 이름(Player_Info.Name)
 }
 
+// 이동 묶음의 대상 하나(P2, D-307). 클라이언트가 원격 이동에 쓰는 값만(SC_MOVE_PACKET의 object_info 중 id·position·target_id)
+message MoveEntry {
+	int32 id = 1;
+	PositionInfo position = 2;
+	int32 target_id = 3;     // 몬스터가 쫓는 대상(ObjectInfo.target_id와 같음). 그 밖은 0
+	uint32 move_time = 4;
+}
+
+// 서버가 MoveBatchMs마다 수신자별로 보낸다. 묶음 안에서 대상은 한 번씩만(그 사이 마지막 위치).
+// 본인 위치 보정·순간이동·부활·시야 진입은 지금처럼 따로 즉시 온다
+message SC_MOVE_BATCH_PACKET {
+	repeated MoveEntry moves = 1;
+}
+
 message SC_MOVE_PACKET {
 	ObjectInfo object_info = 1;
 	uint32 move_time = 2; 

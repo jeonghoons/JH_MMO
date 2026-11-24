@@ -156,6 +156,9 @@ extern CS_TRADE_SET_OFFER_PACKETDefaultTypeInternal _CS_TRADE_SET_OFFER_PACKET_d
 class CS_USE_ITEM_PACKET;
 struct CS_USE_ITEM_PACKETDefaultTypeInternal;
 extern CS_USE_ITEM_PACKETDefaultTypeInternal _CS_USE_ITEM_PACKET_default_instance_;
+class MoveEntry;
+struct MoveEntryDefaultTypeInternal;
+extern MoveEntryDefaultTypeInternal _MoveEntry_default_instance_;
 class PartyMember;
 struct PartyMemberDefaultTypeInternal;
 extern PartyMemberDefaultTypeInternal _PartyMember_default_instance_;
@@ -228,6 +231,9 @@ extern SC_LOGIN_INFO_PACKETDefaultTypeInternal _SC_LOGIN_INFO_PACKET_default_ins
 class SC_MAIL_NOTICE_PACKET;
 struct SC_MAIL_NOTICE_PACKETDefaultTypeInternal;
 extern SC_MAIL_NOTICE_PACKETDefaultTypeInternal _SC_MAIL_NOTICE_PACKET_default_instance_;
+class SC_MOVE_BATCH_PACKET;
+struct SC_MOVE_BATCH_PACKETDefaultTypeInternal;
+extern SC_MOVE_BATCH_PACKETDefaultTypeInternal _SC_MOVE_BATCH_PACKET_default_instance_;
 class SC_MOVE_PACKET;
 struct SC_MOVE_PACKETDefaultTypeInternal;
 extern SC_MOVE_PACKETDefaultTypeInternal _SC_MOVE_PACKET_default_instance_;
@@ -335,6 +341,7 @@ template<> ::Protocol::CS_TRADE_REQUEST_PACKET* Arena::CreateMaybeMessage<::Prot
 template<> ::Protocol::CS_TRADE_RESPOND_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_TRADE_RESPOND_PACKET>(Arena*);
 template<> ::Protocol::CS_TRADE_SET_OFFER_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_TRADE_SET_OFFER_PACKET>(Arena*);
 template<> ::Protocol::CS_USE_ITEM_PACKET* Arena::CreateMaybeMessage<::Protocol::CS_USE_ITEM_PACKET>(Arena*);
+template<> ::Protocol::MoveEntry* Arena::CreateMaybeMessage<::Protocol::MoveEntry>(Arena*);
 template<> ::Protocol::PartyMember* Arena::CreateMaybeMessage<::Protocol::PartyMember>(Arena*);
 template<> ::Protocol::PortalInfo* Arena::CreateMaybeMessage<::Protocol::PortalInfo>(Arena*);
 template<> ::Protocol::SC_ADD_OBJECT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_ADD_OBJECT_PACKET>(Arena*);
@@ -359,6 +366,7 @@ template<> ::Protocol::SC_KICK_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_
 template<> ::Protocol::SC_LEVEL_UP_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_LEVEL_UP_PACKET>(Arena*);
 template<> ::Protocol::SC_LOGIN_INFO_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_LOGIN_INFO_PACKET>(Arena*);
 template<> ::Protocol::SC_MAIL_NOTICE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_MAIL_NOTICE_PACKET>(Arena*);
+template<> ::Protocol::SC_MOVE_BATCH_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_MOVE_BATCH_PACKET>(Arena*);
 template<> ::Protocol::SC_MOVE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_MOVE_PACKET>(Arena*);
 template<> ::Protocol::SC_MOVE_RESULT_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_MOVE_RESULT_PACKET>(Arena*);
 template<> ::Protocol::SC_PARTY_INVITE_PACKET* Arena::CreateMaybeMessage<::Protocol::SC_PARTY_INVITE_PACKET>(Arena*);
@@ -6853,6 +6861,353 @@ class SC_CHAT_PACKET final :
 };
 // -------------------------------------------------------------------
 
+class MoveEntry final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.MoveEntry) */ {
+ public:
+  inline MoveEntry() : MoveEntry(nullptr) {}
+  ~MoveEntry() override;
+  explicit PROTOBUF_CONSTEXPR MoveEntry(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  MoveEntry(const MoveEntry& from);
+  MoveEntry(MoveEntry&& from) noexcept
+    : MoveEntry() {
+    *this = ::std::move(from);
+  }
+
+  inline MoveEntry& operator=(const MoveEntry& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline MoveEntry& operator=(MoveEntry&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const MoveEntry& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const MoveEntry* internal_default_instance() {
+    return reinterpret_cast<const MoveEntry*>(
+               &_MoveEntry_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    41;
+
+  friend void swap(MoveEntry& a, MoveEntry& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(MoveEntry* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(MoveEntry* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  MoveEntry* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<MoveEntry>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const MoveEntry& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const MoveEntry& from) {
+    MoveEntry::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(MoveEntry* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.MoveEntry";
+  }
+  protected:
+  explicit MoveEntry(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kPositionFieldNumber = 2,
+    kIdFieldNumber = 1,
+    kTargetIdFieldNumber = 3,
+    kMoveTimeFieldNumber = 4,
+  };
+  // .Protocol.PositionInfo position = 2;
+  bool has_position() const;
+  private:
+  bool _internal_has_position() const;
+  public:
+  void clear_position();
+  const ::Protocol::PositionInfo& position() const;
+  PROTOBUF_NODISCARD ::Protocol::PositionInfo* release_position();
+  ::Protocol::PositionInfo* mutable_position();
+  void set_allocated_position(::Protocol::PositionInfo* position);
+  private:
+  const ::Protocol::PositionInfo& _internal_position() const;
+  ::Protocol::PositionInfo* _internal_mutable_position();
+  public:
+  void unsafe_arena_set_allocated_position(
+      ::Protocol::PositionInfo* position);
+  ::Protocol::PositionInfo* unsafe_arena_release_position();
+
+  // int32 id = 1;
+  void clear_id();
+  int32_t id() const;
+  void set_id(int32_t value);
+  private:
+  int32_t _internal_id() const;
+  void _internal_set_id(int32_t value);
+  public:
+
+  // int32 target_id = 3;
+  void clear_target_id();
+  int32_t target_id() const;
+  void set_target_id(int32_t value);
+  private:
+  int32_t _internal_target_id() const;
+  void _internal_set_target_id(int32_t value);
+  public:
+
+  // uint32 move_time = 4;
+  void clear_move_time();
+  uint32_t move_time() const;
+  void set_move_time(uint32_t value);
+  private:
+  uint32_t _internal_move_time() const;
+  void _internal_set_move_time(uint32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.MoveEntry)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::Protocol::PositionInfo* position_;
+    int32_t id_;
+    int32_t target_id_;
+    uint32_t move_time_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class SC_MOVE_BATCH_PACKET final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_MOVE_BATCH_PACKET) */ {
+ public:
+  inline SC_MOVE_BATCH_PACKET() : SC_MOVE_BATCH_PACKET(nullptr) {}
+  ~SC_MOVE_BATCH_PACKET() override;
+  explicit PROTOBUF_CONSTEXPR SC_MOVE_BATCH_PACKET(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SC_MOVE_BATCH_PACKET(const SC_MOVE_BATCH_PACKET& from);
+  SC_MOVE_BATCH_PACKET(SC_MOVE_BATCH_PACKET&& from) noexcept
+    : SC_MOVE_BATCH_PACKET() {
+    *this = ::std::move(from);
+  }
+
+  inline SC_MOVE_BATCH_PACKET& operator=(const SC_MOVE_BATCH_PACKET& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SC_MOVE_BATCH_PACKET& operator=(SC_MOVE_BATCH_PACKET&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SC_MOVE_BATCH_PACKET& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SC_MOVE_BATCH_PACKET* internal_default_instance() {
+    return reinterpret_cast<const SC_MOVE_BATCH_PACKET*>(
+               &_SC_MOVE_BATCH_PACKET_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    42;
+
+  friend void swap(SC_MOVE_BATCH_PACKET& a, SC_MOVE_BATCH_PACKET& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SC_MOVE_BATCH_PACKET* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SC_MOVE_BATCH_PACKET* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SC_MOVE_BATCH_PACKET* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SC_MOVE_BATCH_PACKET>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SC_MOVE_BATCH_PACKET& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SC_MOVE_BATCH_PACKET& from) {
+    SC_MOVE_BATCH_PACKET::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SC_MOVE_BATCH_PACKET* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.SC_MOVE_BATCH_PACKET";
+  }
+  protected:
+  explicit SC_MOVE_BATCH_PACKET(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kMovesFieldNumber = 1,
+  };
+  // repeated .Protocol.MoveEntry moves = 1;
+  int moves_size() const;
+  private:
+  int _internal_moves_size() const;
+  public:
+  void clear_moves();
+  ::Protocol::MoveEntry* mutable_moves(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::MoveEntry >*
+      mutable_moves();
+  private:
+  const ::Protocol::MoveEntry& _internal_moves(int index) const;
+  ::Protocol::MoveEntry* _internal_add_moves();
+  public:
+  const ::Protocol::MoveEntry& moves(int index) const;
+  ::Protocol::MoveEntry* add_moves();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::MoveEntry >&
+      moves() const;
+
+  // @@protoc_insertion_point(class_scope:Protocol.SC_MOVE_BATCH_PACKET)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::MoveEntry > moves_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
 class SC_MOVE_PACKET final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.SC_MOVE_PACKET) */ {
  public:
@@ -6901,7 +7256,7 @@ class SC_MOVE_PACKET final :
                &_SC_MOVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    43;
 
   friend void swap(SC_MOVE_PACKET& a, SC_MOVE_PACKET& b) {
     a.Swap(&b);
@@ -7080,7 +7435,7 @@ class SC_ATTACK_PACKET final :
                &_SC_ATTACK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    44;
 
   friend void swap(SC_ATTACK_PACKET& a, SC_ATTACK_PACKET& b) {
     a.Swap(&b);
@@ -7305,7 +7660,7 @@ class SC_ATTACK_RESULT_PACKET final :
                &_SC_ATTACK_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    45;
 
   friend void swap(SC_ATTACK_RESULT_PACKET& a, SC_ATTACK_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -7486,7 +7841,7 @@ class SC_DAMAGE_PACKET final :
                &_SC_DAMAGE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    46;
 
   friend void swap(SC_DAMAGE_PACKET& a, SC_DAMAGE_PACKET& b) {
     a.Swap(&b);
@@ -7667,7 +8022,7 @@ class SC_DEAD_PACKET final :
                &_SC_DEAD_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    47;
 
   friend void swap(SC_DEAD_PACKET& a, SC_DEAD_PACKET& b) {
     a.Swap(&b);
@@ -7826,7 +8181,7 @@ class SC_REVIVE_PACKET final :
                &_SC_REVIVE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    48;
 
   friend void swap(SC_REVIVE_PACKET& a, SC_REVIVE_PACKET& b) {
     a.Swap(&b);
@@ -8016,7 +8371,7 @@ class SC_TELEPORT_PACKET final :
                &_SC_TELEPORT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    47;
+    49;
 
   friend void swap(SC_TELEPORT_PACKET& a, SC_TELEPORT_PACKET& b) {
     a.Swap(&b);
@@ -8195,7 +8550,7 @@ class PortalInfo final :
                &_PortalInfo_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    48;
+    50;
 
   friend void swap(PortalInfo& a, PortalInfo& b) {
     a.Swap(&b);
@@ -8398,7 +8753,7 @@ class SC_DUNGEON_STATE_PACKET final :
                &_SC_DUNGEON_STATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    49;
+    51;
 
   friend void swap(SC_DUNGEON_STATE_PACKET& a, SC_DUNGEON_STATE_PACKET& b) {
     a.Swap(&b);
@@ -8557,7 +8912,7 @@ class SC_PORTAL_LIST_PACKET final :
                &_SC_PORTAL_LIST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    50;
+    52;
 
   friend void swap(SC_PORTAL_LIST_PACKET& a, SC_PORTAL_LIST_PACKET& b) {
     a.Swap(&b);
@@ -8714,7 +9069,7 @@ class SC_ROOM_CHANGE_PACKET final :
                &_SC_ROOM_CHANGE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    51;
+    53;
 
   friend void swap(SC_ROOM_CHANGE_PACKET& a, SC_ROOM_CHANGE_PACKET& b) {
     a.Swap(&b);
@@ -8920,7 +9275,7 @@ class SC_MOVE_RESULT_PACKET final :
                &_SC_MOVE_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    52;
+    54;
 
   friend void swap(SC_MOVE_RESULT_PACKET& a, SC_MOVE_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -9068,7 +9423,7 @@ class SC_CHANGE_EQUIP_PACKET final :
                &_SC_CHANGE_EQUIP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    53;
+    55;
 
   friend void swap(SC_CHANGE_EQUIP_PACKET& a, SC_CHANGE_EQUIP_PACKET& b) {
     a.Swap(&b);
@@ -9258,7 +9613,7 @@ class SC_CHANGE_EQUIP_RESULT_PACKET final :
                &_SC_CHANGE_EQUIP_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    54;
+    56;
 
   friend void swap(SC_CHANGE_EQUIP_RESULT_PACKET& a, SC_CHANGE_EQUIP_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -9439,7 +9794,7 @@ class SC_INVENTORY_PACKET final :
                &_SC_INVENTORY_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    55;
+    57;
 
   friend void swap(SC_INVENTORY_PACKET& a, SC_INVENTORY_PACKET& b) {
     a.Swap(&b);
@@ -9676,7 +10031,7 @@ class SC_INVENTORY_UPDATE_PACKET final :
                &_SC_INVENTORY_UPDATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    56;
+    58;
 
   friend void swap(SC_INVENTORY_UPDATE_PACKET& a, SC_INVENTORY_UPDATE_PACKET& b) {
     a.Swap(&b);
@@ -9894,7 +10249,7 @@ class SC_USE_ITEM_PACKET final :
                &_SC_USE_ITEM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    57;
+    59;
 
   friend void swap(SC_USE_ITEM_PACKET& a, SC_USE_ITEM_PACKET& b) {
     a.Swap(&b);
@@ -10075,7 +10430,7 @@ class SC_CHANGE_HP_PACKET final :
                &_SC_CHANGE_HP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    58;
+    60;
 
   friend void swap(SC_CHANGE_HP_PACKET& a, SC_CHANGE_HP_PACKET& b) {
     a.Swap(&b);
@@ -10234,7 +10589,7 @@ class SC_GAIN_EXP_PACKET final :
                &_SC_GAIN_EXP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    59;
+    61;
 
   friend void swap(SC_GAIN_EXP_PACKET& a, SC_GAIN_EXP_PACKET& b) {
     a.Swap(&b);
@@ -10393,7 +10748,7 @@ class SC_LEVEL_UP_PACKET final :
                &_SC_LEVEL_UP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    60;
+    62;
 
   friend void swap(SC_LEVEL_UP_PACKET& a, SC_LEVEL_UP_PACKET& b) {
     a.Swap(&b);
@@ -10572,7 +10927,7 @@ class SC_CHANGE_MP_PACKET final :
                &_SC_CHANGE_MP_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    61;
+    63;
 
   friend void swap(SC_CHANGE_MP_PACKET& a, SC_CHANGE_MP_PACKET& b) {
     a.Swap(&b);
@@ -10720,7 +11075,7 @@ class SC_QUEST_LIST_PACKET final :
                &_SC_QUEST_LIST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    62;
+    64;
 
   friend void swap(SC_QUEST_LIST_PACKET& a, SC_QUEST_LIST_PACKET& b) {
     a.Swap(&b);
@@ -10877,7 +11232,7 @@ class SC_QUEST_UPDATE_PACKET final :
                &_SC_QUEST_UPDATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    63;
+    65;
 
   friend void swap(SC_QUEST_UPDATE_PACKET& a, SC_QUEST_UPDATE_PACKET& b) {
     a.Swap(&b);
@@ -11034,7 +11389,7 @@ class SC_QUEST_RESULT_PACKET final :
                &_SC_QUEST_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    64;
+    66;
 
   friend void swap(SC_QUEST_RESULT_PACKET& a, SC_QUEST_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -11204,7 +11559,7 @@ class SC_MAIL_NOTICE_PACKET final :
                &_SC_MAIL_NOTICE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    65;
+    67;
 
   friend void swap(SC_MAIL_NOTICE_PACKET& a, SC_MAIL_NOTICE_PACKET& b) {
     a.Swap(&b);
@@ -11396,7 +11751,7 @@ class SC_ITEM_RESULT_PACKET final :
                &_SC_ITEM_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    66;
+    68;
 
   friend void swap(SC_ITEM_RESULT_PACKET& a, SC_ITEM_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -11555,7 +11910,7 @@ class ShopItem final :
                &_ShopItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    67;
+    69;
 
   friend void swap(ShopItem& a, ShopItem& b) {
     a.Swap(&b);
@@ -11714,7 +12069,7 @@ class SC_SHOP_OPEN_PACKET final :
                &_SC_SHOP_OPEN_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    68;
+    70;
 
   friend void swap(SC_SHOP_OPEN_PACKET& a, SC_SHOP_OPEN_PACKET& b) {
     a.Swap(&b);
@@ -11882,7 +12237,7 @@ class SC_AUCTION_LIST_PACKET final :
                &_SC_AUCTION_LIST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    69;
+    71;
 
   friend void swap(SC_AUCTION_LIST_PACKET& a, SC_AUCTION_LIST_PACKET& b) {
     a.Swap(&b);
@@ -12179,7 +12534,7 @@ class SC_AUCTION_MY_PACKET final :
                &_SC_AUCTION_MY_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    70;
+    72;
 
   friend void swap(SC_AUCTION_MY_PACKET& a, SC_AUCTION_MY_PACKET& b) {
     a.Swap(&b);
@@ -12400,7 +12755,7 @@ class SC_AUCTION_RESULT_PACKET final :
                &_SC_AUCTION_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    71;
+    73;
 
   friend void swap(SC_AUCTION_RESULT_PACKET& a, SC_AUCTION_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -12581,7 +12936,7 @@ class SC_SKILL_AIM_PACKET final :
                &_SC_SKILL_AIM_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    72;
+    74;
 
   friend void swap(SC_SKILL_AIM_PACKET& a, SC_SKILL_AIM_PACKET& b) {
     a.Swap(&b);
@@ -12762,7 +13117,7 @@ class SC_PONG_PACKET final :
                &_SC_PONG_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    73;
+    75;
 
   friend void swap(SC_PONG_PACKET& a, SC_PONG_PACKET& b) {
     a.Swap(&b);
@@ -12910,7 +13265,7 @@ class SC_TRADE_REQUEST_PACKET final :
                &_SC_TRADE_REQUEST_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    74;
+    76;
 
   friend void swap(SC_TRADE_REQUEST_PACKET& a, SC_TRADE_REQUEST_PACKET& b) {
     a.Swap(&b);
@@ -13085,7 +13440,7 @@ class SC_TRADE_STATE_PACKET final :
                &_SC_TRADE_STATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    75;
+    77;
 
   friend void swap(SC_TRADE_STATE_PACKET& a, SC_TRADE_STATE_PACKET& b) {
     a.Swap(&b);
@@ -13253,7 +13608,7 @@ class SC_TRADE_END_PACKET final :
                &_SC_TRADE_END_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    76;
+    78;
 
   friend void swap(SC_TRADE_END_PACKET& a, SC_TRADE_END_PACKET& b) {
     a.Swap(&b);
@@ -13401,7 +13756,7 @@ class SC_TRADE_RESULT_PACKET final :
                &_SC_TRADE_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    77;
+    79;
 
   friend void swap(SC_TRADE_RESULT_PACKET& a, SC_TRADE_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -13560,7 +13915,7 @@ class SC_PARTY_INVITE_PACKET final :
                &_SC_PARTY_INVITE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    78;
+    80;
 
   friend void swap(SC_PARTY_INVITE_PACKET& a, SC_PARTY_INVITE_PACKET& b) {
     a.Swap(&b);
@@ -13735,7 +14090,7 @@ class PartyMember final :
                &_PartyMember_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    79;
+    81;
 
   friend void swap(PartyMember& a, PartyMember& b) {
     a.Swap(&b);
@@ -13921,7 +14276,7 @@ class SC_PARTY_STATE_PACKET final :
                &_SC_PARTY_STATE_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    80;
+    82;
 
   friend void swap(SC_PARTY_STATE_PACKET& a, SC_PARTY_STATE_PACKET& b) {
     a.Swap(&b);
@@ -14100,7 +14455,7 @@ class SC_PARTY_RESULT_PACKET final :
                &_SC_PARTY_RESULT_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    81;
+    83;
 
   friend void swap(SC_PARTY_RESULT_PACKET& a, SC_PARTY_RESULT_PACKET& b) {
     a.Swap(&b);
@@ -14259,7 +14614,7 @@ class SC_KICK_PACKET final :
                &_SC_KICK_PACKET_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    82;
+    84;
 
   friend void swap(SC_KICK_PACKET& a, SC_KICK_PACKET& b) {
     a.Swap(&b);
@@ -16598,6 +16953,199 @@ inline void SC_CHAT_PACKET::set_allocated_sender_name(std::string* sender_name) 
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:Protocol.SC_CHAT_PACKET.sender_name)
+}
+
+// -------------------------------------------------------------------
+
+// MoveEntry
+
+// int32 id = 1;
+inline void MoveEntry::clear_id() {
+  _impl_.id_ = 0;
+}
+inline int32_t MoveEntry::_internal_id() const {
+  return _impl_.id_;
+}
+inline int32_t MoveEntry::id() const {
+  // @@protoc_insertion_point(field_get:Protocol.MoveEntry.id)
+  return _internal_id();
+}
+inline void MoveEntry::_internal_set_id(int32_t value) {
+  
+  _impl_.id_ = value;
+}
+inline void MoveEntry::set_id(int32_t value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.MoveEntry.id)
+}
+
+// .Protocol.PositionInfo position = 2;
+inline bool MoveEntry::_internal_has_position() const {
+  return this != internal_default_instance() && _impl_.position_ != nullptr;
+}
+inline bool MoveEntry::has_position() const {
+  return _internal_has_position();
+}
+inline const ::Protocol::PositionInfo& MoveEntry::_internal_position() const {
+  const ::Protocol::PositionInfo* p = _impl_.position_;
+  return p != nullptr ? *p : reinterpret_cast<const ::Protocol::PositionInfo&>(
+      ::Protocol::_PositionInfo_default_instance_);
+}
+inline const ::Protocol::PositionInfo& MoveEntry::position() const {
+  // @@protoc_insertion_point(field_get:Protocol.MoveEntry.position)
+  return _internal_position();
+}
+inline void MoveEntry::unsafe_arena_set_allocated_position(
+    ::Protocol::PositionInfo* position) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.position_);
+  }
+  _impl_.position_ = position;
+  if (position) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:Protocol.MoveEntry.position)
+}
+inline ::Protocol::PositionInfo* MoveEntry::release_position() {
+  
+  ::Protocol::PositionInfo* temp = _impl_.position_;
+  _impl_.position_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::Protocol::PositionInfo* MoveEntry::unsafe_arena_release_position() {
+  // @@protoc_insertion_point(field_release:Protocol.MoveEntry.position)
+  
+  ::Protocol::PositionInfo* temp = _impl_.position_;
+  _impl_.position_ = nullptr;
+  return temp;
+}
+inline ::Protocol::PositionInfo* MoveEntry::_internal_mutable_position() {
+  
+  if (_impl_.position_ == nullptr) {
+    auto* p = CreateMaybeMessage<::Protocol::PositionInfo>(GetArenaForAllocation());
+    _impl_.position_ = p;
+  }
+  return _impl_.position_;
+}
+inline ::Protocol::PositionInfo* MoveEntry::mutable_position() {
+  ::Protocol::PositionInfo* _msg = _internal_mutable_position();
+  // @@protoc_insertion_point(field_mutable:Protocol.MoveEntry.position)
+  return _msg;
+}
+inline void MoveEntry::set_allocated_position(::Protocol::PositionInfo* position) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.position_);
+  }
+  if (position) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(position));
+    if (message_arena != submessage_arena) {
+      position = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, position, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.position_ = position;
+  // @@protoc_insertion_point(field_set_allocated:Protocol.MoveEntry.position)
+}
+
+// int32 target_id = 3;
+inline void MoveEntry::clear_target_id() {
+  _impl_.target_id_ = 0;
+}
+inline int32_t MoveEntry::_internal_target_id() const {
+  return _impl_.target_id_;
+}
+inline int32_t MoveEntry::target_id() const {
+  // @@protoc_insertion_point(field_get:Protocol.MoveEntry.target_id)
+  return _internal_target_id();
+}
+inline void MoveEntry::_internal_set_target_id(int32_t value) {
+  
+  _impl_.target_id_ = value;
+}
+inline void MoveEntry::set_target_id(int32_t value) {
+  _internal_set_target_id(value);
+  // @@protoc_insertion_point(field_set:Protocol.MoveEntry.target_id)
+}
+
+// uint32 move_time = 4;
+inline void MoveEntry::clear_move_time() {
+  _impl_.move_time_ = 0u;
+}
+inline uint32_t MoveEntry::_internal_move_time() const {
+  return _impl_.move_time_;
+}
+inline uint32_t MoveEntry::move_time() const {
+  // @@protoc_insertion_point(field_get:Protocol.MoveEntry.move_time)
+  return _internal_move_time();
+}
+inline void MoveEntry::_internal_set_move_time(uint32_t value) {
+  
+  _impl_.move_time_ = value;
+}
+inline void MoveEntry::set_move_time(uint32_t value) {
+  _internal_set_move_time(value);
+  // @@protoc_insertion_point(field_set:Protocol.MoveEntry.move_time)
+}
+
+// -------------------------------------------------------------------
+
+// SC_MOVE_BATCH_PACKET
+
+// repeated .Protocol.MoveEntry moves = 1;
+inline int SC_MOVE_BATCH_PACKET::_internal_moves_size() const {
+  return _impl_.moves_.size();
+}
+inline int SC_MOVE_BATCH_PACKET::moves_size() const {
+  return _internal_moves_size();
+}
+inline void SC_MOVE_BATCH_PACKET::clear_moves() {
+  _impl_.moves_.Clear();
+}
+inline ::Protocol::MoveEntry* SC_MOVE_BATCH_PACKET::mutable_moves(int index) {
+  // @@protoc_insertion_point(field_mutable:Protocol.SC_MOVE_BATCH_PACKET.moves)
+  return _impl_.moves_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::MoveEntry >*
+SC_MOVE_BATCH_PACKET::mutable_moves() {
+  // @@protoc_insertion_point(field_mutable_list:Protocol.SC_MOVE_BATCH_PACKET.moves)
+  return &_impl_.moves_;
+}
+inline const ::Protocol::MoveEntry& SC_MOVE_BATCH_PACKET::_internal_moves(int index) const {
+  return _impl_.moves_.Get(index);
+}
+inline const ::Protocol::MoveEntry& SC_MOVE_BATCH_PACKET::moves(int index) const {
+  // @@protoc_insertion_point(field_get:Protocol.SC_MOVE_BATCH_PACKET.moves)
+  return _internal_moves(index);
+}
+inline ::Protocol::MoveEntry* SC_MOVE_BATCH_PACKET::_internal_add_moves() {
+  return _impl_.moves_.Add();
+}
+inline ::Protocol::MoveEntry* SC_MOVE_BATCH_PACKET::add_moves() {
+  ::Protocol::MoveEntry* _add = _internal_add_moves();
+  // @@protoc_insertion_point(field_add:Protocol.SC_MOVE_BATCH_PACKET.moves)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::MoveEntry >&
+SC_MOVE_BATCH_PACKET::moves() const {
+  // @@protoc_insertion_point(field_list:Protocol.SC_MOVE_BATCH_PACKET.moves)
+  return _impl_.moves_;
 }
 
 // -------------------------------------------------------------------
@@ -20423,6 +20971,10 @@ inline void SC_KICK_PACKET::set_reason(::Protocol::KickReason value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

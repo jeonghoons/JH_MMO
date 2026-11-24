@@ -13,6 +13,10 @@ public:
 
 	// correctionSeq: 내 캐릭터 보정일 때 서버의 보정 순번(그 외에는 0)
 	static shared_ptr<SendBuffer> MAKE_SC_MOVE_OBJECT(shared_ptr<GameObject> object, uint32_t correctionSeq = 0);
+	// 이동 묶음(P2, D-307). 대상마다 MoveEntry를 한 번만 직렬화해(필드 1의 태그·길이 포함) 수신자별 바이트에 이어 붙이고,
+	// 그 바이트를 그대로 SC_MOVE_BATCH_PACKET 본문으로 쓴다(repeated 필드는 이어 붙인 것이 곧 직렬화 결과).
+	static void AppendMoveEntry(const shared_ptr<GameObject>& object, string& out);
+	static shared_ptr<SendBuffer> MAKE_SC_MOVE_BATCH_RAW(const string& body);
 
 	// seq: 시전자가 보낸 요청 순번(몬스터는 0). 한 버퍼로 AOI 전원에게 가고 시전자 본인만 쓴다 (CP1)
 	static shared_ptr<SendBuffer> MAKE_SC_ATTACK(int attackerId, int skillId, int targetId, float aimYaw, float aimX, float aimY, int cooldownMs, uint32_t seq);

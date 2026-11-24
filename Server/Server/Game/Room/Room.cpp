@@ -723,8 +723,7 @@ void Room::PlayerMove(shared_ptr<Player> player, Protocol::PositionInfo position
 
 	player->SetPosition(position);
 
-	shared_ptr<SendBuffer> playerMoveBuffer = PacketSerializer::MAKE_SC_MOVE_OBJECT(player);
-	BroadcastAOI(static_pointer_cast<Character>(player), playerMoveBuffer);
+	QueueMove(static_pointer_cast<Character>(player));   // 다른 사람에게는 이동 묶음으로(P2, D-307)
 
 	ViewUpdate result = _gameMap.UpdateMap(player->GetId(), player->GetPosition(), player->_viewList);
 
@@ -3732,22 +3731,98 @@ void Room::Broadcast(shared_ptr<SendBuffer> sendBuffer)
 
 void Room::BroadcastAOI(shared_ptr<Character> viewableObj, shared_ptr<SendBuffer> sendBuffer, bool sendToSelf)
 {
+	// 이 대상의 이동이 묶음에서 기다리고 있으면 먼저 보낸다 — 공격·순간이동·피해 같은 패킷이 그 앞의 이동보다 먼저 닿지 않게(P2, D-307)
+	if (!_pendingMoves.empty())
+	{
+		auto it = _pendingMoves.find(viewableObj->GetId());
+		if (it != _pendingMoves.end())
+		{
+			_pendingMoves.erase(it);
+			Metrics::MoveBatchEarly.fetch_add(1);
+			SendToViewers(viewableObj, PacketSerializer::MAKE_SC_MOVE_OBJECT(viewableObj));
+		}
+	}
+
 	if (sendToSelf && viewableObj->GetType() == Protocol::ObjectType::OBJECT_TYPE_PLAYER) {
 		shared_ptr<Player> player = static_pointer_cast<Player>(viewableObj);
 		if (shared_ptr<Session> session = player->GetSession())
 			session->Send(sendBuffer);
 	}
 
+	SendToViewers(viewableObj, sendBuffer);
+}
 
-	vector<int>& currentView = viewableObj->_viewList;
-
-	for (const int& id : currentView) {
+void Room::SendToViewers(const shared_ptr<Character>& viewableObj, const shared_ptr<SendBuffer>& sendBuffer)
+{
+	for (const int& id : viewableObj->_viewList) {
 		shared_ptr<Player> target_player = Id2Player(id);
 		if (target_player == nullptr) continue;
 		if (shared_ptr<Session> session = target_player->GetSession()) {
 			session->Send(sendBuffer);
 		}
 	}
+}
+
+void Room::QueueMove(shared_ptr<Character> obj)
+{
+	if (obj == nullptr) return;
+	if (GServerConfig.moveBatchMs <= 0)
+	{
+		SendToViewers(obj, PacketSerializer::MAKE_SC_MOVE_OBJECT(obj));
+		return;
+	}
+	_pendingMoves[obj->GetId()] = obj;
+	if (!_moveBatchPending)
+	{
+		_moveBatchPending = true;
+		ReserveJob(static_cast<DWORD>(GServerConfig.moveBatchMs), &Room::FlushMoveBatch);
+	}
+}
+
+void Room::FlushMoveBatch()
+{
+	_moveBatchPending = false;
+	if (_pendingMoves.empty()) return;
+
+	// 대상마다 MoveEntry를 한 번 직렬화해 시야 안 수신자별 바이트에 붙인다. 한 패킷은 약 4KB에서 끊는다(양쪽 최대 8KB).
+	constexpr size_t MAX_BATCH_BODY = 4000;
+	unordered_map<int, string> perReceiver;
+	string entry;
+	int sentPackets = 0, sentEntries = 0;
+	auto sendBody = [&](int receiverId, string& body) {
+		if (body.empty()) return;
+		if (shared_ptr<Player> receiver = Id2Player(receiverId))
+			if (shared_ptr<Session> session = receiver->GetSession())
+			{
+				session->Send(PacketSerializer::MAKE_SC_MOVE_BATCH_RAW(body));
+				++sentPackets;
+			}
+		body.clear();
+	};
+
+	for (auto& [id, weakObj] : _pendingMoves)
+	{
+		shared_ptr<Character> obj = weakObj.lock();
+		if (obj == nullptr || GetGameObject(id) == nullptr) continue;   // 그 사이 방을 떠났거나 사라짐
+		if (obj->_viewList.empty()) continue;
+		entry.clear();
+		PacketSerializer::AppendMoveEntry(obj, entry);
+		for (const int receiverId : obj->_viewList)
+		{
+			if (Id2Player(receiverId) == nullptr) continue;   // 시야 목록에는 몬스터도 있다
+			string& body = perReceiver[receiverId];
+			if (body.size() + entry.size() > MAX_BATCH_BODY) sendBody(receiverId, body);
+			body += entry;
+			++sentEntries;
+		}
+	}
+	_pendingMoves.clear();
+
+	for (auto& [receiverId, body] : perReceiver)
+		sendBody(receiverId, body);
+
+	Metrics::MoveBatchPackets.fetch_add(sentPackets);
+	Metrics::MoveBatchEntries.fetch_add(sentEntries);
 }
 
 void Room::PlayerChat(shared_ptr<Player> player, wstring msg)
