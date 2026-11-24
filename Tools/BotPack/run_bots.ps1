@@ -4,7 +4,8 @@
 # 사용: powershell -ExecutionPolicy Bypass -File run_bots.ps1 [-ServerIp 1.2.3.4] [-Stages smoke,s1000_1,...]
 #       IP를 주지 않으면 server_ip.txt에서 읽고, 없으면 물어본다(server_ip.txt는 커밋하지 않음 — .gitignore).
 # A5.4d 재측정(D-306): 단계 이름 앞에 "d_"를 붙이면(d_s1000_1 등) 같은 정의로 돌고 결과는 results\d_<단계>\, 환경은 results\env_d.txt
-#       — A5.4c 결과를 덮어쓰지 않는다. 사용: .\run_bots.ps1 -Stages d_smoke,d_s1000_1,d_s1000_2,d_s2500_1,d_s2500_2,d_s5000_1,d_s5000_2
+#       — A5.4c 결과를 덮어쓰지 않는다. 사용: powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\run_bots.ps1 -Stages d_smoke,d_s1000_1,..."
+#       (-File로 넘기면 쉼표 목록이 배열로 나뉘지 않는다)
 param(
     [string]$ServerIp = "",
     [string[]]$Stages = @("smoke", "s1000_1", "s1000_2", "s2500_1", "s2500_2", "s5000_1", "s5000_2"),

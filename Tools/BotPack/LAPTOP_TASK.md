@@ -3,7 +3,8 @@
 ## A5.4d 재측정 (2026-11-24 추가 — 지금 할 일은 이것)
 서버에 P2 이동 묶음(새 패킷 `SC_MOVE_BATCH`, D-307)이 들어가 같은 단계를 다시 잽니다. 아래 "순서"를 그대로 따르되 **다른 점만**:
 - `LoadTest.exe`가 새 빌드입니다(묶음 패킷을 읽음) — 반드시 pull한 뒤 실행합니다. 3번 사전 확인의 `--help` 첫 줄에 `--profile ... turn` 등이 보이면 됩니다.
-- 실행: `powershell -NoProfile -ExecutionPolicy Bypass -File .\run_bots.ps1 -Stages d_smoke,d_s1000_1,d_s1000_2,d_s2500_1,d_s2500_2,d_s5000_1,d_s5000_2`
+- 실행: `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\run_bots.ps1 -Stages d_smoke,d_s1000_1,d_s1000_2,d_s2500_1,d_s2500_2,d_s5000_1,d_s5000_2"`
+  (`-File`로 넘기면 쉼표 목록이 배열로 나뉘지 않아 "모르는 단계"로 바로 끝남 — 2026-11-24 노트북 Claude 확인)
   (`RunBots.bat`은 A5.4c 단계를 돌리므로 쓰지 않습니다.) 결과는 `results\d_<단계>\`, 환경은 `results\env_d.txt`에 생기고 A5.4c 결과는 그대로 남습니다.
 - 정리 파일은 `results\status_d.md`(같은 형식)로 만듭니다 — `status.md`는 고치지 않습니다.
 - 커밋 메시지: `측정: A5.4d 노트북 봇 결과(<끝낸 단계 목록>)`.
