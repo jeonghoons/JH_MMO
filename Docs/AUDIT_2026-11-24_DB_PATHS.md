@@ -66,3 +66,9 @@
 - **S3 orphan 결과에서도 옛 Room 잡이 `Player` 필드를 만짐(설계상 0건)** — `CheckDbResultOwner`가 접속을 끊은 뒤에도 저장 상태를 끄고 재요청하는 코드가 이어 돕니다. 소유 Room 규칙과 다르지만 이동 전 `HasUnfinishedWork` 검사 두 번이 막아 정상 경로에서는 일어나지 않음.
 - **S4 진단 로그에 `questSave`가 빠짐(동작 영향 없음)** — 이동 취소 로그가 `itemOp`·`progressSave`·`quickSlotSave`만 출력.
 - **S5 거래 상대 B의 `itemOp`는 지표에 안 잡힘(지표만)** — B는 `inFlight`만 켜고 `Metrics::ItemOpInFlight`를 올리지 않아 거래 중 `itemOp inflight`가 1 작게 보임.
+
+## 처리 (2026-11-24 사용자 결정)
+
+- A1: 고치지 않고 ROADMAP 백로그 "그 밖"에 적음.
+- S2: 의도된 예외로 `Server/CLAUDE.md` "경매장"에 한 줄 적음.
+- S1·S3·S4·S5: 이 문서에만 남김.
